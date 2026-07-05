@@ -3,7 +3,7 @@
 // Pure DOM — no libraries.
 
 import { createBoard } from './boards/index.ts';
-import { KeyboardInput, type FieldBinding, type DipDefault } from './input.ts';
+import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig } from './types.ts';
@@ -28,7 +28,7 @@ export interface ShellConfig {
   roms: RomRegionSpec[];
   bindings: FieldBinding[];
   dipDefaults: DipDefault[];
-  ports: string[];
+  ports: PortSpec[];
   /** url of the zip to try first (e.g. "/roms/galaga.zip") */
   romUrl: string;
   /** base url of the compiled runtime dir (for worklet modules) */
@@ -39,6 +39,15 @@ export interface ShellConfig {
 
 export async function runShell(cfg: ShellConfig): Promise<void> {
   const ui = buildDom(cfg);
+
+  // Esc: back to the boot menu (registered first + capture so a single press
+  // always works, at any stage of loading), saving a box-art snapshot
+  addEventListener('keydown', ev => {
+    if (ev.code !== 'Escape') return;
+    ev.preventDefault();
+    ui.saveSnapshot(cfg.game);
+    location.href = cfg.menuUrl ?? './';
+  }, { capture: true });
 
   // --- ROM acquisition -------------------------------------------------------
   let files: Map<string, Uint8Array> | null = null;
@@ -56,7 +65,9 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
 
   // --- machine ----------------------------------------------------------------
   const input = new KeyboardInput(cfg.bindings, cfg.dipDefaults, cfg.ports);
+  input.debug = new URLSearchParams(location.search).has('debug');
   input.attach(window);
+  if (input.debug) console.log('[input] debug on — bindings:', cfg.bindings, 'ports:', cfg.ports);
 
   const audio = new AudioOutput();
   const board = createBoard(cfg.board, regions, input, {
@@ -66,6 +77,9 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
   const image = new ImageData(
     new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
+
+  // debug/testing handle (also the hook for the future live KG-viewer overlay)
+  (window as unknown as Record<string, unknown>).mame2js = { board, input, config: cfg };
 
   ui.status('Ready — click or press any key to start');
   await userGesture(ui);
@@ -88,13 +102,6 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
     }
   }
   ui.overlayHide();
-
-  // Esc: capture a box-art snapshot for the boot menu, then go back to it
-  addEventListener('keydown', ev => {
-    if (ev.code !== 'Escape') return;
-    ui.saveSnapshot(cfg.game);
-    location.href = cfg.menuUrl ?? '/';
-  });
 
   // --- run loop: fixed timestep at the board's refresh rate --------------------
   const refresh = cfg.board.screen.refresh;
@@ -121,6 +128,7 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
       const parts = [`${frames} fps`, `pc=${hex4(snap.cpus[0].pc)}`];
       if (snap.cpus.length > 1) parts.push(`sub=${snap.cpus[1].held ? 'held' : hex4(snap.cpus[1].pc)}`);
       if (snap.credits !== undefined) parts.push(`credits=${snap.credits}`);
+      if (input.debug) parts.push(input.dump());
       ui.status(`${cfg.title} — ${parts.join(' · ')}`);
       frames = 0;
       fpsWindowStart = now;
@@ -196,8 +204,14 @@ function buildDom(cfg: ShellConfig) {
   holder.style.cssText = 'position:relative';
   const canvas = document.createElement('canvas');
   canvas.width = dispW; canvas.height = dispH;
-  const displayScale = Math.max(1, Math.floor((innerHeight - 120) / dispH));
-  canvas.style.cssText = `width:${dispW * displayScale}px;height:${dispH * displayScale}px;image-rendering:pixelated;background:#000`;
+  canvas.style.cssText = 'image-rendering:pixelated;background:#000';
+  const fit = () => {
+    const displayScale = Math.max(1, Math.floor((innerHeight - 120) / dispH));
+    canvas.style.width = `${dispW * displayScale}px`;
+    canvas.style.height = `${dispH * displayScale}px`;
+  };
+  fit();
+  addEventListener('resize', fit);
   holder.appendChild(canvas);
   root.appendChild(holder);
 
@@ -213,7 +227,7 @@ function buildDom(cfg: ShellConfig) {
 
   const help = document.createElement('div');
   help.style.cssText = 'color:#666';
-  help.textContent = 'Arrows: move · Ctrl/Space: fire · 5: coin · 1: start 1P · 2: start 2P · Esc: menu';
+  help.textContent = 'Arrows: move · Space or X: fire (avoid Ctrl on macOS — the OS grabs Ctrl+arrows) · 5: coin · 1: start 1P · 2: start 2P · Esc: menu';
   root.appendChild(help);
 
   const ctx = canvas.getContext('2d')!;

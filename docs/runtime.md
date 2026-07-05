@@ -122,6 +122,38 @@ it (ES module import).
   latched at `vblank()`, LFSR advances during `draw()` (pre-visible → visible
   → post-visible), matching MAME's split.
 
+## Galaxian sound — `galaxian-sound.ts` + `galaxian-worklet.ts`
+
+`GalaxianSound` (SoundCore), ported from classic MAME 0.121 audio/galaxian.c
+with register semantics cross-checked against modern galaxian_a.cpp. Native
+rate clock/32 (96 kHz @ 3.072 MHz). Register space (board contract):
+0x00-0x07 = sound_w latch (0-2 background voice enables, 3 HIT/noise,
+5 FIRE, 6-7 volume bits), 0x10-0x13 = lfo_freq_w, 0x20 = pitch_w.
+Background hum = 3 square voices from the pitch counter + LFO sweep; shoot =
+NE555 swept "pew" one-shot; explosion = 17-bit RNG noise through a decay
+envelope + ~400 Hz low-pass. Master gain 0.75 baked in; shell volume 1.0.
+
+## Pacman video/board — `video/pacman.ts`, `boards/pacman.ts`
+
+Single Z80 @ 3.072 MHz; io-space Bus for the IM2 vector write (port 0,
+global_mask from the graph); vblank IRQ at vbstart with HOLD_LINE modeled by
+instruction-stepping until acceptance; mainlatch Q0 irq enable, Q1 sound
+enable (volume-gated in the board), Q3 flip, Q7 coin counter. Video: native
+288×224, pacman_scan_rows 28×36 tilemap (injectivity-tested), 8 sprites with
+the 272−x / y−31 origin + first-three-sprites x-offset quirk, palette from
+the 0x20 PROM through the 0x100 LUT, sprite transparency = LUT nibble 0.
+
+## Galaxian video/board — `video/galaxian.ts`, `boards/galaxian.ts`
+
+Single Z80 @ 3.072 MHz, **active-high inputs** (see gotcha 0), NMI on vblank
+gated by irq_enable_w. Video: native 256×224; 32×32 tilemap with per-column
+scroll/color from objram 0x00-0x3f; 8 sprites at 0x40-0x5f (sprites 0-2 one
+pixel lower, line-buffer clip); bullets at 0x60-0x7f (white shells + yellow
+missile); the original 17-bit-LFSR starfield (feedback bit12^~bit0, enable
+mask 0x1fe01==0x1fe00, −1 px/frame scroll) — an 05xx ancestor but NOT the
+same LFSR as starfield05xx.ts. Palette: 32-entry PROM via resnet weights,
+star colors from the {0,194,214,255} map.
+
 ## Board — `boards/galaga.ts`
 
 Composition + interrupt wiring (hand-transpiled from galaga.cpp):

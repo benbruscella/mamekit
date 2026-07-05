@@ -24,8 +24,10 @@ const KEYMAP: Record<string, string[]> = {
   IPT_JOYSTICK_RIGHT: ['ArrowRight'],
   IPT_JOYSTICK_UP: ['ArrowUp'],
   IPT_JOYSTICK_DOWN: ['ArrowDown'],
-  IPT_BUTTON1: ['ControlLeft', 'Space'],
-  IPT_BUTTON2: ['AltLeft'],
+  // NOTE: Ctrl is deliberately NOT first — macOS eats Ctrl+Arrow (Mission
+  // Control), which kills left/right movement while firing
+  IPT_BUTTON1: ['Space', 'KeyX', 'ControlLeft'],
+  IPT_BUTTON2: ['KeyZ', 'AltLeft'],
   IPT_START1: ['Digit1'],
   IPT_START2: ['Digit2'],
   IPT_COIN1: ['Digit5'],
@@ -199,31 +201,38 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   }));
 
   // --- inputs -----------------------------------------------------------------------
+  // Port polarity comes from the graph per field: galaga/pacman inputs are
+  // active-low, galaxian's are active-HIGH (coin bit 0 at rest) — the resting
+  // ("init") byte must be computed per port or galaxian sees a stuck coin switch.
   const ports = g.out(inputs.id, 'HAS_PORT').map(p => p.node);
-  const portTags = ports.map(p => String(p.props.tag));
+  const portSpecs: { tag: string; init: number }[] = [];
   const bindings: unknown[] = [];
   const dipDefaults: unknown[] = [];
   for (const port of ports) {
     const tag = String(port.props.tag);
+    let init = 0;
     for (const { node: f } of g.out(port.id, 'HAS_FIELD')) {
       const kind = f.props.kind;
+      const mask = Number(f.props.mask);
+      const activeLow = f.props.activeLow !== false; // default LOW (classic hardware)
       if (kind === 'dip') {
-        dipDefaults.push({
-          port: tag,
-          mask: Number(f.props.mask),
-          value: Number(f.props.defaultValue ?? f.props.mask), // unused dips default to off (active low)
-          name: String(f.props.name ?? ''),
-        });
+        const value = Number(f.props.defaultValue ?? mask); // unused dips default to off (active low)
+        init = (init & ~mask) | (value & mask);
+        dipDefaults.push({ port: tag, mask, value, name: String(f.props.name ?? '') });
       } else if (kind === 'service') {
-        dipDefaults.push({ port: tag, mask: Number(f.props.mask), value: Number(f.props.mask), name: 'Service Mode' });
+        // service switch at rest = released
+        if (activeLow) init |= mask;
+        dipDefaults.push({ port: tag, mask, value: activeLow ? mask : 0, name: 'Service Mode' });
       } else if (kind === 'bit') {
+        if (activeLow) init |= mask; // released = bit set; active-high released = bit clear
         const type = String(f.props.type ?? '');
         const mods = (f.props.modifiers as string[] | undefined) ?? [];
         if (mods.includes('PORT_COCKTAIL')) continue; // player-2 cocktail path: unbound
         const keys = KEYMAP[type];
-        if (keys) bindings.push({ port: tag, mask: Number(f.props.mask), keys, label: type });
+        if (keys) bindings.push({ port: tag, mask, keys, label: type, activeLow });
       }
     }
+    portSpecs.push({ tag, init });
   }
 
   // --- emit ---------------------------------------------------------------------------
@@ -239,10 +248,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     roms,
     bindings,
     dipDefaults,
-    ports: portTags,
+    ports: portSpecs,
     romUrl: `/roms/${opts.game}.zip`,
     runtimeUrl: './dist/runtime/',
-    menuUrl: '/',
+    menuUrl: './',
   };
 
   // per-game metadata for the boot menu manifest

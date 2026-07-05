@@ -25,16 +25,17 @@ Prioritized. Each item has enough context to start cold. Check
 4. **`--from-graph` mode**: regenerate the app from a committed
    `graphs/<game>.json` snapshot without any MAME checkout (~20 CLI lines).
    Commit the galaga snapshot. Makes cloned repos self-sufficient.
-5. **Games #2/#3: Galaxian + Pac-Man** — tracked with gap analysis in
-   **issue #1**, along with the **boot menu** (canvas game-select, attract
-   aesthetic) and **Esc back-to-menu** in the shell. Playbook:
-   [adding-a-game.md](adding-a-game.md).
+5. ~~Games #2/#3: Galaxian + Pac-Man + boot menu + Esc~~ **shipped**
+   (issue #1, 2026-07-05): unified app, shelf menu w/ artwork covers +
+   search, galaxian plays; pacman boots/coins but the post-start timed-task
+   stall is under investigation — see issue #1 thread.
 6. **Live-state KG viewer overlay** (the "instrument panel" idea the user
    loved): viewer connects to the running emulator (BroadcastChannel or
    WebSocket through serve.ts), `board.snapshot()` + `board.shares` already
-   expose the data. Click Z80 node → live pc/regs (+ tiny disassembler);
-   videoram range → live tilemap dump; edge activity by bus traffic counts
-   (add per-range counters to Bus behind a debug flag).
+   expose the data (`window.mame2js` debug handle exists). Click Z80 node →
+   live pc/regs (+ tiny disassembler); videoram range → live tilemap dump;
+   edge activity by bus traffic counts (add per-range counters to Bus
+   behind a debug flag).
 
 ## P2 — educational features (user is enthusiastic)
 
@@ -74,8 +75,9 @@ Prioritized. Each item has enough context to start cold. Check
 20. **Bundle option**: single-file app output (inline modules) for easy
     hosting; keep the no-bundler default.
 21. **PORT_INCLUDE resolution** in the parser (galagamw etc. clone inputs).
-22. **Parser hardening**: ROM_CONTINUE/ROM_FILL, io_map (Z80 IO space —
-    pacman needs `in/out`, Bus currently stubs them open-bus).
+22. **Parser hardening**: ROM_CONTINUE/ROM_FILL.
+23. **Menu polish**: gamepad navigation, per-shelf grouping (by decade/maker),
+    localStorage snapshot management UI.
 
 ## Done (for orientation)
 
@@ -84,3 +86,10 @@ Prioritized. Each item has enough context to start cold. Check
 - Generator + shell + zip(CRC match) + serve
 - Galaga verified playing in-browser at 60fps
 - Repo split to github.com/benbruscella/mame2js, symlink at <mame>/mame2js
+- Issue #1 (2026-07-05): unified app (out/app + per-game config.json),
+  Blockbuster-shelf boot menu (artwork/snapshot/tile covers + search),
+  Esc-to-menu, galaxian board/video/sound (plays in-browser), pacman
+  board/video (boots; start-stall under debug), parser support for modern
+  constexpr/XTAL/portr/map+config composition/GFXDECODE_SCALE/io maps,
+  per-field input polarity from the graph, SOCD input cleaning, bus mirror
+  offset fix
