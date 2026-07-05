@@ -1,0 +1,20 @@
+{
+  "name": "mame2js",
+  "version": "0.1.0",
+  "description": "Knowledge-graph-first transpiler: MAME driver source -> runnable browser (canvas) emulator app",
+  "type": "module",
+  "bin": {
+    "mame2js": "bin/mame2js.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "galaga": "node bin/mame2js.js galaga"
+  },
+  "engines": {
+    "node": ">=23.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.0"
+  }
+}

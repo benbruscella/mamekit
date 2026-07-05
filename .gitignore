@@ -1,0 +1,7 @@
+# ROMs are copyrighted — never commit them
+/roms/
+
+/node_modules/
+/out/
+/dist/
+.DS_Store

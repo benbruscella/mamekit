@@ -1,0 +1,231 @@
+// Browser shell: ROM loading, canvas presentation (with screen rotation),
+// keyboard input, audio bring-up, and the fixed-timestep run loop.
+// Pure DOM — no libraries.
+
+import { GalagaBoard, type BoardConfig } from './boards/galaga.ts';
+import { KeyboardInput, type FieldBinding, type DipDefault } from './input.ts';
+import { AudioOutput } from './audio.ts';
+import { readZip, crc32 } from './zip.ts';
+import type { Regions } from './types.ts';
+
+export interface RomLoad { file: string; offset: number; size: number; crc: string; reloadOffsets?: number[] }
+export interface RomRegionSpec { region: string; size: number; loads: RomLoad[] }
+
+export interface ShellConfig {
+  game: string;
+  title: string;
+  board: BoardConfig;
+  roms: RomRegionSpec[];
+  bindings: FieldBinding[];
+  dipDefaults: DipDefault[];
+  ports: string[];
+  /** url of the zip to try first (e.g. "/roms/galaga.zip") */
+  romUrl: string;
+  workletUrl: string;
+}
+
+export async function runShell(cfg: ShellConfig): Promise<void> {
+  const ui = buildDom(cfg);
+
+  // --- ROM acquisition -------------------------------------------------------
+  let files: Map<string, Uint8Array> | null = null;
+  try {
+    const res = await fetch(cfg.romUrl);
+    if (res.ok) files = await readZip(new Uint8Array(await res.arrayBuffer()));
+  } catch { /* fall through to manual load */ }
+
+  if (!files) {
+    ui.status(`Drop ${cfg.game}.zip here (or click to pick). ROMs are not distributed with mame2js.`);
+    files = await waitForZip(ui);
+  }
+
+  const regions = assembleRegions(cfg.roms, files, ui.status);
+
+  // --- machine ----------------------------------------------------------------
+  const input = new KeyboardInput(cfg.bindings, cfg.dipDefaults, cfg.ports);
+  input.attach(window);
+
+  const audio = new AudioOutput();
+  const board = new GalagaBoard(cfg.board, regions, input, {
+    wsgWrite: (offset, data) => audio.write(offset, data),
+  });
+
+  const fb = new Uint32Array(board.fbWidth * board.fbHeight);
+  const image = new ImageData(
+    new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
+
+  ui.status('Ready — click or press any key to start');
+  await userGesture(ui);
+  try {
+    await audio.start({ sampleRate: cfg.board.clocks.wsg, waveRom: regions['namco'] }, cfg.workletUrl);
+    audio.setVolume(0.5625); // MAME route gain 0.90 * 10/16
+  } catch (err) {
+    console.warn('audio unavailable:', err);
+  }
+  ui.overlayHide();
+
+  // --- run loop: fixed timestep at the board's refresh rate --------------------
+  const refresh = cfg.board.screen.refresh;
+  const frameMs = 1000 / refresh;
+  let acc = 0;
+  let last = performance.now();
+  let frames = 0;
+  let fpsWindowStart = last;
+
+  const tick = (now: number) => {
+    acc += now - last;
+    last = now;
+    if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause
+    let ran = false;
+    while (acc >= frameMs) {
+      board.frame(fb);
+      acc -= frameMs;
+      ran = true;
+      frames++;
+    }
+    if (ran) ui.blit(image);
+    if (now - fpsWindowStart >= 1000) {
+      const snap = board.snapshot();
+      ui.status(`${cfg.title} — ${frames} fps · main pc=${hex4(snap.cpus[0].pc)} sub=${snap.cpus[1].held ? 'held' : hex4(snap.cpus[1].pc)} credits=${snap.namco51.credits}`);
+      frames = 0;
+      fpsWindowStart = now;
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+function hex4(v: number): string { return v.toString(16).padStart(4, '0'); }
+
+// ---------------------------------------------------------------------------
+
+function assembleRegions(
+  specs: RomRegionSpec[],
+  files: Map<string, Uint8Array>,
+  status: (s: string) => void,
+): Regions {
+  // index by CRC too: romset file names drift across MAME versions
+  // (gg1-1b.3p vs gg1_1b.3p), but the bytes are the identity
+  const byCrc = new Map<number, Uint8Array>();
+  for (const bytes of files.values()) byCrc.set(crc32(bytes), bytes);
+
+  const regions: Regions = {};
+  const missing: string[] = [];
+  for (const spec of specs) {
+    const bytes = new Uint8Array(spec.size);
+    for (const load of spec.loads) {
+      const expected = parseInt(load.crc, 16) >>> 0;
+      // exact name, then name with -/_ swapped, then CRC match
+      const f = files.get(load.file.toLowerCase())
+        ?? files.get(load.file.toLowerCase().replace(/_/g, '-'))
+        ?? byCrc.get(expected);
+      if (!f) { missing.push(load.file); continue; }
+      if (crc32(f) !== expected) {
+        console.warn(`CRC mismatch for ${load.file} (got ${crc32(f).toString(16)}, want ${load.crc}) — continuing`);
+      }
+      bytes.set(f.subarray(0, load.size), load.offset);
+      for (const ro of load.reloadOffsets ?? []) bytes.set(f.subarray(0, load.size), ro);
+    }
+    regions[spec.region] = bytes;
+  }
+  if (missing.length) {
+    status(`Missing ROM files: ${missing.join(', ')}`);
+    throw new Error(`missing rom files: ${missing.join(', ')}`);
+  }
+  return regions;
+}
+
+// ---------------------------------------------------------------------------
+
+function buildDom(cfg: ShellConfig) {
+  document.title = cfg.title;
+  const root = document.createElement('div');
+  root.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px;min-height:100vh;box-sizing:border-box;background:#111;color:#ddd;font:13px ui-sans-serif,system-ui';
+  document.body.style.margin = '0';
+  document.body.appendChild(root);
+
+  const h1 = document.createElement('h1');
+  h1.textContent = cfg.title;
+  h1.style.cssText = 'font-size:15px;font-weight:600;margin:0';
+  root.appendChild(h1);
+
+  // native frame is rendered landscape; the cabinet monitor is rotated (ROT90)
+  const rotated = cfg.board.screen.rotate === 90 || cfg.board.screen.rotate === 270;
+  const w = cfg.board.screen.width, h = cfg.board.screen.height;
+  const dispW = rotated ? h : w, dispH = rotated ? w : h;
+
+  const holder = document.createElement('div');
+  holder.style.cssText = 'position:relative';
+  const canvas = document.createElement('canvas');
+  canvas.width = dispW; canvas.height = dispH;
+  const displayScale = Math.max(1, Math.floor((innerHeight - 120) / dispH));
+  canvas.style.cssText = `width:${dispW * displayScale}px;height:${dispH * displayScale}px;image-rendering:pixelated;background:#000`;
+  holder.appendChild(canvas);
+  root.appendChild(holder);
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;background:rgba(0,0,0,.75);color:#fff;cursor:pointer;padding:20px';
+  overlay.textContent = 'Loading…';
+  holder.appendChild(overlay);
+
+  const statusEl = document.createElement('div');
+  statusEl.style.cssText = 'color:#999;min-height:1.4em;max-width:640px;text-align:center';
+  statusEl.textContent = 'Loading…';
+  root.appendChild(statusEl);
+
+  const help = document.createElement('div');
+  help.style.cssText = 'color:#666';
+  help.textContent = 'Arrows: move · Ctrl/Space: fire · 5: coin · 1: start 1P · 2: start 2P';
+  root.appendChild(help);
+
+  const ctx = canvas.getContext('2d')!;
+  ctx.imageSmoothingEnabled = false;
+  const off = document.createElement('canvas');
+  off.width = w; off.height = h;
+  const offCtx = off.getContext('2d')!;
+
+  return {
+    overlay,
+    status: (text: string) => { statusEl.textContent = text; if (overlay.style.display !== 'none') overlay.textContent = text; },
+    overlayHide: () => { overlay.style.display = 'none'; },
+    blit: (image: ImageData) => {
+      offCtx.putImageData(image, 0, 0);
+      ctx.save();
+      if (rotated) {
+        // ROT90: rotate the native landscape frame clockwise onto the portrait canvas
+        ctx.translate(dispW, 0);
+        ctx.rotate(Math.PI / 2);
+      }
+      ctx.drawImage(off, 0, 0);
+      ctx.restore();
+    },
+  };
+}
+
+function waitForZip(ui: ReturnType<typeof buildDom>): Promise<Map<string, Uint8Array>> {
+  return new Promise((resolve, reject) => {
+    const pick = document.createElement('input');
+    pick.type = 'file';
+    pick.accept = '.zip';
+    const handle = async (file: File) => {
+      try { resolve(await readZip(new Uint8Array(await file.arrayBuffer()))); }
+      catch (err) { reject(err); }
+    };
+    pick.addEventListener('change', () => { if (pick.files?.[0]) void handle(pick.files[0]); });
+    ui.overlay.addEventListener('click', () => pick.click());
+    addEventListener('dragover', ev => ev.preventDefault());
+    addEventListener('drop', ev => {
+      ev.preventDefault();
+      const f = ev.dataTransfer?.files?.[0];
+      if (f) void handle(f);
+    });
+  });
+}
+
+function userGesture(ui: ReturnType<typeof buildDom>): Promise<void> {
+  return new Promise(resolve => {
+    const done = () => { removeEventListener('keydown', done); ui.overlay.removeEventListener('click', done); resolve(); };
+    ui.overlay.addEventListener('click', done);
+    addEventListener('keydown', done);
+  });
+}
