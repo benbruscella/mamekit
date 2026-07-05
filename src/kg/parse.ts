@@ -589,7 +589,7 @@ export function parseInputPorts(src: string): InputPortsDef[] {
     const body = m[2];
     let port: PortDef | null = null;
     let dip: PortFieldDef | null = null;
-    const tokRe = /(PORT_START|PORT_MODIFY|PORT_INCLUDE|PORT_BIT|PORT_DIPNAME|PORT_DIPSETTING|PORT_SERVICE|PORT_DIPLOCATION|PORT_DIPUNUSED_DIPLOC|PORT_CONDITION)\s*\(/g;
+    const tokRe = /(PORT_START|PORT_MODIFY|PORT_INCLUDE|PORT_BIT|PORT_DIPNAME|PORT_DIPSETTING|PORT_SERVICE|PORT_DIPLOCATION|PORT_DIPUNUSED_DIPLOC|PORT_CONDITION|PORT_CONFNAME|PORT_CONFSETTING)\s*\(/g;
     let tm: RegExpExecArray | null;
     while ((tm = tokRe.exec(body)) !== null) {
       const open = body.indexOf('(', tm.index + tm[1].length - 1);
@@ -620,6 +620,7 @@ export function parseInputPorts(src: string): InputPortsDef[] {
           dip = null;
           break;
         }
+        case 'PORT_CONFNAME': // configuration switches are dip-identical in semantics
         case 'PORT_DIPNAME': {
           if (!port) break;
           dip = {
@@ -638,6 +639,7 @@ export function parseInputPorts(src: string): InputPortsDef[] {
           dip = null;
           break;
         }
+        case 'PORT_CONFSETTING':
         case 'PORT_DIPSETTING': {
           if (!dip?.settings) break;
           const cond = /PORT_CONDITION\(([^)]*)\)/.exec(trailing);

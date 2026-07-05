@@ -1,5 +1,5 @@
 // Galaga board: 3x Z80 on a shared memory map, LS259 latches, Namco 06xx bus
-// interface with 51xx (I/O) and 54xx (noise, stubbed) customs, WSG sound,
+// interface with 51xx (I/O) and 54xx (noise, HLE in namco54.ts) customs, WSG sound,
 // tile/sprite/starfield video. Wiring facts (clocks, ranges, screen) come from
 // the generated config; behavior here is hand-transpiled from
 // src/mame/namco/galaga.cpp.
@@ -71,7 +71,10 @@ export class GalagaBoard implements Board {
       { read: () => this.n51.read(), write: d => this.n51.write(d), chipSelect: () => { /* level tracked in Namco06 */ } },
       null,
       null,
-      { write: () => { /* 54xx noise generator: not yet implemented */ } },
+      // 54xx noise generator: the command byte stream is forwarded to the
+      // audio worklet on sound-offset 0x40 (offsets 0x00-0x1f are WSG
+      // registers; >= 0x40 is the 54xx command channel — see wsg-worklet.ts).
+      { write: d => sinks.soundWrite(0x40, d) },
     ]);
 
     this.misclatch.onQ(0, s => {

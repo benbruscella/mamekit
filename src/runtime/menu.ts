@@ -10,6 +10,7 @@
 
 import { readZip, crc32 } from './zip.ts';
 import { decodeGfx, type GfxLayout } from './gfx.ts';
+import { loadArtwork } from './artwork.ts';
 
 interface GameEntry {
   game: string;
@@ -208,29 +209,21 @@ export async function runMenu(): Promise<void> {
   }
 
   /**
-   * Cover from the MAME artwork zip: prefer marquee, then upright bezel, then
-   * largest PNG. Bezels have a transparent window where the CRT sits — fill
-   * it with the game's attract-mode snapshot (saved by the shell while
-   * playing), falling back to decoded tile art, before drawing the bezel on top.
+   * Cover from the MAME artwork zip (see artwork.ts). Bezels have a
+   * transparent window where the CRT sits — fill it with the game's
+   * attract-mode snapshot (saved by the shell while playing), falling back
+   * to decoded tile art, before drawing the bezel on top.
    */
   async function paintArtwork(entry: GameEntry, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Promise<boolean> {
     try {
-      const res = await fetch(`/artwork/${encodeURIComponent(entry.game)}.zip`);
-      if (!res.ok) return false;
-      const files = await readZip(new Uint8Array(await res.arrayBuffer()));
-      const pngs = [...files.entries()].filter(([n]) => n.endsWith('.png'));
-      if (!pngs.length) return false;
-      const score = (n: string) =>
-        n.includes('marquee') ? 4 : n.includes('bezel') && n.includes('upright') ? 3 : n.includes('bezel') ? 2 : 1;
-      pngs.sort((a, b) => score(b[0]) - score(a[0]) || b[1].length - a[1].length);
-      const bmp = await createImageBitmap(new Blob([pngs[0][1].slice().buffer], { type: 'image/png' }));
+      const art = await loadArtwork(entry.game, 'marquee');
+      if (!art) return false;
+      const { bmp, window: win } = art;
 
       // cover-crop transform bezel -> box
       const s = Math.max(canvas.width / bmp.width, canvas.height / bmp.height);
       const dx = (canvas.width - bmp.width * s) / 2, dy = (canvas.height - bmp.height * s) / 2;
 
-      // find the CRT window: flood from the bezel center over transparent pixels
-      const win = findWindow(bmp);
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       if (win) {
@@ -268,36 +261,6 @@ export async function runMenu(): Promise<void> {
       img.onerror = () => res(null);
       img.src = snap;
     });
-  }
-
-  /** Bounding box of the transparent CRT cut-out, found by flood fill from the center. */
-  function findWindow(bmp: ImageBitmap): { x: number; y: number; w: number; h: number } | null {
-    const scale = Math.min(1, 320 / Math.max(bmp.width, bmp.height));
-    const w = Math.max(1, Math.round(bmp.width * scale)), h = Math.max(1, Math.round(bmp.height * scale));
-    const probe = document.createElement('canvas');
-    probe.width = w; probe.height = h;
-    const pctx = probe.getContext('2d', { willReadFrequently: true })!;
-    pctx.drawImage(bmp, 0, 0, w, h);
-    const alpha = pctx.getImageData(0, 0, w, h).data;
-    const clear = (x: number, y: number) => alpha[(y * w + x) * 4 + 3] < 16;
-    const cx = w >> 1, cy = h >> 1;
-    if (!clear(cx, cy)) return null; // center is painted — no window (marquee art etc.)
-    const seen = new Uint8Array(w * h);
-    const stack = [cy * w + cx];
-    seen[stack[0]] = 1;
-    let minX = cx, maxX = cx, minY = cy, maxY = cy;
-    while (stack.length) {
-      const p = stack.pop()!;
-      const x = p % w, y = (p / w) | 0;
-      if (x < minX) minX = x; if (x > maxX) maxX = x;
-      if (y < minY) minY = y; if (y > maxY) maxY = y;
-      for (const [nx, ny] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]] as const) {
-        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
-        const np = ny * w + nx;
-        if (!seen[np] && clear(nx, ny)) { seen[np] = 1; stack.push(np); }
-      }
-    }
-    return { x: minX / scale, y: minY / scale, w: (maxX - minX + 1) / scale, h: (maxY - minY + 1) / scale };
   }
 
   async function paintTileArt(entry: GameEntry, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Promise<boolean> {

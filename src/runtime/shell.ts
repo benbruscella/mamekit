@@ -3,6 +3,7 @@
 // Pure DOM — no libraries.
 
 import { createBoard } from './boards/index.ts';
+import { loadArtwork, type ArtWindow } from './artwork.ts';
 import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
@@ -39,6 +40,11 @@ export interface ShellConfig {
 
 export async function runShell(cfg: ShellConfig): Promise<void> {
   const ui = buildDom(cfg);
+
+  // cabinet bezel surround: play inside the real artwork's CRT window
+  void loadArtwork(cfg.game, 'bezel').then(art => {
+    if (art?.window) ui.setBezel(art.bmp, art.window);
+  });
 
   // Esc: back to the boot menu (registered first + capture so a single press
   // always works, at any stage of loading), saving a box-art snapshot
@@ -112,6 +118,9 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
   let fpsWindowStart = last;
 
   const tick = (now: number) => {
+    if (input.debug && now - last > 50) {
+      console.log(`[stall] ${Math.round(now - last)}ms between frames at ${Math.round(now)}`);
+    }
     acc += now - last;
     last = now;
     if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause
@@ -136,9 +145,8 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
-
-  // periodic box-art snapshot for the boot menu shelves
-  setInterval(() => ui.saveSnapshot(cfg.game), 5000);
+  // NOTE: box-art snapshots are saved only on Esc — toDataURL+localStorage
+  // are synchronous and a periodic save visibly hitches the run loop.
 }
 
 function hex4(v: number): string { return v.toString(16).padStart(4, '0'); }
@@ -205,10 +213,31 @@ function buildDom(cfg: ShellConfig) {
   const canvas = document.createElement('canvas');
   canvas.width = dispW; canvas.height = dispH;
   canvas.style.cssText = 'image-rendering:pixelated;background:#000';
+
+  // optional cabinet bezel: the game canvas sits inside its transparent
+  // CRT window, the artwork drawn on top (pointer-events off)
+  let bezel: { bmp: ImageBitmap; win: ArtWindow } | null = null;
+  const bezelCanvas = document.createElement('canvas');
+  bezelCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none';
+
   const fit = () => {
-    const displayScale = Math.max(1, Math.floor((innerHeight - 120) / dispH));
-    canvas.style.width = `${dispW * displayScale}px`;
-    canvas.style.height = `${dispH * displayScale}px`;
+    if (bezel) {
+      const { bmp, win } = bezel;
+      const s = Math.min((innerHeight - 140) / bmp.height, (innerWidth - 40) / bmp.width);
+      holder.style.width = bezelCanvas.style.width = `${bmp.width * s}px`;
+      holder.style.height = bezelCanvas.style.height = `${bmp.height * s}px`;
+      const winW = win.w * s, winH = win.h * s;
+      const gs = Math.min(winW / dispW, winH / dispH);
+      canvas.style.position = 'absolute';
+      canvas.style.left = `${win.x * s + (winW - dispW * gs) / 2}px`;
+      canvas.style.top = `${win.y * s + (winH - dispH * gs) / 2}px`;
+      canvas.style.width = `${dispW * gs}px`;
+      canvas.style.height = `${dispH * gs}px`;
+    } else {
+      const displayScale = Math.max(1, Math.floor((innerHeight - 120) / dispH));
+      canvas.style.width = `${dispW * displayScale}px`;
+      canvas.style.height = `${dispH * displayScale}px`;
+    }
   };
   fit();
   addEventListener('resize', fit);
@@ -240,6 +269,13 @@ function buildDom(cfg: ShellConfig) {
     overlay,
     status: (text: string) => { statusEl.textContent = text; if (overlay.style.display !== 'none') overlay.textContent = text; },
     overlayHide: () => { overlay.style.display = 'none'; },
+    setBezel: (bmp: ImageBitmap, win: ArtWindow) => {
+      bezelCanvas.width = bmp.width; bezelCanvas.height = bmp.height;
+      bezelCanvas.getContext('2d')!.drawImage(bmp, 0, 0);
+      holder.insertBefore(bezelCanvas, overlay); // above the game, below the overlay
+      bezel = { bmp, win };
+      fit();
+    },
     blit: (image: ImageData) => {
       offCtx.putImageData(image, 0, 0);
       ctx.save();
