@@ -57,7 +57,7 @@ const init = Object.fromEntries(cfg.ports.map(p => [p.tag, p.init]));
 let frame = 0;
 const stream = [];
 const board = createBoard(cfg.board, regions, { read: t => init[t] ?? 0xff },
-  { soundWrite: (o, d) => stream.push([frame, o, d]) });
+  { soundWrite: (o, d, frac) => stream.push([frame + (frac ?? 0), o, d]) });
 const fb = new Uint32Array(board.fbWidth * board.fbHeight);
 for (frame = 0; frame < FRAMES; frame++) board.frame(fb);
 console.log(`captured ${stream.length} writes over ${FRAMES} frames (${(FRAMES / 60).toFixed(0)} s)`);
@@ -119,38 +119,31 @@ const nextNative = () => {
   }
   return native[nPos++];
 };
-let dacQ = [], dacLevel = 0, dacNext = 0, dacDc = 0, dacRate = 0, dacPrev = 0;
+// timestamped dispatch (mirrors the worklet scheduler): each write applies
+// at sample (frame + frac) * FRAME_OUT
+let dacLevel = 0, dacNext = 0, dacFrom = 0, dacUntil = 0, dacDc = 0;
+const dacInterp = t => t >= dacUntil ? dacNext
+  : dacUntil <= dacFrom ? dacNext
+  : dacLevel + (dacNext - dacLevel) * ((t - dacFrom) / (dacUntil - dacFrom));
 const out = new Float32Array(FRAMES * FRAME_OUT);
 let oi = 0, si2 = 0;
-for (let f = 0; f < FRAMES; f++) {
-  while (si2 < stream.length && stream[si2][0] === f) {
+for (let t = 0; t < out.length; t++) {
+  while (si2 < stream.length && stream[si2][0] * FRAME_OUT <= t) {
     const [, o, d] = stream[si2++];
-    if (o === 0x80) dacQ.push(((d & 0xff) - 128) / 128);
+    if (o === 0x80) {
+      dacLevel = dacInterp(t); dacFrom = t;
+      dacNext = ((d & 0xff) - 128) / 128;
+      dacUntil = t + SR / 2000;
+    }
     else if (o >= 0x90 && o < 0x90 + nChips) setFilter(o - 0x90, d);
     else if (o < nChips * 16) { const c = chips[o >> 4]; if (c) c.writeReg(o & 0x0f, d); }
   }
-  for (let b = 0; b < FRAME_OUT; b += 128) {
-    const arrived = dacQ.length - dacPrev;
-    if (arrived > 0) {
-      const inst = arrived / Math.max(128, SR / 60);
-      dacRate = dacRate ? dacRate * 0.9 + inst * 0.1 : inst;
-    }
-    const per = dacQ.length ? dacRate * (1 + dacQ.length / (SR / 10)) : 0;
-    let pos = 0;
-    for (let i = 0; i < 128 && oi < out.length; i++) {
-      frac += step; let acc = 0, n = 0;
-      while (frac >= 1) { frac -= 1; const s = nextNative(); acc += s; n++; }
-      if (n) boxAvg = acc / n;
-      pos += per;
-      while (pos >= 1 && dacQ.length) { dacLevel = dacNext; dacNext = dacQ.shift(); pos -= 1; }
-      let dacOut;
-      if (per > 0) dacOut = dacLevel + (dacNext - dacLevel) * Math.min(1, pos);
-      else { dacLevel += (dacDc - dacLevel) * 0.005; dacNext = dacLevel; dacOut = dacLevel; }
-      dacDc += (dacOut - dacDc) * 0.0008;
-      out[oi++] = boxAvg + (dacOut - dacDc) * 0.25;
-    }
-    dacPrev = dacQ.length;
-  }
+  frac += step; let acc = 0, n = 0;
+  while (frac >= 1) { frac -= 1; const s = nextNative(); acc += s; n++; }
+  if (n) boxAvg = acc / n;
+  const dacOut = dacInterp(t);
+  dacDc += (dacOut - dacDc) * 0.0008;
+  out[oi++] = boxAvg + (dacOut - dacDc) * 0.25;
 }
 let clip = 0, sum = 0, sumSq = 0, peak = 0;
 for (const v of out) { if (Math.abs(v) > 1) clip++; sum += v; sumSq += v * v; peak = Math.max(peak, Math.abs(v)); }

@@ -50,6 +50,7 @@ export class M52Board implements Board {
 
   private cyclesPerLine: number[];
   private msmClocksPerLine: number;
+  private curLine = 0;
   private vtotal: number;
   private vbstart: number;
   private mainIrqHeld = false;
@@ -73,7 +74,7 @@ export class M52Board implements Board {
       // falling edge = a nibble was just decoded: route the ADPCM sample to
       // the worklet's DAC channel (offset 0x80, 8-bit unsigned) — this is
       // Moon Patrol's explosions/percussion, silent until now
-      sinks.soundWrite(0x80, ((this.msm.signal >> 4) + 128) & 0xff);
+      sinks.soundWrite(0x80, ((this.msm.signal >> 4) + 128) & 0xff, this.curLine / this.vtotal);
     };
     this.msmClocksPerLine = 384000 / config.screen.refresh / this.vtotal;
     this.ays[0].portBWrite = (d: number) => {
@@ -110,7 +111,7 @@ export class M52Board implements Board {
           this.soundLatch = d;
           if ((d & 0x80) === 0) this.audio.setIrqLine(true);
         },
-        'irem_audio_device.m52_adpcm_w': (_a, _o, d) => this.msm.write(0, d),
+        'irem_audio_device.m52_adpcm_w': (_a, off, d) => { if (off & 1) this.msm.write(0, d); },
         'irem_audio_device.sound_irq_ack_w': () => {
           if ((this.soundLatch & 0x80) !== 0) this.audio.setIrqLine(false);
         },
@@ -158,7 +159,7 @@ export class M52Board implements Board {
               this.ayAddr[chip] = this.port1 & 0x0f;
             } else {
               this.ays[chip].writeReg(this.ayAddr[chip], this.port1);
-              sinks.soundWrite(chip * 16 + this.ayAddr[chip], this.port1);
+              sinks.soundWrite(chip * 16 + this.ayAddr[chip], this.port1, this.curLine / this.vtotal);
             }
           }
         }
@@ -217,6 +218,7 @@ export class M52Board implements Board {
   frame(fb: Uint32Array): void {
     const [mainPerLine, audioPerLine] = this.cyclesPerLine;
     for (let line = 0; line < this.vtotal; line++) {
+      this.curLine = line;
       if (line === this.vbstart) {
         this.main.setIrqLine(true);
         this.mainIrqHeld = true;

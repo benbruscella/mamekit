@@ -53,6 +53,7 @@ export class JunofrstBoard implements Board {
   private soundlatch2 = 0;
   private mcuStatus = 0;
   private audioCycles = 0;
+  private curLine = 0;
   private flipX = false;
   private flipY = false;
 
@@ -113,11 +114,11 @@ export class JunofrstBoard implements Board {
         'aysnd.address_w': (_a, _o, d) => { this.ayAddr = d & 0x0f; },
         'aysnd.data_w': (_a, _o, d) => {
           this.ay.writeReg(this.ayAddr, d);
-          sinks.soundWrite(this.ayAddr, d);
+          sinks.soundWrite(this.ayAddr, d, this.curLine / this.vtotal);
           // reg 15 = port B = RC filter select (junofrst.cpp wires portB_w
           // to the AY's IOB output): tell the worklet to reprogram chip 0's
           // per-channel low-pass (protocol offset 0x90 + chip)
-          if (this.ayAddr === 15) sinks.soundWrite(0x90, d);
+          if (this.ayAddr === 15) sinks.soundWrite(0x90, d, this.curLine / this.vtotal);
         },
         'soundlatch2.write': (_a, _o, d) => { this.soundlatch2 = d; },
         'junofrst_state.i8039_irq_w': () => this.mcu.setIrqLine(true),
@@ -140,7 +141,7 @@ export class JunofrstBoard implements Board {
       writeIo: () => { /* no external RAM writes on this board */ },
       readPort: () => 0xff,
       writePort: (port, d) => {
-        if (port === 1) sinks.soundWrite(0x80, d); // DAC sample byte
+        if (port === 1) sinks.soundWrite(0x80, d, this.curLine / this.vtotal); // DAC sample byte
         if (port === 2) {
           if ((d & 0x80) === 0) this.mcu?.setIrqLine(false); // ctor-safe: reset fires port writes
           this.mcuStatus = (d & 0x70) >> 4;
@@ -222,6 +223,7 @@ export class JunofrstBoard implements Board {
   frame(fb: Uint32Array): void {
     const [mainPerLine, audioPerLine, mcuPerLine] = this.cyclesPerLine;
     for (let line = 0; line < this.vtotal; line++) {
+      this.curLine = line;
       if (line === 240) { // vblank: main IRQ every other frame (30 Hz, tutankhm)
         this.irqToggle = !this.irqToggle;
         if (this.irqToggle && this.irqEnable) this.main.setIrqLine(true);

@@ -152,7 +152,7 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
 
   const audio = new AudioOutput();
   const board = createBoard(cfg.board, regions, input, {
-    soundWrite: (offset, data) => audio.write(offset, data),
+    soundWrite: (offset, data, frac) => audio.write(offset, data, frac),
   });
   ui.setNative(board.fbWidth, board.fbHeight); // the board owns true geometry
 

@@ -97,11 +97,11 @@ export class GyrussBoard implements Board {
       registry.write[`ay${i + 1}.address_w`] = (_a, _o, d) => { this.ayAddr[chip] = d & 0x0f; };
       registry.write[`ay${i + 1}.data_w`] = (_a, _o, d) => {
         this.ays[chip].writeReg(this.ayAddr[chip], d);
-        sinks.soundWrite(chip * 16 + this.ayAddr[chip], d);
+        sinks.soundWrite(chip * 16 + this.ayAddr[chip], d, this.scanline / this.vtotal);
         // reg 15 = port B: on ay1/ay2 (chips 0/1) the port drives the
         // switchable RC low-pass net (gyruss.cpp filter_w<0>/<1>); tell the
         // worklet to reprogram that chip's filters (offset 0x90 + chip)
-        if (this.ayAddr[chip] === 15 && chip < 2) sinks.soundWrite(0x90 + chip, d);
+        if (this.ayAddr[chip] === 15 && chip < 2) sinks.soundWrite(0x90 + chip, d, this.scanline / this.vtotal);
       };
       registry.read[`ay${i + 1}.data_r`] = () => this.ays[chip].readReg(this.ayAddr[chip]);
     }
@@ -132,7 +132,7 @@ export class GyrussBoard implements Board {
       writeIo: () => { /* none on this board */ },
       readPort: () => 0xff,
       writePort: (port, d) => {
-        if (port === 1) sinks.soundWrite(0x80, d);
+        if (port === 1) sinks.soundWrite(0x80, d, this.scanline / this.vtotal);
         if (port === 2) this.mcu?.setIrqLine(false); // irq_clear_w (mcu may still be constructing: reset fires port writes)
       },
     });

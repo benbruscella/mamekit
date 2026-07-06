@@ -62,6 +62,8 @@ interface WriteMessage {
   type: 'write';
   offset: number;
   data: number;
+  /** position of the write within its video frame (0..1, scanline/vtotal) */
+  frac?: number;
 }
 type Ay8910Message = InitMessage | WriteMessage;
 
@@ -97,21 +99,27 @@ class Ay8910Processor extends AudioWorkletProcessor {
   private filterK: number[] = [];
   private filterMem: number[] = [];
 
-  // --- percussion DAC (i8039 P1) -------------------------------------------
-  // Samples arrive in bursts (the MCU is emulated a frame at a time), so a
-  // plain zero-order hold collapses each frame's drum waveform to its last
-  // byte. Instead: FIFO the bytes and drain them evenly across the output
-  // block, then remove the standing DC offset (the P1 line idles nonzero —
-  // mixing it raw thumps the speaker) with a slow one-pole tracker.
-  private dacQueue: number[] = [];
+  // --- timestamped write scheduler -------------------------------------------
+  // Boards emulate a whole video frame in one burst, so every register write
+  // of a frame arrives at the worklet within a millisecond. Applying them on
+  // arrival quantizes fast SFX sweeps into stair-steps ("chirpy" Konami
+  // whooshes) and collapses DAC sample streams. Each write instead carries
+  // its in-frame position (frac = scanline/vtotal) and is applied at the
+  // matching output sample, one frame period behind arrival.
+  private sched: { at: number; offset: number; data: number }[] = [];
+  private clock2 = 0;          // output samples elapsed (scheduler timeline)
+  private frameBase = 0;       // scheduler epoch of the frame being received
+  private lastFrac = 2;        // detects frame wrap (frac decreasing)
+
+  // --- percussion DAC (i8039 P1 / MSM5205) ----------------------------------
+  // DAC bytes are scheduled like every other write; linear interpolation
+  // between consecutive samples kills zero-order-hold imaging, and a slow
+  // one-pole removes the standing DC so the idle line doesn't thump.
   private dacLevel: number = 0;
   private dacNext: number = 0;
+  private dacFrom = 0;         // scheduler time of dacLevel
+  private dacUntil = 0;        // scheduler time of dacNext
   private dacDc: number = 0;
-  /** samples-per-output-sample drain rate, latched per burst (constant
-   *  within a burst — recomputing per block decays exponentially and
-   *  pitch-bends every drum hit downward) */
-  private dacRate: number = 0;
-  private dacPrevLen: number = 0;
 
   constructor() {
     super();
@@ -132,23 +140,51 @@ class Ay8910Processor extends AudioWorkletProcessor {
           break;
         }
         case 'write': {
-          if (msg.offset === 0x80) {
-            // percussion DAC (i8039 P1): unsigned byte -> centered level
-            this.dacQueue.push(((msg.data & 0xff) - 128) / 128);
-            if (this.dacQueue.length > 4096) this.dacQueue.splice(0, this.dacQueue.length - 4096);
+          const framePeriod = sampleRate / 60;
+          if (msg.frac === undefined) {
+            // untimed write: apply immediately (back-compat)
+            this.apply(msg.offset, msg.data);
             break;
           }
-          if (msg.offset >= 0x90 && msg.offset < 0x90 + this.chips.length) {
-            // RC filter select: raw AY port-B byte for chip (offset - 0x90)
-            this.setFilter(msg.offset - 0x90, msg.data);
-            break;
+          if (msg.frac < this.lastFrac) {
+            // new emulation frame began: its writes play over the NEXT
+            // frame period of output (one frame of latency buys accuracy)
+            this.frameBase = Math.max(this.clock2, this.frameBase + framePeriod);
           }
-          const chip = this.chips[msg.offset >> 4];
-          if (chip) chip.writeReg(msg.offset & 0x0f, msg.data);
+          this.lastFrac = msg.frac;
+          this.sched.push({ at: this.frameBase + msg.frac * framePeriod, offset: msg.offset, data: msg.data });
+          if (this.sched.length > 65536) this.sched.splice(0, this.sched.length - 65536);
           break;
         }
       }
     };
+  }
+
+  /** Apply one register/DAC/filter write NOW (scheduler-dispatched). */
+  private apply(offset: number, data: number): void {
+    if (offset === 0x80) {
+      // DAC sample: becomes the interpolation target until the next one
+      this.dacLevel = this.dacInterp(this.clock2);
+      this.dacFrom = this.clock2;
+      this.dacNext = ((data & 0xff) - 128) / 128;
+      // hold time until the next sample arrives; refreshed by the next write
+      this.dacUntil = this.clock2 + sampleRate / 2000; // default 2 ms ramp cap
+      return;
+    }
+    if (offset >= 0x90 && offset < 0x90 + this.chips.length) {
+      this.setFilter(offset - 0x90, data);
+      return;
+    }
+    const chip = this.chips[offset >> 4];
+    if (chip) chip.writeReg(offset & 0x0f, data);
+  }
+
+  /** DAC level at scheduler time t: linear ramp dacLevel -> dacNext. */
+  private dacInterp(t: number): number {
+    if (t >= this.dacUntil) return this.dacNext;
+    const span = this.dacUntil - this.dacFrom;
+    return span <= 0 ? this.dacNext
+      : this.dacLevel + (this.dacNext - this.dacLevel) * ((t - this.dacFrom) / span);
   }
 
   /** Program chip's three one-poles from the raw port-B select byte. */
@@ -207,20 +243,19 @@ class Ay8910Processor extends AudioWorkletProcessor {
     if (this.chips.length === 0) {
       out.fill(0);
     } else {
-      // drain the queued DAC bytes at a rate tracking the MCU's actual
-      // long-term sample rate (EMA of arrivals): per-burst rates warble the
-      // speech because per-frame arrival counts swing 1..178 even though the
-      // hardware rate is steady (~3.4 kHz measured on junofrst). The queue
-      // absorbs the jitter; a mild pressure term keeps latency bounded.
-      const arrived = this.dacQueue.length - this.dacPrevLen;
-      if (arrived > 0) {
-        const instRate = arrived / Math.max(out.length, sampleRate / 60);
-        this.dacRate = this.dacRate ? this.dacRate * 0.9 + instRate * 0.1 : instRate;
+      // keep the scheduler from starving or ballooning: if the backlog is
+      // over two frame periods, fast-forward (applies late writes at once)
+      const lag = this.sched.length && (this.sched[this.sched.length - 1].at - this.clock2);
+      if (lag && lag > (sampleRate / 60) * 3) {
+        const jump = lag - (sampleRate / 60) * 2;
+        for (const w of this.sched) w.at -= jump;
       }
-      const pressure = this.dacQueue.length / (sampleRate / 10); // >0.1 s queued -> speed up
-      const dacPerSample = this.dacQueue.length ? this.dacRate * (1 + pressure) : 0;
-      let dacPos = 0;
       for (let i = 0; i < out.length; i++) {
+        // dispatch every write scheduled at or before this output sample
+        while (this.sched.length && this.sched[0].at <= this.clock2) {
+          const w = this.sched.shift()!;
+          this.apply(w.offset, w.data);
+        }
         // box-filter decimation: average every native sample this output
         // sample spans. Point-sampling a ~224 kHz square-wave stream down to
         // 48 kHz aliases badly (chirpy high-pitched SFX); the box average is
@@ -236,27 +271,11 @@ class Ay8910Processor extends AudioWorkletProcessor {
           n++;
         }
         if (n > 0) this.boxAvg = acc / n;
-        dacPos += dacPerSample;
-        while (dacPos >= 1 && this.dacQueue.length) {
-          this.dacLevel = this.dacNext;
-          this.dacNext = this.dacQueue.shift()!;
-          dacPos -= 1;
-        }
-        // linear interpolation between DAC samples: hard zero-order hold of
-        // a ~3.4 kHz stream at 48 kHz sprays metallic imaging ("scissor"
-        // speech); when the queue idles, glide to rest instead of stepping
-        let dacOut: number;
-        if (dacPerSample > 0) {
-          dacOut = this.dacLevel + (this.dacNext - this.dacLevel) * Math.min(1, dacPos);
-        } else {
-          this.dacLevel += (this.dacDc - this.dacLevel) * 0.005; // declick release
-          this.dacNext = this.dacLevel;
-          dacOut = this.dacLevel;
-        }
+        const dacOut = this.dacInterp(this.clock2);
         this.dacDc += (dacOut - this.dacDc) * 0.0008; // DC blocker
         out[i] = this.boxAvg + (dacOut - this.dacDc) * DAC_GAIN;
+        this.clock2++;
       }
-      this.dacPrevLen = this.dacQueue.length;
     }
 
     // duplicate mono into any additional output channels
