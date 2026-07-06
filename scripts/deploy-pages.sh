@@ -37,7 +37,9 @@ touch dist/.nojekyll
 
 # custom domain: Pages needs a CNAME file at the branch root, and our
 # force-push would wipe the one GitHub writes — so we own it here
-if [[ -n "${PAGES_DOMAIN:-}" ]]; then
+# (override with PAGES_DOMAIN=other.domain, or PAGES_DOMAIN= to disable)
+PAGES_DOMAIN="${PAGES_DOMAIN-mamehistory.com}"
+if [[ -n "$PAGES_DOMAIN" ]]; then
   printf '%s\n' "$PAGES_DOMAIN" > dist/CNAME
 fi
 
