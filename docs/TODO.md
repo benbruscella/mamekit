@@ -138,3 +138,12 @@ Prioritized. Each item has enough context to start cold. Check
 - Incident (2026-07-06): ROM zips briefly committed via a roms/→_roms/
   rename that escaped .gitignore; history scrubbed (filter-branch +
   force-push), .gitignore hardened (/roms/, /_roms/, *.zip).
+- Issue #8 (2026-07-06): **Ghosts'n Goblins plays** — 7th game, 1st Capcom.
+  MC6809 main (banked ROM via new `.bankr()` parsing → `bank.<name>`
+  handler keys) + Z80 sound + 2× YM2203 (new OPN core: ymfm-ported FM +
+  AY-reused SSG, 385 checks). m6809 gained `irqCount` for true HOLD_LINE
+  (gng's boot SYNC-loop needs the line visible while masked). Video:
+  fg/bg tilemaps with split-group transmasks, buffered sprites, RGBx_444
+  palette RAM (71 checks). **Clone-family ROM alternates**: any sibling
+  set's same-slot chip verifies (graph-derived from all ROM_START blocks) —
+  classic gngb-era zips load against the modern manifest.

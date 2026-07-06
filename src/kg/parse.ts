@@ -312,6 +312,8 @@ export interface AddressRangeDef {
   read?: HandlerRef; write?: HandlerRef;
   /** input-port tag from .portr("IN0") / .portw(...) */
   portRead?: string; portWrite?: string;
+  /** memory-bank name from .bankr(m_foo) / .bankr("foo") (m_ prefix stripped) */
+  bankRead?: string; bankWrite?: string;
   share?: string;
   raw: string;
 }
@@ -359,9 +361,13 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
           case 'nopw': range.nopw = true; break;
           case 'nopr': range.nopr = true; break;
           case 'mirror': range.mirror = evalExpr(args[0]) ?? undefined; break;
-          case 'share': range.share = unquote(args[0]); break;
+          // member-ref shares (.share(m_fgvideoram)) normalize to the tag MAME
+          // derives from the member name (strip m_)
+          case 'share': range.share = unquote(args[0]).replace(/^m_/, ''); break;
           case 'portr': range.portRead = unquote(args[0]); break;
           case 'portw': range.portWrite = unquote(args[0]); break;
+          case 'bankr': range.bankRead = unquote(args[0]).replace(/^m_/, ''); break;
+          case 'bankw': range.bankWrite = unquote(args[0]).replace(/^m_/, ''); break;
           case 'r': range.read = parseHandlerArgs(args); break;
           case 'w': range.write = parseHandlerArgs(args); break;
           case 'rw': {

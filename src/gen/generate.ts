@@ -16,6 +16,8 @@ export interface GenerateOptions {
   mameSrc: string;
   outDir: string;
   game: string;
+  /** full driver graph (all sets) — enables clone-family ROM alternates */
+  fullGraph?: KnowledgeGraph;
 }
 
 // keyboard bindings per MAME input type (player 1 / non-cocktail only)
@@ -96,7 +98,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', KONAMI1: 'konami1', I8039: 'i8039', I8080: 'i8080', M6803: 'm6803' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', KONAMI1: 'konami1', I8039: 'i8039', I8080: 'i8080', M6803: 'm6803', MC6809: 'mc6809', MC6809E: 'mc6809e' };
   const cpuDevs = devices.filter(d => String(d.props.type) in CPU_TYPES);
   if (cpuDevs.length === 0) throw new Error('no supported CPU devices found in machine config');
 
@@ -130,6 +132,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     // .portr("IN0") -> read handler key "port.IN0" (boards register these from InputPorts)
     if (r.props.portRead) spec.read = `port.${r.props.portRead}`;
     if (r.props.portWrite) spec.write = `port.${r.props.portWrite}`;
+    // .bankr(m_mainbank) -> "bank.mainbank" (the board owns bank switching)
+    if (r.props.bankRead) spec.read = `bank.${r.props.bankRead}`;
+    if (r.props.bankWrite) spec.write = `bank.${r.props.bankWrite}`;
     if (spec.kind === 'handler' && !spec.read && !spec.write) spec.kind = 'nop';
     return spec;
   };
@@ -216,27 +221,61 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   };
   // sound device -> runtime SoundCore kind (device-library mapping, not game-specific)
   const ayChips = devices.filter(d => d.props.type === 'AY8910');
+  const ymChips = devices.filter(d => d.props.type === 'YM2203');
   const sound = devices.some(d => d.props.type === 'NAMCO_WSG' || d.props.type === 'NAMCO')
     ? { kind: 'wsg', clock: Number(byTag.get('namco')?.props.clock ?? 96000), waveRegion: 'namco' }
     : devices.some(d => d.props.type === 'GALAXIAN_SOUND')
       ? { kind: 'galaxian', clock: cpus[0].clock }
       : devices.some(d => d.props.type === 'INVADERS_AUDIO')
         ? { kind: 'invaders', clock: cpus[0].clock }
-        : ayChips.length
-          ? { kind: 'ay8910', clock: Number(ayChips[0].props.clock), chips: ayChips.length }
-          : { kind: 'none' };
+        : ymChips.length
+          ? { kind: 'ym2203', clock: Number(ymChips[0].props.clock), chips: ymChips.length }
+          : ayChips.length
+            ? { kind: 'ay8910', clock: Number(ayChips[0].props.clock), chips: ayChips.length }
+            : { kind: 'none' };
 
   // --- roms ----------------------------------------------------------------------
+  // Clone-family alternates: MAME renames/redumps program ROMs across
+  // revisions (current "gng" wants mm_c_04; a classic set carries gg4.bin
+  // with a different CRC — both are real Ghosts'n Goblins). Any sibling
+  // set's chip occupying the same region/offset/size slot is an acceptable
+  // alternative, derived entirely from the driver's other ROM_START blocks.
+  const altSlots = new Map<string, { file: string; crc: string }[]>();
+  if (opts.fullGraph) {
+    const full = new Graph(opts.fullGraph);
+    const gameId = `game:${opts.game}`;
+    const parentId = full.out(gameId, 'CLONE_OF')[0]?.node.id ?? gameId;
+    const family = opts.fullGraph.nodes.filter(n =>
+      n.label === 'Game' && n.id !== gameId &&
+      (n.id === parentId || full.out(n.id, 'CLONE_OF')[0]?.node.id === parentId));
+    for (const sib of family) {
+      const sibSet = full.out(sib.id, 'USES_ROMSET')[0]?.node;
+      if (!sibSet) continue;
+      for (const { node: region } of full.out(sibSet.id, 'HAS_REGION')) {
+        for (const { node: rom } of full.out(region.id, 'LOADS')) {
+          const key = `${region.props.tag}/${rom.props.offset}/${rom.props.size}`;
+          (altSlots.get(key) ?? altSlots.set(key, []).get(key)!)
+            .push({ file: String(rom.props.file), crc: String(rom.props.crc) });
+        }
+      }
+    }
+  }
   const roms = g.out(romset.id, 'HAS_REGION').map(({ node: region }) => ({
     region: String(region.props.tag),
     size: Number(region.props.size),
-    loads: g.out(region.id, 'LOADS').map(({ node: rom }) => ({
-      file: String(rom.props.file),
-      offset: Number(rom.props.offset),
-      size: Number(rom.props.size),
-      crc: String(rom.props.crc),
-      ...(rom.props.reloadOffsets ? { reloadOffsets: rom.props.reloadOffsets as number[] } : {}),
-    })),
+    loads: g.out(region.id, 'LOADS').map(({ node: rom }) => {
+      const crc = String(rom.props.crc);
+      const alts = (altSlots.get(`${region.props.tag}/${rom.props.offset}/${rom.props.size}`) ?? [])
+        .filter((a, i, arr) => a.crc !== crc && arr.findIndex(x => x.crc === a.crc) === i);
+      return {
+        file: String(rom.props.file),
+        offset: Number(rom.props.offset),
+        size: Number(rom.props.size),
+        crc,
+        ...(alts.length ? { alt: alts } : {}),
+        ...(rom.props.reloadOffsets ? { reloadOffsets: rom.props.reloadOffsets as number[] } : {}),
+      };
+    }),
   }));
 
   // --- inputs -----------------------------------------------------------------------
