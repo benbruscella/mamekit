@@ -69,6 +69,9 @@ export interface KnowledgeGraph {
     mameSrc: string;
     driverFile: string;
     generatedAt: string;
+    /** driver header credits: // license: and // copyright-holders: lines */
+    license?: string;
+    copyrightHolders?: string;
   };
   nodes: KGNode[];
   edges: KGEdge[];

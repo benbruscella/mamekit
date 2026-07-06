@@ -333,7 +333,30 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     menuUrl: './',
   };
 
-  // per-game metadata for the boot menu manifest
+  // per-game metadata for the boot menu manifest + "learn" modal:
+  // driver credits from the source header, contribution history from the
+  // MAME git checkout (best effort — absent when git/history unavailable)
+  let gitHistory: Record<string, unknown> | undefined;
+  try {
+    const log = spawnSync('git', ['-C', opts.mameSrc, 'log', '--follow', '--format=%as|%an', '--', String(graph.meta.driverFile)],
+      { encoding: 'utf8', timeout: 30000 });
+    const lines = (log.stdout ?? '').trim().split('\n').filter(Boolean);
+    if (lines.length) {
+      const authors = new Map<string, number>();
+      for (const l of lines) {
+        const name = l.split('|')[1];
+        if (name) authors.set(name, (authors.get(name) ?? 0) + 1);
+      }
+      gitHistory = {
+        firstCommit: lines[lines.length - 1].split('|')[0],
+        lastCommit: lines[0].split('|')[0],
+        commits: lines.length,
+        contributors: authors.size,
+        topAuthors: [...authors.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([n]) => n),
+      };
+    }
+  } catch { /* no git history available */ }
+
   writeFileSync(join(opts.outDir, 'meta.json'), JSON.stringify({
     game: opts.game,
     title,
@@ -341,6 +364,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     year: game.props.year,
     manufacturer: game.props.company,
     family,
+    driverFile: graph.meta.driverFile,
+    ...(graph.meta.license ? { license: graph.meta.license } : {}),
+    ...(graph.meta.copyrightHolders ? { copyrightHolders: graph.meta.copyrightHolders } : {}),
+    ...(gitHistory ? { gitHistory } : {}),
   }, null, 2));
 
   // the game itself is pure knowledge-graph data — the unified app at

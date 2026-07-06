@@ -27,6 +27,11 @@ interface GameEntry {
   family: string;
   hasRom: boolean;
   hasArt: boolean;
+  // "learn" modal facts (from the driver header + MAME git history)
+  driverFile?: string;
+  license?: string;
+  copyrightHolders?: string;
+  gitHistory?: { firstCommit: string; lastCommit: string; commits: number; contributors: number; topAuthors: string[] };
 }
 
 // Deterministic covers: emulate exactly COVER_FRAMES frames (deep into
@@ -183,6 +188,15 @@ export async function runMenu(): Promise<void> {
     box.addEventListener('mouseleave', () => { box.style.transform = ''; box.style.outline = 'none'; });
     box.addEventListener('click', () => { location.href = `?g=${encodeURIComponent(entry.game)}`; });
 
+    // "learn about this game" flyover
+    const learn = el('div', `position:absolute;top:10px;left:22px;z-index:5;width:30px;height:30px;border-radius:50%;
+      background:rgba(10,12,28,.85);border:2px solid #f2c200;color:#f2c200;font:700 16px ui-monospace,monospace;
+      display:flex;align-items:center;justify-content:center;cursor:help`);
+    learn.textContent = 'i';
+    learn.title = 'Learn about this MAME game';
+    learn.addEventListener('click', ev => { ev.stopPropagation(); void openLearnModal(entry); });
+    box.appendChild(learn);
+
     // shelf plank under each box — planks in a row join into one shelf
     const plank = el('div', `width:350px;height:16px;margin-top:0;border-radius:2px;
       background:linear-gradient(#7a4a1f,#5b3413 60%,#3c2008);
@@ -190,6 +204,87 @@ export async function runMenu(): Promise<void> {
 
     item.append(box, plank);
     return item;
+  }
+
+  // --- "learn about this MAME game" modal ---------------------------------------
+
+  async function openLearnModal(entry: GameEntry): Promise<void> {
+    const backdrop = el('div', `position:fixed;inset:0;z-index:50;background:rgba(3,4,10,.82);
+      display:flex;align-items:center;justify-content:center;padding:24px`);
+    const card = el('div', `max-width:640px;width:100%;max-height:86vh;overflow:auto;border-radius:12px;
+      background:linear-gradient(#141838,#0c0f24);border:2px solid #f2c200;padding:26px 30px;
+      box-shadow:0 24px 80px rgba(0,0,0,.8);font-size:14px;line-height:1.55`);
+    backdrop.appendChild(card);
+
+    const h = el('div', 'font-size:24px;font-weight:800;color:#f2c200;margin-bottom:2px');
+    h.textContent = entry.fullname;
+    const subh = el('div', 'color:#7f8ac9;margin-bottom:16px');
+    subh.textContent = `${entry.manufacturer} · ${entry.year}`;
+    card.append(h, subh);
+
+    const section = (title: string): HTMLElement => {
+      const s = el('div', 'margin-bottom:14px');
+      const t = el('div', 'font-weight:700;color:#9fb0ff;letter-spacing:1.5px;font-size:11px;margin-bottom:6px');
+      t.textContent = title.toUpperCase();
+      s.appendChild(t);
+      card.appendChild(s);
+      return s;
+    };
+    const row = (parent: HTMLElement, label: string, value: string) => {
+      const r = el('div', 'display:flex;gap:10px;margin:2px 0');
+      const l = el('span', 'color:#6b76b8;min-width:120px;flex-shrink:0');
+      l.textContent = label;
+      const v = el('span', 'color:#e8eaf6');
+      v.textContent = value;
+      r.append(l, v);
+      parent.appendChild(r);
+    };
+
+    // The machine — real facts from the generated config (the knowledge graph)
+    const hw = section('The machine (extracted from the MAME driver)');
+    try {
+      const cfg = await fetch(`/${encodeURIComponent(entry.game)}/config.json`).then(r => r.json());
+      for (const cpu of cfg.board.cpus) {
+        row(hw, cpu === cfg.board.cpus[0] ? 'Processors' : '', `${(cpu.type ?? 'z80').toUpperCase()} "${cpu.tag}" @ ${(cpu.clock / 1e6).toFixed(3)} MHz`);
+      }
+      const s = cfg.sound ?? {};
+      row(hw, 'Sound', s.kind === 'none' ? 'discrete analog board' : `${s.kind}${s.chips ? ` × ${s.chips}` : ''}${s.clock ? ` @ ${(s.clock / 1e6).toFixed(3)} MHz` : ''}`);
+      const sc = cfg.board.screen;
+      row(hw, 'Screen', `${sc.width}×${sc.height} @ ${sc.refresh.toFixed(2)} Hz${sc.rotate ? ` · rotated ${sc.rotate}°` : ''}`);
+      row(hw, 'ROM chips', `${cfg.roms.reduce((n: number, r: { loads: unknown[] }) => n + r.loads.length, 0)} across ${cfg.roms.length} regions`);
+    } catch { row(hw, 'Machine', 'config not generated yet'); }
+
+    // The people — driver credits + git history
+    const ppl = section('The MAME driver — the people who reverse-engineered it');
+    if (entry.driverFile) row(ppl, 'Driver source', entry.driverFile);
+    if (entry.copyrightHolders) row(ppl, 'Written by', entry.copyrightHolders);
+    if (entry.license) row(ppl, 'License', entry.license);
+    if (entry.gitHistory) {
+      const gh = entry.gitHistory;
+      row(ppl, 'History', `${gh.commits} commits by ${gh.contributors} contributors, ${gh.firstCommit.slice(0, 4)}–${gh.lastCommit.slice(0, 4)}`);
+      row(ppl, 'Top contributors', gh.topAuthors.join(', '));
+    }
+
+    const links = el('div', 'display:flex;gap:12px;margin-top:18px;flex-wrap:wrap');
+    const mkBtn = (text: string, href: string, solid: boolean) => {
+      const a = document.createElement('a');
+      a.href = href;
+      a.textContent = text;
+      a.style.cssText = `padding:9px 18px;border-radius:8px;font-weight:700;text-decoration:none;
+        ${solid ? 'background:#f2c200;color:#1b1b1b' : 'border:2px solid #2a3160;color:#9fb0ff'}`;
+      return a;
+    };
+    links.appendChild(mkBtn('▶ Play', `?g=${encodeURIComponent(entry.game)}`, true));
+    const viewer = mkBtn('Explore the knowledge graph', `/${encodeURIComponent(entry.game)}/viewer.html`, false);
+    viewer.target = '_blank';
+    links.appendChild(viewer);
+    card.appendChild(links);
+
+    const close = () => { backdrop.remove(); removeEventListener('keydown', onKey, true); };
+    const onKey = (ev: KeyboardEvent) => { if (ev.key === 'Escape') { ev.stopPropagation(); close(); } };
+    backdrop.addEventListener('click', ev => { if (ev.target === backdrop) close(); });
+    addEventListener('keydown', onKey, true);
+    document.body.appendChild(backdrop);
   }
 
   // --- cover art -----------------------------------------------------------------

@@ -36,6 +36,11 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     }
   }
 
+  // driver header credits (parsed from RAW text — comments are stripped below)
+  const driverRaw = readFileSync(join(dir, driverBase), 'utf8');
+  const license = /^\/\/\s*license\s*:\s*(.+)$/m.exec(driverRaw)?.[1].trim();
+  const copyrightHolders = /^\/\/\s*copyright-holders\s*:\s*(.+)$/m.exec(driverRaw)?.[1].trim();
+
   let combined = '';
   for (const file of family) {
     const raw = readFileSync(file, 'utf8');
@@ -259,6 +264,8 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     mameSrc,
     driverFile: driverRel,
     generatedAt: new Date().toISOString(),
+    ...(license ? { license } : {}),
+    ...(copyrightHolders ? { copyrightHolders } : {}),
   });
 }
 
