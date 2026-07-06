@@ -368,7 +368,7 @@ export async function runMenu(): Promise<void> {
         ${solid ? 'background:#f2c200;color:#1b1b1b' : 'border:2px solid #2a3160;color:#9fb0ff'}`;
       return a;
     };
-    links.appendChild(mkBtn('▶ Play', `?g=${game}`, true));
+    links.appendChild(mkBtn('▶ Play', `g/${game}/`, true));
     const viewer = mkBtn('Explore the knowledge graph', `../${game}/viewer.html`, false);
     viewer.target = '_blank';
     links.appendChild(viewer);
