@@ -14,6 +14,7 @@
 
 import { Z80 } from '../z80.ts';
 import { Konami1 } from '../konami1.ts';
+import { Mcs48 } from '../mcs48.ts';
 import { AY8910 } from '../ay8910.ts';
 import { LS259 } from '../ls259.ts';
 import { Bus, type HandlerRegistry } from '../bus.ts';
@@ -32,6 +33,7 @@ export class GyrussBoard implements Board {
   private main!: Z80;
   private sub!: Konami1;
   private audio!: Z80;
+  private mcu!: Mcs48;
 
   private mainlatch = new LS259();
   private ays: AY8910[] = [];
@@ -52,8 +54,8 @@ export class GyrussBoard implements Board {
 
   constructor(config: BoardConfig, regions: Regions, inputs: InputPorts, sinks: BoardSinks) {
     this.vtotal = config.screen.vtotal;
-    const [mainSpec, subSpec, audioSpec] = config.cpus;
-    this.cyclesPerLine = [mainSpec, subSpec, audioSpec].map(c =>
+    const [mainSpec, subSpec, audioSpec, mcuSpec] = config.cpus;
+    this.cyclesPerLine = [mainSpec, subSpec, audioSpec, mcuSpec].map(c =>
       Math.round(c.clock / config.screen.refresh / this.vtotal));
 
     // --- AY bank: local instances exist for register READBACK only (the
@@ -82,7 +84,7 @@ export class GyrussBoard implements Board {
           if (!this.slaveIrqMask) this.sub.setIrqLine(false);
         },
         'gyruss_state.spriteram_w': () => { /* bytes stored by bus; full-frame render */ },
-        'gyruss_state.i8039_irq_w': () => { /* i8039 percussion stubbed (54xx-style upgrade later) */ },
+        'gyruss_state.i8039_irq_w': () => this.mcu.setIrqLine(true),
         'soundlatch.write': (_a, _o, d) => { this.soundlatch = d; },
         'soundlatch2.write': (_a, _o, d) => { this.soundlatch2 = d; },
         'mainlatch.write_d0': (_a, off, d) => this.mainlatch.writeD0(off, d),
@@ -114,6 +116,21 @@ export class GyrussBoard implements Board {
     audioBus.out = (port, data) => io.write(port & ioMask, data);
     this.audio = new Z80(audioBus);
 
+    // i8039 percussion MCU (gyruss.cpp: p1 -> DAC through the discrete
+    // filter net, p2 -> irq_clear_w on any write, io reads = soundlatch2).
+    // DAC samples reach the ay8910 worklet as offset 0x80.
+    const mcuRom = regions[mcuSpec.region];
+    this.mcu = new Mcs48({
+      readProgram: addr => mcuRom ? mcuRom[addr & 0x0fff] : 0,
+      readIo: () => this.soundlatch2,
+      writeIo: () => { /* none on this board */ },
+      readPort: () => 0xff,
+      writePort: (port, d) => {
+        if (port === 1) sinks.soundWrite(0x80, d);
+        if (port === 2) this.mcu?.setIrqLine(false); // irq_clear_w (mcu may still be constructing: reset fires port writes)
+      },
+    });
+
     // --- video ----------------------------------------------------------------
     this.fbWidth = config.screen.width;
     this.fbHeight = config.screen.height;
@@ -137,6 +154,7 @@ export class GyrussBoard implements Board {
     this.main.reset();
     this.sub.reset();
     this.audio.reset();
+    this.mcu.reset();
   }
 
   /** run the audio Z80 modeling the HOLD-line IRQ (released on acceptance) */
@@ -155,7 +173,7 @@ export class GyrussBoard implements Board {
   }
 
   frame(fb: Uint32Array): void {
-    const [mainPerLine, subPerLine, audioPerLine] = this.cyclesPerLine;
+    const [mainPerLine, subPerLine, audioPerLine, mcuPerLine] = this.cyclesPerLine;
     for (let line = 0; line < this.vtotal; line++) {
       this.scanline = line;
       if (line === 240) { // vblank start (visible 16..239)
@@ -166,6 +184,7 @@ export class GyrussBoard implements Board {
       this.main.run(mainPerLine);
       this.sub.run(subPerLine);
       this.audioCycles += this.runAudio(audioPerLine);
+      this.mcu.run(mcuPerLine);
     }
     this.frameCount++;
     this.video.render(fb);
@@ -178,6 +197,7 @@ export class GyrussBoard implements Board {
         { tag: 'maincpu', pc: this.main.pc, sp: this.main.sp, a: this.main.a, halted: this.main.halted },
         { tag: 'sub', pc: this.sub.pc, sp: this.sub.s, a: this.sub.a, halted: this.sub.halted },
         { tag: 'audiocpu', pc: this.audio.pc, sp: this.audio.sp, a: this.audio.a, halted: this.audio.halted },
+        { tag: 'audio2', pc: this.mcu.pc, sp: 0, a: this.mcu.a, halted: false },
       ],
       mainlatch: this.mainlatch.value,
       soundlatch: this.soundlatch,

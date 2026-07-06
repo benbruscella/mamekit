@@ -7,6 +7,7 @@ import { loadArtwork, type ArtWindow } from './artwork.ts';
 import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
+import { loadRomZip, saveRomZip } from './romstore.ts';
 import type { Regions, BoardConfig } from './types.ts';
 
 export interface RomLoad {
@@ -110,8 +111,6 @@ export interface ShellConfig {
   bindings: FieldBinding[];
   dipDefaults: DipDefault[];
   ports: PortSpec[];
-  /** url of the zip to try first (e.g. "/roms/galaga.zip") */
-  romUrl: string;
   /** base url of the compiled runtime dir (for worklet modules) */
   runtimeUrl: string;
   /** where Esc returns to (the boot menu) */
@@ -135,22 +134,24 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
   }, { capture: true });
 
   // --- ROM acquisition -------------------------------------------------------
-  // only CPU code regions are boot-critical; other regions (e.g. undumped
-  // "unknown PROM" filler that newer MAME sets carry) warn and zero-fill
+  // ROMs are NEVER fetched from a server: the only sources are the user's
+  // own drop (this session) or their browser's IndexedDB copy of a previous
+  // drop. Only CPU code regions are boot-critical; other regions (e.g.
+  // undumped "unknown PROM" filler) warn and zero-fill.
   const critical = new Set(cfg.board.cpus.map(c => c.region));
 
   let files: Map<string, Uint8Array> | null = null;
-  try {
-    const res = await fetch(cfg.romUrl);
-    if (res.ok) files = await readZip(new Uint8Array(await res.arrayBuffer()));
-  } catch { /* fall through to manual load */ }
-  // a server zip that can't boot the game counts as no zip at all
-  if (files && checkRomSet(cfg.roms, files, critical).missingCritical.length) files = null;
+  const remembered = await loadRomZip(cfg.game);
+  if (remembered) {
+    try { files = await readZip(remembered); } catch { /* corrupt cache — re-drop */ }
+    // a remembered zip that can't boot the game counts as no zip at all
+    if (files && checkRomSet(cfg.roms, files, critical).missingCritical.length) files = null;
+  }
 
   if (!files) {
     const zone = ui.dropZone(cfg.game);
-    ui.status(`ROMs are not distributed with mame2js — bring your own ${cfg.game}.zip.`);
-    files = await waitForZip(ui, zone, cfg.roms, critical);
+    ui.status(`ROMs are not distributed with mame2js — bring your own ${cfg.game}.zip (your browser remembers it).`);
+    files = await waitForZip(ui, zone, cfg.roms, critical, cfg.game);
   }
 
   const regions = assembleRegions(cfg.roms, files, ui.status, critical);
@@ -533,6 +534,7 @@ function waitForZip(
   zone: DropZone,
   specs: RomRegionSpec[],
   critical: Set<string>,
+  game: string,
 ): Promise<Map<string, Uint8Array>> {
   return new Promise(resolve => {
     const pick = document.createElement('input');
@@ -542,8 +544,9 @@ function waitForZip(
     const handle = async (file: File) => {
       if (accepted) return;
       zone.busy(file.name);
+      const raw = new Uint8Array(await file.arrayBuffer());
       let files: Map<string, Uint8Array>;
-      try { files = await readZip(new Uint8Array(await file.arrayBuffer())); }
+      try { files = await readZip(raw); }
       catch { zone.error(`${file.name} isn’t a readable zip — try the original romset.`); return; }
       // grade the set against the manifest BEFORE booting: ticks in the
       // list, and a wrong set bounces back here instead of hanging
@@ -551,6 +554,7 @@ function waitForZip(
       zone.verdict(check);
       if (check.missingCritical.length) return; // stay in the loop for a retry
       accepted = true;
+      void saveRomZip(game, raw); // remember the verified drop for next time
       setTimeout(() => resolve(files), 1100); // let the verdict land before the screen lights up
     };
     pick.addEventListener('change', () => { if (pick.files?.[0]) void handle(pick.files[0]); });

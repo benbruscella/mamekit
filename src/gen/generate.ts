@@ -367,7 +367,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     bindings,
     dipDefaults,
     ports: portSpecs,
-    romUrl: `../roms/${opts.game}.zip`, // resolved from the /app/ page; base-path agnostic
+    // no romUrl: ROMs are never fetched — the shell only accepts user drops
+    // (remembered per-browser in IndexedDB via runtime/romstore.ts)
     runtimeUrl: './dist/runtime/',
     menuUrl: './',
   };

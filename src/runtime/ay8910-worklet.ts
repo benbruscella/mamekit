@@ -11,6 +11,9 @@
 //   { type: 'write', offset: number, data: number }
 //     offset = chip*16 + register (0x00-0x4f for five chips); the register
 //     within the chip is offset & 0x0f, the chip index is offset >> 4.
+//     offset 0x80 = percussion DAC sample byte (unsigned 8-bit, zero-order
+//     hold) — the i8039 MCU on junofrst/gyruss boards writes its P1 DAC
+//     here; mixed at DAC_GAIN alongside the PSG bank.
 //
 // All chips render at the shared native rate (clock / 8, ~223.7 kHz for
 // the 14.31818 MHz / 8 gyruss clock), are summed at 1/chips gain so a full
@@ -50,6 +53,9 @@ type Ay8910Message = InitMessage | WriteMessage;
 /** Native samples rendered per refill of the internal buffer. */
 const CHUNK = 256;
 
+/** DAC route gain — MAME junofrst routes the R2R ladder at 0.25. */
+const DAC_GAIN = 0.25;
+
 class Ay8910Processor extends AudioWorkletProcessor {
   private chips: AY8910[] = [];
   /** native samples advanced per output sample (e.g. 223721.5 / 48000). */
@@ -66,6 +72,9 @@ class Ay8910Processor extends AudioWorkletProcessor {
   private nativeBuf: Float32Array = new Float32Array(CHUNK);
   private scratch: Float32Array = new Float32Array(CHUNK);
   private nativePos: number = CHUNK; // next unread index; == length => refill
+
+  /** percussion DAC level (zero-order hold), mixed on top of the bank */
+  private dacLevel: number = 0;
 
   constructor() {
     super();
@@ -84,6 +93,11 @@ class Ay8910Processor extends AudioWorkletProcessor {
           break;
         }
         case 'write': {
+          if (msg.offset === 0x80) {
+            // percussion DAC (i8039 P1): unsigned byte -> centered level
+            this.dacLevel = ((msg.data & 0xff) - 128) / 128;
+            break;
+          }
           const chip = this.chips[msg.offset >> 4];
           if (chip) chip.writeReg(msg.offset & 0x0f, msg.data);
           break;
@@ -128,7 +142,7 @@ class Ay8910Processor extends AudioWorkletProcessor {
           n++;
         }
         if (n > 0) this.boxAvg = acc / n;
-        out[i] = this.boxAvg;
+        out[i] = this.boxAvg + this.dacLevel * DAC_GAIN;
       }
     }
 

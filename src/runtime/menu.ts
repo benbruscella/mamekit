@@ -17,6 +17,7 @@ import { readZip, crc32 } from './zip.ts';
 import { decodeGfx, type GfxLayout } from './gfx.ts';
 import { loadArtwork } from './artwork.ts';
 import { createBoard } from './boards/index.ts';
+import { loadRomZip, hasRomZip } from './romstore.ts';
 
 interface GameEntry {
   game: string;
@@ -27,6 +28,8 @@ interface GameEntry {
   family: string;
   hasRom: boolean;
   hasArt: boolean;
+  /** the compiled app contains this game's board module (games.json) */
+  supported?: boolean;
   // "learn" modal facts (from the driver header + MAME git history)
   driverFile?: string;
   license?: string;
@@ -45,6 +48,9 @@ export async function runMenu(): Promise<void> {
   document.title = 'MAME History — the video arcade, transpiled';
   const games: GameEntry[] = await fetch('../games.json').then(r => r.json());
   games.sort((a, b) => a.year.localeCompare(b.year) || a.game.localeCompare(b.game));
+  // ROMs are never server-side: "has a ROM" means the visitor's own browser
+  // remembers a verified drop (romstore) — covers/tile art read from there
+  await Promise.all(games.map(async g => { g.hasRom = await hasRomZip(g.game); }));
 
   const root = el('div', `min-height:100vh;box-sizing:border-box;margin:0;padding:0 0 60px;
     background:linear-gradient(#06070f, #0b0d1d 30%, #10142a);color:#eee;
@@ -190,11 +196,13 @@ export async function runMenu(): Promise<void> {
     label.append(name, meta);
     box.appendChild(label);
 
-    if (!entry.hasRom) {
+    if (entry.supported === false || !entry.hasRom) {
       const ribbon = el('div', `position:absolute;top:14px;right:-34px;transform:rotate(38deg);z-index:4;
-        background:#c22;color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 38px;
-        box-shadow:0 2px 6px rgba(0,0,0,.5)`);
-      ribbon.textContent = 'INSERT ROM';
+        background:${entry.supported === false ? '#666' : '#c22'};color:#fff;font-size:10px;font-weight:700;
+        letter-spacing:1px;padding:3px 38px;box-shadow:0 2px 6px rgba(0,0,0,.5)`);
+      // a game generated before its board compiles must never offer Play
+      // (stale-bundle crash, see gotchas) — story card still opens
+      ribbon.textContent = entry.supported === false ? 'IN DEVELOPMENT' : 'INSERT ROM';
       box.appendChild(ribbon);
     }
 
@@ -368,7 +376,13 @@ export async function runMenu(): Promise<void> {
         ${solid ? 'background:#f2c200;color:#1b1b1b' : 'border:2px solid #2a3160;color:#9fb0ff'}`;
       return a;
     };
-    links.appendChild(mkBtn('▶ Play', `g/${game}/`, true));
+    if (entry.supported !== false) {
+      links.appendChild(mkBtn('▶ Play', `g/${game}/`, true));
+    } else {
+      const soon = el('span', 'padding:9px 18px;border-radius:8px;font-weight:700;border:2px solid #555;color:#888');
+      soon.textContent = '🛠 In development';
+      links.appendChild(soon);
+    }
     const viewer = mkBtn('Explore the knowledge graph', `../${game}/viewer.html`, false);
     viewer.target = '_blank';
     links.appendChild(viewer);
@@ -473,7 +487,7 @@ export async function runMenu(): Promise<void> {
     if (!entry.hasRom) return null;
     try {
       const cfg = await fetch(`../${encodeURIComponent(entry.game)}/config.json`).then(r => r.json()) as ShellCfg;
-      const regions = await loadRegions(cfg);
+      const regions = await loadRegions(entry.game, cfg);
       if (!regions) return null;
       const ports = Object.fromEntries(cfg.ports.map(p => [p.tag, p.init]));
       const board = createBoard(cfg.board, regions, { read: t => ports[t] ?? 0xff }, { soundWrite: () => { /* silent */ } });
@@ -517,15 +531,14 @@ export async function runMenu(): Promise<void> {
   interface ShellCfg {
     board: Parameters<typeof createBoard>[0];
     ports: { tag: string; init: number }[];
-    romUrl: string;
     roms: { region: string; size: number; loads: { file: string; size: number; offset: number; crc: string }[] }[];
   }
 
-  /** Assemble all ROM regions from the game's zip (name / dash-swap / CRC match). */
-  async function loadRegions(cfg: ShellCfg): Promise<Record<string, Uint8Array> | null> {
-    const res = await fetch(cfg.romUrl);
-    if (!res.ok) return null;
-    const files = await readZip(new Uint8Array(await res.arrayBuffer()));
+  /** Assemble all ROM regions from the user's remembered drop (never a URL). */
+  async function loadRegions(game: string, cfg: ShellCfg): Promise<Record<string, Uint8Array> | null> {
+    const raw = await loadRomZip(game);
+    if (!raw) return null;
+    const files = await readZip(raw);
     const byCrc = new Map<number, Uint8Array>();
     for (const b of files.values()) byCrc.set(crc32(b), b);
     const regions: Record<string, Uint8Array> = {};
@@ -548,7 +561,8 @@ export async function runMenu(): Promise<void> {
       const gfxSpec = (cfg.roms as { region: string; size: number; loads: { file: string; size: number; offset: number; crc: string }[] }[])
         .find(r => r.region === 'gfx1');
       if (!gfxSpec) return false;
-      const zipBytes = new Uint8Array(await (await fetch(cfg.romUrl)).arrayBuffer());
+      const zipBytes = await loadRomZip(entry.game);
+      if (!zipBytes) return false;
       const files = await readZip(zipBytes);
       const byCrc = new Map<number, Uint8Array>();
       for (const b of files.values()) byCrc.set(crc32(b), b);
