@@ -373,6 +373,65 @@ function makeRig(regions: Regions, st: TestState): Rig {
     `${hex(rig.px(238, 54))},${hex(rig.px(12, 54))}`);
 }
 
+// ROMREGION_ERASEFF normalization: a loader that zero-fills the unloaded
+// upper half of a bg region (instead of MAME's 0xff erase fill) must still
+// produce the solid pen-3 lower strip half (this was the real-ROM bug:
+// strip bottoms rendered transparent).
+{
+  const regions = makeRegions();
+  regions['bg0'].fill(0, 0x1000); // zero-filled loader behaviour
+  regions['bg_pal'][12] = 0x07;   // mountains pen 3 -> red
+  const RED = rgb(255, 0, 0);
+  const st = makeState();
+  st.bgc = 0x06; st.bgx1 = 20; st.bgy1 = 60; // mountains only; image rows at fby 54..181
+  const rig = makeRig(regions, st);
+  rig.render();
+  check('D12 zero-filled bg upper half restored to 0xff (image rows 64-127 = pen 3)',
+    rig.px(100, 120) === RED && rig.px(100, 150) === RED,
+    `${hex(rig.px(100, 120))},${hex(rig.px(100, 150))}`);
+  check('D13 normalization decodes a copy (caller region not mutated)',
+    regions['bg0'][0x1800] === 0);
+}
+
+// gameplay-shaped integration: Moon Patrol's ground = tx tiles in rows
+// 27-31 (colorram 4) drawn in the rowscroll-quarter-3 band (fby 186..249)
+// ON TOP of the bg strip pen-3 fill; the crater surface row scrolls with
+// scroll_w.
+{
+  const regions = makeRegions();
+  // char 0xf3 = solid pen 1 (the real ROM's ground-mass tile is solid too)
+  regions['tx'].fill(0xff, 0xf3 * 8, 0xf3 * 8 + 8);
+  // char 0xe9: surface tile with a single pen-1 pixel at (0,0)
+  regions['tx'][0xe9 * 8] = 0x80;
+  regions['tx_pal'][4 * 4 + 1] = 0x07;  // color 4 pen 1 -> red (ground)
+  regions['bg_pal'][12] = 0x38;         // mountains pen 3 -> green fill
+  const RED = rgb(255, 0, 0);
+  const GREEN = rgb(0, 255, 0);
+  const st = makeState();
+  st.bgc = 0x06; st.bgx1 = 0; st.bgy1 = 40; // strip + fill reach the bottom band
+  const rig = makeRig(regions, st);
+  for (let c = 0; c < 32; c++) {
+    rig.videoram[27 * 32 + c] = 0xe9;   // surface row (craters)
+    rig.colorram[27 * 32 + c] = 0x04;
+    for (let r = 28; r < 32; r++) {
+      rig.videoram[r * 32 + c] = 0xf3;  // solid ground mass
+      rig.colorram[r * 32 + c] = 0x04;
+    }
+  }
+  rig.render();
+  check('C13 ground mass (tile rows 28-31) covers the bg fill at fby 218..249',
+    rig.px(0, 218) === RED && rig.px(120, 230) === RED && rig.px(239, 249) === RED,
+    hex(rig.px(120, 230)));
+  check('C14 crater surface row (tile row 27) renders over the strip fill at fby 210',
+    rig.px(32, 210) === RED && rig.px(33, 210) === GREEN,
+    `${hex(rig.px(32, 210))},${hex(rig.px(33, 210))}`);
+  st.scroll = 13;
+  rig.render();
+  check('C15 crater surface scrolls with scroll_w (quarter 3 only)',
+    rig.px(45, 210) === RED && rig.px(32, 210) === GREEN && rig.px(120, 230) === RED,
+    hex(rig.px(45, 210)));
+}
+
 // ---------------------------------------------------------------------------
 // (E) sprites: position, CLUT, flips, wrapping, priority
 // Geometry: sy = 257 - Y, sx = X + 129 -> fb (X - 7, 235 - Y).

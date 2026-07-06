@@ -319,6 +319,27 @@ const YEXTENT = 273 + 22 + 1;  // = 296
 
 const BGHEIGHT = 128;
 
+/**
+ * ROMREGION_ERASEFF normalization (m52.cpp:1008-1016): each bg region only
+ * LOADS 0x1000 bytes of ROM ("mpe-1.3l" etc.); the remaining 0x1000 bytes
+ * are 0xff erase-fill on the real board, which decodes to solid pen 3 —
+ * that is the lower half of every strip (image rows 64-127), the ground the
+ * pen-3 bitmap fill below continues from.  Region loaders that zero-fill
+ * instead would leave those rows pen 0 = transparent (strips floating over
+ * black), so an all-zero upper half is restored to the hardware 0xff fill.
+ * (A copy is decoded; the caller's region is never mutated.)
+ */
+function normalizeBgRegion(region: Uint8Array): Uint8Array {
+  let allZero = true;
+  for (let i = 0x1000; i < 0x2000; i++) {
+    if (region[i] !== 0) { allZero = false; break; }
+  }
+  if (!allZero) return region;
+  const copy = region.slice(0, 0x2000);
+  copy.fill(0xff, 0x1000);
+  return copy;
+}
+
 // ---------------------------------------------------------------------------
 
 export class M52Video implements VideoRenderer {
@@ -361,7 +382,11 @@ export class M52Video implements VideoRenderer {
     this.charGfx = decodeGfx(TX_LAYOUT, tx);          // 512 8x8 2bpp chars
     this.spriteGfx = decodeGfx(SPRITE_LAYOUT, sp);    // 128 16x16 "3bpp" sprites
     const bgLayout = buildBgLayout();
-    this.bgGfx = [decodeGfx(bgLayout, bg0), decodeGfx(bgLayout, bg1), decodeGfx(bgLayout, bg2)];
+    this.bgGfx = [
+      decodeGfx(bgLayout, normalizeBgRegion(bg0)),
+      decodeGfx(bgLayout, normalizeBgRegion(bg1)),
+      decodeGfx(bgLayout, normalizeBgRegion(bg2)),
+    ];
     this.pal = buildM52Palette(deps.regions);
   }
 

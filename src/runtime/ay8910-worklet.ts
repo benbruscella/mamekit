@@ -60,6 +60,7 @@ class Ay8910Processor extends AudioWorkletProcessor {
   private frac: number = 0;
   private s0: number = 0;
   private s1: number = 0;
+  private boxAvg: number = 0;
 
   // Internal native-rate render buffers (bank sum + per-chip scratch).
   private nativeBuf: Float32Array = new Float32Array(CHUNK);
@@ -112,13 +113,22 @@ class Ay8910Processor extends AudioWorkletProcessor {
       out.fill(0);
     } else {
       for (let i = 0; i < out.length; i++) {
+        // box-filter decimation: average every native sample this output
+        // sample spans. Point-sampling a ~224 kHz square-wave stream down to
+        // 48 kHz aliases badly (chirpy high-pitched SFX); the box average is
+        // a cheap anti-alias low-pass.
         this.frac += this.step;
+        let acc = 0;
+        let n = 0;
         while (this.frac >= 1) {
           this.frac -= 1;
           this.s0 = this.s1;
           this.s1 = this.nextNativeSample();
+          acc += this.s1;
+          n++;
         }
-        out[i] = this.s0 + (this.s1 - this.s0) * this.frac;
+        if (n > 0) this.boxAvg = acc / n;
+        out[i] = this.boxAvg;
       }
     }
 
