@@ -93,6 +93,9 @@ export class M6809 {
   dp = 0;
   cc = 0;
   halted = false; // parked in SYNC or CWAI wait
+  /** count of IRQ vectors taken — lets boards model MAME's HOLD_LINE
+   *  (deassert exactly when the interrupt is acknowledged) */
+  irqCount = 0;
 
   private bus: M6809Bus;
   private opcodeXform: ((addr: number, byte: number) => number) | null;
@@ -190,6 +193,7 @@ export class M6809 {
       this.s = this.pushRegs(this.s, 0xff, this.u);
       this.cc |= CC_I; // IRQ does not set F
       this.intVector(VEC_IRQ);
+      this.irqCount++;
       return this.cy; // 19
     }
 
@@ -515,6 +519,7 @@ export class M6809 {
     this.cwaiWait = false;
     this.halted = false;
     if (vec === VEC_NMI) this.nmiPending = false;
+    if (vec === VEC_IRQ) this.irqCount++;
     this.cc |= CC_I | (vec !== VEC_IRQ ? CC_F : 0);
     this.intVector(vec);
   }

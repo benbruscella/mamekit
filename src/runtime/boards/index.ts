@@ -8,6 +8,7 @@ import { GalaxianBoard } from './galaxian.ts';
 import { GyrussBoard } from './gyruss.ts';
 import { Mw8080bwBoard } from './mw8080bw.ts';
 import { M52Board } from './m52.ts';
+import { GngBoard } from './gng.ts';
 
 type BoardCtor = new (config: BoardConfig, regions: Regions, inputs: InputPorts, sinks: BoardSinks) => Board;
 
@@ -18,6 +19,7 @@ const FAMILIES: Record<string, BoardCtor> = {
   gyruss: GyrussBoard,
   mw8080bw: Mw8080bwBoard,
   m52: M52Board,
+  gng: GngBoard,
 };
 
 export function registerBoard(family: string, ctor: BoardCtor): void {

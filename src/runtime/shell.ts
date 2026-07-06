@@ -9,7 +9,12 @@ import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig } from './types.ts';
 
-export interface RomLoad { file: string; offset: number; size: number; crc: string; reloadOffsets?: number[] }
+export interface RomLoad {
+  file: string; offset: number; size: number; crc: string;
+  /** same-slot chips from sibling sets (other revisions of the same game) */
+  alt?: { file: string; crc: string }[];
+  reloadOffsets?: number[];
+}
 export interface RomRegionSpec { region: string; size: number; loads: RomLoad[] }
 
 export interface SoundSpec {
@@ -42,6 +47,30 @@ export interface RomCheck {
   crcMismatch: string[];
 }
 
+/**
+ * Find the zip entry satisfying one manifest slot: the primary chip by
+ * name / dash-underscore-swapped name / CRC, else any clone-revision
+ * alternate (same slot in a sibling set) by CRC or name.
+ */
+export function findRomBytes(
+  load: RomLoad,
+  files: Map<string, Uint8Array>,
+  byCrc: Map<number, Uint8Array>,
+): { bytes: Uint8Array | null; exact: boolean } {
+  const expected = parseInt(load.crc, 16) >>> 0;
+  const primary = files.get(load.file.toLowerCase())
+    ?? files.get(load.file.toLowerCase().replace(/_/g, '-'))
+    ?? byCrc.get(expected);
+  if (primary && crc32(primary) === expected) return { bytes: primary, exact: true };
+  for (const alt of load.alt ?? []) {
+    const altCrc = parseInt(alt.crc, 16) >>> 0;
+    const f = byCrc.get(altCrc) ?? files.get(alt.file.toLowerCase());
+    if (f && crc32(f) === altCrc) return { bytes: f, exact: true };
+  }
+  // name matched but unknown bytes: usable, flagged as a CRC difference
+  return { bytes: primary ?? null, exact: false };
+}
+
 /** Match a zip's contents against the romset manifest without assembling. */
 export function checkRomSet(
   specs: RomRegionSpec[],
@@ -53,16 +82,13 @@ export function checkRomSet(
   const check: RomCheck = { perFile: [], missingCritical: [], missingOther: [], crcMismatch: [] };
   for (const spec of specs) {
     for (const load of spec.loads) {
-      const expected = parseInt(load.crc, 16) >>> 0;
-      const f = files.get(load.file.toLowerCase())
-        ?? files.get(load.file.toLowerCase().replace(/_/g, '-'))
-        ?? byCrc.get(expected);
       const isCrit = critical.has(spec.region);
+      const { bytes, exact } = findRomBytes(load, files, byCrc);
       let status: 'ok' | 'crc' | 'missing';
-      if (!f) {
+      if (!bytes) {
         status = 'missing';
         (isCrit ? check.missingCritical : check.missingOther).push(load.file);
-      } else if (crc32(f) !== expected) {
+      } else if (!exact) {
         status = 'crc';
         check.crcMismatch.push(load.file);
       } else {
@@ -235,16 +261,14 @@ function assembleRegions(
   for (const spec of specs) {
     const bytes = new Uint8Array(spec.size);
     for (const load of spec.loads) {
-      const expected = parseInt(load.crc, 16) >>> 0;
-      // exact name, then name with -/_ swapped, then CRC match
-      const f = files.get(load.file.toLowerCase())
-        ?? files.get(load.file.toLowerCase().replace(/_/g, '-'))
-        ?? byCrc.get(expected);
+      // primary chip by name/swapped-name/CRC, else a clone-revision
+      // alternate from the same slot (see findRomBytes)
+      const { bytes: f, exact } = findRomBytes(load, files, byCrc);
       if (!f) {
         (critical.has(spec.region) ? missingCritical : missingOther).push(load.file);
         continue;
       }
-      if (crc32(f) !== expected) {
+      if (!exact) {
         console.warn(`CRC mismatch for ${load.file} (got ${crc32(f).toString(16)}, want ${load.crc}) — continuing`);
       }
       bytes.set(f.subarray(0, load.size), load.offset);
