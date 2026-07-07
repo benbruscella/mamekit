@@ -498,7 +498,7 @@ export async function runMenu(): Promise<void> {
     }
     // consoles: no cabinet/screenshot ladder — a stylized front-loader
     // placeholder unless real box art (step 0 above) exists
-    if (entry.kind === 'console') { paintConsolePlaceholder(canvas, ctx); return; }
+    if (entry.kind === 'console') { swapConsoleCover(canvas); return; }
     // 1. cabinet artwork frame (drawn immediately; the deterministic
     //    screenshot fills the CRT window when it's ready)
     if (entry.hasArt && await paintArtwork(entry, canvas, ctx)) return;
@@ -636,56 +636,50 @@ export async function runMenu(): Promise<void> {
    * darker lower front, near-black flap) with the thin red accent stripe —
    * no trademarked artwork, pure geometry.
    */
-  function paintConsolePlaceholder(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-    const W = canvas.width, H = canvas.height;
-    const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, '#171a2b');
-    bg.addColorStop(1, '#0a0b14');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, W, H);
-    // faint scanlines to match the arcade placeholders
-    ctx.fillStyle = 'rgba(0,0,0,.3)';
-    for (let y = 0; y < H; y += 3) ctx.fillRect(0, y, W, 1);
+  // Consoles get a crisp inline-SVG front-loader instead of a canvas painter:
+  // swap the <canvas> cover for a <div> holding the SVG (sharp at any DPR).
+  // Trademark-free: neutral "CONTROL DECK" wordmark, classic dark stripes,
+  // red power LED, cartridge flap. Matches the console room's hero art.
+  function swapConsoleCover(canvas: HTMLCanvasElement): void {
+    const host = el('div', canvas.style.cssText);
+    host.style.background = 'linear-gradient(#171a2b,#0a0b14)';
+    host.style.display = 'flex';
+    host.style.alignItems = 'center';
+    host.style.justifyContent = 'center';
+    host.innerHTML = nesConsoleSvg();
+    canvas.replaceWith(host);
+  }
 
-    const bw = W * 0.74, bx = (W - bw) / 2, by = H * 0.36;
-    const deckH = H * 0.14, frontH = H * 0.12;
-    // drop shadow
-    ctx.fillStyle = 'rgba(0,0,0,.55)';
-    ctx.fillRect(bx - 10, by + deckH + frontH, bw + 20, 14);
-    // top deck: light grey
-    const deck = ctx.createLinearGradient(0, by, 0, by + deckH);
-    deck.addColorStop(0, '#d9d4cd');
-    deck.addColorStop(1, '#b4afa8');
-    ctx.fillStyle = deck;
-    ctx.fillRect(bx, by, bw, deckH);
-    // grip grooves across the deck
-    ctx.fillStyle = 'rgba(0,0,0,.12)';
-    for (let i = 1; i <= 4; i++) ctx.fillRect(bx, by + (deckH * i) / 5, bw, 3);
-    // lower front: darker grey
-    const front = ctx.createLinearGradient(0, by + deckH, 0, by + deckH + frontH);
-    front.addColorStop(0, '#8f8a83');
-    front.addColorStop(1, '#6f6a64');
-    ctx.fillStyle = front;
-    ctx.fillRect(bx, by + deckH, bw, frontH);
-    // cartridge flap: near-black, left two-thirds of the front
-    ctx.fillStyle = '#403d39';
-    ctx.fillRect(bx + bw * 0.05, by + deckH + frontH * 0.14, bw * 0.62, frontH * 0.62);
-    ctx.fillStyle = 'rgba(255,255,255,.08)';
-    ctx.fillRect(bx + bw * 0.05, by + deckH + frontH * 0.14, bw * 0.62, 4);
-    // the thin red stripe along the deck/front seam
-    ctx.fillStyle = '#e60012';
-    ctx.fillRect(bx, by + deckH - 5, bw, 7);
-    // power/reset nubs on the right of the front
-    ctx.fillStyle = '#2c2a27';
-    ctx.fillRect(bx + bw * 0.74, by + deckH + frontH * 0.3, bw * 0.09, frontH * 0.26);
-    ctx.fillRect(bx + bw * 0.86, by + deckH + frontH * 0.3, bw * 0.09, frontH * 0.26);
-    // controller cord hint
-    ctx.strokeStyle = 'rgba(160,160,160,.35)';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(bx + bw * 0.2, by + deckH + frontH + 14);
-    ctx.bezierCurveTo(bx + bw * 0.1, by + deckH + frontH + 120, bx + bw * 0.5, by + deckH + frontH + 90, bx + bw * 0.42, by + deckH + frontH + 180);
-    ctx.stroke();
+  function nesConsoleSvg(): string {
+    const W = 300, H = 400;
+    const cw = W * 0.84, cx = (W - cw) / 2, ch = cw * 0.62, cy = H * 0.30;
+    const n = (x: number) => x.toFixed(1);
+    const sx = cx + cw * 0.08, sw = cw * 0.84;
+    const ledX = cx + cw * 0.13, ledY = cy + ch * 0.32, ledR = cw * 0.016;
+    const wmX = cx + cw * 0.3, wmY = cy + ch * 0.38, wmW = cw * 0.4, wmH = ch * 0.16;
+    const fx = cx + cw * 0.06, fy = cy + ch * 0.62, fw = cw * 0.88, fh = ch * 0.32;
+    return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NES console">
+      <defs>
+        <linearGradient id="mcd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2ded4"/><stop offset="1" stop-color="#c4c0b5"/></linearGradient>
+        <radialGradient id="mled" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ff6068"/><stop offset="0.55" stop-color="#e60012"/><stop offset="1" stop-color="rgba(230,0,18,0)"/></radialGradient>
+      </defs>
+      <ellipse cx="${n(cx + cw / 2)}" cy="${n(cy + ch + 12)}" rx="${n(cw * 0.54)}" ry="${n(ch * 0.08)}" fill="rgba(0,0,0,.5)"/>
+      <rect x="${n(cx)}" y="${n(cy)}" width="${n(cw)}" height="${n(ch)}" rx="${n(cw * 0.045)}" fill="url(#mcd)"/>
+      <rect x="${n(cx)}" y="${n(cy)}" width="${n(cw)}" height="3" rx="1.5" fill="rgba(255,255,255,.65)"/>
+      <rect x="${n(sx)}" y="${n(cy + ch * 0.13)}" width="${n(sw)}" height="${n(ch * 0.028)}" fill="#17150f"/>
+      <rect x="${n(sx)}" y="${n(cy + ch * 0.19)}" width="${n(sw)}" height="${n(ch * 0.028)}" fill="#17150f"/>
+      <circle cx="${n(ledX)}" cy="${n(ledY)}" r="${n(ledR * 2.8)}" fill="url(#mled)"/>
+      <circle cx="${n(ledX)}" cy="${n(ledY)}" r="${n(ledR)}" fill="#e60012"/>
+      <rect x="${n(cx + cw * 0.78)}" y="${n(cy + ch * 0.28)}" width="${n(cw * 0.05)}" height="${n(ch * 0.06)}" rx="1" fill="#2c2a27"/>
+      <rect x="${n(cx + cw * 0.86)}" y="${n(cy + ch * 0.28)}" width="${n(cw * 0.05)}" height="${n(ch * 0.06)}" rx="1" fill="#2c2a27"/>
+      <rect x="${n(wmX)}" y="${n(wmY)}" width="${n(wmW)}" height="${n(wmH)}" rx="2" fill="#cbc7bc" stroke="rgba(0,0,0,.25)"/>
+      <text x="${n(wmX + wmW / 2)}" y="${n(wmY + wmH * 0.68)}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="${n(wmH * 0.5)}" font-weight="700" letter-spacing="1.5" fill="#6a655b">CONTROL DECK</text>
+      <rect x="${n(cx + cw * 0.45)}" y="${n(fy - ch * 0.04)}" width="${n(cw * 0.1)}" height="${n(ch * 0.05)}" rx="2" fill="#8f8b82"/>
+      <rect x="${n(fx)}" y="${n(fy)}" width="${n(fw)}" height="${n(fh)}" rx="4" fill="#a7a39a"/>
+      <rect x="${n(fx)}" y="${n(fy)}" width="${n(fw)}" height="2" fill="rgba(255,255,255,.28)"/>
+      <rect x="${n(fx + fw * 0.04)}" y="${n(fy + fh * 0.5)}" width="${n(fw * 0.92)}" height="1.5" fill="rgba(0,0,0,.3)"/>
+      <text x="${n(W / 2)}" y="${n(cy + ch + 40)}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="13" font-weight="700" letter-spacing="3" fill="#5b6486">▸ ENTER TO INSERT CARTS</text>
+    </svg>`;
   }
 
   function paintPlaceholder(entry: GameEntry, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {

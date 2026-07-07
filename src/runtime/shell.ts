@@ -302,6 +302,56 @@ function assembleRegions(
 
 // ---------------------------------------------------------------------------
 
+/** Human-readable key label from a DOM KeyboardEvent.code. */
+function keyLabel(code: string): string {
+  const map: Record<string, string> = {
+    ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓',
+    Space: 'Space', Enter: 'Enter', ShiftLeft: 'Shift', ShiftRight: 'Shift',
+  };
+  return map[code] ?? code.replace(/^Key|^Digit/, '');
+}
+
+/** Friendly function name from a binding's IPT type / graph label. */
+function fnLabel(label: string): string {
+  const map: Record<string, string> = {
+    IPT_START: 'start', IPT_SELECT: 'select',
+    IPT_START1: 'start 1P', IPT_START2: 'start 2P',
+    IPT_COIN1: 'coin', IPT_COIN2: 'coin 2',
+    IPT_BUTTON1: 'fire', IPT_BUTTON2: 'fire 2', IPT_BUTTON3: 'fire 3',
+    IPT_SERVICE1: 'service', IPT_SERVICE: 'service',
+  };
+  if (map[label]) return map[label];
+  if (/JOYSTICK|_LEFT|_RIGHT|_UP|_DOWN/.test(label)) return 'move';
+  // console pads carry the real button name ("A", "B") in the label — keep
+  // short names verbatim, lowercase longer IPT-derived words
+  const name = label.replace(/^IPT_/, '').replace(/_/g, ' ');
+  return name.length <= 2 ? name : name.toLowerCase();
+}
+
+/** Build the on-screen controls hint from the generated bindings. */
+function controlsHelp(cfg: ShellConfig): string {
+  const parts: string[] = [];
+  const dirKeys = new Set<string>();
+  const seen = new Set<string>();
+  for (const b of cfg.bindings) {
+    const fn = fnLabel(b.label);
+    if (fn === 'move') { for (const k of b.keys) dirKeys.add(k); continue; }
+    const keys = b.keys.map(keyLabel).join(' or ');
+    const line = `${keys}: ${fn}`;
+    if (seen.has(line)) continue;
+    seen.add(line);
+    parts.push(line);
+  }
+  const head: string[] = [];
+  if (dirKeys.size) {
+    const order = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+    const arrows = order.every(k => dirKeys.has(k))
+      ? 'Arrows' : order.filter(k => dirKeys.has(k)).map(keyLabel).join('');
+    head.push(`${arrows}: move`);
+  }
+  return [...head, ...parts, 'Esc: menu'].join(' · ');
+}
+
 function buildDom(cfg: ShellConfig) {
   document.title = cfg.title;
   const root = document.createElement('div');
@@ -378,7 +428,7 @@ function buildDom(cfg: ShellConfig) {
 
   const help = document.createElement('div');
   help.style.cssText = 'color:#666';
-  help.textContent = 'Arrows: move · Space or X: fire · 5: coin · 1: start 1P · 2: start 2P · Esc: menu';
+  help.textContent = controlsHelp(cfg);
   root.appendChild(help);
 
   const ctx = canvas.getContext('2d')!;

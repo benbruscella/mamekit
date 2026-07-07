@@ -120,7 +120,9 @@ function makeINes(opts: {
   eq('exact match found', r.meta?.name, 'smb');
   eq('exact not approx', r.approx, false);
   eq('slot from catalog', r.slot, 'nrom');
+  eq('allowlisted title tested', r.tier, 'tested');
   eq('allowlisted title supported', r.supported, true);
+  eq('tested is playable', r.playable, true);
   eq('prg crc exposed', r.prgCrc, smbPrgCrc);
 
   // clone matching via the multi-chip entry: remove the single-chip entry's
@@ -139,27 +141,29 @@ function makeINes(opts: {
   const r3 = identify(parseINes(otherChr)!, catalog, support);
   eq('prg-only match approx', [r3.meta?.name, r3.approx], ['smb', true]);
 
-  // unknown dump: playable=false, header slot still resolved
+  // unknown dump on a SUPPORTED mapper (0=nrom): experimental, playable
   const unknown = makeINes({ prgBanks: 1, chrBanks: 0, prgFill: i => (i * 3 + 1) & 0xff });
   const r4 = identify(parseINes(unknown)!, catalog, support);
-  eq('unknown dump unmatched', r4.meta, undefined);
-  eq('unknown dump not supported', r4.supported, false);
-  eq('unknown reason', r4.reason, 'not in the cartridge catalog');
+  eq('unknown dump unmatched', r4.identified, false);
+  eq('unknown-but-supported-mapper -> experimental', r4.tier, 'experimental');
+  eq('experimental is playable', r4.playable, true);
+  eq('experimental not "supported" badge', r4.supported, false);
 
-  // known but not allowlisted
+  // known (catalog) but not allowlisted, supported mapper -> experimental
   const mmc3File = makeINes({ prgBanks: 1, chrBanks: 0, flags6: 4 << 4, prgFill: i => (i * 7) & 0xff });
   const r5 = identify(parseINes(mmc3File)!, catalog, support);
   eq('known title matched', r5.meta?.name, 'mmc3game');
-  eq('not allowlisted -> unsupported', r5.supported, false);
-  eq('allowlist reason', r5.reason, 'title not yet verified — coming soon');
+  eq('identified + supported mapper -> experimental', r5.tier, 'experimental');
+  eq('experimental reason', r5.reason, 'runs on a supported board — not yet verified');
 
   // unsupported mapper number (66 = gxrom, not in MAPPER_SLOTS), no catalog
   const m66 = parseINes(makeINes({ prgBanks: 1, chrBanks: 0, flags6: 2 << 4, flags7: 0x40 }))!;
   const r6 = identify(m66, null, support);
   eq('mapper 66 number', r6.mapper, 66);
   eq('no catalog: unknown mapper -> null slot', r6.slot, null);
-  eq('mapper 66 unsupported', r6.supported, false);
-  eq('mapper reason', r6.reason, 'not in the cartridge catalog');
+  eq('mapper 66 unsupported', r6.tier, 'unsupported');
+  eq('unsupported not playable', r6.playable, false);
+  eq('mapper reason', r6.reason, 'unrecognized dump — mapper 66 not supported');
 }
 
 console.log(`\nnes-ines.spec: ${totalPass} passed, ${totalFail} failed`);

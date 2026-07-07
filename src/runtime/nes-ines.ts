@@ -70,16 +70,29 @@ export interface SoftCatalog {
   crcIndex: Record<string, number[]>;
 }
 
+/**
+ * Support tier for a resolved cart:
+ * - 'tested'       — mapper implemented AND title on the verified allowlist -> plays with a VERIFIED badge
+ * - 'experimental' — mapper implemented but the title isn't verified yet     -> plays, clearly flagged experimental
+ * - 'unsupported'  — the cart's mapper isn't implemented                     -> cannot play
+ */
+export type CartTier = 'tested' | 'experimental' | 'unsupported';
+
 export interface ResolvedCart {
   ines: INesInfo;
   /** matched softlist entry (undefined when the dump isn't catalogued) */
   meta?: SoftEntry;
+  /** true when a catalog entry was matched */
+  identified: boolean;
   /** slot/mapper family name; null when the mapper number has no known slot */
   slot: string | null;
   mapper: number;
   /** exact: every chip crc verified; prg-only matches are flagged approx */
   approx: boolean;
-  /** playable: mapper implemented AND title on the explicit allowlist */
+  tier: CartTier;
+  /** playable at all (tested or experimental) */
+  playable: boolean;
+  /** true only for the verified allowlist tier (green badge / lit placeholder) */
   supported: boolean;
   reason?: string;
   prgCrc: string;
@@ -157,12 +170,16 @@ export function identify(
   const slotOk = slot !== null && support.slots.includes(slot);
   const gameOk = meta !== undefined &&
     (support.games.includes(meta.name) || (meta.cloneof !== undefined && support.games.includes(meta.cloneof)));
-  const supported = slotOk && gameOk;
+
+  const tier: CartTier = !slotOk ? 'unsupported' : gameOk ? 'tested' : 'experimental';
+  const playable = tier !== 'unsupported';
+  const supported = tier === 'tested';
   let reason: string | undefined;
-  if (!supported) {
-    reason = !meta ? 'not in the cartridge catalog'
-      : !slotOk ? `mapper ${ines.mapper}${slot ? ` (${slot})` : ''} not yet supported`
-      : 'title not yet verified — coming soon';
+  if (tier === 'unsupported') {
+    reason = !meta ? `unrecognized dump — mapper ${ines.mapper} not supported`
+      : `mapper ${ines.mapper}${slot ? ` (${slot})` : ''} not yet supported`;
+  } else if (tier === 'experimental') {
+    reason = meta ? 'runs on a supported board — not yet verified' : 'unrecognized dump on a supported board — untested';
   }
-  return { ines, meta, slot, mapper: ines.mapper, approx, supported, reason, prgCrc, chrCrc };
+  return { ines, meta, identified: meta !== undefined, slot, mapper: ines.mapper, approx, tier, playable, supported, reason, prgCrc, chrCrc };
 }

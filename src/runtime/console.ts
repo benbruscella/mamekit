@@ -5,22 +5,46 @@
 //
 // The room owns cartridge UX end-to-end: drop/pick .nes or .zip files,
 // identify them against the generated softlist catalog (nes-ines.ts), shelve
-// them as CSS cartridge tiles persisted in the visitor's own browser
-// (cartstore.ts, by explicit user approval 2026-07-07), and boot a verified
-// cart by handing runShell() preloaded {prg, chr?} regions with the cart
-// facts injected into a CLONE of cfg.board. Nothing here is game-specific:
-// titles, mappers, capability lists all come from config.json + softlist.json
-// + games.json.
+// them as inline-SVG cartridge tiles persisted in the visitor's own browser
+// (cartstore.ts, by explicit user approval 2026-07-07), and boot a cart by
+// handing runShell() preloaded {prg, chr?} regions with the cart facts injected
+// into a CLONE of cfg.board. Nothing here is game-specific: titles, mappers,
+// capability lists all come from config.json + softlist.json + games.json.
+//
+// Shelf model (redesigned): every verified title (cfg.cart.games) is shown as a
+// DARK PLACEHOLDER SLOT that LIGHTS UP when the visitor drops its matching ROM
+// dump. Any other cart on a supported board is playable as EXPERIMENTAL; carts
+// on unimplemented mappers show why they can't run. See docs for the tiers.
 
 import { runShell, type ShellConfig } from './shell.ts';
 import { openCartStore, type CartRecord } from './cartstore.ts';
-import { parseINes, identify, type ResolvedCart, type SoftCatalog } from './nes-ines.ts';
+import { parseINes, identify, type ResolvedCart, type SoftCatalog, type SoftEntry } from './nes-ines.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions } from './types.ts';
 
 const GOLD = '#f2c200';
 const ACCENT = '#e60012'; // NES front-loader stripe red
 const MAX_CART = 8 * 1024 * 1024; // no real cartridge is bigger than 8 MiB
+
+// --- artwork tunables (named so the orchestrator can screenshot-iterate) -------
+const CART_W = 200;
+const CART_H = 250;
+const CART_BODY_TOP = '#d3d0c6';   // warm light grey, plastic top
+const CART_BODY_BOT = '#b4b1a6';   // darker plastic bottom
+const CART_LABEL_BG = '#f4f1e7';   // classic off-white label
+const CART_LABEL_FRAME = '#141414'; // black-bordered NES label frame
+const STRIPE_TESTED = '#2f6bd8';       // blue label stripe — verified
+const STRIPE_EXPERIMENTAL = '#e6a02a'; // amber label stripe — experimental
+const STRIPE_UNSUPPORTED = '#8f8f8f';  // grey label stripe — can't run
+const STRIPE_PLACEHOLDER = '#5b6079';  // muted stripe — empty slot
+const SEAL_GREEN = '#37a24b';
+// friendly PCB names for the compatibility strip (slot family -> mapper board)
+const SLOT_PCB: Record<string, string> = {
+  nrom: 'NROM', uxrom: 'UxROM', cnrom: 'CNROM', sxrom: 'MMC1', txrom: 'MMC3',
+  pxrom: 'MMC2', fxrom: 'MMC4', gxrom: 'GxROM', axrom: 'AxROM', bnrom: 'BNROM',
+};
+
+type CartState = 'placeholder' | 'lit' | 'experimental' | 'unsupported';
 
 /** games.json manifest entry (the fields the room shows in About) */
 interface MenuEntry {
@@ -37,15 +61,9 @@ interface MenuEntry {
   gitHistory?: { firstCommit: string; lastCommit: string; commits: number; contributors: number; topAuthors: string[] };
 }
 
-interface Tile {
-  rec: CartRecord;
-  /** null => stored bytes no longer parse (should never happen; eject-only) */
-  resolved: ResolvedCart | null;
-  item: HTMLElement;
-  armEject: () => void;
-}
-
 const hex8 = (n: number) => n.toString(16).padStart(8, '0');
+const esc = (s: string) => s.replace(/[&<>]/g, c => (c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'));
+const stripSet = (s: string) => s.replace(/\s*\(.*\)$/, ''); // drop the "(Europe, rev. A)" region suffix
 
 function el(tag: string, css: string): HTMLElement {
   const e = document.createElement(tag);
@@ -53,10 +71,117 @@ function el(tag: string, css: string): HTMLElement {
   return e;
 }
 
-function hueOf(id: string): number {
-  let hash = 0;
-  for (const ch of id) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-  return hash % 360;
+/** greedy word-wrap into at most 2 lines, ellipsizing overflow */
+function wrapTitle(s: string, max = 17): string[] {
+  const words = s.split(/\s+/).filter(Boolean);
+  const lines = ['', ''];
+  let li = 0;
+  for (const w of words) {
+    const t = lines[li] ? `${lines[li]} ${w}` : w;
+    if (t.length <= max) { lines[li] = t; continue; }
+    if (li === 0 && !lines[1]) { li = 1; lines[1] = w; continue; }
+    lines[1] = lines[1].slice(0, max - 1).replace(/\s+$/, '') + '…';
+    break;
+  }
+  return (lines[1] ? lines : [lines[0]]).map(l => (l.length > max ? l.slice(0, max - 1) + '…' : l));
+}
+
+// --- inline-SVG cartridge artwork ----------------------------------------------
+// The iconic NES grey cart: plastic body + grip ridges + black-framed label with
+// a colored top-stripe. State drives palette/marks; text is crisp <text>.
+function cartSvg(o: { title: string; sub: string; state: CartState }): string {
+  const stripe = o.state === 'lit' ? STRIPE_TESTED
+    : o.state === 'experimental' ? STRIPE_EXPERIMENTAL
+      : o.state === 'unsupported' ? STRIPE_UNSUPPORTED
+        : STRIPE_PLACEHOLDER;
+  const dim = o.state === 'placeholder' || o.state === 'unsupported';
+  const dashed = o.state === 'placeholder';
+  const titleColor = dim ? '#8b8b86' : '#181818';
+  const subColor = dim ? '#7a7a75' : '#6b6045';
+  const lines = wrapTitle(o.title);
+
+  let ridges = '';
+  for (let i = 0; i < 5; i++) {
+    const y = 26 + i * 7;
+    ridges += `<rect x="16" y="${y}" width="168" height="3" fill="rgba(0,0,0,.17)"/>`
+      + `<rect x="16" y="${y + 3}" width="168" height="2" fill="rgba(255,255,255,.4)"/>`;
+  }
+
+  const titleSvg = lines.map((l, i) =>
+    `<text x="34" y="${112 + i * 20}" font-family="ui-sans-serif,system-ui,sans-serif" font-size="15" font-weight="800" fill="${titleColor}">${esc(l)}</text>`).join('');
+
+  // state marks (drawn on top of the label)
+  let mark = '';
+  if (o.state === 'lit') {
+    mark = `<circle cx="171" cy="24" r="15" fill="${SEAL_GREEN}" stroke="#fff" stroke-width="2"/>`
+      + `<text x="171" y="30" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="17" font-weight="900" fill="#fff">✓</text>`;
+  } else if (o.state === 'experimental') {
+    mark = `<rect x="146" y="12" width="44" height="17" rx="3" fill="${STRIPE_EXPERIMENTAL}"/>`
+      + `<text x="168" y="24.5" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" font-weight="800" fill="#221a05" letter-spacing="1">EXP</text>`;
+  } else if (o.state === 'unsupported') {
+    mark = `<text x="100" y="205" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="30" font-weight="900" fill="#e0504d" opacity=".85">✕</text>`;
+  }
+  const chip = o.state === 'placeholder'
+    ? `<rect x="40" y="176" width="120" height="26" rx="13" fill="rgba(6,8,20,.55)" stroke="${STRIPE_PLACEHOLDER}" stroke-width="1.5" stroke-dasharray="4 3"/>`
+      + `<text x="100" y="193" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10.5" font-weight="800" fill="#c6cdec" letter-spacing=".5">◍ INSERT DUMP</text>`
+    : '';
+
+  return `<svg viewBox="0 0 ${CART_W} ${CART_H}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+    <defs>
+      <linearGradient id="cb" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${CART_BODY_TOP}"/><stop offset="1" stop-color="${CART_BODY_BOT}"/>
+      </linearGradient>
+    </defs>
+    <rect x="6" y="4" width="188" height="242" rx="11" fill="url(#cb)"/>
+    <rect x="10" y="6" width="180" height="3" rx="1.5" fill="rgba(255,255,255,.5)"/>
+    <rect x="10" y="239" width="180" height="5" rx="2" fill="rgba(0,0,0,.28)"/>
+    ${ridges}
+    <rect x="22" y="72" width="156" height="150" rx="5" fill="none" stroke="${CART_LABEL_FRAME}" stroke-width="3"${dashed ? ' stroke-dasharray="7 5"' : ''}/>
+    <rect x="25.5" y="75.5" width="149" height="143" rx="3" fill="${CART_LABEL_BG}"/>
+    <rect x="25.5" y="75.5" width="149" height="10" fill="${stripe}"/>
+    ${titleSvg}
+    <text x="34" y="154" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10.5" font-weight="600" fill="${subColor}">${esc(o.sub)}</text>
+    <rect x="34" y="228" width="132" height="5" rx="2" fill="rgba(0,0,0,.4)"/>
+    ${dim ? `<rect x="6" y="4" width="188" height="242" rx="11" fill="rgba(6,7,15,.5)"/>` : ''}
+    ${chip}${mark}
+  </svg>`;
+}
+
+// --- inline-SVG NES front-loader (room-header hero) ----------------------------
+// Trademark-free: neutral "CONTROL DECK" wordmark, classic dark stripes + red
+// power LED + a darker inset cartridge flap across the lower ~42%.
+function consoleArt(W: number, H: number): string {
+  const cw = W * 0.82, cx = (W - cw) / 2, ch = cw * 0.6, cy = (H - ch) / 2 - H * 0.03;
+  const n = (x: number) => x.toFixed(1);
+  const stripeX = cx + cw * 0.08, stripeW = cw * 0.84;
+  const ledX = cx + cw * 0.13, ledY = cy + ch * 0.33, ledR = cw * 0.017;
+  const wmX = cx + cw * 0.3, wmY = cy + ch * 0.4, wmW = cw * 0.4, wmH = ch * 0.17;
+  const flapX = cx + cw * 0.06, flapY = cy + ch * 0.63, flapW = cw * 0.88, flapH = ch * 0.3;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+    <defs>
+      <linearGradient id="cd" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#e0dcd2"/><stop offset="1" stop-color="#c6c2b7"/>
+      </linearGradient>
+      <radialGradient id="led" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#ff5a63"/><stop offset="0.55" stop-color="${ACCENT}"/><stop offset="1" stop-color="rgba(230,0,18,0)"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="${n(cx + cw / 2)}" cy="${n(cy + ch + 8)}" rx="${n(cw * 0.52)}" ry="${n(ch * 0.09)}" fill="rgba(0,0,0,.45)"/>
+    <rect x="${n(cx)}" y="${n(cy)}" width="${n(cw)}" height="${n(ch)}" rx="${n(cw * 0.05)}" fill="url(#cd)"/>
+    <rect x="${n(cx)}" y="${n(cy)}" width="${n(cw)}" height="3" rx="1.5" fill="rgba(255,255,255,.6)"/>
+    <rect x="${n(stripeX)}" y="${n(cy + ch * 0.14)}" width="${n(stripeW)}" height="${n(ch * 0.03)}" fill="#17150f"/>
+    <rect x="${n(stripeX)}" y="${n(cy + ch * 0.2)}" width="${n(stripeW)}" height="${n(ch * 0.03)}" fill="#17150f"/>
+    <circle cx="${n(ledX)}" cy="${n(ledY)}" r="${n(ledR * 2.6)}" fill="url(#led)"/>
+    <circle cx="${n(ledX)}" cy="${n(ledY)}" r="${n(ledR)}" fill="${ACCENT}"/>
+    <rect x="${n(cx + cw * 0.78)}" y="${n(cy + ch * 0.29)}" width="${n(cw * 0.05)}" height="${n(ch * 0.06)}" rx="1" fill="#2c2a27"/>
+    <rect x="${n(cx + cw * 0.86)}" y="${n(cy + ch * 0.29)}" width="${n(cw * 0.05)}" height="${n(ch * 0.06)}" rx="1" fill="#2c2a27"/>
+    <rect x="${n(wmX)}" y="${n(wmY)}" width="${n(wmW)}" height="${n(wmH)}" rx="2" fill="#cbc7bc" stroke="rgba(0,0,0,.25)"/>
+    <text x="${n(wmX + wmW / 2)}" y="${n(wmY + wmH * 0.68)}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="${n(wmH * 0.55)}" font-weight="700" letter-spacing="1.5" fill="#6a655b">CONTROL DECK</text>
+    <rect x="${n(cx + cw * 0.45)}" y="${n(flapY - ch * 0.04)}" width="${n(cw * 0.1)}" height="${n(ch * 0.05)}" rx="2" fill="#8f8b82"/>
+    <rect x="${n(flapX)}" y="${n(flapY)}" width="${n(flapW)}" height="${n(flapH)}" rx="4" fill="#a7a39a"/>
+    <rect x="${n(flapX)}" y="${n(flapY)}" width="${n(flapW)}" height="2" fill="rgba(255,255,255,.25)"/>
+    <rect x="${n(flapX + flapW * 0.04)}" y="${n(flapY + flapH * 0.5)}" width="${n(flapW * 0.92)}" height="1.5" fill="rgba(0,0,0,.3)"/>
+  </svg>`;
 }
 
 async function fetchCatalog(cfg: ShellConfig): Promise<SoftCatalog | null> {
@@ -80,6 +205,15 @@ function resolveRec(rec: CartRecord, catalog: SoftCatalog | null, support: { slo
   return ines ? identify(ines, catalog, support) : null;
 }
 
+/** unified navigable shelf entry (placeholder slot OR a dropped "other" cart) */
+interface Card {
+  item: HTMLElement;
+  canPlay: () => boolean;
+  play: () => void;
+  info: () => void;
+  eject: () => void;
+}
+
 export async function runConsole(cfg: ShellConfig): Promise<void> {
   document.title = cfg.title;
   // a deep-linked cart boot replaces the room DOM entirely — Back must
@@ -93,7 +227,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   let inRoom = true; // gates every window-level listener once a cart boots
   let modalDepth = 0;
 
-  const playable = (r: ResolvedCart | null): r is ResolvedCart => r !== null && r.supported && coreSupported;
+  // play-enable now keys off .playable (tested OR experimental), gated by the core
+  const playable = (r: ResolvedCart | null): r is ResolvedCart => r !== null && r.playable && coreSupported;
 
   const boot = (rec: CartRecord, resolved: ResolvedCart): void => {
     inRoom = false;
@@ -110,6 +245,12 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       },
     };
     void runShell(cfg2, regions);
+  };
+
+  const bootCart = (rec: CartRecord, resolved: ResolvedCart | null): void => {
+    if (!playable(resolved)) return;
+    history.pushState(null, '', '?cart=' + encodeURIComponent(rec.id));
+    boot(rec, resolved);
   };
 
   // --- deep link: ?cart=<id> boots straight into the game ---------------------
@@ -131,7 +272,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   document.body.appendChild(root);
 
   const header = el('div', `display:flex;align-items:center;gap:24px;flex-wrap:wrap;
-    padding:26px 36px 18px;border-bottom:4px solid ${ACCENT};
+    padding:22px 36px 18px;border-bottom:4px solid ${ACCENT};
     background:linear-gradient(#141838,#0c0f24);box-shadow:0 6px 30px rgba(230,0,18,.18)`);
   const back = document.createElement('a');
   back.href = './?tab=consoles'; // <base href="../../"> -> app/?tab=consoles
@@ -146,22 +287,24 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   const sub = el('div', 'color:#7f8ac9;letter-spacing:6px;font-size:11px;font-weight:600');
   sub.textContent = ['CONSOLE', entry?.manufacturer, entry?.year].filter(Boolean).join(' · ');
   marquee.append(title, sub);
+  // the front-loader hero (inline SVG, crisp at any DPR)
+  const hero = el('div', 'width:230px;height:132px;flex:0 0 auto;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))');
+  hero.setAttribute('data-console-hero', '');
+  hero.innerHTML = consoleArt(230, 132);
   const aboutBtn = document.createElement('button');
   aboutBtn.textContent = 'About this console';
   aboutBtn.setAttribute('data-about', '');
   aboutBtn.style.cssText = `margin-left:auto;padding:9px 18px;border-radius:8px;font-weight:700;cursor:pointer;
     border:2px solid #2a3160;color:#9fb0ff;background:transparent;font:inherit;font-weight:700`;
   aboutBtn.addEventListener('click', openAboutModal);
-  header.append(back, marquee, aboutBtn);
+  header.append(back, marquee, hero, aboutBtn);
   root.appendChild(header);
 
   const banner = (text: string, attr: string, color: string): void => {
-    const b = el('div', `max-width:1208px;margin:18px auto 0;box-sizing:border-box;
-      padding:10px 18px;border:1px solid ${color};border-radius:10px;color:${color};
-      background:rgba(0,0,0,.35);font-size:13px;text-align:center`);
+    const b = el('div', `box-sizing:border-box;padding:10px 18px;border:1px solid ${color};border-radius:10px;color:${color};
+      background:rgba(0,0,0,.35);font-size:13px;text-align:center;margin-top:18px`);
     b.setAttribute(attr, '');
     b.textContent = text;
-    // margins inside the page gutter
     b.style.marginLeft = 'max(36px, calc(50% - 604px))';
     b.style.marginRight = 'max(36px, calc(50% - 604px))';
     root.appendChild(b);
@@ -189,6 +332,20 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   slot.append(mouth, slotBig, slotSmall, slotNote, toastEl);
   slotWrap.appendChild(slot);
   root.appendChild(slotWrap);
+
+  // --- compatibility clarity strip (always visible) ------------------------------
+  const testedTitles = support.games.map(name => stripSet(catalog?.entries.find(e => e.name === name)?.description ?? name));
+  const boardNames = support.slots.map(s => SLOT_PCB[s] ?? s.toUpperCase());
+  const stripText = `Tested & verified: ${testedTitles.join(', ') || '—'} · Also playable (experimental): any cart on ${boardNames.join(', ') || 'no'} boards.`;
+  const compat = el('div', `max-width:1280px;box-sizing:border-box;margin:12px auto 0;padding:0 36px;
+    color:#8b95cf;font-size:12px;text-align:center;line-height:1.6`);
+  compat.setAttribute('data-compat-strip', '');
+  const cLabel = el('span', `color:${GOLD};font-weight:700`);
+  cLabel.textContent = 'Compatibility · ';
+  const cText = el('span', '');
+  cText.textContent = stripText;
+  compat.append(cLabel, cText);
+  root.appendChild(compat);
 
   const slotIdle = (): void => {
     slot.style.transform = '';
@@ -219,158 +376,262 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     toastTimer = setTimeout(() => { toastEl.style.display = 'none'; }, 4500);
   };
 
-  // --- the shelf -----------------------------------------------------------------
-  const shelf = el('div', `display:flex;flex-wrap:wrap;gap:30px 26px;justify-content:center;
-    padding:40px 36px 0;max-width:1280px;margin:0 auto;box-sizing:border-box`);
-  shelf.setAttribute('data-cart-shelf', '');
-  root.appendChild(shelf);
-  const emptyMsg = el('div', 'text-align:center;color:#7f8ac9;padding:30px;width:100%');
-  emptyMsg.setAttribute('data-shelf-empty', '');
-  emptyMsg.textContent = 'No carts on the shelf yet — insert one above.';
-  shelf.appendChild(emptyMsg);
+  // --- the shelf: verified placeholder row + a divider + "your other cartridges" -
+  const board = el('div', 'max-width:1280px;margin:0 auto;padding:0 36px;box-sizing:border-box');
+  root.appendChild(board);
 
-  const hint = el('div', 'text-align:center;color:#4b5384;padding:28px 28px 8px;font-size:12px');
+  const rowHead = (text: string): HTMLElement => {
+    const h = el('div', `display:flex;align-items:center;gap:14px;color:#7f8ac9;font-size:11px;
+      font-weight:700;letter-spacing:2px;margin:38px 0 4px`);
+    const lab = el('span', 'flex:0 0 auto');
+    lab.textContent = text;
+    const rule = el('span', 'flex:1;height:1px;background:linear-gradient(90deg,#2a3160,transparent)');
+    h.append(lab, rule);
+    return h;
+  };
+
+  const verifiedHead = rowHead('VERIFIED CARTRIDGE SLOTS');
+  board.appendChild(verifiedHead);
+  const placeholderRow = el('div', 'display:flex;flex-wrap:wrap;gap:30px 26px;justify-content:center;padding:8px 0 0');
+  placeholderRow.setAttribute('data-placeholder-shelf', '');
+  board.appendChild(placeholderRow);
+
+  const otherHead = rowHead('YOUR OTHER CARTRIDGES');
+  otherHead.style.display = 'none';
+  board.appendChild(otherHead);
+  const otherRow = el('div', 'display:flex;flex-wrap:wrap;gap:30px 26px;justify-content:center;padding:8px 0 0');
+  otherRow.setAttribute('data-cart-shelf', '');
+  board.appendChild(otherRow);
+
+  const hint = el('div', 'text-align:center;color:#4b5384;padding:34px 28px 8px;font-size:12px');
   hint.textContent = '↑↓←→ browse · Enter: play · i: info · E: eject · Esc: all systems · in-game: Esc returns here';
   root.appendChild(hint);
 
-  const tiles: Tile[] = [];
-  let selected = -1;
-
-  const updateEmpty = (): void => { emptyMsg.style.display = tiles.length ? 'none' : 'block'; };
-
-  const select = (i: number): void => {
-    if (!tiles.length) { selected = -1; return; }
-    selected = ((i % tiles.length) + tiles.length) % tiles.length;
-    tiles.forEach(t => { t.item.style.outline = 'none'; });
-    const t = tiles[selected];
-    t.item.style.outline = `3px solid ${GOLD}`;
-    t.item.style.outlineOffset = '3px';
-    t.item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  // --- shared button + inline-eject helpers --------------------------------------
+  const mkBtn = (text: string, attr: string, solid: boolean, enabled: boolean): HTMLButtonElement => {
+    const b = document.createElement('button');
+    b.textContent = text;
+    b.setAttribute(attr, '');
+    b.disabled = !enabled;
+    b.style.cssText = `padding:5px 12px;border-radius:7px;font:inherit;font-size:12px;font-weight:700;
+      cursor:${enabled ? 'pointer' : 'default'};
+      ${solid && enabled ? `background:${GOLD};color:#1b1b1b;border:2px solid ${GOLD}`
+        : `background:transparent;border:2px solid #2a3160;color:${enabled ? '#9fb0ff' : '#555c86'}`}
+      ${enabled ? '' : ';opacity:.55'}`;
+    return b;
   };
 
-  const flash = (tile: Tile): void => {
-    tile.item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    tile.item.style.outline = `3px solid ${GOLD}`;
-    tile.item.style.outlineOffset = '3px';
-    setTimeout(() => { if (tiles[selected] !== tile) tile.item.style.outline = 'none'; }, 1400);
+  // two-step inline eject confirm — no window.confirm, ever
+  const armEject = (buttons: HTMLElement, rebuild: () => void, onConfirm: () => void): void => {
+    if (buttons.dataset.confirm) return;
+    buttons.dataset.confirm = '1';
+    buttons.textContent = '';
+    const q = el('span', 'font-size:12px;color:#e8b64c;font-weight:700;letter-spacing:.5px');
+    q.textContent = 'Eject?';
+    const yes = mkBtn('✔', 'data-eject-confirm', false, true);
+    yes.style.borderColor = '#e0504d';
+    yes.style.color = '#e0504d';
+    const no = mkBtn('✕', 'data-eject-cancel', false, true);
+    let t: ReturnType<typeof setTimeout>;
+    const done = (): void => { clearTimeout(t); delete buttons.dataset.confirm; };
+    yes.addEventListener('click', ev => { ev.stopPropagation(); done(); onConfirm(); });
+    no.addEventListener('click', ev => { ev.stopPropagation(); done(); rebuild(); });
+    buttons.append(q, yes, no);
+    t = setTimeout(() => { done(); rebuild(); }, 4000);
   };
 
-  const play = (tile: Tile): void => {
-    if (!playable(tile.resolved)) return;
-    history.pushState(null, '', '?cart=' + encodeURIComponent(tile.rec.id));
-    boot(tile.rec, tile.resolved);
+  const coverEl = (svg: string, glow: boolean, dim: boolean): HTMLElement => {
+    const c = el('div', `width:${CART_W}px;height:${CART_H}px;border-radius:12px;cursor:pointer;
+      transition:transform .15s ease, box-shadow .2s ease;
+      box-shadow:${glow ? `0 0 34px rgba(90,150,255,.5), 0 12px 24px rgba(0,0,0,.5)` : '0 12px 22px rgba(0,0,0,.45)'};
+      ${dim ? 'opacity:.9' : ''}`);
+    c.innerHTML = svg;
+    return c;
   };
 
-  // --- tile state text ------------------------------------------------------------
-  const stateOf = (resolved: ResolvedCart | null): { text: string; color: string; canPlay: boolean } => {
-    if (!resolved) return { text: 'CANNOT READ — EJECT', color: '#e0504d', canPlay: false };
-    if (resolved.supported)
-      return { text: `✓ VERIFIED · ${(resolved.meta?.description ?? '').toUpperCase()}`, color: '#5ecf7a', canPlay: coreSupported };
-    if (!resolved.meta)
-      return { text: `UNKNOWN CART · MAPPER ${resolved.mapper}`, color: '#e8b64c', canPlay: false };
-    if (resolved.slot === null || !support.slots.includes(resolved.slot))
-      return { text: `MAPPER ${resolved.mapper} NOT YET SUPPORTED`, color: '#8b93c4', canPlay: false };
-    return { text: 'NOT YET VERIFIED — COMING SOON', color: '#8b93c4', canPlay: false };
-  };
+  // --- placeholder slots (one per verified title) --------------------------------
+  interface Slot extends Card {
+    name: string;
+    litRec: CartRecord | null;
+    litResolved: ResolvedCart | null;
+    light: (rec: CartRecord, resolved: ResolvedCart) => void;
+    darken: () => void;
+  }
+  const slots: Slot[] = [];
 
-  // --- cartridge tile ---------------------------------------------------------------
-  function addTile(rec: CartRecord, resolved: ResolvedCart | null): Tile {
-    const displayName = resolved?.meta?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, '');
-    const state = stateOf(resolved);
+  function buildSlot(name: string): Slot {
+    const catEntry = catalog?.entries.find(e => e.name === name);
+    const targetTitle = stripSet(catEntry?.description ?? name.toUpperCase());
+    const targetSub = catEntry ? [catEntry.publisher, catEntry.year].filter(Boolean).join(' · ') : '';
 
-    const item = el('div', 'display:flex;flex-direction:column;align-items:center;gap:7px;width:190px');
+    const item = el('div', `display:flex;flex-direction:column;align-items:center;gap:7px;width:${CART_W}px`);
+    item.setAttribute('data-placeholder', name);
+    const coverHost = el('div', '');
+    const status = el('div', `font-size:10px;font-weight:700;letter-spacing:.8px;text-align:center;min-height:13px;
+      max-width:${CART_W}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`);
+    status.setAttribute('data-status', '');
+    const buttons = el('div', 'display:flex;gap:8px;align-items:center;justify-content:center;min-height:30px');
+    item.append(coverHost, status, buttons);
+
+    const slot: Slot = {
+      name, item, litRec: null, litResolved: null,
+      canPlay: () => slot.litResolved !== null && playable(slot.litResolved),
+      play: () => { if (slot.litRec) bootCart(slot.litRec, slot.litResolved); },
+      info: () => { if (slot.litRec) openInfoModal(slot.litRec, slot.litResolved, ejectSlotFn(slot)); else openTargetModal(catEntry, name); },
+      eject: () => { if (slot.litRec) armEject(buttons, render, () => void ejectSlot(slot)); },
+      light: (rec, resolved) => { slot.litRec = rec; slot.litResolved = resolved; render(); },
+      darken: () => { slot.litRec = null; slot.litResolved = null; render(); },
+    };
+
+    function render(): void {
+      const lit = slot.litRec !== null;
+      const dumpTitle = lit ? stripSet(slot.litResolved?.meta?.description ?? slot.litRec!.name.replace(/\.[a-z0-9]+$/i, '')) : targetTitle;
+      const dumpSub = lit
+        ? (slot.litResolved?.meta ? [slot.litResolved.meta.publisher, slot.litResolved.meta.year].filter(Boolean).join(' · ') : `${(slot.litRec!.size / 1024).toFixed(0)} KB`)
+        : targetSub;
+      item.dataset.state = lit ? 'lit' : 'empty';
+      coverHost.innerHTML = '';
+      coverHost.appendChild(coverEl(cartSvg({ title: dumpTitle, sub: dumpSub, state: lit ? 'lit' : 'placeholder' }), lit, !lit));
+      const cover = coverHost.firstElementChild as HTMLElement;
+      cover.onclick = lit ? () => slot.info() : () => picker.click();
+
+      status.style.color = lit ? '#5ecf7a' : '#8b93c4';
+      status.textContent = lit ? '✓ VERIFIED' : '◍ DROP DUMP TO PLAY';
+      status.title = lit ? `Verified — ${dumpTitle}` : `Drop the ${targetTitle} ROM dump to light this slot`;
+
+      buttons.textContent = '';
+      delete buttons.dataset.confirm;
+      if (lit) {
+        const p = mkBtn('▶ Play', 'data-play', true, slot.canPlay());
+        p.addEventListener('click', ev => { ev.stopPropagation(); slot.play(); });
+        const i = mkBtn('i', 'data-info', false, true);
+        i.addEventListener('click', ev => { ev.stopPropagation(); slot.info(); });
+        const e = mkBtn('⏏', 'data-eject', false, true);
+        e.addEventListener('click', ev => { ev.stopPropagation(); slot.eject(); });
+        buttons.append(p, i, e);
+      } else {
+        const i = mkBtn('i', 'data-info', false, true);
+        i.addEventListener('click', ev => { ev.stopPropagation(); slot.info(); });
+        buttons.append(i);
+      }
+    }
+
+    const ejectSlotFn = (s: Slot) => () => void ejectSlot(s);
+    async function ejectSlot(s: Slot): Promise<void> {
+      if (s.litRec) { try { await store.remove(s.litRec.id); } catch { /* in-memory / gone */ } }
+      s.darken();
+      fixSelection();
+    }
+
+    render();
+    return slot;
+  }
+
+  // --- "other" tiles (experimental / unsupported / unreadable dumps) --------------
+  interface Other extends Card {
+    rec: CartRecord;
+    resolved: ResolvedCart | null;
+  }
+  const others: Other[] = [];
+
+  function buildOther(rec: CartRecord, resolved: ResolvedCart | null): Other {
+    const state: CartState = resolved?.tier === 'experimental' ? 'experimental' : 'unsupported';
+    const title = stripSet(resolved?.meta?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, ''));
+    const dumpSub = resolved?.meta ? [resolved.meta.publisher, resolved.meta.year].filter(Boolean).join(' · ') : `${(rec.size / 1024).toFixed(0)} KB`;
+    const canPlay = playable(resolved);
+
+    const item = el('div', `display:flex;flex-direction:column;align-items:center;gap:7px;width:${CART_W}px`);
     item.setAttribute('data-cart-tile', rec.id);
+    item.dataset.tier = resolved ? resolved.tier : 'unreadable';
 
-    // grey plastic shell with grip ridges and a hue-hashed label panel
-    const body = el('div', `position:relative;width:190px;height:230px;cursor:pointer;
-      border-radius:8px 8px 5px 5px;
-      background:linear-gradient(#c6c1ba,#9b968f 62%,#87827b);
-      box-shadow:inset 0 2px 2px rgba(255,255,255,.55), inset 0 -4px 8px rgba(0,0,0,.35), 0 12px 24px rgba(0,0,0,.55)`);
-    body.appendChild(el('div', `position:absolute;left:0;right:0;top:0;height:44px;border-radius:8px 8px 0 0;
-      background:repeating-linear-gradient(180deg, rgba(0,0,0,.16) 0 3px, rgba(255,255,255,.10) 3px 5px, transparent 5px 9px)`));
-    const hue = hueOf(rec.id);
-    const label = el('div', `position:absolute;left:20px;right:20px;top:56px;bottom:40px;border-radius:4px;
-      background:linear-gradient(160deg, hsl(${hue} 55% 34%), hsl(${(hue + 40) % 360} 60% 18%));
-      border:2px solid rgba(0,0,0,.35);box-shadow:inset 0 0 14px rgba(0,0,0,.45);
-      padding:10px;color:#fff;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;box-sizing:border-box`);
-    const tname = el('div', 'font-weight:800;font-size:13px;line-height:1.2;max-height:47px;overflow:hidden;text-shadow:0 1px 2px rgba(0,0,0,.6)');
-    tname.textContent = displayName;
-    const tmeta = el('div', 'font-size:10px;opacity:.85;margin-top:4px;letter-spacing:.4px');
-    tmeta.textContent = resolved?.meta
-      ? [resolved.meta.publisher, resolved.meta.year].filter(Boolean).join(' · ')
-      : `${(rec.size / 1024).toFixed(0)} KB`;
-    label.append(tname, tmeta);
-    body.appendChild(label);
+    const cover = coverEl(cartSvg({ title, sub: dumpSub, state }), false, state !== 'experimental');
+    cover.onclick = () => other.info();
 
     const status = el('div', `font-size:10px;font-weight:700;letter-spacing:.8px;text-align:center;min-height:13px;
-      color:${state.color};max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`);
+      max-width:${CART_W}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`);
     status.setAttribute('data-status', '');
-    status.title = state.text + (resolved?.reason ? ` — ${resolved.reason}` : '');
-    status.textContent = state.text;
+    if (!resolved) { status.style.color = '#e0504d'; status.textContent = 'CANNOT READ — EJECT'; }
+    else if (resolved.tier === 'experimental') { status.style.color = '#e8b64c'; status.textContent = 'EXPERIMENTAL — UNTESTED'; }
+    else { status.style.color = '#8b93c4'; status.textContent = (resolved.reason ?? 'MAPPER NOT SUPPORTED').toUpperCase(); }
+    status.title = status.textContent;
 
     const buttons = el('div', 'display:flex;gap:8px;align-items:center;justify-content:center;min-height:30px');
-
-    const mkBtn = (text: string, attr: string, solid: boolean, enabled: boolean): HTMLButtonElement => {
-      const b = document.createElement('button');
-      b.textContent = text;
-      b.setAttribute(attr, '');
-      b.disabled = !enabled;
-      b.style.cssText = `padding:5px 12px;border-radius:7px;font:inherit;font-size:12px;font-weight:700;
-        cursor:${enabled ? 'pointer' : 'default'};
-        ${solid && enabled ? `background:${GOLD};color:#1b1b1b;border:2px solid ${GOLD}`
-          : `background:transparent;border:2px solid #2a3160;color:${enabled ? '#9fb0ff' : '#555c86'}`}
-        ${enabled ? '' : ';opacity:.55'}`;
-      return b;
+    const other: Other = {
+      rec, resolved, item,
+      canPlay: () => canPlay,
+      play: () => bootCart(rec, resolved),
+      info: () => openInfoModal(rec, resolved, () => void removeOther(other)),
+      eject: () => armEject(buttons, rebuild, () => void removeOther(other)),
     };
-    const playBtn = mkBtn('▶ Play', 'data-play', true, state.canPlay);
-    const infoBtn = mkBtn('i', 'data-info', false, true);
-    const ejectBtn = mkBtn('⏏', 'data-eject', false, true);
-
-    const tile: Tile = { rec, resolved, item, armEject };
-    playBtn.addEventListener('click', ev => { ev.stopPropagation(); play(tile); });
-    infoBtn.addEventListener('click', ev => { ev.stopPropagation(); openInfoModal(tile); });
-    ejectBtn.addEventListener('click', ev => { ev.stopPropagation(); armEject(); });
-    body.addEventListener('click', () => openInfoModal(tile));
-    buttons.append(playBtn, infoBtn, ejectBtn);
-
-    // two-step inline eject confirm — no window.confirm, ever
-    let ejectTimer: ReturnType<typeof setTimeout> | undefined;
-    function disarm(): void {
-      clearTimeout(ejectTimer);
+    function rebuild(): void {
+      buttons.textContent = '';
       delete buttons.dataset.confirm;
-      buttons.textContent = '';
-      buttons.append(playBtn, infoBtn, ejectBtn);
+      const p = mkBtn(state === 'experimental' ? '▶ Play (experimental)' : '▶ Play', 'data-play', true, canPlay);
+      p.addEventListener('click', ev => { ev.stopPropagation(); other.play(); });
+      const i = mkBtn('i', 'data-info', false, true);
+      i.addEventListener('click', ev => { ev.stopPropagation(); other.info(); });
+      const e = mkBtn('⏏', 'data-eject', false, true);
+      e.addEventListener('click', ev => { ev.stopPropagation(); other.eject(); });
+      buttons.append(p, i, e);
     }
-    function armEject(): void {
-      if (buttons.dataset.confirm) return;
-      buttons.dataset.confirm = '1';
-      buttons.textContent = '';
-      const q = el('span', 'font-size:12px;color:#e8b64c;font-weight:700;letter-spacing:.5px');
-      q.textContent = 'Eject?';
-      const yes = mkBtn('✔', 'data-eject-confirm', false, true);
-      yes.style.borderColor = '#e0504d';
-      yes.style.color = '#e0504d';
-      const no = mkBtn('✕', 'data-eject-cancel', false, true);
-      yes.addEventListener('click', ev => { ev.stopPropagation(); void doEject(); });
-      no.addEventListener('click', ev => { ev.stopPropagation(); disarm(); });
-      buttons.append(q, yes, no);
-      ejectTimer = setTimeout(disarm, 4000);
-    }
-    async function doEject(): Promise<void> {
-      clearTimeout(ejectTimer);
-      try { await store.remove(rec.id); } catch { /* in-memory / already gone */ }
-      const idx = tiles.indexOf(tile);
-      if (idx >= 0) tiles.splice(idx, 1);
-      item.remove();
-      updateEmpty();
-      if (selected >= tiles.length) selected = tiles.length - 1;
-      if (selected >= 0) select(selected);
-    }
+    rebuild();
+    item.append(cover, status, buttons);
+    return other;
+  }
 
-    item.append(body, status, buttons);
-    shelf.insertBefore(item, emptyMsg);
-    tiles.push(tile);
-    return tile;
+  async function removeOther(o: Other): Promise<void> {
+    try { await store.remove(o.rec.id); } catch { /* in-memory / gone */ }
+    const i = others.indexOf(o);
+    if (i >= 0) others.splice(i, 1);
+    o.item.remove();
+    otherHead.style.display = others.length ? '' : 'none';
+    fixSelection();
+  }
+
+  // --- navigation ----------------------------------------------------------------
+  const cards = (): Card[] => [...slots, ...others];
+  let selected = -1;
+
+  const select = (i: number): void => {
+    const list = cards();
+    if (!list.length) { selected = -1; return; }
+    selected = ((i % list.length) + list.length) % list.length;
+    list.forEach(c => { c.item.style.outline = 'none'; });
+    const c = list[selected];
+    c.item.style.outline = `3px solid ${GOLD}`;
+    c.item.style.outlineOffset = '3px';
+    c.item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  };
+  const fixSelection = (): void => {
+    const list = cards();
+    if (!list.length) { selected = -1; return; }
+    if (selected >= list.length) selected = list.length - 1;
+    if (selected >= 0) select(selected);
+  };
+  const flash = (item: HTMLElement): void => {
+    item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    item.style.outline = `3px solid ${GOLD}`;
+    item.style.outlineOffset = '3px';
+    const list = cards();
+    setTimeout(() => { if (list[selected]?.item !== item) item.style.outline = 'none'; }, 1400);
+  };
+
+  // --- routing a resolved cart to the right shelf --------------------------------
+  function route(rec: CartRecord, resolved: ResolvedCart | null, announce: boolean): void {
+    if (resolved?.tier === 'tested') {
+      const s = slots.find(sl => resolved.meta && (resolved.meta.name === sl.name || resolved.meta.cloneof === sl.name));
+      if (s) {
+        if (s.litRec && s.litRec.id !== rec.id) { if (announce) flash(s.item); return; } // slot already lit by another dump
+        s.light(rec, resolved);
+        if (announce) flash(s.item);
+        return;
+      }
+    }
+    const o = buildOther(rec, resolved);
+    others.push(o);
+    otherRow.appendChild(o.item);
+    otherHead.style.display = '';
+    if (announce) flash(o.item);
   }
 
   // --- modals -----------------------------------------------------------------------
@@ -425,17 +686,25 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     return b;
   };
 
-  function openInfoModal(tile: Tile): void {
-    const { rec, resolved } = tile;
+  // status descriptor for the info-modal subheader
+  const badge = (resolved: ResolvedCart | null): { text: string; color: string } => {
+    if (!resolved) return { text: 'CANNOT READ — EJECT', color: '#e0504d' };
+    if (resolved.tier === 'tested') return { text: `✓ VERIFIED · ${stripSet(resolved.meta?.description ?? '').toUpperCase()}`, color: '#5ecf7a' };
+    if (resolved.tier === 'experimental') return { text: 'EXPERIMENTAL — UNTESTED', color: '#e8b64c' };
+    return { text: (resolved.reason ?? 'MAPPER NOT SUPPORTED').toUpperCase(), color: '#8b93c4' };
+  };
+
+  // info for a physical cart (lit slot OR an "other" tile)
+  function openInfoModal(rec: CartRecord, resolved: ResolvedCart | null, onEject: () => void): void {
     const meta = resolved?.meta;
-    const state = stateOf(resolved);
+    const b = badge(resolved);
     openModal((scroller, footer, close) => {
       const inner = el('div', 'padding:22px 30px 20px');
       scroller.appendChild(inner);
       const h = el('div', `font-size:24px;font-weight:800;color:${GOLD};line-height:1.2;margin-bottom:2px`);
       h.textContent = meta?.description ?? rec.name;
-      const subh = el('div', `font-size:12px;font-weight:700;letter-spacing:.8px;color:${state.color};margin-bottom:14px`);
-      subh.textContent = state.text + (resolved?.approx ? ' · PRG match, CHR differs' : '');
+      const subh = el('div', `font-size:12px;font-weight:700;letter-spacing:.8px;color:${b.color};margin-bottom:14px`);
+      subh.textContent = b.text + (resolved?.approx ? ' · PRG match, CHR differs' : '');
       inner.append(h, subh);
 
       if (meta) {
@@ -457,16 +726,50 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       row(tech, 'Battery', rec.ines.battery ? 'yes' : 'no');
       if (resolved?.reason) row(tech, 'Status', resolved.reason);
 
-      const p = footerBtn('▶ Play', true, state.canPlay);
+      const p = footerBtn(resolved?.tier === 'experimental' ? '▶ Play (experimental)' : '▶ Play', true, playable(resolved));
       p.setAttribute('data-play', '');
-      p.addEventListener('click', () => { close(); play(tile); });
+      p.addEventListener('click', () => { close(); bootCart(rec, resolved); });
       const e = footerBtn('⏏ Eject', false);
       e.setAttribute('data-eject', '');
-      e.addEventListener('click', () => { close(); tile.armEject(); });
+      e.addEventListener('click', () => { close(); onEject(); });
       const c = footerBtn('Close', false);
       c.addEventListener('click', close);
       footer.append(p, e, c);
       p.focus();
+    });
+  }
+
+  // info for an EMPTY verified slot — describes the target dump to hunt for
+  function openTargetModal(catEntry: SoftEntry | undefined, name: string): void {
+    openModal((scroller, footer, close) => {
+      const inner = el('div', 'padding:22px 30px 20px');
+      scroller.appendChild(inner);
+      const h = el('div', `font-size:24px;font-weight:800;color:${GOLD};line-height:1.2;margin-bottom:2px`);
+      h.textContent = stripSet(catEntry?.description ?? name.toUpperCase());
+      const subh = el('div', 'font-size:12px;font-weight:700;letter-spacing:.8px;color:#8b93c4;margin-bottom:14px');
+      subh.textContent = '◍ VERIFIED SLOT — DROP THIS DUMP TO PLAY';
+      inner.append(h, subh);
+
+      if (catEntry) {
+        const cat = section(inner, 'The verified dump to drop in');
+        row(cat, 'Title', catEntry.description);
+        if (catEntry.year) row(cat, 'Year', catEntry.year);
+        if (catEntry.publisher) row(cat, 'Publisher', catEntry.publisher);
+        if (catEntry.pcb) row(cat, 'PCB', catEntry.pcb);
+        if (catEntry.prg?.roms[0]) row(cat, 'PRG CRC', catEntry.prg.roms[0].crc);
+        if (catEntry.chr?.roms[0]) row(cat, 'CHR CRC', catEntry.chr.roms[0].crc);
+        row(cat, 'Softlist name', catEntry.name);
+      }
+      const note = el('div', 'color:#7f8ac9;font-size:13px;line-height:1.6');
+      note.textContent = 'Bring your own legally obtained ROM dump. Drop the .nes (or a .zip containing it) into the slot above and this cartridge lights up — verified and ready to play.';
+      inner.appendChild(note);
+
+      const pick = footerBtn('◍ Insert a dump…', true);
+      pick.addEventListener('click', () => { close(); picker.click(); });
+      const c = footerBtn('Close', false);
+      c.addEventListener('click', close);
+      footer.append(pick, c);
+      pick.focus();
     });
   }
 
@@ -546,8 +849,11 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     if (!ines) return; // callers pre-check; belt and braces
     const resolved = identify(ines, catalog, support);
     const id = `${cfg.game}:${hex8(crc32(bytes))}`;
-    const existing = tiles.find(t => t.rec.id === id);
-    if (existing) { flash(existing); return; }
+    // dedupe against a lit slot or an existing "other" tile
+    const litSlot = slots.find(s => s.litRec?.id === id);
+    if (litSlot) { flash(litSlot.item); return; }
+    const existing = others.find(o => o.rec.id === id);
+    if (existing) { flash(existing.item); return; }
     const rec: CartRecord = {
       id,
       console: cfg.game,
@@ -565,10 +871,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       // quota / IDB write failure: keep it on the shelf in memory only
       toast(`${name}: not saved — playable this session`);
     }
-    const tile = addTile(rec, resolved);
-    updateEmpty();
-    flash(tile);
-    if (selected < 0) select(tiles.indexOf(tile));
+    route(rec, resolved, true);
+    if (selected < 0) select(0);
   }
 
   async function handleFiles(files: File[]): Promise<void> {
@@ -625,22 +929,27 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   // --- keyboard -----------------------------------------------------------------------
   addEventListener('keydown', ev => {
     if (!inRoom || modalDepth > 0) return;
-    const perRow = Math.max(1, Math.floor((shelf.clientWidth - 72) / 216));
+    const perRow = Math.max(1, Math.floor((board.clientWidth) / (CART_W + 26)));
+    const list = cards();
     switch (ev.key) {
       case 'ArrowRight': select(selected + 1); ev.preventDefault(); break;
       case 'ArrowLeft': select(selected - 1); ev.preventDefault(); break;
       case 'ArrowDown': select(selected < 0 ? 0 : selected + perRow); ev.preventDefault(); break;
       case 'ArrowUp': select(selected < 0 ? 0 : selected - perRow); ev.preventDefault(); break;
-      case 'Enter': if (tiles[selected]) play(tiles[selected]); break;
-      case 'i': case 'I': if (tiles[selected]) openInfoModal(tiles[selected]); break;
-      case 'e': case 'E': if (tiles[selected]) tiles[selected].armEject(); break;
+      case 'Enter': if (list[selected]) list[selected].play(); break;
+      case 'i': case 'I': if (list[selected]) list[selected].info(); break;
+      case 'e': case 'E': if (list[selected]) list[selected].eject(); break;
       case 'Escape': location.href = './?tab=consoles'; break;
     }
   });
 
-  // --- load the shelf from the store ----------------------------------------------------
+  // --- build the verified placeholder row, then load the store --------------------------
+  for (const name of support.games) {
+    const s = buildSlot(name);
+    slots.push(s);
+    placeholderRow.appendChild(s.item);
+  }
   const recs = await store.list(cfg.game);
-  for (const rec of recs) addTile(rec, resolveRec(rec, catalog, support));
-  updateEmpty();
-  if (tiles.length) select(0);
+  for (const rec of recs) route(rec, resolveRec(rec, catalog, support), false);
+  select(0);
 }
