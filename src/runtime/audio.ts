@@ -18,6 +18,10 @@ export interface WorkletCoreConfig {
   readonly voices?: number;
   /** number of chip instances the worklet should host (ay8910 bank) */
   readonly chips?: number;
+  /** per-chip mix weights (board analog net); defaults to all-equal */
+  readonly chipGains?: number[];
+  /** DAC route gain override */
+  readonly dacGain?: number;
   /** video refresh rate (Hz) — paces the worklet's write scheduler */
   readonly refresh?: number;
   /** log worklet scheduler stats to the console once per second */
@@ -68,6 +72,8 @@ export class AudioOutput {
       clock: core.clock ?? core.sampleRate,
       voices: core.voices,
       chips: core.chips,
+      chipGains: core.chipGains,
+      dacGain: core.dacGain,
       refresh: core.refresh,
       debug: core.debug,
     });

@@ -25,6 +25,10 @@ export interface SoundSpec {
   waveRegion?: string;
   /** number of sound chips (ay8910: gyruss has 5) */
   chips?: number;
+  /** per-chip mix weights from the board's analog net (generator-curated) */
+  chipGains?: number[];
+  /** DAC route gain override (default = junofrst's 0.25) */
+  dacGain?: number;
 }
 
 /** the ROM drop target's visual states (built by buildDom().dropZone) */
@@ -175,6 +179,8 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
         clock,
         waveRom: cfg.sound.waveRegion ? regions[cfg.sound.waveRegion] : undefined,
         chips: cfg.sound.chips,
+        chipGains: cfg.sound.chipGains,
+        dacGain: cfg.sound.dacGain,
         refresh: cfg.board.screen.refresh,
         debug: input.debug,
       },

@@ -63,6 +63,10 @@ interface InitMessage {
   refresh?: number;
   /** post per-second scheduler stats back over the port */
   debug?: boolean;
+  /** per-chip mix weights from the board's analog net (default all 1) */
+  chipGains?: number[];
+  /** DAC route gain override (default DAC_GAIN = junofrst's 0.25) */
+  dacGain?: number;
 }
 interface WriteMessage {
   type: 'write';
@@ -122,6 +126,10 @@ class Ay8910Processor extends AudioWorkletProcessor {
   private filterK: number[] = [];
   private filterMem: number[] = [];
 
+  /** per-chip mix weights (board analog net) and DAC route gain */
+  private chipGains: number[] = [];
+  private dacGain: number = DAC_GAIN;
+
   // --- timestamped write scheduler -------------------------------------------
   // Boards emulate a whole video frame in one burst, so every register write
   // of a frame arrives at the worklet within a millisecond. Applying them on
@@ -173,6 +181,8 @@ class Ay8910Processor extends AudioWorkletProcessor {
           this.filterMem = new Array(count * 3).fill(0);
           this.framePeriod = sampleRate / (msg.refresh ?? 60);
           this.debug = msg.debug ?? false;
+          this.chipGains = Array.from({ length: count }, (_, i) => msg.chipGains?.[i] ?? 1);
+          this.dacGain = msg.dacGain ?? DAC_GAIN;
           break;
         }
         case 'write':
@@ -260,8 +270,9 @@ class Ay8910Processor extends AudioWorkletProcessor {
   private renderBankFiltered(): void {
     const out = this.nativeBuf;
     out.fill(0);
-    const gain = (AY_BANK_GAIN / 3) / this.chips.length;
+    const bankGain = (AY_BANK_GAIN / 3) / this.chips.length;
     for (let c = 0; c < this.chips.length; c++) {
+      const gain = bankGain * (this.chipGains[c] ?? 1);
       this.chips[c].renderChannels(this.scratchA, this.scratchB, this.scratchC);
       const bufs = [this.scratchA, this.scratchB, this.scratchC];
       for (let ch = 0; ch < 3; ch++) {
@@ -330,7 +341,7 @@ class Ay8910Processor extends AudioWorkletProcessor {
         if (n > 0) this.boxAvg = acc / n;
         const dacOut = this.dacInterp(this.clock2);
         this.dacDc += (dacOut - this.dacDc) * 0.0008; // DC blocker
-        out[i] = this.boxAvg + (dacOut - this.dacDc) * DAC_GAIN;
+        out[i] = this.boxAvg + (dacOut - this.dacDc) * this.dacGain;
         this.clock2++;
       }
     }
