@@ -125,12 +125,12 @@ const nextNative = () => {
     for (let c = 0; c < nChips; c++) {
       chips[c].renderChannels(chA, chB, chC);
       const chans = [chA, chB, chC];
+      const chipGain = (cfg.sound.chipGains?.[c] ?? 1) * (0.34 / (3 * nChips));
       for (let ch = 0; ch < 3; ch++) {
         const k = filterK[c * 3 + ch];
         if (k !== 1) filterMem[c * 3 + ch] = rcLowPass(chans[ch], k, filterMem[c * 3 + ch]);
-        // AY_BANK_GAIN 0.34 mirrors ay8910-worklet.ts (matched to real MAME
-        // wavwrite level; see the constant's comment there)
-        for (let i = 0; i < 256; i++) native[i] += chans[ch][i] * (0.34 / (3 * nChips));
+        // AY_BANK_GAIN 0.34 + per-chip weights mirror ay8910-worklet.ts
+        for (let i = 0; i < 256; i++) native[i] += chans[ch][i] * chipGain;
       }
     }
     nPos = 0;
@@ -163,7 +163,7 @@ for (let t = 0; t < out.length; t++) {
   if (n) boxAvg = acc / n;
   const dacOut = dacInterp(t);
   dacDc += (dacOut - dacDc) * 0.0008;
-  out[oi++] = boxAvg + (dacOut - dacDc) * 0.25;
+  out[oi++] = boxAvg + (dacOut - dacDc) * (cfg.sound.dacGain ?? 0.25);
 }
 let clip = 0, sum = 0, sumSq = 0, peak = 0;
 for (const v of out) { if (Math.abs(v) > 1) clip++; sum += v; sumSq += v * v; peak = Math.max(peak, Math.abs(v)); }

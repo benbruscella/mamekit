@@ -39,7 +39,11 @@ interface WriteMessage {
   offset: number;
   data: number;
 }
-type InvadersMessage = InitMessage | WriteMessage;
+interface BatchMessage {
+  type: 'batch';
+  writes: { offset: number; data: number; frac?: number }[];
+}
+type InvadersMessage = InitMessage | WriteMessage | BatchMessage;
 
 /** Native samples rendered per refill of the internal buffer. */
 const CHUNK = 256;
@@ -75,6 +79,9 @@ class InvadersProcessor extends AudioWorkletProcessor {
         }
         case 'write':
           this.core?.write(msg.offset, msg.data);
+          break;
+        case 'batch':
+          for (const w of msg.writes) this.core?.write(w.offset, w.data);
           break;
       }
     };

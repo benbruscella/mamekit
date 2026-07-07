@@ -61,7 +61,11 @@ interface WriteMessage {
   offset: number;
   data: number;
 }
-type Ym2203Message = InitMessage | WriteMessage;
+interface BatchMessage {
+  type: 'batch';
+  writes: { offset: number; data: number; frac?: number }[];
+}
+type Ym2203Message = InitMessage | WriteMessage | BatchMessage;
 
 /** Native samples rendered per refill of the internal buffer. */
 const CHUNK = 256;
@@ -139,23 +143,29 @@ class Ym2203Processor extends AudioWorkletProcessor {
           this.buildChips();
           break;
         }
-        case 'write': {
-          if (msg.offset === 0xff) {
-            // reset opcode: rebuild every chip from the init parameters
-            this.buildChips();
-            break;
-          }
-          const hosted = this.chips[msg.offset >> 1];
-          if (hosted) {
-            hosted.chip.write(msg.offset & 1, msg.data);
-            // prescaler writes (address 0x2d/0x2e/0x2f) change native rates
-            hosted.fm.setNativeRate(hosted.chip.fmSampleRate);
-            hosted.ssg.setNativeRate(hosted.chip.ssgSampleRate);
-          }
+        case 'write':
+          this.applyWrite(msg.offset, msg.data);
           break;
-        }
+        case 'batch':
+          for (const w of msg.writes) this.applyWrite(w.offset, w.data);
+          break;
       }
     };
+  }
+
+  private applyWrite(offset: number, data: number): void {
+    if (offset === 0xff) {
+      // reset opcode: rebuild every chip from the init parameters
+      this.buildChips();
+      return;
+    }
+    const hosted = this.chips[offset >> 1];
+    if (hosted) {
+      hosted.chip.write(offset & 1, data);
+      // prescaler writes (address 0x2d/0x2e/0x2f) change native rates
+      hosted.fm.setNativeRate(hosted.chip.fmSampleRate);
+      hosted.ssg.setNativeRate(hosted.chip.ssgSampleRate);
+    }
   }
 
   private buildChips(): void {

@@ -18,6 +18,14 @@ export interface WorkletCoreConfig {
   readonly voices?: number;
   /** number of chip instances the worklet should host (ay8910 bank) */
   readonly chips?: number;
+  /** per-chip mix weights (board analog net); defaults to all-equal */
+  readonly chipGains?: number[];
+  /** DAC route gain override */
+  readonly dacGain?: number;
+  /** video refresh rate (Hz) — paces the worklet's write scheduler */
+  readonly refresh?: number;
+  /** log worklet scheduler stats to the console once per second */
+  readonly debug?: boolean;
 }
 
 interface PendingWrite {
@@ -64,31 +72,52 @@ export class AudioOutput {
       clock: core.clock ?? core.sampleRate,
       voices: core.voices,
       chips: core.chips,
+      chipGains: core.chipGains,
+      dacGain: core.dacGain,
+      refresh: core.refresh,
+      debug: core.debug,
     });
+
+    // worklet scheduler telemetry (posted once per second when debug)
+    if (core.debug) {
+      node.port.onmessage = (ev: MessageEvent) => {
+        const m = ev.data as { type?: string } & Record<string, unknown>;
+        if (m.type === 'stats') {
+          const { type: _t, ...rest } = m;
+          console.log('[audio]', JSON.stringify(rest));
+        }
+      };
+      console.log(`[audio] context rate=${ctx.sampleRate} state=${ctx.state} baseLatency=${ctx.baseLatency}`);
+      ctx.addEventListener('statechange', () => console.log(`[audio] state -> ${ctx.state}`));
+    }
 
     this.ctx = ctx;
     this.node = node;
     this.gain = gain;
 
     // replay writes that happened before the context existed
-    for (const w of this.pending) {
-      node.port.postMessage({ type: 'write', offset: w.offset, data: w.data, frac: w.frac });
+    if (this.pending.length) {
+      node.port.postMessage({ type: 'batch', writes: this.pending.splice(0) });
     }
-    this.pending.length = 0;
 
     if (ctx.state !== 'running') await ctx.resume();
   }
 
   /**
-   * Forward a register write to the worklet. Writes are applied in message
-   * order (frameTime granularity is one process() quantum, ~2.7 ms at 48 kHz,
-   * which is well under a video frame).
+   * Queue a register write for the worklet. Writes accumulate and go out as
+   * ONE batch message per video frame via flush() — junofrst's i8039 DAC
+   * alone is ~4k writes/s, and per-write postMessage overhead starves the
+   * scheduler under main-thread jank. Before start() they buffer in
+   * `pending` and replay as the first batch.
    */
   write(offset: number, data: number, frac?: number): void {
-    if (this.node) {
-      this.node.port.postMessage({ type: 'write', offset, data, frac });
-    } else {
-      this.pending.push({ offset, data, frac });
+    this.pending.push({ offset, data, frac });
+  }
+
+  /** Post all queued writes as one batch. Call once per emulated frame. */
+  flush(): void {
+    if (this.node && this.pending.length) {
+      this.node.port.postMessage({ type: 'batch', writes: this.pending.splice(0) });
     }
   }
 

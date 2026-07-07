@@ -222,6 +222,22 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // sound device -> runtime SoundCore kind (device-library mapping, not game-specific)
   const ayChips = devices.filter(d => d.props.type === 'AY8910');
   const ymChips = devices.filter(d => d.props.type === 'YM2203');
+  // Per-family analog mix weights, hand-derived from each driver's discrete
+  // resistor network — the one MAME layer the graph can't carry yet (the
+  // nets are data tables inside DISCRETE_SOUND_START, not device wiring).
+  // Values are relative: chipGains[] scales each PSG inside the bank, and
+  // dacGain replaces the worklet's junofrst-derived default (0.25).
+  // TODO(#12): parse plain add_route gains from the graph for the simple
+  // (non-discrete) boards, and lift these into graph facts.
+  const soundFamily = basename(String(graph.meta.driverFile)).replace(/\.cpp$/, '');
+  const AY_MIX: Record<string, { chipGains?: number[]; dacGain?: number }> = {
+    // gyruss.cpp sound_discrete + konami_*_mixer_desc: chips 0/1 feed the
+    // mixer at 1.0 through 2.2k per channel; chips 2-4 at 0.33 through
+    // 1.1k (= 0.66 of a chip-0 channel); the i8039 DAC (4V TTL) through
+    // 4.7k ≈ 0.62 of ONE channel's full swing — vs our flat bank where it
+    // was ~11 channels' worth ("pulsing drums way too loud").
+    gyruss: { chipGains: [1, 1, 0.66, 0.66, 0.66], dacGain: 0.014 },
+  };
   const sound = devices.some(d => d.props.type === 'NAMCO_WSG' || d.props.type === 'NAMCO')
     ? { kind: 'wsg', clock: Number(byTag.get('namco')?.props.clock ?? 96000), waveRegion: 'namco' }
     : devices.some(d => d.props.type === 'GALAXIAN_SOUND')
@@ -231,7 +247,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         : ymChips.length
           ? { kind: 'ym2203', clock: Number(ymChips[0].props.clock), chips: ymChips.length }
           : ayChips.length
-            ? { kind: 'ay8910', clock: Number(ayChips[0].props.clock), chips: ayChips.length }
+            ? { kind: 'ay8910', clock: Number(ayChips[0].props.clock), chips: ayChips.length, ...AY_MIX[soundFamily] }
             : { kind: 'none' };
 
   // --- roms ----------------------------------------------------------------------
