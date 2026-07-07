@@ -104,18 +104,6 @@ Adding a machine is regeneration plus whatever device cores are missing —
 see [docs/adding-a-game.md](docs/adding-a-game.md). Every core ships with a
 plain-Node spec suite (26 suites, ~3,400 checks): `npm test`.
 
-## Provenance
-
-Created by **Ben Bruscella**, co-founder of MAMEWorld. mamekit and
-MAME History continue a long-running relationship with the MAME
-preservation community: the goal is a playable museum built by someone who
-loves the machines — the history, the hardware, and the people who
-reverse-engineered it — with attribution throughout (MAME driver authors,
-Gaming History, Mr. Do's artwork archive, Arcade Database).
-
-Want to support the next machine dossier? Open an issue and say which
-machine — sponsorship framing is coming.
-
 ## License
 
 Code: see [LICENSE](LICENSE). ROMs and artwork remain the property of
