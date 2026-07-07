@@ -161,7 +161,7 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
     new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
 
   // debug/testing handle (also the hook for the future live KG-viewer overlay)
-  (window as unknown as Record<string, unknown>).mame2js = { board, input, config: cfg };
+  (window as unknown as Record<string, unknown>).mame2js = { board, input, config: cfg, audio };
 
   // Start immediately — the menu click that navigated here counts as the
   // user gesture in same-origin sessions. Audio starts in parallel; if the

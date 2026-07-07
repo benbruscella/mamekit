@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 // Audio "ears" for mame2js development.
 //
-//   node tools/render-audio.mjs <game> <path/to/game.zip> [frames=2400] [outdir=.]
+//   node tools/render-audio.mjs <game> <path/to/game.zip> [frames=2400] [outdir=.] [script]
+//
+// script: optional JSON input script, e.g.
+//   '[[400,"IPT_COIN1",20],[450,"IPT_START1",20],[700,"IPT_BUTTON1",10]]'
+//   each entry = [startFrame, bindingLabel, holdFrames] (label from config
+//   bindings; the bound port bit is held low for holdFrames).
 //
 // Runs the game headless, captures the exact soundWrite stream the browser
 // worklet would receive, renders it through a faithful replica of the
@@ -20,7 +25,7 @@ import { execFileSync } from 'node:child_process';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const [game, zipPath, framesArg, outArg] = process.argv.slice(2);
+const [game, zipPath, framesArg, outArg, scriptArg] = process.argv.slice(2);
 if (!game || !zipPath) {
   console.error('usage: node tools/render-audio.mjs <game> <game.zip> [frames] [outdir]');
   process.exit(1);
@@ -54,9 +59,20 @@ for (const spec of cfg.roms) {
 
 // --- capture ---------------------------------------------------------------
 const init = Object.fromEntries(cfg.ports.map(p => [p.tag, p.init]));
+const script = scriptArg ? JSON.parse(scriptArg) : [];
 let frame = 0;
 const stream = [];
-const board = createBoard(cfg.board, regions, { read: t => init[t] ?? 0xff },
+const readPort = t => {
+  let v = init[t] ?? 0xff;
+  for (const [f0, label, hold] of script) {
+    if (frame >= f0 && frame < f0 + hold) {
+      const bd = cfg.bindings.find(x => x.label === label);
+      if (bd && bd.port === t) v &= ~bd.mask;
+    }
+  }
+  return v;
+};
+const board = createBoard(cfg.board, regions, { read: readPort },
   { soundWrite: (o, d, frac) => stream.push([frame + (frac ?? 0), o, d]) });
 const fb = new Uint32Array(board.fbWidth * board.fbHeight);
 for (frame = 0; frame < FRAMES; frame++) board.frame(fb);
