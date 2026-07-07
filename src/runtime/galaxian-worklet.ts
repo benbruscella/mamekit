@@ -40,7 +40,11 @@ interface WriteMessage {
   offset: number;
   data: number;
 }
-type GalaxianMessage = InitMessage | WriteMessage;
+interface BatchMessage {
+  type: 'batch';
+  writes: { offset: number; data: number; frac?: number }[];
+}
+type GalaxianMessage = InitMessage | WriteMessage | BatchMessage;
 
 /** Native samples rendered per refill of the internal buffer. */
 const CHUNK = 256;
@@ -76,6 +80,9 @@ class GalaxianProcessor extends AudioWorkletProcessor {
         }
         case 'write':
           this.core?.write(msg.offset, msg.data);
+          break;
+        case 'batch':
+          for (const w of msg.writes) this.core?.write(w.offset, w.data);
           break;
       }
     };

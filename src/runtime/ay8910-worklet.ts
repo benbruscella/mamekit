@@ -57,6 +57,12 @@ interface InitMessage {
   chips?: number;
   waveRom?: Uint8Array;
   voices?: number;
+  /** video refresh rate driving the frame-frac timestamps (default 60 —
+   *  junofrst/gyruss actually run 60.606; a 1% mismatch grows the backlog
+   *  until the fast-forward fires every ~1.7 s = periodic crackle) */
+  refresh?: number;
+  /** post per-second scheduler stats back over the port */
+  debug?: boolean;
 }
 interface WriteMessage {
   type: 'write';
@@ -65,7 +71,12 @@ interface WriteMessage {
   /** position of the write within its video frame (0..1, scanline/vtotal) */
   frac?: number;
 }
-type Ay8910Message = InitMessage | WriteMessage;
+/** one message per emulated frame instead of one per register write */
+interface BatchMessage {
+  type: 'batch';
+  writes: { offset: number; data: number; frac?: number }[];
+}
+type Ay8910Message = InitMessage | WriteMessage | BatchMessage;
 
 /** Native samples rendered per refill of the internal buffer. */
 const CHUNK = 256;
@@ -122,6 +133,17 @@ class Ay8910Processor extends AudioWorkletProcessor {
   private clock2 = 0;          // output samples elapsed (scheduler timeline)
   private frameBase = 0;       // scheduler epoch of the frame being received
   private lastFrac = 2;        // detects frame wrap (frac decreasing)
+  private framePeriod = 48000 / 60; // output samples per EMULATED frame (init: sampleRate/refresh)
+
+  // --- scheduler telemetry (posted once per second when debug) --------------
+  private debug = false;
+  private stWrites = 0;        // writes received this window
+  private stApplied = 0;       // writes dispatched to the DSP
+  private stLate = 0;          // writes already in the past when scheduled
+  private stJumps = 0;         // fast-forward events
+  private stJumped = 0;        // samples skipped by fast-forwards
+  private stMaxLag = 0;        // max backlog depth seen (samples)
+  private stLastReport = 0;    // clock2 of last stats post
 
   // --- percussion DAC (i8039 P1 / MSM5205) ----------------------------------
   // DAC bytes are scheduled like every other write; linear interpolation
@@ -149,27 +171,38 @@ class Ay8910Processor extends AudioWorkletProcessor {
           this.nativePos = this.nativeBuf.length;
           this.filterK = new Array(count * 3).fill(1);
           this.filterMem = new Array(count * 3).fill(0);
+          this.framePeriod = sampleRate / (msg.refresh ?? 60);
+          this.debug = msg.debug ?? false;
           break;
         }
-        case 'write': {
-          const framePeriod = sampleRate / 60;
-          if (msg.frac === undefined) {
-            // untimed write: apply immediately (back-compat)
-            this.apply(msg.offset, msg.data);
-            break;
-          }
-          if (msg.frac < this.lastFrac) {
-            // new emulation frame began: its writes play over the NEXT
-            // frame period of output (one frame of latency buys accuracy)
-            this.frameBase = Math.max(this.clock2, this.frameBase + framePeriod);
-          }
-          this.lastFrac = msg.frac;
-          this.sched.push({ at: this.frameBase + msg.frac * framePeriod, offset: msg.offset, data: msg.data });
-          if (this.sched.length > 65536) this.sched.splice(0, this.sched.length - 65536);
+        case 'write':
+          this.schedule(msg.offset, msg.data, msg.frac);
           break;
-        }
+        case 'batch':
+          for (const w of msg.writes) this.schedule(w.offset, w.data, w.frac);
+          break;
       }
     };
+  }
+
+  /** Queue one write at its in-frame position (or apply now if untimed). */
+  private schedule(offset: number, data: number, frac?: number): void {
+    this.stWrites++;
+    if (frac === undefined) {
+      // untimed write: apply immediately (back-compat)
+      this.apply(offset, data);
+      return;
+    }
+    if (frac < this.lastFrac) {
+      // new emulation frame began: its writes play over the NEXT
+      // frame period of output (one frame of latency buys accuracy)
+      this.frameBase = Math.max(this.clock2, this.frameBase + this.framePeriod);
+    }
+    this.lastFrac = frac;
+    const at = this.frameBase + frac * this.framePeriod;
+    if (at <= this.clock2) this.stLate++;
+    this.sched.push({ at, offset, data });
+    if (this.sched.length > 65536) this.sched.splice(0, this.sched.length - 65536);
   }
 
   /** Apply one register/DAC/filter write NOW (scheduler-dispatched). */
@@ -263,17 +296,22 @@ class Ay8910Processor extends AudioWorkletProcessor {
       out.fill(0);
     } else {
       // keep the scheduler from starving or ballooning: if the backlog is
-      // over two frame periods, fast-forward (applies late writes at once)
+      // over three frame periods, fast-forward (applies late writes at once)
       const lag = this.sched.length && (this.sched[this.sched.length - 1].at - this.clock2);
-      if (lag && lag > (sampleRate / 60) * 3) {
-        const jump = lag - (sampleRate / 60) * 2;
+      if (lag && lag > this.stMaxLag) this.stMaxLag = lag;
+      if (lag && lag > this.framePeriod * 3) {
+        const jump = lag - this.framePeriod * 2;
         for (const w of this.sched) w.at -= jump;
+        this.frameBase -= jump; // keep future frames on the shifted timeline
+        this.stJumps++;
+        this.stJumped += jump;
       }
       for (let i = 0; i < out.length; i++) {
         // dispatch every write scheduled at or before this output sample
         while (this.sched.length && this.sched[0].at <= this.clock2) {
           const w = this.sched.shift()!;
           this.apply(w.offset, w.data);
+          this.stApplied++;
         }
         // box-filter decimation: average every native sample this output
         // sample spans. Point-sampling a ~224 kHz square-wave stream down to
@@ -299,6 +337,21 @@ class Ay8910Processor extends AudioWorkletProcessor {
 
     // duplicate mono into any additional output channels
     for (let c = 1; c < channels.length; c++) channels[c].set(out);
+
+    // once-per-second scheduler telemetry (debug only): logged by audio.ts
+    if (this.debug && this.clock2 - this.stLastReport >= sampleRate) {
+      this.port.postMessage({
+        type: 'stats',
+        writes: this.stWrites, applied: this.stApplied, late: this.stLate,
+        jumps: this.stJumps, jumpedMs: Math.round(this.stJumped / sampleRate * 1000),
+        maxLagMs: Math.round(this.stMaxLag / sampleRate * 1000),
+        schedDepth: this.sched.length,
+        leadMs: Math.round((this.frameBase - this.clock2) / sampleRate * 1000),
+      });
+      this.stWrites = this.stApplied = this.stLate = 0;
+      this.stJumps = this.stJumped = this.stMaxLag = 0;
+      this.stLastReport = this.clock2;
+    }
     return true;
   }
 }

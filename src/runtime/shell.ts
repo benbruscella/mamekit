@@ -175,6 +175,8 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
         clock,
         waveRom: cfg.sound.waveRegion ? regions[cfg.sound.waveRegion] : undefined,
         chips: cfg.sound.chips,
+        refresh: cfg.board.screen.refresh,
+        debug: input.debug,
       },
       `${cfg.runtimeUrl}${cfg.sound.kind}-worklet.js`,
       cfg.sound.kind,
@@ -208,6 +210,7 @@ export async function runShell(cfg: ShellConfig): Promise<void> {
     let ran = false;
     while (acc >= frameMs) {
       board.frame(fb);
+      audio.flush(); // one batch message per emulated frame
       acc -= frameMs;
       ran = true;
       frames++;

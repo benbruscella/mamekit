@@ -56,7 +56,11 @@ interface EnableMessage {
   type: 'enable';
   on: boolean;
 }
-type WsgMessage = InitMessage | WriteMessage | EnableMessage;
+interface BatchMessage {
+  type: 'batch';
+  writes: { offset: number; data: number; frac?: number }[];
+}
+type WsgMessage = InitMessage | WriteMessage | EnableMessage | BatchMessage;
 
 /** Native samples rendered per refill of the internal buffer. */
 const CHUNK = 256;
@@ -94,14 +98,21 @@ class WsgProcessor extends AudioWorkletProcessor {
           break;
         }
         case 'write':
-          if (msg.offset >= 0x40) this.n54?.write(msg.data);
-          else this.core?.write(msg.offset, msg.data);
+          this.applyWrite(msg.offset, msg.data);
+          break;
+        case 'batch':
+          for (const w of msg.writes) this.applyWrite(w.offset, w.data);
           break;
         case 'enable':
           this.core?.soundEnable(msg.on);
           break;
       }
     };
+  }
+
+  private applyWrite(offset: number, data: number): void {
+    if (offset >= 0x40) this.n54?.write(data);
+    else this.core?.write(offset, data);
   }
 
   private nextNativeSample(): number {
