@@ -4,7 +4,8 @@ import { GraphBuilder, type KnowledgeGraph, type PropValue } from './types.ts';
 import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
-  parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseTextMacros,
+  parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
+  parseInitPatches, parseTextMacros,
   type InputPortsDef,
 } from './parse.ts';
 
@@ -31,7 +32,10 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   for (const file of [...family]) {
     for (const inc of parseIncludes(readFileSync(file, 'utf8'))) {
       if (inc.includes('/')) continue; // same-directory includes only
-      for (const extra of [join(dir, inc), join(dir, inc.replace(/\.h$/, '.cpp'))]) {
+      // MAME's build puts src/mame/shared on every driver's include path
+      // (rocnrope.cpp includes "timeplt_a.h" which lives there)
+      const incDir = existsSync(join(dir, inc)) ? dir : join(mameSrc, 'src/mame/shared');
+      for (const extra of [join(incDir, inc), join(incDir, inc.replace(/\.h$/, '.cpp'))]) {
         if (existsSync(extra) && !family.includes(extra)) family.push(extra);
       }
     }
@@ -75,12 +79,18 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
 
   // --- games ---
   const games = parseGames(combined);
+  const initPatches = parseInitPatches(combined, consts);
   for (const gm of games) {
     const id = `game:${gm.name}`;
     g.node('Game', id, {
       name: gm.name, year: gm.year, company: gm.company, fullname: gm.fullname,
       monitor: gm.monitor, cls: gm.cls, init: gm.init, flags: gm.flags,
       kind: gm.kind,
+      // driver init fns that patch ROM bytes (rocnrope's one-instruction fix)
+      // flow through as "region:offset:value" triples
+      ...(initPatches[gm.init]
+        ? { romPatches: initPatches[gm.init].map(p => `${p.region}:${p.offset}:${p.value}`) }
+        : {}),
       // compat (CONS/SYST/COMP arg 4) is a software-compatibility group, NOT
       // a clone relationship — famicom is compat with nes but its own machine
       ...(gm.compat !== '0' ? { compat: gm.compat } : {}),
@@ -168,6 +178,29 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   const gfxDecodes = parseGfxDecodes(combined, consts);
   const machineConfigs = parseMachineConfigs(combined, memberTags, consts);
   const cfgByName = new Map(machineConfigs.map(c => [c.name, c]));
+
+  // Clock resolution: a device instantiated with no clock runs at its
+  // constructor default (timeplt_a.h: `uint32_t clock = 14'318'181`), and
+  // DERIVED_CLOCK(n, d) inside its device_add_mconfig is that clock * n/d.
+  const defaultClocks = parseDeviceDefaultClocks(combined);
+  for (const cfg of machineConfigs) {
+    for (const dev of cfg.devices) {
+      if (dev.clock !== null || dev.clockExpr) continue;
+      const cls = deviceTypes[dev.type];
+      if (cls && defaultClocks[cls] !== undefined) dev.clock = defaultClocks[cls];
+    }
+  }
+  for (const cfg of machineConfigs) {
+    for (const dev of cfg.devices) {
+      const devCls = deviceTypes[dev.type];
+      if (!devCls || dev.clock === null) continue;
+      const sub = machineConfigs.find(c => c.cls === devCls && c.name === 'device_add_mconfig');
+      for (const sd of sub?.devices ?? []) {
+        const dm = sd.clockExpr && /^DERIVED_CLOCK\(\s*(\d+)\s*,\s*(\d+)\s*\)$/.exec(sd.clockExpr);
+        if (dm) { sd.clock = (dev.clock * Number(dm[1])) / Number(dm[2]); delete sd.clockExpr; }
+      }
+    }
+  }
   for (const cfg of machineConfigs) {
     const cfgId = `machine:${cfg.cls}.${cfg.name}`;
     g.node('MachineConfig', cfgId, { cls: cfg.cls, name: cfg.name, calls: cfg.calls });

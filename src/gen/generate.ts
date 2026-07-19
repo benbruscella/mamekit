@@ -484,6 +484,15 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     if (!cart) console.warn('  ! console machine has no resolvable software list — carts will be header-identified only');
   }
 
+  // driver-init ROM byte patches (rocnrope's one-instruction fix), applied by
+  // the shell after region assembly
+  const romPatches = Array.isArray(game.props.romPatches)
+    ? game.props.romPatches.map(s => {
+        const [region, offset, value] = String(s).split(':');
+        return { region, offset: Number(offset), value: Number(value) };
+      })
+    : undefined;
+
   const config = {
     game: opts.game,
     title,
@@ -492,6 +501,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     board: { family, cpus, ranges, ...(io ? { io } : {}), ...(customs.length ? { customs } : {}), screen, clocks },
     sound,
     roms,
+    ...(romPatches ? { romPatches } : {}),
     ...(cart ? { cart } : {}),
     bindings,
     dipDefaults,

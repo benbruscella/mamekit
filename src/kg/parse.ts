@@ -123,7 +123,7 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
   for (const [name, val] of Object.entries(consts)) {
     s = s.replace(new RegExp(`\\b${name}\\b`, 'g'), String(val));
   }
-  if (!/^[\s0-9a-fA-FxX+\-*/().]*$/.test(s)) return null;
+  if (!/^[\s0-9a-fA-FxX+\-*/().^]*$/.test(s)) return null;
   // recursive-descent evaluation, no eval()
   let pos = 0;
   const peek = () => { while (pos < s.length && /\s/.test(s[pos])) pos++; return s[pos]; };
@@ -168,7 +168,18 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
       } else return v;
     }
   }
-  const v = parseAddSub();
+  function parseXor(): number | null {
+    let v = parseAddSub();
+    if (v === null) return null;
+    while (peek() === '^') {
+      pos++;
+      const r = parseAddSub();
+      if (r === null) return null;
+      v = (v ^ r) >>> 0;
+    }
+    return v;
+  }
+  const v = parseXor();
   peek();
   return pos >= s.length && v !== null && Number.isFinite(v) ? v : null;
 }
@@ -936,5 +947,40 @@ export function parseIncludes(src: string): string[] {
 export function parseDeviceTypeDecls(src: string): Record<string, string> {
   const out: Record<string, string> = {};
   for (const m of src.matchAll(/DECLARE_DEVICE_TYPE\(\s*(\w+)\s*,\s*(\w+)\s*\)/g)) out[m[1]] = m[2];
+  return out;
+}
+
+/**
+ * Constructor default clocks from device headers:
+ * `timeplt_audio_device(const machine_config &mconfig, const char *tag,
+ *  device_t *owner, uint32_t clock = 14'318'181);` -> class name to Hz.
+ * A device instantiated without a clock (TIMEPLT_AUDIO(config, "tag")) runs
+ * at this default, and its sub-devices' DERIVED_CLOCKs hang off it.
+ */
+export function parseDeviceDefaultClocks(src: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  const re = /(\w+_device)\s*\([^()]*device_t\s*\*\s*\w+\s*,\s*u?int32_t\s+clock\s*=\s*(?:XTAL\()?([\d']+)\)?/g;
+  for (const m of src.matchAll(re)) out[m[1]] = Number(m[2].replace(/'/g, ''));
+  return out;
+}
+
+export interface RomPatchDef { region: string; offset: number; value: number }
+
+/**
+ * ROM patches from driver init functions:
+ * `void rocnrope_state::init_rocnrope() { memregion("maincpu")->base()[0x703d] = 0x98 ^ 0x22; }`
+ * -> init function name to its byte patches.
+ */
+export function parseInitPatches(src: string, consts: Record<string, number> = {}): Record<string, RomPatchDef[]> {
+  const out: Record<string, RomPatchDef[]> = {};
+  for (const { name, body } of extractFunctionBody(src, /void\s+(\w+)::(init_\w+)\(\)/g)) {
+    const patches: RomPatchDef[] = [];
+    for (const m of body.matchAll(/memregion\("(\w+)"\)->base\(\)\[([^\]]+)\]\s*=\s*([^;]+);/g)) {
+      const offset = evalExpr(m[2], consts);
+      const value = evalExpr(m[3], consts);
+      if (offset !== null && value !== null) patches.push({ region: m[1], offset, value: value & 0xff });
+    }
+    if (patches.length) out[name] = patches;
+  }
   return out;
 }
