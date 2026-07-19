@@ -254,7 +254,9 @@ export async function runMenu(): Promise<void> {
     const label = el('div', `position:absolute;left:12px;right:0;bottom:0;height:66px;padding:9px 14px 0;
       background:linear-gradient(#f7f3e8,#e8e0c8);color:#1b1b1b;border-top:3px solid #c9b98b`);
     const name = el('div', 'font-weight:800;font-size:17px;line-height:1.15;overflow:hidden;max-height:36px');
-    name.textContent = entry.fullname.replace(/\s*\(.*\)$/, ''); // shelf label: drop the set/licence suffix
+    // shelf label: drop the set/licence suffix and MAME's dual-name form
+    // ("Space Invaders / Space Invaders M" — the story card keeps the full name)
+    name.textContent = entry.fullname.replace(/\s*\(.*\)$/, '').split(' / ')[0];
     const meta = el('div', 'font-size:12px;color:#6b6045;margin-top:4px;letter-spacing:.4px');
     meta.textContent = `${entry.manufacturer} · ${entry.year}`;
     label.append(name, meta);
@@ -263,9 +265,12 @@ export async function runMenu(): Promise<void> {
     // consoles have no romset, so "INSERT ROM" is meaningless there — only
     // the stale-bundle "IN DEVELOPMENT" ribbon applies to them
     if (entry.supported === false || (entry.kind !== 'console' && !entry.hasRom)) {
-      const ribbon = el('div', `position:absolute;top:14px;right:-34px;transform:rotate(38deg);z-index:4;
+      // corner sash: band centered on the box's top-right diagonal so
+      // overflow:hidden cuts both ends cleanly at the edges
+      const ribbon = el('div', `position:absolute;top:30px;right:-48px;width:180px;text-align:center;
+        transform:rotate(45deg);z-index:4;
         background:${entry.supported === false ? '#666' : '#c22'};color:#fff;font-size:10px;font-weight:700;
-        letter-spacing:1px;padding:3px 38px;box-shadow:0 2px 6px rgba(0,0,0,.5)`);
+        letter-spacing:1px;padding:4px 0;box-shadow:0 2px 6px rgba(0,0,0,.5)`);
       // a game generated before its board compiles must never offer Play
       // (stale-bundle crash, see gotchas) — story card still opens
       ribbon.textContent = entry.supported === false ? 'IN DEVELOPMENT' : 'INSERT ROM';
@@ -295,12 +300,7 @@ export async function runMenu(): Promise<void> {
     // inside. Console tiles go straight to their room (About lives there).
     box.addEventListener('click', () => openEntry(entry));
 
-    // shelf plank under each box — planks in a row join into one shelf
-    const plank = el('div', `width:350px;height:16px;margin-top:0;border-radius:2px;
-      background:linear-gradient(#7a4a1f,#5b3413 60%,#3c2008);
-      box-shadow:0 6px 8px rgba(0,0,0,.6), inset 0 2px 2px rgba(255,255,255,.18)`);
-
-    item.append(box, plank);
+    item.append(box);
     return item;
   }
 
