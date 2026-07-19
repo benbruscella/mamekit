@@ -1,0 +1,2645 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/irem/m52.cpp",
+    "generatedAt": "2026-07-19T06:33:03.225Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/irem/m52.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/irem/m52.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:irem.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "irem.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:iremipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "iremipt.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/resnet.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/resnet.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:mpatrol",
+      "label": "Game",
+      "props": {
+        "name": "mpatrol",
+        "year": "1982",
+        "company": "Irem",
+        "fullname": "Moon Patrol",
+        "monitor": "ROT0",
+        "cls": "m52_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade"
+      }
+    },
+    {
+      "id": "romset:mpatrol",
+      "label": "RomSet",
+      "props": {
+        "name": "mpatrol"
+      }
+    },
+    {
+      "id": "region:mpatrol/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:mpatrol/maincpu/mpa-1.3m",
+      "label": "Rom",
+      "props": {
+        "file": "mpa-1.3m",
+        "offset": 0,
+        "size": 4096,
+        "crc": "5873a860",
+        "sha1": "8c03726d6e049c3edbc277440184e31679f78258"
+      }
+    },
+    {
+      "id": "rom:mpatrol/maincpu/mpa-2.3l",
+      "label": "Rom",
+      "props": {
+        "file": "mpa-2.3l",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "f4b85974",
+        "sha1": "dfb2efb57378a20af6f20569f4360cde95596f93"
+      }
+    },
+    {
+      "id": "rom:mpatrol/maincpu/mpa-3.3k",
+      "label": "Rom",
+      "props": {
+        "file": "mpa-3.3k",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "2e1a598c",
+        "sha1": "112c3c9678db8a8540a8df3708020c87fd10c91b"
+      }
+    },
+    {
+      "id": "rom:mpatrol/maincpu/mpa-4.3j",
+      "label": "Rom",
+      "props": {
+        "file": "mpa-4.3j",
+        "offset": 12288,
+        "size": 4096,
+        "crc": "dd05b587",
+        "sha1": "727961b0dafa4a96b580d51013336db2a18aff1e"
+      }
+    },
+    {
+      "id": "region:mpatrol/irem_audio:iremsound",
+      "label": "RomRegion",
+      "props": {
+        "tag": "irem_audio:iremsound",
+        "size": 32768,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:mpatrol/irem_audio:iremsound/mp-s1.1a",
+      "label": "Rom",
+      "props": {
+        "file": "mp-s1.1a",
+        "offset": 28672,
+        "size": 4096,
+        "crc": "561d3108",
+        "sha1": "4998c68a9e9a8002251fa8f07aa1082444a9dc80"
+      }
+    },
+    {
+      "id": "region:mpatrol/tx",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tx",
+        "size": 8192,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:mpatrol/tx/mpe-4.3f",
+      "label": "Rom",
+      "props": {
+        "file": "mpe-4.3f",
+        "offset": 0,
+        "size": 4096,
+        "crc": "cca6d023",
+        "sha1": "fecb3059fb09897a096add9452b50aec55c07545"
+      }
+    },
+    {
+      "id": "rom:mpatrol/tx/mpe-5.3e",
+      "label": "Rom",
+      "props": {
+        "file": "mpe-5.3e",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "e3ee7f75",
+        "sha1": "b03d0d56150d3e9da4a4c871338097b4f450b649"
+      }
+    },
+    {
+      "id": "region:mpatrol/sp",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sp",
+        "size": 12288,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "rom:mpatrol/sp/mpb-2.3m",
+      "label": "Rom",
+      "props": {
+        "file": "mpb-2.3m",
+        "offset": 0,
+        "size": 4096,
+        "crc": "707ace5e",
+        "sha1": "93c682e13e74bce29ced3a87bffb29569c114c3b"
+      }
+    },
+    {
+      "id": "rom:mpatrol/sp/mpb-1.3n",
+      "label": "Rom",
+      "props": {
+        "file": "mpb-1.3n",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "9b72133a",
+        "sha1": "1393ef92ae1ad58a4b62ca1660c0793d30a8b5e2"
+      }
+    },
+    {
+      "id": "region:mpatrol/bg0",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bg0",
+        "size": 8192,
+        "flags": "ROMREGION_ERASEFF"
+      }
+    },
+    {
+      "id": "rom:mpatrol/bg0/mpe-1.3l",
+      "label": "Rom",
+      "props": {
+        "file": "mpe-1.3l",
+        "offset": 0,
+        "size": 4096,
+        "crc": "c46a7f72",
+        "sha1": "8bb7c9acaf6833fb6c0575b015991b873a305a84"
+      }
+    },
+    {
+      "id": "region:mpatrol/bg1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bg1",
+        "size": 8192,
+        "flags": "ROMREGION_ERASEFF"
+      }
+    },
+    {
+      "id": "rom:mpatrol/bg1/mpe-2.3k",
+      "label": "Rom",
+      "props": {
+        "file": "mpe-2.3k",
+        "offset": 0,
+        "size": 4096,
+        "crc": "c7aa1fb0",
+        "sha1": "14c6c76e1d0db2c0745e5d6d33ea6945fac8e9ee"
+      }
+    },
+    {
+      "id": "region:mpatrol/bg2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bg2",
+        "size": 8192,
+        "flags": "ROMREGION_ERASEFF"
+      }
+    },
+    {
+      "id": "rom:mpatrol/bg2/mpe-3.3h",
+      "label": "Rom",
+      "props": {
+        "file": "mpe-3.3h",
+        "offset": 0,
+        "size": 4096,
+        "crc": "a0919392",
+        "sha1": "8a090cb8d483a3d67c7360058e3fdd70e151cd62"
+      }
+    },
+    {
+      "id": "region:mpatrol/tx_pal",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tx_pal",
+        "size": 512,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:mpatrol/tx_pal/mpc-4.2a",
+      "label": "Rom",
+      "props": {
+        "file": "mpc-4.2a",
+        "offset": 0,
+        "size": 512,
+        "crc": "07f99284",
+        "sha1": "dfc52958f2520e1ce4446dd4c84c91413bbacf76"
+      }
+    },
+    {
+      "id": "region:mpatrol/bg_pal",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bg_pal",
+        "size": 32,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:mpatrol/bg_pal/mpc-3.1m",
+      "label": "Rom",
+      "props": {
+        "file": "mpc-3.1m",
+        "offset": 0,
+        "size": 32,
+        "crc": "6a57eff2",
+        "sha1": "2d1c12dab5915da2ccd466e39436c88be434d634"
+      }
+    },
+    {
+      "id": "region:mpatrol/spr_pal",
+      "label": "RomRegion",
+      "props": {
+        "tag": "spr_pal",
+        "size": 32,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:mpatrol/spr_pal/mpc-1.1f",
+      "label": "Rom",
+      "props": {
+        "file": "mpc-1.1f",
+        "offset": 0,
+        "size": 32,
+        "crc": "26979b13",
+        "sha1": "8c41a8cce4f3384c392a9f7a223a50d7be0e14a5"
+      }
+    },
+    {
+      "id": "region:mpatrol/spr_clut",
+      "label": "RomRegion",
+      "props": {
+        "tag": "spr_clut",
+        "size": 256,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:mpatrol/spr_clut/mpc-2.2h",
+      "label": "Rom",
+      "props": {
+        "file": "mpc-2.2h",
+        "offset": 0,
+        "size": 256,
+        "crc": "7ae4cd97",
+        "sha1": "bc0662fac82ffe65f02092d912b2c2b0c7a8ac2b"
+      }
+    },
+    {
+      "id": "region:mpatrol/unkprom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "unkprom",
+        "size": 512,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:mpatrol/unkprom/mp_7621-5.7h",
+      "label": "Rom",
+      "props": {
+        "file": "mp_7621-5.7h",
+        "offset": 0,
+        "size": 512,
+        "crc": "cf1fd9d0",
+        "sha1": "f9575bc59bf21dfecd10133264835e02890562f8"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "m52_state",
+        "name": "main_map"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 16383,
+        "raw": "map(0x0000, 0x3fff).rom()",
+        "rom": true
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 33791,
+        "raw": "map(0x8000, 0x83ff).ram().w(FUNC(m52_state::videoram_w)).share(m_videoram)",
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:m52_state.videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w",
+        "ownerClass": "m52_state"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 33792,
+        "end": 34815,
+        "raw": "map(0x8400, 0x87ff).ram().w(FUNC(m52_state::colorram_w)).share(m_colorram)",
+        "ram": true,
+        "share": "colorram"
+      }
+    },
+    {
+      "id": "handler:m52_state.colorram_w",
+      "label": "Handler",
+      "props": {
+        "method": "colorram_w",
+        "ownerClass": "m52_state"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 34816,
+        "end": 34816,
+        "raw": "map(0x8800, 0x8800).mirror(0x07ff).r(FUNC(m52_state::protection_r))",
+        "mirror": 2047
+      }
+    },
+    {
+      "id": "handler:m52_state.protection_r",
+      "label": "Handler",
+      "props": {
+        "method": "protection_r",
+        "ownerClass": "m52_state"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 51200,
+        "end": 52223,
+        "raw": "map(0xc800, 0xcbff).mirror(0x0400).writeonly().share(m_spriteram)",
+        "mirror": 1024,
+        "writeonly": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 53248,
+        "raw": "map(0xd000, 0xd000).mirror(0x07fc).w(\"irem_audio\", FUNC(irem_audio_device::cmd_w))",
+        "mirror": 2044
+      }
+    },
+    {
+      "id": "handler:irem_audio_device.cmd_w",
+      "label": "Handler",
+      "props": {
+        "method": "cmd_w",
+        "ownerClass": "irem_audio_device"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 53249,
+        "end": 53249,
+        "raw": "map(0xd001, 0xd001).mirror(0x07fc).w(FUNC(m52_state::flipscreen_w))",
+        "mirror": 2044
+      }
+    },
+    {
+      "id": "handler:m52_state.flipscreen_w",
+      "label": "Handler",
+      "props": {
+        "method": "flipscreen_w",
+        "ownerClass": "m52_state"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 53248,
+        "raw": "map(0xd000, 0xd000).mirror(0x07f8).portr(\"IN0\")",
+        "mirror": 2040,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 53249,
+        "end": 53249,
+        "raw": "map(0xd001, 0xd001).mirror(0x07f8).portr(\"IN1\")",
+        "mirror": 2040,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 53250,
+        "end": 53250,
+        "raw": "map(0xd002, 0xd002).mirror(0x07f8).portr(\"IN2\")",
+        "mirror": 2040,
+        "portRead": "IN2"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 53251,
+        "end": 53251,
+        "raw": "map(0xd003, 0xd003).mirror(0x07f8).portr(\"DSW1\")",
+        "mirror": 2040,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 53252,
+        "end": 53252,
+        "raw": "map(0xd004, 0xd004).mirror(0x07f8).portr(\"DSW2\")",
+        "mirror": 2040,
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:m52_state.main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 59391,
+        "raw": "map(0xe000, 0xe7ff).ram()",
+        "ram": true
+      }
+    },
+    {
+      "id": "map:m52_state.main_portmap",
+      "label": "AddressMap",
+      "props": {
+        "cls": "m52_state",
+        "name": "main_portmap",
+        "globalMask": 255
+      }
+    },
+    {
+      "id": "map:m52_state.main_portmap/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 0,
+        "raw": "map(0x00, 0x00).mirror(0x1f).w(FUNC(m52_state::scroll_w))",
+        "mirror": 31
+      }
+    },
+    {
+      "id": "handler:m52_state.scroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "scroll_w",
+        "ownerClass": "m52_state"
+      }
+    },
+    {
+      "id": "map:m52_state.main_portmap/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 64,
+        "end": 64,
+        "raw": "map(0x40, 0x40).mirror(0x1f).w(FUNC(m52_state::bgxpos_w<0>))",
+        "mirror": 31
+      }
+    },
+    {
+      "id": "handler:m52_state.bgxpos_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "bgxpos_w_0",
+        "ownerClass": "m52_state"
+      }
+    },
+    {
+      "id": "map:m52_state.main_portmap/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 96,
+        "end": 96,
+        "raw": "map(0x60, 0x60).mirror(0x1f).w(FUNC(m52_state::bgypos_w<0>))",
+        "mirror": 31
+      }
+    },
+    {
+      "id": "handler:m52_state.bgypos_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "bgypos_w_0",
+        "ownerClass": "m52_state"
+      }
+    },
+    {
+      "id": "map:m52_state.main_portmap/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 128,
+        "end": 128,
+        "raw": "map(0x80, 0x80).mirror(0x1f).w(FUNC(m52_state::bgxpos_w<1>))",
+        "mirror": 31
+      }
+    },
+    {
+      "id": "handler:m52_state.bgxpos_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "bgxpos_w_1",
+        "ownerClass": "m52_state"
+      }
+    },
+    {
+      "id": "map:m52_state.main_portmap/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 160,
+        "end": 160,
+        "raw": "map(0xa0, 0xa0).mirror(0x1f).w(FUNC(m52_state::bgypos_w<1>))",
+        "mirror": 31
+      }
+    },
+    {
+      "id": "handler:m52_state.bgypos_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "bgypos_w_1",
+        "ownerClass": "m52_state"
+      }
+    },
+    {
+      "id": "map:m52_state.main_portmap/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 192,
+        "end": 192,
+        "raw": "map(0xc0, 0xc0).mirror(0x1f).w(FUNC(m52_state::bgcontrol_w))",
+        "mirror": 31
+      }
+    },
+    {
+      "id": "handler:m52_state.bgcontrol_w",
+      "label": "Handler",
+      "props": {
+        "method": "bgcontrol_w",
+        "ownerClass": "m52_state"
+      }
+    },
+    {
+      "id": "map:irem_audio_device.m52_small_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "irem_audio_device",
+        "name": "m52_small_sound_map",
+        "globalMask": 32767
+      }
+    },
+    {
+      "id": "map:irem_audio_device.m52_small_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4095,
+        "raw": "map(0x0000, 0x0fff).w(FUNC(irem_audio_device::m52_adpcm_w))"
+      }
+    },
+    {
+      "id": "handler:irem_audio_device.m52_adpcm_w",
+      "label": "Handler",
+      "props": {
+        "method": "m52_adpcm_w",
+        "ownerClass": "irem_audio_device"
+      }
+    },
+    {
+      "id": "map:irem_audio_device.m52_small_sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 4096,
+        "end": 8191,
+        "raw": "map(0x1000, 0x1fff).w(FUNC(irem_audio_device::sound_irq_ack_w))"
+      }
+    },
+    {
+      "id": "handler:irem_audio_device.sound_irq_ack_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_irq_ack_w",
+        "ownerClass": "irem_audio_device"
+      }
+    },
+    {
+      "id": "map:irem_audio_device.m52_small_sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 32767,
+        "raw": "map(0x2000, 0x7fff).rom()",
+        "rom": true
+      }
+    },
+    {
+      "id": "machine:m52_state.m52",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "m52_state",
+        "name": "m52",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:m52_state.m52/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 3072000,
+        "config": [
+          "Z80(config, m_maincpu, 18.432_MHz_XTAL / 6)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &m52_state::main_map)",
+          "m_maincpu->set_addrmap(AS_IO, &m52_state::main_portmap)",
+          "m_maincpu->set_vblank_int(\"screen\", FUNC(m52_state::irq0_line_hold))"
+        ]
+      }
+    },
+    {
+      "id": "device:m52_state.m52/sp_palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "sp_palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_sp_palette).set_entries(256, 32)"
+        ]
+      }
+    },
+    {
+      "id": "device:m52_state.m52/sp_gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "sp_gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_sp_gfxdecode, m_sp_palette, gfx_m52_sp)"
+        ],
+        "clockExpr": "m_sp_palette, gfx_m52_sp"
+      }
+    },
+    {
+      "id": "device:m52_state.m52/tx_palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "tx_palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_tx_palette).set_entries(512)"
+        ]
+      }
+    },
+    {
+      "id": "device:m52_state.m52/tx_gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "tx_gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_tx_gfxdecode, m_tx_palette, gfx_m52_tx)"
+        ],
+        "clockExpr": "m_tx_palette, gfx_m52_tx"
+      }
+    },
+    {
+      "id": "device:m52_state.m52/bg_palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "bg_palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_bg_palette).set_entries(3 * 4, 32)"
+        ]
+      }
+    },
+    {
+      "id": "device:m52_state.m52/bg_gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "bg_gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_bg_gfxdecode, m_bg_palette, gfx_m52_bg)"
+        ],
+        "clockExpr": "m_bg_palette, gfx_m52_bg"
+      }
+    },
+    {
+      "id": "device:m52_state.m52/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(18.432_MHz_XTAL / 3, 384, 136, 376, 282, 22, 274)",
+          "m_screen->set_screen_update(FUNC(m52_state::screen_update))"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6144000,
+          384,
+          136,
+          376,
+          282,
+          22,
+          274
+        ]
+      }
+    },
+    {
+      "id": "device:m52_state.m52/irem_audio",
+      "label": "Device",
+      "props": {
+        "type": "IREM_M52_SOUNDC_AUDIO",
+        "tag": "irem_audio",
+        "clock": 0,
+        "config": [
+          "IREM_M52_SOUNDC_AUDIO(config, \"irem_audio\")"
+        ]
+      }
+    },
+    {
+      "id": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "m52_soundc_audio_device",
+        "name": "device_add_mconfig",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/iremsound",
+      "label": "Device",
+      "props": {
+        "type": "M6803",
+        "tag": "iremsound",
+        "clock": 3579545,
+        "config": [
+          "m6803_cpu_device &cpu(M6803(config, m_cpu, XTAL(3'579'545)))",
+          "cpu.set_addrmap(AS_PROGRAM, &m52_soundc_audio_device::m52_small_sound_map)",
+          "cpu.in_p1_cb().set(FUNC(m52_soundc_audio_device::m6803_port1_r))",
+          "cpu.out_p1_cb().set(FUNC(m52_soundc_audio_device::m6803_port1_w))",
+          "cpu.in_p2_cb().set(FUNC(m52_soundc_audio_device::m6803_port2_r))",
+          "cpu.out_p2_cb().set(FUNC(m52_soundc_audio_device::m6803_port2_w))"
+        ]
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ]
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay_45m",
+        "clock": 894886.25,
+        "config": [
+          "AY8910(config, m_ay_45M, XTAL(3'579'545)/4)",
+          "m_ay_45M->set_flags(AY8910_SINGLE_OUTPUT | AY8910_DISCRETE_OUTPUT)",
+          "m_ay_45M->set_resistors_load(470, 0, 0)",
+          "m_ay_45M->port_a_read_callback().set(FUNC(irem_audio_device::soundlatch_r))",
+          "m_ay_45M->port_b_write_callback().set(FUNC(irem_audio_device::ay8910_45M_portb_w))",
+          "m_ay_45M->add_route(0, \"filtermix\", 1.0, 0)"
+        ]
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/ay_45l",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay_45l",
+        "clock": 894886.25,
+        "config": [
+          "AY8910(config, m_ay_45L, XTAL(3'579'545)/4)",
+          "m_ay_45L->set_flags(AY8910_SINGLE_OUTPUT | AY8910_DISCRETE_OUTPUT)",
+          "m_ay_45L->set_resistors_load(470, 0, 0)",
+          "m_ay_45L->port_a_write_callback().set(FUNC(irem_audio_device::ay8910_45L_porta_w))",
+          "m_ay_45L->add_route(0, \"filtermix\", 1.0, 1)"
+        ]
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/msm1",
+      "label": "Device",
+      "props": {
+        "type": "MSM5205",
+        "tag": "msm1",
+        "clock": 384000,
+        "config": [
+          "MSM5205(config, m_adpcm1, XTAL(384'000))",
+          "m_adpcm1->vck_callback().set_inputline(m_cpu, INPUT_LINE_NMI)",
+          "m_adpcm1->set_prescaler_selector(msm5205_device::S96_4B)",
+          "m_adpcm1->add_route(0, \"filtermix\", 1.0, 2)"
+        ]
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/filtermix",
+      "label": "Device",
+      "props": {
+        "type": "DISCRETE",
+        "tag": "filtermix",
+        "clock": null,
+        "config": [
+          "DISCRETE(config, \"filtermix\", m52_sound_c_discrete).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "clockExpr": "m52_sound_c_discrete"
+      }
+    },
+    {
+      "id": "inputs:m52",
+      "label": "InputPorts",
+      "props": {
+        "name": "m52"
+      }
+    },
+    {
+      "id": "inputs:m52/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:m52/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:m52/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:m52/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "modifiers": [
+          "PORT_IMPULSE(19)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_COIN1"
+      }
+    },
+    {
+      "id": "inputs:m52/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 240,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:m52/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:m52/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:m52/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2"
+      }
+    },
+    {
+      "id": "inputs:m52/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:m52/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_BUTTON1"
+      }
+    },
+    {
+      "id": "inputs:m52/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:m52/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/IN2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/IN2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/IN2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/IN2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_COIN2"
+      }
+    },
+    {
+      "id": "inputs:m52/IN2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/IN2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:m52/IN2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:m52/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Flip Screen",
+        "defaultValue": 1,
+        "location": "SW2:1",
+        "settings": [
+          "1=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW2:2",
+        "settings": [
+          "0=Upright",
+          "2=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Coin Mode",
+        "defaultValue": 4,
+        "location": "SW2:3",
+        "settings": [
+          "4=Mode 1",
+          "0=Mode 2"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Invulnerability (Cheat)",
+        "defaultValue": 64,
+        "location": "SW2:7",
+        "settings": [
+          "64=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:m52/DSW2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 128,
+        "activeLow": true
+      }
+    },
+    {
+      "id": "inputs:mpatrol",
+      "label": "InputPorts",
+      "props": {
+        "name": "mpatrol"
+      }
+    },
+    {
+      "id": "inputs:mpatrol/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:mpatrol/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mpatrol/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mpatrol/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:mpatrol/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:mpatrol/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:mpatrol/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mpatrol/IN2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mpatrol/IN2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:mpatrol/IN2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:mpatrol/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:mpatrol/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused"
+      }
+    },
+    {
+      "id": "inputs:mpatrol/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Stop Mode (Cheat)",
+        "defaultValue": 16,
+        "location": "SW2:5",
+        "settings": [
+          "16=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mpatrol/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "name": "Sector Selection (Cheat)",
+        "defaultValue": 32,
+        "location": "SW2:6",
+        "settings": [
+          "32=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mpatrol/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:mpatrol/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Lives",
+        "defaultValue": 2,
+        "location": "SW1:1,2",
+        "settings": [
+          "0=1",
+          "1=2",
+          "2=3",
+          "3=5"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mpatrol/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "name": "Bonus Life",
+        "defaultValue": 12,
+        "location": "SW1:3,4",
+        "settings": [
+          "12=10000 30000 50000",
+          "8=20000 40000 60000",
+          "4=10000",
+          "0=None"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mpatrol/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "name": "Coinage",
+        "defaultValue": 240,
+        "location": "#SW1\":5,6,7,8\"",
+        "settings": [
+          "144=7C 1C",
+          "160=6C 1C",
+          "176=5C 1C",
+          "192=4C 1C",
+          "208=3C 1C",
+          "224=2C 1C",
+          "240=1C 1C",
+          "112=1C 2C",
+          "96=1C 3C",
+          "80=1C 4C",
+          "64=1C 5C",
+          "48=1C 6C",
+          "32=1C 7C",
+          "16=1C 8C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mpatrol/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "name": "Coin A",
+        "defaultValue": 48,
+        "location": "#SW1\":5,6\"",
+        "settings": [
+          "16=3C 1C",
+          "32=2C 1C",
+          "48=1C 1C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mpatrol/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 192,
+        "name": "Coin B",
+        "defaultValue": 192,
+        "location": "#SW1\":7,8\"",
+        "settings": [
+          "192=1C 2C",
+          "128=1C 3C",
+          "64=1C 5C",
+          "0=1C 6C"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(2,3)",
+          "RGN_FRAC(0,3)",
+          "RGN_FRAC(1,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:bgcharlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "bgcharlayout",
+        "width": 256,
+        "height": 128,
+        "total": 1,
+        "planes": 2,
+        "planeOffsets": [
+          4,
+          0
+        ],
+        "xOffsets": [
+          "EXTENDED_XOFFS"
+        ],
+        "yOffsets": [
+          "EXTENDED_YOFFS"
+        ],
+        "charIncrement": 32768
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m52_sp",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_m52_sp"
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m52_sp/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sp",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 0,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m52_tx",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_m52_tx"
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m52_tx/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tx",
+        "offset": 0,
+        "layout": "gfx_8x8x2_planar",
+        "colorBase": 0,
+        "colorCount": 128,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m52_bg",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_m52_bg"
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m52_bg/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "bg0",
+        "offset": 0,
+        "layout": "bgcharlayout",
+        "colorBase": 0,
+        "colorCount": 1,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m52_bg/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "bg1",
+        "offset": 0,
+        "layout": "bgcharlayout",
+        "colorBase": 4,
+        "colorCount": 1,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_m52_bg/e2",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "bg2",
+        "offset": 0,
+        "layout": "bgcharlayout",
+        "colorBase": 8,
+        "colorCount": 1,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:mpatrol",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:mpatrol",
+      "to": "machine:m52_state.m52",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:mpatrol",
+      "to": "inputs:mpatrol",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:mpatrol",
+      "to": "romset:mpatrol",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/irem/m52.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m52.cpp",
+      "to": "file:irem.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m52.cpp",
+      "to": "file:iremipt.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m52.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m52.cpp",
+      "to": "file:video/resnet.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m52.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m52.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/m52.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "device:m52_state.m52/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "device:m52_state.m52/sp_palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "device:m52_state.m52/sp_gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "gfxdecode:gfx_m52_sp",
+      "rel": "DECODES"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "device:m52_state.m52/tx_palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "device:m52_state.m52/tx_gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "gfxdecode:gfx_m52_tx",
+      "rel": "DECODES"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "device:m52_state.m52/bg_palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "device:m52_state.m52/bg_gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "gfxdecode:gfx_m52_bg",
+      "rel": "DECODES"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "device:m52_state.m52/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_state.m52",
+      "to": "device:m52_state.m52/irem_audio",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:mpatrol",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:mpatrol",
+      "to": "inputs:m52",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:mpatrol",
+      "to": "inputs:mpatrol/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mpatrol",
+      "to": "inputs:mpatrol/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mpatrol",
+      "to": "inputs:mpatrol/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mpatrol",
+      "to": "inputs:mpatrol/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/irem_audio:iremsound",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/tx",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/sp",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/bg0",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/bg1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/bg2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/tx_pal",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/bg_pal",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/spr_pal",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/spr_clut",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mpatrol",
+      "to": "region:mpatrol/unkprom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "device:m52_state.m52/maincpu",
+      "to": "map:m52_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:m52_state.m52/maincpu",
+      "to": "map:m52_state.main_portmap",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_m52_sp",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxdecode:gfx_m52_sp",
+      "to": "gfxdecode:gfx_m52_sp/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_m52_tx",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxdecode:gfx_m52_tx",
+      "to": "gfxdecode:gfx_m52_tx/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_m52_bg",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxdecode:gfx_m52_bg",
+      "to": "gfxdecode:gfx_m52_bg/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_m52_bg",
+      "to": "gfxdecode:gfx_m52_bg/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_m52_bg",
+      "to": "gfxdecode:gfx_m52_bg/e2",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:m52_state.m52/irem_audio",
+      "to": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "inputs:m52",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:m52",
+      "to": "inputs:m52/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:m52",
+      "to": "inputs:m52/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:m52",
+      "to": "inputs:m52/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:m52",
+      "to": "inputs:m52/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mpatrol/IN1",
+      "to": "inputs:mpatrol/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/IN1",
+      "to": "inputs:mpatrol/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/IN1",
+      "to": "inputs:mpatrol/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/IN1",
+      "to": "inputs:mpatrol/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/IN2",
+      "to": "inputs:mpatrol/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/IN2",
+      "to": "inputs:mpatrol/IN2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/IN2",
+      "to": "inputs:mpatrol/IN2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/IN2",
+      "to": "inputs:mpatrol/IN2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/DSW2",
+      "to": "inputs:mpatrol/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/DSW2",
+      "to": "inputs:mpatrol/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/DSW2",
+      "to": "inputs:mpatrol/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/DSW1",
+      "to": "inputs:mpatrol/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/DSW1",
+      "to": "inputs:mpatrol/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/DSW1",
+      "to": "inputs:mpatrol/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/DSW1",
+      "to": "inputs:mpatrol/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mpatrol/DSW1",
+      "to": "inputs:mpatrol/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:mpatrol/maincpu",
+      "to": "rom:mpatrol/maincpu/mpa-1.3m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/maincpu",
+      "to": "rom:mpatrol/maincpu/mpa-2.3l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/maincpu",
+      "to": "rom:mpatrol/maincpu/mpa-3.3k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/maincpu",
+      "to": "rom:mpatrol/maincpu/mpa-4.3j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/irem_audio:iremsound",
+      "to": "rom:mpatrol/irem_audio:iremsound/mp-s1.1a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/tx",
+      "to": "rom:mpatrol/tx/mpe-4.3f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/tx",
+      "to": "rom:mpatrol/tx/mpe-5.3e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/sp",
+      "to": "rom:mpatrol/sp/mpb-2.3m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/sp",
+      "to": "rom:mpatrol/sp/mpb-1.3n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/bg0",
+      "to": "rom:mpatrol/bg0/mpe-1.3l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/bg1",
+      "to": "rom:mpatrol/bg1/mpe-2.3k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/bg2",
+      "to": "rom:mpatrol/bg2/mpe-3.3h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/tx_pal",
+      "to": "rom:mpatrol/tx_pal/mpc-4.2a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/bg_pal",
+      "to": "rom:mpatrol/bg_pal/mpc-3.1m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/spr_pal",
+      "to": "rom:mpatrol/spr_pal/mpc-1.1f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/spr_clut",
+      "to": "rom:mpatrol/spr_clut/mpc-2.2h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mpatrol/unkprom",
+      "to": "rom:mpatrol/unkprom/mp_7621-5.7h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_map",
+      "to": "map:m52_state.main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_portmap",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:m52_state.main_portmap",
+      "to": "map:m52_state.main_portmap/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_portmap",
+      "to": "map:m52_state.main_portmap/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_portmap",
+      "to": "map:m52_state.main_portmap/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_portmap",
+      "to": "map:m52_state.main_portmap/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_portmap",
+      "to": "map:m52_state.main_portmap/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:m52_state.main_portmap",
+      "to": "map:m52_state.main_portmap/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "gfxdecode:gfx_m52_sp/e0",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_m52_bg/e0",
+      "to": "gfxlayout:bgcharlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_m52_bg/e1",
+      "to": "gfxlayout:bgcharlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_m52_bg/e2",
+      "to": "gfxlayout:bgcharlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/iremsound",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/ay_45l",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/msm1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/filtermix",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:m52/IN0",
+      "to": "inputs:m52/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN0",
+      "to": "inputs:m52/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN0",
+      "to": "inputs:m52/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN0",
+      "to": "inputs:m52/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN0",
+      "to": "inputs:m52/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN1",
+      "to": "inputs:m52/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN1",
+      "to": "inputs:m52/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN1",
+      "to": "inputs:m52/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN1",
+      "to": "inputs:m52/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN1",
+      "to": "inputs:m52/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN1",
+      "to": "inputs:m52/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN1",
+      "to": "inputs:m52/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN1",
+      "to": "inputs:m52/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN2",
+      "to": "inputs:m52/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN2",
+      "to": "inputs:m52/IN2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN2",
+      "to": "inputs:m52/IN2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN2",
+      "to": "inputs:m52/IN2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN2",
+      "to": "inputs:m52/IN2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN2",
+      "to": "inputs:m52/IN2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN2",
+      "to": "inputs:m52/IN2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/IN2",
+      "to": "inputs:m52/IN2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/DSW2",
+      "to": "inputs:m52/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/DSW2",
+      "to": "inputs:m52/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/DSW2",
+      "to": "inputs:m52/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/DSW2",
+      "to": "inputs:m52/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:m52/DSW2",
+      "to": "inputs:m52/DSW2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "map:m52_state.main_map/range1",
+      "to": "handler:m52_state.videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m52_state.main_map/range2",
+      "to": "handler:m52_state.colorram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m52_state.main_map/range3",
+      "to": "handler:m52_state.protection_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:m52_state.main_map/range5",
+      "to": "handler:irem_audio_device.cmd_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "irem_audio"
+      }
+    },
+    {
+      "from": "map:m52_state.main_map/range6",
+      "to": "handler:m52_state.flipscreen_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m52_state.main_portmap/range0",
+      "to": "handler:m52_state.scroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m52_state.main_portmap/range1",
+      "to": "handler:m52_state.bgxpos_w_0",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m52_state.main_portmap/range2",
+      "to": "handler:m52_state.bgypos_w_0",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m52_state.main_portmap/range3",
+      "to": "handler:m52_state.bgxpos_w_1",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m52_state.main_portmap/range4",
+      "to": "handler:m52_state.bgypos_w_1",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:m52_state.main_portmap/range5",
+      "to": "handler:m52_state.bgcontrol_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:bgcharlayout",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/iremsound",
+      "to": "map:irem_audio_device.m52_small_sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map",
+      "to": "file:src/mame/irem/m52.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map",
+      "to": "map:irem_audio_device.m52_small_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map",
+      "to": "map:irem_audio_device.m52_small_sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map",
+      "to": "map:irem_audio_device.m52_small_sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map/range0",
+      "to": "handler:irem_audio_device.m52_adpcm_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map/range1",
+      "to": "handler:irem_audio_device.sound_irq_ack_w",
+      "rel": "WRITES"
+    }
+  ]
+}

@@ -1,0 +1,1042 @@
+{
+  "game": "galaxian",
+  "title": "Galaxian (Namco set 1) (Namco, 1979)",
+  "family": "galaxian",
+  "board": {
+    "family": "galaxian",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 16384,
+            "end": 17407,
+            "kind": "ram",
+            "mirror": 1024
+          },
+          {
+            "start": 20480,
+            "end": 21503,
+            "kind": "ram",
+            "mirror": 1024,
+            "share": "videoram",
+            "write": "galaxian_state.galaxian_videoram_w"
+          },
+          {
+            "start": 22528,
+            "end": 22783,
+            "kind": "ram",
+            "mirror": 1792,
+            "share": "spriteram",
+            "write": "galaxian_state.galaxian_objram_w"
+          },
+          {
+            "start": 24576,
+            "end": 24576,
+            "kind": "handler",
+            "mirror": 2047,
+            "read": "port.IN0"
+          },
+          {
+            "start": 24576,
+            "end": 24577,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.start_lamp_w"
+          },
+          {
+            "start": 24578,
+            "end": 24578,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.coin_lock_w"
+          },
+          {
+            "start": 24579,
+            "end": 24579,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.coin_count_0_w"
+          },
+          {
+            "start": 26624,
+            "end": 26624,
+            "kind": "handler",
+            "mirror": 2047,
+            "read": "port.IN1"
+          },
+          {
+            "start": 28672,
+            "end": 28672,
+            "kind": "handler",
+            "mirror": 2047,
+            "read": "port.IN2"
+          },
+          {
+            "start": 28673,
+            "end": 28673,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.irq_enable_w"
+          },
+          {
+            "start": 28676,
+            "end": 28676,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.galaxian_stars_enable_w"
+          },
+          {
+            "start": 28678,
+            "end": 28678,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.galaxian_flip_screen_x_w"
+          },
+          {
+            "start": 28679,
+            "end": 28679,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.galaxian_flip_screen_y_w"
+          },
+          {
+            "start": 30720,
+            "end": 30720,
+            "kind": "handler",
+            "mirror": 2047,
+            "read": "watchdog.reset_r"
+          },
+          {
+            "start": 24580,
+            "end": 24583,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "cust.lfo_freq_w"
+          },
+          {
+            "start": 26624,
+            "end": 26631,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "cust.sound_w"
+          },
+          {
+            "start": 30720,
+            "end": 30720,
+            "kind": "handler",
+            "mirror": 2047,
+            "write": "cust.pitch_w"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 16383,
+        "kind": "rom"
+      },
+      {
+        "start": 16384,
+        "end": 17407,
+        "kind": "ram",
+        "mirror": 1024
+      },
+      {
+        "start": 20480,
+        "end": 21503,
+        "kind": "ram",
+        "mirror": 1024,
+        "share": "videoram",
+        "write": "galaxian_state.galaxian_videoram_w"
+      },
+      {
+        "start": 22528,
+        "end": 22783,
+        "kind": "ram",
+        "mirror": 1792,
+        "share": "spriteram",
+        "write": "galaxian_state.galaxian_objram_w"
+      },
+      {
+        "start": 24576,
+        "end": 24576,
+        "kind": "handler",
+        "mirror": 2047,
+        "read": "port.IN0"
+      },
+      {
+        "start": 24576,
+        "end": 24577,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.start_lamp_w"
+      },
+      {
+        "start": 24578,
+        "end": 24578,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.coin_lock_w"
+      },
+      {
+        "start": 24579,
+        "end": 24579,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.coin_count_0_w"
+      },
+      {
+        "start": 26624,
+        "end": 26624,
+        "kind": "handler",
+        "mirror": 2047,
+        "read": "port.IN1"
+      },
+      {
+        "start": 28672,
+        "end": 28672,
+        "kind": "handler",
+        "mirror": 2047,
+        "read": "port.IN2"
+      },
+      {
+        "start": 28673,
+        "end": 28673,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.irq_enable_w"
+      },
+      {
+        "start": 28676,
+        "end": 28676,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.galaxian_stars_enable_w"
+      },
+      {
+        "start": 28678,
+        "end": 28678,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.galaxian_flip_screen_x_w"
+      },
+      {
+        "start": 28679,
+        "end": 28679,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.galaxian_flip_screen_y_w"
+      },
+      {
+        "start": 30720,
+        "end": 30720,
+        "kind": "handler",
+        "mirror": 2047,
+        "read": "watchdog.reset_r"
+      },
+      {
+        "start": 24580,
+        "end": 24583,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "cust.lfo_freq_w"
+      },
+      {
+        "start": 26624,
+        "end": 26631,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "cust.sound_w"
+      },
+      {
+        "start": 30720,
+        "end": 30720,
+        "kind": "handler",
+        "mirror": 2047,
+        "write": "cust.pitch_w"
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "refresh": 60.60606060606061,
+      "vtotal": 264,
+      "vbstart": 240,
+      "vbend": 16,
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    }
+  },
+  "sound": {
+    "kind": "galaxian",
+    "clock": 3072000
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "galmidw.u",
+          "offset": 0,
+          "size": 2048,
+          "crc": "745e2d61",
+          "alt": [
+            {
+              "file": "galaxian.u",
+              "crc": "fac42d34"
+            },
+            {
+              "file": "gl-03.8g",
+              "crc": "e8f3aa67"
+            },
+            {
+              "file": "p2-1.1",
+              "crc": "acfde501"
+            },
+            {
+              "file": "zt-p01c.016",
+              "crc": "90a2bc61"
+            },
+            {
+              "file": "galaktron_g1.bin",
+              "crc": "ac64aabe"
+            },
+            {
+              "file": "3.bin",
+              "crc": "51ba70ac"
+            },
+            {
+              "file": "h7.7h",
+              "crc": "d09b9f1a"
+            },
+            {
+              "file": "fg1.bin",
+              "crc": "3d5d9bae"
+            },
+            {
+              "file": "sg1",
+              "crc": "d493cfd1"
+            },
+            {
+              "file": "piii.1",
+              "crc": "78dd272d"
+            },
+            {
+              "file": "galx.u",
+              "crc": "79e4007d"
+            },
+            {
+              "file": "kk1pmc.bin",
+              "crc": "4a29bbe4"
+            },
+            {
+              "file": "sg1",
+              "crc": "b83f4578"
+            },
+            {
+              "file": "swarm1.bin",
+              "crc": "21eba3d0"
+            },
+            {
+              "file": "test.u",
+              "crc": "0614cd7f"
+            }
+          ]
+        },
+        {
+          "file": "galmidw.v",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "9c999a40",
+          "alt": [
+            {
+              "file": "galaxian.v",
+              "crc": "f58283e3"
+            },
+            {
+              "file": "galx.v",
+              "crc": "bc16064e"
+            },
+            {
+              "file": "p2-2.2",
+              "crc": "65cf3c77"
+            },
+            {
+              "file": "zt-2.016",
+              "crc": "a433067e"
+            },
+            {
+              "file": "piii.2",
+              "crc": "465a9b45"
+            },
+            {
+              "file": "prg2.bin",
+              "crc": "59580b30"
+            },
+            {
+              "file": "kk2pmc.bin",
+              "crc": "65c57131"
+            },
+            {
+              "file": "sg2",
+              "crc": "d12ca054"
+            },
+            {
+              "file": "swarm2.bin",
+              "crc": "f3a436cd"
+            }
+          ]
+        },
+        {
+          "file": "galmidw.w",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "b5894925",
+          "alt": [
+            {
+              "file": "galaxian.w",
+              "crc": "4c7031c0"
+            },
+            {
+              "file": "superg.w",
+              "crc": "ddeabdae"
+            },
+            {
+              "file": "p2-3.3",
+              "crc": "9eef9ae6"
+            },
+            {
+              "file": "zt-3.016",
+              "crc": "aaf038d4"
+            },
+            {
+              "file": "6_7h.bin",
+              "crc": "7c86fc8a"
+            },
+            {
+              "file": "piii.3",
+              "crc": "03e36737"
+            },
+            {
+              "file": "prg3.bin",
+              "crc": "b64e9d12"
+            },
+            {
+              "file": "galx.w",
+              "crc": "72d2d3ee"
+            },
+            {
+              "file": "kk3pmc.bin",
+              "crc": "24cf6da0"
+            },
+            {
+              "file": "sg3",
+              "crc": "53714cb1"
+            },
+            {
+              "file": "swarm3.bin",
+              "crc": "2915e38b"
+            }
+          ]
+        },
+        {
+          "file": "galmidw.y",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "6b3ca10b",
+          "alt": [
+            {
+              "file": "galaxian.y",
+              "crc": "96a7ac94"
+            },
+            {
+              "file": "gl-06.8d",
+              "crc": "097d92a2"
+            },
+            {
+              "file": "superg.y",
+              "crc": "9463f753"
+            },
+            {
+              "file": "galturbo.y",
+              "crc": "a44f450f"
+            },
+            {
+              "file": "galx_1_4.rom",
+              "crc": "e71e1d9e"
+            },
+            {
+              "file": "p2-4.4",
+              "crc": "56a5ddd1"
+            },
+            {
+              "file": "zt-4.016",
+              "crc": "786d690a"
+            },
+            {
+              "file": "l7.7l",
+              "crc": "9471cdd3"
+            },
+            {
+              "file": "4r.bin",
+              "crc": "89b76ca0"
+            },
+            {
+              "file": "fg4.bin",
+              "crc": "d74bdd2a"
+            },
+            {
+              "file": "sg4",
+              "crc": "04329e33"
+            },
+            {
+              "file": "piii.4",
+              "crc": "ce012b3f"
+            },
+            {
+              "file": "galiii_y.y",
+              "crc": "87b24ab8"
+            },
+            {
+              "file": "galx.y",
+              "crc": "afe397f3"
+            },
+            {
+              "file": "kk4pmc.bin",
+              "crc": "5e5ebca8"
+            },
+            {
+              "file": "sg4",
+              "crc": "2f36fc69"
+            },
+            {
+              "file": "swarm4.bin",
+              "crc": "8bbbf486"
+            },
+            {
+              "file": "astrians.7l",
+              "crc": "2db56b2f"
+            },
+            {
+              "file": "f_r_c.bin",
+              "crc": "c8530a88"
+            },
+            {
+              "file": "an4.7f",
+              "crc": "232dd045"
+            }
+          ]
+        },
+        {
+          "file": "7l",
+          "offset": 8192,
+          "size": 2048,
+          "crc": "1b933207",
+          "alt": [
+            {
+              "file": "7l.bin",
+              "crc": "5341d75a"
+            },
+            {
+              "file": "galmidw.z",
+              "crc": "cb24f797"
+            },
+            {
+              "file": "superg.z",
+              "crc": "e6312e35"
+            },
+            {
+              "file": "supergs.z",
+              "crc": "95e9005c"
+            },
+            {
+              "file": "fs-7_7p.bin",
+              "crc": "6a8715fd"
+            },
+            {
+              "file": "galturbo.z",
+              "crc": "3247f3d4"
+            },
+            {
+              "file": "galx_1_5.rom",
+              "crc": "6e65a3b2"
+            },
+            {
+              "file": "p2-5.5",
+              "crc": "f4bc7262"
+            },
+            {
+              "file": "zt-5.016",
+              "crc": "af9260d7"
+            },
+            {
+              "file": "galaktron_g5.bin",
+              "crc": "9c1821bb"
+            },
+            {
+              "file": "5.bin",
+              "crc": "b1a8dfea"
+            },
+            {
+              "file": "cirsagal.5",
+              "crc": "863a688f"
+            },
+            {
+              "file": "m7.7m",
+              "crc": "5766c95b"
+            },
+            {
+              "file": "fg5.bin",
+              "crc": "f93fdd30"
+            },
+            {
+              "file": "princip5.z",
+              "crc": "7eeb9e63"
+            },
+            {
+              "file": "gxrf.7l",
+              "crc": "ee827e75"
+            },
+            {
+              "file": "sg5.7l",
+              "crc": "878de26d"
+            },
+            {
+              "file": "5.8f",
+              "crc": "b71fc917"
+            },
+            {
+              "file": "piii.5",
+              "crc": "9ace06cf"
+            },
+            {
+              "file": "galiii_z.z",
+              "crc": "b960abbd"
+            },
+            {
+              "file": "2716.1",
+              "crc": "dfc20e57"
+            },
+            {
+              "file": "prg5.bin",
+              "crc": "8bb78987"
+            },
+            {
+              "file": "galx.z",
+              "crc": "778c0d3c"
+            },
+            {
+              "file": "kk5pmc.bin",
+              "crc": "6d325b14"
+            },
+            {
+              "file": "sg5",
+              "crc": "1e0ed4fd"
+            },
+            {
+              "file": "swarm5.bin",
+              "crc": "f1b1987e"
+            },
+            {
+              "file": "astrians.7m",
+              "crc": "41075efb"
+            },
+            {
+              "file": "f_r_d.bin",
+              "crc": "da2d77e0"
+            },
+            {
+              "file": "an5.7l",
+              "crc": "e80fec29"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "1h.bin",
+          "offset": 0,
+          "size": 2048,
+          "crc": "39fb43a4",
+          "alt": [
+            {
+              "file": "galaxian.j1",
+              "crc": "84decf98"
+            },
+            {
+              "file": "gl-02.1k",
+              "crc": "d14f7510"
+            },
+            {
+              "file": "cp-7.1k",
+              "crc": "287159b7"
+            },
+            {
+              "file": "fs-1_1k.bin",
+              "crc": "977e37cf"
+            },
+            {
+              "file": "galturbo.1h",
+              "crc": "a713fd1a"
+            },
+            {
+              "file": "galii.1j",
+              "crc": "3dcdb3d2"
+            },
+            {
+              "file": "galx_4c1.rom",
+              "crc": "d5e88ab4"
+            },
+            {
+              "file": "ztc-2.016",
+              "crc": "1b13ca05"
+            },
+            {
+              "file": "7.7a",
+              "crc": "833e112c"
+            },
+            {
+              "file": "hj.bin",
+              "crc": "5f1b4996"
+            },
+            {
+              "file": "2_1hj.bin",
+              "crc": "bc7d0985"
+            },
+            {
+              "file": "7-2716.bin",
+              "crc": "39546539"
+            },
+            {
+              "file": "cirsagal.h",
+              "crc": "6babd14e"
+            },
+            {
+              "file": "1h.bin",
+              "crc": "724a2044"
+            },
+            {
+              "file": "gxrf.1jh",
+              "crc": "23e627ff"
+            },
+            {
+              "file": "2.1j",
+              "crc": "b8629cc6"
+            },
+            {
+              "file": "ca1.bin",
+              "crc": "074271dd"
+            },
+            {
+              "file": "galx.1h",
+              "crc": "e8810654"
+            },
+            {
+              "file": "kk8pmc.bin",
+              "crc": "96b268b1"
+            },
+            {
+              "file": "sgg1",
+              "crc": "a1287bf6"
+            },
+            {
+              "file": "swarma.bin",
+              "crc": "ef8657bb"
+            },
+            {
+              "file": "astrians.1h",
+              "crc": "77c074b4"
+            },
+            {
+              "file": "an-2g.1k",
+              "crc": "b4784fac"
+            }
+          ]
+        },
+        {
+          "file": "1k.bin",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "7e3f56a2",
+          "alt": [
+            {
+              "file": "galaxian.l1",
+              "crc": "c31ada9e"
+            },
+            {
+              "file": "gl-01.1j",
+              "crc": "968b6016"
+            },
+            {
+              "file": "cp-6.1j",
+              "crc": "6fb54cb1"
+            },
+            {
+              "file": "fs-2_1h.bin",
+              "crc": "d0ba22c9"
+            },
+            {
+              "file": "galturbo.1k",
+              "crc": "28511790"
+            },
+            {
+              "file": "galii.1k",
+              "crc": "25789c21"
+            },
+            {
+              "file": "galx_4c2.rom",
+              "crc": "a57b83e4"
+            },
+            {
+              "file": "ztc-1.016",
+              "crc": "5cd7df03"
+            },
+            {
+              "file": "9.9a",
+              "crc": "eca21395"
+            },
+            {
+              "file": "1_1kl.bin",
+              "crc": "c48b88d0"
+            },
+            {
+              "file": "kl.bin",
+              "crc": "18df5c90"
+            },
+            {
+              "file": "6-2716.bin",
+              "crc": "d10337c3"
+            },
+            {
+              "file": "cirsagal.i",
+              "crc": "0997e81b"
+            },
+            {
+              "file": "k2.9a",
+              "crc": "15e387ce"
+            },
+            {
+              "file": "1k.bin",
+              "crc": "656000a7"
+            },
+            {
+              "file": "gxrf.1lk",
+              "crc": "0dbcee5b"
+            },
+            {
+              "file": "1.1l",
+              "crc": "6d42351c"
+            },
+            {
+              "file": "ca2.bin",
+              "crc": "84d90397"
+            },
+            {
+              "file": "galx.1k",
+              "crc": "cbe84a76"
+            },
+            {
+              "file": "kk7pmc.bin",
+              "crc": "58673a07"
+            },
+            {
+              "file": "swarmb.bin",
+              "crc": "60c4bd31"
+            },
+            {
+              "file": "astrians.1k",
+              "crc": "c30fcc46"
+            },
+            {
+              "file": "an-1g.1h",
+              "crc": "a32b7270"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 32,
+      "loads": [
+        {
+          "file": "6l.bpr",
+          "offset": 0,
+          "size": 32,
+          "crc": "c3ac9467",
+          "alt": [
+            {
+              "file": "galaktron_pr.bin",
+              "crc": "6a0c7d87"
+            },
+            {
+              "file": "ims5610.bin",
+              "crc": "24652bc4"
+            },
+            {
+              "file": "m866l_im5610.6l",
+              "crc": "b549ad5a"
+            },
+            {
+              "file": "im8610.6l",
+              "crc": "4a3c88a5"
+            },
+            {
+              "file": "im5610.bin",
+              "crc": "4e3caeab"
+            },
+            {
+              "file": "gxrf.6l",
+              "crc": "992350e5"
+            },
+            {
+              "file": "supergx.prm",
+              "crc": ""
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 32,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "value": 0,
+      "name": "Service Mode"
+    },
+    {
+      "port": "IN1",
+      "mask": 192,
+      "value": 0,
+      "name": "Coinage"
+    },
+    {
+      "port": "IN2",
+      "mask": 3,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "IN2",
+      "mask": 4,
+      "value": 4,
+      "name": "Lives"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 0
+    },
+    {
+      "tag": "IN1",
+      "init": 0
+    },
+    {
+      "tag": "IN2",
+      "init": 4
+    }
+  ],
+  "runtimeUrl": "./dist/runtime/",
+  "menuUrl": "./"
+}

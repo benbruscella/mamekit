@@ -1,0 +1,25 @@
+{
+  "game": "invaders",
+  "title": "Space Invaders / Space Invaders M (Taito / Midway, 1978)",
+  "fullname": "Space Invaders / Space Invaders M",
+  "year": "1978",
+  "manufacturer": "Taito / Midway",
+  "family": "mw8080bw",
+  "driverFile": "src/mame/midw8080/mw8080bw.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria, Tormod Tjaberg, Mirko Buffoni,Lee Taylor, Valerio Verrando, Zsolt Vasvari",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-02",
+    "commits": 209,
+    "contributors": 28,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Michaël Banaan Ananas",
+      "Ivan Vangelista"
+    ]
+  },
+  "hasHistory": true
+}

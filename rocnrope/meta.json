@@ -1,0 +1,25 @@
+{
+  "game": "rocnrope",
+  "title": "Roc'n Rope (Konami, 1983)",
+  "fullname": "Roc'n Rope",
+  "year": "1983",
+  "manufacturer": "Konami",
+  "family": "rocnrope",
+  "driverFile": "src/mame/konami/rocnrope.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Chris Hardy",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2024-09-25",
+    "commits": 116,
+    "contributors": 22,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Olivier Galibert"
+    ]
+  },
+  "hasHistory": true
+}

@@ -1,0 +1,408 @@
+{
+  "game": "invaders",
+  "title": "Space Invaders / Space Invaders M (Taito / Midway, 1978)",
+  "family": "mw8080bw",
+  "board": {
+    "family": "mw8080bw",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "i8080",
+        "clock": 1996800,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 8191,
+            "kind": "rom"
+          },
+          {
+            "start": 8192,
+            "end": 16383,
+            "kind": "ram",
+            "mirror": 16384,
+            "share": "main_ram"
+          },
+          {
+            "start": 16384,
+            "end": 24575,
+            "kind": "rom"
+          }
+        ],
+        "mask": 32767,
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "mirror": 4,
+              "read": "port.IN0"
+            },
+            {
+              "start": 1,
+              "end": 1,
+              "kind": "handler",
+              "mirror": 4,
+              "read": "port.IN1"
+            },
+            {
+              "start": 2,
+              "end": 2,
+              "kind": "handler",
+              "mirror": 4,
+              "read": "port.IN2"
+            },
+            {
+              "start": 2,
+              "end": 2,
+              "kind": "nop"
+            },
+            {
+              "start": 3,
+              "end": 3,
+              "kind": "handler",
+              "write": "soundboard.p1_w"
+            },
+            {
+              "start": 5,
+              "end": 5,
+              "kind": "handler",
+              "write": "soundboard.p2_w"
+            },
+            {
+              "start": 6,
+              "end": 6,
+              "kind": "handler",
+              "write": "watchdog.reset_w"
+            },
+            {
+              "start": 3,
+              "end": 3,
+              "kind": "handler",
+              "mirror": 4,
+              "read": "mb14241.shift_result_r"
+            },
+            {
+              "start": 2,
+              "end": 2,
+              "kind": "handler",
+              "write": "mb14241.shift_count_w"
+            },
+            {
+              "start": 4,
+              "end": 4,
+              "kind": "handler",
+              "write": "mb14241.shift_data_w"
+            }
+          ]
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 8191,
+        "kind": "rom"
+      },
+      {
+        "start": 8192,
+        "end": 16383,
+        "kind": "ram",
+        "mirror": 16384,
+        "share": "main_ram"
+      },
+      {
+        "start": 16384,
+        "end": 24575,
+        "kind": "rom"
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 0,
+          "end": 0,
+          "kind": "handler",
+          "mirror": 4,
+          "read": "port.IN0"
+        },
+        {
+          "start": 1,
+          "end": 1,
+          "kind": "handler",
+          "mirror": 4,
+          "read": "port.IN1"
+        },
+        {
+          "start": 2,
+          "end": 2,
+          "kind": "handler",
+          "mirror": 4,
+          "read": "port.IN2"
+        },
+        {
+          "start": 2,
+          "end": 2,
+          "kind": "nop"
+        },
+        {
+          "start": 3,
+          "end": 3,
+          "kind": "handler",
+          "write": "soundboard.p1_w"
+        },
+        {
+          "start": 5,
+          "end": 5,
+          "kind": "handler",
+          "write": "soundboard.p2_w"
+        },
+        {
+          "start": 6,
+          "end": 6,
+          "kind": "handler",
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 3,
+          "end": 3,
+          "kind": "handler",
+          "mirror": 4,
+          "read": "mb14241.shift_result_r"
+        },
+        {
+          "start": 2,
+          "end": 2,
+          "kind": "handler",
+          "write": "mb14241.shift_count_w"
+        },
+        {
+          "start": 4,
+          "end": 4,
+          "kind": "handler",
+          "write": "mb14241.shift_data_w"
+        }
+      ]
+    },
+    "customs": [
+      {
+        "port": "IN0",
+        "mask": 6,
+        "member": "invaders_sw6_sw7_r"
+      },
+      {
+        "port": "IN0",
+        "mask": 112,
+        "member": "invaders_in0_control_r"
+      },
+      {
+        "port": "IN0",
+        "mask": 128,
+        "member": "invaders_sw5_r"
+      },
+      {
+        "port": "IN1",
+        "mask": 112,
+        "member": "invaders_in1_control_r"
+      },
+      {
+        "port": "IN2",
+        "mask": 112,
+        "member": "invaders_in2_control_r"
+      }
+    ],
+    "screen": {
+      "width": 260,
+      "height": 224,
+      "refresh": 59.541984732824424,
+      "vtotal": 262,
+      "vbstart": 224,
+      "vbend": 0,
+      "rotate": 270
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    }
+  },
+  "sound": {
+    "kind": "invaders",
+    "clock": 1996800
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "9316b-0869_m739h.h1",
+          "offset": 0,
+          "size": 2048,
+          "crc": "734f5ad8"
+        },
+        {
+          "file": "9316b-0856_m739g.g1",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "6bfaca4a"
+        },
+        {
+          "file": "9316b-0855_m739f.f1",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "0ccead96"
+        },
+        {
+          "file": "9316b-0854_m739e.e1",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "14e538b0"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "CONTP1",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "CONTP1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "CONTP1",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "value": 0,
+      "name": "Unknown"
+    },
+    {
+      "port": "IN2",
+      "mask": 3,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "IN2",
+      "mask": 8,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "IN2",
+      "mask": 128,
+      "value": 0,
+      "name": "Display Coinage"
+    },
+    {
+      "port": "CAB",
+      "mask": 1,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "SW6SW7",
+      "mask": 1,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "SW6SW7",
+      "mask": 2,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "SW5",
+      "mask": 1,
+      "value": 0,
+      "name": "Unused"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 8
+    },
+    {
+      "tag": "IN1",
+      "init": 9
+    },
+    {
+      "tag": "IN2",
+      "init": 0
+    },
+    {
+      "tag": "CAB",
+      "init": 0
+    },
+    {
+      "tag": "SW6SW7",
+      "init": 0
+    },
+    {
+      "tag": "SW5",
+      "init": 0
+    },
+    {
+      "tag": "CONTP1",
+      "init": 0
+    },
+    {
+      "tag": "CONTP2",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "./dist/runtime/",
+  "menuUrl": "./"
+}

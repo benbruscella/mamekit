@@ -1,0 +1,25 @@
+{
+  "game": "pacman",
+  "title": "Pac-Man (Midway) (Namco (Midway license), 1980)",
+  "fullname": "Pac-Man (Midway)",
+  "year": "1980",
+  "manufacturer": "Namco (Midway license)",
+  "family": "pacman",
+  "driverFile": "src/mame/pacman/pacman.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria,Stephane Humbert",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-04",
+    "commits": 436,
+    "contributors": 52,
+    "topAuthors": [
+      "Aaron Giles",
+      "Ivan Vangelista",
+      "Miodrag Milanovic",
+      "Michaël Banaan Ananas",
+      "Vas Crabb"
+    ]
+  },
+  "hasHistory": true
+}

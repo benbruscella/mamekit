@@ -1,0 +1,25 @@
+{
+  "game": "mpatrol",
+  "title": "Moon Patrol (Irem, 1982)",
+  "fullname": "Moon Patrol",
+  "year": "1982",
+  "manufacturer": "Irem",
+  "family": "m52",
+  "driverFile": "src/mame/irem/m52.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 94,
+    "contributors": 22,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Olivier Galibert",
+      "Ivan Vangelista"
+    ]
+  },
+  "hasHistory": true
+}

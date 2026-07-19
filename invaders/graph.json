@@ -1,0 +1,1539 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/midw8080/mw8080bw.cpp",
+    "generatedAt": "2026-07-19T06:32:57.207Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria, Tormod Tjaberg, Mirko Buffoni,Lee Taylor, Valerio Verrando, Zsolt Vasvari"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/midw8080/mw8080bw.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/midw8080/mw8080bw.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:mw8080bw.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "mw8080bw.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/i8085/i8085.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/i8085/i8085.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/rescap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/rescap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:280zzzap.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "280zzzap.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:clowns.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "clowns.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:gunfight.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "gunfight.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:invaders.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "invaders.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:invad2ct.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "invad2ct.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:lagunar.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "lagunar.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:maze.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "maze.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:phantom2.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "phantom2.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:seawolf.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "seawolf.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:spacwalk.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "spacwalk.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:spcenctr.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "spcenctr.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "game:invaders",
+      "label": "Game",
+      "props": {
+        "name": "invaders",
+        "year": "1978",
+        "company": "Taito / Midway",
+        "fullname": "Space Invaders / Space Invaders M",
+        "monitor": "ROT270",
+        "cls": "invaders_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE, layout_invaders",
+        "kind": "arcade"
+      }
+    },
+    {
+      "id": "romset:invaders",
+      "label": "RomSet",
+      "props": {
+        "name": "invaders"
+      }
+    },
+    {
+      "id": "region:invaders/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:invaders/maincpu/9316b-0869_m739h.h1",
+      "label": "Rom",
+      "props": {
+        "file": "9316b-0869_m739h.h1",
+        "offset": 0,
+        "size": 2048,
+        "crc": "734f5ad8",
+        "sha1": "ff6200af4c9110d8181249cbcef1a8a40fa40b7f"
+      }
+    },
+    {
+      "id": "rom:invaders/maincpu/9316b-0856_m739g.g1",
+      "label": "Rom",
+      "props": {
+        "file": "9316b-0856_m739g.g1",
+        "offset": 2048,
+        "size": 2048,
+        "crc": "6bfaca4a",
+        "sha1": "16f48649b531bdef8c2d1446c429b5f414524350"
+      }
+    },
+    {
+      "id": "rom:invaders/maincpu/9316b-0855_m739f.f1",
+      "label": "Rom",
+      "props": {
+        "file": "9316b-0855_m739f.f1",
+        "offset": 4096,
+        "size": 2048,
+        "crc": "0ccead96",
+        "sha1": "537aef03468f63c5b9e11dd61e253f7ae17d9743"
+      }
+    },
+    {
+      "id": "rom:invaders/maincpu/9316b-0854_m739e.e1",
+      "label": "Rom",
+      "props": {
+        "file": "9316b-0854_m739e.e1",
+        "offset": 6144,
+        "size": 2048,
+        "crc": "14e538b0",
+        "sha1": "1d6ca0c99f9df71e2990b610deb9d7da0125e2d8"
+      }
+    },
+    {
+      "id": "map:mw8080bw_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "mw8080bw_state",
+        "name": "main_map",
+        "globalMask": 32767
+      }
+    },
+    {
+      "id": "map:mw8080bw_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 8191,
+        "raw": "map(0x0000, 0x1fff).rom().nopw()",
+        "rom": true,
+        "nopw": true
+      }
+    },
+    {
+      "id": "map:mw8080bw_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 16383,
+        "raw": "map(0x2000, 0x3fff).mirror(0x4000).ram().share(\"main_ram\")",
+        "mirror": 16384,
+        "ram": true,
+        "share": "main_ram"
+      }
+    },
+    {
+      "id": "map:mw8080bw_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 24575,
+        "raw": "map(0x4000, 0x5fff).rom().nopw()",
+        "rom": true,
+        "nopw": true
+      }
+    },
+    {
+      "id": "handler:mb14241_device.shift_result_r",
+      "label": "Handler",
+      "props": {
+        "method": "shift_result_r",
+        "ownerClass": "mb14241_device"
+      }
+    },
+    {
+      "id": "handler:mb14241_device.shift_data_w",
+      "label": "Handler",
+      "props": {
+        "method": "shift_data_w",
+        "ownerClass": "mb14241_device"
+      }
+    },
+    {
+      "id": "handler:mb14241_device.shift_count_w",
+      "label": "Handler",
+      "props": {
+        "method": "shift_count_w",
+        "ownerClass": "mb14241_device"
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device"
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map_noshift",
+      "label": "AddressMap",
+      "props": {
+        "cls": "invaders_state",
+        "name": "io_map_noshift",
+        "globalMask": 7
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map_noshift/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 0,
+        "raw": "map(0x00, 0x00).mirror(0x04).portr(\"IN0\")",
+        "mirror": 4,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map_noshift/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 1,
+        "end": 1,
+        "raw": "map(0x01, 0x01).mirror(0x04).portr(\"IN1\")",
+        "mirror": 4,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map_noshift/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 2,
+        "end": 2,
+        "raw": "map(0x02, 0x02).mirror(0x04).portr(\"IN2\")",
+        "mirror": 4,
+        "portRead": "IN2"
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map_noshift/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 2,
+        "end": 2,
+        "raw": "map(0x02, 0x02).nopw()",
+        "nopw": true
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map_noshift/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 3,
+        "end": 3,
+        "raw": "map(0x03, 0x03).w(\"soundboard\", FUNC(invaders_audio_device::p1_w))"
+      }
+    },
+    {
+      "id": "handler:invaders_audio_device.p1_w",
+      "label": "Handler",
+      "props": {
+        "method": "p1_w",
+        "ownerClass": "invaders_audio_device"
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map_noshift/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 5,
+        "end": 5,
+        "raw": "map(0x05, 0x05).w(\"soundboard\", FUNC(invaders_audio_device::p2_w))"
+      }
+    },
+    {
+      "id": "handler:invaders_audio_device.p2_w",
+      "label": "Handler",
+      "props": {
+        "method": "p2_w",
+        "ownerClass": "invaders_audio_device"
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map_noshift/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 6,
+        "end": 6,
+        "raw": "map(0x06, 0x06).w(m_watchdog, FUNC(watchdog_timer_device::reset_w))"
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "invaders_state",
+        "name": "io_map",
+        "calls": [
+          "io_map_noshift"
+        ]
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 3,
+        "end": 3,
+        "raw": "map(0x03, 0x03).mirror(0x04).r(m_mb14241, FUNC(mb14241_device::shift_result_r))",
+        "mirror": 4
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 2,
+        "end": 2,
+        "raw": "map(0x02, 0x02).w(m_mb14241, FUNC(mb14241_device::shift_count_w))"
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 4,
+        "end": 4,
+        "raw": "map(0x04, 0x04).w(m_mb14241, FUNC(mb14241_device::shift_data_w))"
+      }
+    },
+    {
+      "id": "machine:mw8080bw_state.mw8080bw_root",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "mw8080bw_state",
+        "name": "mw8080bw_root",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:mw8080bw_state.mw8080bw_root/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "I8080",
+        "tag": "maincpu",
+        "clock": 1996800,
+        "config": [
+          "i8080_cpu_device &maincpu(I8080(config, m_maincpu, MW8080BW_CPU_CLOCK))",
+          "maincpu.set_addrmap(AS_PROGRAM, &mw8080bw_state::main_map)",
+          "maincpu.set_irq_acknowledge_callback(FUNC(mw8080bw_state::interrupt_vector))",
+          "maincpu.out_inte_func().set(FUNC(mw8080bw_state::int_enable_w))"
+        ]
+      }
+    },
+    {
+      "id": "device:mw8080bw_state.mw8080bw_root/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(MW8080BW_PIXEL_CLOCK, MW8080BW_HTOTAL, MW8080BW_HBEND, MW8080BW_HPIXCOUNT, MW8080BW_VTOTAL, MW8080BW_VBEND, MW8080BW_VBSTART)",
+          "m_screen->set_screen_update(FUNC(mw8080bw_state::screen_update_mw8080bw))"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          4992000,
+          320,
+          0,
+          260,
+          262,
+          0,
+          224
+        ]
+      }
+    },
+    {
+      "id": "machine:invaders_state.invaders",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "invaders_state",
+        "name": "invaders",
+        "calls": [
+          "mw8080bw_root"
+        ]
+      }
+    },
+    {
+      "id": "device:invaders_state.invaders/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, m_watchdog).set_time(255 * attotime::from_hz(MW8080BW_60HZ))"
+        ]
+      }
+    },
+    {
+      "id": "device:invaders_state.invaders/mb14241",
+      "label": "Device",
+      "props": {
+        "type": "MB14241",
+        "tag": "mb14241",
+        "clock": null,
+        "config": [
+          "MB14241(config, m_mb14241)"
+        ]
+      }
+    },
+    {
+      "id": "device:invaders_state.invaders/soundboard",
+      "label": "Device",
+      "props": {
+        "type": "INVADERS_AUDIO",
+        "tag": "soundboard",
+        "clock": null,
+        "config": [
+          "INVADERS_AUDIO(config, \"soundboard\")\n\t\t\t.flip_screen_out().set(\n\t\t\t\t\t[this] (int state)\n\t\t\t\t\t{\n\t\t\t\t\t\tif (is_cabinet_cocktail()) \n\t\t\t\t\t\t\tm_flip_screen = state ? 1 : 0;\n\t\t\t\t\t})"
+        ]
+      }
+    },
+    {
+      "id": "machine:invaders_audio_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "invaders_audio_device",
+        "name": "device_add_mconfig",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:invaders_audio_device.device_add_mconfig/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ]
+      }
+    },
+    {
+      "id": "device:invaders_audio_device.device_add_mconfig/sn%u",
+      "label": "Device",
+      "props": {
+        "type": "SN76477",
+        "tag": "sn%u",
+        "clock": null,
+        "config": [
+          "SN76477(config, m_sn)",
+          "m_sn->set_noise_params(0, 0, 0)",
+          "m_sn->set_decay_res(0)",
+          "m_sn->set_attack_params(0, RES_K(100))",
+          "m_sn->set_amp_res(RES_K(56))",
+          "m_sn->set_feedback_res(RES_K(10))",
+          "m_sn->set_vco_params(0, CAP_U(0.1), RES_K(8.2))",
+          "m_sn->set_pitch_voltage(5.0)",
+          "m_sn->set_slf_params(CAP_U(1.0), RES_K(120))",
+          "m_sn->set_oneshot_params(0, 0)",
+          "m_sn->set_vco_mode(1)",
+          "m_sn->set_mixer_params(0, 0, 0)",
+          "m_sn->set_envelope_params(1, 0)",
+          "m_sn->set_enable(1)",
+          "m_sn->add_route(ALL_OUTPUTS, \"mono\", 0.5)"
+        ]
+      }
+    },
+    {
+      "id": "device:invaders_audio_device.device_add_mconfig/discrete",
+      "label": "Device",
+      "props": {
+        "type": "DISCRETE",
+        "tag": "discrete",
+        "clock": null,
+        "config": [
+          "DISCRETE(config, m_discrete, invaders_discrete)",
+          "m_discrete->add_route(ALL_OUTPUTS, \"mono\", 0.5)"
+        ],
+        "clockExpr": "invaders_discrete"
+      }
+    },
+    {
+      "id": "inputs:invaders",
+      "label": "InputPorts",
+      "props": {
+        "name": "invaders"
+      }
+    },
+    {
+      "id": "inputs:invaders/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:invaders/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Unknown",
+        "defaultValue": 0,
+        "location": "SW:8",
+        "settings": [
+          "0=Off",
+          "1=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 6,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_CUSTOM_MEMBER(FUNC(invaders_state::invaders_sw6_sw7_r)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:invaders/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 112,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_CUSTOM_MEMBER(FUNC(invaders_state::invaders_in0_control_r)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_CUSTOM_MEMBER(FUNC(invaders_state::invaders_sw5_r)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:invaders/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "modifiers": [
+          "PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(invaders_state::direct_coin_count)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:invaders/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:invaders/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:invaders/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 112,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_CUSTOM_MEMBER(FUNC(invaders_state::invaders_in1_control_r)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:invaders/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:invaders/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Lives",
+        "defaultValue": 0,
+        "location": "SW:3,4",
+        "settings": [
+          "0=3",
+          "1=4",
+          "2=5",
+          "3=6"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/IN2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:invaders/IN2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Bonus Life",
+        "defaultValue": 0,
+        "location": "SW:2",
+        "settings": [
+          "8=1000",
+          "0=1500"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/IN2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 112,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_CUSTOM_MEMBER(FUNC(invaders_state::invaders_in2_control_r)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/IN2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Display Coinage",
+        "defaultValue": 0,
+        "location": "SW:1",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/CAB",
+      "label": "Port",
+      "props": {
+        "tag": "CAB",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:invaders/CAB/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "settings": [
+          "0=Upright",
+          "1=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/SW6SW7",
+      "label": "Port",
+      "props": {
+        "tag": "SW6SW7",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:invaders/SW6SW7/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Unused",
+        "defaultValue": 0,
+        "location": "SW:7",
+        "settings": [
+          "0=Off",
+          "1=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/SW6SW7/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "name": "Unused",
+        "defaultValue": 0,
+        "location": "SW:6",
+        "settings": [
+          "0=Off",
+          "2=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/SW6SW7/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 252,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:invaders/SW5",
+      "label": "Port",
+      "props": {
+        "tag": "SW5",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:invaders/SW5/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Unused",
+        "defaultValue": 0,
+        "location": "SW:5",
+        "settings": [
+          "0=Off",
+          "1=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/SW5/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 254,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:invaders/CONTP1",
+      "label": "Port",
+      "props": {
+        "tag": "CONTP1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:invaders/CONTP1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/CONTP1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_PLAYER(1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/CONTP1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_PLAYER(1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/CONTP2",
+      "label": "Port",
+      "props": {
+        "tag": "CONTP2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:invaders/CONTP2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/CONTP2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:invaders/CONTP2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:invaders",
+      "to": "file:src/mame/midw8080/mw8080bw.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:invaders",
+      "to": "machine:invaders_state.invaders",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:invaders",
+      "to": "inputs:invaders",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:invaders",
+      "to": "romset:invaders",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:mw8080bw.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:cpu/i8085/i8085.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:machine/rescap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:280zzzap.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:clowns.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:gunfight.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:invaders.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:invad2ct.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:lagunar.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:maze.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:phantom2.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:seawolf.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:spacwalk.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/midw8080/mw8080bw.cpp",
+      "to": "file:spcenctr.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:invaders_state.invaders",
+      "to": "file:src/mame/midw8080/mw8080bw.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:invaders_state.invaders",
+      "to": "machine:mw8080bw_state.mw8080bw_root",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:invaders_state.invaders",
+      "to": "map:invaders_state.io_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_IO",
+        "deviceTag": "maincpu"
+      }
+    },
+    {
+      "from": "machine:invaders_state.invaders",
+      "to": "device:invaders_state.invaders/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:invaders_state.invaders",
+      "to": "device:invaders_state.invaders/mb14241",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:invaders_state.invaders",
+      "to": "device:invaders_state.invaders/soundboard",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:invaders",
+      "to": "file:src/mame/midw8080/mw8080bw.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:invaders",
+      "to": "inputs:invaders/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:invaders",
+      "to": "inputs:invaders/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:invaders",
+      "to": "inputs:invaders/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:invaders",
+      "to": "inputs:invaders/CAB",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:invaders",
+      "to": "inputs:invaders/SW6SW7",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:invaders",
+      "to": "inputs:invaders/SW5",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:invaders",
+      "to": "inputs:invaders/CONTP1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:invaders",
+      "to": "inputs:invaders/CONTP2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:invaders",
+      "to": "file:src/mame/midw8080/mw8080bw.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:invaders",
+      "to": "region:invaders/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "machine:mw8080bw_state.mw8080bw_root",
+      "to": "file:src/mame/midw8080/mw8080bw.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:mw8080bw_state.mw8080bw_root",
+      "to": "device:mw8080bw_state.mw8080bw_root/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mw8080bw_state.mw8080bw_root",
+      "to": "device:mw8080bw_state.mw8080bw_root/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:invaders_state.io_map",
+      "to": "file:src/mame/midw8080/mw8080bw.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:invaders_state.io_map",
+      "to": "map:invaders_state.io_map_noshift",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:invaders_state.io_map",
+      "to": "map:invaders_state.io_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:invaders_state.io_map",
+      "to": "map:invaders_state.io_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:invaders_state.io_map",
+      "to": "map:invaders_state.io_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:invaders_state.invaders/soundboard",
+      "to": "machine:invaders_audio_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "inputs:invaders/IN0",
+      "to": "inputs:invaders/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN0",
+      "to": "inputs:invaders/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN0",
+      "to": "inputs:invaders/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN0",
+      "to": "inputs:invaders/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN0",
+      "to": "inputs:invaders/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN1",
+      "to": "inputs:invaders/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN1",
+      "to": "inputs:invaders/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN1",
+      "to": "inputs:invaders/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN1",
+      "to": "inputs:invaders/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN1",
+      "to": "inputs:invaders/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN1",
+      "to": "inputs:invaders/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN2",
+      "to": "inputs:invaders/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN2",
+      "to": "inputs:invaders/IN2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN2",
+      "to": "inputs:invaders/IN2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN2",
+      "to": "inputs:invaders/IN2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/IN2",
+      "to": "inputs:invaders/IN2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/CAB",
+      "to": "inputs:invaders/CAB/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/SW6SW7",
+      "to": "inputs:invaders/SW6SW7/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/SW6SW7",
+      "to": "inputs:invaders/SW6SW7/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/SW6SW7",
+      "to": "inputs:invaders/SW6SW7/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/SW5",
+      "to": "inputs:invaders/SW5/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/SW5",
+      "to": "inputs:invaders/SW5/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/CONTP1",
+      "to": "inputs:invaders/CONTP1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/CONTP1",
+      "to": "inputs:invaders/CONTP1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/CONTP1",
+      "to": "inputs:invaders/CONTP1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/CONTP2",
+      "to": "inputs:invaders/CONTP2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/CONTP2",
+      "to": "inputs:invaders/CONTP2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:invaders/CONTP2",
+      "to": "inputs:invaders/CONTP2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:invaders/maincpu",
+      "to": "rom:invaders/maincpu/9316b-0869_m739h.h1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:invaders/maincpu",
+      "to": "rom:invaders/maincpu/9316b-0856_m739g.g1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:invaders/maincpu",
+      "to": "rom:invaders/maincpu/9316b-0855_m739f.f1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:invaders/maincpu",
+      "to": "rom:invaders/maincpu/9316b-0854_m739e.e1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "device:mw8080bw_state.mw8080bw_root/maincpu",
+      "to": "map:mw8080bw_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "map:invaders_state.io_map_noshift",
+      "to": "file:src/mame/midw8080/mw8080bw.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:invaders_state.io_map_noshift",
+      "to": "map:invaders_state.io_map_noshift/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:invaders_state.io_map_noshift",
+      "to": "map:invaders_state.io_map_noshift/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:invaders_state.io_map_noshift",
+      "to": "map:invaders_state.io_map_noshift/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:invaders_state.io_map_noshift",
+      "to": "map:invaders_state.io_map_noshift/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:invaders_state.io_map_noshift",
+      "to": "map:invaders_state.io_map_noshift/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:invaders_state.io_map_noshift",
+      "to": "map:invaders_state.io_map_noshift/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:invaders_state.io_map_noshift",
+      "to": "map:invaders_state.io_map_noshift/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:invaders_state.io_map/range0",
+      "to": "handler:mb14241_device.shift_result_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "mb14241"
+      }
+    },
+    {
+      "from": "map:invaders_state.io_map/range1",
+      "to": "handler:mb14241_device.shift_count_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mb14241"
+      }
+    },
+    {
+      "from": "map:invaders_state.io_map/range2",
+      "to": "handler:mb14241_device.shift_data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mb14241"
+      }
+    },
+    {
+      "from": "machine:invaders_audio_device.device_add_mconfig",
+      "to": "file:src/mame/midw8080/mw8080bw.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:invaders_audio_device.device_add_mconfig",
+      "to": "device:invaders_audio_device.device_add_mconfig/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:invaders_audio_device.device_add_mconfig",
+      "to": "device:invaders_audio_device.device_add_mconfig/sn%u",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:invaders_audio_device.device_add_mconfig",
+      "to": "device:invaders_audio_device.device_add_mconfig/discrete",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:mw8080bw_state.main_map",
+      "to": "file:src/mame/midw8080/mw8080bw.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:mw8080bw_state.main_map",
+      "to": "map:mw8080bw_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mw8080bw_state.main_map",
+      "to": "map:mw8080bw_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mw8080bw_state.main_map",
+      "to": "map:mw8080bw_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:invaders_state.io_map_noshift/range4",
+      "to": "handler:invaders_audio_device.p1_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundboard"
+      }
+    },
+    {
+      "from": "map:invaders_state.io_map_noshift/range5",
+      "to": "handler:invaders_audio_device.p2_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundboard"
+      }
+    },
+    {
+      "from": "map:invaders_state.io_map_noshift/range6",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    }
+  ]
+}

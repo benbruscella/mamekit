@@ -1,0 +1,743 @@
+{
+  "game": "gyruss",
+  "title": "Gyruss (Konami, 1983)",
+  "family": "gyruss",
+  "board": {
+    "family": "gyruss",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom"
+          },
+          {
+            "start": 32768,
+            "end": 33791,
+            "kind": "ram",
+            "share": "colorram"
+          },
+          {
+            "start": 33792,
+            "end": 34815,
+            "kind": "ram",
+            "share": "videoram"
+          },
+          {
+            "start": 36864,
+            "end": 40959,
+            "kind": "ram"
+          },
+          {
+            "start": 40960,
+            "end": 43007,
+            "kind": "ram",
+            "share": "main_cpus"
+          },
+          {
+            "start": 49152,
+            "end": 49152,
+            "kind": "handler",
+            "read": "port.DSW2"
+          },
+          {
+            "start": 49280,
+            "end": 49280,
+            "kind": "handler",
+            "write": "gyruss_state.sh_irqtrigger_w",
+            "read": "port.SYSTEM"
+          },
+          {
+            "start": 49312,
+            "end": 49312,
+            "kind": "handler",
+            "read": "port.P1"
+          },
+          {
+            "start": 49344,
+            "end": 49344,
+            "kind": "handler",
+            "read": "port.P2"
+          },
+          {
+            "start": 49376,
+            "end": 49376,
+            "kind": "handler",
+            "read": "port.DSW1"
+          },
+          {
+            "start": 49408,
+            "end": 49408,
+            "kind": "handler",
+            "write": "soundlatch.write",
+            "read": "port.DSW3"
+          },
+          {
+            "start": 49536,
+            "end": 49543,
+            "kind": "handler",
+            "write": "mainlatch.write_d0"
+          }
+        ]
+      },
+      {
+        "tag": "sub",
+        "type": "konami1",
+        "clock": 1536000,
+        "region": "sub",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "read": "gyruss_state.scanline_r"
+          },
+          {
+            "start": 8192,
+            "end": 8192,
+            "kind": "handler",
+            "write": "gyruss_state.slave_irq_mask_w"
+          },
+          {
+            "start": 16384,
+            "end": 16447,
+            "kind": "ram"
+          },
+          {
+            "start": 16448,
+            "end": 16639,
+            "kind": "ram",
+            "share": "spriteram",
+            "write": "gyruss_state.spriteram_w"
+          },
+          {
+            "start": 16640,
+            "end": 18431,
+            "kind": "ram"
+          },
+          {
+            "start": 24576,
+            "end": 26623,
+            "kind": "ram",
+            "share": "main_cpus"
+          },
+          {
+            "start": 57344,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      },
+      {
+        "tag": "audiocpu",
+        "type": "z80",
+        "clock": 3579545.25,
+        "region": "audiocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 24575,
+            "kind": "rom"
+          },
+          {
+            "start": 24576,
+            "end": 25599,
+            "kind": "ram"
+          },
+          {
+            "start": 32768,
+            "end": 32768,
+            "kind": "handler",
+            "read": "soundlatch.read"
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "write": "ay1.address_w"
+            },
+            {
+              "start": 1,
+              "end": 1,
+              "kind": "handler",
+              "read": "ay1.data_r"
+            },
+            {
+              "start": 2,
+              "end": 2,
+              "kind": "handler",
+              "write": "ay1.data_w"
+            },
+            {
+              "start": 4,
+              "end": 4,
+              "kind": "handler",
+              "write": "ay2.address_w"
+            },
+            {
+              "start": 5,
+              "end": 5,
+              "kind": "handler",
+              "read": "ay2.data_r"
+            },
+            {
+              "start": 6,
+              "end": 6,
+              "kind": "handler",
+              "write": "ay2.data_w"
+            },
+            {
+              "start": 8,
+              "end": 8,
+              "kind": "handler",
+              "write": "ay3.address_w"
+            },
+            {
+              "start": 9,
+              "end": 9,
+              "kind": "handler",
+              "read": "ay3.data_r"
+            },
+            {
+              "start": 10,
+              "end": 10,
+              "kind": "handler",
+              "write": "ay3.data_w"
+            },
+            {
+              "start": 12,
+              "end": 12,
+              "kind": "handler",
+              "write": "ay4.address_w"
+            },
+            {
+              "start": 13,
+              "end": 13,
+              "kind": "handler",
+              "read": "ay4.data_r"
+            },
+            {
+              "start": 14,
+              "end": 14,
+              "kind": "handler",
+              "write": "ay4.data_w"
+            },
+            {
+              "start": 16,
+              "end": 16,
+              "kind": "handler",
+              "write": "ay5.address_w"
+            },
+            {
+              "start": 17,
+              "end": 17,
+              "kind": "handler",
+              "read": "ay5.data_r"
+            },
+            {
+              "start": 18,
+              "end": 18,
+              "kind": "handler",
+              "write": "ay5.data_w"
+            },
+            {
+              "start": 20,
+              "end": 20,
+              "kind": "handler",
+              "write": "gyruss_state.i8039_irq_w"
+            },
+            {
+              "start": 24,
+              "end": 24,
+              "kind": "handler",
+              "write": "soundlatch2.write"
+            }
+          ],
+          "globalMask": 255
+        }
+      },
+      {
+        "tag": "audio2",
+        "type": "i8039",
+        "clock": 8000000,
+        "region": "audio2",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 4095,
+            "kind": "rom"
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 255,
+              "kind": "handler",
+              "read": "soundlatch2.read"
+            }
+          ]
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 32767,
+        "kind": "rom"
+      },
+      {
+        "start": 32768,
+        "end": 33791,
+        "kind": "ram",
+        "share": "colorram"
+      },
+      {
+        "start": 33792,
+        "end": 34815,
+        "kind": "ram",
+        "share": "videoram"
+      },
+      {
+        "start": 36864,
+        "end": 40959,
+        "kind": "ram"
+      },
+      {
+        "start": 40960,
+        "end": 43007,
+        "kind": "ram",
+        "share": "main_cpus"
+      },
+      {
+        "start": 49152,
+        "end": 49152,
+        "kind": "handler",
+        "read": "port.DSW2"
+      },
+      {
+        "start": 49280,
+        "end": 49280,
+        "kind": "handler",
+        "write": "gyruss_state.sh_irqtrigger_w",
+        "read": "port.SYSTEM"
+      },
+      {
+        "start": 49312,
+        "end": 49312,
+        "kind": "handler",
+        "read": "port.P1"
+      },
+      {
+        "start": 49344,
+        "end": 49344,
+        "kind": "handler",
+        "read": "port.P2"
+      },
+      {
+        "start": 49376,
+        "end": 49376,
+        "kind": "handler",
+        "read": "port.DSW1"
+      },
+      {
+        "start": 49408,
+        "end": 49408,
+        "kind": "handler",
+        "write": "soundlatch.write",
+        "read": "port.DSW3"
+      },
+      {
+        "start": 49536,
+        "end": 49543,
+        "kind": "handler",
+        "write": "mainlatch.write_d0"
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "refresh": 60.60606060606061,
+      "vtotal": 256,
+      "vbstart": 240,
+      "vbend": 16,
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    }
+  },
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1789772.625,
+    "chips": 5,
+    "chipGains": [
+      1,
+      1,
+      0.66,
+      0.66,
+      0.66
+    ],
+    "dacGain": 0.014
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "gyrussk.1",
+          "offset": 0,
+          "size": 8192,
+          "crc": "c673b43d",
+          "alt": [
+            {
+              "file": "gya-1.11j",
+              "crc": "85f8b7c2"
+            },
+            {
+              "file": "1.bin",
+              "crc": "6bc21c10"
+            },
+            {
+              "file": "r1",
+              "crc": "d030abb1"
+            }
+          ]
+        },
+        {
+          "file": "gyrussk.2",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "a4ec03e4",
+          "alt": [
+            {
+              "file": "gya-2.12j",
+              "crc": "1e1a970f"
+            },
+            {
+              "file": "r2",
+              "crc": "dbf65d4d"
+            }
+          ]
+        },
+        {
+          "file": "gyrussk.3",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "27454a98",
+          "alt": [
+            {
+              "file": "gya-3.13j",
+              "crc": "f6dbb33b"
+            },
+            {
+              "file": "r3",
+              "crc": "db246fcd"
+            }
+          ]
+        },
+        {
+          "file": "gyrussk.4",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "7f28f9e4"
+        }
+      ]
+    },
+    {
+      "region": "sub",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "gyrussk.9",
+          "offset": 57344,
+          "size": 8192,
+          "crc": "822bf27e"
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "gyrussk.1a",
+          "offset": 0,
+          "size": 8192,
+          "crc": "f4ae1c17"
+        },
+        {
+          "file": "gyrussk.2a",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "ba498115"
+        }
+      ]
+    },
+    {
+      "region": "audio2",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "gyrussk.3a",
+          "offset": 0,
+          "size": 4096,
+          "crc": "3f9b5dea"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "gyrussk.6",
+          "offset": 0,
+          "size": 8192,
+          "crc": "c949db10"
+        },
+        {
+          "file": "gyrussk.5",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "4f22411a"
+        },
+        {
+          "file": "gyrussk.8",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "47cd1fbc"
+        },
+        {
+          "file": "gyrussk.7",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "8e8d388c"
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "gyrussk.4",
+          "offset": 0,
+          "size": 8192,
+          "crc": "27d8329b"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 544,
+      "loads": [
+        {
+          "file": "gyrussk.pr3",
+          "offset": 0,
+          "size": 32,
+          "crc": "98782db3"
+        },
+        {
+          "file": "gyrussk.pr1",
+          "offset": 32,
+          "size": 256,
+          "crc": "7ed057de"
+        },
+        {
+          "file": "gyrussk.pr2",
+          "offset": 288,
+          "size": 256,
+          "crc": "de823a81"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW2",
+      "mask": 3,
+      "value": 3,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 8,
+      "value": 8,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW2",
+      "mask": 112,
+      "value": 48,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW3",
+      "mask": 1,
+      "value": 0,
+      "name": "Demo Music"
+    },
+    {
+      "port": "DSW3",
+      "mask": 254,
+      "value": 254,
+      "name": "Unused"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "SYSTEM",
+      "init": 255
+    },
+    {
+      "tag": "P1",
+      "init": 255
+    },
+    {
+      "tag": "P2",
+      "init": 255
+    },
+    {
+      "tag": "DSW1",
+      "init": 255
+    },
+    {
+      "tag": "DSW2",
+      "init": 59
+    },
+    {
+      "tag": "DSW3",
+      "init": 254
+    }
+  ],
+  "runtimeUrl": "./dist/runtime/",
+  "menuUrl": "./"
+}

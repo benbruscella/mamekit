@@ -1,0 +1,25 @@
+{
+  "game": "gng",
+  "title": "Ghosts'n Goblins (World? set 1) (Capcom, 1985)",
+  "fullname": "Ghosts'n Goblins (World? set 1)",
+  "year": "1985",
+  "manufacturer": "Capcom",
+  "family": "gng",
+  "driverFile": "src/mame/capcom/gng.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Pierpaolo Prazzoli",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-03-22",
+    "commits": 162,
+    "contributors": 32,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "hap",
+      "Ivan Vangelista"
+    ]
+  },
+  "hasHistory": true
+}

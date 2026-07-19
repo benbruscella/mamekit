@@ -1,0 +1,26 @@
+{
+  "game": "nes",
+  "title": "Nintendo Entertainment System / Famicom (NTSC) (Nintendo, 1985)",
+  "fullname": "Nintendo Entertainment System / Famicom (NTSC)",
+  "year": "1985",
+  "manufacturer": "Nintendo",
+  "family": "nes",
+  "kind": "console",
+  "driverFile": "src/mame/nintendo/nes.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Brad Oliver,Fabio Priuli",
+  "gitHistory": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2025-10-14",
+    "commits": 138,
+    "contributors": 30,
+    "topAuthors": [
+      "Miodrag Milanovic",
+      "Fabio Priuli",
+      "Vas Crabb",
+      "0kmg",
+      "AJR"
+    ]
+  },
+  "hasHistory": true
+}

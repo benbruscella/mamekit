@@ -1,0 +1,750 @@
+{
+  "game": "mpatrol",
+  "title": "Moon Patrol (Irem, 1982)",
+  "family": "m52",
+  "board": {
+    "family": "m52",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 32768,
+            "end": 33791,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "m52_state.videoram_w"
+          },
+          {
+            "start": 33792,
+            "end": 34815,
+            "kind": "ram",
+            "share": "colorram",
+            "write": "m52_state.colorram_w"
+          },
+          {
+            "start": 34816,
+            "end": 34816,
+            "kind": "handler",
+            "mirror": 2047,
+            "read": "m52_state.protection_r"
+          },
+          {
+            "start": 51200,
+            "end": 52223,
+            "kind": "ram",
+            "mirror": 1024,
+            "share": "spriteram"
+          },
+          {
+            "start": 53248,
+            "end": 53248,
+            "kind": "handler",
+            "mirror": 2044,
+            "write": "irem_audio.cmd_w"
+          },
+          {
+            "start": 53249,
+            "end": 53249,
+            "kind": "handler",
+            "mirror": 2044,
+            "write": "m52_state.flipscreen_w"
+          },
+          {
+            "start": 53248,
+            "end": 53248,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "port.IN0"
+          },
+          {
+            "start": 53249,
+            "end": 53249,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "port.IN1"
+          },
+          {
+            "start": 53250,
+            "end": 53250,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "port.IN2"
+          },
+          {
+            "start": 53251,
+            "end": 53251,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "port.DSW1"
+          },
+          {
+            "start": 53252,
+            "end": 53252,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "port.DSW2"
+          },
+          {
+            "start": 57344,
+            "end": 59391,
+            "kind": "ram"
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "mirror": 31,
+              "write": "m52_state.scroll_w"
+            },
+            {
+              "start": 64,
+              "end": 64,
+              "kind": "handler",
+              "mirror": 31,
+              "write": "m52_state.bgxpos_w_0"
+            },
+            {
+              "start": 96,
+              "end": 96,
+              "kind": "handler",
+              "mirror": 31,
+              "write": "m52_state.bgypos_w_0"
+            },
+            {
+              "start": 128,
+              "end": 128,
+              "kind": "handler",
+              "mirror": 31,
+              "write": "m52_state.bgxpos_w_1"
+            },
+            {
+              "start": 160,
+              "end": 160,
+              "kind": "handler",
+              "mirror": 31,
+              "write": "m52_state.bgypos_w_1"
+            },
+            {
+              "start": 192,
+              "end": 192,
+              "kind": "handler",
+              "mirror": 31,
+              "write": "m52_state.bgcontrol_w"
+            }
+          ],
+          "globalMask": 255
+        }
+      },
+      {
+        "tag": "iremsound",
+        "type": "m6803",
+        "clock": 3579545,
+        "region": "iremsound",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 4095,
+            "kind": "handler",
+            "write": "irem_audio_device.m52_adpcm_w"
+          },
+          {
+            "start": 4096,
+            "end": 8191,
+            "kind": "handler",
+            "write": "irem_audio_device.sound_irq_ack_w"
+          },
+          {
+            "start": 8192,
+            "end": 32767,
+            "kind": "rom"
+          }
+        ],
+        "mask": 32767
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 16383,
+        "kind": "rom"
+      },
+      {
+        "start": 32768,
+        "end": 33791,
+        "kind": "ram",
+        "share": "videoram",
+        "write": "m52_state.videoram_w"
+      },
+      {
+        "start": 33792,
+        "end": 34815,
+        "kind": "ram",
+        "share": "colorram",
+        "write": "m52_state.colorram_w"
+      },
+      {
+        "start": 34816,
+        "end": 34816,
+        "kind": "handler",
+        "mirror": 2047,
+        "read": "m52_state.protection_r"
+      },
+      {
+        "start": 51200,
+        "end": 52223,
+        "kind": "ram",
+        "mirror": 1024,
+        "share": "spriteram"
+      },
+      {
+        "start": 53248,
+        "end": 53248,
+        "kind": "handler",
+        "mirror": 2044,
+        "write": "irem_audio.cmd_w"
+      },
+      {
+        "start": 53249,
+        "end": 53249,
+        "kind": "handler",
+        "mirror": 2044,
+        "write": "m52_state.flipscreen_w"
+      },
+      {
+        "start": 53248,
+        "end": 53248,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "port.IN0"
+      },
+      {
+        "start": 53249,
+        "end": 53249,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "port.IN1"
+      },
+      {
+        "start": 53250,
+        "end": 53250,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "port.IN2"
+      },
+      {
+        "start": 53251,
+        "end": 53251,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "port.DSW1"
+      },
+      {
+        "start": 53252,
+        "end": 53252,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "port.DSW2"
+      },
+      {
+        "start": 57344,
+        "end": 59391,
+        "kind": "ram"
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 0,
+          "end": 0,
+          "kind": "handler",
+          "mirror": 31,
+          "write": "m52_state.scroll_w"
+        },
+        {
+          "start": 64,
+          "end": 64,
+          "kind": "handler",
+          "mirror": 31,
+          "write": "m52_state.bgxpos_w_0"
+        },
+        {
+          "start": 96,
+          "end": 96,
+          "kind": "handler",
+          "mirror": 31,
+          "write": "m52_state.bgypos_w_0"
+        },
+        {
+          "start": 128,
+          "end": 128,
+          "kind": "handler",
+          "mirror": 31,
+          "write": "m52_state.bgxpos_w_1"
+        },
+        {
+          "start": 160,
+          "end": 160,
+          "kind": "handler",
+          "mirror": 31,
+          "write": "m52_state.bgypos_w_1"
+        },
+        {
+          "start": 192,
+          "end": 192,
+          "kind": "handler",
+          "mirror": 31,
+          "write": "m52_state.bgcontrol_w"
+        }
+      ],
+      "globalMask": 255
+    },
+    "screen": {
+      "width": 240,
+      "height": 252,
+      "refresh": 56.737588652482266,
+      "vtotal": 282,
+      "vbstart": 274,
+      "vbend": 22,
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    }
+  },
+  "sound": {
+    "kind": "ay8910",
+    "clock": 894886.25,
+    "chips": 2
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "mpa-1.3m",
+          "offset": 0,
+          "size": 4096,
+          "crc": "5873a860",
+          "alt": [
+            {
+              "file": "mpa-1w.3m",
+              "crc": "baa1a1d4"
+            }
+          ]
+        },
+        {
+          "file": "mpa-2.3l",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "f4b85974",
+          "alt": [
+            {
+              "file": "mpa-2w.3l",
+              "crc": "52459e51"
+            },
+            {
+              "file": "mra-2.3l",
+              "crc": "217dd431"
+            }
+          ]
+        },
+        {
+          "file": "mpa-3.3k",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "2e1a598c",
+          "alt": [
+            {
+              "file": "mpa-3w.3k",
+              "crc": "9b249fe5"
+            },
+            {
+              "file": "mra-3.3k",
+              "crc": "9f0af7b2"
+            }
+          ]
+        },
+        {
+          "file": "mpa-4.3j",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "dd05b587",
+          "alt": [
+            {
+              "file": "mpa-4w.3j",
+              "crc": "fee76972"
+            },
+            {
+              "file": "mra-4.3j",
+              "crc": "7fe8e2cd"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "irem_audio:iremsound",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "mp-s1.1a",
+          "offset": 28672,
+          "size": 4096,
+          "crc": "561d3108"
+        }
+      ]
+    },
+    {
+      "region": "tx",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "mpe-4.3f",
+          "offset": 0,
+          "size": 4096,
+          "crc": "cca6d023",
+          "alt": [
+            {
+              "file": "mpe-4w.3f",
+              "crc": "caaba2d9"
+            }
+          ]
+        },
+        {
+          "file": "mpe-5.3e",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "e3ee7f75",
+          "alt": [
+            {
+              "file": "mpe-5w.3e",
+              "crc": "f56e01fe"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sp",
+      "size": 12288,
+      "loads": [
+        {
+          "file": "mpb-2.3m",
+          "offset": 0,
+          "size": 4096,
+          "crc": "707ace5e"
+        },
+        {
+          "file": "mpb-1.3n",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "9b72133a"
+        }
+      ]
+    },
+    {
+      "region": "bg0",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "mpe-1.3l",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c46a7f72"
+        }
+      ]
+    },
+    {
+      "region": "bg1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "mpe-2.3k",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c7aa1fb0"
+        }
+      ]
+    },
+    {
+      "region": "bg2",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "mpe-3.3h",
+          "offset": 0,
+          "size": 4096,
+          "crc": "a0919392"
+        }
+      ]
+    },
+    {
+      "region": "tx_pal",
+      "size": 512,
+      "loads": [
+        {
+          "file": "mpc-4.2a",
+          "offset": 0,
+          "size": 512,
+          "crc": "07f99284",
+          "alt": [
+            {
+              "file": "mpc-4a.2a",
+              "crc": "cb0a5ff3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bg_pal",
+      "size": 32,
+      "loads": [
+        {
+          "file": "mpc-3.1m",
+          "offset": 0,
+          "size": 32,
+          "crc": "6a57eff2"
+        }
+      ]
+    },
+    {
+      "region": "spr_pal",
+      "size": 32,
+      "loads": [
+        {
+          "file": "mpc-1.1f",
+          "offset": 0,
+          "size": 32,
+          "crc": "26979b13"
+        }
+      ]
+    },
+    {
+      "region": "spr_clut",
+      "size": 256,
+      "loads": [
+        {
+          "file": "mpc-2.2h",
+          "offset": 0,
+          "size": 256,
+          "crc": "7ae4cd97"
+        }
+      ]
+    },
+    {
+      "region": "unkprom",
+      "size": 512,
+      "loads": [
+        {
+          "file": "mp_7621-5.7h",
+          "offset": 0,
+          "size": 512,
+          "crc": "cf1fd9d0"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 128,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW2",
+      "mask": 1,
+      "value": 1,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW2",
+      "mask": 2,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 4,
+      "name": "Coin Mode"
+    },
+    {
+      "port": "DSW2",
+      "mask": 64,
+      "value": 64,
+      "name": "Invulnerability (Cheat)"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW2",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW2",
+      "mask": 16,
+      "value": 16,
+      "name": "Stop Mode (Cheat)"
+    },
+    {
+      "port": "DSW2",
+      "mask": 32,
+      "value": 32,
+      "name": "Sector Selection (Cheat)"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 2,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 12,
+      "value": 12,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 48,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 192,
+      "value": 192,
+      "name": "Coin B"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "IN1",
+      "init": 255
+    },
+    {
+      "tag": "IN2",
+      "init": 255
+    },
+    {
+      "tag": "DSW2",
+      "init": 253
+    },
+    {
+      "tag": "DSW1",
+      "init": 254
+    }
+  ],
+  "runtimeUrl": "./dist/runtime/",
+  "menuUrl": "./"
+}

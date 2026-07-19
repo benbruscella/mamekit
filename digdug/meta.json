@@ -1,0 +1,25 @@
+{
+  "game": "digdug",
+  "title": "Dig Dug (rev 2) (Namco, 1982)",
+  "fullname": "Dig Dug (rev 2)",
+  "year": "1982",
+  "manufacturer": "Namco",
+  "family": "digdug",
+  "driverFile": "src/mame/namco/galaga.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 283,
+    "contributors": 37,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ]
+  },
+  "hasHistory": true
+}

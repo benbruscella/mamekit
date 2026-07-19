@@ -1,0 +1,25 @@
+{
+  "game": "galaga",
+  "title": "Galaga (Namco rev. B) (Namco, 1981)",
+  "fullname": "Galaga (Namco rev. B)",
+  "year": "1981",
+  "manufacturer": "Namco",
+  "family": "galaga",
+  "driverFile": "src/mame/namco/galaga.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 283,
+    "contributors": 37,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ]
+  },
+  "hasHistory": true
+}

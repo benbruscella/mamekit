@@ -1,0 +1,25 @@
+{
+  "game": "pooyan",
+  "title": "Pooyan (Konami, 1982)",
+  "fullname": "Pooyan",
+  "year": "1982",
+  "manufacturer": "Konami",
+  "family": "pooyan",
+  "driverFile": "src/mame/konami/pooyan.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Allard van der Bas",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-03-09",
+    "commits": 109,
+    "contributors": 20,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "AJR"
+    ]
+  },
+  "hasHistory": true
+}

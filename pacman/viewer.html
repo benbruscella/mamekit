@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pacman — knowledge graph — mamekit knowledge graph</title>
+<style>
+  :root {
+    --surface: #fcfcfb; --panel: #f4f4f2; --border: #dddcd8;
+    --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #8a897f;
+    --edge: rgba(82,81,78,.28); --edge-hi: rgba(11,11,11,.75);
+    --halo: rgba(252,252,251,.85); --accent: #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #1a1a19; --panel: #232322; --border: #3a3a38;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #86857b;
+      --edge: rgba(195,194,183,.22); --edge-hi: rgba(255,255,255,.8);
+      --halo: rgba(26,26,25,.85); --accent: #3987e5;
+    }
+  }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--surface); color: var(--ink);
+         font: 13px/1.45 ui-sans-serif, system-ui, sans-serif; display: flex; flex-direction: column; }
+  header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+           padding: 8px 14px; border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 14px; font-weight: 600; margin-right: 6px; }
+  header input[type=search] { background: var(--panel); color: var(--ink); border: 1px solid var(--border);
+           border-radius: 6px; padding: 4px 10px; width: 210px; outline: none; }
+  header input[type=search]:focus { border-color: var(--accent); }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; }
+  .legend label { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-2);
+                  cursor: pointer; user-select: none; }
+  .legend .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .legend input { accent-color: var(--accent); margin: 0; }
+  main { flex: 1; display: flex; min-height: 0; }
+  #canvas { flex: 1; cursor: grab; touch-action: none; }
+  #canvas.dragging { cursor: grabbing; }
+  aside { width: 320px; border-left: 1px solid var(--border); background: var(--panel);
+          overflow-y: auto; padding: 14px; display: none; }
+  aside.open { display: block; }
+  aside h2 { font-size: 13px; word-break: break-all; }
+  aside .lbl { color: var(--ink-3); font-size: 11px; text-transform: uppercase;
+               letter-spacing: .04em; margin: 12px 0 4px; }
+  aside table { width: 100%; border-collapse: collapse; }
+  aside td { padding: 3px 6px 3px 0; vertical-align: top; border-bottom: 1px solid var(--border);
+             color: var(--ink-2); word-break: break-all; }
+  aside td:first-child { color: var(--ink-3); white-space: nowrap; }
+  aside pre { white-space: pre-wrap; word-break: break-all; background: var(--surface);
+              border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px;
+              font-size: 11px; color: var(--ink-2); }
+  aside a { color: var(--accent); cursor: pointer; text-decoration: none; display: block;
+            padding: 2px 0; word-break: break-all; }
+  aside a:hover { text-decoration: underline; }
+  aside .rel { color: var(--ink-3); font-size: 11px; }
+  #tip { position: fixed; pointer-events: none; background: var(--panel); color: var(--ink);
+         border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px;
+         font-size: 12px; display: none; max-width: 340px; word-break: break-all;
+         box-shadow: 0 2px 10px rgba(0,0,0,.18); z-index: 10; }
+  #stats { color: var(--ink-3); margin-left: auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>pacman — knowledge graph</h1>
+  <input id="search" type="search" placeholder="search nodes…">
+  <div class="legend" id="legend"></div>
+  <span id="stats"></span>
+</header>
+<main>
+  <canvas id="canvas"></canvas>
+  <aside id="panel"></aside>
+</main>
+<div id="tip"></div>
+<script type="application/json" id="graph-data">{"nodes":[{"id":"file:src/mame/pacman/pacman.cpp","label":"SourceFile","props":{"path":"src/mame/pacman/pacman.cpp"}},{"id":"file:emu.h","label":"SourceFile","props":{"path":"emu.h","external":true}},{"id":"file:pacman.h","label":"SourceFile","props":{"path":"pacman.h","external":true}},{"id":"file:jumpshot.h","label":"SourceFile","props":{"path":"jumpshot.h","external":true}},{"id":"file:pacplus.h","label":"SourceFile","props":{"path":"pacplus.h","external":true}},{"id":"file:cpu/s2650/s2650.h","label":"SourceFile","props":{"path":"cpu/s2650/s2650.h","external":true}},{"id":"file:cpu/z80/z80.h","label":"SourceFile","props":{"path":"cpu/z80/z80.h","external":true}},{"id":"file:machine/nvram.h","label":"SourceFile","props":{"path":"machine/nvram.h","external":true}},{"id":"file:sound/ay8910.h","label":"SourceFile","props":{"path":"sound/ay8910.h","external":true}},{"id":"file:sound/sn76496.h","label":"SourceFile","props":{"path":"sound/sn76496.h","external":true}},{"id":"file:screen.h","label":"SourceFile","props":{"path":"screen.h","external":true}},{"id":"file:speaker.h","label":"SourceFile","props":{"path":"speaker.h","external":true}},{"id":"game:puckman","label":"Game","props":{"name":"puckman","year":"1980","company":"Namco","fullname":"Puck Man (Japan, set 1)","monitor":"ROT90","cls":"pacman_state","init":"empty_init","flags":"MACHINE_SUPPORTS_SAVE","kind":"arcade"}},{"id":"game:pacman","label":"Game","props":{"name":"pacman","year":"1980","company":"Namco (Midway license)","fullname":"Pac-Man (Midway)","monitor":"ROT90","cls":"pacman_state","init":"empty_init","flags":"MACHINE_SUPPORTS_SAVE","kind":"arcade"}},{"id":"romset:puckman","label":"RomSet","props":{"name":"puckman"}},{"id":"region:puckman/maincpu","label":"RomRegion","props":{"tag":"maincpu","size":65536,"flags":"0"}},{"id":"rom:puckman/maincpu/pm1_prg1.6e","label":"Rom","props":{"file":"pm1_prg1.6e","offset":0,"size":2048,"crc":"f36e88ab","sha1":"813cecf44bf5464b1aed64b36f5047e4c79ba176"}},{"id":"rom:puckman/maincpu/pm1_prg2.6k","label":"Rom","props":{"file":"pm1_prg2.6k","offset":2048,"size":2048,"crc":"618bd9b3","sha1":"b9ca52b63a49ddece768378d331deebbe34fe177"}},{"id":"rom:puckman/maincpu/pm1_prg3.6f","label":"Rom","props":{"file":"pm1_prg3.6f","offset":4096,"size":2048,"crc":"7d177853","sha1":"9b5ddaaa8b564654f97af193dbcc29f81f230a25"}},{"id":"rom:puckman/maincpu/pm1_prg4.6m","label":"Rom","props":{"file":"pm1_prg4.6m","offset":6144,"size":2048,"crc":"d3e8914c","sha1":"c2f00e1773c6864435f29c8b7f44f2ef85d227d3"}},{"id":"rom:puckman/maincpu/pm1_prg5.6h","label":"Rom","props":{"file":"pm1_prg5.6h","offset":8192,"size":2048,"crc":"6bf4f625","sha1":"afe72fdfec66c145b53ed865f98734686b26e921"}},{"id":"rom:puckman/maincpu/pm1_prg6.6n","label":"Rom","props":{"file":"pm1_prg6.6n","offset":10240,"size":2048,"crc":"a948ce83","sha1":"08759833f7e0690b2ccae573c929e2a48e5bde7f"}},{"id":"rom:puckman/maincpu/pm1_prg7.6j","label":"Rom","props":{"file":"pm1_prg7.6j","offset":12288,"size":2048,"crc":"b6289b26","sha1":"d249fa9cdde774d5fee7258147cd25fa3f4dc2b3"}},{"id":"rom:puckman/maincpu/pm1_prg8.6p","label":"Rom","props":{"file":"pm1_prg8.6p","offset":14336,"size":2048,"crc":"17a88c13","sha1":"eb462de79f49b7aa8adb0cc6d31535b10550c0ce"}},{"id":"region:puckman/gfx1","label":"RomRegion","props":{"tag":"gfx1","size":8192,"flags":"0"}},{"id":"rom:puckman/gfx1/pm1_chg1.5e","label":"Rom","props":{"file":"pm1_chg1.5e","offset":0,"size":2048,"crc":"2066a0b7","sha1":"6d4ccc27d6be185589e08aa9f18702b679e49a4a"}},{"id":"rom:puckman/gfx1/pm1_chg2.5h","label":"Rom","props":{"file":"pm1_chg2.5h","offset":2048,"size":2048,"crc":"3591b89d","sha1":"79bb456be6c39c1ccd7d077fbe181523131fb300"}},{"id":"rom:puckman/gfx1/pm1_chg3.5f","label":"Rom","props":{"file":"pm1_chg3.5f","offset":4096,"size":2048,"crc":"9e39323a","sha1":"be933e691df4dbe7d12123913c3b7b7b585b7a35"}},{"id":"rom:puckman/gfx1/pm1_chg4.5j","label":"Rom","props":{"file":"pm1_chg4.5j","offset":6144,"size":2048,"crc":"1b1d9096","sha1":"53771c573051db43e7185b1d188533056290a620"}},{"id":"region:puckman/proms","label":"RomRegion","props":{"tag":"proms","size":288,"flags":"0"}},{"id":"rom:puckman/proms/pm1-1.7f","label":"Rom","props":{"file":"pm1-1.7f","offset":0,"size":32,"crc":"2fc650bd","sha1":"8d0268dee78e47c712202b0ec4f1f51109b1f2a5"}},{"id":"rom:puckman/proms/pm1-4.4a","label":"Rom","props":{"file":"pm1-4.4a","offset":32,"size":256,"crc":"3eb3a8e4","sha1":"19097b5f60d1030f8b82d9f1d3a241f93e5c75d6"}},{"id":"region:puckman/namco","label":"RomRegion","props":{"tag":"namco","size":512,"flags":"0"}},{"id":"rom:puckman/namco/pm1-3.1m","label":"Rom","props":{"file":"pm1-3.1m","offset":0,"size":256,"crc":"a9cc86bf","sha1":"bbcec0570aeceb582ff8238a4bc8546a23430081"}},{"id":"rom:puckman/namco/pm1-2.3m","label":"Rom","props":{"file":"pm1-2.3m","offset":256,"size":256,"crc":"77245b66","sha1":"0c4d0bee858b97632411c440bea6948a74759746"}},{"id":"romset:pacman","label":"RomSet","props":{"name":"pacman"}},{"id":"region:pacman/maincpu","label":"RomRegion","props":{"tag":"maincpu","size":65536,"flags":"0"}},{"id":"rom:pacman/maincpu/pacman.6e","label":"Rom","props":{"file":"pacman.6e","offset":0,"size":4096,"crc":"c1e6ab10","sha1":"e87e059c5be45753f7e9f33dff851f16d6751181"}},{"id":"rom:pacman/maincpu/pacman.6f","label":"Rom","props":{"file":"pacman.6f","offset":4096,"size":4096,"crc":"1a6fb2d4","sha1":"674d3a7f00d8be5e38b1fdc208ebef5a92d38329"}},{"id":"rom:pacman/maincpu/pacman.6h","label":"Rom","props":{"file":"pacman.6h","offset":8192,"size":4096,"crc":"bcdd1beb","sha1":"8e47e8c2c4d6117d174cdac150392042d3e0a881"}},{"id":"rom:pacman/maincpu/pacman.6j","label":"Rom","props":{"file":"pacman.6j","offset":12288,"size":4096,"crc":"817d94e3","sha1":"d4a70d56bb01d27d094d73db8667ffb00ca69cb9"}},{"id":"region:pacman/gfx1","label":"RomRegion","props":{"tag":"gfx1","size":8192,"flags":"0"}},{"id":"rom:pacman/gfx1/pacman.5e","label":"Rom","props":{"file":"pacman.5e","offset":0,"size":4096,"crc":"0c944964","sha1":"06ef227747a440831c9a3a613b76693d52a2f0a9"}},{"id":"rom:pacman/gfx1/pacman.5f","label":"Rom","props":{"file":"pacman.5f","offset":4096,"size":4096,"crc":"958fedf9","sha1":"4a937ac02216ea8c96477d4a15522070507fb599"}},{"id":"region:pacman/proms","label":"RomRegion","props":{"tag":"proms","size":288,"flags":"0"}},{"id":"rom:pacman/proms/82s123.7f","label":"Rom","props":{"file":"82s123.7f","offset":0,"size":32,"crc":"2fc650bd","sha1":"8d0268dee78e47c712202b0ec4f1f51109b1f2a5"}},{"id":"rom:pacman/proms/82s126.4a","label":"Rom","props":{"file":"82s126.4a","offset":32,"size":256,"crc":"3eb3a8e4","sha1":"19097b5f60d1030f8b82d9f1d3a241f93e5c75d6"}},{"id":"region:pacman/namco","label":"RomRegion","props":{"tag":"namco","size":512,"flags":"0"}},{"id":"rom:pacman/namco/82s126.1m","label":"Rom","props":{"file":"82s126.1m","offset":0,"size":256,"crc":"a9cc86bf","sha1":"bbcec0570aeceb582ff8238a4bc8546a23430081"}},{"id":"rom:pacman/namco/82s126.3m","label":"Rom","props":{"file":"82s126.3m","offset":256,"size":256,"crc":"77245b66","sha1":"0c4d0bee858b97632411c440bea6948a74759746"}},{"id":"map:pacman_state.pacman_map","label":"AddressMap","props":{"cls":"pacman_state","name":"pacman_map"}},{"id":"map:pacman_state.pacman_map/range0","label":"AddressRange","props":{"start":0,"end":16383,"raw":"map(0x0000, 0x3fff).mirror(0x8000).rom()","mirror":32768,"rom":true}},{"id":"map:pacman_state.pacman_map/range1","label":"AddressRange","props":{"start":16384,"end":17407,"raw":"map(0x4000, 0x43ff).mirror(0xa000).ram().w(FUNC(pacman_state::pacman_videoram_w)).share(\"videoram\")","mirror":40960,"ram":true,"share":"videoram"}},{"id":"handler:pacman_state.pacman_videoram_w","label":"Handler","props":{"method":"pacman_videoram_w","ownerClass":"pacman_state"}},{"id":"map:pacman_state.pacman_map/range2","label":"AddressRange","props":{"start":17408,"end":18431,"raw":"map(0x4400, 0x47ff).mirror(0xa000).ram().w(FUNC(pacman_state::pacman_colorram_w)).share(\"colorram\")","mirror":40960,"ram":true,"share":"colorram"}},{"id":"handler:pacman_state.pacman_colorram_w","label":"Handler","props":{"method":"pacman_colorram_w","ownerClass":"pacman_state"}},{"id":"map:pacman_state.pacman_map/range3","label":"AddressRange","props":{"start":18432,"end":19455,"raw":"map(0x4800, 0x4bff).mirror(0xa000).r(FUNC(pacman_state::pacman_read_nop)).nopw()","mirror":40960,"nopw":true}},{"id":"handler:pacman_state.pacman_read_nop","label":"Handler","props":{"method":"pacman_read_nop","ownerClass":"pacman_state"}},{"id":"map:pacman_state.pacman_map/range4","label":"AddressRange","props":{"start":19456,"end":20463,"raw":"map(0x4c00, 0x4fef).mirror(0xa000).ram()","mirror":40960,"ram":true}},{"id":"map:pacman_state.pacman_map/range5","label":"AddressRange","props":{"start":20464,"end":20479,"raw":"map(0x4ff0, 0x4fff).mirror(0xa000).ram().share(\"spriteram\")","mirror":40960,"ram":true,"share":"spriteram"}},{"id":"map:pacman_state.pacman_map/range6","label":"AddressRange","props":{"start":20480,"end":20487,"raw":"map(0x5000, 0x5007).mirror(0xaf38).w(m_mainlatch, FUNC(ls259_device::write_d0))","mirror":44856}},{"id":"handler:ls259_device.write_d0","label":"Handler","props":{"method":"write_d0","ownerClass":"ls259_device"}},{"id":"map:pacman_state.pacman_map/range7","label":"AddressRange","props":{"start":20544,"end":20575,"raw":"map(0x5040, 0x505f).mirror(0xaf00).w(m_namco_sound, FUNC(namco_wsg_device::pacman_sound_w))","mirror":44800}},{"id":"handler:namco_wsg_device.pacman_sound_w","label":"Handler","props":{"method":"pacman_sound_w","ownerClass":"namco_wsg_device"}},{"id":"map:pacman_state.pacman_map/range8","label":"AddressRange","props":{"start":20576,"end":20591,"raw":"map(0x5060, 0x506f).mirror(0xaf00).writeonly().share(\"spriteram2\")","mirror":44800,"writeonly":true,"share":"spriteram2"}},{"id":"map:pacman_state.pacman_map/range9","label":"AddressRange","props":{"start":20592,"end":20607,"raw":"map(0x5070, 0x507f).mirror(0xaf00).nopw()","mirror":44800,"nopw":true}},{"id":"map:pacman_state.pacman_map/range10","label":"AddressRange","props":{"start":20608,"end":20608,"raw":"map(0x5080, 0x5080).mirror(0xaf3f).nopw()","mirror":44863,"nopw":true}},{"id":"map:pacman_state.pacman_map/range11","label":"AddressRange","props":{"start":20672,"end":20672,"raw":"map(0x50c0, 0x50c0).mirror(0xaf3f).w(m_watchdog, FUNC(watchdog_timer_device::reset_w))","mirror":44863}},{"id":"handler:watchdog_timer_device.reset_w","label":"Handler","props":{"method":"reset_w","ownerClass":"watchdog_timer_device"}},{"id":"map:pacman_state.pacman_map/range12","label":"AddressRange","props":{"start":20480,"end":20480,"raw":"map(0x5000, 0x5000).mirror(0xaf3f).portr(\"IN0\")","mirror":44863,"portRead":"IN0"}},{"id":"map:pacman_state.pacman_map/range13","label":"AddressRange","props":{"start":20544,"end":20544,"raw":"map(0x5040, 0x5040).mirror(0xaf3f).portr(\"IN1\")","mirror":44863,"portRead":"IN1"}},{"id":"map:pacman_state.pacman_map/range14","label":"AddressRange","props":{"start":20608,"end":20608,"raw":"map(0x5080, 0x5080).mirror(0xaf3f).portr(\"DSW1\")","mirror":44863,"portRead":"DSW1"}},{"id":"map:pacman_state.pacman_map/range15","label":"AddressRange","props":{"start":20672,"end":20672,"raw":"map(0x50c0, 0x50c0).mirror(0xaf3f).portr(\"DSW2\")","mirror":44863,"portRead":"DSW2"}},{"id":"map:pacman_state.writeport","label":"AddressMap","props":{"cls":"pacman_state","name":"writeport","globalMask":255}},{"id":"map:pacman_state.writeport/range0","label":"AddressRange","props":{"start":0,"end":0,"raw":"map(0x00, 0x00).w(FUNC(pacman_state::pacman_interrupt_vector_w))"}},{"id":"handler:pacman_state.pacman_interrupt_vector_w","label":"Handler","props":{"method":"pacman_interrupt_vector_w","ownerClass":"pacman_state"}},{"id":"machine:pacman_state.pacman","label":"MachineConfig","props":{"cls":"pacman_state","name":"pacman","calls":[]}},{"id":"device:pacman_state.pacman/maincpu","label":"Device","props":{"type":"Z80","tag":"maincpu","clock":3072000,"config":["Z80(config, m_maincpu, 18.432_MHz_XTAL / 6)","m_maincpu->set_addrmap(AS_PROGRAM, &pacman_state::pacman_map)","m_maincpu->set_addrmap(AS_IO, &pacman_state::writeport)","m_maincpu->set_irq_acknowledge_callback(FUNC(pacman_state::interrupt_vector_r))"]}},{"id":"device:pacman_state.pacman/mainlatch","label":"Device","props":{"type":"LS259","tag":"mainlatch","clock":null,"config":["LS259(config, m_mainlatch)","m_mainlatch->q_out_cb\u003c0>().set(FUNC(pacman_state::irq_mask_w))","m_mainlatch->q_out_cb\u003c1>().set(\"namco\", FUNC(namco_wsg_device::sound_enable_w))","m_mainlatch->q_out_cb\u003c3>().set(FUNC(pacman_state::flipscreen_w))","m_mainlatch->q_out_cb\u003c7>().set(FUNC(pacman_state::coin_counter_w))"]}},{"id":"device:pacman_state.pacman/watchdog","label":"Device","props":{"type":"WATCHDOG_TIMER","tag":"watchdog","clock":null,"config":["WATCHDOG_TIMER(config, m_watchdog)","m_watchdog->set_vblank_count(\"screen\", 16)"]}},{"id":"device:pacman_state.pacman/gfxdecode","label":"Device","props":{"type":"GFXDECODE","tag":"gfxdecode","clock":null,"config":["GFXDECODE(config, m_gfxdecode, m_palette, gfx_pacman)"],"clockExpr":"m_palette, gfx_pacman"}},{"id":"device:pacman_state.pacman/palette","label":"Device","props":{"type":"PALETTE","tag":"palette","clock":null,"config":["PALETTE(config, m_palette, FUNC(pacman_state::pacman_palette), 128 * 4, 32)"],"clockExpr":"FUNC(pacman_state::pacman_palette), 128 * 4, 32"}},{"id":"device:pacman_state.pacman/screen","label":"Device","props":{"type":"SCREEN","tag":"screen","clock":null,"config":["SCREEN(config, m_screen, SCREEN_TYPE_RASTER)","m_screen->set_raw(18.432_MHz_XTAL / 3, 384, 0, 288, 264, 0  , 224  )","m_screen->set_screen_update(FUNC(pacman_state::screen_update_pacman))","m_screen->set_palette(m_palette)","m_screen->screen_vblank().set(FUNC(pacman_state::vblank_irq))"],"clockExpr":"SCREEN_TYPE_RASTER","screenRaw":[6144000,384,0,288,264,0,224]}},{"id":"device:pacman_state.pacman/namco","label":"Device","props":{"type":"NAMCO_WSG","tag":"namco","clock":96000,"config":["NAMCO_WSG(config, m_namco_sound, 18.432_MHz_XTAL / 6 / 32)","m_namco_sound->add_route(ALL_OUTPUTS, \"mono\", 1.0)"]}},{"id":"inputs:pacman","label":"InputPorts","props":{"name":"pacman"}},{"id":"inputs:pacman/IN0","label":"Port","props":{"tag":"IN0","modify":false}},{"id":"inputs:pacman/IN0/f0","label":"PortField","props":{"kind":"bit","mask":1,"activeLow":true,"type":"IPT_JOYSTICK_UP","modifiers":["PORT_PLAYER(1)","PORT_4WAY"]}},{"id":"inputs:pacman/IN0/f1","label":"PortField","props":{"kind":"bit","mask":2,"activeLow":true,"type":"IPT_JOYSTICK_LEFT","modifiers":["PORT_PLAYER(1)","PORT_4WAY"]}},{"id":"inputs:pacman/IN0/f2","label":"PortField","props":{"kind":"bit","mask":4,"activeLow":true,"type":"IPT_JOYSTICK_RIGHT","modifiers":["PORT_PLAYER(1)","PORT_4WAY"]}},{"id":"inputs:pacman/IN0/f3","label":"PortField","props":{"kind":"bit","mask":8,"activeLow":true,"type":"IPT_JOYSTICK_DOWN","modifiers":["PORT_PLAYER(1)","PORT_4WAY"]}},{"id":"inputs:pacman/IN0/f4","label":"PortField","props":{"kind":"dip","mask":16,"name":"Rack Test (Cheat)","defaultValue":16,"location":"SW:7","settings":["16=Off","0=On"]}},{"id":"inputs:pacman/IN0/f5","label":"PortField","props":{"kind":"bit","mask":32,"activeLow":true,"type":"IPT_COIN1"}},{"id":"inputs:pacman/IN0/f6","label":"PortField","props":{"kind":"bit","mask":64,"activeLow":true,"type":"IPT_COIN2"}},{"id":"inputs:pacman/IN0/f7","label":"PortField","props":{"kind":"bit","mask":128,"activeLow":true,"type":"IPT_SERVICE1"}},{"id":"inputs:pacman/IN1","label":"Port","props":{"tag":"IN1","modify":false}},{"id":"inputs:pacman/IN1/f0","label":"PortField","props":{"kind":"bit","mask":1,"activeLow":true,"type":"IPT_JOYSTICK_UP","modifiers":["PORT_PLAYER(2)","PORT_4WAY","PORT_COCKTAIL"]}},{"id":"inputs:pacman/IN1/f1","label":"PortField","props":{"kind":"bit","mask":2,"activeLow":true,"type":"IPT_JOYSTICK_LEFT","modifiers":["PORT_PLAYER(2)","PORT_4WAY","PORT_COCKTAIL"]}},{"id":"inputs:pacman/IN1/f2","label":"PortField","props":{"kind":"bit","mask":4,"activeLow":true,"type":"IPT_JOYSTICK_RIGHT","modifiers":["PORT_PLAYER(2)","PORT_4WAY","PORT_COCKTAIL"]}},{"id":"inputs:pacman/IN1/f3","label":"PortField","props":{"kind":"bit","mask":8,"activeLow":true,"type":"IPT_JOYSTICK_DOWN","modifiers":["PORT_PLAYER(2)","PORT_4WAY","PORT_COCKTAIL"]}},{"id":"inputs:pacman/IN1/f4","label":"PortField","props":{"kind":"service","mask":16,"activeLow":true}},{"id":"inputs:pacman/IN1/f5","label":"PortField","props":{"kind":"bit","mask":32,"activeLow":true,"type":"IPT_START1"}},{"id":"inputs:pacman/IN1/f6","label":"PortField","props":{"kind":"bit","mask":64,"activeLow":true,"type":"IPT_START2"}},{"id":"inputs:pacman/IN1/f7","label":"PortField","props":{"kind":"dip","mask":128,"name":"Cabinet","defaultValue":128,"settings":["128=Upright","0=Cocktail"]}},{"id":"inputs:pacman/DSW1","label":"Port","props":{"tag":"DSW1","modify":false}},{"id":"inputs:pacman/DSW1/f0","label":"PortField","props":{"kind":"dip","mask":3,"name":"Coinage","defaultValue":1,"location":"SW:1,2","settings":["3=2C 1C","1=1C 1C","2=1C 2C","0=Free Play"]}},{"id":"inputs:pacman/DSW1/f1","label":"PortField","props":{"kind":"dip","mask":12,"name":"Lives","defaultValue":8,"location":"SW:3,4","settings":["0=1","4=2","8=3","12=5"]}},{"id":"inputs:pacman/DSW1/f2","label":"PortField","props":{"kind":"dip","mask":48,"name":"Bonus Life","defaultValue":0,"location":"SW:5,6","settings":["0=10000","16=15000","32=20000","48=None"]}},{"id":"inputs:pacman/DSW1/f3","label":"PortField","props":{"kind":"dip","mask":64,"name":"Difficulty","defaultValue":64,"settings":["64=Normal","0=Hard"]}},{"id":"inputs:pacman/DSW1/f4","label":"PortField","props":{"kind":"dip","mask":128,"name":"Ghost Names","defaultValue":128,"settings":["128=Normal","0=Alternate"]}},{"id":"inputs:pacman/DSW2","label":"Port","props":{"tag":"DSW2","modify":false}},{"id":"inputs:pacman/DSW2/f0","label":"PortField","props":{"kind":"bit","mask":255,"activeLow":false,"type":"IPT_UNUSED"}},{"id":"gfxlayout:tilelayout","label":"GfxLayout","props":{"name":"tilelayout","width":8,"height":8,"total":"RGN_FRAC(1,2)","planes":2,"planeOffsets":[0,4],"xOffsets":[64,65,66,67,0,1,2,3],"yOffsets":[0,8,16,24,32,40,48,56],"charIncrement":128}},{"id":"gfxlayout:spritelayout","label":"GfxLayout","props":{"name":"spritelayout","width":16,"height":16,"total":"RGN_FRAC(1,2)","planes":2,"planeOffsets":[0,4],"xOffsets":[64,65,66,67,128,129,130,131,192,193,194,195,0,1,2,3],"yOffsets":[0,8,16,24,32,40,48,56,256,264,272,280,288,296,304,312],"charIncrement":512}},{"id":"gfxdecode:gfx_pacman","label":"GfxDecode","props":{"name":"gfx_pacman"}},{"id":"gfxdecode:gfx_pacman/e0","label":"GfxDecodeEntry","props":{"region":"gfx1","offset":0,"layout":"tilelayout","colorBase":0,"colorCount":128,"xscale":1,"yscale":1}},{"id":"gfxdecode:gfx_pacman/e1","label":"GfxDecodeEntry","props":{"region":"gfx1","offset":4096,"layout":"spritelayout","colorBase":0,"colorCount":128,"xscale":1,"yscale":1}}],"edges":[{"from":"game:pacman","to":"file:src/mame/pacman/pacman.cpp","rel":"DEFINED_IN","props":null},{"from":"game:pacman","to":"game:puckman","rel":"CLONE_OF","props":null},{"from":"game:pacman","to":"machine:pacman_state.pacman","rel":"USES_MACHINE","props":null},{"from":"game:pacman","to":"inputs:pacman","rel":"USES_INPUTS","props":null},{"from":"game:pacman","to":"romset:pacman","rel":"USES_ROMSET","props":null},{"from":"file:src/mame/pacman/pacman.cpp","to":"file:emu.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/pacman/pacman.cpp","to":"file:pacman.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/pacman/pacman.cpp","to":"file:jumpshot.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/pacman/pacman.cpp","to":"file:pacplus.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/pacman/pacman.cpp","to":"file:cpu/s2650/s2650.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/pacman/pacman.cpp","to":"file:cpu/z80/z80.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/pacman/pacman.cpp","to":"file:machine/nvram.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/pacman/pacman.cpp","to":"file:sound/ay8910.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/pacman/pacman.cpp","to":"file:sound/sn76496.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/pacman/pacman.cpp","to":"file:screen.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/pacman/pacman.cpp","to":"file:speaker.h","rel":"INCLUDES","props":null},{"from":"game:puckman","to":"file:src/mame/pacman/pacman.cpp","rel":"DEFINED_IN","props":null},{"from":"game:puckman","to":"machine:pacman_state.pacman","rel":"USES_MACHINE","props":null},{"from":"game:puckman","to":"inputs:pacman","rel":"USES_INPUTS","props":null},{"from":"game:puckman","to":"romset:puckman","rel":"USES_ROMSET","props":null},{"from":"machine:pacman_state.pacman","to":"file:src/mame/pacman/pacman.cpp","rel":"DEFINED_IN","props":null},{"from":"machine:pacman_state.pacman","to":"device:pacman_state.pacman/maincpu","rel":"HAS_DEVICE","props":null},{"from":"machine:pacman_state.pacman","to":"device:pacman_state.pacman/mainlatch","rel":"HAS_DEVICE","props":null},{"from":"machine:pacman_state.pacman","to":"device:pacman_state.pacman/watchdog","rel":"HAS_DEVICE","props":null},{"from":"machine:pacman_state.pacman","to":"device:pacman_state.pacman/gfxdecode","rel":"HAS_DEVICE","props":null},{"from":"machine:pacman_state.pacman","to":"gfxdecode:gfx_pacman","rel":"DECODES","props":null},{"from":"machine:pacman_state.pacman","to":"device:pacman_state.pacman/palette","rel":"HAS_DEVICE","props":null},{"from":"machine:pacman_state.pacman","to":"device:pacman_state.pacman/screen","rel":"HAS_DEVICE","props":null},{"from":"machine:pacman_state.pacman","to":"device:pacman_state.pacman/namco","rel":"HAS_DEVICE","props":null},{"from":"inputs:pacman","to":"file:src/mame/pacman/pacman.cpp","rel":"DEFINED_IN","props":null},{"from":"inputs:pacman","to":"inputs:pacman/IN0","rel":"HAS_PORT","props":null},{"from":"inputs:pacman","to":"inputs:pacman/IN1","rel":"HAS_PORT","props":null},{"from":"inputs:pacman","to":"inputs:pacman/DSW1","rel":"HAS_PORT","props":null},{"from":"inputs:pacman","to":"inputs:pacman/DSW2","rel":"HAS_PORT","props":null},{"from":"romset:pacman","to":"file:src/mame/pacman/pacman.cpp","rel":"DEFINED_IN","props":null},{"from":"romset:pacman","to":"region:pacman/maincpu","rel":"HAS_REGION","props":null},{"from":"romset:pacman","to":"region:pacman/gfx1","rel":"HAS_REGION","props":null},{"from":"romset:pacman","to":"region:pacman/proms","rel":"HAS_REGION","props":null},{"from":"romset:pacman","to":"region:pacman/namco","rel":"HAS_REGION","props":null},{"from":"romset:puckman","to":"file:src/mame/pacman/pacman.cpp","rel":"DEFINED_IN","props":null},{"from":"romset:puckman","to":"region:puckman/maincpu","rel":"HAS_REGION","props":null},{"from":"romset:puckman","to":"region:puckman/gfx1","rel":"HAS_REGION","props":null},{"from":"romset:puckman","to":"region:puckman/proms","rel":"HAS_REGION","props":null},{"from":"romset:puckman","to":"region:puckman/namco","rel":"HAS_REGION","props":null},{"from":"device:pacman_state.pacman/maincpu","to":"map:pacman_state.pacman_map","rel":"HAS_MAP","props":{"space":"AS_PROGRAM"}},{"from":"device:pacman_state.pacman/maincpu","to":"map:pacman_state.writeport","rel":"HAS_MAP","props":{"space":"AS_IO"}},{"from":"gfxdecode:gfx_pacman","to":"file:src/mame/pacman/pacman.cpp","rel":"DEFINED_IN","props":null},{"from":"gfxdecode:gfx_pacman","to":"gfxdecode:gfx_pacman/e0","rel":"HAS_ENTRY","props":null},{"from":"gfxdecode:gfx_pacman","to":"gfxdecode:gfx_pacman/e1","rel":"HAS_ENTRY","props":null},{"from":"inputs:pacman/IN0","to":"inputs:pacman/IN0/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN0","to":"inputs:pacman/IN0/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN0","to":"inputs:pacman/IN0/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN0","to":"inputs:pacman/IN0/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN0","to":"inputs:pacman/IN0/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN0","to":"inputs:pacman/IN0/f5","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN0","to":"inputs:pacman/IN0/f6","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN0","to":"inputs:pacman/IN0/f7","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN1","to":"inputs:pacman/IN1/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN1","to":"inputs:pacman/IN1/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN1","to":"inputs:pacman/IN1/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN1","to":"inputs:pacman/IN1/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN1","to":"inputs:pacman/IN1/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN1","to":"inputs:pacman/IN1/f5","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN1","to":"inputs:pacman/IN1/f6","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/IN1","to":"inputs:pacman/IN1/f7","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/DSW1","to":"inputs:pacman/DSW1/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/DSW1","to":"inputs:pacman/DSW1/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/DSW1","to":"inputs:pacman/DSW1/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/DSW1","to":"inputs:pacman/DSW1/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/DSW1","to":"inputs:pacman/DSW1/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:pacman/DSW2","to":"inputs:pacman/DSW2/f0","rel":"HAS_FIELD","props":null},{"from":"region:pacman/maincpu","to":"rom:pacman/maincpu/pacman.6e","rel":"LOADS","props":null},{"from":"region:pacman/maincpu","to":"rom:pacman/maincpu/pacman.6f","rel":"LOADS","props":null},{"from":"region:pacman/maincpu","to":"rom:pacman/maincpu/pacman.6h","rel":"LOADS","props":null},{"from":"region:pacman/maincpu","to":"rom:pacman/maincpu/pacman.6j","rel":"LOADS","props":null},{"from":"region:pacman/gfx1","to":"rom:pacman/gfx1/pacman.5e","rel":"LOADS","props":null},{"from":"region:pacman/gfx1","to":"rom:pacman/gfx1/pacman.5f","rel":"LOADS","props":null},{"from":"region:pacman/proms","to":"rom:pacman/proms/82s123.7f","rel":"LOADS","props":null},{"from":"region:pacman/proms","to":"rom:pacman/proms/82s126.4a","rel":"LOADS","props":null},{"from":"region:pacman/namco","to":"rom:pacman/namco/82s126.1m","rel":"LOADS","props":null},{"from":"region:pacman/namco","to":"rom:pacman/namco/82s126.3m","rel":"LOADS","props":null},{"from":"region:puckman/maincpu","to":"rom:puckman/maincpu/pm1_prg1.6e","rel":"LOADS","props":null},{"from":"region:puckman/maincpu","to":"rom:puckman/maincpu/pm1_prg2.6k","rel":"LOADS","props":null},{"from":"region:puckman/maincpu","to":"rom:puckman/maincpu/pm1_prg3.6f","rel":"LOADS","props":null},{"from":"region:puckman/maincpu","to":"rom:puckman/maincpu/pm1_prg4.6m","rel":"LOADS","props":null},{"from":"region:puckman/maincpu","to":"rom:puckman/maincpu/pm1_prg5.6h","rel":"LOADS","props":null},{"from":"region:puckman/maincpu","to":"rom:puckman/maincpu/pm1_prg6.6n","rel":"LOADS","props":null},{"from":"region:puckman/maincpu","to":"rom:puckman/maincpu/pm1_prg7.6j","rel":"LOADS","props":null},{"from":"region:puckman/maincpu","to":"rom:puckman/maincpu/pm1_prg8.6p","rel":"LOADS","props":null},{"from":"region:puckman/gfx1","to":"rom:puckman/gfx1/pm1_chg1.5e","rel":"LOADS","props":null},{"from":"region:puckman/gfx1","to":"rom:puckman/gfx1/pm1_chg2.5h","rel":"LOADS","props":null},{"from":"region:puckman/gfx1","to":"rom:puckman/gfx1/pm1_chg3.5f","rel":"LOADS","props":null},{"from":"region:puckman/gfx1","to":"rom:puckman/gfx1/pm1_chg4.5j","rel":"LOADS","props":null},{"from":"region:puckman/proms","to":"rom:puckman/proms/pm1-1.7f","rel":"LOADS","props":null},{"from":"region:puckman/proms","to":"rom:puckman/proms/pm1-4.4a","rel":"LOADS","props":null},{"from":"region:puckman/namco","to":"rom:puckman/namco/pm1-3.1m","rel":"LOADS","props":null},{"from":"region:puckman/namco","to":"rom:puckman/namco/pm1-2.3m","rel":"LOADS","props":null},{"from":"map:pacman_state.pacman_map","to":"file:src/mame/pacman/pacman.cpp","rel":"DEFINED_IN","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range0","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range1","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range2","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range3","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range4","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range5","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range6","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range7","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range8","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range9","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range10","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range11","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range12","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range13","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range14","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.pacman_map","to":"map:pacman_state.pacman_map/range15","rel":"HAS_RANGE","props":null},{"from":"map:pacman_state.writeport","to":"file:src/mame/pacman/pacman.cpp","rel":"DEFINED_IN","props":null},{"from":"map:pacman_state.writeport","to":"map:pacman_state.writeport/range0","rel":"HAS_RANGE","props":null},{"from":"gfxdecode:gfx_pacman/e0","to":"gfxlayout:tilelayout","rel":"USES_LAYOUT","props":null},{"from":"gfxdecode:gfx_pacman/e1","to":"gfxlayout:spritelayout","rel":"USES_LAYOUT","props":null},{"from":"map:pacman_state.pacman_map/range1","to":"handler:pacman_state.pacman_videoram_w","rel":"WRITES","props":null},{"from":"map:pacman_state.pacman_map/range2","to":"handler:pacman_state.pacman_colorram_w","rel":"WRITES","props":null},{"from":"map:pacman_state.pacman_map/range3","to":"handler:pacman_state.pacman_read_nop","rel":"READS","props":null},{"from":"map:pacman_state.pacman_map/range6","to":"handler:ls259_device.write_d0","rel":"WRITES","props":{"deviceTag":"mainlatch"}},{"from":"map:pacman_state.pacman_map/range7","to":"handler:namco_wsg_device.pacman_sound_w","rel":"WRITES","props":{"deviceTag":"namco"}},{"from":"map:pacman_state.pacman_map/range11","to":"handler:watchdog_timer_device.reset_w","rel":"WRITES","props":{"deviceTag":"watchdog"}},{"from":"map:pacman_state.writeport/range0","to":"handler:pacman_state.pacman_interrupt_vector_w","rel":"WRITES","props":null},{"from":"gfxlayout:tilelayout","to":"file:src/mame/pacman/pacman.cpp","rel":"DEFINED_IN","props":null},{"from":"gfxlayout:spritelayout","to":"file:src/mame/pacman/pacman.cpp","rel":"DEFINED_IN","props":null}]}</script>
+<script>
+'use strict';
+const GRAPH = JSON.parse(document.getElementById('graph-data').textContent);
+const FAMILY = {"Game":0,"MachineConfig":1,"Device":1,"AddressMap":2,"AddressRange":2,"Handler":2,"RomSet":3,"RomRegion":3,"Rom":3,"InputPorts":4,"Port":4,"PortField":4,"GfxDecode":5,"GfxDecodeEntry":5,"GfxLayout":5,"SourceFile":6};
+const FAMILY_NAMES = ["Game","Machine","Memory map","ROMs","Inputs","Graphics","Source files"];
+const LIGHT = ["#2a78d6","#1baf7a","#eda100","#008300","#4a3aa7","#e34948","#e87ba4"], DARK = ["#3987e5","#199e70","#c98500","#008300","#9085e9","#e66767","#d55181"];
+const darkMq = matchMedia('(prefers-color-scheme: dark)');
+const palette = () => darkMq.matches ? DARK : LIGHT;
+const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+// --- graph model -----------------------------------------------------------
+const nodes = GRAPH.nodes.map(n => ({
+  ...n, fam: FAMILY[n.label] ?? 6,
+  x: 0, y: 0, vx: 0, vy: 0, deg: 0, r: 5, fixed: false,
+}));
+const byId = new Map(nodes.map(n => [n.id, n]));
+const edges = GRAPH.edges.filter(e => byId.has(e.from) && byId.has(e.to))
+  .map(e => ({ ...e, a: byId.get(e.from), b: byId.get(e.to) }));
+for (const e of edges) { e.a.deg++; e.b.deg++; }
+for (const n of nodes) n.r = 4 + Math.min(10, Math.sqrt(n.deg) * 2.1);
+const adj = new Map(nodes.map(n => [n, []]));
+for (const e of edges) { adj.get(e.a).push(e); adj.get(e.b).push(e); }
+
+// deterministic initial placement: ring per family
+nodes.forEach((n, i) => {
+  const golden = i * 2.39996 + n.fam;
+  const rad = 120 + 240 * ((i * 0.618) % 1);
+  n.x = Math.cos(golden) * rad; n.y = Math.sin(golden) * rad;
+});
+
+// --- state -----------------------------------------------------------------
+const hidden = new Set();           // hidden families
+let selected = null, hovered = null;
+let searchTerm = '';
+let scale = 1, ox = 0, oy = 0;      // view transform
+let alpha = 1;                       // simulation heat
+
+// --- canvas setup ----------------------------------------------------------
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+function resize() {
+  const dpr = devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+new ResizeObserver(() => { resize(); draw(); }).observe(canvas);
+
+const visible = n => !hidden.has(n.fam);
+
+// --- physics (O(n^2) fine at this scale) ------------------------------------
+function tick() {
+  const vs = nodes.filter(visible);
+  for (let i = 0; i < vs.length; i++) {
+    const a = vs[i];
+    for (let j = i + 1; j < vs.length; j++) {
+      const b = vs[j];
+      let dx = a.x - b.x, dy = a.y - b.y;
+      let d2 = dx * dx + dy * dy;
+      if (d2 < 1) { dx = (Math.random ? ((i * 7 + j) % 13) / 13 - .5 : .1); dy = ((i * 5 + j) % 11) / 11 - .5; d2 = dx*dx+dy*dy+.01; }
+      const f = Math.min(12, 1400 / d2) * alpha;
+      const d = Math.sqrt(d2);
+      a.vx += dx / d * f; a.vy += dy / d * f;
+      b.vx -= dx / d * f; b.vy -= dy / d * f;
+    }
+  }
+  for (const e of edges) {
+    if (!visible(e.a) || !visible(e.b)) continue;
+    const dx = e.b.x - e.a.x, dy = e.b.y - e.a.y;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const want = 46 + (e.a.r + e.b.r);
+    const f = (d - want) * 0.02 * alpha;
+    e.a.vx += dx / d * f; e.a.vy += dy / d * f;
+    e.b.vx -= dx / d * f; e.b.vy -= dy / d * f;
+  }
+  for (const n of vs) {
+    n.vx -= n.x * 0.0016 * alpha; n.vy -= n.y * 0.0016 * alpha; // gravity
+    if (!n.fixed) { n.x += n.vx; n.y += n.vy; }
+    n.vx *= 0.6; n.vy *= 0.6;
+  }
+  alpha = Math.max(0.02, alpha * 0.995);
+}
+
+// --- rendering ---------------------------------------------------------------
+function draw() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  ctx.translate(w / 2 + ox, h / 2 + oy);
+  ctx.scale(scale, scale);
+  const pal = palette();
+  const focus = hovered || selected;
+  const inFocus = new Set();
+  if (focus) {
+    inFocus.add(focus);
+    for (const e of adj.get(focus)) { inFocus.add(e.a); inFocus.add(e.b); }
+  }
+  const match = n => searchTerm && (n.id.toLowerCase().includes(searchTerm) || String(n.props.name ?? '').toLowerCase().includes(searchTerm));
+
+  ctx.lineWidth = 1 / scale;
+  for (const e of edges) {
+    if (!visible(e.a) || !visible(e.b)) continue;
+    const hi = focus && (e.a === focus || e.b === focus);
+    ctx.strokeStyle = hi ? cssVar('--edge-hi') : cssVar('--edge');
+    ctx.globalAlpha = focus && !hi ? 0.25 : 1;
+    ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const dim = (focus && !inFocus.has(n)) || (searchTerm && !match(n));
+    ctx.globalAlpha = dim ? 0.22 : 1;
+    ctx.fillStyle = pal[n.fam];
+    ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, 7); ctx.fill();
+    if (n === selected) {
+      ctx.strokeStyle = cssVar('--ink'); ctx.lineWidth = 2 / scale;
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 2 / scale, 0, 7); ctx.stroke();
+    }
+  }
+  // direct labels: hubs always, everything when zoomed, neighborhood on focus
+  ctx.font = `${11 / scale}px ui-sans-serif, system-ui`;
+  ctx.textBaseline = 'middle';
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const show = scale > 1.6 || n.deg >= 6 || inFocus.has(n) || match(n);
+    if (!show) continue;
+    const dim = focus && !inFocus.has(n);
+    const text = shortName(n);
+    const x = n.x + n.r + 4 / scale;
+    ctx.globalAlpha = dim ? 0.3 : 1;
+    ctx.lineWidth = 3 / scale;
+    ctx.strokeStyle = cssVar('--halo');
+    ctx.strokeText(text, x, n.y);
+    ctx.fillStyle = cssVar('--ink-2');
+    ctx.fillText(text, x, n.y);
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+function shortName(n) {
+  const p = n.props;
+  return String(p.name ?? p.tag ?? p.file ?? p.path ?? p.method ?? n.id.split(':').pop());
+}
+
+function loop() { tick(); draw(); requestAnimationFrame(loop); }
+
+// --- interaction -------------------------------------------------------------
+const tip = document.getElementById('tip');
+function pick(mx, my) {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const gx = (mx - w / 2 - ox) / scale, gy = (my - h / 2 - oy) / scale;
+  let best = null, bestD = 1e9;
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const d = Math.hypot(n.x - gx, n.y - gy);
+    if (d < n.r + 4 / scale && d < bestD) { best = n; bestD = d; }
+  }
+  return best;
+}
+let drag = null; // {node} | {pan:true}
+canvas.addEventListener('pointerdown', ev => {
+  const n = pick(ev.offsetX, ev.offsetY);
+  drag = n ? { node: n } : { pan: true, sx: ev.clientX, sy: ev.clientY, ox, oy };
+  if (n) { n.fixed = true; alpha = Math.max(alpha, 0.3); }
+  canvas.classList.add('dragging');
+  canvas.setPointerCapture(ev.pointerId);
+});
+canvas.addEventListener('pointermove', ev => {
+  if (drag?.node) {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    drag.node.x = (ev.offsetX - w / 2 - ox) / scale;
+    drag.node.y = (ev.offsetY - h / 2 - oy) / scale;
+    drag.moved = true;
+  } else if (drag?.pan) {
+    ox = drag.ox + ev.clientX - drag.sx; oy = drag.oy + ev.clientY - drag.sy;
+    drag.moved = true;
+  } else {
+    hovered = pick(ev.offsetX, ev.offsetY);
+    if (hovered) {
+      tip.style.display = 'block';
+      tip.style.left = Math.min(innerWidth - 360, ev.clientX + 14) + 'px';
+      tip.style.top = (ev.clientY + 12) + 'px';
+      tip.textContent = hovered.label + ' · ' + hovered.id;
+    } else tip.style.display = 'none';
+  }
+});
+canvas.addEventListener('pointerup', ev => {
+  if (drag?.node && !drag.moved) select(drag.node);
+  else if (drag?.pan && !drag.moved) select(null);
+  if (drag?.node) drag.node.fixed = false;
+  drag = null;
+  canvas.classList.remove('dragging');
+});
+canvas.addEventListener('wheel', ev => {
+  ev.preventDefault();
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const f = Math.exp(-ev.deltaY * 0.0015);
+  const nx = ev.offsetX - w / 2, ny = ev.offsetY - h / 2;
+  ox = nx - (nx - ox) * f; oy = ny - (ny - oy) * f;
+  scale = Math.min(8, Math.max(0.15, scale * f));
+}, { passive: false });
+
+// --- panel -------------------------------------------------------------------
+const panel = document.getElementById('panel');
+function select(n) {
+  selected = n;
+  panel.classList.toggle('open', !!n);
+  if (!n) return;
+  const rows = Object.entries(n.props).map(([k, v]) =>
+    `<tr><td>${esc(k)}</td><td>${fmt(v)}</td></tr>`).join('');
+  const links = dir => adj.get(n)
+    .filter(e => (dir === 'out' ? e.a : e.b) === n)
+    .map(e => {
+      const other = dir === 'out' ? e.b : e.a;
+      return `<a data-id="${esc(other.id)}"><span class="rel">${dir === 'out' ? '→' : '←'} ${e.rel}</span> ${esc(shortName(other))}</a>`;
+    }).join('') || '<span class="rel">none</span>';
+  panel.innerHTML = `
+    <h2>${esc(n.id)}</h2>
+    <div class="lbl">${esc(n.label)} · ${FAMILY_NAMES[n.fam]}</div>
+    <div class="lbl">properties</div><table>${rows || '<tr><td colspan=2>none</td></tr>'}</table>
+    <div class="lbl">outgoing</div>${links('out')}
+    <div class="lbl">incoming</div>${links('in')}`;
+  panel.querySelectorAll('a[data-id]').forEach(a =>
+    a.addEventListener('click', () => { const t = byId.get(a.dataset.id); if (t) { select(t); alpha = Math.max(alpha, .15); } }));
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function fmt(v) {
+  if (Array.isArray(v)) return '<pre>' + v.map(esc).join('\n') + '</pre>';
+  if (typeof v === 'number' && v > 255 && Number.isInteger(v)) return esc(v) + ' <span class="rel">(0x' + v.toString(16) + ')</span>';
+  return esc(v);
+}
+
+// --- legend + search + stats ---------------------------------------------------
+const legend = document.getElementById('legend');
+const famCounts = FAMILY_NAMES.map((_, i) => nodes.filter(n => n.fam === i).length);
+FAMILY_NAMES.forEach((name, i) => {
+  if (!famCounts[i]) return;
+  const label = document.createElement('label');
+  label.innerHTML = `<input type="checkbox" checked><span class="sw"></span>${name} <span style="color:var(--ink-3)">${famCounts[i]}</span>`;
+  label.querySelector('.sw').style.background = palette()[i];
+  label.querySelector('input').addEventListener('change', ev => {
+    ev.target.checked ? hidden.delete(i) : hidden.add(i);
+    alpha = Math.max(alpha, 0.3);
+  });
+  legend.appendChild(label);
+});
+darkMq.addEventListener('change', () => {
+  legend.querySelectorAll('.sw').forEach((sw, idx) => {
+    const fams = FAMILY_NAMES.map((_, i) => i).filter(i => famCounts[i]);
+    sw.style.background = palette()[fams[idx]];
+  });
+});
+document.getElementById('search').addEventListener('input', ev => {
+  searchTerm = ev.target.value.trim().toLowerCase();
+});
+document.getElementById('stats').textContent = `${nodes.length} nodes · ${edges.length} edges`;
+
+resize();
+loop();
+</script>
+</body>
+</html>

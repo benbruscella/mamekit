@@ -1,0 +1,25 @@
+{
+  "game": "junofrst",
+  "title": "Juno First (Konami, 1983)",
+  "fullname": "Juno First",
+  "year": "1983",
+  "manufacturer": "Konami",
+  "family": "junofrst",
+  "driverFile": "src/mame/konami/junofrst.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Chris Hardy",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-27",
+    "commits": 165,
+    "contributors": 29,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Olivier Galibert"
+    ]
+  },
+  "hasHistory": true
+}

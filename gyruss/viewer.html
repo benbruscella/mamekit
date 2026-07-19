@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gyruss — knowledge graph — mamekit knowledge graph</title>
+<style>
+  :root {
+    --surface: #fcfcfb; --panel: #f4f4f2; --border: #dddcd8;
+    --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #8a897f;
+    --edge: rgba(82,81,78,.28); --edge-hi: rgba(11,11,11,.75);
+    --halo: rgba(252,252,251,.85); --accent: #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #1a1a19; --panel: #232322; --border: #3a3a38;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #86857b;
+      --edge: rgba(195,194,183,.22); --edge-hi: rgba(255,255,255,.8);
+      --halo: rgba(26,26,25,.85); --accent: #3987e5;
+    }
+  }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--surface); color: var(--ink);
+         font: 13px/1.45 ui-sans-serif, system-ui, sans-serif; display: flex; flex-direction: column; }
+  header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+           padding: 8px 14px; border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 14px; font-weight: 600; margin-right: 6px; }
+  header input[type=search] { background: var(--panel); color: var(--ink); border: 1px solid var(--border);
+           border-radius: 6px; padding: 4px 10px; width: 210px; outline: none; }
+  header input[type=search]:focus { border-color: var(--accent); }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; }
+  .legend label { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-2);
+                  cursor: pointer; user-select: none; }
+  .legend .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .legend input { accent-color: var(--accent); margin: 0; }
+  main { flex: 1; display: flex; min-height: 0; }
+  #canvas { flex: 1; cursor: grab; touch-action: none; }
+  #canvas.dragging { cursor: grabbing; }
+  aside { width: 320px; border-left: 1px solid var(--border); background: var(--panel);
+          overflow-y: auto; padding: 14px; display: none; }
+  aside.open { display: block; }
+  aside h2 { font-size: 13px; word-break: break-all; }
+  aside .lbl { color: var(--ink-3); font-size: 11px; text-transform: uppercase;
+               letter-spacing: .04em; margin: 12px 0 4px; }
+  aside table { width: 100%; border-collapse: collapse; }
+  aside td { padding: 3px 6px 3px 0; vertical-align: top; border-bottom: 1px solid var(--border);
+             color: var(--ink-2); word-break: break-all; }
+  aside td:first-child { color: var(--ink-3); white-space: nowrap; }
+  aside pre { white-space: pre-wrap; word-break: break-all; background: var(--surface);
+              border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px;
+              font-size: 11px; color: var(--ink-2); }
+  aside a { color: var(--accent); cursor: pointer; text-decoration: none; display: block;
+            padding: 2px 0; word-break: break-all; }
+  aside a:hover { text-decoration: underline; }
+  aside .rel { color: var(--ink-3); font-size: 11px; }
+  #tip { position: fixed; pointer-events: none; background: var(--panel); color: var(--ink);
+         border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px;
+         font-size: 12px; display: none; max-width: 340px; word-break: break-all;
+         box-shadow: 0 2px 10px rgba(0,0,0,.18); z-index: 10; }
+  #stats { color: var(--ink-3); margin-left: auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>gyruss — knowledge graph</h1>
+  <input id="search" type="search" placeholder="search nodes…">
+  <div class="legend" id="legend"></div>
+  <span id="stats"></span>
+</header>
+<main>
+  <canvas id="canvas"></canvas>
+  <aside id="panel"></aside>
+</main>
+<div id="tip"></div>
+<script type="application/json" id="graph-data">{"nodes":[{"id":"file:src/mame/konami/gyruss.cpp","label":"SourceFile","props":{"path":"src/mame/konami/gyruss.cpp"}},{"id":"file:emu.h","label":"SourceFile","props":{"path":"emu.h","external":true}},{"id":"file:konami1.h","label":"SourceFile","props":{"path":"konami1.h","external":true}},{"id":"file:konamipt.h","label":"SourceFile","props":{"path":"konamipt.h","external":true}},{"id":"file:cpu/m6809/m6809.h","label":"SourceFile","props":{"path":"cpu/m6809/m6809.h","external":true}},{"id":"file:cpu/mcs48/mcs48.h","label":"SourceFile","props":{"path":"cpu/mcs48/mcs48.h","external":true}},{"id":"file:cpu/z80/z80.h","label":"SourceFile","props":{"path":"cpu/z80/z80.h","external":true}},{"id":"file:machine/74259.h","label":"SourceFile","props":{"path":"machine/74259.h","external":true}},{"id":"file:machine/gen_latch.h","label":"SourceFile","props":{"path":"machine/gen_latch.h","external":true}},{"id":"file:sound/ay8910.h","label":"SourceFile","props":{"path":"sound/ay8910.h","external":true}},{"id":"file:sound/discrete.h","label":"SourceFile","props":{"path":"sound/discrete.h","external":true}},{"id":"file:video/resnet.h","label":"SourceFile","props":{"path":"video/resnet.h","external":true}},{"id":"file:emupal.h","label":"SourceFile","props":{"path":"emupal.h","external":true}},{"id":"file:screen.h","label":"SourceFile","props":{"path":"screen.h","external":true}},{"id":"file:speaker.h","label":"SourceFile","props":{"path":"speaker.h","external":true}},{"id":"file:tilemap.h","label":"SourceFile","props":{"path":"tilemap.h","external":true}},{"id":"file:logmacro.h","label":"SourceFile","props":{"path":"logmacro.h","external":true}},{"id":"game:gyruss","label":"Game","props":{"name":"gyruss","year":"1983","company":"Konami","fullname":"Gyruss","monitor":"ROT90","cls":"gyruss_state","init":"empty_init","flags":"MACHINE_SUPPORTS_SAVE","kind":"arcade"}},{"id":"romset:gyruss","label":"RomSet","props":{"name":"gyruss"}},{"id":"region:gyruss/maincpu","label":"RomRegion","props":{"tag":"maincpu","size":32768,"flags":"0"}},{"id":"rom:gyruss/maincpu/gyrussk.1","label":"Rom","props":{"file":"gyrussk.1","offset":0,"size":8192,"crc":"c673b43d","sha1":"7c464fb154bac35dd6e2f547e157addeb8798194"}},{"id":"rom:gyruss/maincpu/gyrussk.2","label":"Rom","props":{"file":"gyrussk.2","offset":8192,"size":8192,"crc":"a4ec03e4","sha1":"08c33ad7fcc2ad5e5787a1050284e3f8164f4618"}},{"id":"rom:gyruss/maincpu/gyrussk.3","label":"Rom","props":{"file":"gyrussk.3","offset":16384,"size":8192,"crc":"27454a98","sha1":"030c7df225652ee20d5ef64d005eb011dc89a27d"}},{"id":"rom:gyruss/maincpu/gyrussk.4","label":"Rom","props":{"file":"gyrussk.4","offset":24576,"size":8192,"crc":"7f28f9e4","sha1":"10f2de94f17ace513410cb358f67632b5b201896"}},{"id":"region:gyruss/sub","label":"RomRegion","props":{"tag":"sub","size":65536,"flags":"0"}},{"id":"rom:gyruss/sub/gyrussk.9","label":"Rom","props":{"file":"gyrussk.9","offset":57344,"size":8192,"crc":"822bf27e","sha1":"36d5bea2392a7d3476dd797dc05602705cfa23ef"}},{"id":"region:gyruss/audiocpu","label":"RomRegion","props":{"tag":"audiocpu","size":24576,"flags":"0"}},{"id":"rom:gyruss/audiocpu/gyrussk.1a","label":"Rom","props":{"file":"gyrussk.1a","offset":0,"size":8192,"crc":"f4ae1c17","sha1":"ae568c96a31d910afe30d2b7eeb9ed1ed07290e3"}},{"id":"rom:gyruss/audiocpu/gyrussk.2a","label":"Rom","props":{"file":"gyrussk.2a","offset":8192,"size":8192,"crc":"ba498115","sha1":"9cd1f42898cc590f39ba7cb3c975b0b3d3062eba"}},{"id":"region:gyruss/audio2","label":"RomRegion","props":{"tag":"audio2","size":4096,"flags":"0"}},{"id":"rom:gyruss/audio2/gyrussk.3a","label":"Rom","props":{"file":"gyrussk.3a","offset":0,"size":4096,"crc":"3f9b5dea","sha1":"6e807da02c2885b18e8cc2199f12f6be9040bf75"}},{"id":"region:gyruss/sprites","label":"RomRegion","props":{"tag":"sprites","size":32768,"flags":"0"}},{"id":"rom:gyruss/sprites/gyrussk.6","label":"Rom","props":{"file":"gyrussk.6","offset":0,"size":8192,"crc":"c949db10","sha1":"fcb8bcbd2bdd751fecb322a33c8a92fb6f07a7ab"}},{"id":"rom:gyruss/sprites/gyrussk.5","label":"Rom","props":{"file":"gyrussk.5","offset":8192,"size":8192,"crc":"4f22411a","sha1":"763bcd039f8c1838a0d7da7d4dadc14a26e25596"}},{"id":"rom:gyruss/sprites/gyrussk.8","label":"Rom","props":{"file":"gyrussk.8","offset":16384,"size":8192,"crc":"47cd1fbc","sha1":"8203c4ff0b1cd7b4dbc708e300bfeac1e7366e09"}},{"id":"rom:gyruss/sprites/gyrussk.7","label":"Rom","props":{"file":"gyrussk.7","offset":24576,"size":8192,"crc":"8e8d388c","sha1":"8f2928d71c02aba977d67575d6e34d69bda2b9d4"}},{"id":"region:gyruss/tiles","label":"RomRegion","props":{"tag":"tiles","size":8192,"flags":"0"}},{"id":"rom:gyruss/tiles/gyrussk.4","label":"Rom","props":{"file":"gyrussk.4","offset":0,"size":8192,"crc":"27d8329b","sha1":"564ff945465a23d93a93137ad277298770dfa06a"}},{"id":"region:gyruss/proms","label":"RomRegion","props":{"tag":"proms","size":544,"flags":"0"}},{"id":"rom:gyruss/proms/gyrussk.pr3","label":"Rom","props":{"file":"gyrussk.pr3","offset":0,"size":32,"crc":"98782db3","sha1":"b891e43b25187faca8002919ccb44d744daa3594"}},{"id":"rom:gyruss/proms/gyrussk.pr1","label":"Rom","props":{"file":"gyrussk.pr1","offset":32,"size":256,"crc":"7ed057de","sha1":"c04069ae1e2c62f9b3048844cd8cf5e1b03b7d3c"}},{"id":"rom:gyruss/proms/gyrussk.pr2","label":"Rom","props":{"file":"gyrussk.pr2","offset":288,"size":256,"crc":"de823a81","sha1":"1af94b2a6a319a89b238a5076a2867f1cfd279b0"}},{"id":"map:gyruss_state.main_cpu1_map","label":"AddressMap","props":{"cls":"gyruss_state","name":"main_cpu1_map"}},{"id":"map:gyruss_state.main_cpu1_map/range0","label":"AddressRange","props":{"start":0,"end":32767,"raw":"map(0x0000, 0x7fff).rom()","rom":true}},{"id":"map:gyruss_state.main_cpu1_map/range1","label":"AddressRange","props":{"start":32768,"end":33791,"raw":"map(0x8000, 0x83ff).ram().share(m_colorram)","ram":true,"share":"colorram"}},{"id":"map:gyruss_state.main_cpu1_map/range2","label":"AddressRange","props":{"start":33792,"end":34815,"raw":"map(0x8400, 0x87ff).ram().share(m_videoram)","ram":true,"share":"videoram"}},{"id":"map:gyruss_state.main_cpu1_map/range3","label":"AddressRange","props":{"start":36864,"end":40959,"raw":"map(0x9000, 0x9fff).ram()","ram":true}},{"id":"map:gyruss_state.main_cpu1_map/range4","label":"AddressRange","props":{"start":40960,"end":43007,"raw":"map(0xa000, 0xa7ff).ram().share(\"main_cpus\")","ram":true,"share":"main_cpus"}},{"id":"map:gyruss_state.main_cpu1_map/range5","label":"AddressRange","props":{"start":49152,"end":49152,"raw":"map(0xc000, 0xc000).portr(\"DSW2\").nopw()","nopw":true,"portRead":"DSW2"}},{"id":"map:gyruss_state.main_cpu1_map/range6","label":"AddressRange","props":{"start":49280,"end":49280,"raw":"map(0xc080, 0xc080).portr(\"SYSTEM\").w(FUNC(gyruss_state::sh_irqtrigger_w))","portRead":"SYSTEM"}},{"id":"handler:gyruss_state.sh_irqtrigger_w","label":"Handler","props":{"method":"sh_irqtrigger_w","ownerClass":"gyruss_state"}},{"id":"map:gyruss_state.main_cpu1_map/range7","label":"AddressRange","props":{"start":49312,"end":49312,"raw":"map(0xc0a0, 0xc0a0).portr(\"P1\")","portRead":"P1"}},{"id":"map:gyruss_state.main_cpu1_map/range8","label":"AddressRange","props":{"start":49344,"end":49344,"raw":"map(0xc0c0, 0xc0c0).portr(\"P2\")","portRead":"P2"}},{"id":"map:gyruss_state.main_cpu1_map/range9","label":"AddressRange","props":{"start":49376,"end":49376,"raw":"map(0xc0e0, 0xc0e0).portr(\"DSW1\")","portRead":"DSW1"}},{"id":"map:gyruss_state.main_cpu1_map/range10","label":"AddressRange","props":{"start":49408,"end":49408,"raw":"map(0xc100, 0xc100).portr(\"DSW3\").w(\"soundlatch\", FUNC(generic_latch_8_device::write))","portRead":"DSW3"}},{"id":"handler:generic_latch_8_device.write","label":"Handler","props":{"method":"write","ownerClass":"generic_latch_8_device"}},{"id":"map:gyruss_state.main_cpu1_map/range11","label":"AddressRange","props":{"start":49536,"end":49543,"raw":"map(0xc180, 0xc187).w(\"mainlatch\", FUNC(ls259_device::write_d0))"}},{"id":"handler:ls259_device.write_d0","label":"Handler","props":{"method":"write_d0","ownerClass":"ls259_device"}},{"id":"map:gyruss_state.main_cpu2_map","label":"AddressMap","props":{"cls":"gyruss_state","name":"main_cpu2_map"}},{"id":"map:gyruss_state.main_cpu2_map/range0","label":"AddressRange","props":{"start":0,"end":0,"raw":"map(0x0000, 0x0000).r(FUNC(gyruss_state::scanline_r))"}},{"id":"handler:gyruss_state.scanline_r","label":"Handler","props":{"method":"scanline_r","ownerClass":"gyruss_state"}},{"id":"map:gyruss_state.main_cpu2_map/range1","label":"AddressRange","props":{"start":8192,"end":8192,"raw":"map(0x2000, 0x2000).w(FUNC(gyruss_state::slave_irq_mask_w)).nopr()","nopr":true}},{"id":"handler:gyruss_state.slave_irq_mask_w","label":"Handler","props":{"method":"slave_irq_mask_w","ownerClass":"gyruss_state"}},{"id":"map:gyruss_state.main_cpu2_map/range2","label":"AddressRange","props":{"start":16384,"end":16447,"raw":"map(0x4000, 0x403f).ram()","ram":true}},{"id":"map:gyruss_state.main_cpu2_map/range3","label":"AddressRange","props":{"start":16448,"end":16639,"raw":"map(0x4040, 0x40ff).ram().w(FUNC(gyruss_state::spriteram_w)).share(m_spriteram)","ram":true,"share":"spriteram"}},{"id":"handler:gyruss_state.spriteram_w","label":"Handler","props":{"method":"spriteram_w","ownerClass":"gyruss_state"}},{"id":"map:gyruss_state.main_cpu2_map/range4","label":"AddressRange","props":{"start":16640,"end":18431,"raw":"map(0x4100, 0x47ff).ram()","ram":true}},{"id":"map:gyruss_state.main_cpu2_map/range5","label":"AddressRange","props":{"start":24576,"end":26623,"raw":"map(0x6000, 0x67ff).ram().share(\"main_cpus\")","ram":true,"share":"main_cpus"}},{"id":"map:gyruss_state.main_cpu2_map/range6","label":"AddressRange","props":{"start":57344,"end":65535,"raw":"map(0xe000, 0xffff).rom()","rom":true}},{"id":"map:gyruss_state.audio_cpu1_map","label":"AddressMap","props":{"cls":"gyruss_state","name":"audio_cpu1_map"}},{"id":"map:gyruss_state.audio_cpu1_map/range0","label":"AddressRange","props":{"start":0,"end":24575,"raw":"map(0x0000, 0x5fff).rom()","rom":true}},{"id":"map:gyruss_state.audio_cpu1_map/range1","label":"AddressRange","props":{"start":24576,"end":25599,"raw":"map(0x6000, 0x63ff).ram()","ram":true}},{"id":"map:gyruss_state.audio_cpu1_map/range2","label":"AddressRange","props":{"start":32768,"end":32768,"raw":"map(0x8000, 0x8000).r(\"soundlatch\", FUNC(generic_latch_8_device::read))"}},{"id":"handler:generic_latch_8_device.read","label":"Handler","props":{"method":"read","ownerClass":"generic_latch_8_device"}},{"id":"map:gyruss_state.audio_cpu1_io_map","label":"AddressMap","props":{"cls":"gyruss_state","name":"audio_cpu1_io_map","globalMask":255}},{"id":"map:gyruss_state.audio_cpu1_io_map/range0","label":"AddressRange","props":{"start":0,"end":0,"raw":"map(0x00, 0x00).w(\"ay1\", FUNC(ay8910_device::address_w))"}},{"id":"handler:ay8910_device.address_w","label":"Handler","props":{"method":"address_w","ownerClass":"ay8910_device"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range1","label":"AddressRange","props":{"start":1,"end":1,"raw":"map(0x01, 0x01).r(\"ay1\", FUNC(ay8910_device::data_r))"}},{"id":"handler:ay8910_device.data_r","label":"Handler","props":{"method":"data_r","ownerClass":"ay8910_device"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range2","label":"AddressRange","props":{"start":2,"end":2,"raw":"map(0x02, 0x02).w(\"ay1\", FUNC(ay8910_device::data_w))"}},{"id":"handler:ay8910_device.data_w","label":"Handler","props":{"method":"data_w","ownerClass":"ay8910_device"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range3","label":"AddressRange","props":{"start":4,"end":4,"raw":"map(0x04, 0x04).w(\"ay2\", FUNC(ay8910_device::address_w))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range4","label":"AddressRange","props":{"start":5,"end":5,"raw":"map(0x05, 0x05).r(\"ay2\", FUNC(ay8910_device::data_r))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range5","label":"AddressRange","props":{"start":6,"end":6,"raw":"map(0x06, 0x06).w(\"ay2\", FUNC(ay8910_device::data_w))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range6","label":"AddressRange","props":{"start":8,"end":8,"raw":"map(0x08, 0x08).w(\"ay3\", FUNC(ay8910_device::address_w))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range7","label":"AddressRange","props":{"start":9,"end":9,"raw":"map(0x09, 0x09).r(\"ay3\", FUNC(ay8910_device::data_r))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range8","label":"AddressRange","props":{"start":10,"end":10,"raw":"map(0x0a, 0x0a).w(\"ay3\", FUNC(ay8910_device::data_w))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range9","label":"AddressRange","props":{"start":12,"end":12,"raw":"map(0x0c, 0x0c).w(\"ay4\", FUNC(ay8910_device::address_w))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range10","label":"AddressRange","props":{"start":13,"end":13,"raw":"map(0x0d, 0x0d).r(\"ay4\", FUNC(ay8910_device::data_r))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range11","label":"AddressRange","props":{"start":14,"end":14,"raw":"map(0x0e, 0x0e).w(\"ay4\", FUNC(ay8910_device::data_w))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range12","label":"AddressRange","props":{"start":16,"end":16,"raw":"map(0x10, 0x10).w(\"ay5\", FUNC(ay8910_device::address_w))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range13","label":"AddressRange","props":{"start":17,"end":17,"raw":"map(0x11, 0x11).r(\"ay5\", FUNC(ay8910_device::data_r))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range14","label":"AddressRange","props":{"start":18,"end":18,"raw":"map(0x12, 0x12).w(\"ay5\", FUNC(ay8910_device::data_w))"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range15","label":"AddressRange","props":{"start":20,"end":20,"raw":"map(0x14, 0x14).w(FUNC(gyruss_state::i8039_irq_w))"}},{"id":"handler:gyruss_state.i8039_irq_w","label":"Handler","props":{"method":"i8039_irq_w","ownerClass":"gyruss_state"}},{"id":"map:gyruss_state.audio_cpu1_io_map/range16","label":"AddressRange","props":{"start":24,"end":24,"raw":"map(0x18, 0x18).w(\"soundlatch2\", FUNC(generic_latch_8_device::write))"}},{"id":"map:gyruss_state.audio_cpu2_map","label":"AddressMap","props":{"cls":"gyruss_state","name":"audio_cpu2_map"}},{"id":"map:gyruss_state.audio_cpu2_map/range0","label":"AddressRange","props":{"start":0,"end":4095,"raw":"map(0x0000, 0x0fff).rom()","rom":true}},{"id":"map:gyruss_state.audio_cpu2_io_map","label":"AddressMap","props":{"cls":"gyruss_state","name":"audio_cpu2_io_map"}},{"id":"map:gyruss_state.audio_cpu2_io_map/range0","label":"AddressRange","props":{"start":0,"end":255,"raw":"map(0x00, 0xff).r(\"soundlatch2\", FUNC(generic_latch_8_device::read))"}},{"id":"machine:gyruss_state.gyruss","label":"MachineConfig","props":{"cls":"gyruss_state","name":"gyruss","calls":[]}},{"id":"device:gyruss_state.gyruss/maincpu","label":"Device","props":{"type":"Z80","tag":"maincpu","clock":3072000,"config":["Z80(config, m_maincpu, MASTER_CLOCK / 6)","m_maincpu->set_addrmap(AS_PROGRAM, &gyruss_state::main_cpu1_map)"]}},{"id":"device:gyruss_state.gyruss/sub","label":"Device","props":{"type":"KONAMI1","tag":"sub","clock":1536000,"config":["KONAMI1(config, m_subcpu, MASTER_CLOCK / 12)","m_subcpu->set_addrmap(AS_PROGRAM, &gyruss_state::main_cpu2_map)"]}},{"id":"device:gyruss_state.gyruss/audiocpu","label":"Device","props":{"type":"Z80","tag":"audiocpu","clock":3579545.25,"config":["Z80(config, m_audiocpu, SOUND_CLOCK / 4)","m_audiocpu->set_addrmap(AS_PROGRAM, &gyruss_state::audio_cpu1_map)","m_audiocpu->set_addrmap(AS_IO, &gyruss_state::audio_cpu1_io_map)"]}},{"id":"device:gyruss_state.gyruss/audio2","label":"Device","props":{"type":"I8039","tag":"audio2","clock":8000000,"config":["I8039(config, m_audiocpu_2, XTAL(8'000'000))","m_audiocpu_2->set_addrmap(AS_PROGRAM, &gyruss_state::audio_cpu2_map)","m_audiocpu_2->set_addrmap(AS_IO, &gyruss_state::audio_cpu2_io_map)","m_audiocpu_2->p1_out_cb().set(FUNC(gyruss_state::dac_w))","m_audiocpu_2->p2_out_cb().set(FUNC(gyruss_state::irq_clear_w))"]}},{"id":"device:gyruss_state.gyruss/mainlatch","label":"Device","props":{"type":"LS259","tag":"mainlatch","clock":null,"config":["ls259_device &mainlatch(LS259(config, \"mainlatch\"))","mainlatch.q_out_cb\u003c0>().set(FUNC(gyruss_state::master_nmi_mask_w))","mainlatch.q_out_cb\u003c2>().set(FUNC(gyruss_state::coin_counter_w\u003c0>))","mainlatch.q_out_cb\u003c3>().set(FUNC(gyruss_state::coin_counter_w\u003c1>))","mainlatch.q_out_cb\u003c5>().set(FUNC(gyruss_state::flipscreen_w))"]}},{"id":"device:gyruss_state.gyruss/screen","label":"Device","props":{"type":"SCREEN","tag":"screen","clock":null,"config":["SCREEN(config, m_screen, SCREEN_TYPE_RASTER)","m_screen->set_raw(PIXEL_CLOCK, HTOTAL, HBEND, HBSTART, VTOTAL, VBEND, VBSTART)","m_screen->set_screen_update(FUNC(gyruss_state::screen_update))","m_screen->set_palette(m_palette)","m_screen->screen_vblank().set(FUNC(gyruss_state::vblank_irq))"],"clockExpr":"SCREEN_TYPE_RASTER","screenRaw":[6144000,396,0,256,256,16,240]}},{"id":"device:gyruss_state.gyruss/gfxdecode","label":"Device","props":{"type":"GFXDECODE","tag":"gfxdecode","clock":null,"config":["GFXDECODE(config, m_gfxdecode, m_palette, gfx_gyruss)"],"clockExpr":"m_palette, gfx_gyruss"}},{"id":"device:gyruss_state.gyruss/palette","label":"Device","props":{"type":"PALETTE","tag":"palette","clock":null,"config":["PALETTE(config, m_palette, FUNC(gyruss_state::palette), 16*4+16*16, 32)"],"clockExpr":"FUNC(gyruss_state::palette), 16*4+16*16, 32"}},{"id":"device:gyruss_state.gyruss/speaker","label":"Device","props":{"type":"SPEAKER","tag":"speaker","clock":2,"config":["SPEAKER(config, \"speaker\", 2).front()"]}},{"id":"device:gyruss_state.gyruss/soundlatch","label":"Device","props":{"type":"GENERIC_LATCH_8","tag":"soundlatch","clock":null,"config":["GENERIC_LATCH_8(config, \"soundlatch\")"]}},{"id":"device:gyruss_state.gyruss/soundlatch2","label":"Device","props":{"type":"GENERIC_LATCH_8","tag":"soundlatch2","clock":null,"config":["GENERIC_LATCH_8(config, \"soundlatch2\")"]}},{"id":"device:gyruss_state.gyruss/ay1","label":"Device","props":{"type":"AY8910","tag":"ay1","clock":1789772.625,"config":["ay8910_device &ay1(AY8910(config, \"ay1\", SOUND_CLOCK / 8))","ay1.set_flags(AY8910_DISCRETE_OUTPUT)","ay1.set_resistors_load(RES_K(3.3), RES_K(3.3), RES_K(3.3))","ay1.port_b_write_callback().set(FUNC(gyruss_state::filter_w\u003c0>))","ay1.add_route(0, \"discrete\", 1.0, 0)","ay1.add_route(1, \"discrete\", 1.0, 1)","ay1.add_route(2, \"discrete\", 1.0, 2)"]}},{"id":"device:gyruss_state.gyruss/ay2","label":"Device","props":{"type":"AY8910","tag":"ay2","clock":1789772.625,"config":["ay8910_device &ay2(AY8910(config, \"ay2\", SOUND_CLOCK / 8))","ay2.set_flags(AY8910_DISCRETE_OUTPUT)","ay2.set_resistors_load(RES_K(3.3), RES_K(3.3), RES_K(3.3))","ay2.port_b_write_callback().set(FUNC(gyruss_state::filter_w\u003c1>))","ay2.add_route(0, \"discrete\", 1.0, 3)","ay2.add_route(1, \"discrete\", 1.0, 4)","ay2.add_route(2, \"discrete\", 1.0, 5)"]}},{"id":"device:gyruss_state.gyruss/ay3","label":"Device","props":{"type":"AY8910","tag":"ay3","clock":1789772.625,"config":["ay8910_device &ay3(AY8910(config, \"ay3\", SOUND_CLOCK / 8))","ay3.set_flags(AY8910_DISCRETE_OUTPUT)","ay3.set_resistors_load(RES_K(3.3), RES_K(3.3), RES_K(3.3))","ay3.port_a_read_callback().set(FUNC(gyruss_state::porta_r))","ay3.add_route(0, \"discrete\", 1.0, 6)","ay3.add_route(1, \"discrete\", 1.0, 7)","ay3.add_route(2, \"discrete\", 1.0, 8)"]}},{"id":"device:gyruss_state.gyruss/ay4","label":"Device","props":{"type":"AY8910","tag":"ay4","clock":1789772.625,"config":["ay8910_device &ay4(AY8910(config, \"ay4\", SOUND_CLOCK / 8))","ay4.set_flags(AY8910_DISCRETE_OUTPUT)","ay4.set_resistors_load(RES_K(3.3), RES_K(3.3), RES_K(3.3))","ay4.add_route(0, \"discrete\", 1.0, 9)","ay4.add_route(1, \"discrete\", 1.0, 10)","ay4.add_route(2, \"discrete\", 1.0, 11)"]}},{"id":"device:gyruss_state.gyruss/ay5","label":"Device","props":{"type":"AY8910","tag":"ay5","clock":1789772.625,"config":["ay8910_device &ay5(AY8910(config, \"ay5\", SOUND_CLOCK / 8))","ay5.set_flags(AY8910_DISCRETE_OUTPUT)","ay5.set_resistors_load(RES_K(3.3), RES_K(3.3), RES_K(3.3))","ay5.add_route(0, \"discrete\", 1.0, 12)","ay5.add_route(1, \"discrete\", 1.0, 13)","ay5.add_route(2, \"discrete\", 1.0, 14)"]}},{"id":"device:gyruss_state.gyruss/discrete","label":"Device","props":{"type":"DISCRETE","tag":"discrete","clock":null,"config":["DISCRETE(config, m_discrete, sound_discrete)","m_discrete->add_route(0, \"speaker\", 1.0, 1)","m_discrete->add_route(1, \"speaker\", 1.0, 0)"],"clockExpr":"sound_discrete"}},{"id":"inputs:gyruss","label":"InputPorts","props":{"name":"gyruss"}},{"id":"inputs:gyruss/SYSTEM","label":"Port","props":{"tag":"SYSTEM","modify":false}},{"id":"inputs:gyruss/SYSTEM/f0","label":"PortField","props":{"kind":"bit","mask":1,"activeLow":true,"type":"IPT_COIN1"}},{"id":"inputs:gyruss/SYSTEM/f1","label":"PortField","props":{"kind":"bit","mask":2,"activeLow":true,"type":"IPT_COIN2"}},{"id":"inputs:gyruss/SYSTEM/f2","label":"PortField","props":{"kind":"bit","mask":4,"activeLow":true,"type":"IPT_SERVICE1"}},{"id":"inputs:gyruss/SYSTEM/f3","label":"PortField","props":{"kind":"bit","mask":8,"activeLow":true,"type":"IPT_START1"}},{"id":"inputs:gyruss/SYSTEM/f4","label":"PortField","props":{"kind":"bit","mask":16,"activeLow":true,"type":"IPT_START2"}},{"id":"inputs:gyruss/SYSTEM/f5","label":"PortField","props":{"kind":"bit","mask":224,"activeLow":true,"type":"IPT_UNUSED"}},{"id":"inputs:gyruss/P1","label":"Port","props":{"tag":"P1","modify":false}},{"id":"inputs:gyruss/P1/f0","label":"PortField","props":{"kind":"bit","mask":1,"activeLow":true,"type":"IPT_JOYSTICK_LEFT"}},{"id":"inputs:gyruss/P1/f1","label":"PortField","props":{"kind":"bit","mask":2,"activeLow":true,"type":"IPT_JOYSTICK_RIGHT"}},{"id":"inputs:gyruss/P1/f2","label":"PortField","props":{"kind":"bit","mask":4,"activeLow":true,"type":"IPT_JOYSTICK_UP"}},{"id":"inputs:gyruss/P1/f3","label":"PortField","props":{"kind":"bit","mask":8,"activeLow":true,"type":"IPT_JOYSTICK_DOWN"}},{"id":"inputs:gyruss/P1/f4","label":"PortField","props":{"kind":"bit","mask":16,"activeLow":true,"type":"IPT_BUTTON1"}},{"id":"inputs:gyruss/P1/f5","label":"PortField","props":{"kind":"bit","mask":32,"activeLow":true,"type":"IPT_UNKNOWN"}},{"id":"inputs:gyruss/P1/f6","label":"PortField","props":{"kind":"bit","mask":64,"activeLow":true,"type":"IPT_UNUSED"}},{"id":"inputs:gyruss/P1/f7","label":"PortField","props":{"kind":"bit","mask":128,"activeLow":true,"type":"IPT_UNUSED"}},{"id":"inputs:gyruss/P2","label":"Port","props":{"tag":"P2","modify":false}},{"id":"inputs:gyruss/P2/f0","label":"PortField","props":{"kind":"bit","mask":1,"activeLow":true,"type":"IPT_JOYSTICK_LEFT","modifiers":["PORT_COCKTAIL"]}},{"id":"inputs:gyruss/P2/f1","label":"PortField","props":{"kind":"bit","mask":2,"activeLow":true,"type":"IPT_JOYSTICK_RIGHT","modifiers":["PORT_COCKTAIL"]}},{"id":"inputs:gyruss/P2/f2","label":"PortField","props":{"kind":"bit","mask":4,"activeLow":true,"type":"IPT_JOYSTICK_UP","modifiers":["PORT_COCKTAIL"]}},{"id":"inputs:gyruss/P2/f3","label":"PortField","props":{"kind":"bit","mask":8,"activeLow":true,"type":"IPT_JOYSTICK_DOWN","modifiers":["PORT_COCKTAIL"]}},{"id":"inputs:gyruss/P2/f4","label":"PortField","props":{"kind":"bit","mask":16,"activeLow":true,"type":"IPT_BUTTON1","modifiers":["PORT_COCKTAIL"]}},{"id":"inputs:gyruss/P2/f5","label":"PortField","props":{"kind":"bit","mask":32,"activeLow":true,"type":"IPT_UNKNOWN"}},{"id":"inputs:gyruss/P2/f6","label":"PortField","props":{"kind":"bit","mask":64,"activeLow":true,"type":"IPT_UNUSED"}},{"id":"inputs:gyruss/P2/f7","label":"PortField","props":{"kind":"bit","mask":128,"activeLow":true,"type":"IPT_UNUSED"}},{"id":"inputs:gyruss/DSW1","label":"Port","props":{"tag":"DSW1","modify":false}},{"id":"inputs:gyruss/DSW1/f0","label":"PortField","props":{"kind":"dip","mask":15,"name":"Coin A","defaultValue":15,"location":"#SW1\":1,2,3,4\"","settings":["2=4C 1C","5=3C 1C","8=2C 1C","4=3C 2C","1=4C 3C","15=1C 1C","3=3C 4C","7=2C 3C","14=1C 2C","6=2C 5C","13=1C 3C","12=1C 4C","11=1C 5C","10=1C 6C","9=1C 7C","0=Free Play"]}},{"id":"inputs:gyruss/DSW1/f1","label":"PortField","props":{"kind":"dip","mask":240,"name":"Coin B","defaultValue":240,"location":"#SW1\":5,6,7,8\"","settings":["32=4C 1C","80=3C 1C","128=2C 1C","64=3C 2C","16=4C 3C","240=1C 1C","48=3C 4C","112=2C 3C","224=1C 2C","96=2C 5C","208=1C 3C","192=1C 4C","176=1C 5C","160=1C 6C","144=1C 7C","0=Free Play"]}},{"id":"inputs:gyruss/DSW2","label":"Port","props":{"tag":"DSW2","modify":false}},{"id":"inputs:gyruss/DSW2/f0","label":"PortField","props":{"kind":"dip","mask":3,"name":"Lives","defaultValue":3,"location":"SW2:1,2","settings":["3=3","2=4","1=5","0=255 (Cheat)"]}},{"id":"inputs:gyruss/DSW2/f1","label":"PortField","props":{"kind":"dip","mask":4,"name":"Cabinet","defaultValue":0,"location":"SW2:3","settings":["0=Upright","4=Cocktail"]}},{"id":"inputs:gyruss/DSW2/f2","label":"PortField","props":{"kind":"dip","mask":8,"name":"Bonus Life","defaultValue":8,"location":"SW2:4","settings":["8=30k 90k 60k+","0=40k 110k 70k+"]}},{"id":"inputs:gyruss/DSW2/f3","label":"PortField","props":{"kind":"dip","mask":112,"name":"Difficulty","defaultValue":48,"location":"SW2:5,6,7","settings":["112=1 (Easiest)","96=2","80=3","64=4","48=5 (Average)","32=6","16=7","0=8 (Hardest)"]}},{"id":"inputs:gyruss/DSW2/f4","label":"PortField","props":{"kind":"dip","mask":128,"name":"Demo Sounds","defaultValue":0,"location":"SW2:8","settings":["128=Off","0=On"]}},{"id":"inputs:gyruss/DSW3","label":"Port","props":{"tag":"DSW3","modify":false}},{"id":"inputs:gyruss/DSW3/f0","label":"PortField","props":{"kind":"dip","mask":1,"name":"Demo Music","defaultValue":0,"location":"SW3:1","settings":["1=Off","0=On"]}},{"id":"inputs:gyruss/DSW3/f1","label":"PortField","props":{"kind":"dip","mask":254,"name":"Unused"}},{"id":"gfxlayout:charlayout","label":"GfxLayout","props":{"name":"charlayout","width":8,"height":8,"total":512,"planes":2,"planeOffsets":[4,0],"xOffsets":[0,1,2,3,64,65,66,67],"yOffsets":[0,8,16,24,32,40,48,56],"charIncrement":128}},{"id":"gfxlayout:spritelayout","label":"GfxLayout","props":{"name":"spritelayout","width":8,"height":16,"total":256,"planes":4,"planeOffsets":[131076,131072,4,0],"xOffsets":[0,1,2,3,64,65,66,67],"yOffsets":[0,8,16,24,32,40,48,56,256,264,272,280,288,296,304,312],"charIncrement":512}},{"id":"gfxdecode:gfx_gyruss","label":"GfxDecode","props":{"name":"gfx_gyruss"}},{"id":"gfxdecode:gfx_gyruss/e0","label":"GfxDecodeEntry","props":{"region":"sprites","offset":0,"layout":"spritelayout","colorBase":0,"colorCount":16,"xscale":1,"yscale":1}},{"id":"gfxdecode:gfx_gyruss/e1","label":"GfxDecodeEntry","props":{"region":"sprites","offset":16,"layout":"spritelayout","colorBase":0,"colorCount":16,"xscale":1,"yscale":1}},{"id":"gfxdecode:gfx_gyruss/e2","label":"GfxDecodeEntry","props":{"region":"tiles","offset":0,"layout":"charlayout","colorBase":256,"colorCount":16,"xscale":1,"yscale":1}}],"edges":[{"from":"game:gyruss","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"game:gyruss","to":"machine:gyruss_state.gyruss","rel":"USES_MACHINE","props":null},{"from":"game:gyruss","to":"inputs:gyruss","rel":"USES_INPUTS","props":null},{"from":"game:gyruss","to":"romset:gyruss","rel":"USES_ROMSET","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:emu.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:konami1.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:konamipt.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:cpu/m6809/m6809.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:cpu/mcs48/mcs48.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:cpu/z80/z80.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:machine/74259.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:machine/gen_latch.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:sound/ay8910.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:sound/discrete.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:video/resnet.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:emupal.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:screen.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:speaker.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:tilemap.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/konami/gyruss.cpp","to":"file:logmacro.h","rel":"INCLUDES","props":null},{"from":"machine:gyruss_state.gyruss","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/maincpu","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/sub","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/audiocpu","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/audio2","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/mainlatch","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/screen","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/gfxdecode","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"gfxdecode:gfx_gyruss","rel":"DECODES","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/palette","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/speaker","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/soundlatch","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/soundlatch2","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/ay1","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/ay2","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/ay3","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/ay4","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/ay5","rel":"HAS_DEVICE","props":null},{"from":"machine:gyruss_state.gyruss","to":"device:gyruss_state.gyruss/discrete","rel":"HAS_DEVICE","props":null},{"from":"inputs:gyruss","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"inputs:gyruss","to":"inputs:gyruss/SYSTEM","rel":"HAS_PORT","props":null},{"from":"inputs:gyruss","to":"inputs:gyruss/P1","rel":"HAS_PORT","props":null},{"from":"inputs:gyruss","to":"inputs:gyruss/P2","rel":"HAS_PORT","props":null},{"from":"inputs:gyruss","to":"inputs:gyruss/DSW1","rel":"HAS_PORT","props":null},{"from":"inputs:gyruss","to":"inputs:gyruss/DSW2","rel":"HAS_PORT","props":null},{"from":"inputs:gyruss","to":"inputs:gyruss/DSW3","rel":"HAS_PORT","props":null},{"from":"romset:gyruss","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"romset:gyruss","to":"region:gyruss/maincpu","rel":"HAS_REGION","props":null},{"from":"romset:gyruss","to":"region:gyruss/sub","rel":"HAS_REGION","props":null},{"from":"romset:gyruss","to":"region:gyruss/audiocpu","rel":"HAS_REGION","props":null},{"from":"romset:gyruss","to":"region:gyruss/audio2","rel":"HAS_REGION","props":null},{"from":"romset:gyruss","to":"region:gyruss/sprites","rel":"HAS_REGION","props":null},{"from":"romset:gyruss","to":"region:gyruss/tiles","rel":"HAS_REGION","props":null},{"from":"romset:gyruss","to":"region:gyruss/proms","rel":"HAS_REGION","props":null},{"from":"device:gyruss_state.gyruss/maincpu","to":"map:gyruss_state.main_cpu1_map","rel":"HAS_MAP","props":{"space":"AS_PROGRAM"}},{"from":"device:gyruss_state.gyruss/sub","to":"map:gyruss_state.main_cpu2_map","rel":"HAS_MAP","props":{"space":"AS_PROGRAM"}},{"from":"device:gyruss_state.gyruss/audiocpu","to":"map:gyruss_state.audio_cpu1_map","rel":"HAS_MAP","props":{"space":"AS_PROGRAM"}},{"from":"device:gyruss_state.gyruss/audiocpu","to":"map:gyruss_state.audio_cpu1_io_map","rel":"HAS_MAP","props":{"space":"AS_IO"}},{"from":"device:gyruss_state.gyruss/audio2","to":"map:gyruss_state.audio_cpu2_map","rel":"HAS_MAP","props":{"space":"AS_PROGRAM"}},{"from":"device:gyruss_state.gyruss/audio2","to":"map:gyruss_state.audio_cpu2_io_map","rel":"HAS_MAP","props":{"space":"AS_IO"}},{"from":"gfxdecode:gfx_gyruss","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"gfxdecode:gfx_gyruss","to":"gfxdecode:gfx_gyruss/e0","rel":"HAS_ENTRY","props":null},{"from":"gfxdecode:gfx_gyruss","to":"gfxdecode:gfx_gyruss/e1","rel":"HAS_ENTRY","props":null},{"from":"gfxdecode:gfx_gyruss","to":"gfxdecode:gfx_gyruss/e2","rel":"HAS_ENTRY","props":null},{"from":"inputs:gyruss/SYSTEM","to":"inputs:gyruss/SYSTEM/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/SYSTEM","to":"inputs:gyruss/SYSTEM/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/SYSTEM","to":"inputs:gyruss/SYSTEM/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/SYSTEM","to":"inputs:gyruss/SYSTEM/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/SYSTEM","to":"inputs:gyruss/SYSTEM/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/SYSTEM","to":"inputs:gyruss/SYSTEM/f5","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P1","to":"inputs:gyruss/P1/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P1","to":"inputs:gyruss/P1/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P1","to":"inputs:gyruss/P1/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P1","to":"inputs:gyruss/P1/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P1","to":"inputs:gyruss/P1/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P1","to":"inputs:gyruss/P1/f5","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P1","to":"inputs:gyruss/P1/f6","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P1","to":"inputs:gyruss/P1/f7","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P2","to":"inputs:gyruss/P2/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P2","to":"inputs:gyruss/P2/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P2","to":"inputs:gyruss/P2/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P2","to":"inputs:gyruss/P2/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P2","to":"inputs:gyruss/P2/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P2","to":"inputs:gyruss/P2/f5","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P2","to":"inputs:gyruss/P2/f6","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/P2","to":"inputs:gyruss/P2/f7","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/DSW1","to":"inputs:gyruss/DSW1/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/DSW1","to":"inputs:gyruss/DSW1/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/DSW2","to":"inputs:gyruss/DSW2/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/DSW2","to":"inputs:gyruss/DSW2/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/DSW2","to":"inputs:gyruss/DSW2/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/DSW2","to":"inputs:gyruss/DSW2/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/DSW2","to":"inputs:gyruss/DSW2/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/DSW3","to":"inputs:gyruss/DSW3/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:gyruss/DSW3","to":"inputs:gyruss/DSW3/f1","rel":"HAS_FIELD","props":null},{"from":"region:gyruss/maincpu","to":"rom:gyruss/maincpu/gyrussk.1","rel":"LOADS","props":null},{"from":"region:gyruss/maincpu","to":"rom:gyruss/maincpu/gyrussk.2","rel":"LOADS","props":null},{"from":"region:gyruss/maincpu","to":"rom:gyruss/maincpu/gyrussk.3","rel":"LOADS","props":null},{"from":"region:gyruss/maincpu","to":"rom:gyruss/maincpu/gyrussk.4","rel":"LOADS","props":null},{"from":"region:gyruss/sub","to":"rom:gyruss/sub/gyrussk.9","rel":"LOADS","props":null},{"from":"region:gyruss/audiocpu","to":"rom:gyruss/audiocpu/gyrussk.1a","rel":"LOADS","props":null},{"from":"region:gyruss/audiocpu","to":"rom:gyruss/audiocpu/gyrussk.2a","rel":"LOADS","props":null},{"from":"region:gyruss/audio2","to":"rom:gyruss/audio2/gyrussk.3a","rel":"LOADS","props":null},{"from":"region:gyruss/sprites","to":"rom:gyruss/sprites/gyrussk.6","rel":"LOADS","props":null},{"from":"region:gyruss/sprites","to":"rom:gyruss/sprites/gyrussk.5","rel":"LOADS","props":null},{"from":"region:gyruss/sprites","to":"rom:gyruss/sprites/gyrussk.8","rel":"LOADS","props":null},{"from":"region:gyruss/sprites","to":"rom:gyruss/sprites/gyrussk.7","rel":"LOADS","props":null},{"from":"region:gyruss/tiles","to":"rom:gyruss/tiles/gyrussk.4","rel":"LOADS","props":null},{"from":"region:gyruss/proms","to":"rom:gyruss/proms/gyrussk.pr3","rel":"LOADS","props":null},{"from":"region:gyruss/proms","to":"rom:gyruss/proms/gyrussk.pr1","rel":"LOADS","props":null},{"from":"region:gyruss/proms","to":"rom:gyruss/proms/gyrussk.pr2","rel":"LOADS","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range0","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range1","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range2","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range3","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range4","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range5","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range6","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range7","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range8","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range9","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range10","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu1_map","to":"map:gyruss_state.main_cpu1_map/range11","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu2_map","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"map:gyruss_state.main_cpu2_map","to":"map:gyruss_state.main_cpu2_map/range0","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu2_map","to":"map:gyruss_state.main_cpu2_map/range1","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu2_map","to":"map:gyruss_state.main_cpu2_map/range2","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu2_map","to":"map:gyruss_state.main_cpu2_map/range3","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu2_map","to":"map:gyruss_state.main_cpu2_map/range4","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu2_map","to":"map:gyruss_state.main_cpu2_map/range5","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.main_cpu2_map","to":"map:gyruss_state.main_cpu2_map/range6","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_map","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"map:gyruss_state.audio_cpu1_map","to":"map:gyruss_state.audio_cpu1_map/range0","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_map","to":"map:gyruss_state.audio_cpu1_map/range1","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_map","to":"map:gyruss_state.audio_cpu1_map/range2","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range0","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range1","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range2","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range3","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range4","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range5","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range6","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range7","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range8","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range9","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range10","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range11","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range12","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range13","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range14","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range15","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map","to":"map:gyruss_state.audio_cpu1_io_map/range16","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu2_map","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"map:gyruss_state.audio_cpu2_map","to":"map:gyruss_state.audio_cpu2_map/range0","rel":"HAS_RANGE","props":null},{"from":"map:gyruss_state.audio_cpu2_io_map","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"map:gyruss_state.audio_cpu2_io_map","to":"map:gyruss_state.audio_cpu2_io_map/range0","rel":"HAS_RANGE","props":null},{"from":"gfxdecode:gfx_gyruss/e0","to":"gfxlayout:spritelayout","rel":"USES_LAYOUT","props":null},{"from":"gfxdecode:gfx_gyruss/e1","to":"gfxlayout:spritelayout","rel":"USES_LAYOUT","props":null},{"from":"gfxdecode:gfx_gyruss/e2","to":"gfxlayout:charlayout","rel":"USES_LAYOUT","props":null},{"from":"map:gyruss_state.main_cpu1_map/range6","to":"handler:gyruss_state.sh_irqtrigger_w","rel":"WRITES","props":null},{"from":"map:gyruss_state.main_cpu1_map/range10","to":"handler:generic_latch_8_device.write","rel":"WRITES","props":{"deviceTag":"soundlatch"}},{"from":"map:gyruss_state.main_cpu1_map/range11","to":"handler:ls259_device.write_d0","rel":"WRITES","props":{"deviceTag":"mainlatch"}},{"from":"map:gyruss_state.main_cpu2_map/range0","to":"handler:gyruss_state.scanline_r","rel":"READS","props":null},{"from":"map:gyruss_state.main_cpu2_map/range1","to":"handler:gyruss_state.slave_irq_mask_w","rel":"WRITES","props":null},{"from":"map:gyruss_state.main_cpu2_map/range3","to":"handler:gyruss_state.spriteram_w","rel":"WRITES","props":null},{"from":"map:gyruss_state.audio_cpu1_map/range2","to":"handler:generic_latch_8_device.read","rel":"READS","props":{"deviceTag":"soundlatch"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range0","to":"handler:ay8910_device.address_w","rel":"WRITES","props":{"deviceTag":"ay1"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range1","to":"handler:ay8910_device.data_r","rel":"READS","props":{"deviceTag":"ay1"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range2","to":"handler:ay8910_device.data_w","rel":"WRITES","props":{"deviceTag":"ay1"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range3","to":"handler:ay8910_device.address_w","rel":"WRITES","props":{"deviceTag":"ay2"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range4","to":"handler:ay8910_device.data_r","rel":"READS","props":{"deviceTag":"ay2"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range5","to":"handler:ay8910_device.data_w","rel":"WRITES","props":{"deviceTag":"ay2"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range6","to":"handler:ay8910_device.address_w","rel":"WRITES","props":{"deviceTag":"ay3"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range7","to":"handler:ay8910_device.data_r","rel":"READS","props":{"deviceTag":"ay3"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range8","to":"handler:ay8910_device.data_w","rel":"WRITES","props":{"deviceTag":"ay3"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range9","to":"handler:ay8910_device.address_w","rel":"WRITES","props":{"deviceTag":"ay4"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range10","to":"handler:ay8910_device.data_r","rel":"READS","props":{"deviceTag":"ay4"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range11","to":"handler:ay8910_device.data_w","rel":"WRITES","props":{"deviceTag":"ay4"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range12","to":"handler:ay8910_device.address_w","rel":"WRITES","props":{"deviceTag":"ay5"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range13","to":"handler:ay8910_device.data_r","rel":"READS","props":{"deviceTag":"ay5"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range14","to":"handler:ay8910_device.data_w","rel":"WRITES","props":{"deviceTag":"ay5"}},{"from":"map:gyruss_state.audio_cpu1_io_map/range15","to":"handler:gyruss_state.i8039_irq_w","rel":"WRITES","props":null},{"from":"map:gyruss_state.audio_cpu1_io_map/range16","to":"handler:generic_latch_8_device.write","rel":"WRITES","props":{"deviceTag":"soundlatch2"}},{"from":"map:gyruss_state.audio_cpu2_io_map/range0","to":"handler:generic_latch_8_device.read","rel":"READS","props":{"deviceTag":"soundlatch2"}},{"from":"gfxlayout:spritelayout","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null},{"from":"gfxlayout:charlayout","to":"file:src/mame/konami/gyruss.cpp","rel":"DEFINED_IN","props":null}]}</script>
+<script>
+'use strict';
+const GRAPH = JSON.parse(document.getElementById('graph-data').textContent);
+const FAMILY = {"Game":0,"MachineConfig":1,"Device":1,"AddressMap":2,"AddressRange":2,"Handler":2,"RomSet":3,"RomRegion":3,"Rom":3,"InputPorts":4,"Port":4,"PortField":4,"GfxDecode":5,"GfxDecodeEntry":5,"GfxLayout":5,"SourceFile":6};
+const FAMILY_NAMES = ["Game","Machine","Memory map","ROMs","Inputs","Graphics","Source files"];
+const LIGHT = ["#2a78d6","#1baf7a","#eda100","#008300","#4a3aa7","#e34948","#e87ba4"], DARK = ["#3987e5","#199e70","#c98500","#008300","#9085e9","#e66767","#d55181"];
+const darkMq = matchMedia('(prefers-color-scheme: dark)');
+const palette = () => darkMq.matches ? DARK : LIGHT;
+const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+// --- graph model -----------------------------------------------------------
+const nodes = GRAPH.nodes.map(n => ({
+  ...n, fam: FAMILY[n.label] ?? 6,
+  x: 0, y: 0, vx: 0, vy: 0, deg: 0, r: 5, fixed: false,
+}));
+const byId = new Map(nodes.map(n => [n.id, n]));
+const edges = GRAPH.edges.filter(e => byId.has(e.from) && byId.has(e.to))
+  .map(e => ({ ...e, a: byId.get(e.from), b: byId.get(e.to) }));
+for (const e of edges) { e.a.deg++; e.b.deg++; }
+for (const n of nodes) n.r = 4 + Math.min(10, Math.sqrt(n.deg) * 2.1);
+const adj = new Map(nodes.map(n => [n, []]));
+for (const e of edges) { adj.get(e.a).push(e); adj.get(e.b).push(e); }
+
+// deterministic initial placement: ring per family
+nodes.forEach((n, i) => {
+  const golden = i * 2.39996 + n.fam;
+  const rad = 120 + 240 * ((i * 0.618) % 1);
+  n.x = Math.cos(golden) * rad; n.y = Math.sin(golden) * rad;
+});
+
+// --- state -----------------------------------------------------------------
+const hidden = new Set();           // hidden families
+let selected = null, hovered = null;
+let searchTerm = '';
+let scale = 1, ox = 0, oy = 0;      // view transform
+let alpha = 1;                       // simulation heat
+
+// --- canvas setup ----------------------------------------------------------
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+function resize() {
+  const dpr = devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+new ResizeObserver(() => { resize(); draw(); }).observe(canvas);
+
+const visible = n => !hidden.has(n.fam);
+
+// --- physics (O(n^2) fine at this scale) ------------------------------------
+function tick() {
+  const vs = nodes.filter(visible);
+  for (let i = 0; i < vs.length; i++) {
+    const a = vs[i];
+    for (let j = i + 1; j < vs.length; j++) {
+      const b = vs[j];
+      let dx = a.x - b.x, dy = a.y - b.y;
+      let d2 = dx * dx + dy * dy;
+      if (d2 < 1) { dx = (Math.random ? ((i * 7 + j) % 13) / 13 - .5 : .1); dy = ((i * 5 + j) % 11) / 11 - .5; d2 = dx*dx+dy*dy+.01; }
+      const f = Math.min(12, 1400 / d2) * alpha;
+      const d = Math.sqrt(d2);
+      a.vx += dx / d * f; a.vy += dy / d * f;
+      b.vx -= dx / d * f; b.vy -= dy / d * f;
+    }
+  }
+  for (const e of edges) {
+    if (!visible(e.a) || !visible(e.b)) continue;
+    const dx = e.b.x - e.a.x, dy = e.b.y - e.a.y;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const want = 46 + (e.a.r + e.b.r);
+    const f = (d - want) * 0.02 * alpha;
+    e.a.vx += dx / d * f; e.a.vy += dy / d * f;
+    e.b.vx -= dx / d * f; e.b.vy -= dy / d * f;
+  }
+  for (const n of vs) {
+    n.vx -= n.x * 0.0016 * alpha; n.vy -= n.y * 0.0016 * alpha; // gravity
+    if (!n.fixed) { n.x += n.vx; n.y += n.vy; }
+    n.vx *= 0.6; n.vy *= 0.6;
+  }
+  alpha = Math.max(0.02, alpha * 0.995);
+}
+
+// --- rendering ---------------------------------------------------------------
+function draw() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  ctx.translate(w / 2 + ox, h / 2 + oy);
+  ctx.scale(scale, scale);
+  const pal = palette();
+  const focus = hovered || selected;
+  const inFocus = new Set();
+  if (focus) {
+    inFocus.add(focus);
+    for (const e of adj.get(focus)) { inFocus.add(e.a); inFocus.add(e.b); }
+  }
+  const match = n => searchTerm && (n.id.toLowerCase().includes(searchTerm) || String(n.props.name ?? '').toLowerCase().includes(searchTerm));
+
+  ctx.lineWidth = 1 / scale;
+  for (const e of edges) {
+    if (!visible(e.a) || !visible(e.b)) continue;
+    const hi = focus && (e.a === focus || e.b === focus);
+    ctx.strokeStyle = hi ? cssVar('--edge-hi') : cssVar('--edge');
+    ctx.globalAlpha = focus && !hi ? 0.25 : 1;
+    ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const dim = (focus && !inFocus.has(n)) || (searchTerm && !match(n));
+    ctx.globalAlpha = dim ? 0.22 : 1;
+    ctx.fillStyle = pal[n.fam];
+    ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, 7); ctx.fill();
+    if (n === selected) {
+      ctx.strokeStyle = cssVar('--ink'); ctx.lineWidth = 2 / scale;
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 2 / scale, 0, 7); ctx.stroke();
+    }
+  }
+  // direct labels: hubs always, everything when zoomed, neighborhood on focus
+  ctx.font = `${11 / scale}px ui-sans-serif, system-ui`;
+  ctx.textBaseline = 'middle';
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const show = scale > 1.6 || n.deg >= 6 || inFocus.has(n) || match(n);
+    if (!show) continue;
+    const dim = focus && !inFocus.has(n);
+    const text = shortName(n);
+    const x = n.x + n.r + 4 / scale;
+    ctx.globalAlpha = dim ? 0.3 : 1;
+    ctx.lineWidth = 3 / scale;
+    ctx.strokeStyle = cssVar('--halo');
+    ctx.strokeText(text, x, n.y);
+    ctx.fillStyle = cssVar('--ink-2');
+    ctx.fillText(text, x, n.y);
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+function shortName(n) {
+  const p = n.props;
+  return String(p.name ?? p.tag ?? p.file ?? p.path ?? p.method ?? n.id.split(':').pop());
+}
+
+function loop() { tick(); draw(); requestAnimationFrame(loop); }
+
+// --- interaction -------------------------------------------------------------
+const tip = document.getElementById('tip');
+function pick(mx, my) {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const gx = (mx - w / 2 - ox) / scale, gy = (my - h / 2 - oy) / scale;
+  let best = null, bestD = 1e9;
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const d = Math.hypot(n.x - gx, n.y - gy);
+    if (d < n.r + 4 / scale && d < bestD) { best = n; bestD = d; }
+  }
+  return best;
+}
+let drag = null; // {node} | {pan:true}
+canvas.addEventListener('pointerdown', ev => {
+  const n = pick(ev.offsetX, ev.offsetY);
+  drag = n ? { node: n } : { pan: true, sx: ev.clientX, sy: ev.clientY, ox, oy };
+  if (n) { n.fixed = true; alpha = Math.max(alpha, 0.3); }
+  canvas.classList.add('dragging');
+  canvas.setPointerCapture(ev.pointerId);
+});
+canvas.addEventListener('pointermove', ev => {
+  if (drag?.node) {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    drag.node.x = (ev.offsetX - w / 2 - ox) / scale;
+    drag.node.y = (ev.offsetY - h / 2 - oy) / scale;
+    drag.moved = true;
+  } else if (drag?.pan) {
+    ox = drag.ox + ev.clientX - drag.sx; oy = drag.oy + ev.clientY - drag.sy;
+    drag.moved = true;
+  } else {
+    hovered = pick(ev.offsetX, ev.offsetY);
+    if (hovered) {
+      tip.style.display = 'block';
+      tip.style.left = Math.min(innerWidth - 360, ev.clientX + 14) + 'px';
+      tip.style.top = (ev.clientY + 12) + 'px';
+      tip.textContent = hovered.label + ' · ' + hovered.id;
+    } else tip.style.display = 'none';
+  }
+});
+canvas.addEventListener('pointerup', ev => {
+  if (drag?.node && !drag.moved) select(drag.node);
+  else if (drag?.pan && !drag.moved) select(null);
+  if (drag?.node) drag.node.fixed = false;
+  drag = null;
+  canvas.classList.remove('dragging');
+});
+canvas.addEventListener('wheel', ev => {
+  ev.preventDefault();
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const f = Math.exp(-ev.deltaY * 0.0015);
+  const nx = ev.offsetX - w / 2, ny = ev.offsetY - h / 2;
+  ox = nx - (nx - ox) * f; oy = ny - (ny - oy) * f;
+  scale = Math.min(8, Math.max(0.15, scale * f));
+}, { passive: false });
+
+// --- panel -------------------------------------------------------------------
+const panel = document.getElementById('panel');
+function select(n) {
+  selected = n;
+  panel.classList.toggle('open', !!n);
+  if (!n) return;
+  const rows = Object.entries(n.props).map(([k, v]) =>
+    `<tr><td>${esc(k)}</td><td>${fmt(v)}</td></tr>`).join('');
+  const links = dir => adj.get(n)
+    .filter(e => (dir === 'out' ? e.a : e.b) === n)
+    .map(e => {
+      const other = dir === 'out' ? e.b : e.a;
+      return `<a data-id="${esc(other.id)}"><span class="rel">${dir === 'out' ? '→' : '←'} ${e.rel}</span> ${esc(shortName(other))}</a>`;
+    }).join('') || '<span class="rel">none</span>';
+  panel.innerHTML = `
+    <h2>${esc(n.id)}</h2>
+    <div class="lbl">${esc(n.label)} · ${FAMILY_NAMES[n.fam]}</div>
+    <div class="lbl">properties</div><table>${rows || '<tr><td colspan=2>none</td></tr>'}</table>
+    <div class="lbl">outgoing</div>${links('out')}
+    <div class="lbl">incoming</div>${links('in')}`;
+  panel.querySelectorAll('a[data-id]').forEach(a =>
+    a.addEventListener('click', () => { const t = byId.get(a.dataset.id); if (t) { select(t); alpha = Math.max(alpha, .15); } }));
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function fmt(v) {
+  if (Array.isArray(v)) return '<pre>' + v.map(esc).join('\n') + '</pre>';
+  if (typeof v === 'number' && v > 255 && Number.isInteger(v)) return esc(v) + ' <span class="rel">(0x' + v.toString(16) + ')</span>';
+  return esc(v);
+}
+
+// --- legend + search + stats ---------------------------------------------------
+const legend = document.getElementById('legend');
+const famCounts = FAMILY_NAMES.map((_, i) => nodes.filter(n => n.fam === i).length);
+FAMILY_NAMES.forEach((name, i) => {
+  if (!famCounts[i]) return;
+  const label = document.createElement('label');
+  label.innerHTML = `<input type="checkbox" checked><span class="sw"></span>${name} <span style="color:var(--ink-3)">${famCounts[i]}</span>`;
+  label.querySelector('.sw').style.background = palette()[i];
+  label.querySelector('input').addEventListener('change', ev => {
+    ev.target.checked ? hidden.delete(i) : hidden.add(i);
+    alpha = Math.max(alpha, 0.3);
+  });
+  legend.appendChild(label);
+});
+darkMq.addEventListener('change', () => {
+  legend.querySelectorAll('.sw').forEach((sw, idx) => {
+    const fams = FAMILY_NAMES.map((_, i) => i).filter(i => famCounts[i]);
+    sw.style.background = palette()[fams[idx]];
+  });
+});
+document.getElementById('search').addEventListener('input', ev => {
+  searchTerm = ev.target.value.trim().toLowerCase();
+});
+document.getElementById('stats').textContent = `${nodes.length} nodes · ${edges.length} edges`;
+
+resize();
+loop();
+</script>
+</body>
+</html>

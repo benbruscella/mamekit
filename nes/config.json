@@ -1,0 +1,214 @@
+{
+  "game": "nes",
+  "title": "Nintendo Entertainment System / Famicom (NTSC) (Nintendo, 1985)",
+  "family": "nes",
+  "kind": "console",
+  "board": {
+    "family": "nes",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "rp2a03",
+        "clock": 1789772.6666666667,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 2047,
+            "kind": "ram",
+            "mirror": 6144,
+            "share": "mainram"
+          },
+          {
+            "start": 8192,
+            "end": 16383,
+            "kind": "handler",
+            "read": "ppu.read",
+            "write": "ppu.write"
+          },
+          {
+            "start": 16404,
+            "end": 16404,
+            "kind": "handler",
+            "write": "ppu.spriteram_dma"
+          },
+          {
+            "start": 16406,
+            "end": 16406,
+            "kind": "handler",
+            "read": "nes_state.nes_in0_r",
+            "write": "nes_state.nes_in0_w"
+          },
+          {
+            "start": 16407,
+            "end": 16407,
+            "kind": "handler",
+            "read": "nes_state.nes_in1_r"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 2047,
+        "kind": "ram",
+        "mirror": 6144,
+        "share": "mainram"
+      },
+      {
+        "start": 8192,
+        "end": 16383,
+        "kind": "handler",
+        "read": "ppu.read",
+        "write": "ppu.write"
+      },
+      {
+        "start": 16404,
+        "end": 16404,
+        "kind": "handler",
+        "write": "ppu.spriteram_dma"
+      },
+      {
+        "start": 16406,
+        "end": 16406,
+        "kind": "handler",
+        "read": "nes_state.nes_in0_r",
+        "write": "nes_state.nes_in0_w"
+      },
+      {
+        "start": 16407,
+        "end": 16407,
+        "kind": "handler",
+        "read": "nes_state.nes_in1_r"
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 240,
+      "refresh": 60.0988,
+      "vtotal": 262,
+      "vbstart": 240,
+      "vbend": 0,
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    }
+  },
+  "sound": {
+    "kind": "nes",
+    "clock": 1789772.6666666667
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": []
+    }
+  ],
+  "cart": {
+    "interface": "nes_cart",
+    "list": "nes",
+    "catalogUrl": "softlist.json",
+    "slots": [
+      "nrom",
+      "uxrom",
+      "cnrom",
+      "sxrom",
+      "txrom"
+    ],
+    "games": [
+      "smb"
+    ]
+  },
+  "bindings": [
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "A",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 2,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "B",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 4,
+      "keys": [
+        "ShiftRight"
+      ],
+      "label": "IPT_SELECT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 8,
+      "keys": [
+        "Enter"
+      ],
+      "label": "IPT_START",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 16,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 32,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 64,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 128,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [],
+  "ports": [
+    {
+      "tag": "ctrl1:JOYPAD",
+      "init": 0
+    },
+    {
+      "tag": "ctrl2:JOYPAD",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "./dist/runtime/",
+  "menuUrl": "./"
+}

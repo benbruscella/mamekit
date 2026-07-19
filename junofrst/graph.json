@@ -1,0 +1,2146 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/konami/junofrst.cpp",
+    "generatedAt": "2026-07-19T06:33:13.548Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Chris Hardy"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/konami/junofrst.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/junofrst.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tutankhm.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tutankhm.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konamipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konamipt.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konami1.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konami1.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6809/m6809.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6809/m6809.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/mcs48/mcs48.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/mcs48/mcs48.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/74259.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/74259.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ay8910.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ay8910.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/dac.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/dac.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/flt_rc.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/flt_rc.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:junofrst",
+      "label": "Game",
+      "props": {
+        "name": "junofrst",
+        "year": "1983",
+        "company": "Konami",
+        "fullname": "Juno First",
+        "monitor": "ROT90",
+        "cls": "junofrst_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade"
+      }
+    },
+    {
+      "id": "romset:junofrst",
+      "label": "RomSet",
+      "props": {
+        "name": "junofrst"
+      }
+    },
+    {
+      "id": "region:junofrst/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 131072,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "rom:junofrst/maincpu/jfa_b9.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfa_b9.bin",
+        "offset": 40960,
+        "size": 8192,
+        "crc": "f5a7ab9d",
+        "sha1": "9603e797839290f8e1f93ccff9cc820604cc49ab"
+      }
+    },
+    {
+      "id": "rom:junofrst/maincpu/jfb_b10.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfb_b10.bin",
+        "offset": 49152,
+        "size": 8192,
+        "crc": "f20626e0",
+        "sha1": "46f58bdc1a613124e2c148b61f774fcc6c232868"
+      }
+    },
+    {
+      "id": "rom:junofrst/maincpu/jfc_a10.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfc_a10.bin",
+        "offset": 57344,
+        "size": 8192,
+        "crc": "1e7744a7",
+        "sha1": "bee69833af886436016560295cddf0c8b4c5e771"
+      }
+    },
+    {
+      "id": "rom:junofrst/maincpu/jfc1_a4.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfc1_a4.bin",
+        "offset": 65536,
+        "size": 8192,
+        "crc": "03ccbf1d",
+        "sha1": "02b45fe3c51bdc940919aac68136a121ed9bee18"
+      }
+    },
+    {
+      "id": "rom:junofrst/maincpu/jfc2_a5.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfc2_a5.bin",
+        "offset": 73728,
+        "size": 8192,
+        "crc": "cb372372",
+        "sha1": "a48e7de08647cbece7787c287217eac7e7a7510b"
+      }
+    },
+    {
+      "id": "rom:junofrst/maincpu/jfc3_a6.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfc3_a6.bin",
+        "offset": 81920,
+        "size": 8192,
+        "crc": "879d194b",
+        "sha1": "3c7af8767c9ce908fa1761180c6e585823216d8a"
+      }
+    },
+    {
+      "id": "rom:junofrst/maincpu/jfc4_a7.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfc4_a7.bin",
+        "offset": 90112,
+        "size": 8192,
+        "crc": "f28af80b",
+        "sha1": "4d0e247e729365476dd3996c7d1f2a19fc83d773"
+      }
+    },
+    {
+      "id": "rom:junofrst/maincpu/jfc5_a8.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfc5_a8.bin",
+        "offset": 98304,
+        "size": 8192,
+        "crc": "0539f328",
+        "sha1": "c532aaed7f9e6f564e3df0dc6d8fdbee6ed721a2"
+      }
+    },
+    {
+      "id": "rom:junofrst/maincpu/jfc6_a9.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfc6_a9.bin",
+        "offset": 106496,
+        "size": 8192,
+        "crc": "1da2ad6e",
+        "sha1": "de997d1b2ff6671088b57192bc9f1279359fad5d"
+      }
+    },
+    {
+      "id": "region:junofrst/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 4096,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:junofrst/audiocpu/jfs1_j3.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfs1_j3.bin",
+        "offset": 0,
+        "size": 4096,
+        "crc": "235a2893",
+        "sha1": "b90251c4971f7ba12e407f86c32723d513d6b4a0"
+      }
+    },
+    {
+      "id": "region:junofrst/mcu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "mcu",
+        "size": 4096,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:junofrst/mcu/jfs2_p4.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfs2_p4.bin",
+        "offset": 0,
+        "size": 4096,
+        "crc": "d0fa5d5f",
+        "sha1": "9d0730d1d037bf96b0c933a32355602bf2d735dd"
+      }
+    },
+    {
+      "id": "region:junofrst/blitrom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "blitrom",
+        "size": 24576,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:junofrst/blitrom/jfs3_c7.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfs3_c7.bin",
+        "offset": 0,
+        "size": 8192,
+        "crc": "aeacf6db",
+        "sha1": "f99ef9f9153d7a83e1881d9181faac99cb8c8a57"
+      }
+    },
+    {
+      "id": "rom:junofrst/blitrom/jfs4_d7.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfs4_d7.bin",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "206d954c",
+        "sha1": "65494766676f18d8b5ae9a54cee00790e7b1e67e"
+      }
+    },
+    {
+      "id": "rom:junofrst/blitrom/jfs5_e7.bin",
+      "label": "Rom",
+      "props": {
+        "file": "jfs5_e7.bin",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "1eb87a6e",
+        "sha1": "f5471b9f6f1fa6d6e5d76300d89f71da3129516a"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "junofrst_state",
+        "name": "main_map"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 32767,
+        "raw": "map(0x0000, 0x7fff).ram().share(m_videoram)",
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 32783,
+        "raw": "map(0x8000, 0x800f).ram().w(m_palette, FUNC(palette_device::write8)).share(\"palette\")",
+        "ram": true,
+        "share": "palette"
+      }
+    },
+    {
+      "id": "handler:palette_device.write8",
+      "label": "Handler",
+      "props": {
+        "method": "write8",
+        "ownerClass": "palette_device"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 32784,
+        "end": 32784,
+        "raw": "map(0x8010, 0x8010).portr(\"DSW2\")",
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 32796,
+        "end": 32796,
+        "raw": "map(0x801c, 0x801c).r(\"watchdog\", FUNC(watchdog_timer_device::reset_r))"
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_r",
+      "label": "Handler",
+      "props": {
+        "method": "reset_r",
+        "ownerClass": "watchdog_timer_device"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 32800,
+        "end": 32800,
+        "raw": "map(0x8020, 0x8020).portr(\"SYSTEM\")",
+        "portRead": "SYSTEM"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 32804,
+        "end": 32804,
+        "raw": "map(0x8024, 0x8024).portr(\"P1\")",
+        "portRead": "P1"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 32808,
+        "end": 32808,
+        "raw": "map(0x8028, 0x8028).portr(\"P2\")",
+        "portRead": "P2"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 32812,
+        "end": 32812,
+        "raw": "map(0x802c, 0x802c).portr(\"DSW1\")",
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 32816,
+        "end": 32823,
+        "raw": "map(0x8030, 0x8037).w(\"mainlatch\", FUNC(ls259_device::write_d0))"
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_d0",
+        "ownerClass": "ls259_device"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 32832,
+        "end": 32832,
+        "raw": "map(0x8040, 0x8040).w(FUNC(junofrst_state::sh_irqtrigger_w))"
+      }
+    },
+    {
+      "id": "handler:junofrst_state.sh_irqtrigger_w",
+      "label": "Handler",
+      "props": {
+        "method": "sh_irqtrigger_w",
+        "ownerClass": "junofrst_state"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 32848,
+        "end": 32848,
+        "raw": "map(0x8050, 0x8050).w(\"soundlatch\", FUNC(generic_latch_8_device::write))"
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 32864,
+        "end": 32864,
+        "raw": "map(0x8060, 0x8060).w(FUNC(junofrst_state::bankselect_w))"
+      }
+    },
+    {
+      "id": "handler:junofrst_state.bankselect_w",
+      "label": "Handler",
+      "props": {
+        "method": "bankselect_w",
+        "ownerClass": "junofrst_state"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 32880,
+        "end": 32883,
+        "raw": "map(0x8070, 0x8073).w(FUNC(junofrst_state::blitter_w))"
+      }
+    },
+    {
+      "id": "handler:junofrst_state.blitter_w",
+      "label": "Handler",
+      "props": {
+        "method": "blitter_w",
+        "ownerClass": "junofrst_state"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 33024,
+        "end": 36863,
+        "raw": "map(0x8100, 0x8fff).ram()",
+        "ram": true
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 36864,
+        "end": 40959,
+        "raw": "map(0x9000, 0x9fff).bankr(m_mainbank)",
+        "bankRead": "mainbank"
+      }
+    },
+    {
+      "id": "map:junofrst_state.main_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 65535,
+        "raw": "map(0xa000, 0xffff).rom()",
+        "rom": true
+      }
+    },
+    {
+      "id": "map:junofrst_state.audio_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "junofrst_state",
+        "name": "audio_map"
+      }
+    },
+    {
+      "id": "map:junofrst_state.audio_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4095,
+        "raw": "map(0x0000, 0x0fff).rom()",
+        "rom": true
+      }
+    },
+    {
+      "id": "map:junofrst_state.audio_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 9215,
+        "raw": "map(0x2000, 0x23ff).ram()",
+        "ram": true
+      }
+    },
+    {
+      "id": "map:junofrst_state.audio_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 12288,
+        "raw": "map(0x3000, 0x3000).r(\"soundlatch\", FUNC(generic_latch_8_device::read))"
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device"
+      }
+    },
+    {
+      "id": "map:junofrst_state.audio_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 16384,
+        "raw": "map(0x4000, 0x4000).w(\"aysnd\", FUNC(ay8910_device::address_w))"
+      }
+    },
+    {
+      "id": "handler:ay8910_device.address_w",
+      "label": "Handler",
+      "props": {
+        "method": "address_w",
+        "ownerClass": "ay8910_device"
+      }
+    },
+    {
+      "id": "map:junofrst_state.audio_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 16385,
+        "end": 16385,
+        "raw": "map(0x4001, 0x4001).r(\"aysnd\", FUNC(ay8910_device::data_r))"
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_r",
+      "label": "Handler",
+      "props": {
+        "method": "data_r",
+        "ownerClass": "ay8910_device"
+      }
+    },
+    {
+      "id": "map:junofrst_state.audio_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 16386,
+        "end": 16386,
+        "raw": "map(0x4002, 0x4002).w(\"aysnd\", FUNC(ay8910_device::data_w))"
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "ay8910_device"
+      }
+    },
+    {
+      "id": "map:junofrst_state.audio_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 20480,
+        "end": 20480,
+        "raw": "map(0x5000, 0x5000).w(\"soundlatch2\", FUNC(generic_latch_8_device::write))"
+      }
+    },
+    {
+      "id": "map:junofrst_state.audio_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 24576,
+        "raw": "map(0x6000, 0x6000).w(FUNC(junofrst_state::i8039_irq_w))"
+      }
+    },
+    {
+      "id": "handler:junofrst_state.i8039_irq_w",
+      "label": "Handler",
+      "props": {
+        "method": "i8039_irq_w",
+        "ownerClass": "junofrst_state"
+      }
+    },
+    {
+      "id": "map:junofrst_state.mcu_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "junofrst_state",
+        "name": "mcu_map"
+      }
+    },
+    {
+      "id": "map:junofrst_state.mcu_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4095,
+        "raw": "map(0x0000, 0x0fff).rom()",
+        "rom": true
+      }
+    },
+    {
+      "id": "map:junofrst_state.mcu_io_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "junofrst_state",
+        "name": "mcu_io_map"
+      }
+    },
+    {
+      "id": "map:junofrst_state.mcu_io_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 255,
+        "raw": "map(0x00, 0xff).r(\"soundlatch2\", FUNC(generic_latch_8_device::read))"
+      }
+    },
+    {
+      "id": "machine:junofrst_state.junofrst",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "junofrst_state",
+        "name": "junofrst",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "KONAMI1",
+        "tag": "maincpu",
+        "clock": 1536000,
+        "config": [
+          "KONAMI1(config, m_maincpu, 18.432_MHz_XTAL / 12)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &junofrst_state::main_map)"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "audiocpu",
+        "clock": 1789772.625,
+        "config": [
+          "Z80(config, m_audiocpu, 14.318181_MHz_XTAL / 8)",
+          "m_audiocpu->set_addrmap(AS_PROGRAM, &junofrst_state::audio_map)"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/mcu",
+      "label": "Device",
+      "props": {
+        "type": "I8039",
+        "tag": "mcu",
+        "clock": 8000000,
+        "config": [
+          "I8039(config, m_i8039, 8_MHz_XTAL)",
+          "m_i8039->set_addrmap(AS_PROGRAM, &junofrst_state::mcu_map)",
+          "m_i8039->set_addrmap(AS_IO, &junofrst_state::mcu_io_map)",
+          "m_i8039->p1_out_cb().set(\"dac\", FUNC(dac_byte_interface::data_w))",
+          "m_i8039->p2_out_cb().set(FUNC(junofrst_state::i8039_irqen_and_status_w))"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/mainlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "mainlatch",
+        "clock": null,
+        "config": [
+          "ls259_device &mainlatch(LS259(config, \"mainlatch\"))",
+          "mainlatch.q_out_cb<0>().set(FUNC(junofrst_state::irq_enable_w))",
+          "mainlatch.q_out_cb<1>().set(FUNC(junofrst_state::coin_counter_2_w))",
+          "mainlatch.q_out_cb<2>().set(FUNC(junofrst_state::coin_counter_1_w))",
+          "mainlatch.q_out_cb<3>().set_nop()",
+          "mainlatch.q_out_cb<4>().set(FUNC(junofrst_state::flip_screen_x_w))",
+          "mainlatch.q_out_cb<5>().set(FUNC(junofrst_state::flip_screen_y_w))"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\")"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(GALAXIAN_PIXEL_CLOCK, GALAXIAN_HTOTAL, GALAXIAN_HBEND, GALAXIAN_HBSTART, GALAXIAN_VTOTAL, GALAXIAN_VBEND, GALAXIAN_VBSTART)",
+          "m_screen->set_screen_update(FUNC(junofrst_state::screen_update_scramble))",
+          "m_screen->screen_vblank().set(FUNC(junofrst_state::_30hz_irq))"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          18432000,
+          1152,
+          0,
+          768,
+          264,
+          16,
+          240
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_format(1, tutankhm_state::raw_to_rgb_func, 16)"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"speaker\").front_center()"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, \"soundlatch\")"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/soundlatch2",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch2",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, \"soundlatch2\")"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/aysnd",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "aysnd",
+        "clock": 1789772.625,
+        "config": [
+          "ay8910_device &aysnd(AY8910(config, \"aysnd\", 14.318181_MHz_XTAL / 8))",
+          "aysnd.port_a_read_callback().set(FUNC(junofrst_state::portA_r))",
+          "aysnd.port_b_write_callback().set(FUNC(junofrst_state::portB_w))",
+          "aysnd.add_route(0, \"filter.0.0\", 0.30)",
+          "aysnd.add_route(1, \"filter.0.1\", 0.30)",
+          "aysnd.add_route(2, \"filter.0.2\", 0.30)"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/dac",
+      "label": "Device",
+      "props": {
+        "type": "DAC_8BIT_R2R",
+        "tag": "dac",
+        "clock": 0,
+        "config": [
+          "DAC_8BIT_R2R(config, \"dac\", 0).add_route(ALL_OUTPUTS, \"speaker\", 0.25)"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/filter[0]",
+      "label": "Device",
+      "props": {
+        "type": "FILTER_RC",
+        "tag": "filter[0]",
+        "clock": null,
+        "config": [
+          "FILTER_RC(config, m_filter[0]).add_route(ALL_OUTPUTS, \"speaker\", 1.0)"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/filter[1]",
+      "label": "Device",
+      "props": {
+        "type": "FILTER_RC",
+        "tag": "filter[1]",
+        "clock": null,
+        "config": [
+          "FILTER_RC(config, m_filter[1]).add_route(ALL_OUTPUTS, \"speaker\", 1.0)"
+        ]
+      }
+    },
+    {
+      "id": "device:junofrst_state.junofrst/filter[2]",
+      "label": "Device",
+      "props": {
+        "type": "FILTER_RC",
+        "tag": "filter[2]",
+        "clock": null,
+        "config": [
+          "FILTER_RC(config, m_filter[2]).add_route(ALL_OUTPUTS, \"speaker\", 1.0)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst",
+      "label": "InputPorts",
+      "props": {
+        "name": "junofrst"
+      }
+    },
+    {
+      "id": "inputs:junofrst/SYSTEM",
+      "label": "Port",
+      "props": {
+        "tag": "SYSTEM",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junofrst/SYSTEM/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1"
+      }
+    },
+    {
+      "id": "inputs:junofrst/SYSTEM/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2"
+      }
+    },
+    {
+      "id": "inputs:junofrst/SYSTEM/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_SERVICE1"
+      }
+    },
+    {
+      "id": "inputs:junofrst/SYSTEM/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:junofrst/SYSTEM/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:junofrst/SYSTEM/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:junofrst/SYSTEM/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:junofrst/SYSTEM/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:junofrst/P1",
+      "label": "Port",
+      "props": {
+        "tag": "P1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junofrst/P1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/P1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/P1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/P1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/P1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON2"
+      }
+    },
+    {
+      "id": "inputs:junofrst/P1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON1"
+      }
+    },
+    {
+      "id": "inputs:junofrst/P1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON3"
+      }
+    },
+    {
+      "id": "inputs:junofrst/P1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:junofrst/P2",
+      "label": "Port",
+      "props": {
+        "tag": "P2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junofrst/P2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/P2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/P2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/P2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/P2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/P2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/P2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/P2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:junofrst/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junofrst/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 15,
+        "name": "Coin A",
+        "defaultValue": 15,
+        "location": "#SW1\":1,2,3,4\"",
+        "settings": [
+          "2=4C 1C",
+          "5=3C 1C",
+          "8=2C 1C",
+          "4=3C 2C",
+          "1=4C 3C",
+          "15=1C 1C",
+          "3=3C 4C",
+          "7=2C 3C",
+          "14=1C 2C",
+          "6=2C 5C",
+          "13=1C 3C",
+          "12=1C 4C",
+          "11=1C 5C",
+          "10=1C 6C",
+          "9=1C 7C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "name": "Coin B",
+        "defaultValue": 240,
+        "location": "#SW1\":5,6,7,8\"",
+        "settings": [
+          "32=4C 1C",
+          "80=3C 1C",
+          "128=2C 1C",
+          "64=3C 2C",
+          "16=4C 3C",
+          "240=1C 1C",
+          "48=3C 4C",
+          "112=2C 3C",
+          "224=1C 2C",
+          "96=2C 5C",
+          "208=1C 3C",
+          "192=1C 4C",
+          "176=1C 5C",
+          "160=1C 6C",
+          "144=1C 7C",
+          "0=No Coin B"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:junofrst/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Lives",
+        "defaultValue": 3,
+        "location": "SW2:1,2",
+        "settings": [
+          "3=3",
+          "2=4",
+          "1=5",
+          "0=256 (Cheat)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW2:3",
+        "settings": [
+          "0=Upright",
+          "4=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused"
+      }
+    },
+    {
+      "id": "inputs:junofrst/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 112,
+        "name": "Difficulty",
+        "defaultValue": 112,
+        "location": "SW2:5,6,7",
+        "settings": [
+          "112=1 (Easiest)",
+          "96=2",
+          "80=3",
+          "64=4",
+          "48=5",
+          "32=6",
+          "16=7",
+          "0=8 (Hardest)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:junofrst/DSW2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "SW2:8",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:junofrst",
+      "to": "file:src/mame/konami/junofrst.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:junofrst",
+      "to": "machine:junofrst_state.junofrst",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:junofrst",
+      "to": "inputs:junofrst",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:junofrst",
+      "to": "romset:junofrst",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:tutankhm.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:konamipt.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:konami1.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:cpu/m6809/m6809.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:cpu/mcs48/mcs48.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:sound/ay8910.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:sound/dac.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:sound/flt_rc.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/junofrst.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "file:src/mame/konami/junofrst.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/mcu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/mainlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/soundlatch2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/aysnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/dac",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/filter[0]",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/filter[1]",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:junofrst_state.junofrst",
+      "to": "device:junofrst_state.junofrst/filter[2]",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:junofrst",
+      "to": "file:src/mame/konami/junofrst.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:junofrst",
+      "to": "inputs:junofrst/SYSTEM",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junofrst",
+      "to": "inputs:junofrst/P1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junofrst",
+      "to": "inputs:junofrst/P2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junofrst",
+      "to": "inputs:junofrst/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:junofrst",
+      "to": "inputs:junofrst/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:junofrst",
+      "to": "file:src/mame/konami/junofrst.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:junofrst",
+      "to": "region:junofrst/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:junofrst",
+      "to": "region:junofrst/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:junofrst",
+      "to": "region:junofrst/mcu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:junofrst",
+      "to": "region:junofrst/blitrom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "device:junofrst_state.junofrst/maincpu",
+      "to": "map:junofrst_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:junofrst_state.junofrst/audiocpu",
+      "to": "map:junofrst_state.audio_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:junofrst_state.junofrst/mcu",
+      "to": "map:junofrst_state.mcu_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:junofrst_state.junofrst/mcu",
+      "to": "map:junofrst_state.mcu_io_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "inputs:junofrst/SYSTEM",
+      "to": "inputs:junofrst/SYSTEM/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/SYSTEM",
+      "to": "inputs:junofrst/SYSTEM/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/SYSTEM",
+      "to": "inputs:junofrst/SYSTEM/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/SYSTEM",
+      "to": "inputs:junofrst/SYSTEM/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/SYSTEM",
+      "to": "inputs:junofrst/SYSTEM/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/SYSTEM",
+      "to": "inputs:junofrst/SYSTEM/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/SYSTEM",
+      "to": "inputs:junofrst/SYSTEM/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/SYSTEM",
+      "to": "inputs:junofrst/SYSTEM/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P1",
+      "to": "inputs:junofrst/P1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P1",
+      "to": "inputs:junofrst/P1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P1",
+      "to": "inputs:junofrst/P1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P1",
+      "to": "inputs:junofrst/P1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P1",
+      "to": "inputs:junofrst/P1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P1",
+      "to": "inputs:junofrst/P1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P1",
+      "to": "inputs:junofrst/P1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P1",
+      "to": "inputs:junofrst/P1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P2",
+      "to": "inputs:junofrst/P2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P2",
+      "to": "inputs:junofrst/P2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P2",
+      "to": "inputs:junofrst/P2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P2",
+      "to": "inputs:junofrst/P2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P2",
+      "to": "inputs:junofrst/P2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P2",
+      "to": "inputs:junofrst/P2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P2",
+      "to": "inputs:junofrst/P2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/P2",
+      "to": "inputs:junofrst/P2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/DSW1",
+      "to": "inputs:junofrst/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/DSW1",
+      "to": "inputs:junofrst/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/DSW2",
+      "to": "inputs:junofrst/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/DSW2",
+      "to": "inputs:junofrst/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/DSW2",
+      "to": "inputs:junofrst/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/DSW2",
+      "to": "inputs:junofrst/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:junofrst/DSW2",
+      "to": "inputs:junofrst/DSW2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:junofrst/maincpu",
+      "to": "rom:junofrst/maincpu/jfa_b9.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/maincpu",
+      "to": "rom:junofrst/maincpu/jfb_b10.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/maincpu",
+      "to": "rom:junofrst/maincpu/jfc_a10.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/maincpu",
+      "to": "rom:junofrst/maincpu/jfc1_a4.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/maincpu",
+      "to": "rom:junofrst/maincpu/jfc2_a5.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/maincpu",
+      "to": "rom:junofrst/maincpu/jfc3_a6.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/maincpu",
+      "to": "rom:junofrst/maincpu/jfc4_a7.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/maincpu",
+      "to": "rom:junofrst/maincpu/jfc5_a8.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/maincpu",
+      "to": "rom:junofrst/maincpu/jfc6_a9.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/audiocpu",
+      "to": "rom:junofrst/audiocpu/jfs1_j3.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/mcu",
+      "to": "rom:junofrst/mcu/jfs2_p4.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/blitrom",
+      "to": "rom:junofrst/blitrom/jfs3_c7.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/blitrom",
+      "to": "rom:junofrst/blitrom/jfs4_d7.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:junofrst/blitrom",
+      "to": "rom:junofrst/blitrom/jfs5_e7.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "file:src/mame/konami/junofrst.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map",
+      "to": "map:junofrst_state.main_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.audio_map",
+      "to": "file:src/mame/konami/junofrst.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:junofrst_state.audio_map",
+      "to": "map:junofrst_state.audio_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.audio_map",
+      "to": "map:junofrst_state.audio_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.audio_map",
+      "to": "map:junofrst_state.audio_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.audio_map",
+      "to": "map:junofrst_state.audio_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.audio_map",
+      "to": "map:junofrst_state.audio_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.audio_map",
+      "to": "map:junofrst_state.audio_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.audio_map",
+      "to": "map:junofrst_state.audio_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.audio_map",
+      "to": "map:junofrst_state.audio_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.mcu_map",
+      "to": "file:src/mame/konami/junofrst.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:junofrst_state.mcu_map",
+      "to": "map:junofrst_state.mcu_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.mcu_io_map",
+      "to": "file:src/mame/konami/junofrst.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:junofrst_state.mcu_io_map",
+      "to": "map:junofrst_state.mcu_io_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:junofrst_state.main_map/range1",
+      "to": "handler:palette_device.write8",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:junofrst_state.main_map/range3",
+      "to": "handler:watchdog_timer_device.reset_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:junofrst_state.main_map/range8",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:junofrst_state.main_map/range9",
+      "to": "handler:junofrst_state.sh_irqtrigger_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:junofrst_state.main_map/range10",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:junofrst_state.main_map/range11",
+      "to": "handler:junofrst_state.bankselect_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:junofrst_state.main_map/range12",
+      "to": "handler:junofrst_state.blitter_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:junofrst_state.audio_map/range2",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:junofrst_state.audio_map/range3",
+      "to": "handler:ay8910_device.address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "aysnd"
+      }
+    },
+    {
+      "from": "map:junofrst_state.audio_map/range4",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "aysnd"
+      }
+    },
+    {
+      "from": "map:junofrst_state.audio_map/range5",
+      "to": "handler:ay8910_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "aysnd"
+      }
+    },
+    {
+      "from": "map:junofrst_state.audio_map/range6",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch2"
+      }
+    },
+    {
+      "from": "map:junofrst_state.audio_map/range7",
+      "to": "handler:junofrst_state.i8039_irq_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:junofrst_state.mcu_io_map/range0",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch2"
+      }
+    }
+  ]
+}

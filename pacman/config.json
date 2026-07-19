@@ -1,0 +1,689 @@
+{
+  "game": "pacman",
+  "title": "Pac-Man (Midway) (Namco (Midway license), 1980)",
+  "family": "pacman",
+  "board": {
+    "family": "pacman",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom",
+            "mirror": 32768
+          },
+          {
+            "start": 16384,
+            "end": 17407,
+            "kind": "ram",
+            "mirror": 40960,
+            "share": "videoram",
+            "write": "pacman_state.pacman_videoram_w"
+          },
+          {
+            "start": 17408,
+            "end": 18431,
+            "kind": "ram",
+            "mirror": 40960,
+            "share": "colorram",
+            "write": "pacman_state.pacman_colorram_w"
+          },
+          {
+            "start": 18432,
+            "end": 19455,
+            "kind": "handler",
+            "mirror": 40960,
+            "read": "pacman_state.pacman_read_nop"
+          },
+          {
+            "start": 19456,
+            "end": 20463,
+            "kind": "ram",
+            "mirror": 40960
+          },
+          {
+            "start": 20464,
+            "end": 20479,
+            "kind": "ram",
+            "mirror": 40960,
+            "share": "spriteram"
+          },
+          {
+            "start": 20480,
+            "end": 20487,
+            "kind": "handler",
+            "mirror": 44856,
+            "write": "mainlatch.write_d0"
+          },
+          {
+            "start": 20544,
+            "end": 20575,
+            "kind": "handler",
+            "mirror": 44800,
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 20576,
+            "end": 20591,
+            "kind": "ram",
+            "mirror": 44800,
+            "share": "spriteram2"
+          },
+          {
+            "start": 20592,
+            "end": 20607,
+            "kind": "nop",
+            "mirror": 44800
+          },
+          {
+            "start": 20608,
+            "end": 20608,
+            "kind": "nop",
+            "mirror": 44863
+          },
+          {
+            "start": 20672,
+            "end": 20672,
+            "kind": "handler",
+            "mirror": 44863,
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 20480,
+            "end": 20480,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.IN0"
+          },
+          {
+            "start": 20544,
+            "end": 20544,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.IN1"
+          },
+          {
+            "start": 20608,
+            "end": 20608,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.DSW1"
+          },
+          {
+            "start": 20672,
+            "end": 20672,
+            "kind": "handler",
+            "mirror": 44863,
+            "read": "port.DSW2"
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "write": "pacman_state.pacman_interrupt_vector_w"
+            }
+          ],
+          "globalMask": 255
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 16383,
+        "kind": "rom",
+        "mirror": 32768
+      },
+      {
+        "start": 16384,
+        "end": 17407,
+        "kind": "ram",
+        "mirror": 40960,
+        "share": "videoram",
+        "write": "pacman_state.pacman_videoram_w"
+      },
+      {
+        "start": 17408,
+        "end": 18431,
+        "kind": "ram",
+        "mirror": 40960,
+        "share": "colorram",
+        "write": "pacman_state.pacman_colorram_w"
+      },
+      {
+        "start": 18432,
+        "end": 19455,
+        "kind": "handler",
+        "mirror": 40960,
+        "read": "pacman_state.pacman_read_nop"
+      },
+      {
+        "start": 19456,
+        "end": 20463,
+        "kind": "ram",
+        "mirror": 40960
+      },
+      {
+        "start": 20464,
+        "end": 20479,
+        "kind": "ram",
+        "mirror": 40960,
+        "share": "spriteram"
+      },
+      {
+        "start": 20480,
+        "end": 20487,
+        "kind": "handler",
+        "mirror": 44856,
+        "write": "mainlatch.write_d0"
+      },
+      {
+        "start": 20544,
+        "end": 20575,
+        "kind": "handler",
+        "mirror": 44800,
+        "write": "namco.pacman_sound_w"
+      },
+      {
+        "start": 20576,
+        "end": 20591,
+        "kind": "ram",
+        "mirror": 44800,
+        "share": "spriteram2"
+      },
+      {
+        "start": 20592,
+        "end": 20607,
+        "kind": "nop",
+        "mirror": 44800
+      },
+      {
+        "start": 20608,
+        "end": 20608,
+        "kind": "nop",
+        "mirror": 44863
+      },
+      {
+        "start": 20672,
+        "end": 20672,
+        "kind": "handler",
+        "mirror": 44863,
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 20480,
+        "end": 20480,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.IN0"
+      },
+      {
+        "start": 20544,
+        "end": 20544,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.IN1"
+      },
+      {
+        "start": 20608,
+        "end": 20608,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.DSW1"
+      },
+      {
+        "start": 20672,
+        "end": 20672,
+        "kind": "handler",
+        "mirror": 44863,
+        "read": "port.DSW2"
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 0,
+          "end": 0,
+          "kind": "handler",
+          "write": "pacman_state.pacman_interrupt_vector_w"
+        }
+      ],
+      "globalMask": 255
+    },
+    "screen": {
+      "width": 288,
+      "height": 224,
+      "refresh": 60.60606060606061,
+      "vtotal": 264,
+      "vbstart": 224,
+      "vbend": 0,
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    }
+  },
+  "sound": {
+    "kind": "wsg",
+    "clock": 96000,
+    "waveRegion": "namco"
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "pacman.6e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c1e6ab10",
+          "alt": [
+            {
+              "file": "namcopac.6e",
+              "crc": "fee263b3"
+            },
+            {
+              "file": "pm01.6e",
+              "crc": "5fe8610a"
+            },
+            {
+              "file": "pacmanh.6e",
+              "crc": "3b2ec270"
+            },
+            {
+              "file": "puckman.6e",
+              "crc": "a8ae23c5"
+            },
+            {
+              "file": "p1.6ef",
+              "crc": "50b38941"
+            },
+            {
+              "file": "pr1.cpu",
+              "crc": "bc5ad024"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6f",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "1a6fb2d4",
+          "alt": [
+            {
+              "file": "namcopac.6f",
+              "crc": "39d1fc83"
+            },
+            {
+              "file": "nampfast.6f",
+              "crc": "51b38db9"
+            },
+            {
+              "file": "pm02.6f",
+              "crc": "61d38c6c"
+            },
+            {
+              "file": "pacfast.6f",
+              "crc": "720dc3ee"
+            },
+            {
+              "file": "hangly.6f",
+              "crc": "73726586"
+            },
+            {
+              "file": "p2.7ef",
+              "crc": "195883b8"
+            },
+            {
+              "file": "d2.e7",
+              "crc": "713af282"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6h",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "bcdd1beb",
+          "alt": [
+            {
+              "file": "namcopac.6h",
+              "crc": "02083b03"
+            },
+            {
+              "file": "pm03.6h",
+              "crc": "4e7ef99f"
+            },
+            {
+              "file": "pacmanh.6h",
+              "crc": "18811780"
+            },
+            {
+              "file": "puckman.6h",
+              "crc": "197443f8"
+            },
+            {
+              "file": "p3.bin",
+              "crc": "124a4507"
+            },
+            {
+              "file": "pr3.cpu",
+              "crc": "473c379d"
+            }
+          ]
+        },
+        {
+          "file": "pacman.6j",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "817d94e3",
+          "alt": [
+            {
+              "file": "namcopac.6j",
+              "crc": "7a36fe55"
+            },
+            {
+              "file": "pm04.6j",
+              "crc": "8939ddd2"
+            },
+            {
+              "file": "npacmod.6j",
+              "crc": "7d98d5f5"
+            },
+            {
+              "file": "pacmanh.6j",
+              "crc": "5c96a733"
+            },
+            {
+              "file": "puckman.6j",
+              "crc": "2e64a3ba"
+            },
+            {
+              "file": "hangly.6j",
+              "crc": "7f4147e6"
+            },
+            {
+              "file": "bcuda_prg4.bin",
+              "crc": "55e86c2b"
+            },
+            {
+              "file": "p4.bin",
+              "crc": "08ac65da"
+            },
+            {
+              "file": "pr4.cpu",
+              "crc": "63fbf895"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "pacman.5e",
+          "offset": 0,
+          "size": 4096,
+          "crc": "0c944964",
+          "alt": [
+            {
+              "file": "pacmanh.5e",
+              "crc": "299fb17a"
+            }
+          ]
+        },
+        {
+          "file": "pacman.5f",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "958fedf9"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 288,
+      "loads": [
+        {
+          "file": "82s123.7f",
+          "offset": 0,
+          "size": 32,
+          "crc": "2fc650bd",
+          "alt": [
+            {
+              "file": "pacm.8h",
+              "crc": "2c3cc909"
+            }
+          ]
+        },
+        {
+          "file": "82s126.4a",
+          "offset": 32,
+          "size": 256,
+          "crc": "3eb3a8e4",
+          "alt": [
+            {
+              "file": "piranha.4a",
+              "crc": "08c9447b"
+            },
+            {
+              "file": "6301.4a",
+              "crc": "720528b4"
+            },
+            {
+              "file": "as4a.bin",
+              "crc": "1605b324"
+            },
+            {
+              "file": "titan.4a",
+              "crc": "b67a0c10"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 512,
+      "loads": [
+        {
+          "file": "82s126.1m",
+          "offset": 0,
+          "size": 256,
+          "crc": "a9cc86bf",
+          "alt": [
+            {
+              "file": "pacm.1m",
+              "crc": "3cb61034"
+            },
+            {
+              "file": "63s141.1k",
+              "crc": "459d2618"
+            }
+          ]
+        },
+        {
+          "file": "82s126.3m",
+          "offset": 256,
+          "size": 256,
+          "crc": "77245b66",
+          "alt": [
+            {
+              "file": "63s141.3k",
+              "crc": "fcc24d5d"
+            },
+            {
+              "file": "mmi63s141j.3m",
+              "crc": "deadc015"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 16,
+      "value": 16,
+      "name": "Rack Test (Cheat)"
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "value": 16,
+      "name": "Service Mode"
+    },
+    {
+      "port": "IN1",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 1,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW1",
+      "mask": 12,
+      "value": 8,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW1",
+      "mask": 128,
+      "value": 128,
+      "name": "Ghost Names"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "IN1",
+      "init": 255
+    },
+    {
+      "tag": "DSW1",
+      "init": 201
+    },
+    {
+      "tag": "DSW2",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "./dist/runtime/",
+  "menuUrl": "./"
+}

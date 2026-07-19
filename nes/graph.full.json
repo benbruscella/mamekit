@@ -1,0 +1,2263 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/nintendo/nes.cpp",
+    "generatedAt": "2026-07-19T06:33:39.013Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Brad Oliver,Fabio Priuli"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/nintendo/nes.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/nintendo/nes.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/nes/disksys.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/nes/disksys.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/nes/nes_slot.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/nes/nes_slot.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/nes/nes_carts.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/nes/nes_carts.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/nes_ctrl/ctrl.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/nes_ctrl/ctrl.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6502/rp2a03.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6502/rp2a03.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/ppu2c0x.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/ppu2c0x.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:softlist_dev.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "softlist_dev.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:nes",
+      "label": "Game",
+      "props": {
+        "name": "nes",
+        "year": "1985",
+        "company": "Nintendo",
+        "fullname": "Nintendo Entertainment System / Famicom (NTSC)",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console"
+      }
+    },
+    {
+      "id": "game:nespal",
+      "label": "Game",
+      "props": {
+        "name": "nespal",
+        "year": "1987",
+        "company": "Nintendo",
+        "fullname": "Nintendo Entertainment System (PAL)",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console"
+      }
+    },
+    {
+      "id": "game:famicom",
+      "label": "Game",
+      "props": {
+        "name": "famicom",
+        "year": "1983",
+        "company": "Nintendo",
+        "fullname": "Famicom",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "compat": "nes"
+      }
+    },
+    {
+      "id": "game:famicomo",
+      "label": "Game",
+      "props": {
+        "name": "famicomo",
+        "year": "1983",
+        "company": "Nintendo",
+        "fullname": "Famicom (earlier, with RP2A03)",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console"
+      }
+    },
+    {
+      "id": "game:famitvc1",
+      "label": "Game",
+      "props": {
+        "name": "famitvc1",
+        "year": "1983",
+        "company": "Sharp",
+        "fullname": "My Computer Terebi C1",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console"
+      }
+    },
+    {
+      "id": "game:fds",
+      "label": "Game",
+      "props": {
+        "name": "fds",
+        "year": "1986",
+        "company": "Nintendo",
+        "fullname": "Famicom (w/ Disk System add-on)",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console"
+      }
+    },
+    {
+      "id": "game:famitwin",
+      "label": "Game",
+      "props": {
+        "name": "famitwin",
+        "year": "1986",
+        "company": "Sharp",
+        "fullname": "Twin Famicom",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console"
+      }
+    },
+    {
+      "id": "game:fctitler",
+      "label": "Game",
+      "props": {
+        "name": "fctitler",
+        "year": "1989",
+        "company": "Sharp",
+        "fullname": "Famicom Titler",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE",
+        "kind": "console"
+      }
+    },
+    {
+      "id": "game:iq501",
+      "label": "Game",
+      "props": {
+        "name": "iq501",
+        "year": "1992",
+        "company": "Micro Genius",
+        "fullname": "IQ-501",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "compat": "nes"
+      }
+    },
+    {
+      "id": "game:iq502",
+      "label": "Game",
+      "props": {
+        "name": "iq502",
+        "year": "1992",
+        "company": "Micro Genius",
+        "fullname": "IQ-502",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "compat": "nes"
+      }
+    },
+    {
+      "id": "game:dendy",
+      "label": "Game",
+      "props": {
+        "name": "dendy",
+        "year": "1992",
+        "company": "Steepler",
+        "fullname": "Dendy Classic 1",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console"
+      }
+    },
+    {
+      "id": "game:dendy2",
+      "label": "Game",
+      "props": {
+        "name": "dendy2",
+        "year": "1992",
+        "company": "Steepler",
+        "fullname": "Dendy Classic 2",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console"
+      }
+    },
+    {
+      "id": "game:gchinatv",
+      "label": "Game",
+      "props": {
+        "name": "gchinatv",
+        "year": "198?",
+        "company": "Golden China",
+        "fullname": "Golden China TV Game",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "compat": "nes"
+      }
+    },
+    {
+      "id": "game:sb486",
+      "label": "Game",
+      "props": {
+        "name": "sb486",
+        "year": "1993",
+        "company": "Subor",
+        "fullname": "SB-486",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "compat": "nes"
+      }
+    },
+    {
+      "id": "game:drpcjr",
+      "label": "Game",
+      "props": {
+        "name": "drpcjr",
+        "year": "1996",
+        "company": "Bung",
+        "fullname": "Doctor PC Jr",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "init_famicom",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "compat": "nes"
+      }
+    },
+    {
+      "id": "romset:nes",
+      "label": "RomSet",
+      "props": {
+        "name": "nes"
+      }
+    },
+    {
+      "id": "region:nes/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "romset:nespal",
+      "label": "RomSet",
+      "props": {
+        "name": "nespal"
+      }
+    },
+    {
+      "id": "region:nespal/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "romset:famicom",
+      "label": "RomSet",
+      "props": {
+        "name": "famicom"
+      }
+    },
+    {
+      "id": "region:famicom/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "romset:famicomo",
+      "label": "RomSet",
+      "props": {
+        "name": "famicomo"
+      }
+    },
+    {
+      "id": "region:famicomo/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "romset:famitvc1",
+      "label": "RomSet",
+      "props": {
+        "name": "famitvc1"
+      }
+    },
+    {
+      "id": "region:famitvc1/canvas_prg",
+      "label": "RomRegion",
+      "props": {
+        "tag": "canvas_prg",
+        "size": 8192,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:famitvc1/canvas_prg/ix0402ce.ic109",
+      "label": "Rom",
+      "props": {
+        "file": "ix0402ce.ic109",
+        "offset": 0,
+        "size": 8192,
+        "crc": "96456b13",
+        "sha1": "a4dcb3c4f2be5077f0d197e870a26414287ce189"
+      }
+    },
+    {
+      "id": "region:famitvc1/canvas_chr",
+      "label": "RomRegion",
+      "props": {
+        "tag": "canvas_chr",
+        "size": 8192,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:famitvc1/canvas_chr/ix0403ce.ic110",
+      "label": "Rom",
+      "props": {
+        "file": "ix0403ce.ic110",
+        "offset": 0,
+        "size": 8192,
+        "crc": "9cba4524",
+        "sha1": "2bd833f8049bf7a14ce337c3cde35f2140242a18"
+      }
+    },
+    {
+      "id": "region:famitvc1/ppu:palette",
+      "label": "RomRegion",
+      "props": {
+        "tag": "ppu:palette",
+        "size": 192,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:famitvc1/ppu:palette/rp2c0x.pal",
+      "label": "Rom",
+      "props": {
+        "file": "rp2c0x.pal",
+        "offset": 0,
+        "size": 192,
+        "crc": "48de65dc",
+        "sha1": "d10acafc8da9ff479c270ec01180cca61efe62f5"
+      }
+    },
+    {
+      "id": "romset:famitwin",
+      "label": "RomSet",
+      "props": {
+        "name": "famitwin"
+      }
+    },
+    {
+      "id": "region:famitwin/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:famitwin/maincpu/rp2c33a-02.bin",
+      "label": "Rom",
+      "props": {
+        "file": "rp2c33a-02.bin",
+        "offset": 57344,
+        "size": 8192,
+        "crc": "4df24a6c",
+        "sha1": "e4e41472c454f928e53eb10e0509bf7d1146ecc1"
+      }
+    },
+    {
+      "id": "romset:fctitler",
+      "label": "RomSet",
+      "props": {
+        "name": "fctitler"
+      }
+    },
+    {
+      "id": "region:fctitler/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "region:fctitler/builtin_prg",
+      "label": "RomRegion",
+      "props": {
+        "tag": "builtin_prg",
+        "size": 524288,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:fctitler/builtin_prg/x1252ce.prg",
+      "label": "Rom",
+      "props": {
+        "file": "x1252ce.prg",
+        "offset": 0,
+        "size": 524288,
+        "crc": "696712f9",
+        "sha1": "1b9475f569ea9943122676ce65165dc82d11ef38"
+      }
+    },
+    {
+      "id": "region:fctitler/ppu:palette",
+      "label": "RomRegion",
+      "props": {
+        "tag": "ppu:palette",
+        "size": 192,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:fctitler/ppu:palette/rp2c0x.pal",
+      "label": "Rom",
+      "props": {
+        "file": "rp2c0x.pal",
+        "offset": 0,
+        "size": 192,
+        "crc": "48de65dc",
+        "sha1": "d10acafc8da9ff479c270ec01180cca61efe62f5"
+      }
+    },
+    {
+      "id": "romset:drpcjr",
+      "label": "RomSet",
+      "props": {
+        "name": "drpcjr"
+      }
+    },
+    {
+      "id": "region:drpcjr/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 98304,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:drpcjr/maincpu/drpcjr_bios.bin",
+      "label": "Rom",
+      "props": {
+        "file": "drpcjr_bios.bin",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "c8fbef89",
+        "sha1": "2cb0a817b31400cdf27817d09bae7e69f41b062b"
+      }
+    },
+    {
+      "id": "romset:iq501",
+      "label": "RomSet",
+      "props": {
+        "name": "iq501"
+      }
+    },
+    {
+      "id": "region:iq501/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "romset:iq502",
+      "label": "RomSet",
+      "props": {
+        "name": "iq502"
+      }
+    },
+    {
+      "id": "region:iq502/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "romset:dendy",
+      "label": "RomSet",
+      "props": {
+        "name": "dendy"
+      }
+    },
+    {
+      "id": "region:dendy/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "romset:dendy2",
+      "label": "RomSet",
+      "props": {
+        "name": "dendy2"
+      }
+    },
+    {
+      "id": "region:dendy2/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "romset:gchinatv",
+      "label": "RomSet",
+      "props": {
+        "name": "gchinatv"
+      }
+    },
+    {
+      "id": "region:gchinatv/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "romset:sb486",
+      "label": "RomSet",
+      "props": {
+        "name": "sb486"
+      }
+    },
+    {
+      "id": "region:sb486/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00"
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "nes_state",
+        "name": "nes_map"
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 2047,
+        "raw": "map(0x0000, 0x07ff).ram().mirror(0x1800).share(\"mainram\")",
+        "mirror": 6144,
+        "ram": true,
+        "share": "mainram"
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 16383,
+        "raw": "map(0x2000, 0x3fff).rw(m_ppu, FUNC(ppu2c0x_device::read), FUNC(ppu2c0x_device::write))"
+      }
+    },
+    {
+      "id": "handler:ppu2c0x_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ppu2c0x_device"
+      }
+    },
+    {
+      "id": "handler:ppu2c0x_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ppu2c0x_device"
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 16404,
+        "end": 16404,
+        "raw": "map(0x4014, 0x4014).w(m_ppu, FUNC(ppu2c0x_device::spriteram_dma))"
+      }
+    },
+    {
+      "id": "handler:ppu2c0x_device.spriteram_dma",
+      "label": "Handler",
+      "props": {
+        "method": "spriteram_dma",
+        "ownerClass": "ppu2c0x_device"
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 16406,
+        "end": 16406,
+        "raw": "map(0x4016, 0x4016).rw(FUNC(nes_state::nes_in0_r), FUNC(nes_state::nes_in0_w))"
+      }
+    },
+    {
+      "id": "handler:nes_state.nes_in0_r",
+      "label": "Handler",
+      "props": {
+        "method": "nes_in0_r",
+        "ownerClass": "nes_state"
+      }
+    },
+    {
+      "id": "handler:nes_state.nes_in0_w",
+      "label": "Handler",
+      "props": {
+        "method": "nes_in0_w",
+        "ownerClass": "nes_state"
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 16407,
+        "end": 16407,
+        "raw": "map(0x4017, 0x4017).r(FUNC(nes_state::nes_in1_r))"
+      }
+    },
+    {
+      "id": "handler:nes_state.nes_in1_r",
+      "label": "Handler",
+      "props": {
+        "method": "nes_in1_r",
+        "ownerClass": "nes_state"
+      }
+    },
+    {
+      "id": "machine:nes_state.nes",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "nes",
+        "calls": []
+      }
+    },
+    {
+      "id": "softlist:nes",
+      "label": "SoftwareList",
+      "props": {
+        "name": "nes",
+        "tag": "cart_list",
+        "status": "original",
+        "filter": "!EXP"
+      }
+    },
+    {
+      "id": "softlist:nes_ade",
+      "label": "SoftwareList",
+      "props": {
+        "name": "nes_ade",
+        "tag": "ade_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:nes_ntbrom",
+      "label": "SoftwareList",
+      "props": {
+        "name": "nes_ntbrom",
+        "tag": "ntb_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:nes_kstudio",
+      "label": "SoftwareList",
+      "props": {
+        "name": "nes_kstudio",
+        "tag": "kstudio_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:nes_datach",
+      "label": "SoftwareList",
+      "props": {
+        "name": "nes_datach",
+        "tag": "datach_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:famibox",
+      "label": "SoftwareList",
+      "props": {
+        "name": "famibox",
+        "tag": "famibox_list",
+        "status": "compatible"
+      }
+    },
+    {
+      "id": "device:nes_state.nes/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "RP2A03G",
+        "tag": "maincpu",
+        "clock": 1789772.6666666667,
+        "config": [
+          "rp2a03_device &maincpu(RP2A03G(config, m_maincpu, NTSC_APU_CLOCK))",
+          "maincpu.set_addrmap(AS_PROGRAM, &nes_state::nes_map)",
+          "maincpu.add_route(ALL_OUTPUTS, \"mono\", 0.90)"
+        ]
+      }
+    },
+    {
+      "id": "device:nes_state.nes/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_refresh_hz(60.0988)",
+          "m_screen->set_vblank_time(ATTOSECONDS_IN_USEC((113.66/(NTSC_APU_CLOCK.dvalue()/1000000)) *\n\t\t\t\t\t\t\t (ppu2c0x_device::VBLANK_LAST_SCANLINE_NTSC-ppu2c0x_device::VBLANK_FIRST_SCANLINE+1+2)))",
+          "m_screen->set_size(32*8, 262)",
+          "m_screen->set_visarea(0*8, 32*8-1, 0*8, 30*8-1)",
+          "m_screen->set_screen_update(FUNC(nes_state::screen_update_nes))",
+          "m_screen->screen_vblank().set(FUNC(nes_state::screen_vblank_nes))"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRefreshHz": 60.0988,
+        "screenSize": [
+          256,
+          262
+        ],
+        "screenVisarea": [
+          0,
+          255,
+          0,
+          239
+        ]
+      }
+    },
+    {
+      "id": "device:nes_state.nes/ppu",
+      "label": "Device",
+      "props": {
+        "type": "PPU_2C02",
+        "tag": "ppu",
+        "clock": null,
+        "config": [
+          "PPU_2C02(config, m_ppu)",
+          "m_ppu->set_cpu_tag(m_maincpu)",
+          "m_ppu->int_callback().set_inputline(m_maincpu, INPUT_LINE_NMI)"
+        ]
+      }
+    },
+    {
+      "id": "device:nes_state.nes/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ]
+      }
+    },
+    {
+      "id": "device:nes_state.nes/ctrl1",
+      "label": "Device",
+      "props": {
+        "type": "NES_CONTROL_PORT",
+        "tag": "ctrl1",
+        "clock": null,
+        "config": [
+          "NES_CONTROL_PORT(config, m_ctrl1, nes_control_port1_devices, \"joypad\").set_screen_tag(m_screen)"
+        ],
+        "slotOptions": "nes_control_port1_devices",
+        "slotDefault": "joypad"
+      }
+    },
+    {
+      "id": "device:nes_state.nes/ctrl2",
+      "label": "Device",
+      "props": {
+        "type": "NES_CONTROL_PORT",
+        "tag": "ctrl2",
+        "clock": null,
+        "config": [
+          "NES_CONTROL_PORT(config, m_ctrl2, nes_control_port2_devices, \"joypad\").set_screen_tag(m_screen)"
+        ],
+        "slotOptions": "nes_control_port2_devices",
+        "slotDefault": "joypad"
+      }
+    },
+    {
+      "id": "device:nes_state.nes/special",
+      "label": "Device",
+      "props": {
+        "type": "NES_CONTROL_PORT",
+        "tag": "special",
+        "clock": null,
+        "config": [
+          "NES_CONTROL_PORT(config, m_special, nes_control_special_devices, nullptr).set_screen_tag(m_screen)"
+        ],
+        "clockExpr": "nes_control_special_devices, nullptr"
+      }
+    },
+    {
+      "id": "device:nes_state.nes/nes_slot",
+      "label": "Device",
+      "props": {
+        "type": "NES_CART_SLOT",
+        "tag": "nes_slot",
+        "clock": null,
+        "config": [
+          "NES_CART_SLOT(config, m_cartslot, NTSC_APU_CLOCK, nes_cart, nullptr).set_must_be_loaded(true)"
+        ],
+        "clockExpr": "NTSC_APU_CLOCK, nes_cart, nullptr"
+      }
+    },
+    {
+      "id": "machine:nes_state.nespal",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "nespal",
+        "calls": [
+          "nes"
+        ]
+      }
+    },
+    {
+      "id": "machine:nes_state.famicom",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "famicom",
+        "calls": [
+          "nes"
+        ]
+      }
+    },
+    {
+      "id": "softlist:famicom_flop",
+      "label": "SoftwareList",
+      "props": {
+        "name": "famicom_flop",
+        "tag": "flop_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:famicom_cass",
+      "label": "SoftwareList",
+      "props": {
+        "name": "famicom_cass",
+        "tag": "cass_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "device:nes_state.famicom/exp",
+      "label": "Device",
+      "props": {
+        "type": "NES_CONTROL_PORT",
+        "tag": "exp",
+        "clock": null,
+        "config": [
+          "NES_CONTROL_PORT(config, m_exp, fc_expansion_devices, nullptr).set_screen_tag(m_screen)"
+        ],
+        "clockExpr": "fc_expansion_devices, nullptr"
+      }
+    },
+    {
+      "id": "machine:nes_state.famicomo",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "famicomo",
+        "calls": [
+          "famicom"
+        ]
+      }
+    },
+    {
+      "id": "machine:nes_state.nespalc",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "nespalc",
+        "calls": [
+          "nespal"
+        ]
+      }
+    },
+    {
+      "id": "machine:nes_state.famipalc",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "famipalc",
+        "calls": [
+          "nespalc"
+        ]
+      }
+    },
+    {
+      "id": "device:nes_state.famipalc/exp",
+      "label": "Device",
+      "props": {
+        "type": "NES_CONTROL_PORT",
+        "tag": "exp",
+        "clock": null,
+        "config": [
+          "NES_CONTROL_PORT(config, m_exp, fc_expansion_devices, nullptr).set_screen_tag(m_screen)"
+        ],
+        "clockExpr": "fc_expansion_devices, nullptr"
+      }
+    },
+    {
+      "id": "machine:nes_state.suborkbd",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "suborkbd",
+        "calls": [
+          "famipalc"
+        ]
+      }
+    },
+    {
+      "id": "machine:nes_state.fds",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "fds",
+        "calls": [
+          "famicom"
+        ]
+      }
+    },
+    {
+      "id": "device:nes_state.fds/disk",
+      "label": "Device",
+      "props": {
+        "type": "NES_DISKSYS",
+        "tag": "disk",
+        "clock": 1789772.6666666667,
+        "config": [
+          "NES_DISKSYS(config, \"disk\", NTSC_APU_CLOCK)"
+        ]
+      }
+    },
+    {
+      "id": "machine:nes_state.famitvc1",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "famitvc1",
+        "calls": [
+          "famicomo"
+        ]
+      }
+    },
+    {
+      "id": "machine:nes_state.famitwin",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "famitwin",
+        "calls": [
+          "famicom"
+        ]
+      }
+    },
+    {
+      "id": "device:nes_state.famitwin/disk",
+      "label": "Device",
+      "props": {
+        "type": "NES_DISKSYS",
+        "tag": "disk",
+        "clock": 1789772.6666666667,
+        "config": [
+          "NES_DISKSYS(config, \"disk\", NTSC_APU_CLOCK)"
+        ]
+      }
+    },
+    {
+      "id": "machine:nes_state.fctitler",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "fctitler",
+        "calls": [
+          "famicom"
+        ]
+      }
+    },
+    {
+      "id": "inputs:nes",
+      "label": "InputPorts",
+      "props": {
+        "name": "nes"
+      }
+    },
+    {
+      "id": "inputs:famicom",
+      "label": "InputPorts",
+      "props": {
+        "name": "famicom"
+      }
+    },
+    {
+      "id": "inputs:famicom/FLIPDISK",
+      "label": "Port",
+      "props": {
+        "tag": "FLIPDISK",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:famicom/FLIPDISK/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_OTHER",
+        "modifiers": [
+          "PORT_NAME(\"Change Disk Side\")",
+          "PORT_CODE(KEYCODE_SPACE)"
+        ]
+      }
+    },
+    {
+      "id": "file:src/devices/bus/nes_ctrl/joypad.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/devices/bus/nes_ctrl/joypad.cpp"
+      }
+    },
+    {
+      "id": "inputs:nes_joypad",
+      "label": "InputPorts",
+      "props": {
+        "name": "nes_joypad"
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD",
+      "label": "Port",
+      "props": {
+        "tag": "JOYPAD",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_NAME(\"%p A\")"
+        ]
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_NAME(\"%p B\")"
+        ]
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_SELECT"
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_START"
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:bus/nes/disksys.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:bus/nes/nes_slot.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:bus/nes/nes_carts.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:bus/nes_ctrl/ctrl.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:cpu/m6502/rp2a03.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:video/ppu2c0x.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:softlist_dev.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "game:nes",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:nes",
+      "to": "machine:nes_state.nes",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:nes",
+      "to": "inputs:nes",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:nes",
+      "to": "romset:nes",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:nespal",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:nespal",
+      "to": "game:nes",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:nespal",
+      "to": "machine:nes_state.nespal",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:nespal",
+      "to": "inputs:nes",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:nespal",
+      "to": "romset:nespal",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:famicom",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:famicom",
+      "to": "machine:nes_state.famicom",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:famicom",
+      "to": "inputs:famicom",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:famicom",
+      "to": "romset:famicom",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:famicomo",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:famicomo",
+      "to": "game:famicom",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:famicomo",
+      "to": "machine:nes_state.famicomo",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:famicomo",
+      "to": "inputs:famicom",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:famicomo",
+      "to": "romset:famicomo",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:famitvc1",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:famitvc1",
+      "to": "game:famicom",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:famitvc1",
+      "to": "machine:nes_state.famitvc1",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:famitvc1",
+      "to": "inputs:famicom",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:famitvc1",
+      "to": "romset:famitvc1",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:fds",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:fds",
+      "to": "game:famicom",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:fds",
+      "to": "machine:nes_state.fds",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:fds",
+      "to": "inputs:famicom",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:fds",
+      "to": "romset:fds",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:famitwin",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:famitwin",
+      "to": "game:famicom",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:famitwin",
+      "to": "machine:nes_state.famitwin",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:famitwin",
+      "to": "inputs:famicom",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:famitwin",
+      "to": "romset:famitwin",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:fctitler",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:fctitler",
+      "to": "game:famicom",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:fctitler",
+      "to": "machine:nes_state.fctitler",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:fctitler",
+      "to": "inputs:famicom",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:fctitler",
+      "to": "romset:fctitler",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:iq501",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:iq501",
+      "to": "machine:nes_state.famipalc",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:iq501",
+      "to": "inputs:nes",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:iq501",
+      "to": "romset:iq501",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:iq502",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:iq502",
+      "to": "machine:nes_state.famipalc",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:iq502",
+      "to": "inputs:nes",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:iq502",
+      "to": "romset:iq502",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:dendy",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:dendy",
+      "to": "game:iq501",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:dendy",
+      "to": "machine:nes_state.famipalc",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:dendy",
+      "to": "inputs:nes",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:dendy",
+      "to": "romset:dendy",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:dendy2",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:dendy2",
+      "to": "game:iq502",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:dendy2",
+      "to": "machine:nes_state.famipalc",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:dendy2",
+      "to": "inputs:nes",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:dendy2",
+      "to": "romset:dendy2",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:gchinatv",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:gchinatv",
+      "to": "machine:nes_state.famipalc",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:gchinatv",
+      "to": "inputs:nes",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:gchinatv",
+      "to": "romset:gchinatv",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:sb486",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:sb486",
+      "to": "machine:nes_state.suborkbd",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:sb486",
+      "to": "inputs:nes",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:sb486",
+      "to": "romset:sb486",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:drpcjr",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:drpcjr",
+      "to": "machine:nes_state.famicom",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:drpcjr",
+      "to": "inputs:famicom",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:drpcjr",
+      "to": "romset:drpcjr",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "romset:nes",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:nes",
+      "to": "region:nes/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:nespal",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:nespal",
+      "to": "region:nespal/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:famicom",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:famicom",
+      "to": "region:famicom/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:famicomo",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:famicomo",
+      "to": "region:famicomo/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:famitvc1",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:famitvc1",
+      "to": "region:famitvc1/canvas_prg",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:famitvc1/canvas_prg",
+      "to": "rom:famitvc1/canvas_prg/ix0402ce.ic109",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:famitvc1",
+      "to": "region:famitvc1/canvas_chr",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:famitvc1/canvas_chr",
+      "to": "rom:famitvc1/canvas_chr/ix0403ce.ic110",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:famitvc1",
+      "to": "region:famitvc1/ppu:palette",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:famitvc1/ppu:palette",
+      "to": "rom:famitvc1/ppu:palette/rp2c0x.pal",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:famitwin",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:famitwin",
+      "to": "region:famitwin/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:famitwin/maincpu",
+      "to": "rom:famitwin/maincpu/rp2c33a-02.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:fctitler",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:fctitler",
+      "to": "region:fctitler/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:fctitler",
+      "to": "region:fctitler/builtin_prg",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:fctitler/builtin_prg",
+      "to": "rom:fctitler/builtin_prg/x1252ce.prg",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:fctitler",
+      "to": "region:fctitler/ppu:palette",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:fctitler/ppu:palette",
+      "to": "rom:fctitler/ppu:palette/rp2c0x.pal",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:drpcjr",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:drpcjr",
+      "to": "region:drpcjr/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:drpcjr/maincpu",
+      "to": "rom:drpcjr/maincpu/drpcjr_bios.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:iq501",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:iq501",
+      "to": "region:iq501/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:iq502",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:iq502",
+      "to": "region:iq502/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:dendy",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:dendy",
+      "to": "region:dendy/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:dendy2",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:dendy2",
+      "to": "region:dendy2/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:gchinatv",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:gchinatv",
+      "to": "region:gchinatv/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:sb486",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:sb486",
+      "to": "region:sb486/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "map:nes_state.nes_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "map:nes_state.nes_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:nes_state.nes_map/range1",
+      "to": "handler:ppu2c0x_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:nes_state.nes_map/range1",
+      "to": "handler:ppu2c0x_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "map:nes_state.nes_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:nes_state.nes_map/range2",
+      "to": "handler:ppu2c0x_device.spriteram_dma",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "map:nes_state.nes_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:nes_state.nes_map/range3",
+      "to": "handler:nes_state.nes_in0_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:nes_state.nes_map/range3",
+      "to": "handler:nes_state.nes_in0_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "map:nes_state.nes_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:nes_state.nes_map/range4",
+      "to": "handler:nes_state.nes_in1_r",
+      "rel": "READS"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:nes",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:nes_ade",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:nes_ntbrom",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:nes_kstudio",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:nes_datach",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:famibox",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:nes_state.nes/maincpu",
+      "to": "map:nes_state.nes_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/ppu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/ctrl1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/ctrl2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/special",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/nes_slot",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nespal",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:nes_state.nespal",
+      "to": "machine:nes_state.nes",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:nes_state.famicom",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:nes_state.famicom",
+      "to": "machine:nes_state.nes",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:nes_state.famicom",
+      "to": "softlist:famicom_flop",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.famicom",
+      "to": "softlist:famicom_cass",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.famicom",
+      "to": "device:nes_state.famicom/exp",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.famicomo",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:nes_state.famicomo",
+      "to": "machine:nes_state.famicom",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:nes_state.nespalc",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:nes_state.nespalc",
+      "to": "machine:nes_state.nespal",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:nes_state.nespalc",
+      "to": "map:nes_state.nes_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "maincpu"
+      }
+    },
+    {
+      "from": "machine:nes_state.famipalc",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:nes_state.famipalc",
+      "to": "machine:nes_state.nespalc",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:nes_state.famipalc",
+      "to": "softlist:famicom_cass",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.famipalc",
+      "to": "device:nes_state.famipalc/exp",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.suborkbd",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:nes_state.suborkbd",
+      "to": "machine:nes_state.famipalc",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:nes_state.fds",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:nes_state.fds",
+      "to": "machine:nes_state.famicom",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:nes_state.fds",
+      "to": "device:nes_state.fds/disk",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.famitvc1",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:nes_state.famitvc1",
+      "to": "machine:nes_state.famicomo",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:nes_state.famitwin",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:nes_state.famitwin",
+      "to": "machine:nes_state.famicom",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:nes_state.famitwin",
+      "to": "device:nes_state.famitwin/disk",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.fctitler",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:nes_state.fctitler",
+      "to": "machine:nes_state.famicom",
+      "rel": "CALLS"
+    },
+    {
+      "from": "inputs:nes",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:famicom",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:famicom",
+      "to": "inputs:famicom/FLIPDISK",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:famicom/FLIPDISK",
+      "to": "inputs:famicom/FLIPDISK/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad",
+      "to": "file:src/devices/bus/nes_ctrl/joypad.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:nes_joypad",
+      "to": "inputs:nes_joypad/JOYPAD",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "device:nes_state.nes/ctrl1",
+      "to": "inputs:nes_joypad",
+      "rel": "USES_INPUTS",
+      "props": {
+        "option": "joypad"
+      }
+    },
+    {
+      "from": "device:nes_state.nes/ctrl2",
+      "to": "inputs:nes_joypad",
+      "rel": "USES_INPUTS",
+      "props": {
+        "option": "joypad"
+      }
+    }
+  ]
+}

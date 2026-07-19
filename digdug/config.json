@@ -1,0 +1,881 @@
+{
+  "game": "digdug",
+  "title": "Dig Dug (rev 2) (Namco, 1982)",
+  "family": "digdug",
+  "board": {
+    "family": "digdug",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 26624,
+            "end": 26655,
+            "kind": "handler",
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 26656,
+            "end": 26663,
+            "kind": "handler",
+            "write": "misclatch.write_d0"
+          },
+          {
+            "start": 26672,
+            "end": 26672,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 28672,
+            "end": 28927,
+            "kind": "handler",
+            "read": "06xx.data_r",
+            "write": "06xx.data_w"
+          },
+          {
+            "start": 28928,
+            "end": 28928,
+            "kind": "handler",
+            "read": "06xx.ctrl_r",
+            "write": "06xx.ctrl_w"
+          },
+          {
+            "start": 32768,
+            "end": 33791,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "digdug_state.digdug_videoram_w"
+          },
+          {
+            "start": 33792,
+            "end": 34815,
+            "kind": "ram",
+            "share": "share1"
+          },
+          {
+            "start": 34816,
+            "end": 35839,
+            "kind": "ram",
+            "share": "digdug_objram"
+          },
+          {
+            "start": 36864,
+            "end": 37887,
+            "kind": "ram",
+            "share": "digdug_posram"
+          },
+          {
+            "start": 38912,
+            "end": 39935,
+            "kind": "ram",
+            "share": "digdug_flpram"
+          },
+          {
+            "start": 40960,
+            "end": 40967,
+            "kind": "handler",
+            "write": "videolatch.write_d0"
+          },
+          {
+            "start": 47104,
+            "end": 47167,
+            "kind": "handler",
+            "read": "digdug_state.earom_read",
+            "write": "digdug_state.earom_write"
+          },
+          {
+            "start": 47168,
+            "end": 47168,
+            "kind": "handler",
+            "write": "digdug_state.earom_control_w"
+          }
+        ]
+      },
+      {
+        "tag": "sub",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "sub",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 26624,
+            "end": 26655,
+            "kind": "handler",
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 26656,
+            "end": 26663,
+            "kind": "handler",
+            "write": "misclatch.write_d0"
+          },
+          {
+            "start": 26672,
+            "end": 26672,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 28672,
+            "end": 28927,
+            "kind": "handler",
+            "read": "06xx.data_r",
+            "write": "06xx.data_w"
+          },
+          {
+            "start": 28928,
+            "end": 28928,
+            "kind": "handler",
+            "read": "06xx.ctrl_r",
+            "write": "06xx.ctrl_w"
+          },
+          {
+            "start": 32768,
+            "end": 33791,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "digdug_state.digdug_videoram_w"
+          },
+          {
+            "start": 33792,
+            "end": 34815,
+            "kind": "ram",
+            "share": "share1"
+          },
+          {
+            "start": 34816,
+            "end": 35839,
+            "kind": "ram",
+            "share": "digdug_objram"
+          },
+          {
+            "start": 36864,
+            "end": 37887,
+            "kind": "ram",
+            "share": "digdug_posram"
+          },
+          {
+            "start": 38912,
+            "end": 39935,
+            "kind": "ram",
+            "share": "digdug_flpram"
+          },
+          {
+            "start": 40960,
+            "end": 40967,
+            "kind": "handler",
+            "write": "videolatch.write_d0"
+          },
+          {
+            "start": 47104,
+            "end": 47167,
+            "kind": "handler",
+            "read": "digdug_state.earom_read",
+            "write": "digdug_state.earom_write"
+          },
+          {
+            "start": 47168,
+            "end": 47168,
+            "kind": "handler",
+            "write": "digdug_state.earom_control_w"
+          }
+        ]
+      },
+      {
+        "tag": "sub2",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "sub2",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 26624,
+            "end": 26655,
+            "kind": "handler",
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 26656,
+            "end": 26663,
+            "kind": "handler",
+            "write": "misclatch.write_d0"
+          },
+          {
+            "start": 26672,
+            "end": 26672,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 28672,
+            "end": 28927,
+            "kind": "handler",
+            "read": "06xx.data_r",
+            "write": "06xx.data_w"
+          },
+          {
+            "start": 28928,
+            "end": 28928,
+            "kind": "handler",
+            "read": "06xx.ctrl_r",
+            "write": "06xx.ctrl_w"
+          },
+          {
+            "start": 32768,
+            "end": 33791,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "digdug_state.digdug_videoram_w"
+          },
+          {
+            "start": 33792,
+            "end": 34815,
+            "kind": "ram",
+            "share": "share1"
+          },
+          {
+            "start": 34816,
+            "end": 35839,
+            "kind": "ram",
+            "share": "digdug_objram"
+          },
+          {
+            "start": 36864,
+            "end": 37887,
+            "kind": "ram",
+            "share": "digdug_posram"
+          },
+          {
+            "start": 38912,
+            "end": 39935,
+            "kind": "ram",
+            "share": "digdug_flpram"
+          },
+          {
+            "start": 40960,
+            "end": 40967,
+            "kind": "handler",
+            "write": "videolatch.write_d0"
+          },
+          {
+            "start": 47104,
+            "end": 47167,
+            "kind": "handler",
+            "read": "digdug_state.earom_read",
+            "write": "digdug_state.earom_write"
+          },
+          {
+            "start": 47168,
+            "end": 47168,
+            "kind": "handler",
+            "write": "digdug_state.earom_control_w"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 16383,
+        "kind": "rom"
+      },
+      {
+        "start": 26624,
+        "end": 26655,
+        "kind": "handler",
+        "write": "namco.pacman_sound_w"
+      },
+      {
+        "start": 26656,
+        "end": 26663,
+        "kind": "handler",
+        "write": "misclatch.write_d0"
+      },
+      {
+        "start": 26672,
+        "end": 26672,
+        "kind": "handler",
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 28672,
+        "end": 28927,
+        "kind": "handler",
+        "read": "06xx.data_r",
+        "write": "06xx.data_w"
+      },
+      {
+        "start": 28928,
+        "end": 28928,
+        "kind": "handler",
+        "read": "06xx.ctrl_r",
+        "write": "06xx.ctrl_w"
+      },
+      {
+        "start": 32768,
+        "end": 33791,
+        "kind": "ram",
+        "share": "videoram",
+        "write": "digdug_state.digdug_videoram_w"
+      },
+      {
+        "start": 33792,
+        "end": 34815,
+        "kind": "ram",
+        "share": "share1"
+      },
+      {
+        "start": 34816,
+        "end": 35839,
+        "kind": "ram",
+        "share": "digdug_objram"
+      },
+      {
+        "start": 36864,
+        "end": 37887,
+        "kind": "ram",
+        "share": "digdug_posram"
+      },
+      {
+        "start": 38912,
+        "end": 39935,
+        "kind": "ram",
+        "share": "digdug_flpram"
+      },
+      {
+        "start": 40960,
+        "end": 40967,
+        "kind": "handler",
+        "write": "videolatch.write_d0"
+      },
+      {
+        "start": 47104,
+        "end": 47167,
+        "kind": "handler",
+        "read": "digdug_state.earom_read",
+        "write": "digdug_state.earom_write"
+      },
+      {
+        "start": 47168,
+        "end": 47168,
+        "kind": "handler",
+        "write": "digdug_state.earom_control_w"
+      }
+    ],
+    "screen": {
+      "width": 288,
+      "height": 224,
+      "refresh": 60.60606060606061,
+      "vtotal": 264,
+      "vbstart": 224,
+      "vbend": 0,
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    }
+  },
+  "sound": {
+    "kind": "wsg",
+    "clock": 96000,
+    "waveRegion": "namco"
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "dd1a.1",
+          "offset": 0,
+          "size": 4096,
+          "crc": "a80ec984",
+          "alt": [
+            {
+              "file": "dd1.1",
+              "crc": "b9198079"
+            },
+            {
+              "file": "136007.201",
+              "crc": "23d0b1a4"
+            },
+            {
+              "file": "digdug0.0",
+              "crc": "602197f0"
+            }
+          ]
+        },
+        {
+          "file": "dd1a.2",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "559f00bd",
+          "alt": [
+            {
+              "file": "dd1.2",
+              "crc": "b2acbe49"
+            },
+            {
+              "file": "136007.202",
+              "crc": "5453dc1f"
+            },
+            {
+              "file": "digdug1.1",
+              "crc": "c6c8306b"
+            }
+          ]
+        },
+        {
+          "file": "dd1a.3",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "8cbc6fe1",
+          "alt": [
+            {
+              "file": "dd1.3",
+              "crc": "d6407b49"
+            },
+            {
+              "file": "136007.203",
+              "crc": "c9077dfa"
+            },
+            {
+              "file": "digdug2.2",
+              "crc": "b695ec17"
+            }
+          ]
+        },
+        {
+          "file": "dd1a.4",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "d066f830",
+          "alt": [
+            {
+              "file": "dd1.4b",
+              "crc": "f4cebc16"
+            },
+            {
+              "file": "136007.204",
+              "crc": "a8fc8eac"
+            },
+            {
+              "file": "136007.104",
+              "crc": "b3ad42c3"
+            },
+            {
+              "file": "digdug3.3",
+              "crc": "17bbfa40"
+            },
+            {
+              "file": "zigzag4",
+              "crc": "da20d2f6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sub",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "dd1a.5",
+          "offset": 0,
+          "size": 4096,
+          "crc": "6687933b",
+          "alt": [
+            {
+              "file": "dd1.5b",
+              "crc": "370ef9b4"
+            },
+            {
+              "file": "136007.205",
+              "crc": "5ba385c5"
+            },
+            {
+              "file": "136007.105",
+              "crc": "0a2aef4a"
+            }
+          ]
+        },
+        {
+          "file": "dd1a.6",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "843d857f",
+          "alt": [
+            {
+              "file": "dd1.6b",
+              "crc": "361eeb71"
+            },
+            {
+              "file": "136007.206",
+              "crc": "382b4011"
+            },
+            {
+              "file": "136007.106",
+              "crc": "a2876d6e"
+            },
+            {
+              "file": "digdug5.5",
+              "crc": "d751df5d"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sub2",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "dd1.7",
+          "offset": 0,
+          "size": 4096,
+          "crc": "a41bce72"
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "dd1.9",
+          "offset": 0,
+          "size": 2048,
+          "crc": "f14a6fe1",
+          "alt": [
+            {
+              "file": "136007.108",
+              "crc": "3d24a3af"
+            },
+            {
+              "file": "zigzag8",
+              "crc": "86120541"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "dd1.15",
+          "offset": 0,
+          "size": 4096,
+          "crc": "e22957c8"
+        },
+        {
+          "file": "dd1.14",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "2829ec99",
+          "alt": [
+            {
+              "file": "136007.117",
+              "crc": "a3bbfd85"
+            },
+            {
+              "file": "zigzag12",
+              "crc": "386a0956"
+            }
+          ]
+        },
+        {
+          "file": "dd1.13",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "458499e9",
+          "alt": [
+            {
+              "file": "zigzag13",
+              "crc": "69f6e395"
+            }
+          ]
+        },
+        {
+          "file": "dd1.12",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "c58252a0"
+        }
+      ]
+    },
+    {
+      "region": "gfx3",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "dd1.11",
+          "offset": 0,
+          "size": 4096,
+          "crc": "7b383983",
+          "alt": [
+            {
+              "file": "136007.115",
+              "crc": "754539be"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx4",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "dd1.10b",
+          "offset": 0,
+          "size": 4096,
+          "crc": "2cf399c2",
+          "alt": [
+            {
+              "file": "136007.114",
+              "crc": "d6822397"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 544,
+      "loads": [
+        {
+          "file": "136007.113",
+          "offset": 0,
+          "size": 32,
+          "crc": "4cb9da99"
+        },
+        {
+          "file": "136007.111",
+          "offset": 32,
+          "size": 256,
+          "crc": "00c7c419"
+        },
+        {
+          "file": "136007.112",
+          "offset": 288,
+          "size": 256,
+          "crc": "e9b3e08e"
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 512,
+      "loads": [
+        {
+          "file": "136007.110",
+          "offset": 0,
+          "size": 256,
+          "crc": "7a2815b4"
+        },
+        {
+          "file": "136007.109",
+          "offset": 256,
+          "size": 256,
+          "crc": "77245b66"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN1",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSWA",
+      "mask": 7,
+      "value": 1,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSWA",
+      "mask": 56,
+      "value": 24,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSWA",
+      "mask": 192,
+      "value": 128,
+      "name": "Lives"
+    },
+    {
+      "port": "DSWB",
+      "mask": 192,
+      "value": 0,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSWB",
+      "mask": 32,
+      "value": 32,
+      "name": "Freeze"
+    },
+    {
+      "port": "DSWB",
+      "mask": 16,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSWB",
+      "mask": 8,
+      "value": 0,
+      "name": "Allow Continue"
+    },
+    {
+      "port": "DSWB",
+      "mask": 4,
+      "value": 4,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSWB",
+      "mask": 3,
+      "value": 0,
+      "name": "Difficulty"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "IN1",
+      "init": 255
+    },
+    {
+      "tag": "DSWA",
+      "init": 153
+    },
+    {
+      "tag": "DSWB",
+      "init": 36
+    }
+  ],
+  "runtimeUrl": "./dist/runtime/",
+  "menuUrl": "./"
+}

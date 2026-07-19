@@ -1,0 +1,781 @@
+{
+  "game": "galaga",
+  "title": "Galaga (Namco rev. B) (Namco, 1981)",
+  "family": "galaga",
+  "board": {
+    "family": "galaga",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 26624,
+            "end": 26631,
+            "kind": "handler",
+            "read": "galaga_state.bosco_dsw_r"
+          },
+          {
+            "start": 26624,
+            "end": 26655,
+            "kind": "handler",
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 26656,
+            "end": 26663,
+            "kind": "handler",
+            "write": "misclatch.write_d0"
+          },
+          {
+            "start": 26672,
+            "end": 26672,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 28672,
+            "end": 28927,
+            "kind": "handler",
+            "read": "06xx.data_r",
+            "write": "06xx.data_w"
+          },
+          {
+            "start": 28928,
+            "end": 28928,
+            "kind": "handler",
+            "read": "06xx.ctrl_r",
+            "write": "06xx.ctrl_w"
+          },
+          {
+            "start": 32768,
+            "end": 34815,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "galaga_state.galaga_videoram_w"
+          },
+          {
+            "start": 34816,
+            "end": 35839,
+            "kind": "ram",
+            "share": "galaga_ram1"
+          },
+          {
+            "start": 36864,
+            "end": 37887,
+            "kind": "ram",
+            "share": "galaga_ram2"
+          },
+          {
+            "start": 38912,
+            "end": 39935,
+            "kind": "ram",
+            "share": "galaga_ram3"
+          },
+          {
+            "start": 40960,
+            "end": 40967,
+            "kind": "handler",
+            "write": "videolatch.write_d0"
+          }
+        ]
+      },
+      {
+        "tag": "sub",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "sub",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 26624,
+            "end": 26631,
+            "kind": "handler",
+            "read": "galaga_state.bosco_dsw_r"
+          },
+          {
+            "start": 26624,
+            "end": 26655,
+            "kind": "handler",
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 26656,
+            "end": 26663,
+            "kind": "handler",
+            "write": "misclatch.write_d0"
+          },
+          {
+            "start": 26672,
+            "end": 26672,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 28672,
+            "end": 28927,
+            "kind": "handler",
+            "read": "06xx.data_r",
+            "write": "06xx.data_w"
+          },
+          {
+            "start": 28928,
+            "end": 28928,
+            "kind": "handler",
+            "read": "06xx.ctrl_r",
+            "write": "06xx.ctrl_w"
+          },
+          {
+            "start": 32768,
+            "end": 34815,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "galaga_state.galaga_videoram_w"
+          },
+          {
+            "start": 34816,
+            "end": 35839,
+            "kind": "ram",
+            "share": "galaga_ram1"
+          },
+          {
+            "start": 36864,
+            "end": 37887,
+            "kind": "ram",
+            "share": "galaga_ram2"
+          },
+          {
+            "start": 38912,
+            "end": 39935,
+            "kind": "ram",
+            "share": "galaga_ram3"
+          },
+          {
+            "start": 40960,
+            "end": 40967,
+            "kind": "handler",
+            "write": "videolatch.write_d0"
+          }
+        ]
+      },
+      {
+        "tag": "sub2",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "sub2",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 26624,
+            "end": 26631,
+            "kind": "handler",
+            "read": "galaga_state.bosco_dsw_r"
+          },
+          {
+            "start": 26624,
+            "end": 26655,
+            "kind": "handler",
+            "write": "namco.pacman_sound_w"
+          },
+          {
+            "start": 26656,
+            "end": 26663,
+            "kind": "handler",
+            "write": "misclatch.write_d0"
+          },
+          {
+            "start": 26672,
+            "end": 26672,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 28672,
+            "end": 28927,
+            "kind": "handler",
+            "read": "06xx.data_r",
+            "write": "06xx.data_w"
+          },
+          {
+            "start": 28928,
+            "end": 28928,
+            "kind": "handler",
+            "read": "06xx.ctrl_r",
+            "write": "06xx.ctrl_w"
+          },
+          {
+            "start": 32768,
+            "end": 34815,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "galaga_state.galaga_videoram_w"
+          },
+          {
+            "start": 34816,
+            "end": 35839,
+            "kind": "ram",
+            "share": "galaga_ram1"
+          },
+          {
+            "start": 36864,
+            "end": 37887,
+            "kind": "ram",
+            "share": "galaga_ram2"
+          },
+          {
+            "start": 38912,
+            "end": 39935,
+            "kind": "ram",
+            "share": "galaga_ram3"
+          },
+          {
+            "start": 40960,
+            "end": 40967,
+            "kind": "handler",
+            "write": "videolatch.write_d0"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 16383,
+        "kind": "rom"
+      },
+      {
+        "start": 26624,
+        "end": 26631,
+        "kind": "handler",
+        "read": "galaga_state.bosco_dsw_r"
+      },
+      {
+        "start": 26624,
+        "end": 26655,
+        "kind": "handler",
+        "write": "namco.pacman_sound_w"
+      },
+      {
+        "start": 26656,
+        "end": 26663,
+        "kind": "handler",
+        "write": "misclatch.write_d0"
+      },
+      {
+        "start": 26672,
+        "end": 26672,
+        "kind": "handler",
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 28672,
+        "end": 28927,
+        "kind": "handler",
+        "read": "06xx.data_r",
+        "write": "06xx.data_w"
+      },
+      {
+        "start": 28928,
+        "end": 28928,
+        "kind": "handler",
+        "read": "06xx.ctrl_r",
+        "write": "06xx.ctrl_w"
+      },
+      {
+        "start": 32768,
+        "end": 34815,
+        "kind": "ram",
+        "share": "videoram",
+        "write": "galaga_state.galaga_videoram_w"
+      },
+      {
+        "start": 34816,
+        "end": 35839,
+        "kind": "ram",
+        "share": "galaga_ram1"
+      },
+      {
+        "start": 36864,
+        "end": 37887,
+        "kind": "ram",
+        "share": "galaga_ram2"
+      },
+      {
+        "start": 38912,
+        "end": 39935,
+        "kind": "ram",
+        "share": "galaga_ram3"
+      },
+      {
+        "start": 40960,
+        "end": 40967,
+        "kind": "handler",
+        "write": "videolatch.write_d0"
+      }
+    ],
+    "screen": {
+      "width": 288,
+      "height": 224,
+      "refresh": 60.60606060606061,
+      "vtotal": 264,
+      "vbstart": 224,
+      "vbend": 0,
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    }
+  },
+  "sound": {
+    "kind": "wsg",
+    "clock": 96000,
+    "waveRegion": "namco"
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "gg1_1b.3p",
+          "offset": 0,
+          "size": 4096,
+          "crc": "ab036c9f",
+          "alt": [
+            {
+              "file": "gg1-1.3p",
+              "crc": "a3a0f743"
+            },
+            {
+              "file": "3200a.bin",
+              "crc": "3ef0b053"
+            },
+            {
+              "file": "mk2-1",
+              "crc": "23cea1e2"
+            },
+            {
+              "file": "1.4b",
+              "crc": "9fb8e28b"
+            },
+            {
+              "file": "nebulbee.01",
+              "crc": "f405f2c4"
+            }
+          ]
+        },
+        {
+          "file": "gg1_2b.3m",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "d9232240",
+          "alt": [
+            {
+              "file": "gg1-2.3m",
+              "crc": "43bb0d5c"
+            },
+            {
+              "file": "3300b.bin",
+              "crc": "1b280831"
+            },
+            {
+              "file": "mk2-2",
+              "crc": "89695b1a"
+            },
+            {
+              "file": "gallag.2",
+              "crc": "5eda60a7"
+            },
+            {
+              "file": "2.4c",
+              "crc": "bf6cb840"
+            },
+            {
+              "file": "nebulbee.02",
+              "crc": "31022b60"
+            }
+          ]
+        },
+        {
+          "file": "gg1_3.2m",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "753ce503",
+          "alt": [
+            {
+              "file": "3400c.bin",
+              "crc": "16233d33"
+            },
+            {
+              "file": "3.4d",
+              "crc": "3604e2dd"
+            }
+          ]
+        },
+        {
+          "file": "gg1_4b.2l",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "499fcc76",
+          "alt": [
+            {
+              "file": "gg1-4.2l",
+              "crc": "83874442"
+            },
+            {
+              "file": "3500d.bin",
+              "crc": "0aaf5c23"
+            },
+            {
+              "file": "mk2-4",
+              "crc": "24b767f5"
+            },
+            {
+              "file": "4.4e",
+              "crc": "bf9f613b"
+            },
+            {
+              "file": "nebulbee.04",
+              "crc": "d76788a5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sub",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "gg1_5b.3f",
+          "offset": 0,
+          "size": 4096,
+          "crc": "bb5caae3",
+          "alt": [
+            {
+              "file": "gg1-5.3f",
+              "crc": "3102fccd"
+            },
+            {
+              "file": "3600e.bin",
+              "crc": "bc556e76"
+            },
+            {
+              "file": "3600fast.bin",
+              "crc": "23d586e5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sub2",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "gg1_7b.2c",
+          "offset": 0,
+          "size": 4096,
+          "crc": "d016686b",
+          "alt": [
+            {
+              "file": "gg1-7.2c",
+              "crc": "8995088d"
+            },
+            {
+              "file": "3700g.bin",
+              "crc": "b07f0aa4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "gg1_9.4l",
+          "offset": 0,
+          "size": 4096,
+          "crc": "58b2f47c",
+          "alt": [
+            {
+              "file": "gallag.8",
+              "crc": "169a98a4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "gg1_11.4d",
+          "offset": 0,
+          "size": 4096,
+          "crc": "ad447c80",
+          "alt": [
+            {
+              "file": "9.6a",
+              "crc": "22e339d5"
+            }
+          ]
+        },
+        {
+          "file": "gg1_10.4f",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "dd6f1afc",
+          "alt": [
+            {
+              "file": "10.7a",
+              "crc": "60dcf940"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 544,
+      "loads": [
+        {
+          "file": "prom-5.5n",
+          "offset": 0,
+          "size": 32,
+          "crc": "54603c6b"
+        },
+        {
+          "file": "prom-4.2n",
+          "offset": 32,
+          "size": 256,
+          "crc": "59b6edab",
+          "alt": [
+            {
+              "file": "2n.bin",
+              "crc": "a547d33b"
+            }
+          ]
+        },
+        {
+          "file": "prom-3.1c",
+          "offset": 288,
+          "size": 256,
+          "crc": "4a04bb6b",
+          "alt": [
+            {
+              "file": "1c.bin",
+              "crc": "b6f585fb"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 512,
+      "loads": [
+        {
+          "file": "prom-1.1d",
+          "offset": 0,
+          "size": 256,
+          "crc": "7a2815b4",
+          "alt": [
+            {
+              "file": "1d.bin",
+              "crc": "86d92b24"
+            }
+          ]
+        },
+        {
+          "file": "prom-2.5c",
+          "offset": 256,
+          "size": 256,
+          "crc": "77245b66"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN1",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSWA",
+      "mask": 3,
+      "value": 3,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSWA",
+      "mask": 4,
+      "value": 4,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWA",
+      "mask": 8,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSWA",
+      "mask": 16,
+      "value": 16,
+      "name": "Freeze"
+    },
+    {
+      "port": "DSWA",
+      "mask": 32,
+      "value": 32,
+      "name": "Rack Test"
+    },
+    {
+      "port": "DSWA",
+      "mask": 64,
+      "value": 64,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWA",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSWB",
+      "mask": 7,
+      "value": 7,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSWB",
+      "mask": 56,
+      "value": 16,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSWB",
+      "mask": 192,
+      "value": 128,
+      "name": "Lives"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "IN1",
+      "init": 255
+    },
+    {
+      "tag": "DSWA",
+      "init": 247
+    },
+    {
+      "tag": "DSWB",
+      "init": 151
+    }
+  ],
+  "runtimeUrl": "./dist/runtime/",
+  "menuUrl": "./"
+}

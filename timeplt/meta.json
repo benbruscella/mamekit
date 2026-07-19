@@ -1,0 +1,25 @@
+{
+  "game": "timeplt",
+  "title": "Time Pilot (Konami, 1982)",
+  "fullname": "Time Pilot",
+  "year": "1982",
+  "manufacturer": "Konami",
+  "family": "timeplt",
+  "driverFile": "src/mame/konami/timeplt.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2025-07-29",
+    "commits": 142,
+    "contributors": 21,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Michaël Banaan Ananas"
+    ]
+  },
+  "hasHistory": true
+}

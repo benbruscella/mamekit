@@ -1,0 +1,2367 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/konami/rocnrope.cpp",
+    "generatedAt": "2026-07-19T06:33:18.748Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Chris Hardy"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/konami/rocnrope.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/rocnrope.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konami1.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konami1.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konamipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konamipt.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:timeplt_a.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "timeplt_a.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6809/m6809.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6809/m6809.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/74259.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/74259.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/resnet.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/resnet.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:rocnrope",
+      "label": "Game",
+      "props": {
+        "name": "rocnrope",
+        "year": "1983",
+        "company": "Konami",
+        "fullname": "Roc'n Rope",
+        "monitor": "ROT270",
+        "cls": "rocnrope_state",
+        "init": "init_rocnrope",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "romPatches": [
+          "maincpu:28733:186"
+        ]
+      }
+    },
+    {
+      "id": "romset:rocnrope",
+      "label": "RomSet",
+      "props": {
+        "name": "rocnrope"
+      }
+    },
+    {
+      "id": "region:rocnrope/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:rocnrope/maincpu/rr1.1h",
+      "label": "Rom",
+      "props": {
+        "file": "rr1.1h",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "83093134",
+        "sha1": "c9509cfb9f9043cd6c226cc84dbc2e2b744488f6"
+      }
+    },
+    {
+      "id": "rom:rocnrope/maincpu/rr2.2h",
+      "label": "Rom",
+      "props": {
+        "file": "rr2.2h",
+        "offset": 32768,
+        "size": 8192,
+        "crc": "75af8697",
+        "sha1": "70bb4b838cdafedf3d94425fad84f77815898d83"
+      }
+    },
+    {
+      "id": "rom:rocnrope/maincpu/rr3.3h",
+      "label": "Rom",
+      "props": {
+        "file": "rr3.3h",
+        "offset": 40960,
+        "size": 8192,
+        "crc": "b21372b1",
+        "sha1": "c08ab3caaa646f4752f890d8339bce6b723864bb"
+      }
+    },
+    {
+      "id": "rom:rocnrope/maincpu/rr4.4h",
+      "label": "Rom",
+      "props": {
+        "file": "rr4.4h",
+        "offset": 49152,
+        "size": 8192,
+        "crc": "7acb2a05",
+        "sha1": "93762d1890f40abc98372a2aa9fe0f63252b6389"
+      }
+    },
+    {
+      "id": "rom:rocnrope/maincpu/rnr_h5.vid",
+      "label": "Rom",
+      "props": {
+        "file": "rnr_h5.vid",
+        "offset": 57344,
+        "size": 8192,
+        "crc": "150a6264",
+        "sha1": "930ccf8dcf4971d0a15f406d9114be5ecfaa1727"
+      }
+    },
+    {
+      "id": "region:rocnrope/timeplt_audio:tpsound",
+      "label": "RomRegion",
+      "props": {
+        "tag": "timeplt_audio:tpsound",
+        "size": 65536,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:rocnrope/timeplt_audio:tpsound/rnr_7a.snd",
+      "label": "Rom",
+      "props": {
+        "file": "rnr_7a.snd",
+        "offset": 0,
+        "size": 4096,
+        "crc": "75d2c4e2",
+        "sha1": "b701019b4e7b06b268be660ce7958b5367318c27"
+      }
+    },
+    {
+      "id": "rom:rocnrope/timeplt_audio:tpsound/rnr_8a.snd",
+      "label": "Rom",
+      "props": {
+        "file": "rnr_8a.snd",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "ca4325ae",
+        "sha1": "34ac035c0c2ed6bcafde1491d976bb9e9d2a2a7d"
+      }
+    },
+    {
+      "id": "region:rocnrope/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 32768,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:rocnrope/sprites/rnr_a11.vid",
+      "label": "Rom",
+      "props": {
+        "file": "rnr_a11.vid",
+        "offset": 0,
+        "size": 8192,
+        "crc": "afdaba5e",
+        "sha1": "27c090cb1c3767c997daeedbe1ba24786f9e78f1"
+      }
+    },
+    {
+      "id": "rom:rocnrope/sprites/rnr_a12.vid",
+      "label": "Rom",
+      "props": {
+        "file": "rnr_a12.vid",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "054cafeb",
+        "sha1": "4c3cd850b347217af3dd5c9bb84bcff7b30689bd"
+      }
+    },
+    {
+      "id": "rom:rocnrope/sprites/rnr_a9.vid",
+      "label": "Rom",
+      "props": {
+        "file": "rnr_a9.vid",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "9d2166b2",
+        "sha1": "42d2b05360e58b1b2b3ad06c98eb46d9da2b1c21"
+      }
+    },
+    {
+      "id": "rom:rocnrope/sprites/rnr_a10.vid",
+      "label": "Rom",
+      "props": {
+        "file": "rnr_a10.vid",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "aff6e22f",
+        "sha1": "476d67821519feddc9f9c8537b46e6eede790035"
+      }
+    },
+    {
+      "id": "region:rocnrope/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 16384,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:rocnrope/tiles/rnr_h12.vid",
+      "label": "Rom",
+      "props": {
+        "file": "rnr_h12.vid",
+        "offset": 0,
+        "size": 8192,
+        "crc": "e2114539",
+        "sha1": "0ea19ae4d7c2da14f23c81abb8e2c931785b2715"
+      }
+    },
+    {
+      "id": "rom:rocnrope/tiles/rnr_h11.vid",
+      "label": "Rom",
+      "props": {
+        "file": "rnr_h11.vid",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "169a8f3f",
+        "sha1": "182c7c9b9849ebb57b3ff7c0b629f2f8e2efa9ba"
+      }
+    },
+    {
+      "id": "region:rocnrope/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:rocnrope/proms/a17_prom.bin",
+      "label": "Rom",
+      "props": {
+        "file": "a17_prom.bin",
+        "offset": 0,
+        "size": 32,
+        "crc": "22ad2c3e",
+        "sha1": "1c2198b286c75aa9e78d000432795b1ce86ad6b9"
+      }
+    },
+    {
+      "id": "rom:rocnrope/proms/b16_prom.bin",
+      "label": "Rom",
+      "props": {
+        "file": "b16_prom.bin",
+        "offset": 32,
+        "size": 256,
+        "crc": "750a9677",
+        "sha1": "7a5b4aed5f87180850657b8852bb3f3138d58b5b"
+      }
+    },
+    {
+      "id": "rom:rocnrope/proms/rocnrope.pr3",
+      "label": "Rom",
+      "props": {
+        "file": "rocnrope.pr3",
+        "offset": 288,
+        "size": 256,
+        "crc": "b5c75a27",
+        "sha1": "923d6ccf015fd7458494416cc05426cc922a9238"
+      }
+    },
+    {
+      "id": "region:rocnrope/pal_cpuvidbd",
+      "label": "RomRegion",
+      "props": {
+        "tag": "pal_cpuvidbd",
+        "size": 1,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:rocnrope/pal_cpuvidbd/h100.6g",
+      "label": "Rom",
+      "props": {
+        "file": "h100.6g",
+        "offset": 0,
+        "size": 1,
+        "crc": "",
+        "sha1": ""
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "rocnrope_state",
+        "name": "main_map"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 12416,
+        "end": 12416,
+        "raw": "map(0x3080, 0x3080).portr(\"SYSTEM\")",
+        "portRead": "SYSTEM"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 12417,
+        "end": 12417,
+        "raw": "map(0x3081, 0x3081).portr(\"P1\")",
+        "portRead": "P1"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 12418,
+        "end": 12418,
+        "raw": "map(0x3082, 0x3082).portr(\"P2\")",
+        "portRead": "P2"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 12419,
+        "end": 12419,
+        "raw": "map(0x3083, 0x3083).portr(\"DSW1\")",
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 12288,
+        "raw": "map(0x3000, 0x3000).portr(\"DSW2\")",
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 12544,
+        "end": 12544,
+        "raw": "map(0x3100, 0x3100).portr(\"DSW3\")",
+        "portRead": "DSW3"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 16431,
+        "raw": "map(0x4000, 0x402f).ram().share(m_spriteram[1])",
+        "ram": true,
+        "share": "spriteram[1]"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 16432,
+        "end": 17407,
+        "raw": "map(0x4030, 0x43ff).ram()",
+        "ram": true
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 17408,
+        "end": 17455,
+        "raw": "map(0x4400, 0x442f).ram().share(m_spriteram[0])",
+        "ram": true,
+        "share": "spriteram[0]"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 17456,
+        "end": 18431,
+        "raw": "map(0x4430, 0x47ff).ram()",
+        "ram": true
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 18432,
+        "end": 19455,
+        "raw": "map(0x4800, 0x4bff).ram().w(FUNC(rocnrope_state::colorram_w)).share(m_colorram)",
+        "ram": true,
+        "share": "colorram"
+      }
+    },
+    {
+      "id": "handler:rocnrope_state.colorram_w",
+      "label": "Handler",
+      "props": {
+        "method": "colorram_w",
+        "ownerClass": "rocnrope_state"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 19456,
+        "end": 20479,
+        "raw": "map(0x4c00, 0x4fff).ram().w(FUNC(rocnrope_state::videoram_w)).share(m_videoram)",
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:rocnrope_state.videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w",
+        "ownerClass": "rocnrope_state"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 20480,
+        "end": 24575,
+        "raw": "map(0x5000, 0x5fff).ram()",
+        "ram": true
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 32768,
+        "raw": "map(0x8000, 0x8000).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))"
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 32896,
+        "end": 32903,
+        "raw": "map(0x8080, 0x8087).w(\"mainlatch\", FUNC(ls259_device::write_d0))"
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_d0",
+        "ownerClass": "ls259_device"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 33024,
+        "end": 33024,
+        "raw": "map(0x8100, 0x8100).w(\"timeplt_audio\", FUNC(timeplt_audio_device::sound_data_w))"
+      }
+    },
+    {
+      "id": "handler:timeplt_audio_device.sound_data_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_data_w",
+        "ownerClass": "timeplt_audio_device"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 33154,
+        "end": 33165,
+        "raw": "map(0x8182, 0x818d).w(FUNC(rocnrope_state::interrupt_vector_w))"
+      }
+    },
+    {
+      "id": "handler:rocnrope_state.interrupt_vector_w",
+      "label": "Handler",
+      "props": {
+        "method": "interrupt_vector_w",
+        "ownerClass": "rocnrope_state"
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range17",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 65535,
+        "raw": "map(0x6000, 0xffff).rom()",
+        "rom": true
+      }
+    },
+    {
+      "id": "map:rocnrope_state.main_map/range18",
+      "label": "AddressRange",
+      "props": {
+        "start": 65522,
+        "end": 65533,
+        "raw": "map(0xfff2, 0xfffd).ram().share(m_vectors)",
+        "ram": true,
+        "share": "vectors"
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "timeplt_audio_device",
+        "name": "timeplt_sound_map"
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 12287,
+        "raw": "map(0x0000, 0x2fff).rom()",
+        "rom": true
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 13311,
+        "raw": "map(0x3000, 0x33ff).mirror(0x0c00).ram()",
+        "mirror": 3072,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 16384,
+        "raw": "map(0x4000, 0x4000).mirror(0x0fff).rw(\"ay1\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_r",
+      "label": "Handler",
+      "props": {
+        "method": "data_r",
+        "ownerClass": "ay8910_device"
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "ay8910_device"
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 20480,
+        "end": 20480,
+        "raw": "map(0x5000, 0x5000).mirror(0x0fff).w(\"ay1\", FUNC(ay8910_device::address_w))",
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "handler:ay8910_device.address_w",
+      "label": "Handler",
+      "props": {
+        "method": "address_w",
+        "ownerClass": "ay8910_device"
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 24576,
+        "raw": "map(0x6000, 0x6000).mirror(0x0fff).rw(\"ay2\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 28672,
+        "end": 28672,
+        "raw": "map(0x7000, 0x7000).mirror(0x0fff).w(\"ay2\", FUNC(ay8910_device::address_w))",
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 65535,
+        "raw": "map(0x8000, 0xffff).w(FUNC(timeplt_audio_device::filter_w))"
+      }
+    },
+    {
+      "id": "handler:timeplt_audio_device.filter_w",
+      "label": "Handler",
+      "props": {
+        "method": "filter_w",
+        "ownerClass": "timeplt_audio_device"
+      }
+    },
+    {
+      "id": "machine:rocnrope_state.rocnrope",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "rocnrope_state",
+        "name": "rocnrope",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:rocnrope_state.rocnrope/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "KONAMI1",
+        "tag": "maincpu",
+        "clock": 1536000,
+        "config": [
+          "KONAMI1(config, m_maincpu, XTAL(18'432'000) / 3 / 4)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &rocnrope_state::main_map)"
+        ]
+      }
+    },
+    {
+      "id": "device:rocnrope_state.rocnrope/mainlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "mainlatch",
+        "clock": null,
+        "config": [
+          "ls259_device &mainlatch(LS259(config, \"mainlatch\"))",
+          "mainlatch.q_out_cb<0>().set(FUNC(rocnrope_state::flip_screen_set)).invert()",
+          "mainlatch.q_out_cb<1>().set(\"timeplt_audio\", FUNC(timeplt_audio_device::sh_irqtrigger_w))",
+          "mainlatch.q_out_cb<2>().set(\"timeplt_audio\", FUNC(timeplt_audio_device::mute_w))",
+          "mainlatch.q_out_cb<3>().set(FUNC(rocnrope_state::coin_counter_w<0>))",
+          "mainlatch.q_out_cb<4>().set(FUNC(rocnrope_state::coin_counter_w<1>))",
+          "mainlatch.q_out_cb<7>().set(FUNC(rocnrope_state::irq_mask_w))"
+        ]
+      }
+    },
+    {
+      "id": "device:rocnrope_state.rocnrope/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\")"
+        ]
+      }
+    },
+    {
+      "id": "device:rocnrope_state.rocnrope/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_refresh_hz(60)",
+          "screen.set_vblank_time(ATTOSECONDS_IN_USEC(0))",
+          "screen.set_size(32*8, 32*8)",
+          "screen.set_visarea(0*8, 32*8-1, 2*8, 30*8-1)",
+          "screen.set_screen_update(FUNC(rocnrope_state::screen_update))",
+          "screen.set_palette(m_palette)",
+          "screen.screen_vblank().set(FUNC(rocnrope_state::vblank_irq))"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRefreshHz": 60,
+        "screenSize": [
+          256,
+          256
+        ],
+        "screenVisarea": [
+          0,
+          255,
+          16,
+          239
+        ]
+      }
+    },
+    {
+      "id": "device:rocnrope_state.rocnrope/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_rocnrope)"
+        ],
+        "clockExpr": "m_palette, gfx_rocnrope"
+      }
+    },
+    {
+      "id": "device:rocnrope_state.rocnrope/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(rocnrope_state::palette), 16*16+16*16, 32)"
+        ],
+        "clockExpr": "FUNC(rocnrope_state::palette), 16*16+16*16, 32"
+      }
+    },
+    {
+      "id": "device:rocnrope_state.rocnrope/timeplt_audio",
+      "label": "Device",
+      "props": {
+        "type": "TIMEPLT_AUDIO",
+        "tag": "timeplt_audio",
+        "clock": 14318181,
+        "config": [
+          "TIMEPLT_AUDIO(config, \"timeplt_audio\")"
+        ]
+      }
+    },
+    {
+      "id": "machine:timeplt_audio_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "timeplt_audio_device",
+        "name": "device_add_mconfig",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/tpsound",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "tpsound",
+        "clock": 1789772.625,
+        "config": [
+          "Z80(config, m_soundcpu, DERIVED_CLOCK(1, 8))",
+          "m_soundcpu->set_addrmap(AS_PROGRAM, &timeplt_audio_device::timeplt_sound_map)"
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()",
+          "for (required_device<filter_rc_device> &filter : m_filter[0])\n\t\tFILTER_RC(config, filter).add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+          "for (required_device<filter_rc_device> &filter : m_filter[1])\n\t\tFILTER_RC(config, filter).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch)"
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/ay1",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay1",
+        "clock": 1789772.625,
+        "config": [
+          "ay8910_device &ay1(AY8910(config, \"ay1\", DERIVED_CLOCK(1, 8)))",
+          "ay1.port_a_read_callback().set(m_soundlatch, FUNC(generic_latch_8_device::read))",
+          "ay1.port_b_read_callback().set(FUNC(timeplt_audio_device::portB_r))",
+          "ay1.add_route(0, \"filter.0.0\", 0.60)",
+          "ay1.add_route(1, \"filter.0.1\", 0.60)",
+          "ay1.add_route(2, \"filter.0.2\", 0.60)"
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/ay2",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay2",
+        "clock": 1789772.625,
+        "config": [
+          "ay8910_device &ay2(AY8910(config, \"ay2\", DERIVED_CLOCK(1, 8)))",
+          "ay2.add_route(0, \"filter.1.0\", 0.60)",
+          "ay2.add_route(1, \"filter.1.1\", 0.60)",
+          "ay2.add_route(2, \"filter.1.2\", 0.60)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope",
+      "label": "InputPorts",
+      "props": {
+        "name": "rocnrope"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/SYSTEM",
+      "label": "Port",
+      "props": {
+        "tag": "SYSTEM",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rocnrope/SYSTEM/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/SYSTEM/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/SYSTEM/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_SERVICE1"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/SYSTEM/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/SYSTEM/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/SYSTEM/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/SYSTEM/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/SYSTEM/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P1",
+      "label": "Port",
+      "props": {
+        "tag": "P1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_4WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_4WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_4WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_4WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P2",
+      "label": "Port",
+      "props": {
+        "tag": "P2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_4WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/P2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 15,
+        "name": "Coin A",
+        "defaultValue": 15,
+        "location": "#SW1\":1,2,3,4\"",
+        "settings": [
+          "2=4C 1C",
+          "5=3C 1C",
+          "8=2C 1C",
+          "4=3C 2C",
+          "1=4C 3C",
+          "15=1C 1C",
+          "3=3C 4C",
+          "7=2C 3C",
+          "14=1C 2C",
+          "6=2C 5C",
+          "13=1C 3C",
+          "12=1C 4C",
+          "11=1C 5C",
+          "10=1C 6C",
+          "9=1C 7C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "name": "Coin B",
+        "defaultValue": 240,
+        "location": "#SW1\":5,6,7,8\"",
+        "settings": [
+          "32=4C 1C",
+          "80=3C 1C",
+          "128=2C 1C",
+          "64=3C 2C",
+          "16=4C 3C",
+          "240=1C 1C",
+          "48=3C 4C",
+          "112=2C 3C",
+          "224=1C 2C",
+          "96=2C 5C",
+          "208=1C 3C",
+          "192=1C 4C",
+          "176=1C 5C",
+          "160=1C 6C",
+          "144=1C 7C",
+          "0=No Coin B"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Lives",
+        "defaultValue": 3,
+        "location": "SW2:1,2",
+        "settings": [
+          "3=3",
+          "2=4",
+          "1=5",
+          "0=255 (Cheat)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW2:3",
+        "settings": [
+          "0=Upright",
+          "4=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 120,
+        "name": "Difficulty",
+        "defaultValue": 88,
+        "location": "SW2:4,5,6,7",
+        "settings": [
+          "120=1 (Easy)",
+          "112=2",
+          "104=3",
+          "96=4",
+          "88=5",
+          "80=6",
+          "72=7",
+          "64=8",
+          "56=9",
+          "48=10",
+          "40=11",
+          "32=12",
+          "24=13",
+          "16=14",
+          "8=15",
+          "0=16 (Difficult)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "SW2:8",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW3",
+      "label": "Port",
+      "props": {
+        "tag": "DSW3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 7,
+        "name": "First Bonus",
+        "defaultValue": 6,
+        "location": "SW3:1,2,3",
+        "settings": [
+          "7=20000",
+          "6=20000",
+          "5=30000",
+          "4=40000",
+          "3=50000",
+          "2=60000",
+          "1=70000",
+          "0=80000"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW3/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 56,
+        "name": "Repeated Bonus",
+        "defaultValue": 16,
+        "location": "SW3:4,5,6",
+        "settings": [
+          "56=40000",
+          "48=40000",
+          "40=40000",
+          "32=40000",
+          "24=50000",
+          "16=60000",
+          "8=70000",
+          "0=80000"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW3/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Grant Repeated Bonus",
+        "defaultValue": 0,
+        "location": "SW3:7",
+        "settings": [
+          "64=No",
+          "0=Yes"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rocnrope/DSW3/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Unused"
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout",
+        "width": 8,
+        "height": 8,
+        "total": 512,
+        "planes": 4,
+        "planeOffsets": [
+          65540,
+          65536,
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          64,
+          65,
+          66,
+          67
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": 256,
+        "planes": 4,
+        "planeOffsets": [
+          131076,
+          131072,
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          64,
+          65,
+          66,
+          67,
+          128,
+          129,
+          130,
+          131,
+          192,
+          193,
+          194,
+          195
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          256,
+          264,
+          272,
+          280,
+          288,
+          296,
+          304,
+          312
+        ],
+        "charIncrement": 512
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_rocnrope",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_rocnrope"
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_rocnrope/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 0,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_rocnrope/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles",
+        "offset": 0,
+        "layout": "charlayout",
+        "colorBase": 256,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:rocnrope",
+      "to": "file:src/mame/konami/rocnrope.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:rocnrope",
+      "to": "machine:rocnrope_state.rocnrope",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:rocnrope",
+      "to": "inputs:rocnrope",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:rocnrope",
+      "to": "romset:rocnrope",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:konami1.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:konamipt.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:timeplt_a.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:cpu/m6809/m6809.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:video/resnet.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/rocnrope.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:rocnrope_state.rocnrope",
+      "to": "file:src/mame/konami/rocnrope.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:rocnrope_state.rocnrope",
+      "to": "device:rocnrope_state.rocnrope/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:rocnrope_state.rocnrope",
+      "to": "device:rocnrope_state.rocnrope/mainlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:rocnrope_state.rocnrope",
+      "to": "device:rocnrope_state.rocnrope/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:rocnrope_state.rocnrope",
+      "to": "device:rocnrope_state.rocnrope/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:rocnrope_state.rocnrope",
+      "to": "device:rocnrope_state.rocnrope/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:rocnrope_state.rocnrope",
+      "to": "gfxdecode:gfx_rocnrope",
+      "rel": "DECODES"
+    },
+    {
+      "from": "machine:rocnrope_state.rocnrope",
+      "to": "device:rocnrope_state.rocnrope/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:rocnrope_state.rocnrope",
+      "to": "device:rocnrope_state.rocnrope/timeplt_audio",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:rocnrope",
+      "to": "file:src/mame/konami/rocnrope.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:rocnrope",
+      "to": "inputs:rocnrope/SYSTEM",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rocnrope",
+      "to": "inputs:rocnrope/P1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rocnrope",
+      "to": "inputs:rocnrope/P2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rocnrope",
+      "to": "inputs:rocnrope/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rocnrope",
+      "to": "inputs:rocnrope/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rocnrope",
+      "to": "inputs:rocnrope/DSW3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:rocnrope",
+      "to": "file:src/mame/konami/rocnrope.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:rocnrope",
+      "to": "region:rocnrope/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rocnrope",
+      "to": "region:rocnrope/timeplt_audio:tpsound",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rocnrope",
+      "to": "region:rocnrope/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rocnrope",
+      "to": "region:rocnrope/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rocnrope",
+      "to": "region:rocnrope/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rocnrope",
+      "to": "region:rocnrope/pal_cpuvidbd",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "device:rocnrope_state.rocnrope/maincpu",
+      "to": "map:rocnrope_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_rocnrope",
+      "to": "file:src/mame/konami/rocnrope.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxdecode:gfx_rocnrope",
+      "to": "gfxdecode:gfx_rocnrope/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_rocnrope",
+      "to": "gfxdecode:gfx_rocnrope/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:rocnrope_state.rocnrope/timeplt_audio",
+      "to": "machine:timeplt_audio_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "inputs:rocnrope/SYSTEM",
+      "to": "inputs:rocnrope/SYSTEM/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/SYSTEM",
+      "to": "inputs:rocnrope/SYSTEM/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/SYSTEM",
+      "to": "inputs:rocnrope/SYSTEM/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/SYSTEM",
+      "to": "inputs:rocnrope/SYSTEM/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/SYSTEM",
+      "to": "inputs:rocnrope/SYSTEM/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/SYSTEM",
+      "to": "inputs:rocnrope/SYSTEM/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/SYSTEM",
+      "to": "inputs:rocnrope/SYSTEM/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/SYSTEM",
+      "to": "inputs:rocnrope/SYSTEM/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P1",
+      "to": "inputs:rocnrope/P1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P1",
+      "to": "inputs:rocnrope/P1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P1",
+      "to": "inputs:rocnrope/P1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P1",
+      "to": "inputs:rocnrope/P1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P1",
+      "to": "inputs:rocnrope/P1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P1",
+      "to": "inputs:rocnrope/P1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P1",
+      "to": "inputs:rocnrope/P1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P1",
+      "to": "inputs:rocnrope/P1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P2",
+      "to": "inputs:rocnrope/P2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P2",
+      "to": "inputs:rocnrope/P2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P2",
+      "to": "inputs:rocnrope/P2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P2",
+      "to": "inputs:rocnrope/P2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P2",
+      "to": "inputs:rocnrope/P2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P2",
+      "to": "inputs:rocnrope/P2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P2",
+      "to": "inputs:rocnrope/P2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/P2",
+      "to": "inputs:rocnrope/P2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/DSW1",
+      "to": "inputs:rocnrope/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/DSW1",
+      "to": "inputs:rocnrope/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/DSW2",
+      "to": "inputs:rocnrope/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/DSW2",
+      "to": "inputs:rocnrope/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/DSW2",
+      "to": "inputs:rocnrope/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/DSW2",
+      "to": "inputs:rocnrope/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/DSW3",
+      "to": "inputs:rocnrope/DSW3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/DSW3",
+      "to": "inputs:rocnrope/DSW3/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/DSW3",
+      "to": "inputs:rocnrope/DSW3/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rocnrope/DSW3",
+      "to": "inputs:rocnrope/DSW3/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:rocnrope/maincpu",
+      "to": "rom:rocnrope/maincpu/rr1.1h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/maincpu",
+      "to": "rom:rocnrope/maincpu/rr2.2h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/maincpu",
+      "to": "rom:rocnrope/maincpu/rr3.3h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/maincpu",
+      "to": "rom:rocnrope/maincpu/rr4.4h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/maincpu",
+      "to": "rom:rocnrope/maincpu/rnr_h5.vid",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/timeplt_audio:tpsound",
+      "to": "rom:rocnrope/timeplt_audio:tpsound/rnr_7a.snd",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/timeplt_audio:tpsound",
+      "to": "rom:rocnrope/timeplt_audio:tpsound/rnr_8a.snd",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/sprites",
+      "to": "rom:rocnrope/sprites/rnr_a11.vid",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/sprites",
+      "to": "rom:rocnrope/sprites/rnr_a12.vid",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/sprites",
+      "to": "rom:rocnrope/sprites/rnr_a9.vid",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/sprites",
+      "to": "rom:rocnrope/sprites/rnr_a10.vid",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/tiles",
+      "to": "rom:rocnrope/tiles/rnr_h12.vid",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/tiles",
+      "to": "rom:rocnrope/tiles/rnr_h11.vid",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/proms",
+      "to": "rom:rocnrope/proms/a17_prom.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/proms",
+      "to": "rom:rocnrope/proms/b16_prom.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/proms",
+      "to": "rom:rocnrope/proms/rocnrope.pr3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rocnrope/pal_cpuvidbd",
+      "to": "rom:rocnrope/pal_cpuvidbd/h100.6g",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "file:src/mame/konami/rocnrope.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range17",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map",
+      "to": "map:rocnrope_state.main_map/range18",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "gfxdecode:gfx_rocnrope/e0",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_rocnrope/e1",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "file:src/mame/konami/rocnrope.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/tpsound",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/ay1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/ay2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:rocnrope_state.main_map/range10",
+      "to": "handler:rocnrope_state.colorram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:rocnrope_state.main_map/range11",
+      "to": "handler:rocnrope_state.videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:rocnrope_state.main_map/range13",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:rocnrope_state.main_map/range14",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:rocnrope_state.main_map/range15",
+      "to": "handler:timeplt_audio_device.sound_data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "timeplt_audio"
+      }
+    },
+    {
+      "from": "map:rocnrope_state.main_map/range16",
+      "to": "handler:rocnrope_state.interrupt_vector_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/konami/rocnrope.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:charlayout",
+      "to": "file:src/mame/konami/rocnrope.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/tpsound",
+      "to": "map:timeplt_audio_device.timeplt_sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "file:src/mame/konami/rocnrope.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "to": "handler:ay8910_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range3",
+      "to": "handler:ay8910_device.address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "to": "handler:ay8910_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range5",
+      "to": "handler:ay8910_device.address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range6",
+      "to": "handler:timeplt_audio_device.filter_w",
+      "rel": "WRITES"
+    }
+  ]
+}

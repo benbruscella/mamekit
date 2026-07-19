@@ -1,0 +1,2083 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/namco/galaga.cpp",
+    "generatedAt": "2026-07-19T06:32:29.728Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/namco/galaga.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/namco/galaga.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bosco.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bosco.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:digdug.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "digdug.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:galaga.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "galaga.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:xevious.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "xevious.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:namco52.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "namco52.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:namco54.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "namco54.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/mb88xx/mb88xx.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/mb88xx/mb88xx.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:namco06.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "namco06.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:namco50.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "namco50.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:namco51.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "namco51.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:namco53.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "namco53.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/rescap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/rescap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/samples.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/samples.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:galaga",
+      "label": "Game",
+      "props": {
+        "name": "galaga",
+        "year": "1981",
+        "company": "Namco",
+        "fullname": "Galaga (Namco rev. B)",
+        "monitor": "ROT90",
+        "cls": "galaga_state",
+        "init": "init_galaga",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade"
+      }
+    },
+    {
+      "id": "romset:galaga",
+      "label": "RomSet",
+      "props": {
+        "name": "galaga"
+      }
+    },
+    {
+      "id": "region:galaga/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:galaga/maincpu/gg1_1b.3p",
+      "label": "Rom",
+      "props": {
+        "file": "gg1_1b.3p",
+        "offset": 0,
+        "size": 4096,
+        "crc": "ab036c9f",
+        "sha1": "ca7f5da42d4e76fd89bb0b35198a23c01462fbfe"
+      }
+    },
+    {
+      "id": "rom:galaga/maincpu/gg1_2b.3m",
+      "label": "Rom",
+      "props": {
+        "file": "gg1_2b.3m",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "d9232240",
+        "sha1": "ab202aa259c3d332ef13dfb8fc8580ce2a5a253d"
+      }
+    },
+    {
+      "id": "rom:galaga/maincpu/gg1_3.2m",
+      "label": "Rom",
+      "props": {
+        "file": "gg1_3.2m",
+        "offset": 8192,
+        "size": 4096,
+        "crc": "753ce503",
+        "sha1": "481f443aea3ed3504ec2f3a6bfcf3cd47e2f8f81"
+      }
+    },
+    {
+      "id": "rom:galaga/maincpu/gg1_4b.2l",
+      "label": "Rom",
+      "props": {
+        "file": "gg1_4b.2l",
+        "offset": 12288,
+        "size": 4096,
+        "crc": "499fcc76",
+        "sha1": "ddb8b121903646c320939c7d13f4aa4ebb130378"
+      }
+    },
+    {
+      "id": "region:galaga/sub",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sub",
+        "size": 65536,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:galaga/sub/gg1_5b.3f",
+      "label": "Rom",
+      "props": {
+        "file": "gg1_5b.3f",
+        "offset": 0,
+        "size": 4096,
+        "crc": "bb5caae3",
+        "sha1": "e957a581463caac27bc37ca2e2a90f27e4f62b6f"
+      }
+    },
+    {
+      "id": "region:galaga/sub2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sub2",
+        "size": 65536,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:galaga/sub2/gg1_7b.2c",
+      "label": "Rom",
+      "props": {
+        "file": "gg1_7b.2c",
+        "offset": 0,
+        "size": 4096,
+        "crc": "d016686b",
+        "sha1": "44c1a04fba3c7c826ff484185cb881b4b22e6657"
+      }
+    },
+    {
+      "id": "region:galaga/gfx1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx1",
+        "size": 4096,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:galaga/gfx1/gg1_9.4l",
+      "label": "Rom",
+      "props": {
+        "file": "gg1_9.4l",
+        "offset": 0,
+        "size": 4096,
+        "crc": "58b2f47c",
+        "sha1": "62f1279a784ab2f8218c4137c7accda00e6a3490"
+      }
+    },
+    {
+      "id": "region:galaga/gfx2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx2",
+        "size": 8192,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:galaga/gfx2/gg1_11.4d",
+      "label": "Rom",
+      "props": {
+        "file": "gg1_11.4d",
+        "offset": 0,
+        "size": 4096,
+        "crc": "ad447c80",
+        "sha1": "e697c180178cabd1d32483c5d8889a40633f7857"
+      }
+    },
+    {
+      "id": "rom:galaga/gfx2/gg1_10.4f",
+      "label": "Rom",
+      "props": {
+        "file": "gg1_10.4f",
+        "offset": 4096,
+        "size": 4096,
+        "crc": "dd6f1afc",
+        "sha1": "c340ed8c25e0979629a9a1730edc762bd72d0cff"
+      }
+    },
+    {
+      "id": "region:galaga/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:galaga/proms/prom-5.5n",
+      "label": "Rom",
+      "props": {
+        "file": "prom-5.5n",
+        "offset": 0,
+        "size": 32,
+        "crc": "54603c6b",
+        "sha1": "1a6dea13b4af155d9cb5b999a75d4f1eb9c71346"
+      }
+    },
+    {
+      "id": "rom:galaga/proms/prom-4.2n",
+      "label": "Rom",
+      "props": {
+        "file": "prom-4.2n",
+        "offset": 32,
+        "size": 256,
+        "crc": "59b6edab",
+        "sha1": "0281de86c236c88739297ff712e0a4f5c8bf8ab9"
+      }
+    },
+    {
+      "id": "rom:galaga/proms/prom-3.1c",
+      "label": "Rom",
+      "props": {
+        "file": "prom-3.1c",
+        "offset": 288,
+        "size": 256,
+        "crc": "4a04bb6b",
+        "sha1": "cdd4bc1013f5c11984fdc4fd10e2d2e27120c1e5"
+      }
+    },
+    {
+      "id": "region:galaga/namco",
+      "label": "RomRegion",
+      "props": {
+        "tag": "namco",
+        "size": 512,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:galaga/namco/prom-1.1d",
+      "label": "Rom",
+      "props": {
+        "file": "prom-1.1d",
+        "offset": 0,
+        "size": 256,
+        "crc": "7a2815b4",
+        "sha1": "085ada18c498fdb18ecedef0ea8fe9217edb7b46"
+      }
+    },
+    {
+      "id": "rom:galaga/namco/prom-2.5c",
+      "label": "Rom",
+      "props": {
+        "file": "prom-2.5c",
+        "offset": 256,
+        "size": 256,
+        "crc": "77245b66",
+        "sha1": "0c4d0bee858b97632411c440bea6948a74759746"
+      }
+    },
+    {
+      "id": "handler:namco_wsg_device.pacman_sound_w",
+      "label": "Handler",
+      "props": {
+        "method": "pacman_sound_w",
+        "ownerClass": "namco_wsg_device"
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_d0",
+        "ownerClass": "ls259_device"
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device"
+      }
+    },
+    {
+      "id": "handler:namco_06xx_device.data_r",
+      "label": "Handler",
+      "props": {
+        "method": "data_r",
+        "ownerClass": "namco_06xx_device"
+      }
+    },
+    {
+      "id": "handler:namco_06xx_device.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "namco_06xx_device"
+      }
+    },
+    {
+      "id": "handler:namco_06xx_device.ctrl_r",
+      "label": "Handler",
+      "props": {
+        "method": "ctrl_r",
+        "ownerClass": "namco_06xx_device"
+      }
+    },
+    {
+      "id": "handler:namco_06xx_device.ctrl_w",
+      "label": "Handler",
+      "props": {
+        "method": "ctrl_w",
+        "ownerClass": "namco_06xx_device"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "galaga_state",
+        "name": "galaga_map"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 16383,
+        "raw": "map(0x0000, 0x3fff).rom().nopw()",
+        "rom": true,
+        "nopw": true
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 26624,
+        "end": 26631,
+        "raw": "map(0x6800, 0x6807).r(FUNC(galaga_state::bosco_dsw_r))"
+      }
+    },
+    {
+      "id": "handler:galaga_state.bosco_dsw_r",
+      "label": "Handler",
+      "props": {
+        "method": "bosco_dsw_r",
+        "ownerClass": "galaga_state"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 26624,
+        "end": 26655,
+        "raw": "map(0x6800, 0x681f).w(m_namco_sound, FUNC(namco_wsg_device::pacman_sound_w))"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 26656,
+        "end": 26663,
+        "raw": "map(0x6820, 0x6827).w(\"misclatch\", FUNC(ls259_device::write_d0))"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 26672,
+        "end": 26672,
+        "raw": "map(0x6830, 0x6830).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 28672,
+        "end": 28927,
+        "raw": "map(0x7000, 0x70ff).rw(\"06xx\", FUNC(namco_06xx_device::data_r), FUNC(namco_06xx_device::data_w))"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 28928,
+        "end": 28928,
+        "raw": "map(0x7100, 0x7100).rw(\"06xx\", FUNC(namco_06xx_device::ctrl_r), FUNC(namco_06xx_device::ctrl_w))"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 34815,
+        "raw": "map(0x8000, 0x87ff).ram().w(FUNC(galaga_state::galaga_videoram_w)).share(\"videoram\")",
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:galaga_state.galaga_videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "galaga_videoram_w",
+        "ownerClass": "galaga_state"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 34816,
+        "end": 35839,
+        "raw": "map(0x8800, 0x8bff).ram().share(\"galaga_ram1\")",
+        "ram": true,
+        "share": "galaga_ram1"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 36864,
+        "end": 37887,
+        "raw": "map(0x9000, 0x93ff).ram().share(\"galaga_ram2\")",
+        "ram": true,
+        "share": "galaga_ram2"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 38912,
+        "end": 39935,
+        "raw": "map(0x9800, 0x9bff).ram().share(\"galaga_ram3\")",
+        "ram": true,
+        "share": "galaga_ram3"
+      }
+    },
+    {
+      "id": "map:galaga_state.galaga_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 40967,
+        "raw": "map(0xa000, 0xa007).w(m_videolatch, FUNC(ls259_device::write_d0))"
+      }
+    },
+    {
+      "id": "machine:galaga_state.galaga",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "galaga_state",
+        "name": "galaga",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 3072000,
+        "config": [
+          "Z80(config, m_maincpu, MASTER_CLOCK/6)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &galaga_state::galaga_map)"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/sub",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "sub",
+        "clock": 3072000,
+        "config": [
+          "Z80(config, m_subcpu, MASTER_CLOCK/6)",
+          "m_subcpu->set_addrmap(AS_PROGRAM, &galaga_state::galaga_map)"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/sub2",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "sub2",
+        "clock": 3072000,
+        "config": [
+          "Z80(config, m_subcpu2, MASTER_CLOCK/6)",
+          "m_subcpu2->set_addrmap(AS_PROGRAM, &galaga_state::galaga_map)"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/misclatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "misclatch",
+        "clock": null,
+        "config": [
+          "ls259_device &misclatch(LS259(config, \"misclatch\"))",
+          "misclatch.q_out_cb<0>().set(FUNC(galaga_state::irq1_clear_w))",
+          "misclatch.q_out_cb<1>().set(FUNC(galaga_state::irq2_clear_w))",
+          "misclatch.q_out_cb<2>().set(FUNC(galaga_state::nmion_w))",
+          "misclatch.q_out_cb<3>().set_inputline(\"sub\", INPUT_LINE_RESET).invert()",
+          "misclatch.q_out_cb<3>().append_inputline(\"sub2\", INPUT_LINE_RESET).invert()",
+          "misclatch.q_out_cb<3>().append(\"51xx\", FUNC(namco_51xx_device::reset))",
+          "misclatch.q_out_cb<3>().append(\"54xx\", FUNC(namco_54xx_device::reset))"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/51xx",
+      "label": "Device",
+      "props": {
+        "type": "NAMCO_51XX",
+        "tag": "51xx",
+        "clock": 1536000,
+        "config": [
+          "namco_51xx_device &n51xx(NAMCO_51XX(config, \"51xx\", MASTER_CLOCK/6/2))",
+          "n51xx.input_callback<0>().set_ioport(\"IN0\").mask(0x0f)",
+          "n51xx.input_callback<1>().set_ioport(\"IN0\").rshift(4)",
+          "n51xx.input_callback<2>().set_ioport(\"IN1\").mask(0x0f)",
+          "n51xx.input_callback<3>().set_ioport(\"IN1\").rshift(4)",
+          "n51xx.output_callback().set(FUNC(galaga_state::out))",
+          "n51xx.lockout_callback().set(FUNC(galaga_state::lockout))"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/54xx",
+      "label": "Device",
+      "props": {
+        "type": "NAMCO_54XX",
+        "tag": "54xx",
+        "clock": 1536000,
+        "config": [
+          "namco_54xx_device &n54xx(NAMCO_54XX(config, \"54xx\", MASTER_CLOCK/6/2))",
+          "n54xx.set_discrete(\"discrete\")",
+          "n54xx.set_basenote(NODE_01)"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/06xx",
+      "label": "Device",
+      "props": {
+        "type": "NAMCO_06XX",
+        "tag": "06xx",
+        "clock": 48000,
+        "config": [
+          "namco_06xx_device &n06xx(NAMCO_06XX(config, \"06xx\", MASTER_CLOCK/6/64))",
+          "n06xx.set_maincpu(m_maincpu)",
+          "n06xx.chip_select_callback<0>().set(\"51xx\", FUNC(namco_51xx_device::chip_select))",
+          "n06xx.rw_callback<0>().set(\"51xx\", FUNC(namco_51xx_device::rw))",
+          "n06xx.read_callback<0>().set(\"51xx\", FUNC(namco_51xx_device::read))",
+          "n06xx.write_callback<0>().set(\"51xx\", FUNC(namco_51xx_device::write))",
+          "n06xx.write_callback<3>().set(\"54xx\", FUNC(namco_54xx_device::write))",
+          "n06xx.chip_select_callback<3>().set(\"54xx\", FUNC(namco_54xx_device::chip_select))"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/videolatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "videolatch",
+        "clock": null,
+        "config": [
+          "LS259(config, m_videolatch)",
+          "m_videolatch->q_out_cb<7>().set(FUNC(galaga_state::flip_screen_set))"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\").set_vblank_count(m_screen, 8)"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(MASTER_CLOCK/3, 384, 0, 288, 264, 0, 224)",
+          "m_screen->set_screen_update(FUNC(galaga_state::screen_update_galaga))",
+          "m_screen->set_video_attributes(VIDEO_ALWAYS_UPDATE)",
+          "m_screen->screen_vblank().set(FUNC(galaga_state::screen_vblank_galaga))",
+          "m_screen->screen_vblank().append(FUNC(galaga_state::vblank_irq))",
+          "m_screen->screen_vblank().append(\"51xx\", FUNC(namco_51xx_device::vblank))",
+          "m_screen->set_palette(\"palette\")"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6144000,
+          384,
+          0,
+          288,
+          264,
+          0,
+          224
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_galaga)"
+        ],
+        "clockExpr": "m_palette, gfx_galaga"
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(galaga_state::galaga_palette), 64*4 + 64*4 + 4 + 64, 32+64)"
+        ],
+        "clockExpr": "FUNC(galaga_state::galaga_palette), 64*4 + 64*4 + 4 + 64, 32+64"
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/starfield",
+      "label": "Device",
+      "props": {
+        "type": "STARFIELD_05XX",
+        "tag": "starfield",
+        "clock": 0,
+        "config": [
+          "STARFIELD_05XX(config, m_starfield)",
+          "m_starfield->set_starfield_config(STARFIELD_X_OFFSET_GALAGA, 0, STARFIELD_X_LIMIT_GALAGA)"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/namco",
+      "label": "Device",
+      "props": {
+        "type": "NAMCO_WSG",
+        "tag": "namco",
+        "clock": 96000,
+        "config": [
+          "NAMCO_WSG(config, m_namco_sound, MASTER_CLOCK/6/32)",
+          "m_namco_sound->add_route(ALL_OUTPUTS, \"mono\", 0.90 * 10.0 / 16.0)"
+        ]
+      }
+    },
+    {
+      "id": "device:galaga_state.galaga/discrete",
+      "label": "Device",
+      "props": {
+        "type": "DISCRETE",
+        "tag": "discrete",
+        "clock": null,
+        "config": [
+          "DISCRETE(config, \"discrete\", galaga_discrete).add_route(ALL_OUTPUTS, \"mono\", 0.90)"
+        ],
+        "clockExpr": "galaga_discrete"
+      }
+    },
+    {
+      "id": "machine:namco_54xx_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "namco_54xx_device",
+        "name": "device_add_mconfig",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:namco_54xx_device.device_add_mconfig/mcu",
+      "label": "Device",
+      "props": {
+        "type": "MB8844",
+        "tag": "mcu",
+        "clock": 1536000,
+        "config": [
+          "MB8844(config, m_cpu, DERIVED_CLOCK(1,1))",
+          "m_cpu->read_k().set(FUNC(namco_54xx_device::K_r))",
+          "m_cpu->write_o().set(FUNC(namco_54xx_device::O_w))",
+          "m_cpu->read_r<0>().set(FUNC(namco_54xx_device::R0_r))",
+          "m_cpu->write_r<1>().set(FUNC(namco_54xx_device::R1_w))"
+        ]
+      }
+    },
+    {
+      "id": "machine:namco_51xx_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "namco_51xx_device",
+        "name": "device_add_mconfig",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:namco_51xx_device.device_add_mconfig/mcu",
+      "label": "Device",
+      "props": {
+        "type": "MB8843",
+        "tag": "mcu",
+        "clock": 1536000,
+        "config": [
+          "MB8843(config, m_cpu, DERIVED_CLOCK(1,1))",
+          "m_cpu->read_k().set(FUNC(namco_51xx_device::K_r))",
+          "m_cpu->read_r<0>().set(FUNC(namco_51xx_device::R_r<0>))",
+          "m_cpu->read_r<1>().set(FUNC(namco_51xx_device::R_r<1>))",
+          "m_cpu->read_r<2>().set(FUNC(namco_51xx_device::R_r<2>))",
+          "m_cpu->read_r<3>().set(FUNC(namco_51xx_device::R_r<3>))",
+          "m_cpu->write_o().set(FUNC(namco_51xx_device::O_w))",
+          "m_cpu->write_p().set(FUNC(namco_51xx_device::P_w))"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga",
+      "label": "InputPorts",
+      "props": {
+        "name": "galaga"
+      }
+    },
+    {
+      "id": "inputs:galaga/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:galaga/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:galaga/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:galaga/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:galaga/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:galaga/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:galaga/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON1"
+      }
+    },
+    {
+      "id": "inputs:galaga/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:galaga/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:galaga/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_COIN1"
+      }
+    },
+    {
+      "id": "inputs:galaga/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_COIN2"
+      }
+    },
+    {
+      "id": "inputs:galaga/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_SERVICE1"
+      }
+    },
+    {
+      "id": "inputs:galaga/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 128,
+        "activeLow": true
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWA",
+      "label": "Port",
+      "props": {
+        "tag": "DSWA",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWA/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Difficulty",
+        "defaultValue": 3,
+        "location": "SWB:1,2",
+        "settings": [
+          "3=Easy",
+          "0=Medium",
+          "1=Hard",
+          "2=Hardest"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWA/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Unused"
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWA/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "SWB:4",
+        "settings": [
+          "8=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWA/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Freeze",
+        "defaultValue": 16,
+        "location": "SWB:5",
+        "settings": [
+          "16=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWA/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "name": "Rack Test",
+        "defaultValue": 32,
+        "location": "SWB:6",
+        "settings": [
+          "32=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWA/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Unused"
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWA/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Cabinet",
+        "defaultValue": 128,
+        "location": "SWB:8",
+        "settings": [
+          "128=Upright",
+          "0=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWB",
+      "label": "Port",
+      "props": {
+        "tag": "DSWB",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWB/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 7,
+        "name": "Coinage",
+        "defaultValue": 7,
+        "location": "SWA:1,2,3",
+        "settings": [
+          "4=4C 1C",
+          "2=3C 1C",
+          "6=2C 1C",
+          "7=1C 1C",
+          "1=2C 3C",
+          "3=1C 2C",
+          "5=1C 3C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWB/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 56,
+        "name": "Bonus Life",
+        "defaultValue": 16,
+        "location": "SWA:4,5,6",
+        "settings": [
+          "32=20K, 60K, Every 60K [if \"DSWB\",0xc0,NOTEQUALS,0xc0]",
+          "24=20K and 60K Only [if \"DSWB\",0xc0,NOTEQUALS,0xc0]",
+          "16=20K, 70K, Every 70K [if \"DSWB\",0xc0,NOTEQUALS,0xc0]",
+          "48=20K, 80K, Every 80K [if \"DSWB\",0xc0,NOTEQUALS,0xc0]",
+          "56=30K and 80K Only [if \"DSWB\",0xc0,NOTEQUALS,0xc0]",
+          "8=30K, 100K, Every 100K [if \"DSWB\",0xc0,NOTEQUALS,0xc0]",
+          "40=30K, 120K, Every 120K [if \"DSWB\",0xc0,NOTEQUALS,0xc0]",
+          "0=None [if \"DSWB\",0xc0,NOTEQUALS,0xc0]",
+          "32=30K, 100K, Every 100K [if \"DSWB\",0xc0,EQUALS,0xc0]",
+          "24=30K and 150K Only [if \"DSWB\",0xc0,EQUALS,0xc0]",
+          "16=30K, 120K, Every 120K [if \"DSWB\",0xc0,EQUALS,0xc0]",
+          "48=30K, 150K, Every 150K [if \"DSWB\",0xc0,EQUALS,0xc0]",
+          "56=30K Only [if \"DSWB\",0xc0,EQUALS,0xc0]",
+          "8=30K and 100K Only [if \"DSWB\",0xc0,EQUALS,0xc0]",
+          "40=30K and 120K Only [if \"DSWB\",0xc0,EQUALS,0xc0]",
+          "0=None [if \"DSWB\",0xc0,EQUALS,0xc0]"
+        ]
+      }
+    },
+    {
+      "id": "inputs:galaga/DSWB/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 192,
+        "name": "Lives",
+        "defaultValue": 128,
+        "location": "SWA:7,8",
+        "settings": [
+          "0=2",
+          "128=3",
+          "64=4",
+          "192=5"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout_2bpp",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout_2bpp",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 2,
+        "planeOffsets": [
+          0,
+          4
+        ],
+        "xOffsets": [
+          64,
+          65,
+          66,
+          67,
+          0,
+          1,
+          2,
+          3
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout_galaga",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout_galaga",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 2,
+        "planeOffsets": [
+          0,
+          4
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          64,
+          65,
+          66,
+          67,
+          128,
+          129,
+          130,
+          131,
+          192,
+          193,
+          194,
+          195
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          256,
+          264,
+          272,
+          280,
+          288,
+          296,
+          304,
+          312
+        ],
+        "charIncrement": 512
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_galaga",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_galaga"
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_galaga/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx1",
+        "offset": 0,
+        "layout": "charlayout_2bpp",
+        "colorBase": 0,
+        "colorCount": 64,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_galaga/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx2",
+        "offset": 0,
+        "layout": "spritelayout_galaga",
+        "colorBase": 256,
+        "colorCount": 64,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:galaga",
+      "to": "file:src/mame/namco/galaga.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:galaga",
+      "to": "machine:galaga_state.galaga",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:galaga",
+      "to": "inputs:galaga",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:galaga",
+      "to": "romset:galaga",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:bosco.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:digdug.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:galaga.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:xevious.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:namco52.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:namco54.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:cpu/mb88xx/mb88xx.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:namco06.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:namco50.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:namco51.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:namco53.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:machine/rescap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:sound/samples.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/namco/galaga.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "file:src/mame/namco/galaga.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/sub",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/sub2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/misclatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/51xx",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/54xx",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/06xx",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/videolatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "gfxdecode:gfx_galaga",
+      "rel": "DECODES"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/starfield",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/namco",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:galaga_state.galaga",
+      "to": "device:galaga_state.galaga/discrete",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:galaga",
+      "to": "file:src/mame/namco/galaga.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:galaga",
+      "to": "inputs:galaga/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:galaga",
+      "to": "inputs:galaga/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:galaga",
+      "to": "inputs:galaga/DSWA",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:galaga",
+      "to": "inputs:galaga/DSWB",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:galaga",
+      "to": "file:src/mame/namco/galaga.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:galaga",
+      "to": "region:galaga/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:galaga",
+      "to": "region:galaga/sub",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:galaga",
+      "to": "region:galaga/sub2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:galaga",
+      "to": "region:galaga/gfx1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:galaga",
+      "to": "region:galaga/gfx2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:galaga",
+      "to": "region:galaga/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:galaga",
+      "to": "region:galaga/namco",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "device:galaga_state.galaga/maincpu",
+      "to": "map:galaga_state.galaga_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:galaga_state.galaga/sub",
+      "to": "map:galaga_state.galaga_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:galaga_state.galaga/sub2",
+      "to": "map:galaga_state.galaga_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:galaga_state.galaga/51xx",
+      "to": "machine:namco_51xx_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "device:galaga_state.galaga/54xx",
+      "to": "machine:namco_54xx_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "gfxdecode:gfx_galaga",
+      "to": "file:src/mame/namco/galaga.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxdecode:gfx_galaga",
+      "to": "gfxdecode:gfx_galaga/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_galaga",
+      "to": "gfxdecode:gfx_galaga/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "inputs:galaga/IN0",
+      "to": "inputs:galaga/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN0",
+      "to": "inputs:galaga/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN0",
+      "to": "inputs:galaga/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN0",
+      "to": "inputs:galaga/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN0",
+      "to": "inputs:galaga/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN0",
+      "to": "inputs:galaga/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN0",
+      "to": "inputs:galaga/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN0",
+      "to": "inputs:galaga/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN1",
+      "to": "inputs:galaga/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN1",
+      "to": "inputs:galaga/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN1",
+      "to": "inputs:galaga/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN1",
+      "to": "inputs:galaga/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN1",
+      "to": "inputs:galaga/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN1",
+      "to": "inputs:galaga/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN1",
+      "to": "inputs:galaga/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/IN1",
+      "to": "inputs:galaga/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/DSWA",
+      "to": "inputs:galaga/DSWA/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/DSWA",
+      "to": "inputs:galaga/DSWA/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/DSWA",
+      "to": "inputs:galaga/DSWA/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/DSWA",
+      "to": "inputs:galaga/DSWA/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/DSWA",
+      "to": "inputs:galaga/DSWA/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/DSWA",
+      "to": "inputs:galaga/DSWA/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/DSWA",
+      "to": "inputs:galaga/DSWA/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/DSWB",
+      "to": "inputs:galaga/DSWB/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/DSWB",
+      "to": "inputs:galaga/DSWB/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:galaga/DSWB",
+      "to": "inputs:galaga/DSWB/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:galaga/maincpu",
+      "to": "rom:galaga/maincpu/gg1_1b.3p",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/maincpu",
+      "to": "rom:galaga/maincpu/gg1_2b.3m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/maincpu",
+      "to": "rom:galaga/maincpu/gg1_3.2m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/maincpu",
+      "to": "rom:galaga/maincpu/gg1_4b.2l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/sub",
+      "to": "rom:galaga/sub/gg1_5b.3f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/sub2",
+      "to": "rom:galaga/sub2/gg1_7b.2c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/gfx1",
+      "to": "rom:galaga/gfx1/gg1_9.4l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/gfx2",
+      "to": "rom:galaga/gfx2/gg1_11.4d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/gfx2",
+      "to": "rom:galaga/gfx2/gg1_10.4f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/proms",
+      "to": "rom:galaga/proms/prom-5.5n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/proms",
+      "to": "rom:galaga/proms/prom-4.2n",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/proms",
+      "to": "rom:galaga/proms/prom-3.1c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/namco",
+      "to": "rom:galaga/namco/prom-1.1d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:galaga/namco",
+      "to": "rom:galaga/namco/prom-2.5c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "file:src/mame/namco/galaga.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:galaga_state.galaga_map",
+      "to": "map:galaga_state.galaga_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "machine:namco_51xx_device.device_add_mconfig",
+      "to": "file:src/mame/namco/galaga.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:namco_51xx_device.device_add_mconfig",
+      "to": "device:namco_51xx_device.device_add_mconfig/mcu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:namco_54xx_device.device_add_mconfig",
+      "to": "file:src/mame/namco/galaga.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:namco_54xx_device.device_add_mconfig",
+      "to": "device:namco_54xx_device.device_add_mconfig/mcu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "gfxdecode:gfx_galaga/e0",
+      "to": "gfxlayout:charlayout_2bpp",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_galaga/e1",
+      "to": "gfxlayout:spritelayout_galaga",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "map:galaga_state.galaga_map/range1",
+      "to": "handler:galaga_state.bosco_dsw_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:galaga_state.galaga_map/range2",
+      "to": "handler:namco_wsg_device.pacman_sound_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "namco"
+      }
+    },
+    {
+      "from": "map:galaga_state.galaga_map/range3",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "misclatch"
+      }
+    },
+    {
+      "from": "map:galaga_state.galaga_map/range4",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:galaga_state.galaga_map/range5",
+      "to": "handler:namco_06xx_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "06xx"
+      }
+    },
+    {
+      "from": "map:galaga_state.galaga_map/range5",
+      "to": "handler:namco_06xx_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "06xx"
+      }
+    },
+    {
+      "from": "map:galaga_state.galaga_map/range6",
+      "to": "handler:namco_06xx_device.ctrl_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "06xx"
+      }
+    },
+    {
+      "from": "map:galaga_state.galaga_map/range6",
+      "to": "handler:namco_06xx_device.ctrl_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "06xx"
+      }
+    },
+    {
+      "from": "map:galaga_state.galaga_map/range7",
+      "to": "handler:galaga_state.galaga_videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:galaga_state.galaga_map/range11",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "videolatch"
+      }
+    },
+    {
+      "from": "gfxlayout:charlayout_2bpp",
+      "to": "file:src/mame/namco/galaga.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:spritelayout_galaga",
+      "to": "file:src/mame/namco/galaga.cpp",
+      "rel": "DEFINED_IN"
+    }
+  ]
+}

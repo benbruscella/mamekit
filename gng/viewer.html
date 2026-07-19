@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gng — knowledge graph — mamekit knowledge graph</title>
+<style>
+  :root {
+    --surface: #fcfcfb; --panel: #f4f4f2; --border: #dddcd8;
+    --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #8a897f;
+    --edge: rgba(82,81,78,.28); --edge-hi: rgba(11,11,11,.75);
+    --halo: rgba(252,252,251,.85); --accent: #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #1a1a19; --panel: #232322; --border: #3a3a38;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #86857b;
+      --edge: rgba(195,194,183,.22); --edge-hi: rgba(255,255,255,.8);
+      --halo: rgba(26,26,25,.85); --accent: #3987e5;
+    }
+  }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--surface); color: var(--ink);
+         font: 13px/1.45 ui-sans-serif, system-ui, sans-serif; display: flex; flex-direction: column; }
+  header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+           padding: 8px 14px; border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 14px; font-weight: 600; margin-right: 6px; }
+  header input[type=search] { background: var(--panel); color: var(--ink); border: 1px solid var(--border);
+           border-radius: 6px; padding: 4px 10px; width: 210px; outline: none; }
+  header input[type=search]:focus { border-color: var(--accent); }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; }
+  .legend label { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-2);
+                  cursor: pointer; user-select: none; }
+  .legend .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .legend input { accent-color: var(--accent); margin: 0; }
+  main { flex: 1; display: flex; min-height: 0; }
+  #canvas { flex: 1; cursor: grab; touch-action: none; }
+  #canvas.dragging { cursor: grabbing; }
+  aside { width: 320px; border-left: 1px solid var(--border); background: var(--panel);
+          overflow-y: auto; padding: 14px; display: none; }
+  aside.open { display: block; }
+  aside h2 { font-size: 13px; word-break: break-all; }
+  aside .lbl { color: var(--ink-3); font-size: 11px; text-transform: uppercase;
+               letter-spacing: .04em; margin: 12px 0 4px; }
+  aside table { width: 100%; border-collapse: collapse; }
+  aside td { padding: 3px 6px 3px 0; vertical-align: top; border-bottom: 1px solid var(--border);
+             color: var(--ink-2); word-break: break-all; }
+  aside td:first-child { color: var(--ink-3); white-space: nowrap; }
+  aside pre { white-space: pre-wrap; word-break: break-all; background: var(--surface);
+              border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px;
+              font-size: 11px; color: var(--ink-2); }
+  aside a { color: var(--accent); cursor: pointer; text-decoration: none; display: block;
+            padding: 2px 0; word-break: break-all; }
+  aside a:hover { text-decoration: underline; }
+  aside .rel { color: var(--ink-3); font-size: 11px; }
+  #tip { position: fixed; pointer-events: none; background: var(--panel); color: var(--ink);
+         border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px;
+         font-size: 12px; display: none; max-width: 340px; word-break: break-all;
+         box-shadow: 0 2px 10px rgba(0,0,0,.18); z-index: 10; }
+  #stats { color: var(--ink-3); margin-left: auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>gng — knowledge graph</h1>
+  <input id="search" type="search" placeholder="search nodes…">
+  <div class="legend" id="legend"></div>
+  <span id="stats"></span>
+</header>
+<main>
+  <canvas id="canvas"></canvas>
+  <aside id="panel"></aside>
+</main>
+<div id="tip"></div>
+<script type="application/json" id="graph-data">{"nodes":[{"id":"file:src/mame/capcom/gng.cpp","label":"SourceFile","props":{"path":"src/mame/capcom/gng.cpp"}},{"id":"file:emu.h","label":"SourceFile","props":{"path":"emu.h","external":true}},{"id":"file:cpu/m6809/m6809.h","label":"SourceFile","props":{"path":"cpu/m6809/m6809.h","external":true}},{"id":"file:cpu/z80/z80.h","label":"SourceFile","props":{"path":"cpu/z80/z80.h","external":true}},{"id":"file:machine/74259.h","label":"SourceFile","props":{"path":"machine/74259.h","external":true}},{"id":"file:machine/gen_latch.h","label":"SourceFile","props":{"path":"machine/gen_latch.h","external":true}},{"id":"file:sound/ymopn.h","label":"SourceFile","props":{"path":"sound/ymopn.h","external":true}},{"id":"file:video/bufsprite.h","label":"SourceFile","props":{"path":"video/bufsprite.h","external":true}},{"id":"file:emupal.h","label":"SourceFile","props":{"path":"emupal.h","external":true}},{"id":"file:screen.h","label":"SourceFile","props":{"path":"screen.h","external":true}},{"id":"file:speaker.h","label":"SourceFile","props":{"path":"speaker.h","external":true}},{"id":"file:tilemap.h","label":"SourceFile","props":{"path":"tilemap.h","external":true}},{"id":"game:gng","label":"Game","props":{"name":"gng","year":"1985","company":"Capcom","fullname":"Ghosts'n Goblins (World? set 1)","monitor":"ROT0","cls":"gng_state","init":"empty_init","flags":"MACHINE_SUPPORTS_SAVE","kind":"arcade"}},{"id":"romset:gng","label":"RomSet","props":{"name":"gng"}},{"id":"region:gng/maincpu","label":"RomRegion","props":{"tag":"maincpu","size":98304,"flags":"0"}},{"id":"rom:gng/maincpu/mm_c_04","label":"Rom","props":{"file":"mm_c_04","offset":16384,"size":16384,"crc":"4f94130f","sha1":"6863fee3c97c76ba314ccbada7efacb6783e7d32"}},{"id":"rom:gng/maincpu/mm_c_03","label":"Rom","props":{"file":"mm_c_03","offset":32768,"size":32768,"crc":"1def138a","sha1":"d29e12082c4d5c06a9910b3500ef66242cdec905"}},{"id":"rom:gng/maincpu/mm_c_05","label":"Rom","props":{"file":"mm_c_05","offset":65536,"size":32768,"crc":"ed28e86e","sha1":"064871918547a56be330c6994d4db2c9932e14db"}},{"id":"region:gng/audiocpu","label":"RomRegion","props":{"tag":"audiocpu","size":65536,"flags":"0"}},{"id":"rom:gng/audiocpu/gg2.bin","label":"Rom","props":{"file":"gg2.bin","offset":0,"size":32768,"crc":"615f5b6f","sha1":"7ef9ec5c2072e21c787a6bbf700033f50c759c1d"}},{"id":"region:gng/chars","label":"RomRegion","props":{"tag":"chars","size":16384,"flags":"0"}},{"id":"rom:gng/chars/gg1.bin","label":"Rom","props":{"file":"gg1.bin","offset":0,"size":16384,"crc":"ecfccf07","sha1":"0a1518e19a2e0a4cc3dde4b9568202ea911b5ece"}},{"id":"region:gng/tiles","label":"RomRegion","props":{"tag":"tiles","size":98304,"flags":"0"}},{"id":"rom:gng/tiles/gg11.bin","label":"Rom","props":{"file":"gg11.bin","offset":0,"size":16384,"crc":"ddd56fa9","sha1":"f9d77eee5e2738b7e83ba02fcc55dd480391479f"}},{"id":"rom:gng/tiles/gg10.bin","label":"Rom","props":{"file":"gg10.bin","offset":16384,"size":16384,"crc":"7302529d","sha1":"8434c994cc55d2586641f3b90b6b15fd65dfb67c"}},{"id":"rom:gng/tiles/gg9.bin","label":"Rom","props":{"file":"gg9.bin","offset":32768,"size":16384,"crc":"20035bda","sha1":"bbb1fba0eb19471f66d29526fa8423ccb047bd63"}},{"id":"rom:gng/tiles/gg8.bin","label":"Rom","props":{"file":"gg8.bin","offset":49152,"size":16384,"crc":"f12ba271","sha1":"1c42fa02cb27b35d10c3f7f036005e747f9f6b79"}},{"id":"rom:gng/tiles/gg7.bin","label":"Rom","props":{"file":"gg7.bin","offset":65536,"size":16384,"crc":"e525207d","sha1":"1947f159189b3a53f1251d8653b6e7c65c91fc3c"}},{"id":"rom:gng/tiles/gg6.bin","label":"Rom","props":{"file":"gg6.bin","offset":81920,"size":16384,"crc":"2d77e9b2","sha1":"944da1ce29a18bf0fc8deff78bceacba0bf23a07"}},{"id":"region:gng/sprites","label":"RomRegion","props":{"tag":"sprites","size":131072,"flags":"ROMREGION_ERASEFF"}},{"id":"rom:gng/sprites/gg17.bin","label":"Rom","props":{"file":"gg17.bin","offset":0,"size":16384,"crc":"93e50a8f","sha1":"42d367f57bb2fdf60a0445ac1533da99cfeaa617"}},{"id":"rom:gng/sprites/gg16.bin","label":"Rom","props":{"file":"gg16.bin","offset":16384,"size":16384,"crc":"06d7e5ca","sha1":"9e06012bcd82f98fad43de666ef9a75979d940ab"}},{"id":"rom:gng/sprites/gg15.bin","label":"Rom","props":{"file":"gg15.bin","offset":32768,"size":16384,"crc":"bc1fe02d","sha1":"e3a1421d465b87148ffa94f5673b2307f0246afe"}},{"id":"rom:gng/sprites/gg14.bin","label":"Rom","props":{"file":"gg14.bin","offset":65536,"size":16384,"crc":"6aaf12f9","sha1":"207a7407288182a4f3eddaea634c6a6452131182"}},{"id":"rom:gng/sprites/gg13.bin","label":"Rom","props":{"file":"gg13.bin","offset":81920,"size":16384,"crc":"e80c3fca","sha1":"cb641c25bb04b970b2cbeca41adb792bbe142fb5"}},{"id":"rom:gng/sprites/gg12.bin","label":"Rom","props":{"file":"gg12.bin","offset":98304,"size":16384,"crc":"7780a925","sha1":"3f129ca6d695548b659955fe538584bd9ac2ff17"}},{"id":"region:gng/proms","label":"RomRegion","props":{"tag":"proms","size":512,"flags":"0"}},{"id":"rom:gng/proms/tbp24s10.14k","label":"Rom","props":{"file":"tbp24s10.14k","offset":0,"size":256,"crc":"0eaf5158","sha1":"bafd4108708f66cd7b280e47152b108f3e254fc9"}},{"id":"rom:gng/proms/63s141.2e","label":"Rom","props":{"file":"63s141.2e","offset":256,"size":256,"crc":"4a1285a4","sha1":"5018c3950b675af58db499e2883ecbc55419b491"}},{"id":"region:gng/plds","label":"RomRegion","props":{"tag":"plds","size":256,"flags":"0"}},{"id":"rom:gng/plds/gg-pal10l8.bin","label":"Rom","props":{"file":"gg-pal10l8.bin","offset":0,"size":44,"crc":"87f1b7e0","sha1":"b719c3be7bd4a02660bb0887f752e9769cbd37d2"}},{"id":"map:gng_state.gng_main_map","label":"AddressMap","props":{"cls":"gng_state","name":"gng_main_map"}},{"id":"map:gng_state.gng_main_map/range0","label":"AddressRange","props":{"start":0,"end":7679,"raw":"map(0x0000, 0x1dff).ram()","ram":true}},{"id":"map:gng_state.gng_main_map/range1","label":"AddressRange","props":{"start":7680,"end":8191,"raw":"map(0x1e00, 0x1fff).ram().share(\"spriteram\")","ram":true,"share":"spriteram"}},{"id":"map:gng_state.gng_main_map/range2","label":"AddressRange","props":{"start":8192,"end":10239,"raw":"map(0x2000, 0x27ff).ram().w(FUNC(gng_state::fgvideoram_w)).share(m_fgvideoram)","ram":true,"share":"fgvideoram"}},{"id":"handler:gng_state.fgvideoram_w","label":"Handler","props":{"method":"fgvideoram_w","ownerClass":"gng_state"}},{"id":"map:gng_state.gng_main_map/range3","label":"AddressRange","props":{"start":10240,"end":12287,"raw":"map(0x2800, 0x2fff).ram().w(FUNC(gng_state::bgvideoram_w)).share(m_bgvideoram)","ram":true,"share":"bgvideoram"}},{"id":"handler:gng_state.bgvideoram_w","label":"Handler","props":{"method":"bgvideoram_w","ownerClass":"gng_state"}},{"id":"map:gng_state.gng_main_map/range4","label":"AddressRange","props":{"start":12288,"end":12288,"raw":"map(0x3000, 0x3000).portr(\"SYSTEM\")","portRead":"SYSTEM"}},{"id":"map:gng_state.gng_main_map/range5","label":"AddressRange","props":{"start":12289,"end":12289,"raw":"map(0x3001, 0x3001).portr(\"P1\")","portRead":"P1"}},{"id":"map:gng_state.gng_main_map/range6","label":"AddressRange","props":{"start":12290,"end":12290,"raw":"map(0x3002, 0x3002).portr(\"P2\")","portRead":"P2"}},{"id":"map:gng_state.gng_main_map/range7","label":"AddressRange","props":{"start":12291,"end":12291,"raw":"map(0x3003, 0x3003).portr(\"DSW1\")","portRead":"DSW1"}},{"id":"map:gng_state.gng_main_map/range8","label":"AddressRange","props":{"start":12292,"end":12292,"raw":"map(0x3004, 0x3004).portr(\"DSW2\")","portRead":"DSW2"}},{"id":"map:gng_state.gng_main_map/range9","label":"AddressRange","props":{"start":14336,"end":14591,"raw":"map(0x3800, 0x38ff).w(m_palette, FUNC(palette_device::write8_ext)).share(\"palette_ext\")","share":"palette_ext"}},{"id":"handler:palette_device.write8_ext","label":"Handler","props":{"method":"write8_ext","ownerClass":"palette_device"}},{"id":"map:gng_state.gng_main_map/range10","label":"AddressRange","props":{"start":14592,"end":14847,"raw":"map(0x3900, 0x39ff).w(m_palette, FUNC(palette_device::write8)).share(\"palette\")","share":"palette"}},{"id":"handler:palette_device.write8","label":"Handler","props":{"method":"write8","ownerClass":"palette_device"}},{"id":"map:gng_state.gng_main_map/range11","label":"AddressRange","props":{"start":14848,"end":14848,"raw":"map(0x3a00, 0x3a00).w(\"soundlatch\", FUNC(generic_latch_8_device::write))"}},{"id":"handler:generic_latch_8_device.write","label":"Handler","props":{"method":"write","ownerClass":"generic_latch_8_device"}},{"id":"map:gng_state.gng_main_map/range12","label":"AddressRange","props":{"start":15112,"end":15113,"raw":"map(0x3b08, 0x3b09).w(FUNC(gng_state::bgscrollx_w))"}},{"id":"handler:gng_state.bgscrollx_w","label":"Handler","props":{"method":"bgscrollx_w","ownerClass":"gng_state"}},{"id":"map:gng_state.gng_main_map/range13","label":"AddressRange","props":{"start":15114,"end":15115,"raw":"map(0x3b0a, 0x3b0b).w(FUNC(gng_state::bgscrolly_w))"}},{"id":"handler:gng_state.bgscrolly_w","label":"Handler","props":{"method":"bgscrolly_w","ownerClass":"gng_state"}},{"id":"map:gng_state.gng_main_map/range14","label":"AddressRange","props":{"start":15360,"end":15360,"raw":"map(0x3c00, 0x3c00).w(m_spriteram, FUNC(buffered_spriteram8_device::write))"}},{"id":"handler:buffered_spriteram8_device.write","label":"Handler","props":{"method":"write","ownerClass":"buffered_spriteram8_device"}},{"id":"map:gng_state.gng_main_map/range15","label":"AddressRange","props":{"start":15616,"end":15623,"raw":"map(0x3d00, 0x3d07).w(\"mainlatch\", FUNC(ls259_device::write_d0))"}},{"id":"handler:ls259_device.write_d0","label":"Handler","props":{"method":"write_d0","ownerClass":"ls259_device"}},{"id":"map:gng_state.gng_main_map/range16","label":"AddressRange","props":{"start":15872,"end":15872,"raw":"map(0x3e00, 0x3e00).w(FUNC(gng_state::bankswitch_w))"}},{"id":"handler:gng_state.bankswitch_w","label":"Handler","props":{"method":"bankswitch_w","ownerClass":"gng_state"}},{"id":"map:gng_state.gng_main_map/range17","label":"AddressRange","props":{"start":16384,"end":24575,"raw":"map(0x4000, 0x5fff).bankr(m_mainbank)","bankRead":"mainbank"}},{"id":"map:gng_state.gng_main_map/range18","label":"AddressRange","props":{"start":24576,"end":65535,"raw":"map(0x6000, 0xffff).rom()","rom":true}},{"id":"map:gng_state.sound_map","label":"AddressMap","props":{"cls":"gng_state","name":"sound_map"}},{"id":"map:gng_state.sound_map/range0","label":"AddressRange","props":{"start":0,"end":32767,"raw":"map(0x0000, 0x7fff).rom()","rom":true}},{"id":"map:gng_state.sound_map/range1","label":"AddressRange","props":{"start":49152,"end":51199,"raw":"map(0xc000, 0xc7ff).ram()","ram":true}},{"id":"map:gng_state.sound_map/range2","label":"AddressRange","props":{"start":51200,"end":51200,"raw":"map(0xc800, 0xc800).r(\"soundlatch\", FUNC(generic_latch_8_device::read))"}},{"id":"handler:generic_latch_8_device.read","label":"Handler","props":{"method":"read","ownerClass":"generic_latch_8_device"}},{"id":"map:gng_state.sound_map/range3","label":"AddressRange","props":{"start":57344,"end":57345,"raw":"map(0xe000, 0xe001).w(\"ym1\", FUNC(ym2203_device::write))"}},{"id":"handler:ym2203_device.write","label":"Handler","props":{"method":"write","ownerClass":"ym2203_device"}},{"id":"map:gng_state.sound_map/range4","label":"AddressRange","props":{"start":57346,"end":57347,"raw":"map(0xe002, 0xe003).w(\"ym2\", FUNC(ym2203_device::write))"}},{"id":"machine:gng_state.gng","label":"MachineConfig","props":{"cls":"gng_state","name":"gng","calls":[]}},{"id":"device:gng_state.gng/maincpu","label":"Device","props":{"type":"MC6809","tag":"maincpu","clock":6000000,"config":["MC6809(config, m_maincpu, XTAL(12'000'000) / 2)","m_maincpu->set_addrmap(AS_PROGRAM, &gng_state::gng_main_map)","m_maincpu->set_vblank_int(\"screen\", FUNC(gng_state::irq0_line_hold))"]}},{"id":"device:gng_state.gng/audiocpu","label":"Device","props":{"type":"Z80","tag":"audiocpu","clock":3000000,"config":["z80_device &audiocpu(Z80(config, \"audiocpu\", XTAL(12'000'000) / 4))","audiocpu.set_addrmap(AS_PROGRAM, &gng_state::sound_map)","audiocpu.set_periodic_int(FUNC(gng_state::irq0_line_hold), attotime::from_hz(4 * 60))"]}},{"id":"device:gng_state.gng/mainlatch","label":"Device","props":{"type":"LS259","tag":"mainlatch","clock":null,"config":["ls259_device &mainlatch(LS259(config, \"mainlatch\"))","mainlatch.q_out_cb\u003c0>().set(FUNC(gng_state::flip_screen_set)).invert()","mainlatch.q_out_cb\u003c1>().set_inputline(\"audiocpu\", INPUT_LINE_RESET).invert()","mainlatch.q_out_cb\u003c1>().append(FUNC(gng_state::ym_reset_w))","mainlatch.q_out_cb\u003c2>().set([this] (int state) { machine().bookkeeping().coin_counter_w(0, state); })","mainlatch.q_out_cb\u003c3>().set([this] (int state) { machine().bookkeeping().coin_counter_w(1, state); })"]}},{"id":"device:gng_state.gng/spriteram","label":"Device","props":{"type":"BUFFERED_SPRITERAM8","tag":"spriteram","clock":null,"config":["BUFFERED_SPRITERAM8(config, m_spriteram)"]}},{"id":"device:gng_state.gng/screen","label":"Device","props":{"type":"SCREEN","tag":"screen","clock":null,"config":["screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))","screen.set_raw(XTAL(12'000'000) / 2, 384, 0, 256, 262, 16, 240)","screen.set_screen_update(FUNC(gng_state::screen_update))","screen.set_palette(m_palette)"],"clockExpr":"SCREEN_TYPE_RASTER","screenRaw":[6000000,384,0,256,262,16,240]}},{"id":"device:gng_state.gng/gfxdecode","label":"Device","props":{"type":"GFXDECODE","tag":"gfxdecode","clock":null,"config":["GFXDECODE(config, m_gfxdecode, m_palette, gfx_gng)"],"clockExpr":"m_palette, gfx_gng"}},{"id":"device:gng_state.gng/palette","label":"Device","props":{"type":"PALETTE","tag":"palette","clock":null,"config":["PALETTE(config, m_palette).set_format(palette_device::RGBx_444, 256)"]}},{"id":"device:gng_state.gng/mono","label":"Device","props":{"type":"SPEAKER","tag":"mono","clock":null,"config":["SPEAKER(config, \"mono\").front_center()","m_ym[0]->add_route(0, \"mono\", 0.40)","m_ym[0]->add_route(1, \"mono\", 0.40)","m_ym[0]->add_route(2, \"mono\", 0.40)","m_ym[0]->add_route(3, \"mono\", 0.20)","m_ym[1]->add_route(0, \"mono\", 0.40)","m_ym[1]->add_route(1, \"mono\", 0.40)","m_ym[1]->add_route(2, \"mono\", 0.40)","m_ym[1]->add_route(3, \"mono\", 0.20)"]}},{"id":"device:gng_state.gng/soundlatch","label":"Device","props":{"type":"GENERIC_LATCH_8","tag":"soundlatch","clock":null,"config":["GENERIC_LATCH_8(config, \"soundlatch\")"]}},{"id":"device:gng_state.gng/ym[0]","label":"Device","props":{"type":"YM2203","tag":"ym[0]","clock":1500000,"config":["YM2203(config, m_ym[0], XTAL(12'000'000) / 8)"]}},{"id":"device:gng_state.gng/ym[1]","label":"Device","props":{"type":"YM2203","tag":"ym[1]","clock":1500000,"config":["YM2203(config, m_ym[1], XTAL(12'000'000) / 8)"]}},{"id":"inputs:gng","label":"InputPorts","props":{"name":"gng"}},{"id":"inputs:gng/SYSTEM","label":"Port","props":{"tag":"SYSTEM","modify":false}},{"id":"inputs:gng/SYSTEM/f0","label":"PortField","props":{"kind":"bit","mask":1,"activeLow":true,"type":"IPT_START1"}},{"id":"inputs:gng/SYSTEM/f1","label":"PortField","props":{"kind":"bit","mask":2,"activeLow":true,"type":"IPT_START2"}},{"id":"inputs:gng/SYSTEM/f2","label":"PortField","props":{"kind":"bit","mask":12,"activeLow":true,"type":"IPT_UNUSED"}},{"id":"inputs:gng/SYSTEM/f3","label":"PortField","props":{"kind":"bit","mask":16,"activeLow":true,"type":"IPT_UNUSED"}},{"id":"inputs:gng/SYSTEM/f4","label":"PortField","props":{"kind":"bit","mask":32,"activeLow":true,"type":"IPT_SERVICE1"}},{"id":"inputs:gng/SYSTEM/f5","label":"PortField","props":{"kind":"bit","mask":64,"activeLow":true,"type":"IPT_COIN1"}},{"id":"inputs:gng/SYSTEM/f6","label":"PortField","props":{"kind":"bit","mask":128,"activeLow":true,"type":"IPT_COIN2"}},{"id":"inputs:gng/P1","label":"Port","props":{"tag":"P1","modify":false}},{"id":"inputs:gng/P1/f0","label":"PortField","props":{"kind":"bit","mask":1,"activeLow":true,"type":"IPT_JOYSTICK_RIGHT","modifiers":["PORT_4WAY"]}},{"id":"inputs:gng/P1/f1","label":"PortField","props":{"kind":"bit","mask":2,"activeLow":true,"type":"IPT_JOYSTICK_LEFT","modifiers":["PORT_4WAY"]}},{"id":"inputs:gng/P1/f2","label":"PortField","props":{"kind":"bit","mask":4,"activeLow":true,"type":"IPT_JOYSTICK_DOWN","modifiers":["PORT_4WAY"]}},{"id":"inputs:gng/P1/f3","label":"PortField","props":{"kind":"bit","mask":8,"activeLow":true,"type":"IPT_JOYSTICK_UP","modifiers":["PORT_4WAY"]}},{"id":"inputs:gng/P1/f4","label":"PortField","props":{"kind":"bit","mask":16,"activeLow":true,"type":"IPT_BUTTON1"}},{"id":"inputs:gng/P1/f5","label":"PortField","props":{"kind":"bit","mask":32,"activeLow":true,"type":"IPT_BUTTON2"}},{"id":"inputs:gng/P1/f6","label":"PortField","props":{"kind":"bit","mask":192,"activeLow":true,"type":"IPT_UNUSED"}},{"id":"inputs:gng/P2","label":"Port","props":{"tag":"P2","modify":false}},{"id":"inputs:gng/P2/f0","label":"PortField","props":{"kind":"bit","mask":1,"activeLow":true,"type":"IPT_JOYSTICK_RIGHT","modifiers":["PORT_4WAY","PORT_COCKTAIL"]}},{"id":"inputs:gng/P2/f1","label":"PortField","props":{"kind":"bit","mask":2,"activeLow":true,"type":"IPT_JOYSTICK_LEFT","modifiers":["PORT_4WAY","PORT_COCKTAIL"]}},{"id":"inputs:gng/P2/f2","label":"PortField","props":{"kind":"bit","mask":4,"activeLow":true,"type":"IPT_JOYSTICK_DOWN","modifiers":["PORT_4WAY","PORT_COCKTAIL"]}},{"id":"inputs:gng/P2/f3","label":"PortField","props":{"kind":"bit","mask":8,"activeLow":true,"type":"IPT_JOYSTICK_UP","modifiers":["PORT_4WAY","PORT_COCKTAIL"]}},{"id":"inputs:gng/P2/f4","label":"PortField","props":{"kind":"bit","mask":16,"activeLow":true,"type":"IPT_BUTTON1","modifiers":["PORT_COCKTAIL"]}},{"id":"inputs:gng/P2/f5","label":"PortField","props":{"kind":"bit","mask":32,"activeLow":true,"type":"IPT_BUTTON2","modifiers":["PORT_COCKTAIL"]}},{"id":"inputs:gng/P2/f6","label":"PortField","props":{"kind":"bit","mask":192,"activeLow":true,"type":"IPT_UNUSED"}},{"id":"inputs:gng/DSW1","label":"Port","props":{"tag":"DSW1","modify":false}},{"id":"inputs:gng/DSW1/f0","label":"PortField","props":{"kind":"dip","mask":15,"name":"Coinage","defaultValue":15,"location":"SW1:8,7,6,5","settings":["2=4C 1C","5=3C 1C","8=2C 1C","4=3C 2C","1=4C 3C","15=1C 1C","3=3C 4C","7=2C 3C","14=1C 2C","6=2C 5C","13=1C 3C","12=1C 4C","11=1C 5C","10=1C 6C","9=1C 7C","0=Free Play"]}},{"id":"inputs:gng/DSW1/f1","label":"PortField","props":{"kind":"dip","mask":16,"name":"Coinage affects","defaultValue":16,"location":"SW1:4","settings":["16=Coin A","0=Coin B"]}},{"id":"inputs:gng/DSW1/f2","label":"PortField","props":{"kind":"dip","mask":32,"name":"Demo Sounds","defaultValue":0,"location":"SW1:3","settings":["32=Off","0=On"]}},{"id":"inputs:gng/DSW1/f3","label":"PortField","props":{"kind":"service","mask":64,"activeLow":true}},{"id":"inputs:gng/DSW1/f4","label":"PortField","props":{"kind":"dip","mask":128,"name":"Flip Screen","defaultValue":128,"location":"SW1:1","settings":["128=Off","0=On"]}},{"id":"inputs:gng/DSW2","label":"Port","props":{"tag":"DSW2","modify":false}},{"id":"inputs:gng/DSW2/f0","label":"PortField","props":{"kind":"dip","mask":3,"name":"Lives","defaultValue":3,"location":"SW2:8,7","settings":["3=3","2=4","1=5","0=7"]}},{"id":"inputs:gng/DSW2/f1","label":"PortField","props":{"kind":"dip","mask":4,"name":"Cabinet","defaultValue":0,"location":"SW2:6","settings":["0=Upright","4=Cocktail"]}},{"id":"inputs:gng/DSW2/f2","label":"PortField","props":{"kind":"dip","mask":24,"name":"Bonus Life","defaultValue":24,"location":"SW2:5,4","settings":["24=20K 70K Every 70K","16=30K 80K Every 80K","8=20K and 80K Only","0=30K and 80K Only"]}},{"id":"inputs:gng/DSW2/f3","label":"PortField","props":{"kind":"dip","mask":96,"name":"Difficulty","defaultValue":96,"location":"SW2:3,2","settings":["64=Easy","96=Normal","32=Difficult","0=Very Difficult"]}},{"id":"inputs:gng/DSW2/f4","label":"PortField","props":{"kind":"dip","mask":128,"name":"Unused"}},{"id":"gfxlayout:charlayout","label":"GfxLayout","props":{"name":"charlayout","width":8,"height":8,"total":"RGN_FRAC(1,1)","planes":2,"planeOffsets":[4,0],"xOffsets":[0,1,2,3,8,9,10,11],"yOffsets":[0,16,32,48,64,80,96,112],"charIncrement":128}},{"id":"gfxlayout:tilelayout","label":"GfxLayout","props":{"name":"tilelayout","width":16,"height":16,"total":"RGN_FRAC(1,3)","planes":3,"planeOffsets":["RGN_FRAC(2,3)","RGN_FRAC(1,3)","RGN_FRAC(0,3)"],"xOffsets":[0,1,2,3,4,5,6,7,128,129,130,131,132,133,134,135],"yOffsets":[0,8,16,24,32,40,48,56,64,72,80,88,96,104,112,120],"charIncrement":256}},{"id":"gfxlayout:spritelayout","label":"GfxLayout","props":{"name":"spritelayout","width":16,"height":16,"total":"RGN_FRAC(1,2)","planes":4,"planeOffsets":["RGN_FRAC(1,2)+4","RGN_FRAC(1,2)+0",4,0],"xOffsets":[0,1,2,3,8,9,10,11,256,257,258,259,264,265,266,267],"yOffsets":[0,16,32,48,64,80,96,112,128,144,160,176,192,208,224,240],"charIncrement":512}},{"id":"gfxdecode:gfx_gng","label":"GfxDecode","props":{"name":"gfx_gng"}},{"id":"gfxdecode:gfx_gng/e0","label":"GfxDecodeEntry","props":{"region":"chars","offset":0,"layout":"charlayout","colorBase":128,"colorCount":16,"xscale":1,"yscale":1}},{"id":"gfxdecode:gfx_gng/e1","label":"GfxDecodeEntry","props":{"region":"tiles","offset":0,"layout":"tilelayout","colorBase":0,"colorCount":8,"xscale":1,"yscale":1}},{"id":"gfxdecode:gfx_gng/e2","label":"GfxDecodeEntry","props":{"region":"sprites","offset":0,"layout":"spritelayout","colorBase":64,"colorCount":4,"xscale":1,"yscale":1}}],"edges":[{"from":"game:gng","to":"file:src/mame/capcom/gng.cpp","rel":"DEFINED_IN","props":null},{"from":"game:gng","to":"machine:gng_state.gng","rel":"USES_MACHINE","props":null},{"from":"game:gng","to":"inputs:gng","rel":"USES_INPUTS","props":null},{"from":"game:gng","to":"romset:gng","rel":"USES_ROMSET","props":null},{"from":"file:src/mame/capcom/gng.cpp","to":"file:emu.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/capcom/gng.cpp","to":"file:cpu/m6809/m6809.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/capcom/gng.cpp","to":"file:cpu/z80/z80.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/capcom/gng.cpp","to":"file:machine/74259.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/capcom/gng.cpp","to":"file:machine/gen_latch.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/capcom/gng.cpp","to":"file:sound/ymopn.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/capcom/gng.cpp","to":"file:video/bufsprite.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/capcom/gng.cpp","to":"file:emupal.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/capcom/gng.cpp","to":"file:screen.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/capcom/gng.cpp","to":"file:speaker.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/capcom/gng.cpp","to":"file:tilemap.h","rel":"INCLUDES","props":null},{"from":"machine:gng_state.gng","to":"file:src/mame/capcom/gng.cpp","rel":"DEFINED_IN","props":null},{"from":"machine:gng_state.gng","to":"device:gng_state.gng/maincpu","rel":"HAS_DEVICE","props":null},{"from":"machine:gng_state.gng","to":"device:gng_state.gng/audiocpu","rel":"HAS_DEVICE","props":null},{"from":"machine:gng_state.gng","to":"device:gng_state.gng/mainlatch","rel":"HAS_DEVICE","props":null},{"from":"machine:gng_state.gng","to":"device:gng_state.gng/spriteram","rel":"HAS_DEVICE","props":null},{"from":"machine:gng_state.gng","to":"device:gng_state.gng/screen","rel":"HAS_DEVICE","props":null},{"from":"machine:gng_state.gng","to":"device:gng_state.gng/gfxdecode","rel":"HAS_DEVICE","props":null},{"from":"machine:gng_state.gng","to":"gfxdecode:gfx_gng","rel":"DECODES","props":null},{"from":"machine:gng_state.gng","to":"device:gng_state.gng/palette","rel":"HAS_DEVICE","props":null},{"from":"machine:gng_state.gng","to":"device:gng_state.gng/mono","rel":"HAS_DEVICE","props":null},{"from":"machine:gng_state.gng","to":"device:gng_state.gng/soundlatch","rel":"HAS_DEVICE","props":null},{"from":"machine:gng_state.gng","to":"device:gng_state.gng/ym[0]","rel":"HAS_DEVICE","props":null},{"from":"machine:gng_state.gng","to":"device:gng_state.gng/ym[1]","rel":"HAS_DEVICE","props":null},{"from":"inputs:gng","to":"file:src/mame/capcom/gng.cpp","rel":"DEFINED_IN","props":null},{"from":"inputs:gng","to":"inputs:gng/SYSTEM","rel":"HAS_PORT","props":null},{"from":"inputs:gng","to":"inputs:gng/P1","rel":"HAS_PORT","props":null},{"from":"inputs:gng","to":"inputs:gng/P2","rel":"HAS_PORT","props":null},{"from":"inputs:gng","to":"inputs:gng/DSW1","rel":"HAS_PORT","props":null},{"from":"inputs:gng","to":"inputs:gng/DSW2","rel":"HAS_PORT","props":null},{"from":"romset:gng","to":"file:src/mame/capcom/gng.cpp","rel":"DEFINED_IN","props":null},{"from":"romset:gng","to":"region:gng/maincpu","rel":"HAS_REGION","props":null},{"from":"romset:gng","to":"region:gng/audiocpu","rel":"HAS_REGION","props":null},{"from":"romset:gng","to":"region:gng/chars","rel":"HAS_REGION","props":null},{"from":"romset:gng","to":"region:gng/tiles","rel":"HAS_REGION","props":null},{"from":"romset:gng","to":"region:gng/sprites","rel":"HAS_REGION","props":null},{"from":"romset:gng","to":"region:gng/proms","rel":"HAS_REGION","props":null},{"from":"romset:gng","to":"region:gng/plds","rel":"HAS_REGION","props":null},{"from":"device:gng_state.gng/maincpu","to":"map:gng_state.gng_main_map","rel":"HAS_MAP","props":{"space":"AS_PROGRAM"}},{"from":"device:gng_state.gng/audiocpu","to":"map:gng_state.sound_map","rel":"HAS_MAP","props":{"space":"AS_PROGRAM"}},{"from":"gfxdecode:gfx_gng","to":"file:src/mame/capcom/gng.cpp","rel":"DEFINED_IN","props":null},{"from":"gfxdecode:gfx_gng","to":"gfxdecode:gfx_gng/e0","rel":"HAS_ENTRY","props":null},{"from":"gfxdecode:gfx_gng","to":"gfxdecode:gfx_gng/e1","rel":"HAS_ENTRY","props":null},{"from":"gfxdecode:gfx_gng","to":"gfxdecode:gfx_gng/e2","rel":"HAS_ENTRY","props":null},{"from":"inputs:gng/SYSTEM","to":"inputs:gng/SYSTEM/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/SYSTEM","to":"inputs:gng/SYSTEM/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/SYSTEM","to":"inputs:gng/SYSTEM/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/SYSTEM","to":"inputs:gng/SYSTEM/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/SYSTEM","to":"inputs:gng/SYSTEM/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/SYSTEM","to":"inputs:gng/SYSTEM/f5","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/SYSTEM","to":"inputs:gng/SYSTEM/f6","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P1","to":"inputs:gng/P1/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P1","to":"inputs:gng/P1/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P1","to":"inputs:gng/P1/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P1","to":"inputs:gng/P1/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P1","to":"inputs:gng/P1/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P1","to":"inputs:gng/P1/f5","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P1","to":"inputs:gng/P1/f6","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P2","to":"inputs:gng/P2/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P2","to":"inputs:gng/P2/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P2","to":"inputs:gng/P2/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P2","to":"inputs:gng/P2/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P2","to":"inputs:gng/P2/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P2","to":"inputs:gng/P2/f5","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/P2","to":"inputs:gng/P2/f6","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/DSW1","to":"inputs:gng/DSW1/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/DSW1","to":"inputs:gng/DSW1/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/DSW1","to":"inputs:gng/DSW1/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/DSW1","to":"inputs:gng/DSW1/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/DSW1","to":"inputs:gng/DSW1/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/DSW2","to":"inputs:gng/DSW2/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/DSW2","to":"inputs:gng/DSW2/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/DSW2","to":"inputs:gng/DSW2/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/DSW2","to":"inputs:gng/DSW2/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:gng/DSW2","to":"inputs:gng/DSW2/f4","rel":"HAS_FIELD","props":null},{"from":"region:gng/maincpu","to":"rom:gng/maincpu/mm_c_04","rel":"LOADS","props":null},{"from":"region:gng/maincpu","to":"rom:gng/maincpu/mm_c_03","rel":"LOADS","props":null},{"from":"region:gng/maincpu","to":"rom:gng/maincpu/mm_c_05","rel":"LOADS","props":null},{"from":"region:gng/audiocpu","to":"rom:gng/audiocpu/gg2.bin","rel":"LOADS","props":null},{"from":"region:gng/chars","to":"rom:gng/chars/gg1.bin","rel":"LOADS","props":null},{"from":"region:gng/tiles","to":"rom:gng/tiles/gg11.bin","rel":"LOADS","props":null},{"from":"region:gng/tiles","to":"rom:gng/tiles/gg10.bin","rel":"LOADS","props":null},{"from":"region:gng/tiles","to":"rom:gng/tiles/gg9.bin","rel":"LOADS","props":null},{"from":"region:gng/tiles","to":"rom:gng/tiles/gg8.bin","rel":"LOADS","props":null},{"from":"region:gng/tiles","to":"rom:gng/tiles/gg7.bin","rel":"LOADS","props":null},{"from":"region:gng/tiles","to":"rom:gng/tiles/gg6.bin","rel":"LOADS","props":null},{"from":"region:gng/sprites","to":"rom:gng/sprites/gg17.bin","rel":"LOADS","props":null},{"from":"region:gng/sprites","to":"rom:gng/sprites/gg16.bin","rel":"LOADS","props":null},{"from":"region:gng/sprites","to":"rom:gng/sprites/gg15.bin","rel":"LOADS","props":null},{"from":"region:gng/sprites","to":"rom:gng/sprites/gg14.bin","rel":"LOADS","props":null},{"from":"region:gng/sprites","to":"rom:gng/sprites/gg13.bin","rel":"LOADS","props":null},{"from":"region:gng/sprites","to":"rom:gng/sprites/gg12.bin","rel":"LOADS","props":null},{"from":"region:gng/proms","to":"rom:gng/proms/tbp24s10.14k","rel":"LOADS","props":null},{"from":"region:gng/proms","to":"rom:gng/proms/63s141.2e","rel":"LOADS","props":null},{"from":"region:gng/plds","to":"rom:gng/plds/gg-pal10l8.bin","rel":"LOADS","props":null},{"from":"map:gng_state.gng_main_map","to":"file:src/mame/capcom/gng.cpp","rel":"DEFINED_IN","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range0","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range1","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range2","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range3","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range4","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range5","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range6","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range7","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range8","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range9","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range10","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range11","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range12","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range13","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range14","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range15","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range16","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range17","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.gng_main_map","to":"map:gng_state.gng_main_map/range18","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.sound_map","to":"file:src/mame/capcom/gng.cpp","rel":"DEFINED_IN","props":null},{"from":"map:gng_state.sound_map","to":"map:gng_state.sound_map/range0","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.sound_map","to":"map:gng_state.sound_map/range1","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.sound_map","to":"map:gng_state.sound_map/range2","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.sound_map","to":"map:gng_state.sound_map/range3","rel":"HAS_RANGE","props":null},{"from":"map:gng_state.sound_map","to":"map:gng_state.sound_map/range4","rel":"HAS_RANGE","props":null},{"from":"gfxdecode:gfx_gng/e0","to":"gfxlayout:charlayout","rel":"USES_LAYOUT","props":null},{"from":"gfxdecode:gfx_gng/e1","to":"gfxlayout:tilelayout","rel":"USES_LAYOUT","props":null},{"from":"gfxdecode:gfx_gng/e2","to":"gfxlayout:spritelayout","rel":"USES_LAYOUT","props":null},{"from":"map:gng_state.gng_main_map/range2","to":"handler:gng_state.fgvideoram_w","rel":"WRITES","props":null},{"from":"map:gng_state.gng_main_map/range3","to":"handler:gng_state.bgvideoram_w","rel":"WRITES","props":null},{"from":"map:gng_state.gng_main_map/range9","to":"handler:palette_device.write8_ext","rel":"WRITES","props":{"deviceTag":"palette"}},{"from":"map:gng_state.gng_main_map/range10","to":"handler:palette_device.write8","rel":"WRITES","props":{"deviceTag":"palette"}},{"from":"map:gng_state.gng_main_map/range11","to":"handler:generic_latch_8_device.write","rel":"WRITES","props":{"deviceTag":"soundlatch"}},{"from":"map:gng_state.gng_main_map/range12","to":"handler:gng_state.bgscrollx_w","rel":"WRITES","props":null},{"from":"map:gng_state.gng_main_map/range13","to":"handler:gng_state.bgscrolly_w","rel":"WRITES","props":null},{"from":"map:gng_state.gng_main_map/range14","to":"handler:buffered_spriteram8_device.write","rel":"WRITES","props":{"deviceTag":"spriteram"}},{"from":"map:gng_state.gng_main_map/range15","to":"handler:ls259_device.write_d0","rel":"WRITES","props":{"deviceTag":"mainlatch"}},{"from":"map:gng_state.gng_main_map/range16","to":"handler:gng_state.bankswitch_w","rel":"WRITES","props":null},{"from":"map:gng_state.sound_map/range2","to":"handler:generic_latch_8_device.read","rel":"READS","props":{"deviceTag":"soundlatch"}},{"from":"map:gng_state.sound_map/range3","to":"handler:ym2203_device.write","rel":"WRITES","props":{"deviceTag":"ym1"}},{"from":"map:gng_state.sound_map/range4","to":"handler:ym2203_device.write","rel":"WRITES","props":{"deviceTag":"ym2"}},{"from":"gfxlayout:charlayout","to":"file:src/mame/capcom/gng.cpp","rel":"DEFINED_IN","props":null},{"from":"gfxlayout:tilelayout","to":"file:src/mame/capcom/gng.cpp","rel":"DEFINED_IN","props":null},{"from":"gfxlayout:spritelayout","to":"file:src/mame/capcom/gng.cpp","rel":"DEFINED_IN","props":null}]}</script>
+<script>
+'use strict';
+const GRAPH = JSON.parse(document.getElementById('graph-data').textContent);
+const FAMILY = {"Game":0,"MachineConfig":1,"Device":1,"AddressMap":2,"AddressRange":2,"Handler":2,"RomSet":3,"RomRegion":3,"Rom":3,"InputPorts":4,"Port":4,"PortField":4,"GfxDecode":5,"GfxDecodeEntry":5,"GfxLayout":5,"SourceFile":6};
+const FAMILY_NAMES = ["Game","Machine","Memory map","ROMs","Inputs","Graphics","Source files"];
+const LIGHT = ["#2a78d6","#1baf7a","#eda100","#008300","#4a3aa7","#e34948","#e87ba4"], DARK = ["#3987e5","#199e70","#c98500","#008300","#9085e9","#e66767","#d55181"];
+const darkMq = matchMedia('(prefers-color-scheme: dark)');
+const palette = () => darkMq.matches ? DARK : LIGHT;
+const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+// --- graph model -----------------------------------------------------------
+const nodes = GRAPH.nodes.map(n => ({
+  ...n, fam: FAMILY[n.label] ?? 6,
+  x: 0, y: 0, vx: 0, vy: 0, deg: 0, r: 5, fixed: false,
+}));
+const byId = new Map(nodes.map(n => [n.id, n]));
+const edges = GRAPH.edges.filter(e => byId.has(e.from) && byId.has(e.to))
+  .map(e => ({ ...e, a: byId.get(e.from), b: byId.get(e.to) }));
+for (const e of edges) { e.a.deg++; e.b.deg++; }
+for (const n of nodes) n.r = 4 + Math.min(10, Math.sqrt(n.deg) * 2.1);
+const adj = new Map(nodes.map(n => [n, []]));
+for (const e of edges) { adj.get(e.a).push(e); adj.get(e.b).push(e); }
+
+// deterministic initial placement: ring per family
+nodes.forEach((n, i) => {
+  const golden = i * 2.39996 + n.fam;
+  const rad = 120 + 240 * ((i * 0.618) % 1);
+  n.x = Math.cos(golden) * rad; n.y = Math.sin(golden) * rad;
+});
+
+// --- state -----------------------------------------------------------------
+const hidden = new Set();           // hidden families
+let selected = null, hovered = null;
+let searchTerm = '';
+let scale = 1, ox = 0, oy = 0;      // view transform
+let alpha = 1;                       // simulation heat
+
+// --- canvas setup ----------------------------------------------------------
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+function resize() {
+  const dpr = devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+new ResizeObserver(() => { resize(); draw(); }).observe(canvas);
+
+const visible = n => !hidden.has(n.fam);
+
+// --- physics (O(n^2) fine at this scale) ------------------------------------
+function tick() {
+  const vs = nodes.filter(visible);
+  for (let i = 0; i < vs.length; i++) {
+    const a = vs[i];
+    for (let j = i + 1; j < vs.length; j++) {
+      const b = vs[j];
+      let dx = a.x - b.x, dy = a.y - b.y;
+      let d2 = dx * dx + dy * dy;
+      if (d2 < 1) { dx = (Math.random ? ((i * 7 + j) % 13) / 13 - .5 : .1); dy = ((i * 5 + j) % 11) / 11 - .5; d2 = dx*dx+dy*dy+.01; }
+      const f = Math.min(12, 1400 / d2) * alpha;
+      const d = Math.sqrt(d2);
+      a.vx += dx / d * f; a.vy += dy / d * f;
+      b.vx -= dx / d * f; b.vy -= dy / d * f;
+    }
+  }
+  for (const e of edges) {
+    if (!visible(e.a) || !visible(e.b)) continue;
+    const dx = e.b.x - e.a.x, dy = e.b.y - e.a.y;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const want = 46 + (e.a.r + e.b.r);
+    const f = (d - want) * 0.02 * alpha;
+    e.a.vx += dx / d * f; e.a.vy += dy / d * f;
+    e.b.vx -= dx / d * f; e.b.vy -= dy / d * f;
+  }
+  for (const n of vs) {
+    n.vx -= n.x * 0.0016 * alpha; n.vy -= n.y * 0.0016 * alpha; // gravity
+    if (!n.fixed) { n.x += n.vx; n.y += n.vy; }
+    n.vx *= 0.6; n.vy *= 0.6;
+  }
+  alpha = Math.max(0.02, alpha * 0.995);
+}
+
+// --- rendering ---------------------------------------------------------------
+function draw() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  ctx.translate(w / 2 + ox, h / 2 + oy);
+  ctx.scale(scale, scale);
+  const pal = palette();
+  const focus = hovered || selected;
+  const inFocus = new Set();
+  if (focus) {
+    inFocus.add(focus);
+    for (const e of adj.get(focus)) { inFocus.add(e.a); inFocus.add(e.b); }
+  }
+  const match = n => searchTerm && (n.id.toLowerCase().includes(searchTerm) || String(n.props.name ?? '').toLowerCase().includes(searchTerm));
+
+  ctx.lineWidth = 1 / scale;
+  for (const e of edges) {
+    if (!visible(e.a) || !visible(e.b)) continue;
+    const hi = focus && (e.a === focus || e.b === focus);
+    ctx.strokeStyle = hi ? cssVar('--edge-hi') : cssVar('--edge');
+    ctx.globalAlpha = focus && !hi ? 0.25 : 1;
+    ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const dim = (focus && !inFocus.has(n)) || (searchTerm && !match(n));
+    ctx.globalAlpha = dim ? 0.22 : 1;
+    ctx.fillStyle = pal[n.fam];
+    ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, 7); ctx.fill();
+    if (n === selected) {
+      ctx.strokeStyle = cssVar('--ink'); ctx.lineWidth = 2 / scale;
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 2 / scale, 0, 7); ctx.stroke();
+    }
+  }
+  // direct labels: hubs always, everything when zoomed, neighborhood on focus
+  ctx.font = `${11 / scale}px ui-sans-serif, system-ui`;
+  ctx.textBaseline = 'middle';
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const show = scale > 1.6 || n.deg >= 6 || inFocus.has(n) || match(n);
+    if (!show) continue;
+    const dim = focus && !inFocus.has(n);
+    const text = shortName(n);
+    const x = n.x + n.r + 4 / scale;
+    ctx.globalAlpha = dim ? 0.3 : 1;
+    ctx.lineWidth = 3 / scale;
+    ctx.strokeStyle = cssVar('--halo');
+    ctx.strokeText(text, x, n.y);
+    ctx.fillStyle = cssVar('--ink-2');
+    ctx.fillText(text, x, n.y);
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+function shortName(n) {
+  const p = n.props;
+  return String(p.name ?? p.tag ?? p.file ?? p.path ?? p.method ?? n.id.split(':').pop());
+}
+
+function loop() { tick(); draw(); requestAnimationFrame(loop); }
+
+// --- interaction -------------------------------------------------------------
+const tip = document.getElementById('tip');
+function pick(mx, my) {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const gx = (mx - w / 2 - ox) / scale, gy = (my - h / 2 - oy) / scale;
+  let best = null, bestD = 1e9;
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const d = Math.hypot(n.x - gx, n.y - gy);
+    if (d < n.r + 4 / scale && d < bestD) { best = n; bestD = d; }
+  }
+  return best;
+}
+let drag = null; // {node} | {pan:true}
+canvas.addEventListener('pointerdown', ev => {
+  const n = pick(ev.offsetX, ev.offsetY);
+  drag = n ? { node: n } : { pan: true, sx: ev.clientX, sy: ev.clientY, ox, oy };
+  if (n) { n.fixed = true; alpha = Math.max(alpha, 0.3); }
+  canvas.classList.add('dragging');
+  canvas.setPointerCapture(ev.pointerId);
+});
+canvas.addEventListener('pointermove', ev => {
+  if (drag?.node) {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    drag.node.x = (ev.offsetX - w / 2 - ox) / scale;
+    drag.node.y = (ev.offsetY - h / 2 - oy) / scale;
+    drag.moved = true;
+  } else if (drag?.pan) {
+    ox = drag.ox + ev.clientX - drag.sx; oy = drag.oy + ev.clientY - drag.sy;
+    drag.moved = true;
+  } else {
+    hovered = pick(ev.offsetX, ev.offsetY);
+    if (hovered) {
+      tip.style.display = 'block';
+      tip.style.left = Math.min(innerWidth - 360, ev.clientX + 14) + 'px';
+      tip.style.top = (ev.clientY + 12) + 'px';
+      tip.textContent = hovered.label + ' · ' + hovered.id;
+    } else tip.style.display = 'none';
+  }
+});
+canvas.addEventListener('pointerup', ev => {
+  if (drag?.node && !drag.moved) select(drag.node);
+  else if (drag?.pan && !drag.moved) select(null);
+  if (drag?.node) drag.node.fixed = false;
+  drag = null;
+  canvas.classList.remove('dragging');
+});
+canvas.addEventListener('wheel', ev => {
+  ev.preventDefault();
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const f = Math.exp(-ev.deltaY * 0.0015);
+  const nx = ev.offsetX - w / 2, ny = ev.offsetY - h / 2;
+  ox = nx - (nx - ox) * f; oy = ny - (ny - oy) * f;
+  scale = Math.min(8, Math.max(0.15, scale * f));
+}, { passive: false });
+
+// --- panel -------------------------------------------------------------------
+const panel = document.getElementById('panel');
+function select(n) {
+  selected = n;
+  panel.classList.toggle('open', !!n);
+  if (!n) return;
+  const rows = Object.entries(n.props).map(([k, v]) =>
+    `<tr><td>${esc(k)}</td><td>${fmt(v)}</td></tr>`).join('');
+  const links = dir => adj.get(n)
+    .filter(e => (dir === 'out' ? e.a : e.b) === n)
+    .map(e => {
+      const other = dir === 'out' ? e.b : e.a;
+      return `<a data-id="${esc(other.id)}"><span class="rel">${dir === 'out' ? '→' : '←'} ${e.rel}</span> ${esc(shortName(other))}</a>`;
+    }).join('') || '<span class="rel">none</span>';
+  panel.innerHTML = `
+    <h2>${esc(n.id)}</h2>
+    <div class="lbl">${esc(n.label)} · ${FAMILY_NAMES[n.fam]}</div>
+    <div class="lbl">properties</div><table>${rows || '<tr><td colspan=2>none</td></tr>'}</table>
+    <div class="lbl">outgoing</div>${links('out')}
+    <div class="lbl">incoming</div>${links('in')}`;
+  panel.querySelectorAll('a[data-id]').forEach(a =>
+    a.addEventListener('click', () => { const t = byId.get(a.dataset.id); if (t) { select(t); alpha = Math.max(alpha, .15); } }));
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function fmt(v) {
+  if (Array.isArray(v)) return '<pre>' + v.map(esc).join('\n') + '</pre>';
+  if (typeof v === 'number' && v > 255 && Number.isInteger(v)) return esc(v) + ' <span class="rel">(0x' + v.toString(16) + ')</span>';
+  return esc(v);
+}
+
+// --- legend + search + stats ---------------------------------------------------
+const legend = document.getElementById('legend');
+const famCounts = FAMILY_NAMES.map((_, i) => nodes.filter(n => n.fam === i).length);
+FAMILY_NAMES.forEach((name, i) => {
+  if (!famCounts[i]) return;
+  const label = document.createElement('label');
+  label.innerHTML = `<input type="checkbox" checked><span class="sw"></span>${name} <span style="color:var(--ink-3)">${famCounts[i]}</span>`;
+  label.querySelector('.sw').style.background = palette()[i];
+  label.querySelector('input').addEventListener('change', ev => {
+    ev.target.checked ? hidden.delete(i) : hidden.add(i);
+    alpha = Math.max(alpha, 0.3);
+  });
+  legend.appendChild(label);
+});
+darkMq.addEventListener('change', () => {
+  legend.querySelectorAll('.sw').forEach((sw, idx) => {
+    const fams = FAMILY_NAMES.map((_, i) => i).filter(i => famCounts[i]);
+    sw.style.background = palette()[fams[idx]];
+  });
+});
+document.getElementById('search').addEventListener('input', ev => {
+  searchTerm = ev.target.value.trim().toLowerCase();
+});
+document.getElementById('stats').textContent = `${nodes.length} nodes · ${edges.length} edges`;
+
+resize();
+loop();
+</script>
+</body>
+</html>

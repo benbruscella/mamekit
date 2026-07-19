@@ -1,0 +1,2069 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/konami/timeplt.cpp",
+    "generatedAt": "2026-07-19T06:33:31.455Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/konami/timeplt.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/timeplt.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konamipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konamipt.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:timeplt_a.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "timeplt_a.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/74259.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/74259.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/ticket.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/ticket.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ay8910.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ay8910.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/tc8830f.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/tc8830f.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:timeplt",
+      "label": "Game",
+      "props": {
+        "name": "timeplt",
+        "year": "1982",
+        "company": "Konami",
+        "fullname": "Time Pilot",
+        "monitor": "ROT90",
+        "cls": "timeplt_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade"
+      }
+    },
+    {
+      "id": "romset:timeplt",
+      "label": "RomSet",
+      "props": {
+        "name": "timeplt"
+      }
+    },
+    {
+      "id": "region:timeplt/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:timeplt/maincpu/tm1",
+      "label": "Rom",
+      "props": {
+        "file": "tm1",
+        "offset": 0,
+        "size": 8192,
+        "crc": "1551f1b9",
+        "sha1": "c72f30988ac00cbe6549b71c3bcb414511e8b997"
+      }
+    },
+    {
+      "id": "rom:timeplt/maincpu/tm2",
+      "label": "Rom",
+      "props": {
+        "file": "tm2",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "58636cb5",
+        "sha1": "ab517efa93ae7be780af55faea82a6e83edd828c"
+      }
+    },
+    {
+      "id": "rom:timeplt/maincpu/tm3",
+      "label": "Rom",
+      "props": {
+        "file": "tm3",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "ff4e0d83",
+        "sha1": "ef98a1abb45b22d7498a0aca520f43bbee248b22"
+      }
+    },
+    {
+      "id": "region:timeplt/timeplt_audio:tpsound",
+      "label": "RomRegion",
+      "props": {
+        "tag": "timeplt_audio:tpsound",
+        "size": 65536,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:timeplt/timeplt_audio:tpsound/tm7",
+      "label": "Rom",
+      "props": {
+        "file": "tm7",
+        "offset": 0,
+        "size": 4096,
+        "crc": "d66da813",
+        "sha1": "408fca4515e8af84211df3e204c8776b2f8adb23"
+      }
+    },
+    {
+      "id": "region:timeplt/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 8192,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:timeplt/tiles/tm6",
+      "label": "Rom",
+      "props": {
+        "file": "tm6",
+        "offset": 0,
+        "size": 8192,
+        "crc": "c2507f40",
+        "sha1": "07221875e3f81d9def67c57a7ccd82d52ce65e01"
+      }
+    },
+    {
+      "id": "region:timeplt/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 16384,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:timeplt/sprites/tm4",
+      "label": "Rom",
+      "props": {
+        "file": "tm4",
+        "offset": 0,
+        "size": 8192,
+        "crc": "7e437c3e",
+        "sha1": "cbe2ccd2cd503af62f009cd5aab73aa7366230b1"
+      }
+    },
+    {
+      "id": "rom:timeplt/sprites/tm5",
+      "label": "Rom",
+      "props": {
+        "file": "tm5",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "e8ca87b9",
+        "sha1": "5dd30d3fb9fd8cf9e6a8e37e7ea858c7fd038a7e"
+      }
+    },
+    {
+      "id": "region:timeplt/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 576,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:timeplt/proms/timeplt.b4",
+      "label": "Rom",
+      "props": {
+        "file": "timeplt.b4",
+        "offset": 0,
+        "size": 32,
+        "crc": "34c91839",
+        "sha1": "f62e279e21fce171231d3139be7adabe1f4b8c2e"
+      }
+    },
+    {
+      "id": "rom:timeplt/proms/timeplt.b5",
+      "label": "Rom",
+      "props": {
+        "file": "timeplt.b5",
+        "offset": 32,
+        "size": 32,
+        "crc": "463b2b07",
+        "sha1": "9ad275365eba4869f94749f39ff8705d92056a10"
+      }
+    },
+    {
+      "id": "rom:timeplt/proms/timeplt.e9",
+      "label": "Rom",
+      "props": {
+        "file": "timeplt.e9",
+        "offset": 64,
+        "size": 256,
+        "crc": "4bbb2150",
+        "sha1": "678433b21aae1daa938e32d3293eeed529a42ef9"
+      }
+    },
+    {
+      "id": "rom:timeplt/proms/timeplt.e12",
+      "label": "Rom",
+      "props": {
+        "file": "timeplt.e12",
+        "offset": 320,
+        "size": 256,
+        "crc": "f7b7663e",
+        "sha1": "151bd2dff4e4ef76d6438c1ab2cae71f987b9dad"
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "timeplt_state",
+        "name": "main_map",
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 24575,
+        "raw": "map(0x0000, 0x5fff).rom()",
+        "rom": true
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 41983,
+        "raw": "map(0xa000, 0xa3ff).ram().w(FUNC(timeplt_state::colorram_w)).share(m_colorram)",
+        "ram": true,
+        "share": "colorram"
+      }
+    },
+    {
+      "id": "handler:timeplt_state.colorram_w",
+      "label": "Handler",
+      "props": {
+        "method": "colorram_w",
+        "ownerClass": "timeplt_state"
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 41984,
+        "end": 43007,
+        "raw": "map(0xa400, 0xa7ff).ram().w(FUNC(timeplt_state::videoram_w)).share(m_videoram)",
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:timeplt_state.videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w",
+        "ownerClass": "timeplt_state"
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 43008,
+        "end": 45055,
+        "raw": "map(0xa800, 0xafff).ram()",
+        "ram": true
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 45056,
+        "end": 45311,
+        "raw": "map(0xb000, 0xb0ff).mirror(0x0b00).ram().share(m_spriteram[0])",
+        "mirror": 2816,
+        "ram": true,
+        "share": "spriteram[0]"
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 46080,
+        "end": 46335,
+        "raw": "map(0xb400, 0xb4ff).mirror(0x0b00).ram().share(m_spriteram[1])",
+        "mirror": 2816,
+        "ram": true,
+        "share": "spriteram[1]"
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 49152,
+        "raw": "map(0xc000, 0xc000).mirror(0x0cff).r(FUNC(timeplt_state::scanline_r)).w(\"timeplt_audio\", FUNC(timeplt_audio_device::sound_data_w))",
+        "mirror": 3327
+      }
+    },
+    {
+      "id": "handler:timeplt_state.scanline_r",
+      "label": "Handler",
+      "props": {
+        "method": "scanline_r",
+        "ownerClass": "timeplt_state"
+      }
+    },
+    {
+      "id": "handler:timeplt_audio_device.sound_data_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_data_w",
+        "ownerClass": "timeplt_audio_device"
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 49664,
+        "end": 49664,
+        "raw": "map(0xc200, 0xc200).mirror(0x0cff).portr(\"DSW1\").w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "mirror": 3327,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device"
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 49920,
+        "end": 49920,
+        "raw": "map(0xc300, 0xc300).mirror(0x0c9f).portr(\"IN0\")",
+        "mirror": 3231,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 49920,
+        "end": 49935,
+        "raw": "map(0xc300, 0xc30f).lw8(NAME([this] (offs_t offset, u8 data) { m_mainlatch->write_d0(offset >> 1, data); }))"
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 49952,
+        "end": 49952,
+        "raw": "map(0xc320, 0xc320).mirror(0x0c9f).portr(\"IN1\")",
+        "mirror": 3231,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 49984,
+        "end": 49984,
+        "raw": "map(0xc340, 0xc340).mirror(0x0c9f).portr(\"IN2\")",
+        "mirror": 3231,
+        "portRead": "IN2"
+      }
+    },
+    {
+      "id": "map:timeplt_state.main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 50016,
+        "end": 50016,
+        "raw": "map(0xc360, 0xc360).mirror(0x0c9f).portr(\"DSW0\")",
+        "mirror": 3231,
+        "portRead": "DSW0"
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "timeplt_audio_device",
+        "name": "timeplt_sound_map"
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 12287,
+        "raw": "map(0x0000, 0x2fff).rom()",
+        "rom": true
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 13311,
+        "raw": "map(0x3000, 0x33ff).mirror(0x0c00).ram()",
+        "mirror": 3072,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 16384,
+        "raw": "map(0x4000, 0x4000).mirror(0x0fff).rw(\"ay1\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_r",
+      "label": "Handler",
+      "props": {
+        "method": "data_r",
+        "ownerClass": "ay8910_device"
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "ay8910_device"
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 20480,
+        "end": 20480,
+        "raw": "map(0x5000, 0x5000).mirror(0x0fff).w(\"ay1\", FUNC(ay8910_device::address_w))",
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "handler:ay8910_device.address_w",
+      "label": "Handler",
+      "props": {
+        "method": "address_w",
+        "ownerClass": "ay8910_device"
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 24576,
+        "raw": "map(0x6000, 0x6000).mirror(0x0fff).rw(\"ay2\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 28672,
+        "end": 28672,
+        "raw": "map(0x7000, 0x7000).mirror(0x0fff).w(\"ay2\", FUNC(ay8910_device::address_w))",
+        "mirror": 4095
+      }
+    },
+    {
+      "id": "map:timeplt_audio_device.timeplt_sound_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 65535,
+        "raw": "map(0x8000, 0xffff).w(FUNC(timeplt_audio_device::filter_w))"
+      }
+    },
+    {
+      "id": "handler:timeplt_audio_device.filter_w",
+      "label": "Handler",
+      "props": {
+        "method": "filter_w",
+        "ownerClass": "timeplt_audio_device"
+      }
+    },
+    {
+      "id": "machine:timeplt_state.timeplt",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "timeplt_state",
+        "name": "timeplt",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:timeplt_state.timeplt/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 3072000,
+        "config": [
+          "Z80(config, m_maincpu, MASTER_CLOCK / 3 / 2)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &timeplt_state::main_map)"
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_state.timeplt/mainlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "mainlatch",
+        "clock": null,
+        "config": [
+          "LS259(config, m_mainlatch)",
+          "m_mainlatch->q_out_cb<0>().set(FUNC(timeplt_state::nmi_enable_w))",
+          "m_mainlatch->q_out_cb<1>().set(FUNC(timeplt_state::flip_screen_set)).invert()",
+          "m_mainlatch->q_out_cb<2>().set(\"timeplt_audio\", FUNC(timeplt_audio_device::sh_irqtrigger_w))",
+          "m_mainlatch->q_out_cb<3>().set(\"timeplt_audio\", FUNC(timeplt_audio_device::mute_w))",
+          "m_mainlatch->q_out_cb<4>().set(FUNC(timeplt_state::video_enable_w))",
+          "m_mainlatch->q_out_cb<5>().set(FUNC(timeplt_state::coin_counter_w<0>))",
+          "m_mainlatch->q_out_cb<6>().set(FUNC(timeplt_state::coin_counter_w<1>))",
+          "m_mainlatch->q_out_cb<7>().set_nop()"
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_state.timeplt/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\")"
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_state.timeplt/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_video_attributes(VIDEO_UPDATE_SCANLINE)",
+          "m_screen->set_refresh_hz(60)",
+          "m_screen->set_size(32*8, 32*8)",
+          "m_screen->set_visarea(0*8, 32*8-1, 2*8, 30*8-1)",
+          "m_screen->set_screen_update(FUNC(timeplt_state::screen_update))",
+          "m_screen->set_palette(m_palette)",
+          "m_screen->screen_vblank().set(FUNC(timeplt_state::vblank_irq))"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRefreshHz": 60,
+        "screenSize": [
+          256,
+          256
+        ],
+        "screenVisarea": [
+          0,
+          255,
+          16,
+          239
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_state.timeplt/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_timeplt)"
+        ],
+        "clockExpr": "m_palette, gfx_timeplt"
+      }
+    },
+    {
+      "id": "device:timeplt_state.timeplt/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(timeplt_state::palette), 32*4 + 64*4)"
+        ],
+        "clockExpr": "FUNC(timeplt_state::palette), 32*4 + 64*4"
+      }
+    },
+    {
+      "id": "device:timeplt_state.timeplt/timeplt_audio",
+      "label": "Device",
+      "props": {
+        "type": "TIMEPLT_AUDIO",
+        "tag": "timeplt_audio",
+        "clock": 14318181,
+        "config": [
+          "TIMEPLT_AUDIO(config, \"timeplt_audio\")"
+        ]
+      }
+    },
+    {
+      "id": "machine:timeplt_audio_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "timeplt_audio_device",
+        "name": "device_add_mconfig",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/tpsound",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "tpsound",
+        "clock": 1789772.625,
+        "config": [
+          "Z80(config, m_soundcpu, DERIVED_CLOCK(1, 8))",
+          "m_soundcpu->set_addrmap(AS_PROGRAM, &timeplt_audio_device::timeplt_sound_map)"
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()",
+          "for (required_device<filter_rc_device> &filter : m_filter[0])\n\t\tFILTER_RC(config, filter).add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+          "for (required_device<filter_rc_device> &filter : m_filter[1])\n\t\tFILTER_RC(config, filter).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch)"
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/ay1",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay1",
+        "clock": 1789772.625,
+        "config": [
+          "ay8910_device &ay1(AY8910(config, \"ay1\", DERIVED_CLOCK(1, 8)))",
+          "ay1.port_a_read_callback().set(m_soundlatch, FUNC(generic_latch_8_device::read))",
+          "ay1.port_b_read_callback().set(FUNC(timeplt_audio_device::portB_r))",
+          "ay1.add_route(0, \"filter.0.0\", 0.60)",
+          "ay1.add_route(1, \"filter.0.1\", 0.60)",
+          "ay1.add_route(2, \"filter.0.2\", 0.60)"
+        ]
+      }
+    },
+    {
+      "id": "device:timeplt_audio_device.device_add_mconfig/ay2",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay2",
+        "clock": 1789772.625,
+        "config": [
+          "ay8910_device &ay2(AY8910(config, \"ay2\", DERIVED_CLOCK(1, 8)))",
+          "ay2.add_route(0, \"filter.1.0\", 0.60)",
+          "ay2.add_route(1, \"filter.1.1\", 0.60)",
+          "ay2.add_route(2, \"filter.1.2\", 0.60)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt",
+      "label": "InputPorts",
+      "props": {
+        "name": "timeplt"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_SERVICE1"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/IN2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:timeplt/DSW0",
+      "label": "Port",
+      "props": {
+        "tag": "DSW0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:timeplt/DSW0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 15,
+        "name": "Coin A",
+        "defaultValue": 15,
+        "location": "#SW1\":1,2,3,4\"",
+        "settings": [
+          "2=4C 1C",
+          "5=3C 1C",
+          "8=2C 1C",
+          "4=3C 2C",
+          "1=4C 3C",
+          "15=1C 1C",
+          "3=3C 4C",
+          "7=2C 3C",
+          "14=1C 2C",
+          "6=2C 5C",
+          "13=1C 3C",
+          "12=1C 4C",
+          "11=1C 5C",
+          "10=1C 6C",
+          "9=1C 7C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/DSW0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "name": "Coin B",
+        "defaultValue": 240,
+        "location": "#SW1\":5,6,7,8\"",
+        "settings": [
+          "32=4C 1C",
+          "80=3C 1C",
+          "128=2C 1C",
+          "64=3C 2C",
+          "16=4C 3C",
+          "240=1C 1C",
+          "48=3C 4C",
+          "112=2C 3C",
+          "224=1C 2C",
+          "96=2C 5C",
+          "208=1C 3C",
+          "192=1C 4C",
+          "176=1C 5C",
+          "160=1C 6C",
+          "144=1C 7C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:timeplt/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Lives",
+        "defaultValue": 3,
+        "location": "SW2:1,2",
+        "settings": [
+          "3=3",
+          "2=4",
+          "1=5",
+          "0=255 (Cheat)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW2:3",
+        "settings": [
+          "0=Upright",
+          "4=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Bonus Life",
+        "defaultValue": 8,
+        "location": "SW2:4",
+        "settings": [
+          "8=10000 50000",
+          "0=20000 60000"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 112,
+        "name": "Difficulty",
+        "defaultValue": 64,
+        "location": "SW2:5,6,7",
+        "settings": [
+          "112=1 (Easiest)",
+          "96=2",
+          "80=3",
+          "64=4",
+          "48=5",
+          "32=6",
+          "16=7",
+          "0=8 (Difficult)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:timeplt/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "SW2:8",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 2,
+        "planeOffsets": [
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          64,
+          65,
+          66,
+          67
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 2,
+        "planeOffsets": [
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          64,
+          65,
+          66,
+          67,
+          128,
+          129,
+          130,
+          131,
+          192,
+          193,
+          194,
+          195
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          256,
+          264,
+          272,
+          280,
+          288,
+          296,
+          304,
+          312
+        ],
+        "charIncrement": 512
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_timeplt",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_timeplt"
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_timeplt/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles",
+        "offset": 0,
+        "layout": "charlayout",
+        "colorBase": 0,
+        "colorCount": 32,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_timeplt/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 128,
+        "colorCount": 64,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:timeplt",
+      "to": "file:src/mame/konami/timeplt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "game:timeplt",
+      "to": "machine:timeplt_state.timeplt",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:timeplt",
+      "to": "inputs:timeplt",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:timeplt",
+      "to": "romset:timeplt",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:konamipt.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:timeplt_a.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:machine/ticket.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:sound/ay8910.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:sound/tc8830f.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/timeplt.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:timeplt_state.timeplt",
+      "to": "file:src/mame/konami/timeplt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:timeplt_state.timeplt",
+      "to": "device:timeplt_state.timeplt/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_state.timeplt",
+      "to": "device:timeplt_state.timeplt/mainlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_state.timeplt",
+      "to": "device:timeplt_state.timeplt/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_state.timeplt",
+      "to": "device:timeplt_state.timeplt/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_state.timeplt",
+      "to": "device:timeplt_state.timeplt/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_state.timeplt",
+      "to": "gfxdecode:gfx_timeplt",
+      "rel": "DECODES"
+    },
+    {
+      "from": "machine:timeplt_state.timeplt",
+      "to": "device:timeplt_state.timeplt/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_state.timeplt",
+      "to": "device:timeplt_state.timeplt/timeplt_audio",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:timeplt",
+      "to": "file:src/mame/konami/timeplt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:timeplt",
+      "to": "inputs:timeplt/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:timeplt",
+      "to": "inputs:timeplt/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:timeplt",
+      "to": "inputs:timeplt/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:timeplt",
+      "to": "inputs:timeplt/DSW0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:timeplt",
+      "to": "inputs:timeplt/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:timeplt",
+      "to": "file:src/mame/konami/timeplt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "romset:timeplt",
+      "to": "region:timeplt/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:timeplt",
+      "to": "region:timeplt/timeplt_audio:tpsound",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:timeplt",
+      "to": "region:timeplt/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:timeplt",
+      "to": "region:timeplt/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:timeplt",
+      "to": "region:timeplt/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "device:timeplt_state.timeplt/maincpu",
+      "to": "map:timeplt_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_timeplt",
+      "to": "file:src/mame/konami/timeplt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxdecode:gfx_timeplt",
+      "to": "gfxdecode:gfx_timeplt/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_timeplt",
+      "to": "gfxdecode:gfx_timeplt/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:timeplt_state.timeplt/timeplt_audio",
+      "to": "machine:timeplt_audio_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "inputs:timeplt/IN0",
+      "to": "inputs:timeplt/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN0",
+      "to": "inputs:timeplt/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN0",
+      "to": "inputs:timeplt/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN0",
+      "to": "inputs:timeplt/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN0",
+      "to": "inputs:timeplt/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN0",
+      "to": "inputs:timeplt/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN0",
+      "to": "inputs:timeplt/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN0",
+      "to": "inputs:timeplt/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN1",
+      "to": "inputs:timeplt/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN1",
+      "to": "inputs:timeplt/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN1",
+      "to": "inputs:timeplt/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN1",
+      "to": "inputs:timeplt/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN1",
+      "to": "inputs:timeplt/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN1",
+      "to": "inputs:timeplt/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN1",
+      "to": "inputs:timeplt/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN1",
+      "to": "inputs:timeplt/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN2",
+      "to": "inputs:timeplt/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN2",
+      "to": "inputs:timeplt/IN2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN2",
+      "to": "inputs:timeplt/IN2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN2",
+      "to": "inputs:timeplt/IN2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN2",
+      "to": "inputs:timeplt/IN2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN2",
+      "to": "inputs:timeplt/IN2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN2",
+      "to": "inputs:timeplt/IN2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/IN2",
+      "to": "inputs:timeplt/IN2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/DSW0",
+      "to": "inputs:timeplt/DSW0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/DSW0",
+      "to": "inputs:timeplt/DSW0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/DSW1",
+      "to": "inputs:timeplt/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/DSW1",
+      "to": "inputs:timeplt/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/DSW1",
+      "to": "inputs:timeplt/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/DSW1",
+      "to": "inputs:timeplt/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:timeplt/DSW1",
+      "to": "inputs:timeplt/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:timeplt/maincpu",
+      "to": "rom:timeplt/maincpu/tm1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:timeplt/maincpu",
+      "to": "rom:timeplt/maincpu/tm2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:timeplt/maincpu",
+      "to": "rom:timeplt/maincpu/tm3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:timeplt/timeplt_audio:tpsound",
+      "to": "rom:timeplt/timeplt_audio:tpsound/tm7",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:timeplt/tiles",
+      "to": "rom:timeplt/tiles/tm6",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:timeplt/sprites",
+      "to": "rom:timeplt/sprites/tm4",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:timeplt/sprites",
+      "to": "rom:timeplt/sprites/tm5",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:timeplt/proms",
+      "to": "rom:timeplt/proms/timeplt.b4",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:timeplt/proms",
+      "to": "rom:timeplt/proms/timeplt.b5",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:timeplt/proms",
+      "to": "rom:timeplt/proms/timeplt.e9",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:timeplt/proms",
+      "to": "rom:timeplt/proms/timeplt.e12",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "file:src/mame/konami/timeplt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_state.main_map",
+      "to": "map:timeplt_state.main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "gfxdecode:gfx_timeplt/e0",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_timeplt/e1",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "file:src/mame/konami/timeplt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/tpsound",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/ay1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:timeplt_audio_device.device_add_mconfig",
+      "to": "device:timeplt_audio_device.device_add_mconfig/ay2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:timeplt_state.main_map/range1",
+      "to": "handler:timeplt_state.colorram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:timeplt_state.main_map/range2",
+      "to": "handler:timeplt_state.videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:timeplt_state.main_map/range6",
+      "to": "handler:timeplt_state.scanline_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:timeplt_state.main_map/range6",
+      "to": "handler:timeplt_audio_device.sound_data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "timeplt_audio"
+      }
+    },
+    {
+      "from": "map:timeplt_state.main_map/range7",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "gfxlayout:charlayout",
+      "to": "file:src/mame/konami/timeplt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/konami/timeplt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "device:timeplt_audio_device.device_add_mconfig/tpsound",
+      "to": "map:timeplt_audio_device.timeplt_sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "file:src/mame/konami/timeplt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map",
+      "to": "map:timeplt_audio_device.timeplt_sound_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range2",
+      "to": "handler:ay8910_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range3",
+      "to": "handler:ay8910_device.address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "to": "handler:ay8910_device.data_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range4",
+      "to": "handler:ay8910_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range5",
+      "to": "handler:ay8910_device.address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:timeplt_audio_device.timeplt_sound_map/range6",
+      "to": "handler:timeplt_audio_device.filter_w",
+      "rel": "WRITES"
+    }
+  ]
+}

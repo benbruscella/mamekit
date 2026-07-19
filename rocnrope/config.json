@@ -1,0 +1,696 @@
+{
+  "game": "rocnrope",
+  "title": "Roc'n Rope (Konami, 1983)",
+  "family": "rocnrope",
+  "board": {
+    "family": "rocnrope",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "konami1",
+        "clock": 1536000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 12416,
+            "end": 12416,
+            "kind": "handler",
+            "read": "port.SYSTEM"
+          },
+          {
+            "start": 12417,
+            "end": 12417,
+            "kind": "handler",
+            "read": "port.P1"
+          },
+          {
+            "start": 12418,
+            "end": 12418,
+            "kind": "handler",
+            "read": "port.P2"
+          },
+          {
+            "start": 12419,
+            "end": 12419,
+            "kind": "handler",
+            "read": "port.DSW1"
+          },
+          {
+            "start": 12288,
+            "end": 12288,
+            "kind": "handler",
+            "read": "port.DSW2"
+          },
+          {
+            "start": 12544,
+            "end": 12544,
+            "kind": "handler",
+            "read": "port.DSW3"
+          },
+          {
+            "start": 16384,
+            "end": 16431,
+            "kind": "ram",
+            "share": "spriteram[1]"
+          },
+          {
+            "start": 16432,
+            "end": 17407,
+            "kind": "ram"
+          },
+          {
+            "start": 17408,
+            "end": 17455,
+            "kind": "ram",
+            "share": "spriteram[0]"
+          },
+          {
+            "start": 17456,
+            "end": 18431,
+            "kind": "ram"
+          },
+          {
+            "start": 18432,
+            "end": 19455,
+            "kind": "ram",
+            "share": "colorram",
+            "write": "rocnrope_state.colorram_w"
+          },
+          {
+            "start": 19456,
+            "end": 20479,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "rocnrope_state.videoram_w"
+          },
+          {
+            "start": 20480,
+            "end": 24575,
+            "kind": "ram"
+          },
+          {
+            "start": 32768,
+            "end": 32768,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 32896,
+            "end": 32903,
+            "kind": "handler",
+            "write": "mainlatch.write_d0"
+          },
+          {
+            "start": 33024,
+            "end": 33024,
+            "kind": "handler",
+            "write": "timeplt_audio.sound_data_w"
+          },
+          {
+            "start": 33154,
+            "end": 33165,
+            "kind": "handler",
+            "write": "rocnrope_state.interrupt_vector_w"
+          },
+          {
+            "start": 24576,
+            "end": 65535,
+            "kind": "rom"
+          },
+          {
+            "start": 65522,
+            "end": 65533,
+            "kind": "ram",
+            "share": "vectors"
+          }
+        ]
+      },
+      {
+        "tag": "tpsound",
+        "type": "z80",
+        "clock": 1789772.625,
+        "region": "tpsound",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 12287,
+            "kind": "rom"
+          },
+          {
+            "start": 12288,
+            "end": 13311,
+            "kind": "ram",
+            "mirror": 3072
+          },
+          {
+            "start": 16384,
+            "end": 16384,
+            "kind": "handler",
+            "mirror": 4095,
+            "read": "ay1.data_r",
+            "write": "ay1.data_w"
+          },
+          {
+            "start": 20480,
+            "end": 20480,
+            "kind": "handler",
+            "mirror": 4095,
+            "write": "ay1.address_w"
+          },
+          {
+            "start": 24576,
+            "end": 24576,
+            "kind": "handler",
+            "mirror": 4095,
+            "read": "ay2.data_r",
+            "write": "ay2.data_w"
+          },
+          {
+            "start": 28672,
+            "end": 28672,
+            "kind": "handler",
+            "mirror": 4095,
+            "write": "ay2.address_w"
+          },
+          {
+            "start": 32768,
+            "end": 65535,
+            "kind": "handler",
+            "write": "timeplt_audio_device.filter_w"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 12416,
+        "end": 12416,
+        "kind": "handler",
+        "read": "port.SYSTEM"
+      },
+      {
+        "start": 12417,
+        "end": 12417,
+        "kind": "handler",
+        "read": "port.P1"
+      },
+      {
+        "start": 12418,
+        "end": 12418,
+        "kind": "handler",
+        "read": "port.P2"
+      },
+      {
+        "start": 12419,
+        "end": 12419,
+        "kind": "handler",
+        "read": "port.DSW1"
+      },
+      {
+        "start": 12288,
+        "end": 12288,
+        "kind": "handler",
+        "read": "port.DSW2"
+      },
+      {
+        "start": 12544,
+        "end": 12544,
+        "kind": "handler",
+        "read": "port.DSW3"
+      },
+      {
+        "start": 16384,
+        "end": 16431,
+        "kind": "ram",
+        "share": "spriteram[1]"
+      },
+      {
+        "start": 16432,
+        "end": 17407,
+        "kind": "ram"
+      },
+      {
+        "start": 17408,
+        "end": 17455,
+        "kind": "ram",
+        "share": "spriteram[0]"
+      },
+      {
+        "start": 17456,
+        "end": 18431,
+        "kind": "ram"
+      },
+      {
+        "start": 18432,
+        "end": 19455,
+        "kind": "ram",
+        "share": "colorram",
+        "write": "rocnrope_state.colorram_w"
+      },
+      {
+        "start": 19456,
+        "end": 20479,
+        "kind": "ram",
+        "share": "videoram",
+        "write": "rocnrope_state.videoram_w"
+      },
+      {
+        "start": 20480,
+        "end": 24575,
+        "kind": "ram"
+      },
+      {
+        "start": 32768,
+        "end": 32768,
+        "kind": "handler",
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 32896,
+        "end": 32903,
+        "kind": "handler",
+        "write": "mainlatch.write_d0"
+      },
+      {
+        "start": 33024,
+        "end": 33024,
+        "kind": "handler",
+        "write": "timeplt_audio.sound_data_w"
+      },
+      {
+        "start": 33154,
+        "end": 33165,
+        "kind": "handler",
+        "write": "rocnrope_state.interrupt_vector_w"
+      },
+      {
+        "start": 24576,
+        "end": 65535,
+        "kind": "rom"
+      },
+      {
+        "start": 65522,
+        "end": 65533,
+        "kind": "ram",
+        "share": "vectors"
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "refresh": 60,
+      "vtotal": 256,
+      "vbstart": 240,
+      "vbend": 16,
+      "rotate": 270
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    }
+  },
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1789772.625,
+    "chips": 2
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "rr1.1h",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "83093134",
+          "alt": [
+            {
+              "file": "rnr_h1.vid",
+              "crc": "0fddc1f6"
+            },
+            {
+              "file": "r1.1j",
+              "crc": "6310a1fe"
+            }
+          ]
+        },
+        {
+          "file": "rr2.2h",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "75af8697",
+          "alt": [
+            {
+              "file": "rnr_h2.vid",
+              "crc": "ce9db49a"
+            }
+          ]
+        },
+        {
+          "file": "rr3.3h",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "b21372b1",
+          "alt": [
+            {
+              "file": "rnr_h3.vid",
+              "crc": "6d278459"
+            }
+          ]
+        },
+        {
+          "file": "rr4.4h",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "7acb2a05",
+          "alt": [
+            {
+              "file": "rnr_h4.vid",
+              "crc": "9b2e5f2a"
+            }
+          ]
+        },
+        {
+          "file": "rnr_h5.vid",
+          "offset": 57344,
+          "size": 8192,
+          "crc": "150a6264"
+        }
+      ]
+    },
+    {
+      "region": "timeplt_audio:tpsound",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "rnr_7a.snd",
+          "offset": 0,
+          "size": 4096,
+          "crc": "75d2c4e2"
+        },
+        {
+          "file": "rnr_8a.snd",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "ca4325ae"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "rnr_a11.vid",
+          "offset": 0,
+          "size": 8192,
+          "crc": "afdaba5e"
+        },
+        {
+          "file": "rnr_a12.vid",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "054cafeb"
+        },
+        {
+          "file": "rnr_a9.vid",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "9d2166b2"
+        },
+        {
+          "file": "rnr_a10.vid",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "aff6e22f"
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "rnr_h12.vid",
+          "offset": 0,
+          "size": 8192,
+          "crc": "e2114539",
+          "alt": [
+            {
+              "file": "r7.12j",
+              "crc": "cd8ac4bf"
+            }
+          ]
+        },
+        {
+          "file": "rnr_h11.vid",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "169a8f3f",
+          "alt": [
+            {
+              "file": "r6.11j",
+              "crc": "35891835"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 544,
+      "loads": [
+        {
+          "file": "a17_prom.bin",
+          "offset": 0,
+          "size": 32,
+          "crc": "22ad2c3e"
+        },
+        {
+          "file": "b16_prom.bin",
+          "offset": 32,
+          "size": 256,
+          "crc": "750a9677"
+        },
+        {
+          "file": "rocnrope.pr3",
+          "offset": 288,
+          "size": 256,
+          "crc": "b5c75a27"
+        }
+      ]
+    },
+    {
+      "region": "pal_cpuvidbd",
+      "size": 1,
+      "loads": [
+        {
+          "file": "h100.6g",
+          "offset": 0,
+          "size": 1,
+          "crc": ""
+        }
+      ]
+    }
+  ],
+  "romPatches": [
+    {
+      "region": "maincpu",
+      "offset": 28733,
+      "value": 186
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW2",
+      "mask": 3,
+      "value": 3,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 120,
+      "value": 88,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW3",
+      "mask": 7,
+      "value": 6,
+      "name": "First Bonus"
+    },
+    {
+      "port": "DSW3",
+      "mask": 56,
+      "value": 16,
+      "name": "Repeated Bonus"
+    },
+    {
+      "port": "DSW3",
+      "mask": 64,
+      "value": 0,
+      "name": "Grant Repeated Bonus"
+    },
+    {
+      "port": "DSW3",
+      "mask": 128,
+      "value": 128,
+      "name": "Unused"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "SYSTEM",
+      "init": 255
+    },
+    {
+      "tag": "P1",
+      "init": 255
+    },
+    {
+      "tag": "P2",
+      "init": 255
+    },
+    {
+      "tag": "DSW1",
+      "init": 255
+    },
+    {
+      "tag": "DSW2",
+      "init": 91
+    },
+    {
+      "tag": "DSW3",
+      "init": 150
+    }
+  ],
+  "runtimeUrl": "./dist/runtime/",
+  "menuUrl": "./"
+}

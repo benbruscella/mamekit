@@ -1,0 +1,615 @@
+{
+  "game": "junofrst",
+  "title": "Juno First (Konami, 1983)",
+  "family": "junofrst",
+  "board": {
+    "family": "junofrst",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "konami1",
+        "clock": 1536000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "ram",
+            "share": "videoram"
+          },
+          {
+            "start": 32768,
+            "end": 32783,
+            "kind": "ram",
+            "share": "palette",
+            "write": "palette.write8"
+          },
+          {
+            "start": 32784,
+            "end": 32784,
+            "kind": "handler",
+            "read": "port.DSW2"
+          },
+          {
+            "start": 32796,
+            "end": 32796,
+            "kind": "handler",
+            "read": "watchdog.reset_r"
+          },
+          {
+            "start": 32800,
+            "end": 32800,
+            "kind": "handler",
+            "read": "port.SYSTEM"
+          },
+          {
+            "start": 32804,
+            "end": 32804,
+            "kind": "handler",
+            "read": "port.P1"
+          },
+          {
+            "start": 32808,
+            "end": 32808,
+            "kind": "handler",
+            "read": "port.P2"
+          },
+          {
+            "start": 32812,
+            "end": 32812,
+            "kind": "handler",
+            "read": "port.DSW1"
+          },
+          {
+            "start": 32816,
+            "end": 32823,
+            "kind": "handler",
+            "write": "mainlatch.write_d0"
+          },
+          {
+            "start": 32832,
+            "end": 32832,
+            "kind": "handler",
+            "write": "junofrst_state.sh_irqtrigger_w"
+          },
+          {
+            "start": 32848,
+            "end": 32848,
+            "kind": "handler",
+            "write": "soundlatch.write"
+          },
+          {
+            "start": 32864,
+            "end": 32864,
+            "kind": "handler",
+            "write": "junofrst_state.bankselect_w"
+          },
+          {
+            "start": 32880,
+            "end": 32883,
+            "kind": "handler",
+            "write": "junofrst_state.blitter_w"
+          },
+          {
+            "start": 33024,
+            "end": 36863,
+            "kind": "ram"
+          },
+          {
+            "start": 36864,
+            "end": 40959,
+            "kind": "handler",
+            "read": "bank.mainbank"
+          },
+          {
+            "start": 40960,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      },
+      {
+        "tag": "audiocpu",
+        "type": "z80",
+        "clock": 1789772.625,
+        "region": "audiocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 4095,
+            "kind": "rom"
+          },
+          {
+            "start": 8192,
+            "end": 9215,
+            "kind": "ram"
+          },
+          {
+            "start": 12288,
+            "end": 12288,
+            "kind": "handler",
+            "read": "soundlatch.read"
+          },
+          {
+            "start": 16384,
+            "end": 16384,
+            "kind": "handler",
+            "write": "aysnd.address_w"
+          },
+          {
+            "start": 16385,
+            "end": 16385,
+            "kind": "handler",
+            "read": "aysnd.data_r"
+          },
+          {
+            "start": 16386,
+            "end": 16386,
+            "kind": "handler",
+            "write": "aysnd.data_w"
+          },
+          {
+            "start": 20480,
+            "end": 20480,
+            "kind": "handler",
+            "write": "soundlatch2.write"
+          },
+          {
+            "start": 24576,
+            "end": 24576,
+            "kind": "handler",
+            "write": "junofrst_state.i8039_irq_w"
+          }
+        ]
+      },
+      {
+        "tag": "mcu",
+        "type": "i8039",
+        "clock": 8000000,
+        "region": "mcu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 4095,
+            "kind": "rom"
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 255,
+              "kind": "handler",
+              "read": "soundlatch2.read"
+            }
+          ]
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 32767,
+        "kind": "ram",
+        "share": "videoram"
+      },
+      {
+        "start": 32768,
+        "end": 32783,
+        "kind": "ram",
+        "share": "palette",
+        "write": "palette.write8"
+      },
+      {
+        "start": 32784,
+        "end": 32784,
+        "kind": "handler",
+        "read": "port.DSW2"
+      },
+      {
+        "start": 32796,
+        "end": 32796,
+        "kind": "handler",
+        "read": "watchdog.reset_r"
+      },
+      {
+        "start": 32800,
+        "end": 32800,
+        "kind": "handler",
+        "read": "port.SYSTEM"
+      },
+      {
+        "start": 32804,
+        "end": 32804,
+        "kind": "handler",
+        "read": "port.P1"
+      },
+      {
+        "start": 32808,
+        "end": 32808,
+        "kind": "handler",
+        "read": "port.P2"
+      },
+      {
+        "start": 32812,
+        "end": 32812,
+        "kind": "handler",
+        "read": "port.DSW1"
+      },
+      {
+        "start": 32816,
+        "end": 32823,
+        "kind": "handler",
+        "write": "mainlatch.write_d0"
+      },
+      {
+        "start": 32832,
+        "end": 32832,
+        "kind": "handler",
+        "write": "junofrst_state.sh_irqtrigger_w"
+      },
+      {
+        "start": 32848,
+        "end": 32848,
+        "kind": "handler",
+        "write": "soundlatch.write"
+      },
+      {
+        "start": 32864,
+        "end": 32864,
+        "kind": "handler",
+        "write": "junofrst_state.bankselect_w"
+      },
+      {
+        "start": 32880,
+        "end": 32883,
+        "kind": "handler",
+        "write": "junofrst_state.blitter_w"
+      },
+      {
+        "start": 33024,
+        "end": 36863,
+        "kind": "ram"
+      },
+      {
+        "start": 36864,
+        "end": 40959,
+        "kind": "handler",
+        "read": "bank.mainbank"
+      },
+      {
+        "start": 40960,
+        "end": 65535,
+        "kind": "rom"
+      }
+    ],
+    "screen": {
+      "width": 768,
+      "height": 224,
+      "refresh": 60.60606060606061,
+      "vtotal": 264,
+      "vbstart": 240,
+      "vbend": 16,
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    }
+  },
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1789772.625,
+    "chips": 1
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "jfa_b9.bin",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "f5a7ab9d",
+          "alt": [
+            {
+              "file": "jfg_a.9b",
+              "crc": "8f77d1c5"
+            }
+          ]
+        },
+        {
+          "file": "jfb_b10.bin",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "f20626e0",
+          "alt": [
+            {
+              "file": "jfg_b.10b",
+              "crc": "cd645673"
+            }
+          ]
+        },
+        {
+          "file": "jfc_a10.bin",
+          "offset": 57344,
+          "size": 8192,
+          "crc": "1e7744a7",
+          "alt": [
+            {
+              "file": "jfg_c.10a",
+              "crc": "47852761"
+            }
+          ]
+        },
+        {
+          "file": "jfc1_a4.bin",
+          "offset": 65536,
+          "size": 8192,
+          "crc": "03ccbf1d",
+          "alt": [
+            {
+              "file": "jfgc1.4a",
+              "crc": "90a05ae6"
+            }
+          ]
+        },
+        {
+          "file": "jfc2_a5.bin",
+          "offset": 73728,
+          "size": 8192,
+          "crc": "cb372372"
+        },
+        {
+          "file": "jfc3_a6.bin",
+          "offset": 81920,
+          "size": 8192,
+          "crc": "879d194b"
+        },
+        {
+          "file": "jfc4_a7.bin",
+          "offset": 90112,
+          "size": 8192,
+          "crc": "f28af80b",
+          "alt": [
+            {
+              "file": "jfgc4.7a",
+              "crc": "e8864a43"
+            }
+          ]
+        },
+        {
+          "file": "jfc5_a8.bin",
+          "offset": 98304,
+          "size": 8192,
+          "crc": "0539f328"
+        },
+        {
+          "file": "jfc6_a9.bin",
+          "offset": 106496,
+          "size": 8192,
+          "crc": "1da2ad6e"
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "jfs1_j3.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "235a2893"
+        }
+      ]
+    },
+    {
+      "region": "mcu",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "jfs2_p4.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "d0fa5d5f"
+        }
+      ]
+    },
+    {
+      "region": "blitrom",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "jfs3_c7.bin",
+          "offset": 0,
+          "size": 8192,
+          "crc": "aeacf6db"
+        },
+        {
+          "file": "jfs4_d7.bin",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "206d954c"
+        },
+        {
+          "file": "jfs5_e7.bin",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "1eb87a6e"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW2",
+      "mask": 3,
+      "value": 3,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW2",
+      "mask": 112,
+      "value": 112,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 0,
+      "name": "Demo Sounds"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "SYSTEM",
+      "init": 255
+    },
+    {
+      "tag": "P1",
+      "init": 255
+    },
+    {
+      "tag": "P2",
+      "init": 255
+    },
+    {
+      "tag": "DSW1",
+      "init": 255
+    },
+    {
+      "tag": "DSW2",
+      "init": 123
+    }
+  ],
+  "runtimeUrl": "./dist/runtime/",
+  "menuUrl": "./"
+}

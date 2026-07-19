@@ -1,0 +1,15 @@
+{
+  "galaga": "src/mame/namco/galaga.cpp",
+  "digdug": "src/mame/namco/galaga.cpp",
+  "pacman": "src/mame/pacman/pacman.cpp",
+  "galaxian": "src/mame/galaxian/galaxian.cpp",
+  "gyruss": "src/mame/konami/gyruss.cpp",
+  "invaders": "src/mame/midw8080/mw8080bw.cpp",
+  "mpatrol": "src/mame/irem/m52.cpp",
+  "gng": "src/mame/capcom/gng.cpp",
+  "junofrst": "src/mame/konami/junofrst.cpp",
+  "rocnrope": "src/mame/konami/rocnrope.cpp",
+  "pooyan": "src/mame/konami/pooyan.cpp",
+  "timeplt": "src/mame/konami/timeplt.cpp",
+  "nes": "src/mame/nintendo/nes.cpp"
+}

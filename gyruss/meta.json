@@ -1,0 +1,25 @@
+{
+  "game": "gyruss",
+  "title": "Gyruss (Konami, 1983)",
+  "fullname": "Gyruss",
+  "year": "1983",
+  "manufacturer": "Konami",
+  "family": "gyruss",
+  "driverFile": "src/mame/konami/gyruss.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria, Couriersud",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-27",
+    "commits": 152,
+    "contributors": 28,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Olivier Galibert"
+    ]
+  },
+  "hasHistory": true
+}
