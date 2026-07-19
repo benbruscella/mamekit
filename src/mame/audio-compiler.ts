@@ -108,13 +108,13 @@ export class GeneratedNamcoWsgCore {
 
   constructor(waveRom: Uint8Array, clock: number) {
     this.waveRom = waveRom;
-    this.sampleRate = clock;
     let nativeClock = clock;
     let clockMultiple = 0;
     while (nativeClock < plan.internalRate) {
       nativeClock *= 2;
       clockMultiple++;
     }
+    this.sampleRate = nativeClock;
     this.fracBits = clockMultiple + 15;
     this.voices = Array.from({ length: plan.voices }, () => ({
       frequency: 0,
@@ -203,7 +203,7 @@ class GeneratedNamcoWsgProcessor extends AudioWorkletProcessor {
           message.waveRom ?? new Uint8Array(0x100),
           clock,
         );
-        this.step = clock / sampleRate;
+        this.step = this.core.sampleRate / sampleRate;
         this.nativePosition = CHUNK;
       } else if (message.type === 'write') {
         this.apply(message.offset ?? 0, message.data ?? 0);
