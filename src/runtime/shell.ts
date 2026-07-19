@@ -113,6 +113,8 @@ export interface ShellConfig {
   board: BoardConfig;
   sound: SoundSpec;
   roms: RomRegionSpec[];
+  /** driver-init byte patches applied to assembled regions (from the graph) */
+  romPatches?: { region: string; offset: number; value: number }[];
   bindings: FieldBinding[];
   dipDefaults: DipDefault[];
   ports: PortSpec[];
@@ -160,6 +162,12 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip (never stored).`);
     const files = await waitForZip(ui, zone, cfg.roms, critical);
     regions = assembleRegions(cfg.roms, files, ui.status, critical);
+  }
+
+  // driver-init ROM byte patches from the graph (rocnrope's one-instruction fix)
+  for (const p of cfg.romPatches ?? []) {
+    const region = regions[p.region];
+    if (region && p.offset < region.length) region[p.offset] = p.value;
   }
 
   // --- machine ----------------------------------------------------------------

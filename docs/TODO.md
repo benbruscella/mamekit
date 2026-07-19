@@ -67,7 +67,9 @@ Prioritized. Each item has enough context to start cold. Check
     PORT_COCKTAIL). Needed for 2-player alternating play.
 13. **DIP switch UI**: `KeyboardInput.setDip()` exists; add a settings panel
     (dip names/settings are in the graph → config).
-14. **Gamepad API** support in the shell.
+14. **Gamepad API** support in the shell (PS4/DualShock 4 over Bluetooth —
+    design sketch in issue #25: semantic-label→standard-mapping table in
+    input.ts, per-rAF poll in the shell tick, keyboard/pad held-state merge).
 15. **Save states**: serialize Z80 fields (all public numerics), shares, latch
     values, device state; snapshot()/restore() pairs per device.
 16. **Watchdog enforcement** (currently no-op — fine until a game relies on
@@ -88,6 +90,11 @@ Prioritized. Each item has enough context to start cold. Check
 22. **Parser hardening**: ROM_CONTINUE/ROM_FILL, ROMREGION_ERASEFF flag.
 23. **Menu polish**: gamepad navigation, per-shelf grouping (by decade/maker),
     localStorage snapshot management UI.
+24. **Organise `src/runtime/`**: the folder is flat (~60 files) with natural
+    groupings — CPU cores (z80, i8080, m6502, m6803, m6809, mcs48), sound
+    chips + worklets, Namco custom MCUs, misc devices (ls259, er2055,
+    mb14241, konami1) — alongside the existing `boards/` and `video/`.
+    Mind gotcha #0b (registry import cycles) when moving board helpers.
 
 ## P2.5 — mamehistory.com (deployed 2026-07-06; next steps)
 
