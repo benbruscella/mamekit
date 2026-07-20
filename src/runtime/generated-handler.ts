@@ -124,17 +124,24 @@ export function generatedHandlerRegistry(
       .filter(handler => handler.program && handler.program.diagnostics.length === 0)
       .map(handler => [`${handler.ownerClass}.${handler.method}`, handler]),
   );
+  const resolve = (key: string): GeneratedHandler | undefined => {
+    const exact = handlers.get(key);
+    if (exact) return exact;
+    const method = key.slice(key.indexOf('.') + 1);
+    const matches = [...handlers.values()].filter(handler => handler.method === method);
+    return matches.length === 1 ? matches[0] : undefined;
+  };
 
   for (const map of machine.maps ?? []) {
     for (const range of map.ranges) {
       if (range.read) {
-        const handler = handlers.get(range.read);
+        const handler = resolve(range.read);
         if (handler?.program && !registry.read[range.read]) {
           registry.read[range.read] = makeReadHandler(machine, handler, bindings);
         }
       }
       if (range.write) {
-        const handler = handlers.get(range.write);
+        const handler = resolve(range.write);
         if (handler?.program && !registry.write[range.write]) {
           registry.write[range.write] = makeWriteHandler(machine, handler, bindings);
         }
@@ -511,6 +518,18 @@ function evaluateCall(
     }
     const args = expression.args.map(arg => evaluate(arg, context));
     if (name === 'BIT') return (toNumber(args[0]) >> toNumber(args[1])) & 1;
+    if (name === 'TILE_FLIPYX') return toNumber(args[0]) & 3;
+    if (name === 'TILE_FLIPXY') {
+      const value = toNumber(args[0]);
+      return ((value & 2) >> 1) | ((value & 1) << 1);
+    }
+    if (name === 'TABLE') {
+      const values = args.slice(1);
+      const index = values.length
+        ? modulo(toNumber(args[0]), values.length)
+        : 0;
+      return values[index] ?? 0;
+    }
     if (name === 'ioport') return reference(`ioport:${String(args[0] ?? '')}`);
     if (['u8', 'uint8_t'].includes(name)) return toNumber(args[0]) & 0xff;
     if (['s8', 'int8_t'].includes(name)) return (toNumber(args[0]) << 24) >> 24;
@@ -542,6 +561,16 @@ function evaluateCall(
       const args = expression.args.map(arg => evaluate(arg, context));
       if (object.reference.startsWith('ioport:') && method === 'read') {
         return context.bindings.inputs?.read(object.reference.slice('ioport:'.length)) ?? 0xff;
+      }
+      if (key === 'machine().scheduler().synchronize') {
+        const callback = timerDelegateName(expression.args[0]);
+        const generatedCallback = callback
+          ? context.bindings.referenceCalls?.[callback]
+          : undefined;
+        if (!generatedCallback) return 0;
+        return generatedCallback(
+          expression.args[1] ? evaluate(expression.args[1], context) : 0,
+        );
       }
       const handler = context.bindings.calls?.[key] ?? context.bindings.calls?.[method];
       if (handler) return handler(...args.map(toNumber));
@@ -696,6 +725,10 @@ function binary(operator: string, left: number, right: number): number {
   return 0;
 }
 
+function modulo(value: number, divisor: number): number {
+  return ((value % divisor) + divisor) % divisor;
+}
+
 function indexValue(object: unknown, index: number): unknown {
   if (ArrayBuffer.isView(object)) return (object as Uint8Array)[index] ?? 0;
   if (Array.isArray(object)) return object[index] ?? 0;
@@ -764,4 +797,25 @@ function generatedExpressionName(expression: GeneratedExpression): string {
     return `${generatedExpressionName(expression.object)}.${expression.property}`;
   }
   return '<expression>';
+}
+
+function timerDelegateName(expression: GeneratedExpression | undefined): string | undefined {
+  if (
+    expression?.kind !== 'call' ||
+    expression.callee.kind !== 'identifier' ||
+    expression.callee.name !== 'timer_expired_delegate'
+  ) {
+    return undefined;
+  }
+  const callback = expression.args[0];
+  if (
+    callback?.kind !== 'call' ||
+    callback.callee.kind !== 'identifier' ||
+    callback.callee.name !== 'FUNC'
+  ) {
+    return undefined;
+  }
+  const target = callback.args[0];
+  if (target?.kind !== 'identifier') return undefined;
+  return target.name.split('::').at(-1);
 }

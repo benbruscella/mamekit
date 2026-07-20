@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import * as ts from 'typescript';
 import {
+  compileAy8910,
   compileNamcoWsg,
+  generatedAy8910WorkletSource,
   generatedNamcoWsgWorkletSource,
 } from './audio-compiler.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
@@ -57,4 +59,42 @@ assert.equal(
 );
 assert.match(source, /this\.step = this\.core\.sampleRate \/ sampleRate/);
 
-console.log('audio-compiler.spec: 7 passed');
+const ayPlan = compileAy8910('../mame', {
+  ...definition,
+  type: 'AY8910',
+  className: 'ay8910_device',
+  sourceFile: 'src/devices/sound/ay8910.cpp',
+});
+assert.equal(ayPlan.clockDivider, 8);
+assert.equal(ayPlan.envelopeMask, 0x0f);
+assert.equal(ayPlan.envelopeStep, 2);
+assert.deepEqual(ayPlan.noiseTaps, [0, 3]);
+assert.deepEqual(ayPlan.readMasks.slice(0, 8), [
+  0xff, 0x0f, 0xff, 0x0f, 0xff, 0x0f, 0x1f, 0xff,
+]);
+assert.equal(ayPlan.volumeTable.length, 16);
+
+const aySource = generatedAy8910WorkletSource(ayPlan);
+const ayJavaScript = ts.transpileModule(aySource, {
+  compilerOptions: {
+    target: ts.ScriptTarget.ES2022,
+    module: ts.ModuleKind.ESNext,
+  },
+}).outputText;
+const ayModule = await import(
+  `data:text/javascript;base64,${Buffer.from(ayJavaScript).toString('base64')}`
+) as {
+  GeneratedAy8910Core: new (clock: number) => {
+    nativeRate: number;
+    write(register: number, data: number): void;
+    sample(): number;
+  };
+};
+const ay = new ayModule.GeneratedAy8910Core(1_789_772);
+assert.equal(ay.nativeRate, 1_789_772 / 8);
+ay.write(0, 1);
+ay.write(7, 0x3e);
+ay.write(8, 0x0f);
+assert.ok(Array.from({ length: 64 }, () => ay.sample()).some(sample => sample !== 0));
+
+console.log('audio-compiler.spec: 17 passed');

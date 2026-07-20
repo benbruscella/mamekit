@@ -47,8 +47,9 @@ export function compileMameVideo(
   if (!config) return undefined;
   const startMatch =
     /MCFG_VIDEO_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/.exec(config.body);
-  if (!startMatch) return undefined;
-  const start = ast.findFunction(startMatch[1]!, `video_start_${startMatch[2]}`);
+  const start = startMatch
+    ? ast.findFunction(startMatch[1]!, `video_start_${startMatch[2]}`)
+    : ast.findFunctionInHierarchy(String(machine.props.cls), 'video_start');
   if (!start) return undefined;
 
   const tilemaps = compileTilemaps(start);
@@ -129,7 +130,7 @@ function compileTilemaps(start: MameFunction): GeneratedVideoPlan['tilemaps'] {
     if (close < 0) continue;
     const args = splitMameArgs(start.body.slice(open + 1, close));
     const tileInfo = funcKey(args[1]);
-    const mapper = funcKey(args[2]);
+    const mapper = funcKey(args[2]) ?? standardTilemapMapper(args[2]);
     if (!tileInfo || !mapper || args.length < 7) continue;
     plans.push({
       member: match[1]!,
@@ -163,12 +164,60 @@ function compilePalette(
   if (!fn) return undefined;
   const body = fn.body;
   const region = /memregion\(\s*"([^"]+)"\s*\)/.exec(body)?.[1];
-  const resistanceMatch =
-    /(?:static\s+)?constexpr\s+int\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]+)\}/.exec(body);
   const weightsCall = findCallArguments(body, 'compute_resistor_weights');
-  if (!region || !resistanceMatch || !weightsCall) return undefined;
-  const resistanceValues = splitMameArgs(resistanceMatch[2]!)
-    .map(value => expressionNumber(value));
+  if (!region || !weightsCall) return undefined;
+  const channels = compileResistorChannels(body, weightsCall);
+  if (channels.length !== 3) return undefined;
+  const loops = numericForLoops(body);
+  const paletteLoop = loops.find(loop => loop.body.includes('set_indirect_color'));
+  const lookupLoops = loops.filter(loop => loop.body.includes('set_pen_indirect'));
+  const lookupOffset = expressionNumber(/color_prom\s*\+=\s*([^;]+)/.exec(body)?.[1]);
+  const lookupMask = expressionNumber(
+    /ctabentry\s*=\s*[^;]*?&\s*([^;|)\]]+)/.exec(body)?.[1],
+  );
+  const banks = lookupLoops.flatMap(loop => {
+    const call = /set_pen_indirect\(\s*([^,]+)\s*,\s*([^)]+)\)/.exec(loop.body);
+    if (!call) return [];
+    const lookupIndex = /color_prom\[\s*([^\]]+)\s*\]/.exec(loop.body)?.[1] ?? 'i';
+    return [{
+      penOffset: expressionAt(call[1]!, loop.start),
+      colorOr: expressionNumber(
+        /\|\s*(-?(?:0x[\da-f]+|\d+))/i.exec(loop.body)?.[1],
+      ),
+      lookupOffset: lookupOffset + expressionAt(lookupIndex, loop.start),
+      lookupCount: Math.max(0, loop.end - loop.start),
+    }];
+  });
+  if (!paletteLoop || !banks.length || !lookupMask) return undefined;
+  const args = splitMameArgs(weightsCall);
+  return {
+    region,
+    colorCount: Math.max(0, paletteLoop.end - paletteLoop.start),
+    min: expressionNumber(args[0]),
+    max: expressionNumber(args[1]),
+    scaler: Number(args[2]) || -1,
+    channels,
+    lookupOffset,
+    lookupCount: banks[0]!.lookupCount,
+    lookupMask,
+    banks,
+    transparentIndirect: 0,
+    source: sourceRef(fn),
+  };
+}
+
+function compileResistorChannels(
+  body: string,
+  weightsCall: string,
+): GeneratedPromPalettePlan['channels'] {
+  const resistanceArrays = new Map(
+    [...body.matchAll(
+      /(?:static\s+)?(?:constexpr|const)\s+int\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]+)\}/g,
+    )].map(match => [
+      match[1]!,
+      splitMameArgs(match[2]!).map(value => expressionNumber(value)),
+    ]),
+  );
   const args = splitMameArgs(weightsCall);
   const networks = new Map<string, {
     resistances: number[];
@@ -178,7 +227,11 @@ function compilePalette(
   for (let index = 3; index + 4 < args.length; index += 5) {
     const count = expressionNumber(args[index]);
     if (!count) continue;
-    const offset = Number(/\[\s*(\d+)\s*\]/.exec(args[index + 1] ?? '')?.[1] ?? 0);
+    const resistanceArg = (args[index + 1] ?? '').replace(/^&/, '').trim();
+    const resistanceName = /^(\w+)/.exec(resistanceArg)?.[1] ?? '';
+    const resistanceValues = resistanceArrays.get(resistanceName);
+    if (!resistanceValues) continue;
+    const offset = Number(/\[\s*(\d+)\s*\]/.exec(resistanceArg)?.[1] ?? 0);
     const weightName = (args[index + 2] ?? '').replace(/^&/, '').trim();
     networks.set(weightName, {
       resistances: resistanceValues.slice(offset, offset + count),
@@ -204,30 +257,7 @@ function compilePalette(
       ...network,
     });
   }
-  const loops = [...body.matchAll(/for\s*\(\s*int\s+i\s*=\s*0\s*;\s*i\s*<\s*([^;]+);/g)];
-  const lookupOffset = expressionNumber(/color_prom\s*\+=\s*([^;]+)/.exec(body)?.[1]);
-  const lookupCount = expressionNumber(loops[1]?.[1]);
-  const lookupMask = expressionNumber(/ctabentry\s*=\s*color_prom\[i\]\s*&\s*([^;]+)/.exec(body)?.[1]);
-  if (channels.length !== 3 || !lookupCount) return undefined;
-  const banks = [...body.matchAll(/set_pen_indirect\(\s*i(?:\s*\+\s*([^,]+))?\s*,\s*([^;)]+)\)/g)]
-    .map(bank => ({
-      penOffset: expressionNumber(bank[1]),
-      colorOr: expressionNumber(/([^|]+)\|\s*ctabentry/.exec(bank[2]!)?.[1]),
-    }));
-  return {
-    region,
-    colorCount: expressionNumber(loops[0]?.[1]),
-    min: expressionNumber(args[0]),
-    max: expressionNumber(args[1]),
-    scaler: Number(args[2]) || -1,
-    channels,
-    lookupOffset,
-    lookupCount,
-    lookupMask,
-    banks: banks.length ? banks : [{ penOffset: 0, colorOr: 0 }],
-    transparentIndirect: 0,
-    source: sourceRef(fn),
-  };
+  return channels;
 }
 
 function addHandler(handlers: GeneratedHandler[], fn: MameFunction): void {
@@ -267,6 +297,11 @@ function funcKey(value: string | undefined): string | undefined {
   return match ? `${match[1]}.${match[2]}` : undefined;
 }
 
+function standardTilemapMapper(value: string | undefined): string | undefined {
+  const mapper = value?.trim();
+  return mapper && /^TILEMAP_SCAN_(?:ROWS|COLS)$/.test(mapper) ? mapper : undefined;
+}
+
 function findCallArguments(source: string, name: string): string | undefined {
   const at = source.indexOf(`${name}(`);
   if (at < 0) return undefined;
@@ -287,6 +322,33 @@ function matchingPair(source: string, open: number, left: string, right: string)
 function expressionNumber(value: string | undefined): number {
   if (!value) return 0;
   return evalExpr(value.trim()) ?? 0;
+}
+
+function expressionAt(source: string, index: number): number {
+  return expressionNumber(source.replace(/\bi\b/g, String(index)));
+}
+
+function numericForLoops(source: string): {
+  start: number;
+  end: number;
+  body: string;
+}[] {
+  const loops: { start: number; end: number; body: string }[] = [];
+  const pattern =
+    /for\s*\(\s*int\s+i\s*=\s*([^;]+)\s*;\s*i\s*<\s*([^;]+)\s*;\s*(?:i\+\+|\+\+i)\s*\)\s*\{/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(source)) !== null) {
+    const open = source.indexOf('{', match.index + match[0].length - 1);
+    const close = matchingPair(source, open, '{', '}');
+    if (close < 0) continue;
+    loops.push({
+      start: expressionNumber(match[1]),
+      end: expressionNumber(match[2]),
+      body: source.slice(open + 1, close),
+    });
+    pattern.lastIndex = close + 1;
+  }
+  return loops;
 }
 
 function sourceRef(fn: MameFunction): GeneratedSourceRef {

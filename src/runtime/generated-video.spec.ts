@@ -20,6 +20,7 @@ const primitives: GeneratedVideoPrimitives = {
 };
 const body = `
   bitmap.fill(0xff010203, cliprect);
+  bitmap.pix(2, 1) = 0xff040506;
   m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);
   draw_sprites(bitmap, cliprect);
   m_fg_tilemap->draw(screen, bitmap, cliprect, 0, 0);
@@ -47,7 +48,16 @@ const machine: GeneratedMachine = {
   }],
   execution: {
     cpus: [],
-    screen: { width: 2, height: 2, refresh: 60, vtotal: 2, vbstart: 1, rotate: 0 },
+    screen: {
+      width: 2,
+      height: 2,
+      xOffset: 1,
+      yOffset: 2,
+      refresh: 60,
+      vtotal: 2,
+      vbstart: 1,
+      rotate: 0,
+    },
     frameEvents: [],
     screenUpdate: { handler: 'fixture_state.screen_update' },
   },
@@ -60,7 +70,7 @@ renderer.render(frame);
 if (calls.join(',') !== 'vblank,background,sprites,foreground') {
   throw new Error(`generated composition order mismatch: ${calls.join(',')}`);
 }
-if (!frame.every(pixel => pixel === 0xff010203)) {
-  throw new Error(`generated bitmap.fill did not populate framebuffer: ${[...frame]}`);
+if (frame[0] !== 0xff040506 || !frame.slice(1).every(pixel => pixel === 0xff010203)) {
+  throw new Error(`generated visible-area translation is wrong: ${[...frame]}`);
 }
-console.log('generated-video.spec: 2 passed');
+console.log('generated-video.spec: 3 passed');

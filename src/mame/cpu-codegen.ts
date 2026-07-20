@@ -94,6 +94,7 @@ class Pair16 {
 class Generated${safeName(definition.type)} implements Cpu {
   private readonly bus: CpuBus;
   private irqData = 0xff;
+  private irqHold = false;
 ${fields}
 ${aliases}
 
@@ -131,14 +132,24 @@ ${opcodeCases}
     return total;
   }
 
-  setIrqLine(active: boolean, dataBus = 0xff): void {
+  setIrqLine(active: boolean, dataBus = 0xff, hold = false): void {
     if (active) this.irqData = dataBus;
+    this.irqHold = active && hold;
     this.generatedInput(0, active ? 1 : 0);
   }
 
   nmi(): void {
     this.generatedInput(-1, 1);
     this.generatedInput(-1, 0);
+  }
+
+  private acknowledgeIrq(): number {
+    const data = this.irqData;
+    if (this.irqHold) {
+      this.irqHold = false;
+      this.setIrqLine(false);
+    }
+    return data;
   }
 
   get(name: string): number {
@@ -513,7 +524,7 @@ function emitCall(
   }
   if (name === 'standard_irq_callback' || name === 'm_irqack_cb' ||
       name === 'm_irqack_cb.bind') {
-    return 'this.irqData';
+    return 'this.acknowledgeIrq()';
   }
   if (name === 'total_cycles') return '1';
 

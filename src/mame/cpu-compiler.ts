@@ -227,7 +227,7 @@ function compileOpcodeOperations(
 }
 
 export function normalizeMameExecutionSource(source: string): string {
-  return source
+  let normalized = source
     .replaceAll('[[fallthrough]];', '')
     .replace(/\bstatic_assert\s*\([^;]*\)\s*;/g, '')
     .replace(
@@ -242,6 +242,19 @@ export function normalizeMameExecutionSource(source: string): string {
       /\b(?:[\w:<>]+\s+)+\*\s*(\w+)\s*=/g,
       'auto $1 =',
     );
+  for (const match of normalized.matchAll(
+    /\bstatic\s+const\s+\w+\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]+)\}\s*;/g,
+  )) {
+    const name = match[1]!;
+    const values = match[2]!.split(',').map(value => value.trim()).filter(Boolean);
+    normalized = normalized
+      .replace(match[0], '')
+      .replace(
+        new RegExp(`\\b${name}\\s*\\[([^\\]]+)\\]`, 'g'),
+        (_entry, index: string) => `TABLE(${index}, ${values.join(', ')})`,
+      );
+  }
+  return normalized;
 }
 
 function stripMameFrameworkSetup(body: string): string {

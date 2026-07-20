@@ -38,7 +38,9 @@ class Z80 {
 
   step(): number { return this.core.step(); }
   run(cycles: number): number { return this.core.run(cycles); }
-  setIrqLine(active: boolean, dataBus = 0xff): void { this.core.setIrqLine(active, dataBus); }
+  setIrqLine(active: boolean, dataBus = 0xff, hold = false): void {
+    this.core.setIrqLine(active, dataBus, hold);
+  }
   nmi(): void { this.core.nmi(); }
 
   private get8(name: string): number { return this.core.get(name) & 0xff; }
@@ -1054,6 +1056,23 @@ section('IM2 and IM0 vectoring');
   const t = cpu.step();
   eq('IM0 CALL cycles', t, 19);
   eq('IM0 CALL vector', cpu.pc, 0x4000);
+}
+
+section('HOLD_LINE clears on acknowledge');
+{
+  const { cpu, bus } = makeCpu([0xfb, 0x00, 0x00, 0x00]);
+  cpu.im = 1;
+  bus.mem[0x0038] = 0xfb; // EI
+  bus.mem[0x0039] = 0xed; // RETI
+  bus.mem[0x003a] = 0x4d;
+  cpu.setIrqLine(true, 0xff, true);
+  cpu.step(); // EI
+  cpu.step(); // delay-slot NOP
+  cpu.step(); // acknowledge held IRQ
+  cpu.step(); // EI in ISR
+  cpu.step(); // RETI
+  cpu.step(); // original program continues instead of re-entering IRQ
+  eq('HOLD_LINE one-shot PC', cpu.pc, 3);
 }
 
 section('NMI, RETN, IFF semantics');

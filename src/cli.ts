@@ -5,6 +5,7 @@
 // options:
 //   --mame-src <path>   MAME source root (default: auto-detect / $MAME_SRC)
 //   --out <dir>         output root (default: <mamekit>/out)
+//   --targets <games>   comma-separated runtime closure targets
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename } from 'node:path';
@@ -19,7 +20,7 @@ const projectRoot = resolve(here, '..');
 function usage(): never {
   console.error('usage: mamekit [graph|from-graph] <game> [--mame-src <path>] [--out <dir>] [--serve [port]]');
   console.error('       mamekit <game> --from-graph [graph.json]');
-  console.error('       mamekit --build-runtime [--build-app]');
+  console.error('       mamekit --build-runtime [--build-app] [--targets <game,...>]');
   console.error('       mamekit --serve            serve the unified app + all generated games');
   process.exit(2);
 }
@@ -122,7 +123,17 @@ function findDriverFile(game: string): string {
 if (buildAppOnly || buildRuntimeOnly) {
   const { REQUIRED_TARGETS } = await import('./gen/targets.ts');
   const { buildHardwareClosure, emitHardwareClosure } = await import('./mame/hardware.ts');
-  const targetGraphs = REQUIRED_TARGETS.map(target => {
+  const targets = opts.targets
+    ? opts.targets.split(',').map(target => target.trim()).filter(Boolean)
+    : [...REQUIRED_TARGETS];
+  const unknownTargets = targets.filter(target =>
+    !REQUIRED_TARGETS.includes(target as (typeof REQUIRED_TARGETS)[number]));
+  if (!targets.length || unknownTargets.length) {
+    throw new Error(
+      `invalid runtime closure targets: ${unknownTargets.length ? unknownTargets.join(', ') : '(none)'}`,
+    );
+  }
+  const targetGraphs = targets.map(target => {
     const graphPath = join(outRoot, target, 'graph.json');
     if (!existsSync(graphPath)) {
       throw new Error(`cannot build runtime hardware closure: missing ${graphPath}`);

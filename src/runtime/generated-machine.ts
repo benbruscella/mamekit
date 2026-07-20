@@ -28,6 +28,7 @@ export interface GeneratedDevice {
   id: string;
   tag: string;
   type: string;
+  member?: string;
   clock?: number;
   source?: GeneratedSourceRef;
 }
@@ -134,6 +135,9 @@ export interface GeneratedExecutionCpu {
 export interface GeneratedScreen {
   width: number;
   height: number;
+  /** Native MAME visible-area origin within the full raster. */
+  xOffset?: number;
+  yOffset?: number;
   refresh: number;
   vtotal: number;
   vbstart: number;
@@ -199,7 +203,12 @@ export interface GeneratedPromPalettePlan {
   lookupOffset: number;
   lookupCount: number;
   lookupMask: number;
-  banks: { penOffset: number; colorOr: number }[];
+  banks: {
+    penOffset: number;
+    colorOr: number;
+    lookupOffset?: number;
+    lookupCount?: number;
+  }[];
   transparentIndirect: number;
   source?: GeneratedSourceRef;
 }
@@ -226,6 +235,7 @@ export interface GeneratedVideoPlan {
 export interface GeneratedSoundBinding {
   kind: string;
   deviceTag: string;
+  deviceTags?: string[];
   deviceType: string;
   writeMethods: string[];
   enableMethods: string[];

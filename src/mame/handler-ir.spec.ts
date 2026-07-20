@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { compileMameHandler } from './handler-ir.ts';
+import { normalizeMameExecutionSource } from './cpu-compiler.ts';
+import { executeGeneratedHandler } from '../runtime/generated-handler.ts';
 
 const pacmanVideo = compileMameHandler(`
   m_videoram[offset] = data;
@@ -68,4 +70,30 @@ const bitmapPointers = compileMameHandler(`
 `);
 assert.deepEqual(bitmapPointers.diagnostics, []);
 
-console.log('handler-ir.spec: 11 passed');
+const staticTable = compileMameHandler(normalizeMameExecutionSource(`
+  static const int timer[4] = { 0x00, 0x10, 0x20, 0x30 };
+  return timer[(m_soundcpu->total_cycles() / 512) % 4];
+`));
+assert.deepEqual(staticTable.diagnostics, []);
+assert.equal(
+  executeGeneratedHandler(staticTable, {
+    calls: { 'm_soundcpu.total_cycles': () => 1024 },
+  }),
+  0x20,
+);
+
+const tileFlipYx = compileMameHandler('return TILE_FLIPYX(data);');
+assert.deepEqual(tileFlipYx.diagnostics, []);
+assert.equal(executeGeneratedHandler(tileFlipYx, {}, { data: 0 }), 0);
+assert.equal(executeGeneratedHandler(tileFlipYx, {}, { data: 1 }), 1);
+assert.equal(executeGeneratedHandler(tileFlipYx, {}, { data: 2 }), 2);
+assert.equal(executeGeneratedHandler(tileFlipYx, {}, { data: 3 }), 3);
+
+const tileFlipXy = compileMameHandler('return TILE_FLIPXY(data);');
+assert.deepEqual(tileFlipXy.diagnostics, []);
+assert.equal(executeGeneratedHandler(tileFlipXy, {}, { data: 0 }), 0);
+assert.equal(executeGeneratedHandler(tileFlipXy, {}, { data: 1 }), 2);
+assert.equal(executeGeneratedHandler(tileFlipXy, {}, { data: 2 }), 1);
+assert.equal(executeGeneratedHandler(tileFlipXy, {}, { data: 3 }), 3);
+
+console.log('handler-ir.spec: 15 passed');

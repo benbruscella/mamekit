@@ -34,4 +34,15 @@ latch.call('write_d0', 3, 0);
 assert.equal(latch.call('output_state'), 0);
 assert.deepEqual(states, [1, 0]);
 
-console.log('device-compiler.spec: 12 passed');
+const latchDefinition = indexMameHardware('../mame').get('GENERIC_LATCH_8');
+assert.ok(latchDefinition, 'MAME hardware index should resolve GENERIC_LATCH_8');
+const generatedLatch = compileMameDevice('../mame', latchDefinition);
+assert.equal(generatedLatch.summary.diagnostics, 0);
+registerGeneratedDevice(generatedLatch);
+const soundLatch = createDevice('GENERIC_LATCH_8');
+soundLatch.call('write', 0xa5);
+assert.equal(soundLatch.call('pending_r'), 1);
+assert.equal(soundLatch.call('read'), 0xa5);
+assert.equal(soundLatch.call('pending_r'), 0);
+
+console.log('device-compiler.spec: 18 passed');

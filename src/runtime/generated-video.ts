@@ -49,17 +49,24 @@ export class GeneratedVideoRenderer implements VideoRenderer {
   }
 
   render(frame: Uint32Array): void {
+    const xOffset = this.machine.execution.screen.xOffset ?? 0;
+    const yOffset = this.machine.execution.screen.yOffset ?? 0;
     const cliprect = {
-      min_x: 0,
-      max_x: this.width - 1,
-      min_y: 0,
-      max_y: this.height - 1,
+      min_x: xOffset,
+      max_x: xOffset + this.width - 1,
+      min_y: yOffset,
+      max_y: yOffset + this.height - 1,
     };
     const bitmap = {
       fill: (color: number) => frame.fill(color >>> 0),
       'pix=': (y: number, x: number, color: number) => {
-        if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
-          frame[y * this.width + x] = color >>> 0;
+        const visibleX = x - xOffset;
+        const visibleY = y - yOffset;
+        if (
+          visibleX >= 0 && visibleX < this.width &&
+          visibleY >= 0 && visibleY < this.height
+        ) {
+          frame[visibleY * this.width + visibleX] = color >>> 0;
         }
       },
     };
@@ -141,14 +148,16 @@ class GeneratedPalette {
     }
     const penCount = Math.max(
       1,
-      ...plan.banks.map(bank => bank.penOffset + plan.lookupCount),
+      ...plan.banks.map(bank => bank.penOffset + (bank.lookupCount ?? plan.lookupCount)),
     );
     this.colors = new Uint32Array(penCount);
     this.indirect = new Uint16Array(penCount);
     for (const bank of plan.banks) {
-      for (let index = 0; index < plan.lookupCount; index++) {
+      const lookupOffset = bank.lookupOffset ?? plan.lookupOffset;
+      const lookupCount = bank.lookupCount ?? plan.lookupCount;
+      for (let index = 0; index < lookupCount; index++) {
         const indirect = bank.colorOr |
-          ((prom[plan.lookupOffset + index] ?? 0) & plan.lookupMask);
+          ((prom[lookupOffset + index] ?? 0) & plan.lookupMask);
         const pen = bank.penOffset + index;
         this.indirect[pen] = indirect;
         this.colors[pen] = core[indirect] ?? 0xff000000;
@@ -232,7 +241,7 @@ class GeneratedGfxElement {
 
 class GeneratedTilemap {
   private readonly plan: GeneratedTilemapPlan;
-  private readonly mapper: GeneratedHandler;
+  private readonly mapper?: GeneratedHandler;
   private readonly tileInfo: GeneratedHandler;
   private readonly machine: GeneratedMachine;
   private readonly bindings: () => GeneratedHandlerBindings;
@@ -249,7 +258,9 @@ class GeneratedTilemap {
     this.machine = machine;
     this.bindings = bindings;
     this.gfx = gfx;
-    this.mapper = requiredHandler(machine, plan.mapper);
+    this.mapper = standardMapper(plan.mapper)
+      ? undefined
+      : requiredHandler(machine, plan.mapper);
     this.tileInfo = requiredHandler(machine, plan.tileInfo);
   }
 
@@ -268,17 +279,19 @@ class GeneratedTilemap {
   ): void {
     for (let row = 0; row < this.plan.rows; row++) {
       for (let column = 0; column < this.plan.columns; column++) {
-        const mapped = executeGeneratedMachineProgram(
-          this.machine,
-          this.mapper,
-          this.bindings(),
-          {
-            col: column,
-            row,
-            num_cols: this.plan.columns,
-            num_rows: this.plan.rows,
-          },
-        );
+        const mapped = this.mapper
+          ? executeGeneratedMachineProgram(
+              this.machine,
+              this.mapper,
+              this.bindings(),
+              {
+                col: column,
+                row,
+                num_cols: this.plan.columns,
+                num_rows: this.plan.rows,
+              },
+            ).value
+          : mapStandardTile(this.plan.mapper, column, row, this.plan.columns, this.plan.rows);
         const tile: TileInfo = { gfx: 0, code: 0, color: 0, flags: 0 };
         const tileinfo = {
           set: (gfx: number, code: number, color: number, flags: number) => {
@@ -289,15 +302,29 @@ class GeneratedTilemap {
           this.machine,
           this.tileInfo,
           this.bindings(),
-          { tilemap: this, tileinfo, tile_index: Number(mapped.value) || 0 },
+          { tilemap: this, tileinfo, tile_index: Number(mapped) || 0 },
         );
         const gfx = this.gfx[tile.gfx];
         if (!gfx) continue;
-        const flipX = Boolean(this.flip & 1);
-        const flipY = Boolean(this.flip & 2);
+        const members = this.bindings().members ?? {};
+        const globalFlip = Number(members.__flip_screen ?? 0) ? 3 : 0;
+        const mapFlip = this.flip | globalFlip;
+        const flipX = Boolean(mapFlip & 1);
+        const flipY = Boolean(mapFlip & 2);
+        const tileFlipX = Boolean(tile.flags & 1) !== flipX;
+        const tileFlipY = Boolean(tile.flags & 2) !== flipY;
         const x = (flipX ? this.plan.columns - 1 - column : column) * this.plan.tileWidth;
         const y = (flipY ? this.plan.rows - 1 - row : row) * this.plan.tileHeight;
-        gfx.draw(bitmap, clip, tile.code, tile.color, Number(flipX), Number(flipY), x, y);
+        gfx.draw(
+          bitmap,
+          clip,
+          tile.code,
+          tile.color,
+          Number(tileFlipX),
+          Number(tileFlipY),
+          x,
+          y,
+        );
       }
     }
   }
@@ -379,6 +406,22 @@ function requiredHandler(machine: GeneratedMachine, key: string): GeneratedHandl
     candidate.program.diagnostics.length === 0);
   if (!handler) throw new Error(`${machine.game}: generated video handler "${key}" is not executable`);
   return handler;
+}
+
+function standardMapper(key: string): boolean {
+  return key === 'TILEMAP_SCAN_ROWS' || key === 'TILEMAP_SCAN_COLS';
+}
+
+function mapStandardTile(
+  key: string,
+  column: number,
+  row: number,
+  columns: number,
+  rows: number,
+): number {
+  if (key === 'TILEMAP_SCAN_ROWS') return row * columns + column;
+  if (key === 'TILEMAP_SCAN_COLS') return column * rows + row;
+  return 0;
 }
 
 function computeWeights(

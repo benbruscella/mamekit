@@ -69,7 +69,7 @@ export interface Cpu {
   reset(): void;
   step(): number;
   run(cycles: number): number;
-  setIrqLine(active: boolean, dataBus?: number): void;
+  setIrqLine(active: boolean, dataBus?: number, hold?: boolean): void;
   nmi(): void;
   get(name: string): number;
   set(name: string, value: number): void;
@@ -113,6 +113,7 @@ class IrCpu implements Cpu {
   private readonly methods: Map<string, CpuMethod>;
   private readonly bindings: GeneratedHandlerBindings;
   private irqData = 0xff;
+  private irqHold = false;
 
   constructor(definition: GeneratedCpuDefinition, bus: CpuBus) {
     this.definition = definition;
@@ -199,8 +200,9 @@ class IrCpu implements Cpu {
     return total;
   }
 
-  setIrqLine(active: boolean, dataBus = 0xff): void {
+  setIrqLine(active: boolean, dataBus = 0xff, hold = false): void {
     if (active) this.irqData = dataBus;
+    this.irqHold = active && hold;
     this.execute(this.definition.input, {
       inputnum: this.constant('INPUT_LINE_IRQ0', 0),
       state: active ? this.constant('ASSERT_LINE', 1) : this.constant('CLEAR_LINE', 0),
@@ -260,7 +262,7 @@ class IrCpu implements Cpu {
       'm_io.write_interruptible': (port, value) => {
         this.bus.out(port & 0xffff, value & 0xff);
       },
-      standard_irq_callback: () => this.irqData,
+      standard_irq_callback: () => this.acknowledgeIrq(),
       daisy_get_irq_device: () => 0,
       daisy_chain_present: () => 0,
       daisy_update_irq_state: () => 0,
@@ -278,6 +280,15 @@ class IrCpu implements Cpu {
   private refKey(): string {
     const ref = this.get('m_ref') >>> 0;
     return `${hex((ref >>> 16) & 0xff)}${hex((ref >>> 8) & 0xff)}`;
+  }
+
+  private acknowledgeIrq(): number {
+    const data = this.irqData;
+    if (this.irqHold) {
+      this.irqHold = false;
+      this.setIrqLine(false);
+    }
+    return data;
   }
 
   private constant(name: string, fallback: number): number {

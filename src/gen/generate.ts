@@ -263,6 +263,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const screen = {
     width: (hbstart - hbend) / xscale,
     height: vbstart - vbend,
+    xOffset: hbend / xscale,
+    yOffset: vbend,
     refresh: pixclock / (htotal * vtotal),
     vtotal,
     vbstart,
@@ -796,7 +798,8 @@ export function buildApp(outRoot: string): boolean {
       hardware?: {
         type: string;
         executable?: boolean;
-        executableKind?: 'cpu' | 'device' | 'audio';
+        executableKind?: 'cpu' | 'device' | 'audio' | 'composition';
+        executableArtifact?: string;
       }[];
     };
     const sourceDir = join(outRoot, 'runtime/generated/devices');
@@ -806,15 +809,18 @@ export function buildApp(outRoot: string): boolean {
       if (!hardware.executable) continue;
       const slug = hardware.type.toLowerCase();
       if (hardware.executableKind === 'audio') {
-        const worklet = join(outRoot, 'runtime/generated/audio/wsg-worklet.ts');
+        const worklet = hardware.executableArtifact
+          ? join(outRoot, 'runtime/generated', hardware.executableArtifact)
+          : '';
         if (existsSync(worklet)) {
           writeFileSync(
-            join(srcDir, 'runtime/wsg-worklet.ts'),
+            join(srcDir, 'runtime', worklet.split('/').at(-1)!),
             readFileSync(worklet, 'utf8'),
           );
         }
         continue;
       }
+      if (hardware.executableKind === 'composition') continue;
       const sourceFile = join(sourceDir, `${slug}.ts`);
       if (!existsSync(sourceFile)) continue;
       const binding = hardware.executableKind === 'device'

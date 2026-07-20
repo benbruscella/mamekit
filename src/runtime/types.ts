@@ -65,7 +65,17 @@ export interface BoardConfig {
   /** IPT_CUSTOM port bits synthesized by a named driver member (the board
    * implements members by name; invaders_in1_control_r reads CONTP1) */
   customs?: { port: string; mask: number; member: string }[];
-  screen: { width: number; height: number; refresh: number; vtotal: number; vbstart: number; vbend?: number; rotate: number };
+  screen: {
+    width: number;
+    height: number;
+    xOffset?: number;
+    yOffset?: number;
+    refresh: number;
+    vtotal: number;
+    vbstart: number;
+    vbend?: number;
+    rotate: number;
+  };
   clocks: { namco06: number; wsg: number };
   /**
    * Console cartridge metadata, injected at runtime by the console room after
@@ -95,7 +105,14 @@ export interface BoardSinks {
 
 export interface BoardSnapshot {
   frame: number;
-  cpus: { tag: string; pc: number; sp: number; halted: boolean; held?: boolean }[];
+  cpus: {
+    tag: string;
+    pc: number;
+    sp: number;
+    halted: boolean;
+    held?: boolean;
+    cycles?: number;
+  }[];
   /** current credit count when the board tracks one (shown in the status line) */
   credits?: number;
   [extra: string]: unknown;
