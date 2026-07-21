@@ -18,11 +18,11 @@ import { compileMameDevice } from './device-compiler.ts';
 import {
   compileAy8910,
   compileDiscreteSn76477,
-  compileGalaxianDiscrete,
+  compileCounterLfsrDiscrete,
   compileNamcoWsg,
   generatedAy8910WorkletSource,
   generatedDiscreteSn76477WorkletSource,
-  generatedGalaxianDiscreteWorkletSource,
+  generatedCounterLfsrDiscreteWorkletSource,
   generatedNamcoWsgWorkletSource,
 } from './audio-compiler.ts';
 
@@ -423,9 +423,13 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
   const discreteSn76477 = discreteSoundboardEntry?.definition
     ? compileDiscreteSn76477(closure.mameSource, discreteSoundboardEntry.definition)
     : undefined;
-  const galaxianEntry = closure.hardware.find(entry => entry.type === 'GALAXIAN_SOUND');
-  const galaxianDiscrete = galaxianEntry?.definition
-    ? compileGalaxianDiscrete(closure.mameSource, galaxianEntry.definition)
+  const counterLfsrEntry = closure.hardware.find(entry =>
+    entry.type.endsWith('_SOUND') &&
+    entry.definition &&
+    ['pitch_w', 'lfo_freq_w', 'sound_w'].every(name =>
+      entry.methods.some(method => method.name === name)));
+  const counterLfsrDiscrete = counterLfsrEntry?.definition
+    ? compileCounterLfsrDiscrete(closure.mameSource, counterLfsrEntry.definition)
     : undefined;
   for (const entry of closure.hardware) {
     const device = generatedDevices.get(entry.type);
@@ -455,7 +459,7 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     ...(namcoWsg ? ['NAMCO_WSG'] : []),
     ...(ay8910 ? ['AY8910', 'TIMEPLT_AUDIO'] : []),
     ...(discreteSn76477 ? [discreteSn76477.deviceType, 'SN76477'] : []),
-    ...(galaxianDiscrete ? ['GALAXIAN_SOUND'] : []),
+    ...(counterLfsrDiscrete ? [counterLfsrDiscrete.deviceType] : []),
   ]);
   const compact = {
     ...closure,
@@ -493,10 +497,10 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
               executableKind: entry.type === 'SN76477' ? 'composition' : 'audio',
               executableArtifact: `audio/${discreteSn76477.workletName}-worklet.ts`,
             }
-        : galaxianDiscrete && entry.type === galaxianDiscrete.deviceType
+        : counterLfsrDiscrete && entry.type === counterLfsrDiscrete.deviceType
           ? {
               executableKind: 'audio',
-              executableArtifact: `audio/${galaxianDiscrete.workletName}-worklet.ts`,
+              executableArtifact: `audio/${counterLfsrDiscrete.workletName}-worklet.ts`,
             }
         : {}),
     })),
@@ -536,16 +540,16 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
       generatedDiscreteSn76477WorkletSource(discreteSn76477),
     );
   }
-  if (galaxianDiscrete) {
+  if (counterLfsrDiscrete) {
     const audioDir = join(root, 'audio');
     mkdirSync(audioDir, { recursive: true });
     writeFileSync(
-      join(audioDir, `${galaxianDiscrete.workletName}.audio.ir.json`),
-      JSON.stringify(galaxianDiscrete, null, 2),
+      join(audioDir, `${counterLfsrDiscrete.workletName}.audio.ir.json`),
+      JSON.stringify(counterLfsrDiscrete, null, 2),
     );
     writeFileSync(
-      join(audioDir, `${galaxianDiscrete.workletName}-worklet.ts`),
-      generatedGalaxianDiscreteWorkletSource(galaxianDiscrete),
+      join(audioDir, `${counterLfsrDiscrete.workletName}-worklet.ts`),
+      generatedCounterLfsrDiscreteWorkletSource(counterLfsrDiscrete),
     );
   }
 

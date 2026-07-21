@@ -284,11 +284,18 @@ async function createAudioProbe(
       },
     };
   }
-  if (config.sound.kind === 'invaders') {
+  if (config.sound.kind === 'discrete') {
+    assert.ok(config.sound.worklet, `${config.game}: discrete audio worklet is missing`);
     const generated = await import(
-      moduleUrl(join(outRoot, 'runtime/generated/audio/invaders-worklet.js'))
+      moduleUrl(join(
+        outRoot,
+        `runtime/generated/audio/${config.sound.worklet}-worklet.js`,
+      ))
     ) as {
-      GeneratedDiscreteAudioCore: new (outputRate: number) => DiscreteAudioCore;
+      GeneratedDiscreteAudioCore: new (
+        outputRate: number,
+        clock?: number,
+      ) => DiscreteAudioCore;
       GeneratedDiscreteAudioFrameRenderer: new (
         core: DiscreteAudioCore,
         outputRate: number,
@@ -296,43 +303,11 @@ async function createAudioProbe(
       ) => DiscreteAudioFrameRenderer;
     };
     const outputRate = 48_000;
-    const core = new generated.GeneratedDiscreteAudioCore(outputRate);
+    const core = new generated.GeneratedDiscreteAudioCore(
+      outputRate,
+      config.sound.clock,
+    );
     const renderer = new generated.GeneratedDiscreteAudioFrameRenderer(
-      core,
-      outputRate,
-      config.board.screen.refresh,
-    );
-    const chunks: Float32Array[] = [];
-    return {
-      render(writes, capture) {
-        const samples = renderer.render(writes);
-        if (capture) chunks.push(samples);
-      },
-      finish(writes) {
-        return audioResult(writes, chunks);
-      },
-    };
-  }
-  if (config.sound.kind === 'galaxian') {
-    const generated = await import(
-      moduleUrl(join(outRoot, 'runtime/generated/audio/galaxian-worklet.js'))
-    ) as {
-      GeneratedGalaxianDiscreteCore: new (
-        outputRate: number,
-        clock: number,
-      ) => DiscreteAudioCore;
-      GeneratedGalaxianDiscreteFrameRenderer: new (
-        core: DiscreteAudioCore,
-        outputRate: number,
-        refresh: number,
-      ) => DiscreteAudioFrameRenderer;
-    };
-    const outputRate = 48_000;
-    const core = new generated.GeneratedGalaxianDiscreteCore(
-      outputRate,
-      config.sound.clock ?? 3_072_000,
-    );
-    const renderer = new generated.GeneratedGalaxianDiscreteFrameRenderer(
       core,
       outputRate,
       config.board.screen.refresh,

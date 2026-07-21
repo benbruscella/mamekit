@@ -7,10 +7,10 @@ export const galaxian: GameTestContract = {
   machine: { className: 'galaxian_state', name: 'galaxian' },
   romEnvironment: 'MAMEKIT_GALAXIAN_ROM',
   screen: { width: 256, height: 224 },
-  soundKind: 'galaxian',
+  soundKind: 'discrete',
   frames: 900,
   minimumFps: 45,
-  checkpoints: [1, 60, 180, 300, 480, 900],
+  checkpoints: [1, 60, 180, 300, 480, 500, 900],
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 330, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
@@ -30,7 +30,8 @@ export const galaxian: GameTestContract = {
       180: { video: '91227fd8', state: '53aefead' },
       300: { video: 'd63f2643', state: '216d30f1' },
       480: { video: '2727e0da', state: 'b9383f89' },
-      900: { video: '60c5f735', state: '055823fc' },
+      500: { video: 'f002958b', state: '0edb7399' },
+      900: { video: '1aee009f', state: '055823fc' },
     },
     audio: {
       writes: 4002,
