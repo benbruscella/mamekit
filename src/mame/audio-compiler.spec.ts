@@ -18,7 +18,8 @@ const definition: MameHardwareDefinition = {
   sourceColumn: 1,
   macro: 'DEFINE_DEVICE_TYPE',
 };
-const plan = compileNamcoWsg('../mame', definition);
+const mameSrc = process.env.MAME_SRC ?? '../mame';
+const plan = compileNamcoWsg(mameSrc, definition);
 assert.equal(plan.internalRate, 192_000);
 assert.equal(plan.voices, 3);
 assert.equal(plan.registerCount, 0x20);
@@ -59,7 +60,7 @@ assert.equal(
 );
 assert.match(source, /this\.step = this\.core\.sampleRate \/ sampleRate/);
 
-const ayPlan = compileAy8910('../mame', {
+const ayPlan = compileAy8910(mameSrc, {
   ...definition,
   type: 'AY8910',
   className: 'ay8910_device',

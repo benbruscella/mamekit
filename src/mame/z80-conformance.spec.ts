@@ -14,7 +14,7 @@ import {
 } from '../runtime/generated-cpu.ts';
 
 clearGeneratedCpus();
-const definition = compileMameZ80('../mame');
+const definition = compileMameZ80(process.env.MAME_SRC ?? '../mame');
 const executableSource = generatedCpuExecutableSource(definition);
 const executableJavaScript = ts.transpileModule(executableSource, {
   compilerOptions: {

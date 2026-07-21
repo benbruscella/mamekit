@@ -77,11 +77,12 @@ The generated application is served at `http://localhost:8280/app/`.
 src/mame/       MAME ASTs, opcode DSL parsing, typed lowering and hardware closure
 src/kg/         knowledge-graph construction, schema, Cypher and viewer
 src/gen/        machine/config emitters, app build, reports and generated audits
+src/games/      small supported-game QA tokens, source specs and shared acceptance
 src/runtime/    browser host and generic typed-IR execution
 bin/            CLI entry point
 scripts/        deployment automation
 tools/          engineering diagnostics
-docs/           the two current engineering references
+docs/           the three current engineering references
 sessions/       historical build transcripts; never current instructions
 dist/           disposable generated distribution
 ```
@@ -114,7 +115,7 @@ regenerate it.
 
 ## ENGINEERING DOCUMENTATION
 
-There is one README and two current engineering documents:
+There is one README and three current engineering documents:
 
 - [SYSTEM ARCHITECTURE](docs/SYSTEM_ARCHITECTURE.md): system design, compiler stages,
   knowledge graph, typed IR, generated runtime, browser execution, provenance,
@@ -122,6 +123,8 @@ There is one README and two current engineering documents:
 - [ENGINEERING GUIDE](docs/ENGINEERING_GUIDE.md): commands, extending a target,
   debugging generation gaps, tests, browser verification, deployment, and
   maintenance rules.
+- [TESTING](docs/TESTING.md): QA levels, supported-game tokens, deterministic
+  real-ROM contracts, CI, golden review, and failure triage.
 
 Historical transcripts are indexed by
 [ARCHIVE INDEX](sessions/ARCHIVE_INDEX.md). Archive content records how the

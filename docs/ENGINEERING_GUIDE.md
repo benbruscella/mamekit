@@ -33,11 +33,13 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run clean` | remove all generated distribution output |
 | `npm run gen -- <target>` | extract and generate one target, then build app |
 | `npm run gen:all` | clean and generate the branch's currently selected targets |
-| `npm run build` | compile the repository TypeScript configuration |
+| `npm run build` | type-check repository TypeScript without writing to `dist` |
 | `npm run test:unit` | strict type check plus every source/compiler/runtime spec |
+| `npm run test:current` | clean-generate and audit Pac-Man and Pooyan |
 | `npm run audit:generated` | audit the games currently present in `dist` |
 | `npm run test:generation` | clean-generate every required target and audit all output |
-| `npm run test:pooyan` | real-ROM generated Pooyan acceptance contract |
+| `npm run test:games` | deterministic real-ROM contracts for supported games |
+| `npm run test:games:record` | print candidate game baselines for review |
 | `npm run serve` | rebuild app shell and serve `dist` on localhost |
 | `npm run deploy -- --artwork` | clean-generate and publish the static site |
 
@@ -151,8 +153,9 @@ appear. The runtime report and manifest are honesty contracts.
 
 ### STEP 4: ADD ACCEPTANCE COVERAGE
 
-Add focused compiler specs for every new AST or lowering rule. Add a real-ROM
-acceptance test when target behavior reaches boot/video/input/audio.
+Add focused compiler specs for every new AST or lowering rule. Add the small
+game token and colocated source spec described in [TESTING](TESTING.md), then
+record a real-ROM contract when target behavior reaches boot/video/input/audio.
 
 Acceptance tests import compiled modules from `dist`. They should not import a
 source-side emulation implementation because that bypasses the artifact being
@@ -189,25 +192,8 @@ family board adapter.
 
 ## 7. TEST STRATEGY
 
-Testing is split by compiler boundary.
-
-### UNIT AND LOWERING TESTS
-
-```sh
-npm run test:unit
-```
-
-This command runs `tsc --noEmit` and every `*.spec.ts` under `src/mame`,
-`src/kg`, `src/gen`, and `src/runtime`.
-
-Compiler tests should assert:
-
-- parsed source structure and source spans;
-- graph facts and edge ownership;
-- lowering completeness and diagnostics;
-- generated source import topology;
-- typed IR operation semantics;
-- generic runtime behavior independent of a named game.
+The complete QA architecture, supported-game token pattern, CI boundary,
+golden policy and failure triage are defined in [TESTING](TESTING.md).
 
 ### GENERATED AUDIT
 
@@ -242,19 +228,6 @@ blocked target.
 
 Run it after changes to shared parsing, graph reachability, IR schemas,
 hardware closure resolution, build topology, or app registration.
-
-### REAL-ROM ACCEPTANCE
-
-Pooyan's acceptance test is the current full generated-artifact example:
-
-```sh
-npm run test:pooyan
-```
-
-It validates local ROM hashes, generated CPU progression, coin/start input,
-framebuffer checkpoints, frame timing, generated AY writes and non-silent PCM.
-
-Real ROMs stay gitignored and are never copied into `dist`.
 
 ### BROWSER VERIFICATION
 
@@ -319,13 +292,14 @@ The current documentation set is intentionally minimal:
 - root `README.md`;
 - `docs/SYSTEM_ARCHITECTURE.md`;
 - `docs/ENGINEERING_GUIDE.md`;
+- `docs/TESTING.md`;
 - `sessions/ARCHIVE_INDEX.md` for historical evidence.
 
 Documentation filenames use `UPPERCASE_WITH_UNDERSCORES.md`, except the
 repository-standard root `README.md` and tool-standard `CLAUDE.md`.
 
 Do not add another README or a narrow document that duplicates an existing
-section. Extend one of the two engineering references. Generated per-machine
+section. Extend one of the three engineering references. Generated per-machine
 archival text is named `DOSSIER.md`.
 
 Raw session transcripts are historical. Current code and current engineering

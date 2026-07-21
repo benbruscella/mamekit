@@ -8,7 +8,7 @@ import { REQUIRED_TARGETS } from './targets.ts';
 import { gamesManifest } from '../serve.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const mameSource = resolve(projectRoot, '../mame');
+const mameSource = resolve(process.env.MAME_SRC ?? join(projectRoot, '../mame'));
 const outRoot = join(projectRoot, 'dist');
 const cli = join(projectRoot, 'bin/mamekit.js');
 

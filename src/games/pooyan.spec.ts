@@ -1,16 +1,20 @@
 import assert from 'node:assert/strict';
-import { resolve } from 'node:path';
-import { buildGraph, gameSubgraph } from '../kg/build.ts';
 import { executeGeneratedProgram } from '../runtime/generated-handler.ts';
-import { compileMameVideo } from './video-compiler.ts';
+import { compileMameVideo } from '../mame/video-compiler.ts';
+import { pooyan } from './pooyan.ts';
+import {
+  assertGameContract,
+  gameSourceGraph,
+  mameSourceRoot,
+} from './test-support.ts';
 
-const mameSrc = resolve('../mame');
-const driver = resolve(mameSrc, 'src/mame/konami/pooyan.cpp');
-const graph = gameSubgraph(buildGraph(mameSrc, driver), 'pooyan');
+assertGameContract(pooyan);
+const mameSrc = mameSourceRoot();
+const graph = gameSourceGraph(pooyan);
 const machine = graph.nodes.find(node =>
   node.label === 'MachineConfig' &&
-  node.props.cls === 'pooyan_state' &&
-  node.props.name === 'pooyan');
+  node.props.cls === pooyan.machine.className &&
+  node.props.name === pooyan.machine.name);
 
 assert.ok(machine);
 const compiled = compileMameVideo(graph, mameSrc, machine.id);
@@ -52,4 +56,4 @@ for (const [attribute, expectedFlags] of [[0x40, 1], [0x80, 2], [0xc0, 3]]) {
   assert.equal(actualFlags, expectedFlags);
 }
 
-console.log('pooyan-video-compiler.spec: 6 passed');
+console.log('pooyan.spec: game token and MAME-source video contract passed');

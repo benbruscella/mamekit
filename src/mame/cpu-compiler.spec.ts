@@ -6,7 +6,7 @@ import {
   registerGeneratedCpu,
 } from '../runtime/generated-cpu.ts';
 
-const definition = compileMameZ80('../mame');
+const definition = compileMameZ80(process.env.MAME_SRC ?? '../mame');
 assert.equal(definition.summary.opcodes, 1536);
 assert.equal(definition.summary.compiledOpcodes, 1536);
 assert.equal(definition.summary.diagnostics, 0);

@@ -7,10 +7,11 @@ import {
   registerGeneratedDevice,
 } from '../runtime/generated-device.ts';
 
-const definition = indexMameHardware('../mame').get('LS259');
+const mameSrc = process.env.MAME_SRC ?? '../mame';
+const definition = indexMameHardware(mameSrc).get('LS259');
 assert.ok(definition, 'MAME hardware index should resolve LS259');
 
-const generated = compileMameDevice('../mame', definition);
+const generated = compileMameDevice(mameSrc, definition);
 assert.deepEqual(
   generated.hierarchy,
   ['addressable_latch_device', 'ls259_device'],
@@ -34,9 +35,9 @@ latch.call('write_d0', 3, 0);
 assert.equal(latch.call('output_state'), 0);
 assert.deepEqual(states, [1, 0]);
 
-const latchDefinition = indexMameHardware('../mame').get('GENERIC_LATCH_8');
+const latchDefinition = indexMameHardware(mameSrc).get('GENERIC_LATCH_8');
 assert.ok(latchDefinition, 'MAME hardware index should resolve GENERIC_LATCH_8');
-const generatedLatch = compileMameDevice('../mame', latchDefinition);
+const generatedLatch = compileMameDevice(mameSrc, latchDefinition);
 assert.equal(generatedLatch.summary.diagnostics, 0);
 registerGeneratedDevice(generatedLatch);
 const soundLatch = createDevice('GENERIC_LATCH_8');
