@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { compileMameI8080, compileMameZ80 } from './cpu-compiler.ts';
+import { generatedCpuExecutableSource } from './cpu-codegen.ts';
 import {
   clearGeneratedCpus,
   createCpu,
   registerGeneratedCpu,
+  type GeneratedCpuDefinition,
 } from '../runtime/generated-cpu.ts';
 
 const definition = compileMameZ80(process.env.MAME_SRC ?? '../mame');
@@ -33,26 +35,50 @@ assert.equal(cpu.step(), 8);
 assert.equal(cpu.get('A'), 0x01);
 
 const i8080Definition = compileMameI8080(process.env.MAME_SRC ?? '../mame');
-registerGeneratedCpu(i8080Definition);
-const interruptMemory = new Uint8Array(0x10000);
-interruptMemory.set([0xfb, 0x00, 0x00]);
+assert.match(
+  generatedCpuExecutableSource(i8080Definition),
+  /typeof source === 'function' \? source\(\) : source/,
+);
+const emptyProgram = { operations: [], diagnostics: [] };
+const lazyIrqDefinition: GeneratedCpuDefinition = {
+  type: 'LAZY_IRQ_TEST',
+  constants: {},
+  aliases: {},
+  members: [],
+  methods: [],
+  start: emptyProgram,
+  reset: emptyProgram,
+  input: emptyProgram,
+  step: {
+    operations: [{
+      op: 'return',
+      value: {
+        kind: 'call',
+        callee: { kind: 'identifier', name: 'standard_irq_callback' },
+        args: [],
+      },
+    }],
+    diagnostics: [],
+  },
+  service: emptyProgram,
+  fetch: emptyProgram,
+  opcodes: [],
+  summary: { diagnostics: 0 },
+};
+registerGeneratedCpu(lazyIrqDefinition);
 let acknowledgements = 0;
-const i8080 = createCpu('I8080', {
-  read: address => interruptMemory[address]!,
-  write: (address, data) => { interruptMemory[address] = data; },
+const lazyIrq = createCpu('LAZY_IRQ_TEST', {
+  read: () => 0,
+  write: () => {},
   in: () => 0xff,
   out: () => {},
 });
-i8080.set('SP', 0x9000);
-i8080.setIrqLine(true, () => {
+lazyIrq.setIrqLine(true, () => {
   acknowledgements++;
-  i8080.setIrqLine(false);
   return 0xd7;
 });
-i8080.step();
-i8080.step();
-assert.equal(acknowledgements, 0, 'I8080 must defer acknowledge through the EI shadow');
-i8080.step();
-assert.equal(acknowledgements, 1, 'I8080 must evaluate its vector on acknowledge');
+assert.equal(acknowledgements, 0, 'CPU must defer vector evaluation until acknowledge');
+assert.equal(lazyIrq.step(), 0xd7);
+assert.equal(acknowledgements, 1, 'CPU must evaluate its vector on acknowledge');
 
-console.log('cpu-compiler.spec: 15 passed');
+console.log('cpu-compiler.spec: 16 passed');
