@@ -129,6 +129,7 @@ export interface GeneratedExecutionCpu {
   ranges?: RangeSpec[];
   mask?: number;
   io?: { ranges: RangeSpec[]; globalMask?: number };
+  interruptVectorWriters?: string[];
   source?: GeneratedSourceRef;
 }
 

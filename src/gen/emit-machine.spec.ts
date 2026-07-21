@@ -24,13 +24,51 @@ const graph: KnowledgeGraph = {
       sourceFile: 'src/mame/test.cpp',
       sourceLine: 42,
     },
+  }, {
+    id: 'callback:vector',
+    label: 'Callback',
+    props: {
+      ownerTag: 'maincpu',
+      signal: 'set_irq_acknowledge_callback',
+      operation: 'set_irq_acknowledge_callback',
+      targetClass: 'test_state',
+      targetMethod: 'vector_r',
+    },
+  }, {
+    id: 'handler:vector_r',
+    label: 'Handler',
+    props: {
+      ownerClass: 'test_state',
+      method: 'vector_r',
+      sourceBody: 'return m_vector;',
+    },
+  }, {
+    id: 'handler:vector_w',
+    label: 'Handler',
+    props: {
+      ownerClass: 'test_state',
+      method: 'vector_w',
+      sourceBody: 'm_vector = data;',
+    },
   }],
   edges: [],
 };
 
 const board: BoardConfig = {
   family: 'test',
-  cpus: [{ tag: 'maincpu', clock: 1_000_000, region: 'maincpu' }],
+  cpus: [{
+    tag: 'maincpu',
+    clock: 1_000_000,
+    region: 'maincpu',
+    io: {
+      ranges: [{
+        start: 0,
+        end: 0,
+        kind: 'handler',
+        write: 'test_state.vector_w',
+      }],
+    },
+  }],
   ranges: [],
   screen: { width: 256, height: 224, refresh: 60, vtotal: 256, vbstart: 240, rotate: 0 },
   clocks: { namco06: 48_000, wsg: 96_000 },
@@ -39,8 +77,11 @@ const machine = lowerGeneratedMachine(graph, 'test', 'test', board);
 if (machine.callbacks[0]?.slot !== 3) throw new Error('slot should lower to a number');
 if (machine.callbacks[0]?.source?.line !== 42) throw new Error('source provenance missing');
 if (machine.execution.cpus[0]?.clock !== 1_000_000) throw new Error('execution plan missing CPU clock');
+if (machine.execution.cpus[0]?.interruptVectorWriters?.[0] !== 'test_state.vector_w') {
+  throw new Error('interrupt-vector writer relation was not lowered from handler IR');
+}
 const source = generatedMachineSource(machine);
 if (!source.includes('defineMachine')) throw new Error('generated module is not executable TypeScript');
 if (!source.includes('src/mame/test.cpp')) throw new Error('generated module lost source provenance');
 
-console.log('emit-machine.spec: 5 passed, 0 failed');
+console.log('emit-machine.spec: 6 passed, 0 failed');

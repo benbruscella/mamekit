@@ -5,8 +5,10 @@ import type {
   GeneratedAddressMap,
   GeneratedCallback,
   GeneratedDevice,
+  GeneratedExpression,
   GeneratedExecutionPlan,
   GeneratedHandler,
+  GeneratedHandlerOperation,
   GeneratedMachine,
   GeneratedSourceRef,
   GeneratedVideoPlan,
@@ -134,11 +136,20 @@ export function lowerGeneratedMachine(
         handler.method === screenCallback.targetMethod)
     : undefined;
   const execution: GeneratedExecutionPlan = {
-    cpus: board.cpus.map(cpu => ({
-      ...cpu,
-      cycleClock: cpu.type === 'mc6809' ? cpu.clock / 4 : cpu.clock,
-      ...(deviceByTag.get(cpu.tag)?.source ? { source: deviceByTag.get(cpu.tag)!.source } : {}),
-    })),
+    cpus: board.cpus.map(cpu => {
+      const interruptVectorWriters = inferInterruptVectorWriters(
+        cpu.tag,
+        cpu.io?.ranges ?? [],
+        callbacks,
+        handlers,
+      );
+      return {
+        ...cpu,
+        cycleClock: cpu.type === 'mc6809' ? cpu.clock / 4 : cpu.clock,
+        ...(interruptVectorWriters.length ? { interruptVectorWriters } : {}),
+        ...(deviceByTag.get(cpu.tag)?.source ? { source: deviceByTag.get(cpu.tag)!.source } : {}),
+      };
+    }),
     screen: {
       ...board.screen,
       ...(deviceByTag.get('screen')?.source ? { source: deviceByTag.get('screen')!.source } : {}),
@@ -204,6 +215,94 @@ export function lowerGeneratedMachine(
 function deviceMember(props: Record<string, unknown>): string | undefined {
   const config = Array.isArray(props.config) ? props.config.map(String).join('\n') : '';
   return /\(\s*config\s*,\s*(m_\w+)/.exec(config)?.[1];
+}
+
+function inferInterruptVectorWriters(
+  cpuTag: string,
+  ioRanges: BoardConfig['cpus'][number]['ranges'],
+  callbacks: GeneratedCallback[],
+  handlers: GeneratedHandler[],
+): string[] {
+  const acknowledge = callbacks.find(callback =>
+    callback.ownerTag === cpuTag &&
+    callback.signal === 'set_irq_acknowledge_callback' &&
+    callback.targetClass &&
+    callback.targetMethod);
+  if (!acknowledge) return [];
+
+  const reader = handlers.find(handler =>
+    handler.ownerClass === acknowledge.targetClass &&
+    handler.method === acknowledge.targetMethod);
+  const members = returnedIdentifiers(reader?.program?.operations ?? []);
+  if (!members.size) return [];
+
+  const mappedWriters = new Set(
+    (ioRanges ?? []).flatMap(range => range.write ? [range.write] : []),
+  );
+  return handlers.flatMap(writer => {
+    const key = `${writer.ownerClass}.${writer.method}`;
+    return writer.ownerClass === reader?.ownerClass &&
+      mappedWriters.has(key) &&
+      assignsAnyIdentifier(writer.program?.operations ?? [], members)
+      ? [key]
+      : [];
+  });
+}
+
+function returnedIdentifiers(
+  operations: GeneratedHandlerOperation[],
+): Set<string> {
+  const result = new Set<string>();
+  visitOperations(operations, operation => {
+    if (operation.op !== 'return' || !operation.value) return;
+    const identifier = directIdentifier(operation.value);
+    if (identifier) result.add(identifier);
+  });
+  return result;
+}
+
+function assignsAnyIdentifier(
+  operations: GeneratedHandlerOperation[],
+  names: Set<string>,
+): boolean {
+  let matched = false;
+  visitOperations(operations, operation => {
+    if (
+      operation.op === 'assign' &&
+      operation.target.kind === 'identifier' &&
+      names.has(operation.target.name)
+    ) {
+      matched = true;
+    }
+  });
+  return matched;
+}
+
+function directIdentifier(expression: GeneratedExpression): string | undefined {
+  if (expression.kind === 'identifier') return expression.name;
+  if (expression.kind === 'cast') return directIdentifier(expression.operand);
+  return undefined;
+}
+
+function visitOperations(
+  operations: GeneratedHandlerOperation[],
+  visit: (operation: GeneratedHandlerOperation) => void,
+): void {
+  for (const operation of operations) {
+    visit(operation);
+    if (operation.op === 'if') {
+      visitOperations(operation.then, visit);
+      visitOperations(operation.else ?? [], visit);
+    } else if (operation.op === 'for') {
+      visitOperations(operation.initialize, visit);
+      visitOperations([operation.iterate], visit);
+      visitOperations(operation.body, visit);
+    } else if (operation.op === 'while') {
+      visitOperations(operation.body, visit);
+    } else if (operation.op === 'switch') {
+      for (const entry of operation.cases) visitOperations(entry.body, visit);
+    }
+  }
 }
 
 function lowerFrameEvents(

@@ -122,6 +122,7 @@ class IrBoard implements Board {
     this.installDeviceHandlers(machine, registry);
     this.installGeneratedSoundHandlers(machine, sinks, registry);
     this.installDeclarativeHandlers(machine, config, inputs, registry);
+    this.installInterruptVectorWriters(machine, registry);
 
     for (const specification of machine.execution.cpus) {
       const type = specification.type ?? 'Z80';
@@ -323,6 +324,30 @@ class IrBoard implements Board {
         `${machine.game}: generated composition has unresolved handlers: ` +
         [...new Set(missing)].sort().join(', '),
       );
+    }
+  }
+
+  private installInterruptVectorWriters(
+    machine: GeneratedMachine,
+    registry: HandlerRegistry,
+  ): void {
+    const cpuTagsByWriter = new Map<string, string[]>();
+    for (const cpu of machine.execution.cpus) {
+      for (const writer of cpu.interruptVectorWriters ?? []) {
+        const tags = cpuTagsByWriter.get(writer) ?? [];
+        tags.push(cpu.tag);
+        cpuTagsByWriter.set(writer, tags);
+      }
+    }
+    for (const [writer, cpuTags] of cpuTagsByWriter) {
+      const original = registry.write[writer];
+      if (!original) continue;
+      registry.write[writer] = (address, offset, data) => {
+        original(address, offset, data);
+        for (const cpuTag of cpuTags) {
+          this.cpus.get(cpuTag)?.setIrqLine(false);
+        }
+      };
     }
   }
 
