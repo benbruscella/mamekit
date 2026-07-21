@@ -26,6 +26,26 @@ const machine = graph.nodes.find(node =>
   node.props.name === invaders.machine.name);
 assert.ok(machine);
 
+const customHandlers = graph.nodes.filter(node =>
+  node.label === 'Handler' &&
+  String(node.props.ownerClass) === 'invaders_state' &&
+  /^invaders_(?:in[012]_control|sw[56])_r$/.test(String(node.props.method)));
+assert.equal(customHandlers.length, 5);
+assert.ok(graph.edges.some(edge =>
+  edge.from === 'inputs:invaders/IN1/f4' &&
+  edge.rel === 'CALLS_HANDLER' &&
+  edge.to === 'handler:invaders_state.invaders_in1_control_r'));
+assert.deepEqual(
+  customHandlers.find(node => node.props.method === 'invaders_in1_control_r')
+    ?.props.inputMembers,
+  ['m_player_controls=CONTP1,CONTP2'],
+);
+assert.match(
+  String(customHandlers.find(node => node.props.method === 'invaders_sw6_sw7_r')
+    ?.props.sourceBody),
+  /ioport\("SW6SW7"\)/,
+);
+
 const video = compileMameVideo(graph, mameSrc, machine.id);
 assert.ok(video, 'Invaders MAME bitmap source must lower to executable video IR');
 assert.deepEqual(video.plan.bitmap, {

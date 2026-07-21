@@ -14,6 +14,9 @@ export const invaders: GameTestContract = {
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 330, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 390, code: 'ArrowLeft', heldFrames: 20, releasedFrames: 10 },
+    { atFrame: 430, code: 'ArrowRight', heldFrames: 20, releasedFrames: 10 },
+    { atFrame: 470, code: 'Space', heldFrames: 10, releasedFrames: 10 },
   ],
   golden: {
     regions: { maincpu: 'eaf1bbdb' },
