@@ -103,6 +103,91 @@ export interface GeneratedDiscreteSn76477Plan {
   source: { file: string; line: number };
 }
 
+export interface GeneratedGalaxianDiscretePlan {
+  schemaVersion: 1;
+  type: 'GALAXIAN_DISCRETE';
+  deviceType: string;
+  className: string;
+  workletName: 'galaxian';
+  methodBases: Record<string, number>;
+  clockDivider: number;
+  lfsr: { bits: number; reset: number; tap0: number; tap1: number };
+  lfoResistors: number[];
+  backgroundResistors: number[];
+  backgroundCapacitors: number[];
+  toneResistors: number[];
+  hitFilter: { resistance: number; capacitance: number };
+  fire: { resistance: number; capacitance: number };
+  sourceFiles: string[];
+  source: { file: string; line: number };
+}
+
+export function compileGalaxianDiscrete(
+  mameSrc: string,
+  definition: MameHardwareDefinition,
+): GeneratedGalaxianDiscretePlan {
+  const cppFile = definition.sourceFile;
+  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
+  const ast = parseMameAst([{ file: cppFile, source: cpp }]);
+  const methods = ast.units.flatMap(unit => unit.functions)
+    .filter(fn => fn.className === definition.className);
+  const publicWrites = methods.filter(method =>
+    method.body.includes('m_discrete->write') ||
+    (method.body.includes('switch') && method.body.includes('_w(')));
+  const mapped = publicWrites.filter(method =>
+    ['pitch_w', 'lfo_freq_w', 'sound_w'].includes(method.name));
+  if (mapped.length !== 3 || !cpp.includes('DISCRETE_SOUND_START(galaxian_discrete)')) {
+    throw new Error(`${definition.type}: Galaxian discrete source shape is incomplete`);
+  }
+  const macros = preprocessorMacros(cpp);
+  const component = (name: string): number => {
+    const value = macros.get(name);
+    if (!value) throw new Error(`${definition.type}: missing MAME component ${name}`);
+    return requiredAnalog(value);
+  };
+  const lfsr = structValues(cpp, 'galaxian_lfsr').scalars;
+  const soundClock = (macros.get('SOUND_CLOCK') ?? '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '')
+    .trim();
+  const divider = Number(/\/\s*(\d+)\s*\)?\s*$/.exec(soundClock)?.[1]);
+  if (lfsr.length < 5 || !divider) {
+    throw new Error(`${definition.type}: Galaxian clock/LFSR source shape is incomplete`);
+  }
+  const methodBases = Object.fromEntries(
+    mapped.map(method => method.name).sort().map((name, index) => [name, index * 0x100]),
+  );
+  return {
+    schemaVersion: 1,
+    type: 'GALAXIAN_DISCRETE',
+    deviceType: definition.type,
+    className: definition.className,
+    workletName: 'galaxian',
+    methodBases,
+    clockDivider: divider,
+    lfsr: {
+      bits: lfsr[1]!,
+      reset: lfsr[2]!,
+      tap0: lfsr[3]!,
+      tap1: lfsr[4]!,
+    },
+    lfoResistors: ['GAL_R18', 'GAL_R17', 'GAL_R16', 'GAL_R15'].map(component),
+    backgroundResistors: ['GAL_R23', 'GAL_R26', 'GAL_R29'].map(component),
+    backgroundCapacitors: ['GAL_C17', 'GAL_C18', 'GAL_C19'].map(component),
+    toneResistors: ['GAL_R51', 'GAL_R50', 'GAL_R49', 'GAL_R52'].map(component),
+    hitFilter: {
+      resistance: component('GAL_R35') + component('GAL_R36'),
+      capacitance: component('GAL_C21'),
+    },
+    fire: {
+      resistance: component('GAL_R41'),
+      capacitance: component('GAL_C25'),
+    },
+    sourceFiles: [cppFile],
+    source: { file: mapped[0]!.span.file, line: mapped[0]!.span.line },
+  };
+}
+
 export function compileDiscreteSn76477(
   mameSrc: string,
   definition: MameHardwareDefinition,
@@ -516,7 +601,245 @@ interface Voice {
   volume: number[];
   waveform_select: number;
 }
+
 ` + generatedNamcoWsgSuffix(plan);
+}
+
+export function generatedGalaxianDiscreteWorkletSource(
+  plan: GeneratedGalaxianDiscretePlan,
+): string {
+  return `// GENERATED from ${plan.source.file}:${plan.source.line}; do not edit.
+// Register routing, clock division, component values and LFSR topology are
+// lowered from MAME's GALAXIAN_SOUND device and galaxian_discrete netlist.
+const plan = ${JSON.stringify(plan, null, 2)};
+
+export interface GeneratedGalaxianWrite { offset: number; data: number; frac?: number }
+
+const clamp = (value: number): number => Math.max(-1, Math.min(1, value));
+
+export class GeneratedGalaxianDiscreteCore {
+  readonly sampleRate: number;
+  private readonly clock: number;
+  private pitch = 0xff;
+  private volume = 0;
+  private tonePhase = 0;
+  private lfoValue = 0;
+  private lfoPhase = 0;
+  private readonly backgroundEnabled = [false, false, false];
+  private readonly backgroundPhase = new Float64Array(3);
+  private noiseEnabled = false;
+  private noiseEnvelope = 0;
+  private noiseFilter = 0;
+  private noisePhase = 0;
+  private lfsr = plan.lfsr.reset;
+  private noise = -1;
+  private fire = false;
+  private fireEnvelope = 0;
+  private firePhase = 0;
+  private fireTime = 0;
+
+  constructor(outputRate = 48_000, clock = 3_072_000) {
+    this.sampleRate = outputRate;
+    this.clock = clock;
+  }
+
+  write(encodedOffset: number, data: number): void {
+    const method = Object.entries(plan.methodBases)
+      .find(([, base]) => encodedOffset >= base && encodedOffset < base + 0x100);
+    if (!method) return;
+    const offset = encodedOffset - method[1];
+    data &= 0xff;
+    if (method[0] === 'pitch_w') {
+      this.pitch = data;
+      return;
+    }
+    if (method[0] === 'lfo_freq_w') {
+      this.lfoValue = (this.lfoValue & ~(1 << offset)) | ((data & 1) << offset);
+      return;
+    }
+    if (method[0] !== 'sound_w') return;
+    const bit = (data & 1) !== 0;
+    switch (offset & 7) {
+      case 0: case 1: case 2:
+        this.backgroundEnabled[offset] = bit;
+        break;
+      case 3:
+        this.noiseEnabled = bit;
+        if (bit) this.noiseEnvelope = 1;
+        break;
+      case 5:
+        if (bit && !this.fire) {
+          this.fireEnvelope = 1;
+          this.fireTime = 0;
+          this.firePhase = 0;
+        }
+        this.fire = bit;
+        break;
+      case 6: case 7:
+        this.volume = (this.volume & ~(1 << (offset - 6))) |
+          (Number(bit) << (offset - 6));
+        break;
+    }
+  }
+
+  render(output: Float32Array): void {
+    for (let index = 0; index < output.length; index++) output[index] = this.sample();
+  }
+
+  sample(): number {
+    const dt = 1 / this.sampleRate;
+    const soundClock = this.clock / plan.clockDivider;
+    let mix = 0;
+
+    if (this.pitch !== 0xff) {
+      const counterRate = soundClock / Math.max(1, 256 - this.pitch);
+      this.tonePhase = (this.tonePhase + counterRate * dt) % 16;
+      const counter = Math.floor(this.tonePhase) & 15;
+      const conductances = [
+        (counter & 1) ? 1 / plan.toneResistors[0] : 0,
+        (counter & 4) ? 1 / plan.toneResistors[1] : 0,
+        (counter & 4) && (this.volume & 1) ? 1 / plan.toneResistors[2] : 0,
+        (counter & 8) && (this.volume & 2) ? 1 / plan.toneResistors[3] : 0,
+      ];
+      const maximum = plan.toneResistors.reduce((sum, resistance) => sum + 1 / resistance, 0);
+      mix += (conductances.reduce((sum, value) => sum + value, 0) / maximum - 0.25) * 0.7;
+    }
+
+    let lfoConductance = 1 / 330_000;
+    plan.lfoResistors.forEach((resistance, bit) => {
+      if (this.lfoValue & (1 << bit)) lfoConductance += 1 / resistance;
+    });
+    const lfoHz = 0.15 + 600_000 * lfoConductance;
+    this.lfoPhase = (this.lfoPhase + lfoHz * dt) % 1;
+    const sweep = this.lfoPhase < 0.5 ? this.lfoPhase * 2 : 2 - this.lfoPhase * 2;
+    for (let voice = 0; voice < 3; voice++) {
+      if (!this.backgroundEnabled[voice]) continue;
+      const r = plan.backgroundResistors[voice];
+      const c = plan.backgroundCapacitors[voice];
+      const base = 1.44 / ((100_000 + 2 * r) * c);
+      this.backgroundPhase[voice] = (this.backgroundPhase[voice]! +
+        base * (0.68 + 0.32 * sweep) * dt) % 1;
+      mix += (this.backgroundPhase[voice]! < 0.5 ? 1 : -1) * 0.075;
+    }
+
+    this.noisePhase += 7_920 * dt;
+    while (this.noisePhase >= 1) {
+      this.noisePhase -= 1;
+      const feedback = ((this.lfsr >> plan.lfsr.tap0) ^
+        (this.lfsr >> plan.lfsr.tap1) ^ 1) & 1;
+      this.lfsr = ((this.lfsr << 1) | feedback) & ((2 ** plan.lfsr.bits) - 1);
+      this.noise = this.lfsr & 1 ? 1 : -1;
+    }
+    if (!this.noiseEnabled) {
+      const tau = plan.hitFilter.resistance * plan.hitFilter.capacitance;
+      this.noiseEnvelope *= Math.exp(-dt / Math.max(0.02, tau));
+    }
+    this.noiseFilter += (this.noise * this.noiseEnvelope - this.noiseFilter) *
+      (1 - Math.exp(-2 * Math.PI * 420 * dt));
+    mix += this.noiseFilter * 0.32;
+
+    if (this.fireEnvelope > 0.0001) {
+      const tau = plan.fire.resistance * plan.fire.capacitance;
+      const frequency = 150 + 1_350 * Math.exp(-this.fireTime / Math.max(0.04, tau * 0.7)) +
+        this.noise * 90;
+      this.firePhase = (this.firePhase + frequency * dt) % 1;
+      mix += (this.firePhase < 0.5 ? 1 : -1) * this.fireEnvelope * 0.28;
+      this.fireEnvelope *= Math.exp(-dt / Math.max(0.08, tau * 2));
+      this.fireTime += dt;
+    }
+    return clamp(mix * 0.9);
+  }
+}
+
+export class GeneratedGalaxianDiscreteFrameRenderer {
+  private carry = 0;
+  private readonly core: GeneratedGalaxianDiscreteCore;
+  private readonly outputRate: number;
+  private readonly refresh: number;
+
+  constructor(
+    core: GeneratedGalaxianDiscreteCore,
+    outputRate: number,
+    refresh: number,
+  ) {
+    this.core = core;
+    this.outputRate = outputRate;
+    this.refresh = refresh;
+  }
+
+  render(writes: readonly GeneratedGalaxianWrite[]): Float32Array {
+    this.carry += this.outputRate / this.refresh;
+    const count = Math.floor(this.carry);
+    this.carry -= count;
+    const output = new Float32Array(count);
+    let index = 0;
+    for (const write of writes) {
+      const at = Math.ceil(Math.max(0, Math.min(1, write.frac ?? 0)) * count);
+      while (index < at) output[index++] = this.core.sample();
+      this.core.write(write.offset, write.data);
+    }
+    while (index < count) output[index++] = this.core.sample();
+    return output;
+  }
+}
+
+declare const sampleRate: number;
+declare class AudioWorkletProcessor { readonly port: MessagePort; constructor(); }
+declare function registerProcessor(
+  name: string,
+  processorCtor: new () => AudioWorkletProcessor,
+): void;
+
+class GeneratedGalaxianProcessor extends AudioWorkletProcessor {
+  private core?: GeneratedGalaxianDiscreteCore;
+  private renderer?: GeneratedGalaxianDiscreteFrameRenderer;
+  private readonly frames: Float32Array[] = [];
+  private current?: Float32Array;
+  private position = 0;
+
+  constructor() {
+    super();
+    this.port.onmessage = (event: MessageEvent) => {
+      const message = event.data as {
+        type: string; clock?: number; refresh?: number;
+        offset?: number; data?: number; writes?: GeneratedGalaxianWrite[];
+      };
+      if (message.type === 'init') {
+        this.core = new GeneratedGalaxianDiscreteCore(sampleRate, message.clock ?? 3_072_000);
+        this.renderer = new GeneratedGalaxianDiscreteFrameRenderer(
+          this.core, sampleRate, message.refresh ?? 60.606,
+        );
+      } else if (message.type === 'write') {
+        this.core?.write(message.offset ?? 0, message.data ?? 0);
+      } else if (message.type === 'batch' && this.renderer) {
+        this.frames.push(this.renderer.render(message.writes ?? []));
+      }
+    };
+  }
+
+  private nextSample(): number {
+    while (!this.current || this.position >= this.current.length) {
+      this.current = this.frames.shift();
+      this.position = 0;
+      if (!this.current) return 0;
+    }
+    return this.current[this.position++]!;
+  }
+
+  process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
+    const channels = outputs[0];
+    const output = channels?.[0];
+    if (!output) return true;
+    for (let index = 0; index < output.length; index++) output[index] = this.nextSample();
+    for (let channel = 1; channel < (channels?.length ?? 0); channel++) {
+      channels![channel]!.set(output);
+    }
+    return true;
+  }
+}
+
+registerProcessor('galaxian', GeneratedGalaxianProcessor);
+`;
 }
 
 export function generatedAy8910WorkletSource(plan: GeneratedAy8910Plan): string {

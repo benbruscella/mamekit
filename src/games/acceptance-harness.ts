@@ -313,6 +313,41 @@ async function createAudioProbe(
       },
     };
   }
+  if (config.sound.kind === 'galaxian') {
+    const generated = await import(
+      moduleUrl(join(outRoot, 'runtime/generated/audio/galaxian-worklet.js'))
+    ) as {
+      GeneratedGalaxianDiscreteCore: new (
+        outputRate: number,
+        clock: number,
+      ) => DiscreteAudioCore;
+      GeneratedGalaxianDiscreteFrameRenderer: new (
+        core: DiscreteAudioCore,
+        outputRate: number,
+        refresh: number,
+      ) => DiscreteAudioFrameRenderer;
+    };
+    const outputRate = 48_000;
+    const core = new generated.GeneratedGalaxianDiscreteCore(
+      outputRate,
+      config.sound.clock ?? 3_072_000,
+    );
+    const renderer = new generated.GeneratedGalaxianDiscreteFrameRenderer(
+      core,
+      outputRate,
+      config.board.screen.refresh,
+    );
+    const chunks: Float32Array[] = [];
+    return {
+      render(writes, capture) {
+        const samples = renderer.render(writes);
+        if (capture) chunks.push(samples);
+      },
+      finish(writes) {
+        return audioResult(writes, chunks);
+      },
+    };
+  }
   throw new Error(`${config.game}: unsupported acceptance sound kind ${config.sound.kind}`);
 }
 
