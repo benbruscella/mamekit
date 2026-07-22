@@ -87,6 +87,7 @@ const DEFAULT_CONSTANTS: Record<string, number> = {
   TILEMAP_FLIPX: 1,
   TILEMAP_FLIPY: 2,
   TILEMAP_DRAW_OPAQUE: 0x80,
+  'attotime::never': Infinity,
 };
 
 const CACHE_ONLY_METHODS = new Set([
@@ -560,6 +561,9 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     }
     const left = toNumber(leftValue);
     const right = toNumber(rightValue);
+    if (expression.operator === '/' && isAttotimeExpression(expression.left, context)) {
+      return left / right;
+    }
     return binary(expression.operator, left, right);
   }
   if (expression.kind === 'conditional') {
@@ -596,6 +600,13 @@ function evaluateCall(
     }
     const args = expression.args.map(arg => evaluate(arg, context));
     if (name === 'BIT') return (toNumber(args[0]) >> toNumber(args[1])) & 1;
+    if (name === 'BITSWAP') {
+      const source = toNumber(args[0]);
+      return args.slice(1).reduce(
+        (result, bit) => (result << 1) | ((source >> toNumber(bit)) & 1),
+        0,
+      );
+    }
     if (name === 'rgb_t::black') return 0xff000000;
     if (name === 'rgb_t::white') return 0xffffffff;
     if (name === 'CAP_P') return toNumber(args[0]) * 1e-12;
@@ -603,6 +614,10 @@ function evaluateCall(
     if (name === 'CAP_U') return toNumber(args[0]) * 1e-6;
     if (name === 'RES_K') return toNumber(args[0]) * 1e3;
     if (name === 'RES_M') return toNumber(args[0]) * 1e6;
+    if (name === 'attotime::from_hz') return 1 / Math.max(1, toNumber(args[0]));
+    if (name === 'attotime::from_ticks') {
+      return toNumber(args[0]) / Math.max(1, toNumber(args[1]));
+    }
     if (name === 'TILE_FLIPYX') return toNumber(args[0]) & 3;
     if (name === 'TILE_FLIPXY') {
       const value = toNumber(args[0]);
@@ -637,6 +652,10 @@ function evaluateCall(
     }
     const object = evaluate(expression.callee.object, context);
     const method = expression.callee.property;
+    if (typeof object === 'number' && method === 'as_ticks') {
+      const clock = Math.max(1, toNumber(evaluate(expression.args[0]!, context)));
+      return Math.floor(object * clock);
+    }
     if (isReference(object)) {
       const key = `${object.reference}.${method}`;
       const generated = context.bindings.referenceCalls?.[key];
@@ -657,6 +676,9 @@ function evaluateCall(
           expression.args[1] ? evaluate(expression.args[1], context) : 0,
         );
       }
+      // Generated devices only execute while their host processor is runnable;
+      // board-level reset/hold state is enforced by the frame scheduler.
+      if (method === 'suspended') return 0;
       const handler = context.bindings.calls?.[key] ?? context.bindings.calls?.[method];
       if (handler) return handler(...args.map(toNumber));
       if (CACHE_ONLY_METHODS.has(method)) return 0;
@@ -941,6 +963,19 @@ function generatedExpressionName(expression: GeneratedExpression): string {
     return `${generatedExpressionName(expression.object)}.${expression.property}`;
   }
   return '<expression>';
+}
+
+function isAttotimeExpression(
+  expression: GeneratedExpression,
+  context: ExecutionContext,
+): boolean {
+  if (expression.kind === 'identifier') {
+    return context.localTypes[expression.name]?.replace(/\bconst\b/g, '').trim() === 'attotime';
+  }
+  if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
+    return expression.callee.name.startsWith('attotime::');
+  }
+  return false;
 }
 
 function timerDelegateName(expression: GeneratedExpression | undefined): string | undefined {

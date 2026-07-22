@@ -30,6 +30,7 @@ export interface GeneratedDevice {
   type: string;
   member?: string;
   clock?: number;
+  configuration?: { method: string; args: number[] }[];
   source?: GeneratedSourceRef;
 }
 
@@ -235,6 +236,7 @@ export interface GeneratedTilemapPlan {
   scrollColumns?: number;
   scrollRows?: number;
   transparentPen?: number;
+  transparentIndirect?: number;
   source?: GeneratedSourceRef;
 }
 
@@ -316,10 +318,10 @@ export interface GeneratedMachine {
   sound?: GeneratedSoundBinding;
 }
 
-export type SignalEndpoint = (state: number) => void;
+export type SignalEndpoint = (state: number) => number | void;
 
 export interface CallbackDevice {
-  on(signal: string, callback: SignalEndpoint, slot?: number): unknown;
+  on(signal: string, callback: (...args: number[]) => number | void, slot?: number): unknown;
 }
 
 const MACHINES = new Map<string, GeneratedMachine>();
@@ -361,24 +363,36 @@ export function wireDeviceCallbacks(
   const ignored: GeneratedCallback[] = [];
   for (const callback of machine.callbacks) {
     if (callback.ownerTag !== ownerTag || callback.signal !== signal) continue;
-    if (callback.slot === undefined) {
-      ignored.push(callback);
-      continue;
-    }
     const target = callbackTarget(callback);
     const endpoint = target ? endpoints[target] : undefined;
     if (!target || !endpoint) {
       ignored.push(callback);
       continue;
     }
-    const invert = callback.transforms?.some(transform => transform === 'invert') ?? false;
-    device.on(signal, state => endpoint(invert ? state ^ 1 : state), callback.slot);
+    device.on(
+      signal,
+      (...args) => endpoint(applySignalTransforms(args.at(-1) ?? 0, callback.transforms)),
+      callback.slot ?? 0,
+    );
     bound.push(target);
   }
   return { bound, ignored };
 }
 
+function applySignalTransforms(value: number, transforms: string[] = []): number {
+  let result = value;
+  for (const transform of transforms) {
+    if (transform === 'invert') result ^= 1;
+    const mask = /^mask\((0x[\da-f]+|\d+)\)$/i.exec(transform);
+    if (mask) result &= Number(mask[1]);
+    const shift = /^rshift\((\d+)\)$/.exec(transform);
+    if (shift) result >>>= Number(shift[1]);
+  }
+  return result;
+}
+
 export function callbackTarget(callback: GeneratedCallback): string | undefined {
+  if (callback.targetPort) return `port.${callback.targetPort}`;
   if (callback.targetTag && callback.inputLine) return `${callback.targetTag}.${callback.inputLine}`;
   if (!callback.targetMethod) return undefined;
   if (callback.targetTag) return `${callback.targetTag}.${callback.targetMethod}`;

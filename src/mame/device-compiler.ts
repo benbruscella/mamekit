@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
+import { evalExpr } from '../kg/parse.ts';
 import type {
   GeneratedHandlerProgram,
   GeneratedSourceRef,
@@ -19,12 +20,19 @@ export interface GeneratedDeviceMember {
   valueType: string;
   bits?: 1 | 8 | 16 | 32;
   initial?: number;
+  values?: number[];
 }
 
 export interface GeneratedDeviceCallback {
   signal: string;
   member: string;
   slots: number;
+  initial?: number;
+}
+
+export interface GeneratedDeviceTimer {
+  member: string;
+  callback: string;
 }
 
 export interface GeneratedDeviceMethod {
@@ -43,6 +51,7 @@ export interface GeneratedDeviceDefinition {
   constants: Record<string, number>;
   members: GeneratedDeviceMember[];
   callbacks: GeneratedDeviceCallback[];
+  timers: GeneratedDeviceTimer[];
   methods: GeneratedDeviceMethod[];
   start?: string;
   reset?: string;
@@ -73,10 +82,32 @@ export function compileMameDevice(
   );
   const hierarchy = classHierarchy(definition.className, classes);
   const classSet = new Set(hierarchy);
+  const constants = Object.assign(
+    {},
+    ...sources.map(({ source }) => numericDefines(source)),
+  );
+  const sourceTables = Object.assign(
+    {},
+    ...sources.map(({ source }) => constantTables(source)),
+  );
+  const interruptCallbacks = sources.flatMap(({ source }) => [...source.matchAll(
+    /\b(m_\w+)->set_input_line\s*\(\s*(INPUT_LINE_\w+)/g,
+  )].map(match => ({
+    member: match[1]!,
+    line: match[2]!,
+    signal: match[2] === 'INPUT_LINE_NMI' ? 'nmi' : 'irq',
+  })));
+  const ignoredMethods = new Set([
+    'device_add_mconfig',
+    'device_rom_region',
+    'memory_space_config',
+    'create_disassembler',
+  ]);
   const methods = ast.units
     .flatMap(unit => unit.functions)
     .filter(method => classSet.has(method.className))
-    .map(compileMethod);
+    .filter(method => !ignoredMethods.has(method.name))
+    .map(method => compileMethod(method, interruptCallbacks, sourceTables));
 
   for (const className of hierarchy) {
     const declaration = classes.get(className);
@@ -84,7 +115,8 @@ export function compileMameDevice(
     for (const method of inlineMethods(declaration)) {
       if (methods.some(candidate =>
         candidate.name === method.name && candidate.parameters === method.parameters)) continue;
-      methods.push(compileMethod(method));
+      if (ignoredMethods.has(method.name)) continue;
+      methods.push(compileMethod(method, interruptCallbacks, sourceTables));
     }
   }
 
@@ -98,6 +130,7 @@ export function compileMameDevice(
           signal: member.name.replace(/^m_/, ''),
           member: member.name,
           slots: callbackSlots(member.valueType),
+          initial: member.valueType.startsWith('devcb_read8') ? 0xff : 0,
         });
         return [];
       }
@@ -109,19 +142,37 @@ export function compileMameDevice(
       }];
     });
   });
+  for (const className of hierarchy) {
+    const body = classes.get(className)?.body ?? '';
+    for (const accessor of body.matchAll(
+      /\bauto\s+(\w+)\s*\([^)]*\)\s*\{\s*return\s+(m_\w+)(?:\[[^\]]+\])?\.bind\s*\(\s*\)\s*;\s*\}/g,
+    )) {
+      const callback = callbacks.find(candidate => candidate.member === accessor[2]);
+      if (callback) callback.signal = accessor[1]!;
+    }
+  }
+  for (const callback of interruptCallbacks) {
+    if (callbacks.some(candidate => candidate.signal === callback.signal)) continue;
+    callbacks.push({
+      signal: callback.signal,
+      member: `m_${callback.signal}`,
+      slots: 1,
+      initial: 0,
+    });
+  }
   const constructorValues = constructorInitialValues(
     definition.className,
     sources.map(source => source.source).join('\n'),
+    constants,
   );
   for (const member of members) {
     if (constructorValues[member.name] !== undefined) {
       member.initial = constructorValues[member.name];
     }
   }
-  const constants = Object.assign(
-    {},
-    ...sources.map(({ source }) => numericDefines(source)),
-  );
+  const timers = sources.flatMap(({ source }) => [...source.matchAll(
+    /\b(m_\w+)\s*=\s*timer_alloc\s*\(\s*FUNC\(\s*\w+::(\w+)\s*\)/g,
+  )].map(match => ({ member: match[1]!, callback: match[2]! })));
   const diagnostics = methods.reduce(
     (count, method) => count + method.program.diagnostics.length,
     0,
@@ -135,6 +186,7 @@ export function compileMameDevice(
     constants,
     members,
     callbacks,
+    timers,
     methods,
     ...(methods.some(method => method.name === 'device_start') ? { start: 'device_start' } : {}),
     ...(methods.some(method => method.name === 'device_reset') ? { reset: 'device_reset' } : {}),
@@ -172,11 +224,32 @@ function classHierarchy(
   return result;
 }
 
-function compileMethod(method: MameFunction): GeneratedDeviceMethod {
+function compileMethod(
+  method: MameFunction,
+  interruptCallbacks: { member: string; line: string; signal: string }[] = [],
+  sourceTables: Record<string, string[]> = {},
+): GeneratedDeviceMethod {
+  let body = method.body;
+  for (const callback of interruptCallbacks) {
+    body = body.replace(
+      new RegExp(
+        `${callback.member}->set_input_line\\s*\\(\\s*${callback.line}\\s*,\\s*` +
+        '([^;]+)\\)',
+        'g',
+      ),
+      `m_${callback.signal}($1)`,
+    );
+  }
+  for (const [name, values] of Object.entries(sourceTables)) {
+    body = body.replace(
+      new RegExp(`\\b${name}\\s*\\[([^\\]]+)\\]`, 'g'),
+      (_entry, index: string) => `TABLE(${index}, ${values.join(', ')})`,
+    );
+  }
   return {
     name: method.name,
     parameters: method.parameters,
-    program: compileMameHandler(normalizeMameExecutionSource(method.body)),
+    program: compileMameHandler(normalizeMameExecutionSource(body)),
     source: {
       file: method.span.file,
       line: method.span.line,
@@ -273,6 +346,7 @@ interface Constructor {
 function constructorInitialValues(
   concreteClass: string,
   source: string,
+  constants: Record<string, number> = {},
 ): Record<string, number> {
   const constructors = new Map<string, Constructor>();
   const pattern = /\b(\w+)::\1\s*\(/g;
@@ -303,7 +377,7 @@ function constructorInitialValues(
       constructor.parameters.map((parameter, index) => [parameter, values[index] ?? 0]),
     );
     for (const initializer of constructor.initializers) {
-      const args = initializer.args.map(arg => constantValue(arg, env));
+      const args = initializer.args.map(arg => constantValue(arg, { ...constants, ...env }));
       if (constructors.has(initializer.name)) visit(initializer.name, args);
       else if (initializer.name.startsWith('m_') && args.length === 1) {
         result[initializer.name] = args[0]!;
@@ -330,10 +404,20 @@ function constantValue(expression: string, env: Record<string, number>): number 
 
 function numericDefines(source: string): Record<string, number> {
   const constants: Record<string, number> = {};
-  for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+\(?\s*(-?(?:0x[\da-f]+|\d+))\s*\)?/gmi)) {
-    constants[match[1]!] = Number(match[2]);
+  for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^\r\n/]+)/gmi)) {
+    const value = evalExpr(match[2]!.trim(), constants);
+    if (value !== null && Number.isFinite(value)) constants[match[1]!] = value;
   }
   return constants;
+}
+
+function constantTables(source: string): Record<string, string[]> {
+  return Object.fromEntries([...source.matchAll(
+    /\bstatic\s+const\s+\w+\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
+  )].map(match => [
+    match[1]!,
+    splitMameArgs(match[2]!).map(value => value.trim()),
+  ]));
 }
 
 function matchingBrace(source: string, open: number): number {

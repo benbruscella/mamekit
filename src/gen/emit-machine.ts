@@ -72,6 +72,15 @@ export function lowerGeneratedMachine(
       type: String(node.props.type),
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
+      ...(Array.isArray(node.props.configCalls) ? {
+        configuration: node.props.configCalls.flatMap(value => {
+          const match = /^(\w+)\((.*)\)$/.exec(String(value));
+          return match ? [{
+            method: match[1]!,
+            args: match[2]!.split(',').map(argument => Number(argument.trim())),
+          }] : [];
+        }),
+      } : {}),
       ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
     }));
   const handlers: GeneratedHandler[] = graph.nodes

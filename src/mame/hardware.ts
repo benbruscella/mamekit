@@ -15,6 +15,7 @@ import { parseZ80OpcodeDsl } from './opcode-dsl.ts';
 import { compileMameI8080, compileMameZ80 } from './cpu-compiler.ts';
 import { generatedCpuExecutableSource } from './cpu-codegen.ts';
 import { compileMameDevice } from './device-compiler.ts';
+import { compileNamco51Protocol } from './namco51-compiler.ts';
 import {
   compileAy8910,
   compileDiscreteSn76477,
@@ -397,7 +398,13 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     : undefined;
   const generatedDevices = new Map(
     closure.hardware
-      .filter(entry => ['GENERIC_LATCH_8', 'LS259', 'MB14241'].includes(entry.type))
+      .filter(entry => [
+        'GENERIC_LATCH_8',
+        'LS259',
+        'MB14241',
+        'NAMCO_06XX',
+        'NAMCO_54XX',
+      ].includes(entry.type))
       .flatMap(entry => {
         if (!entry.definition) return [];
         const device = compileMameDevice(closure.mameSource, entry.definition);
@@ -405,6 +412,9 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
         return [[entry.type, device] as const];
       }),
   );
+  if (closure.hardware.some(entry => entry.type === 'NAMCO_51XX')) {
+    generatedDevices.set('NAMCO_51XX', compileNamco51Protocol());
+  }
   const namcoEntry = closure.hardware.find(entry => entry.type === 'NAMCO_WSG');
   const namcoWsg = namcoEntry?.definition
     ? compileNamcoWsg(closure.mameSource, namcoEntry.definition)

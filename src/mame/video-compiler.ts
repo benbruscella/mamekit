@@ -241,6 +241,14 @@ function compileTilemaps(
     const transparentPen = transparentExpression === undefined
       ? undefined
       : expressionNumber(transparentExpression, values);
+    const transparentIndirectExpression = new RegExp(
+      `${member}->configure_groups\\s*\\([^,]+,\\s*([^)]+)\\)`,
+    ).exec(setup)?.[1] ?? new RegExp(
+      `${member}->configure_groups\\s*\\([^,]+,\\s*([^)]+)\\)`,
+    ).exec(start.body)?.[1];
+    const transparentIndirect = transparentIndirectExpression === undefined
+      ? undefined
+      : expressionNumber(transparentIndirectExpression, values);
     plans.push({
       member,
       tileWidth: expressionNumber(args[3], values),
@@ -252,6 +260,9 @@ function compileTilemaps(
       ...(scrollColumns > 0 ? { scrollColumns } : {}),
       ...(scrollRows > 0 ? { scrollRows } : {}),
       ...(transparentPen !== undefined && transparentPen >= 0 ? { transparentPen } : {}),
+      ...(transparentIndirect !== undefined && transparentIndirect >= 0
+        ? { transparentIndirect }
+        : {}),
       source: sourceRef(start),
     });
     createRe.lastIndex = close + 1;
@@ -303,7 +314,11 @@ function compilePalette(
   let lookupMask = expressionNumber(/color_prom[^;]*?&\s*(0x[\da-f]+|\d+)/i.exec(
     lookupLoops.map(loop => loop.body).join('\n'),
   )?.[1]);
-  let postIncrementOffset = lookupOffset;
+  let postIncrementOffset = lookupOffset + (
+    paletteLoop?.body.includes('color_prom++')
+      ? Math.max(0, paletteLoop.end - paletteLoop.start)
+      : 0
+  );
   const banks: GeneratedPromPalettePlan['banks'] = lookupLoops.flatMap(loop => {
     const method = loop.body.includes('set_pen_indirect')
       ? 'palette.set_pen_indirect'
@@ -444,7 +459,7 @@ function compileResistorChannels(
   const channels: GeneratedPromPalettePlan['channels'] = [];
   const bitVariables = new Map<string, number>();
   const colorRe =
-    /\b(bit\d+)\s*=\s*BIT\(\s*color_prom\[i\]\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*combine_weights\(\s*(\w+)\s*,\s*([^)]+)\)/g;
+    /\b(bit\d+)\s*=\s*BIT\(\s*(?:color_prom\[i\]|\*\s*color_prom)\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*combine_weights\(\s*(\w+)\s*,\s*([^)]+)\)/g;
   let color: RegExpExecArray | null;
   while ((color = colorRe.exec(body)) !== null) {
     if (color[1]) {

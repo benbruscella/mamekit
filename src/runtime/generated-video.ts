@@ -261,6 +261,10 @@ class GeneratedGfxElement {
     this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, 1 << transparentPen);
   }
 
+  indirectMask(color: number, transparent: number): number {
+    return this.palette.transpen_mask(this, color, transparent);
+  }
+
   draw(
     bitmap: BitmapTarget,
     clip: GeneratedRectangle,
@@ -428,9 +432,14 @@ class GeneratedTilemap {
         const mapHeight = this.plan.rows * this.plan.tileHeight;
         const x = outputColumn * this.plan.tileWidth - xScroll;
         const y = outputRow * this.plan.tileHeight - yScroll;
-        const transparentMask = this.plan.transparentPen === undefined || (_flags & 0x80)
-          ? 0
-          : 1 << this.plan.transparentPen;
+        let transparentMask = 0;
+        if (!(_flags & 0x80)) {
+          if (this.plan.transparentIndirect !== undefined) {
+            transparentMask = gfx.indirectMask(tile.color, this.plan.transparentIndirect);
+          } else if (this.plan.transparentPen !== undefined) {
+            transparentMask = 1 << this.plan.transparentPen;
+          }
+        }
         for (const wrappedX of wrappedPositions(x, mapWidth, clip.min_x, clip.max_x)) {
           for (const wrappedY of wrappedPositions(y, mapHeight, clip.min_y, clip.max_y)) {
             gfx.draw(

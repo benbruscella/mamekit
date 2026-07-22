@@ -10,12 +10,19 @@ interface DeviceMember {
   valueType: string;
   bits?: 1 | 8 | 16 | 32;
   initial?: number;
+  values?: number[];
 }
 
 interface DeviceCallback {
   signal: string;
   member: string;
   slots: number;
+  initial?: number;
+}
+
+interface DeviceTimer {
+  member: string;
+  callback: string;
 }
 
 interface DeviceMethod {
@@ -29,6 +36,7 @@ export interface GeneratedDeviceDefinition {
   constants: Record<string, number>;
   members: DeviceMember[];
   callbacks: DeviceCallback[];
+  timers?: DeviceTimer[];
   methods: DeviceMethod[];
   start?: string;
   reset?: string;
@@ -37,10 +45,11 @@ export interface GeneratedDeviceDefinition {
   };
 }
 
-export type DeviceCallbackListener = (...args: number[]) => void;
+export type DeviceCallbackListener = (...args: number[]) => number | void;
 
 export interface Device {
   reset(): void;
+  tick(seconds: number): void;
   call(name: string, ...args: number[]): number;
   get(name: string): number;
   set(name: string, value: number): void;
@@ -48,6 +57,7 @@ export interface Device {
   arity(name: string): number;
   signalNames(): readonly string[];
   on(signal: string, listener: DeviceCallbackListener, slot?: number): Device;
+  bindCall(name: string, listener: (...args: number[]) => unknown): Device;
 }
 
 const DEFINITIONS = new Map<string, GeneratedDeviceDefinition>();
@@ -69,10 +79,37 @@ export function hasGeneratedDevice(type: string): boolean {
   return DEFINITIONS.has(type.toUpperCase());
 }
 
-export function createDevice(type: string): Device {
+export function createDevice(type: string, options: { clock?: number } = {}): Device {
   const definition = DEFINITIONS.get(type.toUpperCase());
   if (!definition) throw new Error(`generated device "${type}" was not registered`);
-  return new IrDevice(definition);
+  return new IrDevice(definition, options.clock ?? 0);
+}
+
+class IrTimer {
+  private remaining = Infinity;
+  private period = Infinity;
+  private parameter = 0;
+
+  adjust(delay: number, parameter = 0, period = Infinity): void {
+    this.remaining = Number.isFinite(delay) && delay >= 0 ? delay : Infinity;
+    this.period = Number.isFinite(period) && period > 0 ? period : Infinity;
+    this.parameter = parameter;
+  }
+
+  tick(seconds: number, callback: (parameter: number) => void): void {
+    if (!Number.isFinite(this.remaining)) return;
+    this.remaining -= seconds;
+    let firings = 0;
+    while (this.remaining <= 0) {
+      if (++firings > 65_536) throw new Error('generated device timer exceeded 65536 firings');
+      callback(this.parameter);
+      if (!Number.isFinite(this.period)) {
+        this.remaining = Infinity;
+        break;
+      }
+      this.remaining += this.period;
+    }
+  }
 }
 
 class IrDevice implements Device {
@@ -82,12 +119,13 @@ class IrDevice implements Device {
   private readonly methods: Map<string, DeviceMethod>;
   private readonly listeners = new Map<string, DeviceCallbackListener[][]>();
   private readonly bindings: GeneratedHandlerBindings;
+  private readonly timers = new Map<string, { timer: IrTimer; callback: string }>();
 
-  constructor(definition: GeneratedDeviceDefinition) {
+  constructor(definition: GeneratedDeviceDefinition, clock: number) {
     this.definition = definition;
     this.methods = new Map(definition.methods.map(method => [method.name, method]));
     for (const member of definition.members) {
-      this.members[member.name] = member.initial ?? 0;
+      this.members[member.name] = member.values ? [...member.values] : member.initial ?? 0;
       if (member.bits) this.memberBits.set(member.name, member.bits);
     }
     for (const callback of definition.callbacks) {
@@ -95,9 +133,19 @@ class IrDevice implements Device {
       this.listeners.set(callback.signal, slots);
       const emitters = slots.map(listeners =>
         (...args: number[]) => {
-          for (const listener of listeners) listener(...args);
+          let result = callback.initial ?? 0;
+          for (const listener of listeners) {
+            const value = listener(...args);
+            if (value !== undefined) result = value;
+          }
+          return result;
         });
       this.members[callback.member] = callback.slots === 1 ? emitters[0] : emitters;
+    }
+    for (const specification of definition.timers ?? []) {
+      const timer = new IrTimer();
+      this.timers.set(specification.member, { timer, callback: specification.callback });
+      this.members[specification.member] = timer;
     }
 
     const getters: Record<string, () => unknown> = {};
@@ -118,10 +166,13 @@ class IrDevice implements Device {
       calls: {
         save_item: () => 0,
         logerror: () => 0,
+        clock: () => clock,
       },
       referenceCalls,
       callParameters,
     };
+    const pendingTimers = [...this.timers.values()];
+    this.bindings.calls!.timer_alloc = () => pendingTimers.shift()?.timer ?? 0;
     for (const method of definition.methods) {
       const parameters = splitParameters(method.parameters);
       callParameters[method.name] = parameters;
@@ -134,6 +185,12 @@ class IrDevice implements Device {
 
   reset(): void {
     if (this.definition.reset) this.call(this.definition.reset);
+  }
+
+  tick(seconds: number): void {
+    for (const { timer, callback } of this.timers.values()) {
+      timer.tick(seconds, parameter => this.call(callback, parameter));
+    }
   }
 
   call(name: string, ...args: number[]): number {
@@ -171,6 +228,11 @@ class IrDevice implements Device {
       throw new Error(`${this.definition.type} callback "${signal}" has no slot ${slot}`);
     }
     listeners.push(listener);
+    return this;
+  }
+
+  bindCall(name: string, listener: (...args: number[]) => unknown): Device {
+    this.bindings.calls![name] = listener;
     return this;
   }
 

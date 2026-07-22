@@ -2,7 +2,7 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { GraphBuilder, type KnowledgeGraph, type PropValue } from './types.ts';
 import {
-  MameAstIndex, parseCallChain, parseMameAst, spanProps,
+  MameAstIndex, parseCallChain, parseMameAst, spanProps, splitMameArgs,
   type MameFunction, type SourceSpan,
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
@@ -294,6 +294,15 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         type: dev.type, tag: dev.tag, clock: dev.clock, config: dev.config,
         ...spanProps(ast.findStatement(dev.config[0] ?? '', cfgFunction)?.span),
       };
+      const configCalls = dev.config.flatMap(raw => {
+        const call = /(?:\w+|m_\w+)\s*(?:->|\.)\s*(\w+)\s*\(([\s\S]*)\)\s*;?$/.exec(raw.trim());
+        if (!call) return [];
+        const values = splitMameArgs(call[2]!).map(value => evalExpr(value, consts));
+        return values.every((value): value is number => value !== null)
+          ? [`${call[1]}(${values.join(',')})`]
+          : [];
+      });
+      if (configCalls.length) props.configCalls = configCalls;
       if (dev.clockExpr) props.clockExpr = dev.clockExpr;
       if (dev.screenRaw) {
         props.screenRaw = [
@@ -645,6 +654,7 @@ const CALLBACK_OPERATIONS = new Set([
   'set', 'append', 'set_ioport', 'set_inputline', 'append_inputline', 'set_nop',
   'set_screen_update', 'set_vblank_int', 'set_periodic_int',
   'set_irq_acknowledge_callback',
+  'set_maincpu',
 ]);
 
 function emitCallbacks(
@@ -711,6 +721,10 @@ function emitCallbacks(
     if (operation.name.includes('inputline')) {
       const line = operation.args.find(arg => /INPUT_LINE_|^\d+$/.test(arg.trim()));
       if (line) props.inputLine = line.trim();
+    }
+    if (operation.name === 'set_maincpu') {
+      props.signal = 'nmi';
+      props.inputLine = 'INPUT_LINE_NMI';
     }
     if (func) {
       props.targetClass = func[1] ?? '';
