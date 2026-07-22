@@ -20,6 +20,7 @@ interface SoundWrite {
   offset: number;
   data: number;
   frac?: number;
+  method?: string;
 }
 
 interface AudioProbe {
@@ -96,7 +97,7 @@ export async function runGameAcceptance(
       boardConfig: ShellConfig['board'],
       regions: Regions,
       inputs: KeyboardInput,
-      sinks: { soundWrite(offset: number, data: number, frac?: number): void },
+      sinks: { soundWrite(offset: number, data: number, frac?: number, method?: string): void },
     ): Board;
   };
 
@@ -112,8 +113,8 @@ export async function runGameAcceptance(
     regions,
     input,
     {
-      soundWrite: (offset, data, frac) => {
-        const write = { offset, data, frac };
+      soundWrite: (offset, data, frac, method) => {
+        const write = { offset, data, frac, method };
         pendingWrites.push(write);
         allWrites.push(write);
       },

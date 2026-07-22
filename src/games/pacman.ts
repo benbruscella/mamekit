@@ -23,17 +23,35 @@ export const pacman: GameTestContract = {
       proms: 'c1e7e6a7',
     },
     checkpoints: {
-      1: { video: '1556d338', state: '0e2ea5f3' },
-      60: { video: '1556d338', state: '3665b638' },
-      180: { video: '7e928035', state: '1e93e277' },
-      300: { video: '189e0035', state: '201babd2' },
-      420: { video: '06b7df05', state: '70b06825' },
-      600: { video: 'edb2c3f1', state: 'd4e273cc' },
+      '1': {
+        video: '1556d338',
+        state: '0e2ea5f3',
+      },
+      '60': {
+        video: '1556d338',
+        state: '3665b638',
+      },
+      '180': {
+        video: '7e928035',
+        state: '1e93e277',
+      },
+      '300': {
+        video: '189e0035',
+        state: '201babd2',
+      },
+      '420': {
+        video: '06b7df05',
+        state: '70b06825',
+      },
+      '600': {
+        video: 'edb2c3f1',
+        state: 'd4e273cc',
+      },
     },
     audio: {
-      writes: 5830,
+      writes: 5831,
       nonzeroWrites: 2375,
-      writeHash: '3706a0ca',
+      writeHash: 'c405cf49',
       pcmHash: '30c742bc',
       rms: 0.170869,
     },

@@ -40,9 +40,20 @@ output.flush();
 output.flush();
 await output.start({ sampleRate: 48_000, refresh: 60 }, 'test-worklet.js', 'test');
 
+// Frames emulated before start() are history: they collapse into ONE batch so
+// the worklet never boots with a multi-frame backlog of permanent latency.
 assert.deepEqual(messages.slice(1), [
   { type: 'batch', writes: [{ offset: 3, data: 7, frac: 0.25 }] },
+]);
+
+// Post-start frames keep their boundaries, and writes carry the routing
+// method name when the board supplies one.
+output.write(1, 2, 0.5, 'sound_w');
+output.flush();
+output.flush();
+assert.deepEqual(messages.slice(2), [
+  { type: 'batch', writes: [{ offset: 1, data: 2, frac: 0.5, method: 'sound_w' }] },
   { type: 'batch', writes: [] },
 ]);
 
-console.log('audio.spec: 1 passed');
+console.log('audio.spec: 2 passed');

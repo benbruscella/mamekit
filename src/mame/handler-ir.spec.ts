@@ -96,4 +96,55 @@ assert.equal(executeGeneratedHandler(tileFlipXy, {}, { data: 1 }), 2);
 assert.equal(executeGeneratedHandler(tileFlipXy, {}, { data: 2 }), 1);
 assert.equal(executeGeneratedHandler(tileFlipXy, {}, { data: 3 }), 3);
 
-console.log('handler-ir.spec: 15 passed');
+// C number literals: octal, binary, hex/decimal suffixes, floats.
+const octal = compileMameHandler('return data & 017;');
+assert.deepEqual(octal.diagnostics, []);
+assert.equal(executeGeneratedHandler(octal, {}, { data: 0xff }), 0x0f);
+
+const binaryLiteral = compileMameHandler('return data & 0b1010;');
+assert.deepEqual(binaryLiteral.diagnostics, []);
+assert.equal(executeGeneratedHandler(binaryLiteral, {}, { data: 0xff }), 0b1010);
+
+const suffixed = compileMameHandler('return 0x10UL + 5u;');
+assert.deepEqual(suffixed.diagnostics, []);
+assert.equal(executeGeneratedHandler(suffixed, {}), 0x15);
+
+// Trailing hex digits must never be eaten as f/l suffixes.
+const hexTrailing = compileMameHandler('return (data & 0x0f) + 0xff + 0xffUL;');
+assert.deepEqual(hexTrailing.diagnostics, []);
+assert.equal(executeGeneratedHandler(hexTrailing, {}, { data: 0x3a }), 0x0a + 0xff + 0xff);
+
+const floatLiteral = compileMameHandler('return 0.25f + 1.5;');
+assert.deepEqual(floatLiteral.diagnostics, []);
+assert.equal(executeGeneratedHandler(floatLiteral, {}), 1.75);
+
+// MAME BIT(x, n, w) extracts a w-bit field, not a single bit.
+const bitField = compileMameHandler('return BIT(offset, 4, 3);');
+assert.deepEqual(bitField.diagnostics, []);
+assert.equal(executeGeneratedHandler(bitField, {}, { offset: 0x30 }), 3);
+assert.equal(executeGeneratedHandler(bitField, {}, { offset: 0x70 }), 7);
+
+// u32 values with bit 31 set shift logically, like C++ unsigned >>.
+const highShift = compileMameHandler('return rgb_t::black() >> 24;');
+assert.deepEqual(highShift.diagnostics, []);
+assert.equal(executeGeneratedHandler(highShift, {}), 0xff);
+
+// Negative (signed) values keep the arithmetic shift.
+const signedShift = compileMameHandler('return (0 - 16) >> 2;');
+assert.deepEqual(signedShift.diagnostics, []);
+assert.equal(executeGeneratedHandler(signedShift, {}), -4);
+
+// Integer division truncates; float division must not.
+const intDivision = compileMameHandler('return 7 / 2;');
+assert.deepEqual(intDivision.diagnostics, []);
+assert.equal(executeGeneratedHandler(intDivision, {}), 3);
+
+const floatDivision = compileMameHandler('return 0.6 / 3;');
+assert.deepEqual(floatDivision.diagnostics, []);
+assert.ok(Math.abs((executeGeneratedHandler(floatDivision, {}) as number) - 0.2) < 1e-12);
+
+const rcDivision = compileMameHandler('return 1 / (RES_K(47) * CAP_U(1));');
+assert.deepEqual(rcDivision.diagnostics, []);
+assert.ok(Math.abs((executeGeneratedHandler(rcDivision, {}) as number) - 21.2765957) < 1e-4);
+
+console.log('handler-ir.spec: 27 passed');

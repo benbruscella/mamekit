@@ -243,12 +243,6 @@ export function lowerGeneratedMachine(
             deviceTag: generatedSoundboard.tag,
             deviceType: generatedSoundboard.type,
             writeMethods,
-            writeMethodOffsets: Object.fromEntries(
-              writeMethods.map((method, offset) => [
-                method,
-                offset * (generatedSoundboard.type.endsWith('_SOUND') ? 0x100 : 1),
-              ]),
-            ),
             enableMethods: [],
             controlOffset: -1,
           };

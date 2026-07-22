@@ -95,7 +95,7 @@ export interface BoardSinks {
    * burst, so without it every write lands at the same instant and fast SFX
    * sweeps quantize into chirpy stair-steps. Pass it whenever known.
    */
-  soundWrite: (offset: number, data: number, frac?: number) => void;
+  soundWrite: (offset: number, data: number, frac?: number, method?: string) => void;
   /**
    * Bulk sample-data push to the worklet (NES DMC: the APU DSP runs in the
    * worklet and cannot read CPU memory, so the board snapshots the sample

@@ -510,11 +510,9 @@ class IrBoard implements Board {
     for (const method of sound.writeMethods) {
       const key = `${sound.deviceTag}.${method}`;
       registry.write[key] = (_address, offset, data) => {
-        sinks.soundWrite(
-          (sound.writeMethodOffsets?.[method] ?? 0) + offset,
-          data,
-          this.soundFraction(),
-        );
+        // Raw register offset plus the method name: worklets route by name,
+        // so no offset-numbering convention exists between the two sides.
+        sinks.soundWrite(offset, data, this.soundFraction(), method);
       };
     }
   }

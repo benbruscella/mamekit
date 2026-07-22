@@ -290,7 +290,6 @@ export interface GeneratedSoundBinding {
   deviceTags?: string[];
   deviceType: string;
   writeMethods: string[];
-  writeMethodOffsets?: Record<string, number>;
   enableMethods: string[];
   controlOffset: number;
   routes?: GeneratedAudioRoute[];
@@ -379,9 +378,11 @@ export function wireDeviceCallbacks(
   return { bound, ignored };
 }
 
-function applySignalTransforms(value: number, transforms: string[] = []): number {
+export function applySignalTransforms(value: number, transforms: string[] = []): number {
   let result = value;
   for (const transform of transforms) {
+    // devcb invert() complements the callback's full width; the KG only
+    // extracts invert from line callbacks today, where the width is one bit.
     if (transform === 'invert') result ^= 1;
     const mask = /^mask\((0x[\da-f]+|\d+)\)$/i.exec(transform);
     if (mask) result &= Number(mask[1]);

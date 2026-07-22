@@ -38,6 +38,9 @@ const MIME: Record<string, string> = {
  * so source extraction alone can never be mistaken for playability. */
 export async function gamesManifest(outRoot: string, artDir: string): Promise<string> {
   const games: unknown[] = [];
+  // Fail CLOSED when the closure manifest is missing or unparseable: a stale
+  // board.js without its manifest must never present as playable (a stale
+  // bundle plus a fresh manifest burned us on junofrst once already).
   const hardware = await readFile(
     join(outRoot, 'runtime/generated/hardware-manifest.json'),
     'utf8',
@@ -48,7 +51,7 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
       executable?: boolean;
       uses: { game: string }[];
     }[];
-  }, () => ({ hardware: [] }));
+  }, () => null);
   for (const category of GAME_CATEGORIES) {
     const entries = await readdir(join(outRoot, 'games', category)).catch(() => [] as string[]);
     for (const entry of entries) {
@@ -59,15 +62,17 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
         meta.category = category;
         meta.dataPath = gameDataPath(category, entry);
         meta.hasArt = await stat(join(artDir, `${entry}.zip`)).then(() => true, () => false);
-        const generationGaps = (hardware.hardware ?? [])
-          .filter(candidate => candidate.uses.some(use => use.game === entry))
-          .filter(candidate =>
-            candidate.status !== 'declarative-host' && !candidate.executable)
-          .map(candidate => candidate.type)
-          .sort();
+        const generationGaps = hardware === null
+          ? ['hardware-manifest.json missing or unreadable']
+          : (hardware.hardware ?? [])
+              .filter(candidate => candidate.uses.some(use => use.game === entry))
+              .filter(candidate =>
+                candidate.status !== 'declarative-host' && !candidate.executable)
+              .map(candidate => candidate.type)
+              .sort();
         const boardCompiled = await stat(join(dir, 'generated/board.js'))
           .then(() => true, () => false);
-        meta.supported = boardCompiled && generationGaps.length === 0;
+        meta.supported = hardware !== null && boardCompiled && generationGaps.length === 0;
         meta.generationGaps = generationGaps;
         games.push(meta);
       } catch { /* not a generated game dir */ }

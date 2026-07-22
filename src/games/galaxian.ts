@@ -25,18 +25,39 @@ export const galaxian: GameTestContract = {
       proms: 'c3ac9467',
     },
     checkpoints: {
-      1: { video: 'f7e6ac81', state: 'be17ce9d' },
-      60: { video: 'eccebf8e', state: '1419bc9e' },
-      180: { video: '91227fd8', state: '53aefead' },
-      300: { video: 'd63f2643', state: '216d30f1' },
-      480: { video: '2727e0da', state: 'b9383f89' },
-      500: { video: 'f002958b', state: '0edb7399' },
-      900: { video: '1aee009f', state: '055823fc' },
+      '1': {
+        video: 'f7e6ac81',
+        state: 'be17ce9d',
+      },
+      '60': {
+        video: 'eccebf8e',
+        state: '1419bc9e',
+      },
+      '180': {
+        video: '91227fd8',
+        state: '53aefead',
+      },
+      '300': {
+        video: 'd63f2643',
+        state: '216d30f1',
+      },
+      '480': {
+        video: '2727e0da',
+        state: 'b9383f89',
+      },
+      '500': {
+        video: 'f002958b',
+        state: '0edb7399',
+      },
+      '900': {
+        video: '1aee009f',
+        state: '055823fc',
+      },
     },
     audio: {
       writes: 4002,
       nonzeroWrites: 2175,
-      writeHash: '9bc84a53',
+      writeHash: 'dbbd04b8',
       pcmHash: 'd04601f8',
       rms: 0.104197,
     },

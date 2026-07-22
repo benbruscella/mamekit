@@ -9,7 +9,12 @@ import type {
   GeneratedHandlerProgram,
   GeneratedMachine,
 } from './generated-machine.ts';
-import { callbackTarget, wireDeviceCallbacks, type WiringResult } from './generated-machine.ts';
+import {
+  applySignalTransforms,
+  callbackTarget,
+  wireDeviceCallbacks,
+  type WiringResult,
+} from './generated-machine.ts';
 
 export interface GeneratedHandlerBindings {
   /** MAME member names, including the leading m_ used in the source. */
@@ -247,7 +252,7 @@ export function dispatchGeneratedCallback(
         candidate.program &&
         candidate.program.diagnostics.length === 0)
     : undefined;
-  const transformed = callback.transforms?.includes('invert') ? state ^ 1 : state;
+  const transformed = applySignalTransforms(state, callback.transforms);
   if (endpoint) {
     endpoint(transformed);
     return { bound: [target!], ignored: [] };
@@ -599,10 +604,14 @@ function evaluateCall(
       return generated(...generatedCallArguments(name, expression.args, context));
     }
     const args = expression.args.map(arg => evaluate(arg, context));
-    if (name === 'BIT') return (toNumber(args[0]) >> toNumber(args[1])) & 1;
+    if (name === 'BIT') {
+      // MAME BIT(x, n) extracts one bit; BIT(x, n, w) extracts a w-bit field.
+      const width = args.length > 2 ? toNumber(args[2]) : 1;
+      return (toNumber(args[0]) >> toNumber(args[1])) & ((1 << width) - 1);
+    }
     if (name === 'BITSWAP') {
       const source = toNumber(args[0]);
-      return args.slice(1).reduce(
+      return args.slice(1).reduce<number>(
         (result, bit) => (result << 1) | ((source >> toNumber(bit)) & 1),
         0,
       );
@@ -834,11 +843,26 @@ function binary(operator: string, left: number, right: number): number {
   if (operator === '>') return left > right ? 1 : 0;
   if (operator === '>=') return left >= right ? 1 : 0;
   if (operator === '<<') return left << right;
-  if (operator === '>>') return left >> right;
+  if (operator === '>>') {
+    // C++ >> on unsigned operands is a logical shift. The IR is untyped, so
+    // infer signedness from the value: JS-negative means a signed C++ value
+    // (arithmetic shift); non-negative u32 values with bit 31 set (for
+    // example rgb_t 0xff000000) must not sign-extend, and wider-than-32-bit
+    // values shift via division rather than ToInt32 truncation.
+    if (left < 0) return left >> right;
+    if (left <= 0xffffffff) return left >>> right;
+    return Math.floor(left / 2 ** right);
+  }
   if (operator === '+') return left + right;
   if (operator === '-') return left - right;
   if (operator === '*') return left * right;
-  if (operator === '/') return Math.trunc(left / right);
+  if (operator === '/') {
+    // C++ integer division truncates; float division must not. The IR is
+    // untyped, so treat the operation as integral only when both operands
+    // are integers (float literals and CAP_/RES_-derived values stay exact).
+    const quotient = left / right;
+    return Number.isInteger(left) && Number.isInteger(right) ? Math.trunc(quotient) : quotient;
+  }
   if (operator === '%') return left % right;
   return 0;
 }

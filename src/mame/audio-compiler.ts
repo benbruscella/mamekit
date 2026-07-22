@@ -798,7 +798,12 @@ export function generatedCounterLfsrDiscreteWorkletSource(
 // lowered from the selected MAME discrete sound device and netlist.
 const plan = ${JSON.stringify(plan, null, 2)};
 
-export interface GeneratedDiscreteWrite { offset: number; data: number; frac?: number }
+export interface GeneratedDiscreteWrite {
+  offset: number;
+  data: number;
+  frac?: number;
+  method?: string;
+}
 
 const clamp = (value: number): number => Math.max(-1, Math.min(1, value));
 
@@ -858,21 +863,28 @@ export class GeneratedDiscreteAudioCore {
     this.hitB2 = -this.hitB0;
   }
 
-  write(encodedOffset: number, data: number): void {
-    const method = Object.entries(plan.methodBases)
-      .find(([, base]) => encodedOffset >= base && encodedOffset < base + 0x100);
-    if (!method) return;
-    const offset = encodedOffset - method[1];
+  write(encodedOffset: number, data: number, methodName?: string): void {
+    // Boards send the raw register offset plus the target method name; the
+    // legacy numeric methodBases decoding remains for un-named writes only.
+    let name = methodName;
+    let offset = encodedOffset;
+    if (name === undefined) {
+      const method = Object.entries(plan.methodBases)
+        .find(([, base]) => encodedOffset >= base && encodedOffset < base + 0x100);
+      if (!method) return;
+      name = method[0];
+      offset = encodedOffset - method[1];
+    }
     data &= 0xff;
-    if (method[0] === plan.methodRoles.pitch) {
+    if (name === plan.methodRoles.pitch) {
       this.pitch = data;
       return;
     }
-    if (method[0] === plan.methodRoles.lfo) {
+    if (name === plan.methodRoles.lfo) {
       this.lfoValue = (this.lfoValue & ~(1 << offset)) | ((data & 1) << offset);
       return;
     }
-    if (method[0] !== plan.methodRoles.controls) return;
+    if (name !== plan.methodRoles.controls) return;
     const bit = (data & 1) !== 0;
     const background = plan.controls.background.indexOf(offset);
     if (background >= 0) {
@@ -1019,7 +1031,7 @@ export class GeneratedDiscreteAudioFrameRenderer {
     for (const write of writes) {
       const at = Math.ceil(Math.max(0, Math.min(1, write.frac ?? 0)) * count);
       while (index < at) output[index++] = this.core.sample();
-      this.core.write(write.offset, write.data);
+      this.core.write(write.offset, write.data, write.method);
     }
     while (index < count) output[index++] = this.core.sample();
     return output;
@@ -1045,7 +1057,8 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
     this.port.onmessage = (event: MessageEvent) => {
       const message = event.data as {
         type: string; clock?: number; refresh?: number;
-        offset?: number; data?: number; writes?: GeneratedDiscreteWrite[];
+        offset?: number; data?: number; method?: string;
+        writes?: GeneratedDiscreteWrite[];
       };
       if (message.type === 'init') {
         this.core = new GeneratedDiscreteAudioCore(sampleRate, message.clock ?? 3_072_000);
@@ -1053,9 +1066,10 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
           this.core, sampleRate, message.refresh ?? 60.606,
         );
       } else if (message.type === 'write') {
-        this.core?.write(message.offset ?? 0, message.data ?? 0);
+        this.core?.write(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
+        while (this.frames.length > 8) this.frames.shift();
       }
     };
   }
@@ -1404,6 +1418,7 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
         refresh?: number;
         offset?: number;
         data?: number;
+        method?: string;
         writes?: GeneratedAyWrite[];
       };
       if (message.type === 'init') {
@@ -1422,7 +1437,10 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
       } else if (message.type === 'write') {
         this.mixer?.write(message.offset ?? 0, message.data ?? 0);
       } else if (message.type === 'batch') {
-        if (this.renderer) this.frames.push(this.renderer.render(message.writes ?? []));
+        if (this.renderer) {
+          this.frames.push(this.renderer.render(message.writes ?? []));
+          while (this.frames.length > 8) this.frames.shift();
+        }
       }
     };
   }
@@ -1463,7 +1481,12 @@ export function generatedDiscreteSn76477WorkletSource(
 // component models rather than copied into a hand-written game runtime.
 const plan = ${JSON.stringify(plan, null, 2)};
 
-export interface GeneratedDiscreteWrite { offset: number; data: number; frac?: number }
+export interface GeneratedDiscreteWrite {
+  offset: number;
+  data: number;
+  frac?: number;
+  method?: string;
+}
 
 interface VoiceState {
   env: number;
@@ -1500,7 +1523,14 @@ export class GeneratedDiscreteAudioCore {
     this.sampleRate = outputRate;
   }
 
-  write(offset: number, data: number): void {
+  write(offset: number, data: number, methodName?: string): void {
+    // Boards route writes by method name; plan.ports carries the lowered
+    // method -> port table, so no offset-numbering convention is shared.
+    if (methodName !== undefined) {
+      const port = plan.ports.find(entry => entry.method === methodName);
+      if (!port) return;
+      offset = port.offset;
+    }
     if (offset < 0 || offset >= this.ports.length) return;
     const previous = this.ports[offset] ?? 0;
     this.ports[offset] = data & 0xff;
@@ -1673,7 +1703,7 @@ export class GeneratedDiscreteAudioFrameRenderer {
     for (const write of writes) {
       const writeSample = Math.ceil(Math.max(0, Math.min(1, write.frac ?? 0)) * count);
       while (sampleIndex < writeSample) output[sampleIndex++] = this.core.sample();
-      this.core.write(write.offset, write.data);
+      this.core.write(write.offset, write.data, write.method);
     }
     while (sampleIndex < count) output[sampleIndex++] = this.core.sample();
     return output;
@@ -1702,6 +1732,7 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
         refresh?: number;
         offset?: number;
         data?: number;
+        method?: string;
         writes?: GeneratedDiscreteWrite[];
       };
       if (message.type === 'init') {
@@ -1712,9 +1743,10 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
           message.refresh ?? 60,
         );
       } else if (message.type === 'write') {
-        this.core?.write(message.offset ?? 0, message.data ?? 0);
+        this.core?.write(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
+        while (this.frames.length > 8) this.frames.shift();
       }
     };
   }
@@ -1843,6 +1875,7 @@ class GeneratedNamcoWsgProcessor extends AudioWorkletProcessor {
         clock?: number;
         offset?: number;
         data?: number;
+        method?: string;
         writes?: { offset: number; data: number }[];
       };
       if (message.type === 'init') {
