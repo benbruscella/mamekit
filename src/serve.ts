@@ -49,6 +49,8 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
       type: string;
       status: string;
       executable?: boolean;
+      /** internal part satisfied by these executable host devices */
+      hostedBy?: string[];
       uses: { game: string }[];
     }[];
   }, () => null);
@@ -67,7 +69,9 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
           : (hardware.hardware ?? [])
               .filter(candidate => candidate.uses.some(use => use.game === entry))
               .filter(candidate =>
-                candidate.status !== 'declarative-host' && !candidate.executable)
+                candidate.status !== 'declarative-host' &&
+                !candidate.executable &&
+                !candidate.hostedBy?.length)
               .map(candidate => candidate.type)
               .sort();
         const boardCompiled = await stat(join(dir, 'generated/board.js'))

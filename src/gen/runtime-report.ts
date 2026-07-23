@@ -38,6 +38,8 @@ export interface HardwareGenerationEntry {
   type: string;
   status: 'source-resolved' | 'declarative-host' | 'unresolved';
   executable?: boolean;
+  /** internal part satisfied by these executable host devices */
+  hostedBy?: string[];
   executableKind?: 'cpu' | 'device' | 'audio';
   executableArtifact?: string;
   definition?: {
@@ -106,6 +108,12 @@ function hardwareStatus(entry: HardwareGenerationEntry | undefined): {
 } {
   if (!entry) return { status: 'missing', reason: 'not present in generated hardware closure' };
   if (entry.executable) return { status: 'executable' };
+  if (entry.hostedBy?.length) {
+    return {
+      status: 'executable',
+      reason: `internal part of executable ${entry.hostedBy.join(', ')}`,
+    };
+  }
   if (entry.status === 'declarative-host') return { status: 'declarative-host' };
   if (entry.status === 'source-resolved') {
     return { status: 'blocked', reason: 'MAME source resolved but executable lowering is incomplete' };

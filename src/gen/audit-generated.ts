@@ -54,6 +54,8 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     type: string;
     status: string;
     executable?: boolean;
+    /** internal part satisfied by these executable host devices */
+    hostedBy?: string[];
     uses?: { game: string }[];
   }[] = [];
   const manifestPath = join(outRoot, 'runtime/generated/hardware-manifest.json');
@@ -65,6 +67,8 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
         type: string;
         status: string;
         executable?: boolean;
+        /** internal part satisfied by these executable host devices */
+        hostedBy?: string[];
         executableKind?: 'cpu' | 'device' | 'audio' | 'composition';
         executableArtifact?: string;
         uses?: { game: string }[];
@@ -192,7 +196,10 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
       }
       const expectedGaps = hardwareEntries
         .filter(entry => entry.uses?.some(use => use.game === target))
-        .filter(entry => entry.status !== 'declarative-host' && !entry.executable)
+        .filter(entry =>
+          entry.status !== 'declarative-host' &&
+          !entry.executable &&
+          !entry.hostedBy?.length)
         .map(entry => entry.type)
         .sort();
       const actualGapTypes = (report.generationGaps ?? [])

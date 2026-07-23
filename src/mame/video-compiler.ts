@@ -331,6 +331,20 @@ function compilePalette(
       ?? lookupExpression;
     const lookupIndex = /color_prom\[\s*([^\]]+)\s*\]/.exec(lookupExpression)?.[1];
     const usesPostIncrement = /\*\s*color_prom\s*\+\+/.test(lookupExpression);
+    // Identity mappings like set_pen_indirect(base + i, 32 + i) carry no PROM
+    // lookup: pen N maps straight to color offset + N.
+    if (
+      method === 'palette.set_pen_indirect' &&
+      !lookupIndex && !usesPostIncrement && !loop.body.includes('color_prom')
+    ) {
+      return [{
+        penOffset: expressionAt(args[0]!, loop.start),
+        colorOr: expressionAt(lookupExpression, loop.start),
+        lookupOffset: 0,
+        lookupCount: Math.max(0, loop.end - loop.start),
+        direct: true,
+      }];
+    }
     const currentPostIncrementOffset = postIncrementOffset;
     if (usesPostIncrement) postIncrementOffset += Math.max(0, loop.end - loop.start);
     return [{
@@ -371,6 +385,7 @@ function compilePalette(
     return undefined;
   }
   const args = weightsCall ? splitMameArgs(weightsCall) : [];
+  const computedColors = compileComputedColorGroups(body, paletteLoop, loops);
   return {
     region,
     colorCount: direct
@@ -380,6 +395,7 @@ function compilePalette(
     max: weightsCall ? expressionNumber(args[1], constants) : 255,
     scaler: weightsCall ? Number(args[2]) || -1 : 1,
     channels,
+    ...(computedColors.length ? { computedColors } : {}),
     lookupOffset,
     lookupCount: banks[0]!.lookupCount ?? 0,
     lookupMask,
@@ -387,6 +403,127 @@ function compilePalette(
     transparentIndirect: 0,
     source: sourceRef(fn),
   };
+}
+
+/**
+ * Lower indirect-color loops whose channels are computed from the color
+ * INDEX bits through their own resistor network — MAME's 05xx star palette
+ * shape: `r = combine_weights(rsweights, BIT(i, 0), BIT(i, 1))` followed by
+ * `set_indirect_color(base + i, rgb_t(r, g, b))`.
+ */
+function compileComputedColorGroups(
+  body: string,
+  paletteLoop: { start: number; end: number; body: string } | undefined,
+  loops: { start: number; end: number; body: string }[],
+): NonNullable<GeneratedPromPalettePlan['computedColors']> {
+  const networks = parseResistorNetworks(body);
+  const groups: NonNullable<GeneratedPromPalettePlan['computedColors']> = [];
+  for (const loop of loops) {
+    if (loop === paletteLoop || !loop.body.includes('set_indirect_color')) continue;
+    if (loop.body.includes('color_prom')) continue;
+    const call = findCallArguments(loop.body, 'palette.set_indirect_color') ??
+      findCallArguments(loop.body, 'set_indirect_color');
+    if (!call) continue;
+    const base = expressionAt(splitMameArgs(call)[0] ?? '0', loop.start);
+    const channelRe =
+      /(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*combine_weights\(\s*(\w+)\s*,\s*([^;]+)\)\s*;/g;
+    const channels: NonNullable<GeneratedPromPalettePlan['computedColors']>[number]['channels'] = [];
+    let network:
+      | { resistances: number[]; pulldown: number; pullup: number;
+          min: number; max: number; scaler: number }
+      | undefined;
+    let match: RegExpExecArray | null;
+    while ((match = channelRe.exec(loop.body)) !== null) {
+      const candidate = networks.get(match[2]!);
+      if (!candidate) continue;
+      const bits = [...match[3]!.matchAll(/BIT\(\s*i\s*,\s*(\d+)\s*\)/g)]
+        .map(bit => Number(bit[1]));
+      if (!bits.length) continue;
+      network = candidate;
+      channels.push({
+        channel: match[1] as 'r' | 'g' | 'b',
+        bits,
+        resistances: candidate.resistances,
+        pulldown: candidate.pulldown,
+        pullup: candidate.pullup,
+      });
+    }
+    if (channels.length !== 3 || !network) continue;
+    groups.push({
+      base,
+      count: Math.max(0, loop.end - loop.start),
+      min: network.min,
+      max: network.max,
+      scaler: network.scaler,
+      channels,
+    });
+  }
+  return groups;
+}
+
+/** Parse every compute_resistor_weights call into weight-variable networks. */
+function parseResistorNetworks(body: string): Map<string, {
+  resistances: number[];
+  pulldown: number;
+  pullup: number;
+  min: number;
+  max: number;
+  scaler: number;
+}> {
+  const resistanceArrays = new Map(
+    [...body.matchAll(
+      /(?:static\s+)?(?:constexpr|const)\s+int\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^}]+)\}/g,
+    )].map(match => [
+      match[1]!,
+      splitMameArgs(match[2]!).map(value => expressionNumber(value)),
+    ]),
+  );
+  const networks = new Map<string, {
+    resistances: number[];
+    pulldown: number;
+    pullup: number;
+    min: number;
+    max: number;
+    scaler: number;
+  }>();
+  let at = 0;
+  while (true) {
+    const index = body.indexOf('compute_resistor_weights(', at);
+    if (index < 0) break;
+    const open = body.indexOf('(', index);
+    const close = matchingPair(body, open, '(', ')');
+    if (close < 0) break;
+    at = close;
+    const args = splitMameArgs(body.slice(open + 1, close));
+    const min = expressionNumber(args[0]);
+    const max = expressionNumber(args[1]);
+    const scaler = Number(args[2]) || -1;
+    for (let position = 3; position + 4 < args.length; position += 5) {
+      const count = expressionNumber(args[position]);
+      if (!count) continue;
+      const resistanceArg = (args[position + 1] ?? '').replace(/^&/, '').trim();
+      const resistanceName = /^(\w+)/.exec(resistanceArg)?.[1] ?? '';
+      const resistanceValues = resistanceArrays.get(resistanceName);
+      if (!resistanceValues) continue;
+      const offset = Number(/\[\s*(\d+)\s*\]/.exec(resistanceArg)?.[1] ?? 0);
+      const weightName = (args[position + 2] ?? '').replace(/^&/, '').trim();
+      // Pulldown/pullup may reference the resistor table (resistances[0]).
+      const resistorValue = (value: string | undefined): number => {
+        const reference = value && /^(\w+)\s*\[\s*(\d+)\s*\]$/.exec(value.trim());
+        if (reference) return resistanceArrays.get(reference[1]!)?.[Number(reference[2])] ?? 0;
+        return expressionNumber(value);
+      };
+      networks.set(weightName, {
+        resistances: resistanceValues.slice(offset, offset + count),
+        pulldown: resistorValue(args[position + 3]),
+        pullup: resistorValue(args[position + 4]),
+        min,
+        max,
+        scaler,
+      });
+    }
+  }
+  return networks;
 }
 
 function compileFixedWeightChannels(

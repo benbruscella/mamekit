@@ -648,9 +648,9 @@ function evaluateCall(
     if (['s32', 'int32_t'].includes(name)) return toNumber(args[0]) | 0;
     if (name === 'bool') return toNumber(args[0]) ? 1 : 0;
     const handler = context.bindings.calls?.[name];
-    if (handler) return handler(...args.map(toNumber));
+    if (handler) return handler(...args.map(callArgument));
     const member = context.bindings.members?.[name];
-    if (typeof member === 'function') return member(...args.map(toNumber));
+    if (typeof member === 'function') return member(...args.map(callArgument));
     return reference(`${name}()`);
   }
   if (expression.callee.kind === 'member') {
@@ -689,7 +689,7 @@ function evaluateCall(
       // board-level reset/hold state is enforced by the frame scheduler.
       if (method === 'suspended') return 0;
       const handler = context.bindings.calls?.[key] ?? context.bindings.calls?.[method];
-      if (handler) return handler(...args.map(toNumber));
+      if (handler) return handler(...args.map(callArgument));
       if (CACHE_ONLY_METHODS.has(method)) return 0;
       return reference(`${key}()`);
     }
@@ -702,7 +702,7 @@ function evaluateCall(
   if (expression.callee.kind === 'index') {
     const callable = evaluate(expression.callee, context);
     const args = expression.args.map(arg => evaluate(arg, context));
-    if (typeof callable === 'function') return callable(...args.map(toNumber));
+    if (typeof callable === 'function') return callable(...args.map(callArgument));
   }
   return 0;
 }
@@ -960,6 +960,17 @@ function isLValue(value: unknown): value is GeneratedLValue {
     typeof (value as GeneratedLValue).get === 'function' &&
     typeof (value as GeneratedLValue).set === 'function',
   );
+}
+
+/**
+ * Arguments crossing into bound calls stay numbers when numeric; objects
+ * (bitmaps, cliprects, timers) pass through untouched so device methods can
+ * receive them from machine handlers.
+ */
+function callArgument(value: unknown): number {
+  if (typeof value === 'object' && value !== null) return value as unknown as number;
+  if (typeof value === 'function') return value as unknown as number;
+  return toNumber(value);
 }
 
 function generatedCallArguments(

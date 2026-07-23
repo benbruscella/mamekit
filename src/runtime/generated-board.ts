@@ -107,9 +107,15 @@ class IrBoard implements Board {
 
     for (const specification of machine.devices ?? []) {
       if (hasGeneratedDevice(specification.type)) {
-        this.devices.set(specification.tag, createDevice(specification.type, {
-          clock: specification.clock,
-        }));
+        const device = createDevice(specification.type, { clock: specification.clock });
+        // Machine-config chained setup calls (m_starfield->set_starfield_config(...))
+        // lowered from the driver's constant arguments.
+        for (const configuration of specification.configuration ?? []) {
+          if (device.methodNames().includes(configuration.method)) {
+            device.call(configuration.method, ...configuration.args);
+          }
+        }
+        this.devices.set(specification.tag, device);
       }
     }
 
@@ -211,12 +217,6 @@ class IrBoard implements Board {
           state === 2,
         );
       };
-      const member = machine.devices?.find(device =>
-        device.tag === specification.tag)?.member;
-      if (member) {
-        calls[`${member}.set_input_line`] = calls[`m_${specification.tag}.set_input_line`]!;
-        calls[`${member}.total_cycles`] = () => this.cpuCycles.get(specification.tag) ?? 0;
-      }
       calls[`m_${specification.tag}.pulse_input_line`] = line => {
         if (line < 0) cpu.nmi();
         else {
@@ -224,6 +224,17 @@ class IrBoard implements Board {
           cpu.setIrqLine(false);
         }
       };
+      calls[`m_${specification.tag}.total_cycles`] = () =>
+        this.cpuCycles.get(specification.tag) ?? 0;
+      // Handlers reference CPUs by their state-member name (m_subcpu2) as
+      // well as by tag; every CPU call gets both aliases uniformly.
+      const member = machine.devices?.find(device =>
+        device.tag === specification.tag)?.member;
+      if (member) {
+        for (const name of ['set_input_line', 'pulse_input_line', 'total_cycles']) {
+          calls[`${member}.${name}`] = calls[`m_${specification.tag}.${name}`]!;
+        }
+      }
     }
     for (const [tag, bytes] of Object.entries(this.shares)) {
       bindGeneratedShareState(this.state, tag, bytes);

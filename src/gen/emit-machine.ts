@@ -186,6 +186,7 @@ export function lowerGeneratedMachine(
       board.screen.refresh,
       board.screen.vtotal,
       board.screen.vbstart,
+      board.screen.vbend ?? 0,
     ),
     ...(screenCallback?.targetClass && screenCallback.targetMethod ? {
       screenUpdate: {
@@ -397,6 +398,7 @@ function lowerFrameEvents(
   refreshHz: number,
   vtotal: number,
   vbstart: number,
+  vbend: number,
 ): GeneratedExecutionPlan['frameEvents'] {
   const events: GeneratedExecutionPlan['frameEvents'] = [];
   for (const callback of callbacks) {
@@ -409,6 +411,18 @@ function lowerFrameEvents(
         state: 1,
         ...(callback.source ? { source: callback.source } : {}),
       });
+      // MAME screen_vblank delegates see both edges; the falling edge lands
+      // at vblank end (handlers like galaga's starfield config run on !state).
+      if (callback.signal === 'screen_vblank') {
+        events.push({
+          callbackId: callback.id,
+          ownerTag: callback.ownerTag,
+          signal: callback.signal,
+          line: vbend,
+          state: 0,
+          ...(callback.source ? { source: callback.source } : {}),
+        });
+      }
       continue;
     }
     if (callback.signal !== 'set_periodic_int' || !callback.periodHz) continue;

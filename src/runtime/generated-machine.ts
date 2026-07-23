@@ -210,6 +210,25 @@ export interface GeneratedPromPalettePlan {
     pulldown: number;
     pullup: number;
   }[];
+  /**
+   * Indirect-color sections computed from the color INDEX bits rather than a
+   * PROM (e.g. the 05xx starfield palette): each channel's bits select bits
+   * of the index and feed a resistor network of its own.
+   */
+  computedColors?: {
+    base: number;
+    count: number;
+    min: number;
+    max: number;
+    scaler: number;
+    channels: {
+      channel: 'r' | 'g' | 'b';
+      bits: number[];
+      resistances: number[];
+      pulldown: number;
+      pullup: number;
+    }[];
+  }[];
   lookupOffset: number;
   lookupCount: number;
   lookupMask: number;
@@ -218,7 +237,7 @@ export interface GeneratedPromPalettePlan {
     colorOr: number;
     lookupOffset?: number;
     lookupCount?: number;
-    /** Direct palettes map pen N to computed color N without a lookup PROM. */
+    /** Direct palettes map pen N to color colorOr + N without a lookup PROM. */
     direct?: boolean;
   }[];
   transparentIndirect: number;
