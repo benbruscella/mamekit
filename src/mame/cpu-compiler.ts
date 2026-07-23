@@ -447,6 +447,12 @@ export function normalizeMameExecutionSource(source: string): string {
   let normalized = source
     .replaceAll('[[fallthrough]];', '')
     .replace(/\bstatic_assert\s*\([^;]*\)\s*;/g, '')
+    .replace(/\bbitswap\s*<\s*\d+\s*>\s*\(/g, 'BITSWAP(')
+    .replace(
+      /\bdo\s*\{([^{}]*)\}\s*while\s*\(\s*--(\w+)\s*\)\s*;/g,
+      (_entry, body: string, counter: string) =>
+        `while (${counter}) { ${body}; ${counter}--; }`,
+    )
     .replace(
       /\bset_service_attention\s*<\s*([^,>]+)\s*,\s*([^>]+)\s*>\s*\(\s*\)/g,
       'set_service_attention($1, $2)',
@@ -459,6 +465,21 @@ export function normalizeMameExecutionSource(source: string): string {
       /\b(?:[\w:<>]+\s+)+\*\s*(\w+)\s*=/g,
       'auto $1 =',
     );
+  for (const match of normalized.matchAll(
+    /\bstatic\s+const\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{\s*((?:\{[^{}]*\}\s*,?\s*)+)\}\s*;/g,
+  )) {
+    const name = match[1]!;
+    const columns = Number(match[3]);
+    const values = [...match[4]!.matchAll(/\{([^{}]*)\}/g)]
+      .flatMap(row => row[1]!.split(',').map(value => value.trim()).filter(Boolean));
+    normalized = normalized
+      .replace(match[0], '')
+      .replace(
+        new RegExp(`\\b${name}\\s*\\[([^\\]]+)\\]\\s*\\[([^\\]]+)\\]`, 'g'),
+        (_entry, row: string, column: string) =>
+          `TABLE((${row}) * ${columns} + (${column}), ${values.join(', ')})`,
+      );
+  }
   for (const match of normalized.matchAll(
     /\bstatic\s+const\s+\w+\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]+)\}\s*;/g,
   )) {

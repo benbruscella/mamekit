@@ -14,7 +14,9 @@ import { compileMameHandler } from './handler-ir.ts';
 import { parseZ80OpcodeDsl } from './opcode-dsl.ts';
 import { compileMameI8080, compileMameZ80 } from './cpu-compiler.ts';
 import { generatedCpuExecutableSource } from './cpu-codegen.ts';
+import { generatedDeviceExecutableSource } from './device-codegen.ts';
 import { compileMameDevice } from './device-compiler.ts';
+import { compileNamco51Protocol } from './namco51-compiler.ts';
 import {
   compileAy8910,
   compileDiscreteSn76477,
@@ -59,6 +61,13 @@ export interface HardwareClosureEntry {
   methods: HardwareMethodIr[];
   dslFiles: string[];
   sourceFiles: string[];
+  /**
+   * Device classes whose own device_add_mconfig declares every use of this
+   * type (e.g. MB8843 exists only as namco_51xx_device's internal MCU). When
+   * every declaring class lowers to an executable device, this entry is
+   * satisfied by that lowering rather than by its own core.
+   */
+  declaredBy?: string[];
 }
 
 export interface HardwareClosure {
@@ -185,6 +194,12 @@ export function buildHardwareClosure(
 ): HardwareClosure {
   const definitions = indexMameHardware(mameSrc);
   const uses = new Map<string, Map<string, Set<string>>>();
+  // Device-node ids encode where the device was declared:
+  //   device:<class>.device_add_mconfig/<tag> — inside another device
+  //   device:<machineConfig>/<tag>            — at board level
+  // A type declared ONLY inside other devices' configs is an internal part.
+  const declaringClasses = new Map<string, Set<string>>();
+  const boardLevel = new Set<string>();
   for (const { game, graph } of targetGraphs) {
     for (const device of graph.nodes.filter(node => node.label === 'Device')) {
       const type = String(device.props.type);
@@ -193,6 +208,14 @@ export function buildHardwareClosure(
       tags.add(String(device.props.tag));
       games.set(game, tags);
       uses.set(type, games);
+      const declared = /^device:(\w+)\.device_add_mconfig\//.exec(device.id);
+      if (declared) {
+        const classes = declaringClasses.get(type) ?? new Set<string>();
+        classes.add(declared[1]!);
+        declaringClasses.set(type, classes);
+      } else {
+        boardLevel.add(type);
+      }
     }
   }
 
@@ -213,6 +236,9 @@ export function buildHardwareClosure(
           methods: [],
           dslFiles: [],
           sourceFiles: [],
+          ...(declaringClasses.has(type) && !boardLevel.has(type)
+            ? { declaredBy: [...declaringClasses.get(type)!].sort() }
+            : {}),
         };
       }
 
@@ -244,6 +270,9 @@ export function buildHardwareClosure(
         methods,
         dslFiles,
         sourceFiles,
+        ...(declaringClasses.has(type) && !boardLevel.has(type)
+          ? { declaredBy: [...declaringClasses.get(type)!].sort() }
+          : {}),
       };
     });
 
@@ -397,7 +426,14 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     : undefined;
   const generatedDevices = new Map(
     closure.hardware
-      .filter(entry => ['GENERIC_LATCH_8', 'LS259', 'MB14241'].includes(entry.type))
+      .filter(entry => [
+        'GENERIC_LATCH_8',
+        'LS259',
+        'MB14241',
+        'NAMCO_06XX',
+        'NAMCO_54XX',
+        'STARFIELD_05XX',
+      ].includes(entry.type))
       .flatMap(entry => {
         if (!entry.definition) return [];
         const device = compileMameDevice(closure.mameSource, entry.definition);
@@ -405,6 +441,9 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
         return [[entry.type, device] as const];
       }),
   );
+  if (closure.hardware.some(entry => entry.type === 'NAMCO_51XX')) {
+    generatedDevices.set('NAMCO_51XX', compileNamco51Protocol());
+  }
   const namcoEntry = closure.hardware.find(entry => entry.type === 'NAMCO_WSG');
   const namcoWsg = namcoEntry?.definition
     ? compileNamcoWsg(closure.mameSource, namcoEntry.definition)
@@ -461,11 +500,25 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     ...(discreteSn76477 ? [discreteSn76477.deviceType, 'SN76477'] : []),
     ...(counterLfsrDiscrete ? [counterLfsrDiscrete.deviceType] : []),
   ]);
+  // A type declared only inside other devices' configs is satisfied when every
+  // declaring class lowers to an executable device (the 51xx protocol device
+  // replaces its internal MB8843 core, so MB8843 is not a generation gap).
+  const classTypes = new Map(closure.hardware
+    .filter(entry => entry.definition)
+    .map(entry => [entry.definition!.className, entry.type] as const));
+  const hostedBy = (entry: HardwareClosureEntry): string[] | undefined => {
+    if (!entry.declaredBy?.length) return undefined;
+    const hosts = entry.declaredBy.map(cls => classTypes.get(cls));
+    return hosts.every(host => host !== undefined && executableTypes.has(host))
+      ? (hosts as string[]).sort()
+      : undefined;
+  };
   const compact = {
     ...closure,
     hardware: closure.hardware.map(entry => ({
       ...compactEntry(entry),
       executable: executableTypes.has(entry.type),
+      ...(hostedBy(entry) ? { hostedBy: hostedBy(entry) } : {}),
       ...(['Z80', 'I8080'].includes(entry.type)
         ? {
             executableKind: 'cpu',
@@ -572,13 +625,10 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
         join(devicesDir, `${slug}.device.ir.json`),
         JSON.stringify(device, null, 2),
       );
-      writeFileSync(join(devicesDir, `${slug}.ts`), `// GENERATED from MAME device source; do not edit.
-import type { GeneratedDeviceDefinition } from '../../core/generated-device.js';
-import deviceData from './${slug}.device.ir.json' with { type: 'json' };
-
-export const device = deviceData as unknown as GeneratedDeviceDefinition;
-export default device;
-`);
+      writeFileSync(
+        join(devicesDir, `${slug}.ts`),
+        generatedDeviceExecutableSource(device, `${slug}.device.ir.json`),
+      );
       continue;
     }
   }

@@ -396,8 +396,12 @@ function emitOperation(
     return lines.filter(Boolean).join('\n');
   }
   if (operation.op === 'for') {
-    const initialize = operation.initialize.map(item =>
-      emitOperation(item, context, 0).trim().replace(/;$/, '')).join(', ');
+    // A multi-declarator C++ for-init lowers to several declare ops; JS allows
+    // only one `let` keyword in the initializer, so strip it from the rest.
+    const initialize = operation.initialize
+      .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+      .map((part, index) => (index > 0 && part.startsWith('let ') ? part.slice(4) : part))
+      .join(', ');
     const iterate = emitOperation(operation.iterate, context, 0).trim().replace(/;$/, '');
     return [
       `${pad}for (${initialize}; ${emitExpression(operation.condition, context)}; ${iterate}) {`,

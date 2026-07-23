@@ -9,7 +9,12 @@ import type {
   GeneratedHandlerProgram,
   GeneratedMachine,
 } from './generated-machine.ts';
-import { callbackTarget, wireDeviceCallbacks, type WiringResult } from './generated-machine.ts';
+import {
+  applySignalTransforms,
+  callbackTarget,
+  wireDeviceCallbacks,
+  type WiringResult,
+} from './generated-machine.ts';
 
 export interface GeneratedHandlerBindings {
   /** MAME member names, including the leading m_ used in the source. */
@@ -87,6 +92,7 @@ const DEFAULT_CONSTANTS: Record<string, number> = {
   TILEMAP_FLIPX: 1,
   TILEMAP_FLIPY: 2,
   TILEMAP_DRAW_OPAQUE: 0x80,
+  'attotime::never': Infinity,
 };
 
 const CACHE_ONLY_METHODS = new Set([
@@ -246,7 +252,7 @@ export function dispatchGeneratedCallback(
         candidate.program &&
         candidate.program.diagnostics.length === 0)
     : undefined;
-  const transformed = callback.transforms?.includes('invert') ? state ^ 1 : state;
+  const transformed = applySignalTransforms(state, callback.transforms);
   if (endpoint) {
     endpoint(transformed);
     return { bound: [target!], ignored: [] };
@@ -560,6 +566,9 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     }
     const left = toNumber(leftValue);
     const right = toNumber(rightValue);
+    if (expression.operator === '/' && isAttotimeExpression(expression.left, context)) {
+      return left / right;
+    }
     return binary(expression.operator, left, right);
   }
   if (expression.kind === 'conditional') {
@@ -595,7 +604,18 @@ function evaluateCall(
       return generated(...generatedCallArguments(name, expression.args, context));
     }
     const args = expression.args.map(arg => evaluate(arg, context));
-    if (name === 'BIT') return (toNumber(args[0]) >> toNumber(args[1])) & 1;
+    if (name === 'BIT') {
+      // MAME BIT(x, n) extracts one bit; BIT(x, n, w) extracts a w-bit field.
+      const width = args.length > 2 ? toNumber(args[2]) : 1;
+      return (toNumber(args[0]) >> toNumber(args[1])) & ((1 << width) - 1);
+    }
+    if (name === 'BITSWAP') {
+      const source = toNumber(args[0]);
+      return args.slice(1).reduce<number>(
+        (result, bit) => (result << 1) | ((source >> toNumber(bit)) & 1),
+        0,
+      );
+    }
     if (name === 'rgb_t::black') return 0xff000000;
     if (name === 'rgb_t::white') return 0xffffffff;
     if (name === 'CAP_P') return toNumber(args[0]) * 1e-12;
@@ -603,6 +623,10 @@ function evaluateCall(
     if (name === 'CAP_U') return toNumber(args[0]) * 1e-6;
     if (name === 'RES_K') return toNumber(args[0]) * 1e3;
     if (name === 'RES_M') return toNumber(args[0]) * 1e6;
+    if (name === 'attotime::from_hz') return 1 / Math.max(1, toNumber(args[0]));
+    if (name === 'attotime::from_ticks') {
+      return toNumber(args[0]) / Math.max(1, toNumber(args[1]));
+    }
     if (name === 'TILE_FLIPYX') return toNumber(args[0]) & 3;
     if (name === 'TILE_FLIPXY') {
       const value = toNumber(args[0]);
@@ -624,9 +648,9 @@ function evaluateCall(
     if (['s32', 'int32_t'].includes(name)) return toNumber(args[0]) | 0;
     if (name === 'bool') return toNumber(args[0]) ? 1 : 0;
     const handler = context.bindings.calls?.[name];
-    if (handler) return handler(...args.map(toNumber));
+    if (handler) return handler(...args.map(callArgument));
     const member = context.bindings.members?.[name];
-    if (typeof member === 'function') return member(...args.map(toNumber));
+    if (typeof member === 'function') return member(...args.map(callArgument));
     return reference(`${name}()`);
   }
   if (expression.callee.kind === 'member') {
@@ -637,6 +661,10 @@ function evaluateCall(
     }
     const object = evaluate(expression.callee.object, context);
     const method = expression.callee.property;
+    if (typeof object === 'number' && method === 'as_ticks') {
+      const clock = Math.max(1, toNumber(evaluate(expression.args[0]!, context)));
+      return Math.floor(object * clock);
+    }
     if (isReference(object)) {
       const key = `${object.reference}.${method}`;
       const generated = context.bindings.referenceCalls?.[key];
@@ -657,8 +685,11 @@ function evaluateCall(
           expression.args[1] ? evaluate(expression.args[1], context) : 0,
         );
       }
+      // Generated devices only execute while their host processor is runnable;
+      // board-level reset/hold state is enforced by the frame scheduler.
+      if (method === 'suspended') return 0;
       const handler = context.bindings.calls?.[key] ?? context.bindings.calls?.[method];
-      if (handler) return handler(...args.map(toNumber));
+      if (handler) return handler(...args.map(callArgument));
       if (CACHE_ONLY_METHODS.has(method)) return 0;
       return reference(`${key}()`);
     }
@@ -671,7 +702,7 @@ function evaluateCall(
   if (expression.callee.kind === 'index') {
     const callable = evaluate(expression.callee, context);
     const args = expression.args.map(arg => evaluate(arg, context));
-    if (typeof callable === 'function') return callable(...args.map(toNumber));
+    if (typeof callable === 'function') return callable(...args.map(callArgument));
   }
   return 0;
 }
@@ -812,11 +843,26 @@ function binary(operator: string, left: number, right: number): number {
   if (operator === '>') return left > right ? 1 : 0;
   if (operator === '>=') return left >= right ? 1 : 0;
   if (operator === '<<') return left << right;
-  if (operator === '>>') return left >> right;
+  if (operator === '>>') {
+    // C++ >> on unsigned operands is a logical shift. The IR is untyped, so
+    // infer signedness from the value: JS-negative means a signed C++ value
+    // (arithmetic shift); non-negative u32 values with bit 31 set (for
+    // example rgb_t 0xff000000) must not sign-extend, and wider-than-32-bit
+    // values shift via division rather than ToInt32 truncation.
+    if (left < 0) return left >> right;
+    if (left <= 0xffffffff) return left >>> right;
+    return Math.floor(left / 2 ** right);
+  }
   if (operator === '+') return left + right;
   if (operator === '-') return left - right;
   if (operator === '*') return left * right;
-  if (operator === '/') return Math.trunc(left / right);
+  if (operator === '/') {
+    // C++ integer division truncates; float division must not. The IR is
+    // untyped, so treat the operation as integral only when both operands
+    // are integers (float literals and CAP_/RES_-derived values stay exact).
+    const quotient = left / right;
+    return Number.isInteger(left) && Number.isInteger(right) ? Math.trunc(quotient) : quotient;
+  }
   if (operator === '%') return left % right;
   return 0;
 }
@@ -916,6 +962,17 @@ function isLValue(value: unknown): value is GeneratedLValue {
   );
 }
 
+/**
+ * Arguments crossing into bound calls stay numbers when numeric; objects
+ * (bitmaps, cliprects, timers) pass through untouched so device methods can
+ * receive them from machine handlers.
+ */
+function callArgument(value: unknown): number {
+  if (typeof value === 'object' && value !== null) return value as unknown as number;
+  if (typeof value === 'function') return value as unknown as number;
+  return toNumber(value);
+}
+
 function generatedCallArguments(
   name: string,
   expressions: GeneratedExpression[],
@@ -941,6 +998,19 @@ function generatedExpressionName(expression: GeneratedExpression): string {
     return `${generatedExpressionName(expression.object)}.${expression.property}`;
   }
   return '<expression>';
+}
+
+function isAttotimeExpression(
+  expression: GeneratedExpression,
+  context: ExecutionContext,
+): boolean {
+  if (expression.kind === 'identifier') {
+    return context.localTypes[expression.name]?.replace(/\bconst\b/g, '').trim() === 'attotime';
+  }
+  if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
+    return expression.callee.name.startsWith('attotime::');
+  }
+  return false;
 }
 
 function timerDelegateName(expression: GeneratedExpression | undefined): string | undefined {

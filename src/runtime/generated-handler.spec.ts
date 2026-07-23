@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   executeGeneratedHandler,
@@ -66,6 +67,21 @@ assert.equal(executeGeneratedHandler(bitmapProgram, {
   calls: { 'bitmap.pix=': (_y, _x, value) => { pixels.push(value); } },
 }), 1);
 assert.deepEqual(pixels, [0xff, 0]);
+
+assert.equal(executeGeneratedHandler(compileMameHandler(`
+  if (!m_cpu->suspended(7)) return 1;
+  return 0;
+`), {}), 1);
+assert.equal(executeGeneratedHandler(compileMameHandler(`
+  attotime period = attotime::from_hz(1500) / 2;
+  return period;
+`), {}), 1 / 3000);
+const tableProgram = compileMameHandler(normalizeMameExecutionSource(`
+  static const int offsets[2][2] = {{ 0, 1 }, { 2, 3 }};
+  return offsets[row][column];
+`));
+assert.deepEqual(tableProgram.diagnostics, []);
+assert.equal(executeGeneratedHandler(tableProgram, {}, { row: 1, column: 0 }), 2);
 
 const machine: GeneratedMachine = {
   schemaVersion: 2,

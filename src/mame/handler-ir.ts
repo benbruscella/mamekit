@@ -598,7 +598,11 @@ function tokenize(source: string): Token[] {
       tokens.push({ kind: 'string', text: source.slice(start, index), offset: start });
       continue;
     }
-    const number = /^(?:0x[0-9a-f]+|\d+)(?:[uUlL]+)?/i.exec(masked.slice(index));
+    // Hex/binary digits overlap the f/l suffix letters, so each literal form
+    // carries its own suffix class; only decimal integers may take f/F.
+    const number = /^(?:0[xX][0-9a-fA-F]+[uUlL]*|0[bB][01]+[uUlL]*|(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?[fFlL]?|\d+(?:[eE][+-]?\d+)?[uUlLfF]*)/.exec(
+      masked.slice(index),
+    );
     if (number) {
       tokens.push({ kind: 'number', text: number[0], offset: index });
       index += number[0].length;
@@ -624,10 +628,14 @@ function tokenize(source: string): Token[] {
 }
 
 function parseNumber(text: string): number {
-  const normalized = text.replace(/[uUlL]+$/g, '');
-  return normalized.toLowerCase().startsWith('0x')
-    ? Number.parseInt(normalized.slice(2), 16)
-    : Number.parseInt(normalized, 10);
+  // Strip the base prefix before the suffix so a trailing hex digit like the
+  // f in 0x0f is never mistaken for a float/long suffix.
+  if (/^0[xX]/.test(text)) return Number.parseInt(text.slice(2).replace(/[uUlL]+$/, ''), 16);
+  if (/^0[bB]/.test(text)) return Number.parseInt(text.slice(2).replace(/[uUlL]+$/, ''), 2);
+  const normalized = text.replace(/[uUlLfF]+$/, '');
+  // C octal literal: leading zero followed by octal digits only.
+  if (/^0[0-7]+$/.test(normalized)) return Number.parseInt(normalized, 8);
+  return Number(normalized);
 }
 
 function unquote(text: string): string {

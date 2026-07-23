@@ -72,6 +72,15 @@ export function lowerGeneratedMachine(
       type: String(node.props.type),
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
+      ...(Array.isArray(node.props.configCalls) ? {
+        configuration: node.props.configCalls.flatMap(value => {
+          const match = /^(\w+)\((.*)\)$/.exec(String(value));
+          return match ? [{
+            method: match[1]!,
+            args: match[2]!.split(',').map(argument => Number(argument.trim())),
+          }] : [];
+        }),
+      } : {}),
       ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
     }));
   const handlers: GeneratedHandler[] = graph.nodes
@@ -177,6 +186,7 @@ export function lowerGeneratedMachine(
       board.screen.refresh,
       board.screen.vtotal,
       board.screen.vbstart,
+      board.screen.vbend ?? 0,
     ),
     ...(screenCallback?.targetClass && screenCallback.targetMethod ? {
       screenUpdate: {
@@ -234,12 +244,6 @@ export function lowerGeneratedMachine(
             deviceTag: generatedSoundboard.tag,
             deviceType: generatedSoundboard.type,
             writeMethods,
-            writeMethodOffsets: Object.fromEntries(
-              writeMethods.map((method, offset) => [
-                method,
-                offset * (generatedSoundboard.type.endsWith('_SOUND') ? 0x100 : 1),
-              ]),
-            ),
             enableMethods: [],
             controlOffset: -1,
           };
@@ -394,6 +398,7 @@ function lowerFrameEvents(
   refreshHz: number,
   vtotal: number,
   vbstart: number,
+  vbend: number,
 ): GeneratedExecutionPlan['frameEvents'] {
   const events: GeneratedExecutionPlan['frameEvents'] = [];
   for (const callback of callbacks) {
@@ -406,6 +411,18 @@ function lowerFrameEvents(
         state: 1,
         ...(callback.source ? { source: callback.source } : {}),
       });
+      // MAME screen_vblank delegates see both edges; the falling edge lands
+      // at vblank end (handlers like galaga's starfield config run on !state).
+      if (callback.signal === 'screen_vblank') {
+        events.push({
+          callbackId: callback.id,
+          ownerTag: callback.ownerTag,
+          signal: callback.signal,
+          line: vbend,
+          state: 0,
+          ...(callback.source ? { source: callback.source } : {}),
+        });
+      }
       continue;
     }
     if (callback.signal !== 'set_periodic_int' || !callback.periodHz) continue;

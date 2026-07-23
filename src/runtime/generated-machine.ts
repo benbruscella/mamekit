@@ -30,6 +30,7 @@ export interface GeneratedDevice {
   type: string;
   member?: string;
   clock?: number;
+  configuration?: { method: string; args: number[] }[];
   source?: GeneratedSourceRef;
 }
 
@@ -209,6 +210,25 @@ export interface GeneratedPromPalettePlan {
     pulldown: number;
     pullup: number;
   }[];
+  /**
+   * Indirect-color sections computed from the color INDEX bits rather than a
+   * PROM (e.g. the 05xx starfield palette): each channel's bits select bits
+   * of the index and feed a resistor network of its own.
+   */
+  computedColors?: {
+    base: number;
+    count: number;
+    min: number;
+    max: number;
+    scaler: number;
+    channels: {
+      channel: 'r' | 'g' | 'b';
+      bits: number[];
+      resistances: number[];
+      pulldown: number;
+      pullup: number;
+    }[];
+  }[];
   lookupOffset: number;
   lookupCount: number;
   lookupMask: number;
@@ -217,7 +237,7 @@ export interface GeneratedPromPalettePlan {
     colorOr: number;
     lookupOffset?: number;
     lookupCount?: number;
-    /** Direct palettes map pen N to computed color N without a lookup PROM. */
+    /** Direct palettes map pen N to color colorOr + N without a lookup PROM. */
     direct?: boolean;
   }[];
   transparentIndirect: number;
@@ -235,6 +255,7 @@ export interface GeneratedTilemapPlan {
   scrollColumns?: number;
   scrollRows?: number;
   transparentPen?: number;
+  transparentIndirect?: number;
   source?: GeneratedSourceRef;
 }
 
@@ -288,7 +309,6 @@ export interface GeneratedSoundBinding {
   deviceTags?: string[];
   deviceType: string;
   writeMethods: string[];
-  writeMethodOffsets?: Record<string, number>;
   enableMethods: string[];
   controlOffset: number;
   routes?: GeneratedAudioRoute[];
@@ -316,10 +336,10 @@ export interface GeneratedMachine {
   sound?: GeneratedSoundBinding;
 }
 
-export type SignalEndpoint = (state: number) => void;
+export type SignalEndpoint = (state: number) => number | void;
 
 export interface CallbackDevice {
-  on(signal: string, callback: SignalEndpoint, slot?: number): unknown;
+  on(signal: string, callback: (...args: number[]) => number | void, slot?: number): unknown;
 }
 
 const MACHINES = new Map<string, GeneratedMachine>();
@@ -361,24 +381,44 @@ export function wireDeviceCallbacks(
   const ignored: GeneratedCallback[] = [];
   for (const callback of machine.callbacks) {
     if (callback.ownerTag !== ownerTag || callback.signal !== signal) continue;
-    if (callback.slot === undefined) {
-      ignored.push(callback);
-      continue;
-    }
     const target = callbackTarget(callback);
     const endpoint = target ? endpoints[target] : undefined;
     if (!target || !endpoint) {
       ignored.push(callback);
       continue;
     }
-    const invert = callback.transforms?.some(transform => transform === 'invert') ?? false;
-    device.on(signal, state => endpoint(invert ? state ^ 1 : state), callback.slot);
+    // Read callbacks (set_ioport) pull a value FROM the port: the device calls
+    // the callback with no data and the transform (mask/rshift) applies to the
+    // value read back. Write callbacks push data TO the endpoint: the transform
+    // applies to the emitted argument.
+    device.on(
+      signal,
+      callback.targetPort
+        ? () => applySignalTransforms(Number(endpoint(0)) || 0, callback.transforms)
+        : (...args) => endpoint(applySignalTransforms(args.at(-1) ?? 0, callback.transforms)),
+      callback.slot ?? 0,
+    );
     bound.push(target);
   }
   return { bound, ignored };
 }
 
+export function applySignalTransforms(value: number, transforms: string[] = []): number {
+  let result = value;
+  for (const transform of transforms) {
+    // devcb invert() complements the callback's full width; the KG only
+    // extracts invert from line callbacks today, where the width is one bit.
+    if (transform === 'invert') result ^= 1;
+    const mask = /^mask\((0x[\da-f]+|\d+)\)$/i.exec(transform);
+    if (mask) result &= Number(mask[1]);
+    const shift = /^rshift\((\d+)\)$/.exec(transform);
+    if (shift) result >>>= Number(shift[1]);
+  }
+  return result;
+}
+
 export function callbackTarget(callback: GeneratedCallback): string | undefined {
+  if (callback.targetPort) return `port.${callback.targetPort}`;
   if (callback.targetTag && callback.inputLine) return `${callback.targetTag}.${callback.inputLine}`;
   if (!callback.targetMethod) return undefined;
   if (callback.targetTag) return `${callback.targetTag}.${callback.targetMethod}`;

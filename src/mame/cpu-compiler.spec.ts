@@ -81,4 +81,47 @@ assert.equal(acknowledgements, 0, 'CPU must defer vector evaluation until acknow
 assert.equal(lazyIrq.step(), 0xd7);
 assert.equal(acknowledgements, 1, 'CPU must evaluate its vector on acknowledge');
 
-console.log('cpu-compiler.spec: 16 passed');
+// Multi-declarator C++ for-initializers must emit valid JS (one `let`, comma
+// separated declarators) all the way through new Function.
+import { compileMameHandler } from './handler-ir.ts';
+
+const multiDeclDefinition: GeneratedCpuDefinition = {
+  ...lazyIrqDefinition,
+  type: 'MULTI_DECL_TEST',
+  methods: [{
+    name: 'sum_bits',
+    parameters: '',
+    program: compileMameHandler(`
+      int total = 0;
+      for (int i = 0, n = 8; i < n; i++)
+        total += (m_a >> i) & 1;
+      return total;
+    `),
+  }],
+  members: [{ name: 'm_a', bits: 8, initial: 0xb3 }],
+};
+assert.equal(multiDeclDefinition.methods[0]!.program.diagnostics.length, 0);
+const multiDeclSource = generatedCpuExecutableSource({
+  ...multiDeclDefinition,
+  schemaVersion: 1,
+  dialect: 'z80',
+  sourceFiles: [],
+  methods: multiDeclDefinition.methods.map(method => ({
+    ...method,
+    source: { file: 'cpu-compiler.spec.ts', line: 1 },
+  })),
+  opcodes: [],
+  summary: { opcodes: 0, compiledOpcodes: 0, methods: 1, compiledMethods: 1, diagnostics: 0 },
+});
+assert.match(multiDeclSource, /for \(let i = \(\(0\) \| 0\), n = \(\(8\) \| 0\); /);
+assert.doesNotMatch(multiDeclSource, /, let /);
+registerGeneratedCpu(multiDeclDefinition);
+const multiDecl = createCpu('MULTI_DECL_TEST', {
+  read: () => 0,
+  write: () => {},
+  in: () => 0xff,
+  out: () => {},
+});
+assert.equal(multiDecl.invoke('sum_bits'), 5);
+
+console.log('cpu-compiler.spec: 18 passed');

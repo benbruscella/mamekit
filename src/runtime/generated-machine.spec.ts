@@ -51,9 +51,9 @@ check('registry', generatedMachine('fixture'), machine);
 check('target class', callbackTarget(machine.callbacks[0]), 'fixture_state.irq_w');
 check('target tag wins', callbackTarget(machine.callbacks[1]), 'screen.flip_w');
 
-const listeners = new Map<number, (state: number) => void>();
+const listeners = new Map<number, (...args: number[]) => void>();
 const device = {
-  on: (_signal: string, callback: (state: number) => void, slot = 0) => {
+  on: (_signal: string, callback: (...args: number[]) => void, slot = 0) => {
     listeners.set(slot, callback);
   },
 };
@@ -62,7 +62,7 @@ const result = wireDeviceCallbacks(device, machine, 'mainlatch', 'q_out_cb', {
   'fixture_state.irq_w': state => states.push(state),
   'screen.flip_w': state => states.push(state * 10),
 });
-listeners.get(0)?.(1);
+listeners.get(0)?.(0, 1);
 listeners.get(1)?.(1);
 check('generated callbacks execute with transforms', states, [1, 0]);
 check('bound targets', result.bound, ['fixture_state.irq_w', 'screen.flip_w']);

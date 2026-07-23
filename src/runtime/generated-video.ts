@@ -17,6 +17,21 @@ import { decodeGfx, type GfxSet } from './gfx.ts';
 export interface GeneratedVideoPrimitives extends VideoRenderer {
   generatedVideoBindings(frame: Uint32Array): GeneratedHandlerBindings;
   generatedVideoArgs?(frame: Uint32Array): Record<string, unknown>;
+  /** Resolve composed pen indices from the pen buffer into the RGBA frame. */
+  resolveScreenPens?(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void;
+}
+
+/**
+ * MAME screen-update methods declare their bitmap type: bitmap_ind16 screens
+ * compose palette pen indices that the screen resolves on output, while
+ * bitmap_rgb32 screens write final colors.
+ */
+export function isIndexedScreen(machine: GeneratedMachine): boolean {
+  const target = machine.execution.screenUpdate?.handler;
+  if (!target) return false;
+  const handler = machine.handlers?.find(candidate =>
+    `${candidate.ownerClass}.${candidate.method}` === target);
+  return /\bbitmap_ind16\b/.test(handler?.parameters ?? '');
 }
 
 /**
@@ -30,6 +45,13 @@ export class GeneratedVideoRenderer implements VideoRenderer {
   private readonly machine: GeneratedMachine;
   private readonly primitives: GeneratedVideoPrimitives;
   private readonly screenUpdate: NonNullable<GeneratedMachine['callbacks']>[number];
+  private readonly indexed: boolean;
+  /**
+   * bitmap_ind16 machines compose pen indices here, persisting across frames
+   * so dirty-tile caching stays valid in pen space; each render resolves the
+   * region into the RGBA output frame.
+   */
+  private readonly penBuffer?: Uint32Array;
 
   constructor(machine: GeneratedMachine, primitives: GeneratedVideoPrimitives) {
     const screenUpdate = machine.callbacks.find(callback =>
@@ -40,8 +62,10 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     this.machine = machine;
     this.primitives = primitives;
     this.screenUpdate = screenUpdate;
+    this.indexed = isIndexedScreen(machine);
     this.width = primitives.width;
     this.height = primitives.height;
+    if (this.indexed) this.penBuffer = new Uint32Array(this.width * this.height);
   }
 
   vblank(): void {
@@ -74,13 +98,19 @@ export class GeneratedVideoRenderer implements VideoRenderer {
       max_x: (xOffset + this.width) * xScale - 1,
       min_y: minY * yScale,
       max_y: (maxY + 1) * yScale - 1,
+      contains(x: number, y: number): number {
+        return x >= this.min_x && x <= this.max_x && y >= this.min_y && y <= this.max_y
+          ? 1
+          : 0;
+      },
     };
+    const target = this.penBuffer ?? frame;
     const bitmap = {
       fill: (color: number) => {
         const packed = color >>> 0;
         for (let y = minY; y <= maxY; y++) {
           const start = (y - yOffset) * this.width;
-          frame.fill(packed, start, start + this.width);
+          target.fill(packed, start, start + this.width);
         }
       },
       'pix=': (y: number, x: number, color: number) => {
@@ -90,7 +120,7 @@ export class GeneratedVideoRenderer implements VideoRenderer {
           visibleX >= 0 && visibleX < this.width &&
           visibleY >= 0 && visibleY < this.height
         ) {
-          frame[visibleY * this.width + visibleX] = color >>> 0;
+          target[visibleY * this.width + visibleX] = color >>> 0;
         }
       },
     };
@@ -109,6 +139,11 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     if (result === undefined) {
       const key = `${this.screenUpdate.targetClass}.${this.screenUpdate.targetMethod}`;
       throw new Error(`generated screen-update handler "${key}" is not executable`);
+    }
+    if (this.penBuffer) {
+      const start = Math.max(0, minY - yOffset) * this.width;
+      const end = (Math.min(maxY - yOffset, this.height - 1) + 1) * this.width;
+      this.primitives.resolveScreenPens?.(this.penBuffer, frame, start, end - start);
     }
   }
 }
@@ -156,6 +191,10 @@ class GeneratedRectangle {
     this.max_y = maxY;
   }
 
+  contains(x: number, y: number): number {
+    return x >= this.min_x && x <= this.max_x && y >= this.min_y && y <= this.max_y ? 1 : 0;
+  }
+
   intersect(other: unknown): void {
     if (!other || typeof other !== 'object') return;
     const rectangle = other as GeneratedRectangle;
@@ -175,8 +214,12 @@ class GeneratedPalette {
     const prom = regions[plan.region];
     if (!prom) throw new Error(`generated palette: missing ROM region "${plan.region}"`);
     const weights = computeWeights(plan);
-    const core = new Uint32Array(plan.colorCount);
-    for (let index = 0; index < core.length; index++) {
+    const coreCount = Math.max(
+      plan.colorCount,
+      ...(plan.computedColors ?? []).map(group => group.base + group.count),
+    );
+    const core = new Uint32Array(coreCount);
+    for (let index = 0; index < plan.colorCount; index++) {
       const rgb = { r: 0, g: 0, b: 0 };
       for (const channel of plan.channels) {
         const values = weights[channel.channel];
@@ -189,6 +232,23 @@ class GeneratedPalette {
       }
       core[index] = packRgb(rgb.r, rgb.g, rgb.b);
     }
+    // Computed sections derive each channel from bits of the color index
+    // through their own resistor network (05xx star colors and kin).
+    for (const group of plan.computedColors ?? []) {
+      const groupWeights = computeWeights({ ...plan, ...group });
+      for (let index = 0; index < group.count; index++) {
+        const rgb = { r: 0, g: 0, b: 0 };
+        for (const channel of group.channels) {
+          const values = groupWeights[channel.channel];
+          let value = 0;
+          for (let bit = 0; bit < channel.bits.length; bit++) {
+            value += values[bit]! * ((index >> channel.bits[bit]!) & 1);
+          }
+          rgb[channel.channel] = Math.floor(value + 0.5);
+        }
+        core[group.base + index] = packRgb(rgb.r, rgb.g, rgb.b);
+      }
+    }
     const penCount = Math.max(
       1,
       ...plan.banks.map(bank => bank.penOffset + (bank.lookupCount ?? plan.lookupCount)),
@@ -200,7 +260,7 @@ class GeneratedPalette {
       const lookupCount = bank.lookupCount ?? plan.lookupCount;
       for (let index = 0; index < lookupCount; index++) {
         const indirect = bank.direct
-          ? bank.colorOr | index
+          ? bank.colorOr + index
           : bank.colorOr | ((prom[lookupOffset + index] ?? 0) & plan.lookupMask);
         const pen = bank.penOffset + index;
         this.indirect[pen] = indirect;
@@ -218,6 +278,14 @@ class GeneratedPalette {
     }
     return mask;
   }
+
+  /** MAME palette_device::black_pen(): a pen that resolves to black. */
+  black_pen(): number {
+    for (let pen = 0; pen < this.colors.length; pen++) {
+      if (this.colors[pen] === 0xff000000) return pen;
+    }
+    return 0;
+  }
 }
 
 class GeneratedGfxElement {
@@ -225,12 +293,20 @@ class GeneratedGfxElement {
   readonly decoded: GfxSet;
   readonly granularity: number;
   private readonly palette: GeneratedPalette;
+  /** Indexed (bitmap_ind16) screens compose pens; the screen resolves them. */
+  private readonly indexed: boolean;
 
-  constructor(entry: GeneratedGfxEntry, decoded: GfxSet, palette: GeneratedPalette) {
+  constructor(
+    entry: GeneratedGfxEntry,
+    decoded: GfxSet,
+    palette: GeneratedPalette,
+    indexed = false,
+  ) {
     this.entry = entry;
     this.decoded = decoded;
     this.granularity = 1 << entry.layout.planes;
     this.palette = palette;
+    this.indexed = indexed;
   }
 
   transmask(
@@ -261,6 +337,10 @@ class GeneratedGfxElement {
     this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, 1 << transparentPen);
   }
 
+  indirectMask(color: number, transparent: number): number {
+    return this.palette.transpen_mask(this, color, transparent);
+  }
+
   draw(
     bitmap: BitmapTarget,
     clip: GeneratedRectangle,
@@ -286,7 +366,9 @@ class GeneratedGfxElement {
         const sourceX = flipX ? gfx.width - 1 - px : px;
         const pen = gfx.pixels[base + sourceY * gfx.width + sourceX]!;
         if (transparentMask & (1 << pen)) continue;
-        const packed = this.palette.colors[colorBase + pen] ?? 0xff000000;
+        const packed = this.indexed
+          ? colorBase + pen
+          : this.palette.colors[colorBase + pen] ?? 0xff000000;
         for (let yy = 0; yy < this.entry.yscale; yy++) {
           for (let xx = 0; xx < this.entry.xscale; xx++) {
             bitmap['pix='](y + yy, x + xx, packed);
@@ -428,9 +510,14 @@ class GeneratedTilemap {
         const mapHeight = this.plan.rows * this.plan.tileHeight;
         const x = outputColumn * this.plan.tileWidth - xScroll;
         const y = outputRow * this.plan.tileHeight - yScroll;
-        const transparentMask = this.plan.transparentPen === undefined || (_flags & 0x80)
-          ? 0
-          : 1 << this.plan.transparentPen;
+        let transparentMask = 0;
+        if (!(_flags & 0x80)) {
+          if (this.plan.transparentIndirect !== undefined) {
+            transparentMask = gfx.indirectMask(tile.color, this.plan.transparentIndirect);
+          } else if (this.plan.transparentPen !== undefined) {
+            transparentMask = 1 << this.plan.transparentPen;
+          }
+        }
         for (const wrappedX of wrappedPositions(x, mapWidth, clip.min_x, clip.max_x)) {
           for (const wrappedY of wrappedPositions(y, mapHeight, clip.min_y, clip.max_y)) {
             gfx.draw(
@@ -515,6 +602,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     this.palette = machine.video?.palette
       ? new GeneratedPalette(machine.video.palette, regions)
       : undefined;
+    const indexed = isIndexedScreen(machine);
     this.gfx = (machine.video?.gfx ?? []).map(entry => {
       const region = regions[entry.region];
       if (!region) throw new Error(`${machine.game}: missing gfx region "${entry.region}"`);
@@ -522,6 +610,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         entry,
         decodeGfx(entry.layout, region, entry.offset),
         this.palette!,
+        indexed,
       );
     });
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {
@@ -608,6 +697,15 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
 
   generatedVideoBindings(_frame: Uint32Array): GeneratedHandlerBindings {
     return this.bindings;
+  }
+
+  resolveScreenPens(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void {
+    const colors = this.palette?.colors;
+    if (!colors) return;
+    const end = Math.min(frame.length, pens.length, start + count);
+    for (let index = start; index < end; index++) {
+      frame[index] = colors[pens[index]!] ?? 0xff000000;
+    }
   }
 
   render(frame: Uint32Array): void {

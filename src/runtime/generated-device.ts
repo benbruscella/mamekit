@@ -10,12 +10,19 @@ interface DeviceMember {
   valueType: string;
   bits?: 1 | 8 | 16 | 32;
   initial?: number;
+  values?: number[];
 }
 
 interface DeviceCallback {
   signal: string;
   member: string;
   slots: number;
+  initial?: number;
+}
+
+interface DeviceTimer {
+  member: string;
+  callback: string;
 }
 
 interface DeviceMethod {
@@ -24,12 +31,26 @@ interface DeviceMethod {
   program: GeneratedHandlerProgram;
 }
 
+export interface GeneratedDeviceExecutionContext {
+  readonly members: Record<string, unknown>;
+  invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
+}
+
+export type GeneratedDeviceMethodExecutable = (
+  runtime: GeneratedDeviceExecutionContext,
+  ...args: GeneratedCallArgument[]
+) => unknown;
+
+export type GeneratedDeviceMethodMap = Record<string, GeneratedDeviceMethodExecutable>;
+
 export interface GeneratedDeviceDefinition {
   type: string;
   constants: Record<string, number>;
   members: DeviceMember[];
   callbacks: DeviceCallback[];
+  timers?: DeviceTimer[];
   methods: DeviceMethod[];
+  compiledMethods?: GeneratedDeviceMethodMap;
   start?: string;
   reset?: string;
   summary: {
@@ -37,10 +58,11 @@ export interface GeneratedDeviceDefinition {
   };
 }
 
-export type DeviceCallbackListener = (...args: number[]) => void;
+export type DeviceCallbackListener = (...args: number[]) => number | void;
 
 export interface Device {
   reset(): void;
+  tick(seconds: number): void;
   call(name: string, ...args: number[]): number;
   get(name: string): number;
   set(name: string, value: number): void;
@@ -48,6 +70,7 @@ export interface Device {
   arity(name: string): number;
   signalNames(): readonly string[];
   on(signal: string, listener: DeviceCallbackListener, slot?: number): Device;
+  bindCall(name: string, listener: (...args: number[]) => unknown): Device;
 }
 
 const DEFINITIONS = new Map<string, GeneratedDeviceDefinition>();
@@ -69,10 +92,37 @@ export function hasGeneratedDevice(type: string): boolean {
   return DEFINITIONS.has(type.toUpperCase());
 }
 
-export function createDevice(type: string): Device {
+export function createDevice(type: string, options: { clock?: number } = {}): Device {
   const definition = DEFINITIONS.get(type.toUpperCase());
   if (!definition) throw new Error(`generated device "${type}" was not registered`);
-  return new IrDevice(definition);
+  return new IrDevice(definition, options.clock ?? 0);
+}
+
+class IrTimer {
+  private remaining = Infinity;
+  private period = Infinity;
+  private parameter = 0;
+
+  adjust(delay: number, parameter = 0, period = Infinity): void {
+    this.remaining = Number.isFinite(delay) && delay >= 0 ? delay : Infinity;
+    this.period = Number.isFinite(period) && period > 0 ? period : Infinity;
+    this.parameter = parameter;
+  }
+
+  tick(seconds: number, callback: (parameter: number) => void): void {
+    if (!Number.isFinite(this.remaining)) return;
+    this.remaining -= seconds;
+    let firings = 0;
+    while (this.remaining <= 0) {
+      if (++firings > 65_536) throw new Error('generated device timer exceeded 65536 firings');
+      callback(this.parameter);
+      if (!Number.isFinite(this.period)) {
+        this.remaining = Infinity;
+        break;
+      }
+      this.remaining += this.period;
+    }
+  }
 }
 
 class IrDevice implements Device {
@@ -80,14 +130,18 @@ class IrDevice implements Device {
   private readonly members: Record<string, unknown> = {};
   private readonly memberBits = new Map<string, 1 | 8 | 16 | 32>();
   private readonly methods: Map<string, DeviceMethod>;
+  /** Parameter names resolved once per method (the regex is a hot-path cost). */
+  private readonly methodParams = new Map<string, string[]>();
   private readonly listeners = new Map<string, DeviceCallbackListener[][]>();
   private readonly bindings: GeneratedHandlerBindings;
+  private readonly executionContext: GeneratedDeviceExecutionContext;
+  private readonly timers = new Map<string, { timer: IrTimer; callback: string }>();
 
-  constructor(definition: GeneratedDeviceDefinition) {
+  constructor(definition: GeneratedDeviceDefinition, clock: number) {
     this.definition = definition;
     this.methods = new Map(definition.methods.map(method => [method.name, method]));
     for (const member of definition.members) {
-      this.members[member.name] = member.initial ?? 0;
+      this.members[member.name] = member.values ? [...member.values] : member.initial ?? 0;
       if (member.bits) this.memberBits.set(member.name, member.bits);
     }
     for (const callback of definition.callbacks) {
@@ -95,9 +149,19 @@ class IrDevice implements Device {
       this.listeners.set(callback.signal, slots);
       const emitters = slots.map(listeners =>
         (...args: number[]) => {
-          for (const listener of listeners) listener(...args);
+          let result = callback.initial ?? 0;
+          for (const listener of listeners) {
+            const value = listener(...args);
+            if (value !== undefined) result = value;
+          }
+          return result;
         });
       this.members[callback.member] = callback.slots === 1 ? emitters[0] : emitters;
+    }
+    for (const specification of definition.timers ?? []) {
+      const timer = new IrTimer();
+      this.timers.set(specification.member, { timer, callback: specification.callback });
+      this.members[specification.member] = timer;
     }
 
     const getters: Record<string, () => unknown> = {};
@@ -118,14 +182,27 @@ class IrDevice implements Device {
       calls: {
         save_item: () => 0,
         logerror: () => 0,
+        clock: () => clock,
       },
       referenceCalls,
       callParameters,
     };
+    this.executionContext = {
+      members: this.members,
+      invoke: (name, ...args) => {
+        const method = this.methods.get(name);
+        if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
+        return this.executeMethod(method, this.methodParams.get(name)!, args);
+      },
+    };
+    const pendingTimers = [...this.timers.values()];
+    this.bindings.calls!.timer_alloc = () => pendingTimers.shift()?.timer ?? 0;
     for (const method of definition.methods) {
       const parameters = splitParameters(method.parameters);
+      const names = parameters.map(parameterName);
       callParameters[method.name] = parameters;
-      referenceCalls[method.name] = (...args) => this.executeMethod(method, parameters, args);
+      this.methodParams.set(method.name, names);
+      referenceCalls[method.name] = (...args) => this.executeMethod(method, names, args);
     }
 
     if (definition.start) this.call(definition.start);
@@ -136,11 +213,16 @@ class IrDevice implements Device {
     if (this.definition.reset) this.call(this.definition.reset);
   }
 
+  tick(seconds: number): void {
+    for (const { timer, callback } of this.timers.values()) {
+      timer.tick(seconds, parameter => this.call(callback, parameter));
+    }
+  }
+
   call(name: string, ...args: number[]): number {
     const method = this.methods.get(name);
     if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
-    const parameters = splitParameters(method.parameters);
-    return Number(this.executeMethod(method, parameters, args)) || 0;
+    return Number(this.executeMethod(method, this.methodParams.get(name)!, args)) || 0;
   }
 
   get(name: string): number {
@@ -174,19 +256,23 @@ class IrDevice implements Device {
     return this;
   }
 
+  bindCall(name: string, listener: (...args: number[]) => unknown): Device {
+    this.bindings.calls![name] = listener;
+    return this;
+  }
+
   private executeMethod(
     method: DeviceMethod,
-    parameters: string[],
+    parameterNames: string[],
     args: GeneratedCallArgument[],
   ): unknown {
-    return executeGeneratedProgram(
-      method.program,
-      this.bindings,
-      Object.fromEntries(parameters.map((parameter, index) => [
-        parameterName(parameter),
-        args[index] ?? 0,
-      ])),
-    ).value;
+    const compiled = this.definition.compiledMethods?.[method.name];
+    if (compiled) return compiled(this.executionContext, ...args);
+    const locals: Record<string, unknown> = {};
+    for (let index = 0; index < parameterNames.length; index++) {
+      locals[parameterNames[index]!] = args[index] ?? 0;
+    }
+    return executeGeneratedProgram(method.program, this.bindings, locals).value;
   }
 }
 

@@ -35,6 +35,8 @@ interface PendingWrite {
   offset: number;
   data: number;
   frac?: number;
+  /** Target device write method; worklets route by name, never by offset math. */
+  method?: string;
 }
 
 /** A bulk sample-data push (NES DMC), queued in order with register writes. */
@@ -111,9 +113,12 @@ export class AudioOutput {
     this.node = node;
     this.gain = gain;
 
-    // Replay complete frames that ran while addModule() was awaiting. Keeping
-    // their boundaries is required for sub-frame register-write scheduling.
-    for (const frame of this.pendingFrames.splice(0)) this.postFrame(node, frame);
+    // Frames that ran while addModule() was awaiting are pre-audio history:
+    // collapse them into ONE batch so the register state lands correctly
+    // without queueing N rendered frames of permanent backlog latency
+    // (worklets drain exactly one queued frame per video frame).
+    const backlog = this.pendingFrames.splice(0).flat();
+    if (backlog.length) this.postFrame(node, backlog);
 
     if (ctx.state !== 'running') await ctx.resume();
   }
@@ -125,8 +130,10 @@ export class AudioOutput {
    * scheduler under main-thread jank. Complete frames produced before
    * start() finishes remain separate in `pendingFrames`.
    */
-  write(offset: number, data: number, frac?: number): void {
-    this.pending.push({ kind: 'write', write: { offset, data, frac } });
+  write(offset: number, data: number, frac?: number, method?: string): void {
+    const write: PendingWrite = { offset, data, frac };
+    if (method !== undefined) write.method = method;
+    this.pending.push({ kind: 'write', write });
   }
 
   /**
