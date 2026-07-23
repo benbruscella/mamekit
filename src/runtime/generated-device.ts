@@ -117,6 +117,8 @@ class IrDevice implements Device {
   private readonly members: Record<string, unknown> = {};
   private readonly memberBits = new Map<string, 1 | 8 | 16 | 32>();
   private readonly methods: Map<string, DeviceMethod>;
+  /** Parameter names resolved once per method (the regex is a hot-path cost). */
+  private readonly methodParams = new Map<string, string[]>();
   private readonly listeners = new Map<string, DeviceCallbackListener[][]>();
   private readonly bindings: GeneratedHandlerBindings;
   private readonly timers = new Map<string, { timer: IrTimer; callback: string }>();
@@ -175,8 +177,10 @@ class IrDevice implements Device {
     this.bindings.calls!.timer_alloc = () => pendingTimers.shift()?.timer ?? 0;
     for (const method of definition.methods) {
       const parameters = splitParameters(method.parameters);
+      const names = parameters.map(parameterName);
       callParameters[method.name] = parameters;
-      referenceCalls[method.name] = (...args) => this.executeMethod(method, parameters, args);
+      this.methodParams.set(method.name, names);
+      referenceCalls[method.name] = (...args) => this.executeMethod(method, names, args);
     }
 
     if (definition.start) this.call(definition.start);
@@ -196,8 +200,7 @@ class IrDevice implements Device {
   call(name: string, ...args: number[]): number {
     const method = this.methods.get(name);
     if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
-    const parameters = splitParameters(method.parameters);
-    return Number(this.executeMethod(method, parameters, args)) || 0;
+    return Number(this.executeMethod(method, this.methodParams.get(name)!, args)) || 0;
   }
 
   get(name: string): number {
@@ -238,17 +241,14 @@ class IrDevice implements Device {
 
   private executeMethod(
     method: DeviceMethod,
-    parameters: string[],
+    parameterNames: string[],
     args: GeneratedCallArgument[],
   ): unknown {
-    return executeGeneratedProgram(
-      method.program,
-      this.bindings,
-      Object.fromEntries(parameters.map((parameter, index) => [
-        parameterName(parameter),
-        args[index] ?? 0,
-      ])),
-    ).value;
+    const locals: Record<string, unknown> = {};
+    for (let index = 0; index < parameterNames.length; index++) {
+      locals[parameterNames[index]!] = args[index] ?? 0;
+    }
+    return executeGeneratedProgram(method.program, this.bindings, locals).value;
   }
 }
 
