@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import * as ts from 'typescript';
 import {
   compileAy8910,
+  compileNamco54Discrete,
   compileNamcoWsg,
   generatedAy8910WorkletSource,
   generatedNamcoWsgWorkletSource,
@@ -46,7 +47,12 @@ const module = await import(
   GeneratedNamcoWsgCore: new (
     waveRom: Uint8Array,
     clock: number,
-  ) => { sampleRate: number };
+    auxiliary?: ReturnType<typeof compileNamco54Discrete>,
+  ) => {
+    sampleRate: number;
+    writeDiscrete(channel: number, data: number): void;
+    render(output: Float32Array): void;
+  };
 };
 const core = new module.GeneratedNamcoWsgCore(new Uint8Array(0x100), 96_000);
 
@@ -59,6 +65,23 @@ assert.equal(
   375,
 );
 assert.match(source, /this\.step = this\.core\.sampleRate \/ sampleRate/);
+
+const galagaDiscrete = compileNamco54Discrete(
+  mameSrc,
+  'src/mame/namco/galaga.cpp',
+  'galaga_discrete',
+);
+assert.deepEqual(galagaDiscrete.channels.map(channel => channel.input), [2, 1, 0]);
+assert.equal(galagaDiscrete.source.file, 'src/mame/namco/galaga_a.cpp');
+const galagaAudio = new module.GeneratedNamcoWsgCore(
+  new Uint8Array(0x100),
+  96_000,
+  galagaDiscrete,
+);
+galagaAudio.writeDiscrete(0, 0x0f);
+const galagaSamples = new Float32Array(4096);
+galagaAudio.render(galagaSamples);
+assert.ok(galagaSamples.some(sample => sample !== 0));
 
 const ayPlan = compileAy8910(mameSrc, {
   ...definition,
@@ -142,4 +165,4 @@ assert.ok(timed.slice(0, 400).every(sample => sample === 0));
 assert.ok(timed.slice(400).some(sample => sample !== 0));
 assert.match(aySource, /write\.frac/);
 
-console.log('audio-compiler.spec: 23 passed');
+console.log('audio-compiler.spec: 27 passed');

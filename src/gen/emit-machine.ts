@@ -26,6 +26,11 @@ export function lowerGeneratedMachine(
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
 ): GeneratedMachine {
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
+  const tagCounts = new Map<string, number>();
+  for (const device of graph.nodes.filter(node => node.label === 'Device')) {
+    const tag = String(device.props.tag);
+    tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+  }
   const nestedHostTags = new Map<string, string>();
   for (const device of graph.nodes.filter(node => node.label === 'Device')) {
     const ownerConfig = graph.edges.find(edge =>
@@ -39,7 +44,9 @@ export function lowerGeneratedMachine(
   }
   const emittedDeviceTag = (deviceId: string, rawTag: string): string => {
     const hostTag = nestedHostTags.get(deviceId);
-    return hostTag ? `${hostTag}:${rawTag}` : rawTag;
+    return hostTag && (tagCounts.get(rawTag) ?? 0) > 1
+      ? `${hostTag}:${rawTag}`
+      : rawTag;
   };
   const callbacks: GeneratedCallback[] = graph.nodes
     .filter(node => node.label === 'Callback')

@@ -206,4 +206,17 @@ assert.equal(executeGeneratedHandler(pointerSlice, {
 }), 12 + 0xa5);
 assert.equal(spriteRam[14], 0xa5);
 
-console.log('generated-handler.spec: 15 passed');
+let requiredDeviceState = 0;
+const requiredDeviceCall = compileMameHandler('m_cpu->set_input_line(0, 1);');
+executeGeneratedHandler(requiredDeviceCall, {
+  members: { m_cpu: 0 },
+  calls: {
+    'm_cpu.set_input_line': (_line, state) => {
+      requiredDeviceState = Number(state);
+      return 0;
+    },
+  },
+});
+assert.equal(requiredDeviceState, 1);
+
+console.log('generated-handler.spec: 16 passed');

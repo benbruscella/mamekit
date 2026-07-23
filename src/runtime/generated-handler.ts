@@ -680,6 +680,11 @@ function evaluateCall(
     if (generated) {
       return generated(...generatedCallArguments(generatedName, expression.args, context));
     }
+    const direct = context.bindings.calls?.[generatedName];
+    if (direct) {
+      const args = expression.args.map(arg => evaluate(arg, context));
+      return direct(...args.map(callArgument));
+    }
     const object = evaluate(expression.callee.object, context);
     const method = expression.callee.property;
     if (typeof object === 'number' && method === 'as_ticks') {

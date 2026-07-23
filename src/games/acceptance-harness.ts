@@ -109,6 +109,7 @@ export async function runGameAcceptance(
 
   const pendingWrites: SoundWrite[] = [];
   const allWrites: SoundWrite[] = [];
+  const requiredAudioCounts = new Map<string, number>();
   const board = generatedRuntime.createBoard(
     { ...config.board, game: config.game },
     regions,
@@ -133,6 +134,15 @@ export async function runGameAcceptance(
     pendingWrites.length = 0;
     board.frame(framebuffer);
     const snapshot = board.snapshot();
+    for (const requirement of contract.audioRequirements ?? []) {
+      if (snapshot.frame < requirement.fromFrame) continue;
+      const count = pendingWrites.filter(write =>
+        write.method === requirement.method && write.data !== 0).length;
+      requiredAudioCounts.set(
+        requirement.method,
+        (requiredAudioCounts.get(requirement.method) ?? 0) + count,
+      );
+    }
     audio.render(pendingWrites, snapshot.frame >= 120);
     if (checkpointFrames.has(snapshot.frame)) {
       checkpoints[String(snapshot.frame)] = {
@@ -185,6 +195,14 @@ export async function runGameAcceptance(
     `${contract.game}: generated sound is silent ` +
       `(${JSON.stringify({ audio: result.audio, snapshot: finalSnapshot })})`,
   );
+  for (const requirement of contract.audioRequirements ?? []) {
+    const actual = requiredAudioCounts.get(requirement.method) ?? 0;
+    assert.ok(
+      actual >= requirement.minimumNonzeroWrites,
+      `${contract.game}: ${requirement.method} audio emitted ${actual} nonzero writes ` +
+        `after frame ${requirement.fromFrame} (minimum ${requirement.minimumNonzeroWrites})`,
+    );
+  }
   assert.ok(
     emulatedFps >= contract.minimumFps,
     `${contract.game}: ${emulatedFps.toFixed(1)} fps is below the ` +
