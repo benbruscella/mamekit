@@ -28,20 +28,32 @@ export function compileMameVideo(
   };
   const machine = graph.nodes.find(node => node.id === machineId);
   if (!machine) return fail(`missing machine ${machineId}`);
-  const files = graph.nodes
-    .filter(node => node.label === 'SourceFile')
-    .map(node => String(node.props.path))
-    .filter(file => existsSync(join(mameSrc, file)));
   const driver = graph.meta.driverFile;
   const driverStem = basename(driver).replace(/\.cpp$/, '');
   const driverDir = dirname(driver);
-  for (const candidate of [
+  const candidates = graph.nodes
+    .filter(node => node.label === 'SourceFile')
+    .map(node => String(node.props.path));
+  candidates.push(
     driver,
     join(driverDir, `${driverStem}.h`),
     join(driverDir, `${driverStem}_v.cpp`),
     join(driverDir, `${driverStem}_a.cpp`),
-  ]) {
-    if (existsSync(join(mameSrc, candidate)) && !files.includes(candidate)) files.push(candidate);
+  );
+  const files: string[] = [];
+  for (const candidate of candidates) {
+    const resolved = [
+      candidate,
+      join(driverDir, candidate),
+    ].find(file => existsSync(join(mameSrc, file)));
+    if (!resolved || files.includes(resolved)) continue;
+    files.push(resolved);
+    if (/\.h(?:pp)?$/.test(resolved)) {
+      const implementation = resolved.replace(/\.h(?:pp)?$/, '.cpp');
+      if (existsSync(join(mameSrc, implementation)) && !files.includes(implementation)) {
+        files.push(implementation);
+      }
+    }
   }
   if (!files.includes(driver) && existsSync(join(mameSrc, driver))) files.push(driver);
   const ast = new MameAstIndex(parseMameAst(
@@ -323,40 +335,54 @@ function compilePalette(
     const method = loop.body.includes('set_pen_indirect')
       ? 'palette.set_pen_indirect'
       : 'palette.set_pen_color';
-    const call = findCallArguments(loop.body, method);
-    if (!call) return [];
-    const args = splitMameArgs(call);
-    const lookupExpression = args[1] ?? '';
-    const colorExpression = /ctabentry\s*=\s*([^;]+)/.exec(loop.body)?.[1]
-      ?? lookupExpression;
-    const lookupIndex = /color_prom\[\s*([^\]]+)\s*\]/.exec(lookupExpression)?.[1];
-    const usesPostIncrement = /\*\s*color_prom\s*\+\+/.test(lookupExpression);
-    // Identity mappings like set_pen_indirect(base + i, 32 + i) carry no PROM
-    // lookup: pen N maps straight to color offset + N.
-    if (
-      method === 'palette.set_pen_indirect' &&
-      !lookupIndex && !usesPostIncrement && !loop.body.includes('color_prom')
-    ) {
+    return findCallArgumentLists(loop.body, method).flatMap(call => {
+      const args = splitMameArgs(call);
+      if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
+        console.error('video palette: lookup loop', {
+          start: loop.start,
+          end: loop.end,
+          body: loop.body.trim(),
+          args,
+        });
+      }
+      const lookupExpression = args[1] ?? '';
+      const colorExpression = /ctabentry\s*=\s*([^;]+)/.exec(loop.body)?.[1]
+        ?? lookupExpression;
+      const lookupIndex = /color_prom\[\s*([^\]]+)\s*\]/.exec(colorExpression)?.[1];
+      const usesPostIncrement = /\*\s*color_prom\s*\+\+/.test(colorExpression);
+      // Identity mappings like set_pen_indirect(base + i, 32 + i) carry no
+      // PROM lookup: the loop expressions fully describe pen and color steps.
+      if (
+        method === 'palette.set_pen_indirect' &&
+        !lookupIndex && !usesPostIncrement && !colorExpression.includes('color_prom')
+      ) {
+        const penOffset = expressionAt(args[0]!, loop.start);
+        const penStride = expressionAt(args[0]!, loop.start + 1) - penOffset;
+        const colorOr = expressionAt(lookupExpression, loop.start);
+        const colorStride = expressionAt(lookupExpression, loop.start + 1) - colorOr;
+        return [{
+          penOffset,
+          ...(penStride !== 1 ? { penStride } : {}),
+          colorOr,
+          ...(colorStride !== 1 ? { colorStride } : {}),
+          lookupOffset: 0,
+          lookupCount: Math.max(0, loop.end - loop.start),
+          direct: true,
+        }];
+      }
+      const currentPostIncrementOffset = postIncrementOffset;
+      if (usesPostIncrement) postIncrementOffset += Math.max(0, loop.end - loop.start);
       return [{
         penOffset: expressionAt(args[0]!, loop.start),
-        colorOr: expressionAt(lookupExpression, loop.start),
-        lookupOffset: 0,
+        colorOr: expressionNumber(
+          /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(colorExpression)?.[1],
+        ),
+        lookupOffset: usesPostIncrement
+          ? currentPostIncrementOffset
+          : lookupOffset + expressionAt(lookupIndex ?? 'i', loop.start),
         lookupCount: Math.max(0, loop.end - loop.start),
-        direct: true,
       }];
-    }
-    const currentPostIncrementOffset = postIncrementOffset;
-    if (usesPostIncrement) postIncrementOffset += Math.max(0, loop.end - loop.start);
-    return [{
-      penOffset: expressionAt(args[0]!, loop.start),
-      colorOr: expressionNumber(
-        /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(colorExpression)?.[1],
-      ),
-      lookupOffset: usesPostIncrement
-        ? currentPostIncrementOffset
-        : lookupOffset + expressionAt(lookupIndex ?? 'i', loop.start),
-      lookupCount: Math.max(0, loop.end - loop.start),
-    }];
+    });
   });
   const palettePenCall = paletteLoop?.body.includes('set_pen_color')
     ? findCallArguments(paletteLoop.body, 'palette.set_pen_color')
@@ -860,6 +886,21 @@ function findCallArguments(source: string, name: string): string | undefined {
   return close < 0 ? undefined : source.slice(open + 1, close);
 }
 
+function findCallArgumentLists(source: string, name: string): string[] {
+  const calls: string[] = [];
+  let cursor = 0;
+  while (cursor < source.length) {
+    const at = source.indexOf(`${name}(`, cursor);
+    if (at < 0) break;
+    const open = source.indexOf('(', at + name.length);
+    const close = matchingPair(source, open, '(', ')');
+    if (close < 0) break;
+    calls.push(source.slice(open + 1, close));
+    cursor = close + 1;
+  }
+  return calls;
+}
+
 function matchingPair(source: string, open: number, left: string, right: string): number {
   let depth = 0;
   for (let index = open; index < source.length; index++) {
@@ -904,6 +945,7 @@ function numericForLoops(source: string): {
   const singleStatementPattern =
     /for\s*\(\s*int\s+i\s*=\s*([^;]+)\s*;\s*i\s*<\s*([^;]+)\s*;\s*(?:i\+\+|\+\+i)\s*\)\s*(?!\{)([^;]+;)/g;
   while ((match = singleStatementPattern.exec(source)) !== null) {
+    if (match[3]!.trimStart().startsWith('{')) continue;
     loops.push({
       start: expressionNumber(match[1]),
       end: expressionNumber(match[2]),

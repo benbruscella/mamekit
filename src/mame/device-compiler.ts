@@ -84,7 +84,7 @@ export function compileMameDevice(
   const classSet = new Set(hierarchy);
   const constants = Object.assign(
     {},
-    ...sources.map(({ source }) => numericDefines(source)),
+    ...sources.map(({ source }) => numericConstants(source)),
   );
   const sourceTables = Object.assign(
     {},
@@ -102,6 +102,12 @@ export function compileMameDevice(
     'device_rom_region',
     'memory_space_config',
     'create_disassembler',
+    // Browser persistence is a host concern. Device state and default bytes
+    // remain source-derived, but MAME stream serialization is not executable
+    // device behavior.
+    'nvram_default',
+    'nvram_read',
+    'nvram_write',
   ]);
   const methods = ast.units
     .flatMap(unit => unit.functions)
@@ -121,6 +127,10 @@ export function compileMameDevice(
   }
 
   const callbacks: GeneratedDeviceCallback[] = [];
+  const allocatedArrays = allocatedMemberArrays(
+    sources.map(source => source.source).join('\n'),
+    constants,
+  );
   const members: GeneratedDeviceMember[] = hierarchy.flatMap(className => {
     const declaration = classes.get(className);
     if (!declaration) return [];
@@ -135,10 +145,12 @@ export function compileMameDevice(
         return [];
       }
       const bits = integerBits(member.valueType);
+      const allocated = allocatedArrays.get(member.name);
       return [{
         name: member.name,
         valueType: member.valueType,
         ...(bits ? { bits } : {}),
+        ...(allocated ? { values: allocated } : {}),
       }];
     });
   });
@@ -229,7 +241,10 @@ function compileMethod(
   interruptCallbacks: { member: string; line: string; signal: string }[] = [],
   sourceTables: Record<string, string[]> = {},
 ): GeneratedDeviceMethod {
-  let body = method.body;
+  let body = method.body.replace(
+    /\bm_\w+\s*=\s*std::make_unique\s*<[^;]+;\s*/g,
+    '',
+  );
   for (const callback of interruptCallbacks) {
     body = body.replace(
       new RegExp(
@@ -313,13 +328,18 @@ function memberDeclarations(
   declaration: MameClass,
 ): { name: string; valueType: string }[] {
   const members: { name: string; valueType: string }[] = [];
-  const pattern =
-    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(m_\w+)\s*(?:\[[^\]]+\])?\s*;/gm;
-  for (const match of declaration.body.matchAll(pattern)) {
-    members.push({
-      valueType: match[1]!.replace(/\s+/g, ' ').trim(),
-      name: match[2]!,
-    });
+  const patterns = [
+    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(m_\w+)\s*(?:\[[^\]]+\])?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(m_\w+)\s*;/gm,
+  ];
+  for (const pattern of patterns) {
+    for (const match of declaration.body.matchAll(pattern)) {
+      if (members.some(member => member.name === match[2])) continue;
+      members.push({
+        valueType: match[1]!.replace(/\s+/g, ' ').trim(),
+        name: match[2]!,
+      });
+    }
   }
   return members;
 }
@@ -402,13 +422,52 @@ function constantValue(expression: string, env: Record<string, number>): number 
   return 0;
 }
 
-function numericDefines(source: string): Record<string, number> {
-  const constants: Record<string, number> = {};
+function numericConstants(source: string): Record<string, number> {
+  const expressions = new Map<string, string>();
   for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^\r\n/]+)/gmi)) {
-    const value = evalExpr(match[2]!.trim(), constants);
-    if (value !== null && Number.isFinite(value)) constants[match[1]!] = value;
+    expressions.set(match[1]!, match[2]!.trim());
+  }
+  for (const match of source.matchAll(
+    /\b(?:static\s+)?constexpr\s+(?:\w+\s+)+(\w+)\s*=\s*([^;]+);/g,
+  )) {
+    expressions.set(match[1]!, match[2]!.trim());
+  }
+  const constants: Record<string, number> = {};
+  for (let pass = 0; pass <= expressions.size; pass++) {
+    for (const [name, expression] of expressions) {
+      if (constants[name] !== undefined) continue;
+      const substituted = expression.replace(
+        /\b[A-Za-z_]\w*\b/g,
+        token => constants[token] !== undefined ? String(constants[token]) : token,
+      );
+      const value = evalExpr(substituted, constants);
+      if (value !== null && Number.isFinite(value)) constants[name] = value;
+    }
   }
   return constants;
+}
+
+function allocatedMemberArrays(
+  source: string,
+  constants: Record<string, number>,
+): Map<string, number[]> {
+  const arrays = new Map<string, number[]>();
+  for (const allocation of source.matchAll(
+    /\b(m_\w+)\s*=\s*std::make_unique\s*<[^>]*\[\]>\s*\(([^)]+)\)\s*;/g,
+  )) {
+    const count = evalExpr(allocation[2]!.trim(), constants);
+    if (count === null || !Number.isInteger(count) || count <= 0) continue;
+    const fill = new RegExp(
+      `std::fill_n\\s*\\(\\s*&${allocation[1]}\\[0\\]\\s*,\\s*` +
+      `[^,]+,\\s*([^\\)]+)\\)`,
+    ).exec(source);
+    const initial = fill ? evalExpr(fill[1]!.trim(), constants) : 0;
+    arrays.set(
+      allocation[1]!,
+      Array.from({ length: count }, () => initial ?? 0),
+    );
+  }
+  return arrays;
 }
 
 function constantTables(source: string): Record<string, string[]> {

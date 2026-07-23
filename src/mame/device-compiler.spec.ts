@@ -8,7 +8,8 @@ import {
 } from '../runtime/generated-device.ts';
 
 const mameSrc = process.env.MAME_SRC ?? '../mame';
-const definition = indexMameHardware(mameSrc).get('LS259');
+const hardware = indexMameHardware(mameSrc);
+const definition = hardware.get('LS259');
 assert.ok(definition, 'MAME hardware index should resolve LS259');
 
 const generated = compileMameDevice(mameSrc, definition);
@@ -35,7 +36,7 @@ latch.call('write_d0', 3, 0);
 assert.equal(latch.call('output_state'), 0);
 assert.deepEqual(states, [1, 0]);
 
-const latchDefinition = indexMameHardware(mameSrc).get('GENERIC_LATCH_8');
+const latchDefinition = hardware.get('GENERIC_LATCH_8');
 assert.ok(latchDefinition, 'MAME hardware index should resolve GENERIC_LATCH_8');
 const generatedLatch = compileMameDevice(mameSrc, latchDefinition);
 assert.equal(generatedLatch.summary.diagnostics, 0);
@@ -46,4 +47,15 @@ assert.equal(soundLatch.call('pending_r'), 1);
 assert.equal(soundLatch.call('read'), 0xa5);
 assert.equal(soundLatch.call('pending_r'), 0);
 
-console.log('device-compiler.spec: 18 passed');
+const earomDefinition = hardware.get('ER2055');
+assert.ok(earomDefinition, 'MAME hardware index should resolve ER2055');
+const generatedEarom = compileMameDevice(mameSrc, earomDefinition);
+assert.equal(generatedEarom.summary.diagnostics, 0);
+assert.equal(generatedEarom.summary.compiledMethods, generatedEarom.summary.methods);
+assert.equal(
+  generatedEarom.members.find(member => member.name === 'm_rom_data')?.values?.length,
+  64,
+  'dynamic MAME device arrays must lower to fixed generated storage',
+);
+
+console.log('device-compiler.spec: source-derived latch and ER2055 devices passed');

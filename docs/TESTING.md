@@ -54,10 +54,11 @@ never be compiled into or pollute the canonical generated `dist` tree.
 ### CURRENT CLEAN GENERATION
 
 `test:current` invokes `gen:all`, which deletes `dist`, generates Pac-Man,
-Pooyan, Time Pilot, Space Invaders, Galaxian and Galaga from MAME, builds their
-shared hardware closure and app, then runs the generated-output audit. It
-detects stale-output masking, missing modules, unsupported hardware, duplicate
-trees, embedded machine JSON, imports from `src`, and blocked catalog entries.
+Pooyan, Time Pilot, Space Invaders, Galaxian, Galaga and Dig Dug from MAME,
+builds their shared hardware closure and app, then runs the generated-output
+audit. It detects stale-output masking, missing modules, unsupported hardware,
+duplicate trees, embedded machine JSON, imports from `src`, and blocked
+catalog entries.
 
 ### ALL-TARGET GENERATION
 
@@ -84,10 +85,10 @@ each supported game it checks:
 
 Each token owns its checkpoint and input schedule because machines reach their
 input-ready attract state at different times. Frame counts range from 600 to
-1,600 so each golden reaches active gameplay; Galaga's longer contract covers
-its three-CPU self-test before coin and start input. Every action has
-deterministic press and release durations. A test failure therefore identifies
-a changed trajectory, not only a final screenshot.
+2,400 so each golden reaches active gameplay; Galaga and Dig Dug use longer
+contracts to cover their three-CPU self-tests before coin and start input.
+Every action has deterministic press and release durations. A test failure
+therefore identifies a changed trajectory, not only a final screenshot.
 
 The throughput measurement includes CPU execution, generated video, checkpoint
 hashing and deterministic audio probing. It is not the browser's presentation
@@ -178,6 +179,7 @@ roms/arcade/timeplt.zip
 roms/arcade/invaders.zip
 roms/arcade/galaxian.zip
 roms/arcade/galaga.zip
+roms/arcade/digdug.zip
 ```
 
 Override them without moving files:
@@ -189,6 +191,7 @@ MAMEKIT_TIMEPLT_ROM=/path/timeplt.zip \
 MAMEKIT_INVADERS_ROM=/path/invaders.zip \
 MAMEKIT_GALAXIAN_ROM=/path/galaxian.zip \
 MAMEKIT_GALAGA_ROM=/path/galaga.zip \
+MAMEKIT_DIGDUG_ROM=/path/digdug.zip \
 npm run test:games
 ```
 
@@ -207,6 +210,15 @@ the browser, print candidate values with:
 
 ```sh
 npm run test:games:record
+```
+
+To inspect the exact final native frame from a focused contract, set a PPM
+output path:
+
+```sh
+MAMEKIT_CAPTURE_FRAME=/tmp/digdug.ppm \
+MAMEKIT_UPDATE_GOLDENS=1 \
+node -e "import { runGameAcceptance } from './src/games/acceptance-harness.ts'; import { digdug } from './src/games/digdug.ts'; await runGameAcceptance(digdug)"
 ```
 
 Review the output and edit only the affected token. Then rerun
@@ -247,7 +259,7 @@ it must not gain game logic.
 3. installs the locked npm dependencies on Node.js 24;
 4. runs every colocated spec;
 5. deletes `dist`, regenerates Pac-Man, Pooyan, Time Pilot, Space Invaders,
-   Galaxian and Galaga, and audits the result.
+   Galaxian, Galaga and Dig Dug, and audits the result.
 
 The MAME commit is pinned deliberately. Updating it is a source migration and
 must be reviewed separately from a MAMEKIT implementation change. Run all

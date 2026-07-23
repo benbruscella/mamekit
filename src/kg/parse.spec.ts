@@ -5,7 +5,7 @@
 // setter trio (set_refresh_hz/set_size/set_visarea), and slot-device default
 // option capture — plus a GAME-row regression so the arcade path can't drift.
 
-import { parseGames, parseMachineConfigs, parseDefines, parseAddressMaps } from './parse.ts';
+import { evalExpr, parseGames, parseMachineConfigs, parseDefines, parseAddressMaps } from './parse.ts';
 
 let totalPass = 0;
 let totalFail = 0;
@@ -20,6 +20,8 @@ function eq(label: string, actual: unknown, expected: unknown): void {
     console.log(`  FAIL ${label}: got ${a}, want ${e}`);
   }
 }
+
+eq('expression bitwise precedence', evalExpr('(3 << 4) | (7 & 3) ^ 1'), 48 | (3 ^ 1));
 
 // --- CONS row (nes.cpp:775) --------------------------------------------------
 {

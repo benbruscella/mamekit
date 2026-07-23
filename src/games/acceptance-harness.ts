@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gameOutputDir } from '../gen/output-layout.ts';
@@ -152,6 +152,15 @@ export async function runGameAcceptance(
     );
   }
   while (board.snapshot().frame < contract.frames) runFrame();
+  const finalSnapshot = board.snapshot();
+  if (process.env.MAMEKIT_CAPTURE_FRAME) {
+    writeFramePpm(
+      process.env.MAMEKIT_CAPTURE_FRAME,
+      framebuffer,
+      board.fbWidth,
+      board.fbHeight,
+    );
+  }
   const elapsedSeconds = (performance.now() - startedAt) / 1000;
   const emulatedFps = contract.frames / elapsedSeconds;
 
@@ -166,8 +175,15 @@ export async function runGameAcceptance(
   };
   assert.equal(Object.keys(checkpoints).length, contract.checkpoints.length);
   assert.ok(new Set(Object.values(checkpoints).map(value => value.video)).size >= 3);
-  assert.ok(result.audio.writes > 0, `${contract.game}: generated sound has no writes`);
-  assert.ok(result.audio.rms > 0.001, `${contract.game}: generated sound is silent`);
+  assert.ok(
+    result.audio.writes > 0,
+    `${contract.game}: generated sound has no writes (${JSON.stringify(result.audio)})`,
+  );
+  assert.ok(
+    result.audio.rms > 0.001,
+    `${contract.game}: generated sound is silent ` +
+      `(${JSON.stringify({ audio: result.audio, snapshot: finalSnapshot })})`,
+  );
   assert.ok(
     emulatedFps >= contract.minimumFps,
     `${contract.game}: ${emulatedFps.toFixed(1)} fps is below the ` +
@@ -403,4 +419,21 @@ function hash(bytes: Uint8Array): string {
 
 function moduleUrl(path: string): string {
   return pathToFileURL(path).href;
+}
+
+function writeFramePpm(
+  path: string,
+  frame: Uint32Array,
+  width: number,
+  height: number,
+): void {
+  const header = Buffer.from(`P6\n${width} ${height}\n255\n`, 'ascii');
+  const rgb = Buffer.allocUnsafe(width * height * 3);
+  for (let index = 0; index < frame.length; index++) {
+    const pixel = frame[index]!;
+    rgb[index * 3] = pixel & 0xff;
+    rgb[index * 3 + 1] = (pixel >>> 8) & 0xff;
+    rgb[index * 3 + 2] = (pixel >>> 16) & 0xff;
+  }
+  writeFileSync(path, Buffer.concat([header, rgb]));
 }

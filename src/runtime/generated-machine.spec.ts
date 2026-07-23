@@ -42,6 +42,12 @@ const machine = defineMachine({
       ownerTag: 'mainlatch', signal: 'q_out_cb', slot: 7, operation: 'set',
       targetClass: 'fixture_state', targetMethod: 'bookkeeping_w',
     },
+    {
+      id: 'callback:3',
+      ownerTag: 'mainlatch', signal: 'parallel_out_cb', operation: 'set',
+      targetClass: 'fixture_state', targetMethod: 'parallel_w',
+      transforms: ['mask(0x33)'],
+    },
   ],
 });
 
@@ -67,5 +73,12 @@ listeners.get(1)?.(1);
 check('generated callbacks execute with transforms', states, [1, 0]);
 check('bound targets', result.bound, ['fixture_state.irq_w', 'screen.flip_w']);
 check('unimplemented target remains explicit', result.ignored.length, 1);
+
+const parallel: number[] = [];
+wireDeviceCallbacks(device, machine, 'mainlatch', 'parallel_out_cb', {
+  'fixture_state.parallel_w': state => parallel.push(state),
+});
+listeners.get(0)?.(0, 0x33, 0x02);
+check('parallel callbacks forward data instead of access mask', parallel, [0x33]);
 
 console.log(`generated-machine.spec: ${passed} passed, 0 failed`);
