@@ -1570,6 +1570,11 @@ export class GeneratedAy8910Mixer {
   private readonly cores: GeneratedAy8910Core[];
   private readonly phases: number[];
   private readonly channelSamples: number[][];
+  private readonly nativeSamples: number[][];
+  private readonly sampleSums: number[][];
+  private readonly antialias1: number[][];
+  private readonly antialias2: number[][];
+  private readonly antialiasK: number[];
   private readonly routes: GeneratedAyRoute[];
   private readonly filters: GeneratedFilterState[];
   private readonly gainTotal: number;
@@ -1595,6 +1600,14 @@ export class GeneratedAy8910Mixer {
     this.cores = Array.from({ length: count }, () => new GeneratedAy8910Core(clock));
     this.phases = this.cores.map(() => 0);
     this.channelSamples = this.cores.map(() => [0, 0, 0]);
+    this.nativeSamples = this.cores.map(() => [0, 0, 0]);
+    this.sampleSums = this.cores.map(() => [0, 0, 0]);
+    this.antialias1 = this.cores.map(() => [0, 0, 0]);
+    this.antialias2 = this.cores.map(() => [0, 0, 0]);
+    this.antialiasK = this.cores.map(core =>
+      core.nativeRate > outputRate
+        ? 1 - Math.exp(-2 * Math.PI * outputRate * 0.4 / core.nativeRate)
+        : 1);
     this.routes = routes.length
       ? routes
       : this.cores.flatMap((_, chip) =>
@@ -1673,10 +1686,28 @@ export class GeneratedAy8910Mixer {
     if (this.muted) return 0;
     for (let chip = 0; chip < this.cores.length; chip++) {
       const core = this.cores[chip]!;
+      const native = this.nativeSamples[chip]!;
+      const sums = this.sampleSums[chip]!;
+      const lowpass1 = this.antialias1[chip]!;
+      const lowpass2 = this.antialias2[chip]!;
+      const k = this.antialiasK[chip]!;
+      sums.fill(0);
+      let nativeSamples = 0;
       this.phases[chip]! += core.nativeRate / this.outputRate;
       while (this.phases[chip]! >= 1) {
         this.phases[chip]! -= 1;
-        core.sampleChannels(this.channelSamples[chip]!);
+        core.sampleChannels(native);
+        for (let channel = 0; channel < plan.channels; channel++) {
+          lowpass1[channel]! += (native[channel]! - lowpass1[channel]!) * k;
+          lowpass2[channel]! += (lowpass1[channel]! - lowpass2[channel]!) * k;
+          sums[channel]! += lowpass2[channel]!;
+        }
+        nativeSamples++;
+      }
+      if (nativeSamples) {
+        for (let channel = 0; channel < plan.channels; channel++) {
+          this.channelSamples[chip]![channel] = sums[channel]! / nativeSamples;
+        }
       }
     }
     let mixed = 0;
