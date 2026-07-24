@@ -210,6 +210,11 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
           failures.push(`${target}: generation report omits hardware gap ${gap}`);
         }
       }
+      for (const gap of actualGapTypes) {
+        if (!expectedGaps.includes(gap)) {
+          failures.push(`${target}: generation report contains false hardware gap ${gap}`);
+        }
+      }
     }
 
     const machine = JSON.parse(
