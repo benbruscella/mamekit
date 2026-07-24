@@ -188,13 +188,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     if (reads[0]) spec.read = handlerKey(reads[0]);
     if (writes[0]) {
       spec.write = handlerKey(writes[0]);
-      const share = String(r.props.share ?? '');
-      const member = share && `m_${share.replace(/[^A-Za-z0-9_]/g, '_')}`;
       const sourceBody = String(writes[0].node.props.sourceBody ?? '');
-      if (
-        member &&
-        new RegExp(`\\b${member}\\s*\\[[^\\]]+\\]\\s*[-+*/&|^]?=`).test(sourceBody)
-      ) {
+      if (handlerOwnsSharedRam(sourceBody, String(r.props.share ?? ''))) {
         spec.writeHandlerOwnsRam = true;
       }
     }
@@ -792,6 +787,12 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   if (!existsSync(join(projectRoot, 'roms', `${opts.game}.zip`))) {
     console.log(`note: put ${opts.game}.zip in ${join(projectRoot, 'roms')}/ to auto-load ROMs (or drop the zip onto the page)`);
   }
+}
+
+export function handlerOwnsSharedRam(sourceBody: string, share: string): boolean {
+  if (!share) return false;
+  const member = `m_${share.replace(/[^A-Za-z0-9_]/g, '_')}`;
+  return new RegExp(`\\b${member}\\s*\\[[^\\]]+\\]\\s*[-+*/&|^]?=`).test(sourceBody);
 }
 
 /**
