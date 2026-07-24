@@ -149,6 +149,35 @@ export class GeneratedVideoRenderer implements VideoRenderer {
           target.fill(packed, start, y * this.width + clippedLastX + 1);
         }
       },
+      plotRect: (
+        x: number,
+        y: number,
+        pixelWidth: number,
+        pixelHeight: number,
+        color: number,
+      ) => {
+        const firstX = Math.floor((x - xOffset * xScale) / xScale);
+        const lastX = Math.floor((x + pixelWidth - 1 - xOffset * xScale) / xScale);
+        const firstY = Math.floor((y - yOffset * yScale) / yScale);
+        const lastY = Math.floor((y + pixelHeight - 1 - yOffset * yScale) / yScale);
+        const clippedFirstX = Math.max(0, firstX);
+        const clippedLastX = Math.min(this.width - 1, lastX);
+        const clippedFirstY = Math.max(0, firstY);
+        const clippedLastY = Math.min(this.height - 1, lastY);
+        if (clippedFirstX > clippedLastX || clippedFirstY > clippedLastY) return;
+        const packed = color >>> 0;
+        if (
+          clippedFirstX === clippedLastX &&
+          clippedFirstY === clippedLastY
+        ) {
+          target[clippedFirstY * this.width + clippedFirstX] = packed;
+          return;
+        }
+        for (let outputY = clippedFirstY; outputY <= clippedLastY; outputY++) {
+          const start = outputY * this.width + clippedFirstX;
+          target.fill(packed, start, outputY * this.width + clippedLastX + 1);
+        }
+      },
       'pix=': (y: number, x: number, color: number) => {
         const visibleX = Math.floor((x - xOffset * xScale) / xScale);
         const visibleY = Math.floor((y - yOffset * yScale) / yScale);
@@ -193,6 +222,13 @@ export class GeneratedVideoRenderer implements VideoRenderer {
 
 interface BitmapTarget {
   fill(color: number, rectangle?: GeneratedRectangle): void;
+  plotRect?(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: number,
+  ): void;
   'pix='(y: number, x: number, color: number): void;
 }
 
@@ -435,9 +471,13 @@ class GeneratedGfxElement {
         const packed = this.indexed
           ? colorBase + pen
           : this.palette.colors[colorBase + pen] ?? 0xff000000;
-        for (let yy = 0; yy < this.entry.yscale; yy++) {
-          for (let xx = 0; xx < this.entry.xscale; xx++) {
-            bitmap['pix='](y + yy, x + xx, packed);
+        if (bitmap.plotRect) {
+          bitmap.plotRect(x, y, this.entry.xscale, this.entry.yscale, packed);
+        } else {
+          for (let yy = 0; yy < this.entry.yscale; yy++) {
+            for (let xx = 0; xx < this.entry.xscale; xx++) {
+              bitmap['pix='](y + yy, x + xx, packed);
+            }
           }
         }
       }
