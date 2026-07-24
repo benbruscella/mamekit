@@ -253,6 +253,36 @@ class IrBoard implements Board {
         );
       }
     }
+    const hostedProcessors = (machine.devices ?? []).flatMap(specification => {
+      if (!specification.hostTag) return [];
+      const device = this.devices.get(specification.tag);
+      const host = this.devices.get(specification.hostTag);
+      const firmware = regions[specification.tag];
+      if (
+        !device || !host || !firmware ||
+        !device.methodNames().includes('execute_run') ||
+        !device.methodNames().includes('execute_set_input')
+      ) return [];
+      const enabled = this.configureHostedProcessor(
+        specification.tag,
+        device,
+        host,
+        firmware,
+        sinks,
+      );
+      return [{
+        tag: specification.tag,
+        clock: device.cycleClock(),
+        enabled,
+        run: (cycles: number) => {
+          device.set('m_icount', cycles);
+          device.call('execute_run');
+          return cycles - device.get('m_icount');
+        },
+      }];
+    });
+    // Machine latches drive reset/hold lines at power-on. Hosted processors
+    // must be wired before these initial values are emitted.
     for (const callback of machine.callbacks) {
       if (callback.signal !== 'q_out_cb' || callback.slot === undefined) continue;
       const source = this.devices.get(callback.ownerTag);
@@ -265,34 +295,6 @@ class IrBoard implements Board {
         callbackEndpoints,
       );
     }
-
-    const hostedProcessors = (machine.devices ?? []).flatMap(specification => {
-      if (!specification.hostTag) return [];
-      const device = this.devices.get(specification.tag);
-      const host = this.devices.get(specification.hostTag);
-      const firmware = regions[specification.tag];
-      if (
-        !device || !host || !firmware ||
-        !device.methodNames().includes('execute_run') ||
-        !device.methodNames().includes('execute_set_input')
-      ) return [];
-      this.configureHostedProcessor(
-        specification.tag,
-        device,
-        host,
-        firmware,
-        sinks,
-      );
-      return [{
-        tag: specification.tag,
-        clock: device.cycleClock(),
-        run: (cycles: number) => {
-          device.set('m_icount', cycles);
-          device.call('execute_run');
-          return cycles - device.get('m_icount');
-        },
-      }];
-    });
 
     const video = machine.execution.screenUpdate
       ? new GeneratedVideoRenderer(
@@ -339,11 +341,9 @@ class IrBoard implements Board {
     host: Device,
     firmware: Uint8Array,
     sinks: BoardSinks,
-  ): void {
-    const dataBits = device.methodNames()
-      .map(name => /^data_(\d+)bit$/.exec(name))
-      .find((match): match is RegExpExecArray => Boolean(match));
-    const ram = new Uint8Array(1 << Number(dataBits?.[1] ?? 7));
+  ): () => boolean {
+    let resetHeld = false;
+    const ram = new Uint8Array(1 << (device.dataAddressBits() ?? 7));
     device.bindCall('GETPC', () => (device.get('m_PA') << 6) + device.get('m_PC'));
     device.bindCall('GETEA', () => (device.get('m_X') << 4) + device.get('m_Y'));
     device.bindCall('INCPC', () => {
@@ -400,11 +400,13 @@ class IrBoard implements Board {
       sinks.soundWrite(channel, value, this.soundFraction(), 'discrete');
       return 0;
     });
-    if (host.signalNames().includes('irq')) {
-      host.on('irq', state => {
-        if (state) device.reset();
+    if (host.signalNames().includes('reset')) {
+      host.on('reset', state => {
+        resetHeld = state !== 0;
+        if (resetHeld) device.reset();
       });
     }
+    return () => !resetHeld;
   }
 
   frame(framebuffer: Uint32Array): void {

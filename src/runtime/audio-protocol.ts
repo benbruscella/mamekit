@@ -5,6 +5,7 @@ export const AY_FILTER_CONTROL_STRIDE = 5;
 /** Source-derived DAC/filter network mixed alongside a primary sound core. */
 export interface GeneratedDacFilterPlan {
   type: 'DAC_FILTER';
+  levels: number[];
   channels: {
     input: number;
     frequency: number;

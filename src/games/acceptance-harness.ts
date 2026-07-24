@@ -109,7 +109,7 @@ export async function runGameAcceptance(
 
   const pendingWrites: SoundWrite[] = [];
   const allWrites: SoundWrite[] = [];
-  const requiredAudioCounts = new Map<string, number>();
+  const requiredAudioCounts = new Map<number, number>();
   const board = generatedRuntime.createBoard(
     { ...config.board, game: config.game },
     regions,
@@ -134,13 +134,14 @@ export async function runGameAcceptance(
     pendingWrites.length = 0;
     board.frame(framebuffer);
     const snapshot = board.snapshot();
-    for (const requirement of contract.audioRequirements ?? []) {
+    for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {
       if (snapshot.frame < requirement.fromFrame) continue;
+      if (requirement.toFrame !== undefined && snapshot.frame > requirement.toFrame) continue;
       const count = pendingWrites.filter(write =>
         write.method === requirement.method && write.data !== 0).length;
       requiredAudioCounts.set(
-        requirement.method,
-        (requiredAudioCounts.get(requirement.method) ?? 0) + count,
+        index,
+        (requiredAudioCounts.get(index) ?? 0) + count,
       );
     }
     audio.render(pendingWrites, snapshot.frame >= 120);
@@ -195,13 +196,23 @@ export async function runGameAcceptance(
     `${contract.game}: generated sound is silent ` +
       `(${JSON.stringify({ audio: result.audio, snapshot: finalSnapshot })})`,
   );
-  for (const requirement of contract.audioRequirements ?? []) {
-    const actual = requiredAudioCounts.get(requirement.method) ?? 0;
+  for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {
+    const actual = requiredAudioCounts.get(index) ?? 0;
+    const window = requirement.toFrame === undefined
+      ? `after frame ${requirement.fromFrame}`
+      : `from frame ${requirement.fromFrame} through ${requirement.toFrame}`;
     assert.ok(
       actual >= requirement.minimumNonzeroWrites,
       `${contract.game}: ${requirement.method} audio emitted ${actual} nonzero writes ` +
-        `after frame ${requirement.fromFrame} (minimum ${requirement.minimumNonzeroWrites})`,
+        `${window} (minimum ${requirement.minimumNonzeroWrites})`,
     );
+    if (requirement.maximumNonzeroWrites !== undefined) {
+      assert.ok(
+        actual <= requirement.maximumNonzeroWrites,
+        `${contract.game}: ${requirement.method} audio emitted ${actual} nonzero writes ` +
+          `${window} (maximum ${requirement.maximumNonzeroWrites})`,
+      );
+    }
   }
   assert.ok(
     emulatedFps >= contract.minimumFps,

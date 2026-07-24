@@ -56,6 +56,8 @@ export interface GeneratedDeviceDefinition {
   methods: GeneratedDeviceMethod[];
   /** Ratio between the configured input clock and one execute_run cycle. */
   clockDivider?: number;
+  /** Address width of the device's internal data space, when source-declared. */
+  dataAddressBits?: number;
   start?: string;
   reset?: string;
   summary: {
@@ -98,7 +100,11 @@ export function compileMameDevice(
   )].map(match => ({
     member: match[1]!,
     line: match[2]!,
-    signal: match[2] === 'INPUT_LINE_NMI' ? 'nmi' : 'irq',
+    signal: match[2] === 'INPUT_LINE_NMI'
+      ? 'nmi'
+      : match[2] === 'INPUT_LINE_RESET'
+        ? 'reset'
+        : 'irq',
   })));
   const ignoredMethods = new Set([
     'device_add_mconfig',
@@ -198,6 +204,9 @@ export function compileMameDevice(
     (count, method) => count + method.program.diagnostics.length,
     0,
   );
+  const source = sources.map(candidate => candidate.source).join('\n');
+  const clockDivider = executionClockDivider(source);
+  const dataAddressBits = executionDataAddressBits(definition.className, source, constants);
   return {
     schemaVersion: 1,
     type,
@@ -209,9 +218,8 @@ export function compileMameDevice(
     callbacks,
     timers,
     methods,
-    ...(executionClockDivider(sources.map(source => source.source).join('\n'))
-      ? { clockDivider: executionClockDivider(sources.map(source => source.source).join('\n')) }
-      : {}),
+    ...(clockDivider ? { clockDivider } : {}),
+    ...(dataAddressBits ? { dataAddressBits } : {}),
     ...(methods.some(method => method.name === 'device_start') ? { start: 'device_start' } : {}),
     ...(methods.some(method => method.name === 'device_reset') ? { reset: 'device_reset' } : {}),
     summary: {
@@ -245,6 +253,23 @@ function executionClockDivider(source: string): number | undefined {
     .exec(source);
   const divider = Number(match?.[1]);
   return Number.isInteger(divider) && divider > 0 ? divider : undefined;
+}
+
+function executionDataAddressBits(
+  className: string,
+  source: string,
+  constants: Record<string, number>,
+): number | undefined {
+  const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const constructor = new RegExp(
+    `${escaped}::${escaped}\\s*\\([^)]*\\)\\s*:\\s*` +
+    `mb88_cpu_device\\s*\\(([^)]*)\\)`,
+    's',
+  ).exec(source);
+  if (!constructor) return undefined;
+  const args = splitMameArgs(constructor[1]!);
+  const width = Number(evalExpr(args.at(-1) ?? '', constants));
+  return Number.isInteger(width) && width > 0 && width <= 16 ? width : undefined;
 }
 
 function localSourceFiles(mameSrc: string, sourceFile: string): string[] {

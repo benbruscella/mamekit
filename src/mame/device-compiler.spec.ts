@@ -68,13 +68,28 @@ assert.equal(
   'fixed MAME MCU arrays must retain their source-declared size',
 );
 assert.equal(
+  generatedMb8844.dataAddressBits,
+  6,
+  'MB8844 data address width must come from its MAME constructor',
+);
+assert.equal(
   generatedMb8844.members.find(member => member.name === 'm_icount')?.signed,
   true,
   'signed MAME execution counters must remain signed in device IR',
 );
 registerGeneratedDevice(generatedMb8844);
 const mb8844 = createDevice('MB8844');
+assert.equal(mb8844.dataAddressBits(), 6);
 mb8844.set('m_icount', -1);
 assert.equal(mb8844.get('m_icount'), -1);
+
+const namco54Definition = hardware.get('NAMCO_54XX');
+assert.ok(namco54Definition, 'MAME hardware index should resolve NAMCO_54XX');
+const generatedNamco54 = compileMameDevice(mameSrc, namco54Definition);
+assert.equal(
+  generatedNamco54.callbacks.find(callback => callback.signal === 'reset')?.member,
+  'm_reset',
+  'MAME INPUT_LINE_RESET callbacks must remain distinct from IRQ callbacks',
+);
 
 console.log('device-compiler.spec: source-derived latch, ER2055 and MB8844 devices passed');

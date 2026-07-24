@@ -103,6 +103,17 @@ const galagaDiscrete = compileNamco54Discrete(
 );
 assert.deepEqual(galagaDiscrete.channels.map(channel => channel.input), [2, 1, 0]);
 assert.equal(galagaDiscrete.source.file, 'src/mame/namco/galaga_a.cpp');
+assert.deepEqual(
+  galagaDiscrete.channels.map(channel => Math.round(channel.frequency)),
+  [2_521, 450, 167],
+  '54XX filters must use MAME multiple-feedback resistance and capacitance equations',
+);
+assert.deepEqual(
+  galagaDiscrete.channels.map(channel => Number(channel.q.toFixed(2))),
+  [1.74, 2.12, 2.47],
+);
+assert.equal(galagaDiscrete.levels[0], 0);
+assert.equal(galagaDiscrete.levels[15], 1);
 const galagaAudio = new module.GeneratedNamcoWsgCore(
   new Uint8Array(0x100),
   96_000,

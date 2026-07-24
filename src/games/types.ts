@@ -45,7 +45,9 @@ export interface GameTestContract {
   audioRequirements?: {
     method: string;
     fromFrame: number;
+    toFrame?: number;
     minimumNonzeroWrites: number;
+    maximumNonzeroWrites?: number;
   }[];
   golden?: GameAcceptanceGolden;
 }

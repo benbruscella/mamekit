@@ -59,8 +59,18 @@ export function compileNamco54Discrete(
   if (mixerResistors.length !== 3) {
     throw new Error(`${netlist}: missing three-input mixer resistance table`);
   }
-  const conductance = mixerResistors.map(value => 1 / value);
-  const conductanceTotal = conductance.reduce((sum, value) => sum + value, 0);
+  const ladderName = symbolName(dacs[0]?.at(-1));
+  const ladderResistors = ladderName
+    ? resistorTable(source, ladderName)
+    : [];
+  if (ladderResistors.length !== 4) {
+    throw new Error(`${netlist}: missing four-bit DAC resistance ladder`);
+  }
+  const ladderConductance = ladderResistors.reduce((sum, value) => sum + 1 / value, 0);
+  const dacResistance = 1 / ladderConductance;
+  const levels = Array.from({ length: 16 }, (_, data) =>
+    ladderResistors.reduce((sum, resistance, bit) =>
+      sum + ((data >> bit) & 1) / resistance, 0) / ladderConductance);
   const channels = dacs.map(dac => {
     const outputNode = symbolName(dac[0]);
     const input = Number(/NAMCO_54XX_(\d)_DATA/.exec(dac[1]!)?.[1]);
@@ -72,21 +82,31 @@ export function compileNamco54Discrete(
     if (!Number.isInteger(input) || resistors.length < 3 || capacitors.length < 2) {
       throw new Error(`${netlist}: incomplete 54XX channel component data`);
     }
-    const [inputResistance, , feedbackResistance] = resistors;
+    const [seriesResistance, biasResistance, feedbackResistance] = resistors;
+    const inputResistance = seriesResistance! + dacResistance;
+    const totalResistance = 1 / (
+      1 / inputResistance +
+      1 / biasResistance!
+    );
     const frequency = 1 / (
       2 * Math.PI * Math.sqrt(
-        inputResistance! * feedbackResistance! * capacitors[0]! * capacitors[1]!,
+        totalResistance * feedbackResistance! * capacitors[0]! * capacitors[1]!,
       )
     );
-    const q = Math.max(0.25, Math.min(4, Math.sqrt(feedbackResistance! / inputResistance!) / 2));
+    const damping = (capacitors[0]! + capacitors[1]!) / Math.sqrt(
+      feedbackResistance! / totalResistance * capacitors[0]! * capacitors[1]!,
+    );
+    const q = 1 / damping;
     const mixerIndex = filters.indexOf(filter!);
-    const gain = (feedbackResistance! / inputResistance!) *
-      (conductance[mixerIndex]! / conductanceTotal);
+    const filterGain = feedbackResistance! / totalResistance *
+      capacitors[1]! / (capacitors[0]! + capacitors[1]!);
+    const gain = filterGain / mixerResistors[mixerIndex]!;
     return { input, frequency, q, gain };
   });
   const gainTotal = channels.reduce((sum, channel) => sum + channel.gain, 0);
   return {
     type: 'DAC_FILTER',
+    levels,
     channels: channels.map(channel => ({
       ...channel,
       gain: channel.gain / gainTotal,
@@ -1873,6 +1893,7 @@ registerProcessor(plan.processorName, GeneratedDiscreteAudioProcessor);
 function generatedNamcoWsgSuffix(plan: GeneratedNamcoWsgPlan): string {
   return `
 interface DacFilterPlan {
+  levels: number[];
   channels: { input: number; frequency: number; q: number; gain: number }[];
   outputGain: number;
 }
@@ -1899,10 +1920,12 @@ export interface GeneratedNamcoWsgWrite {
 
 class GeneratedDacFilterCore {
   private readonly values = new Float64Array(3);
+  private readonly levels: number[];
   private readonly filters: BiquadState[];
   private readonly outputGain: number;
 
   constructor(plan: DacFilterPlan, sampleRate: number) {
+    this.levels = plan.levels;
     this.outputGain = plan.outputGain;
     this.filters = plan.channels.map(channel => {
       const omega = 2 * Math.PI * channel.frequency / sampleRate;
@@ -1924,7 +1947,9 @@ class GeneratedDacFilterCore {
   }
 
   write(input: number, data: number): void {
-    if (input >= 0 && input < this.values.length) this.values[input] = (data & 0x0f) / 15;
+    if (input >= 0 && input < this.values.length) {
+      this.values[input] = this.levels[data & 0x0f] ?? 0;
+    }
   }
 
   renderInto(output: Float32Array): void {

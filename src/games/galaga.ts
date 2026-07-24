@@ -23,11 +23,21 @@ export const galaga: GameTestContract = {
     { atFrame: 1250, code: 'Space', heldFrames: 10, releasedFrames: 10 },
     { atFrame: 1350, code: 'Space', heldFrames: 10, releasedFrames: 10 },
   ],
-  audioRequirements: [{
-    method: 'discrete',
-    fromFrame: 2000,
-    minimumNonzeroWrites: 1,
-  }],
+  audioRequirements: [
+    {
+      method: 'discrete',
+      fromFrame: 2401,
+      toFrame: 2456,
+      minimumNonzeroWrites: 0,
+      maximumNonzeroWrites: 0,
+    },
+    {
+      method: 'discrete',
+      fromFrame: 2457,
+      toFrame: 2471,
+      minimumNonzeroWrites: 100,
+    },
+  ],
   golden: {
     regions: {
       '54xx:mcu': 'ee7357e0',
@@ -78,11 +88,11 @@ export const galaga: GameTestContract = {
       },
     },
     audio: {
-      writes: 402787,
-      nonzeroWrites: 100563,
-      writeHash: 'b7c4c69c',
-      pcmHash: '03bbf644',
-      rms: 0.091483,
+      writes: 311904,
+      nonzeroWrites: 30687,
+      writeHash: 'bfac7536',
+      pcmHash: 'fc6b5b22',
+      rms: 0.075614,
     },
   },
 };

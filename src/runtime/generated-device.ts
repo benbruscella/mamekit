@@ -52,6 +52,7 @@ export interface GeneratedDeviceDefinition {
   timers?: DeviceTimer[];
   methods: DeviceMethod[];
   clockDivider?: number;
+  dataAddressBits?: number;
   compiledMethods?: GeneratedDeviceMethodMap;
   start?: string;
   reset?: string;
@@ -74,6 +75,7 @@ export interface Device {
   on(signal: string, listener: DeviceCallbackListener, slot?: number): Device;
   bindCall(name: string, listener: (...args: number[]) => unknown): Device;
   cycleClock(): number;
+  dataAddressBits(): number | undefined;
 }
 
 const DEFINITIONS = new Map<string, GeneratedDeviceDefinition>();
@@ -278,6 +280,10 @@ class IrDevice implements Device {
 
   cycleClock(): number {
     return this.clock / (this.definition.clockDivider ?? 1);
+  }
+
+  dataAddressBits(): number | undefined {
+    return this.definition.dataAddressBits;
   }
 
   private executeMethod(
