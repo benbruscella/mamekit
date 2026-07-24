@@ -44,6 +44,16 @@ interface GameEntry {
   hasHistory?: boolean;
 }
 
+export function matchesMenuEntry(
+  entry: Pick<GameEntry, 'game' | 'title' | 'manufacturer' | 'year' | 'kind'>,
+  tab: 'arcade' | 'console',
+  query: string,
+): boolean {
+  const kind = entry.kind === 'console' ? 'console' : 'arcade';
+  const haystack = `${entry.title} ${entry.manufacturer} ${entry.year} ${entry.game}`.toLowerCase();
+  return kind === tab && (!query || haystack.includes(query.trim().toLowerCase()));
+}
+
 // Deterministic covers: emulate exactly COVER_FRAMES frames (deep into
 // attract mode) and screenshot that frame. Cached forever in localStorage,
 // keyed by frame count so changing it regenerates.
@@ -206,9 +216,7 @@ export async function runMenu(): Promise<void> {
     const q = search.value.trim().toLowerCase();
     let any = false;
     for (const b of boxes) {
-      const hay = `${b.entry.title} ${b.entry.manufacturer} ${b.entry.year} ${b.entry.game}`.toLowerCase();
-      const kind = b.entry.kind === 'console' ? 'console' : 'arcade';
-      b.visible = kind === activeTab && (!q || hay.includes(q));
+      b.visible = matchesMenuEntry(b.entry, activeTab, q);
       b.box.style.display = b.visible ? '' : 'none';
       any ||= b.visible;
     }

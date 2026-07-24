@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import * as ts from 'typescript';
 import {
   compileAy8910,
+  compileMameSpeakerFilter,
   compileMsm5205,
   compileNamco54Discrete,
   compileNamcoWsg,
@@ -21,6 +22,15 @@ const definition: MameHardwareDefinition = {
   macro: 'DEFINE_DEVICE_TYPE',
 };
 const mameSrc = process.env.MAME_SRC ?? '../mame';
+assert.deepEqual(compileMameSpeakerFilter(mameSrc), {
+  type: 'highpass',
+  frequency: 20,
+  q: 0.7071067,
+  source: {
+    file: 'src/emu/audio_effects/filter.cpp',
+    line: 67,
+  },
+});
 const plan = compileNamcoWsg(mameSrc, definition);
 assert.equal(plan.internalRate, 192_000);
 assert.equal(plan.voices, 3);
@@ -201,6 +211,12 @@ assert.equal(msmPlan.maximumSignal, 2047);
 assert.equal(msmPlan.minimumSignal, -2048);
 
 const aySource = generatedAy8910WorkletSource(ayPlan, msmPlan);
+const ayOnlySource = generatedAy8910WorkletSource(ayPlan);
+assert.match(
+  ayOnlySource,
+  /const msmPlan: GeneratedMsm5205PlanData \| null = null;/,
+  'AY-only worklets must retain the optional MSM plan type instead of narrowing it to never',
+);
 const ayJavaScript = ts.transpileModule(aySource, {
   compilerOptions: {
     target: ts.ScriptTarget.ES2022,
@@ -288,6 +304,23 @@ const variation = (values: number[]) => values.slice(1)
   .reduce((sum, value, index) => sum + Math.abs(value - values[index]!), 0);
 assert.ok(variation(lowpass) < variation(raw));
 
+const aliased = new ayModule.GeneratedAy8910Mixer(1_789_772, 1, 48_000);
+const audible = new ayModule.GeneratedAy8910Mixer(1_789_772, 1, 48_000);
+for (const [mixer, period] of [[aliased, 1], [audible, 16]] as const) {
+  mixer.write(0, period);
+  mixer.write(7, 0x3e);
+  mixer.write(8, 0x0f);
+}
+const rms = (values: number[]) => Math.sqrt(
+  values.reduce((sum, value) => sum + value * value, 0) / values.length,
+);
+const aliasedRms = rms(Array.from({ length: 4096 }, () => aliased.sample()).slice(256));
+const audibleRms = rms(Array.from({ length: 4096 }, () => audible.sample()).slice(256));
+assert.ok(
+  aliasedRms < audibleRms * 0.1,
+  `native AY period 1 folded into 48 kHz output (${aliasedRms} vs ${audibleRms})`,
+);
+
 const timedMixer = new ayModule.GeneratedAy8910Mixer(1_789_772, 1, 48_000);
 const frameRenderer = new ayModule.GeneratedAy8910FrameRenderer(timedMixer, 48_000, 60);
 const timed = frameRenderer.render([
@@ -299,4 +332,4 @@ assert.ok(timed.slice(0, 400).every(sample => sample === 0));
 assert.ok(timed.slice(400).some(sample => sample !== 0));
 assert.match(aySource, /write\.frac/);
 
-console.log('audio-compiler.spec: 27 passed');
+console.log('audio-compiler.spec: 29 passed');

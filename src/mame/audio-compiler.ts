@@ -10,7 +10,35 @@ import {
   AY_FILTER_CONTROL_BASE,
   AY_FILTER_CONTROL_STRIDE,
   type GeneratedDacFilterPlan,
+  type GeneratedSpeakerFilterPlan,
 } from '../runtime/audio-protocol.ts';
+
+export function compileMameSpeakerFilter(
+  mameSrc: string,
+): GeneratedSpeakerFilterPlan {
+  const cppFile = 'src/emu/audio_effects/filter.cpp';
+  const headerFile = 'src/emu/audio_effects/filter.h';
+  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
+  const header = readFileSync(join(mameSrc, headerFile), 'utf8');
+  const frequencyMatch =
+    /m_fh\s*=\s*d\s*\?\s*d->fh\(\)\s*:\s*([0-9.]+)\s*;/.exec(cpp);
+  const qMatch =
+    /DEFAULT_Q\s*=\s*([0-9.]+)f?\s*;/.exec(header);
+  const enabledByDefault =
+    /m_highpass_active\s*=\s*d\s*\?\s*d->highpass_active\(\)\s*:\s*true\s*;/.test(cpp);
+  if (!frequencyMatch || !qMatch || !enabledByDefault) {
+    throw new Error('unsupported MAME default speaker filter');
+  }
+  return {
+    type: 'highpass',
+    frequency: Number(frequencyMatch[1]),
+    q: Number(qMatch[1]),
+    source: {
+      file: cppFile,
+      line: cpp.slice(0, frequencyMatch.index).split('\n').length,
+    },
+  };
+}
 
 export interface GeneratedNamcoWsgPlan {
   schemaVersion: 1;
@@ -1303,9 +1331,25 @@ export function generatedAy8910WorkletSource(
 // LFSR taps are extracted from MAME's AY implementation. RC behavior is
 // sourced from flt_rc and route/filter controls arrive from generated machine IR.
 const plan = ${JSON.stringify(plan, null, 2)};
-const msmPlan = ${JSON.stringify(msm5205 ?? null, null, 2)};
+const msmPlan: GeneratedMsm5205PlanData | null = ${JSON.stringify(msm5205 ?? null, null, 2)};
 const FILTER_CONTROL_BASE = ${AY_FILTER_CONTROL_BASE};
 const FILTER_CONTROL_STRIDE = ${AY_FILTER_CONTROL_STRIDE};
+
+interface GeneratedMsm5205PlanData {
+  schemaVersion: number;
+  type: string;
+  className: string;
+  indexShift: number[];
+  diffLookup: number[];
+  modes: Record<string, number>;
+  maximumStep: number;
+  minimumSignal: number;
+  maximumSignal: number;
+  sampleScale: number;
+  dacBits: number;
+  sourceFiles: string[];
+  source: { file: string; line: number };
+}
 
 export interface GeneratedAyRoute {
   chip: number;
@@ -1510,17 +1554,34 @@ export class GeneratedMsm5205Core {
   }
 }
 
+export class GeneratedDac8Core {
+  private value = 0x80;
+
+  write(method: string, data: number): void {
+    if (method === 'data_w') this.value = data & 0xff;
+  }
+
+  sample(): number {
+    return (this.value - 0x80) / 0x80;
+  }
+}
+
 export class GeneratedAy8910Mixer {
   private readonly cores: GeneratedAy8910Core[];
   private readonly phases: number[];
   private readonly channelSamples: number[][];
+  private readonly nativeSamples: number[][];
+  private readonly sampleSums: number[][];
+  private readonly antialias1: number[][];
+  private readonly antialias2: number[][];
+  private readonly antialiasK: number[];
   private readonly routes: GeneratedAyRoute[];
   private readonly filters: GeneratedFilterState[];
   private readonly gainTotal: number;
   private readonly auxiliary: {
     deviceTag: string;
     gain: number;
-    core: GeneratedMsm5205Core;
+    core: GeneratedMsm5205Core | GeneratedDac8Core;
   }[];
   private readonly auxiliaryGainTotal: number;
   private readonly outputRate: number;
@@ -1539,6 +1600,14 @@ export class GeneratedAy8910Mixer {
     this.cores = Array.from({ length: count }, () => new GeneratedAy8910Core(clock));
     this.phases = this.cores.map(() => 0);
     this.channelSamples = this.cores.map(() => [0, 0, 0]);
+    this.nativeSamples = this.cores.map(() => [0, 0, 0]);
+    this.sampleSums = this.cores.map(() => [0, 0, 0]);
+    this.antialias1 = this.cores.map(() => [0, 0, 0]);
+    this.antialias2 = this.cores.map(() => [0, 0, 0]);
+    this.antialiasK = this.cores.map(core =>
+      core.nativeRate > outputRate
+        ? 1 - Math.exp(-2 * Math.PI * outputRate * 0.4 / core.nativeRate)
+        : 1);
     this.routes = routes.length
       ? routes
       : this.cores.flatMap((_, chip) =>
@@ -1562,14 +1631,24 @@ export class GeneratedAy8910Mixer {
       memory: 0,
     }));
     this.gainTotal = this.routes.reduce((sum, route) => sum + route.gain, 0) || 1;
-    this.auxiliary = auxiliaryDevices.flatMap(device =>
+    this.auxiliary = auxiliaryDevices.flatMap<{
+      deviceTag: string;
+      gain: number;
+      core: GeneratedMsm5205Core | GeneratedDac8Core;
+    }>(device =>
       device.type === 'MSM5205' && msmPlan
         ? [{
             deviceTag: device.deviceTag,
             gain: device.gain,
             core: new GeneratedMsm5205Core(device.initialMode),
           }]
-        : []);
+        : device.type === 'DAC_8BIT_R2R'
+          ? [{
+              deviceTag: device.deviceTag,
+              gain: device.gain,
+              core: new GeneratedDac8Core(),
+            }]
+          : []);
     this.auxiliaryGainTotal = this.auxiliary.reduce(
       (sum, device) => sum + device.gain,
       0,
@@ -1607,10 +1686,28 @@ export class GeneratedAy8910Mixer {
     if (this.muted) return 0;
     for (let chip = 0; chip < this.cores.length; chip++) {
       const core = this.cores[chip]!;
+      const native = this.nativeSamples[chip]!;
+      const sums = this.sampleSums[chip]!;
+      const lowpass1 = this.antialias1[chip]!;
+      const lowpass2 = this.antialias2[chip]!;
+      const k = this.antialiasK[chip]!;
+      sums.fill(0);
+      let nativeSamples = 0;
       this.phases[chip]! += core.nativeRate / this.outputRate;
       while (this.phases[chip]! >= 1) {
         this.phases[chip]! -= 1;
-        core.sampleChannels(this.channelSamples[chip]!);
+        core.sampleChannels(native);
+        for (let channel = 0; channel < plan.channels; channel++) {
+          lowpass1[channel]! += (native[channel]! - lowpass1[channel]!) * k;
+          lowpass2[channel]! += (lowpass1[channel]! - lowpass2[channel]!) * k;
+          sums[channel]! += lowpass2[channel]!;
+        }
+        nativeSamples++;
+      }
+      if (nativeSamples) {
+        for (let channel = 0; channel < plan.channels; channel++) {
+          this.channelSamples[chip]![channel] = sums[channel]! / nativeSamples;
+        }
       }
     }
     let mixed = 0;
