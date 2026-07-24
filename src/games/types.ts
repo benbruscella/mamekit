@@ -41,5 +41,13 @@ export interface GameTestContract {
   minimumFps: number;
   checkpoints: number[];
   actions: GameInputAction[];
+  /** Required generated audio activity in a named source-device path. */
+  audioRequirements?: {
+    method: string;
+    fromFrame: number;
+    toFrame?: number;
+    minimumNonzeroWrites: number;
+    maximumNonzeroWrites?: number;
+  }[];
   golden?: GameAcceptanceGolden;
 }

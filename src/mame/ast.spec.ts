@@ -3,6 +3,7 @@ import {
   maskComments,
   parseMameAst,
   parseMameSource,
+  splitMameArgs,
 } from './ast.ts';
 
 let passed = 0;
@@ -75,6 +76,11 @@ check('class base parsed', hierarchy.ast.units[1].classes[0]?.bases, ['base_stat
 check('inherited function resolved',
   hierarchy.findFunctionInHierarchy('derived_state', 'bankselect_w')?.className,
   'base_state');
+check(
+  'argument splitter preserves shift expressions',
+  splitMameArgs('(i << 1) | 1, value >> 2'),
+  ['(i << 1) | 1', 'value >> 2'],
+);
 
 const memberMacros = parseMameSource('timer.cpp', `
 TIMER_CALLBACK_MEMBER(test_state::scanline_tick)

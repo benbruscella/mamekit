@@ -19,6 +19,7 @@ export interface GeneratedDeviceMember {
   name: string;
   valueType: string;
   bits?: 1 | 8 | 16 | 32;
+  signed?: boolean;
   initial?: number;
   values?: number[];
 }
@@ -53,6 +54,10 @@ export interface GeneratedDeviceDefinition {
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
   methods: GeneratedDeviceMethod[];
+  /** Ratio between the configured input clock and one execute_run cycle. */
+  clockDivider?: number;
+  /** Address width of the device's internal data space, when source-declared. */
+  dataAddressBits?: number;
   start?: string;
   reset?: string;
   summary: {
@@ -84,7 +89,7 @@ export function compileMameDevice(
   const classSet = new Set(hierarchy);
   const constants = Object.assign(
     {},
-    ...sources.map(({ source }) => numericDefines(source)),
+    ...sources.map(({ source }) => numericConstants(source)),
   );
   const sourceTables = Object.assign(
     {},
@@ -95,13 +100,23 @@ export function compileMameDevice(
   )].map(match => ({
     member: match[1]!,
     line: match[2]!,
-    signal: match[2] === 'INPUT_LINE_NMI' ? 'nmi' : 'irq',
+    signal: match[2] === 'INPUT_LINE_NMI'
+      ? 'nmi'
+      : match[2] === 'INPUT_LINE_RESET'
+        ? 'reset'
+        : 'irq',
   })));
   const ignoredMethods = new Set([
     'device_add_mconfig',
     'device_rom_region',
     'memory_space_config',
     'create_disassembler',
+    // Browser persistence is a host concern. Device state and default bytes
+    // remain source-derived, but MAME stream serialization is not executable
+    // device behavior.
+    'nvram_default',
+    'nvram_read',
+    'nvram_write',
   ]);
   const methods = ast.units
     .flatMap(unit => unit.functions)
@@ -121,6 +136,14 @@ export function compileMameDevice(
   }
 
   const callbacks: GeneratedDeviceCallback[] = [];
+  const allocatedArrays = allocatedMemberArrays(
+    sources.map(source => source.source).join('\n'),
+    constants,
+  );
+  const fixedArrays = fixedMemberArrays(
+    [...classes.values()].map(declaration => declaration.body).join('\n'),
+    constants,
+  );
   const members: GeneratedDeviceMember[] = hierarchy.flatMap(className => {
     const declaration = classes.get(className);
     if (!declaration) return [];
@@ -135,10 +158,14 @@ export function compileMameDevice(
         return [];
       }
       const bits = integerBits(member.valueType);
+      const signed = integerSigned(member.valueType);
+      const allocated = allocatedArrays.get(member.name) ?? fixedArrays.get(member.name);
       return [{
         name: member.name,
         valueType: member.valueType,
         ...(bits ? { bits } : {}),
+        ...(signed ? { signed } : {}),
+        ...(allocated ? { values: allocated } : {}),
       }];
     });
   });
@@ -177,6 +204,9 @@ export function compileMameDevice(
     (count, method) => count + method.program.diagnostics.length,
     0,
   );
+  const source = sources.map(candidate => candidate.source).join('\n');
+  const clockDivider = executionClockDivider(source);
+  const dataAddressBits = executionDataAddressBits(definition.className, source, constants);
   return {
     schemaVersion: 1,
     type,
@@ -188,6 +218,8 @@ export function compileMameDevice(
     callbacks,
     timers,
     methods,
+    ...(clockDivider ? { clockDivider } : {}),
+    ...(dataAddressBits ? { dataAddressBits } : {}),
     ...(methods.some(method => method.name === 'device_start') ? { start: 'device_start' } : {}),
     ...(methods.some(method => method.name === 'device_reset') ? { reset: 'device_reset' } : {}),
     summary: {
@@ -196,6 +228,48 @@ export function compileMameDevice(
       diagnostics,
     },
   };
+}
+
+export function mameDeviceRomSet(
+  mameSrc: string,
+  sourceFile: string,
+  className: string,
+): string | undefined {
+  const source = readFileSync(join(mameSrc, sourceFile), 'utf8');
+  const method = parseMameAst([{ file: sourceFile, source }]).units
+    .flatMap(unit => unit.functions)
+    .find(candidate =>
+      candidate.className === className && candidate.name === 'device_rom_region');
+  const scoped = method && /\bROM_NAME\s*\(\s*(\w+)\s*\)/.exec(method.body)?.[1];
+  if (scoped) return scoped;
+  const fallback = new RegExp(
+    `${className}::device_rom_region[\\s\\S]*?ROM_NAME\\s*\\(\\s*(\\w+)\\s*\\)`,
+  ).exec(source);
+  return fallback?.[1];
+}
+
+function executionClockDivider(source: string): number | undefined {
+  const match = /execute_cycles_to_clocks\s*\([^)]*\)[^{]*\{[^}]*return\s*\([^;]*\*\s*(\d+)\s*\)/s
+    .exec(source);
+  const divider = Number(match?.[1]);
+  return Number.isInteger(divider) && divider > 0 ? divider : undefined;
+}
+
+function executionDataAddressBits(
+  className: string,
+  source: string,
+  constants: Record<string, number>,
+): number | undefined {
+  const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const constructor = new RegExp(
+    `${escaped}::${escaped}\\s*\\([^)]*\\)\\s*:\\s*` +
+    `mb88_cpu_device\\s*\\(([^)]*)\\)`,
+    's',
+  ).exec(source);
+  if (!constructor) return undefined;
+  const args = splitMameArgs(constructor[1]!);
+  const width = Number(evalExpr(args.at(-1) ?? '', constants));
+  return Number.isInteger(width) && width > 0 && width <= 16 ? width : undefined;
 }
 
 function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
@@ -229,7 +303,10 @@ function compileMethod(
   interruptCallbacks: { member: string; line: string; signal: string }[] = [],
   sourceTables: Record<string, string[]> = {},
 ): GeneratedDeviceMethod {
-  let body = method.body;
+  let body = method.body.replace(
+    /\bm_\w+\s*=\s*std::make_unique\s*<[^;]+;\s*/g,
+    '',
+  );
   for (const callback of interruptCallbacks) {
     body = body.replace(
       new RegExp(
@@ -313,13 +390,18 @@ function memberDeclarations(
   declaration: MameClass,
 ): { name: string; valueType: string }[] {
   const members: { name: string; valueType: string }[] = [];
-  const pattern =
-    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(m_\w+)\s*(?:\[[^\]]+\])?\s*;/gm;
-  for (const match of declaration.body.matchAll(pattern)) {
-    members.push({
-      valueType: match[1]!.replace(/\s+/g, ' ').trim(),
-      name: match[2]!,
-    });
+  const patterns = [
+    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(m_\w+)\s*(?:\[[^\]]+\])?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(m_\w+)\s*;/gm,
+  ];
+  for (const pattern of patterns) {
+    for (const match of declaration.body.matchAll(pattern)) {
+      if (members.some(member => member.name === match[2])) continue;
+      members.push({
+        valueType: match[1]!.replace(/\s+/g, ' ').trim(),
+        name: match[2]!,
+      });
+    }
   }
   return members;
 }
@@ -335,6 +417,11 @@ function integerBits(valueType: string): 1 | 8 | 16 | 32 | undefined {
   if (['u16', 's16', 'uint16_t', 'int16_t'].includes(normalized)) return 16;
   if (['u32', 's32', 'uint32_t', 'int32_t', 'int', 'unsigned'].includes(normalized)) return 32;
   return undefined;
+}
+
+function integerSigned(valueType: string): boolean {
+  const normalized = valueType.replace(/\bconst\b/g, '').trim();
+  return ['s8', 'int8_t', 'char', 's16', 'int16_t', 's32', 'int32_t', 'int'].includes(normalized);
 }
 
 interface Constructor {
@@ -402,13 +489,67 @@ function constantValue(expression: string, env: Record<string, number>): number 
   return 0;
 }
 
-function numericDefines(source: string): Record<string, number> {
-  const constants: Record<string, number> = {};
+function numericConstants(source: string): Record<string, number> {
+  const expressions = new Map<string, string>();
   for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^\r\n/]+)/gmi)) {
-    const value = evalExpr(match[2]!.trim(), constants);
-    if (value !== null && Number.isFinite(value)) constants[match[1]!] = value;
+    expressions.set(match[1]!, match[2]!.trim());
+  }
+  for (const match of source.matchAll(
+    /\b(?:static\s+)?constexpr\s+(?:\w+\s+)+(\w+)\s*=\s*([^;]+);/g,
+  )) {
+    expressions.set(match[1]!, match[2]!.trim());
+  }
+  const constants: Record<string, number> = {};
+  for (let pass = 0; pass <= expressions.size; pass++) {
+    for (const [name, expression] of expressions) {
+      if (constants[name] !== undefined) continue;
+      const substituted = expression.replace(
+        /\b[A-Za-z_]\w*\b/g,
+        token => constants[token] !== undefined ? String(constants[token]) : token,
+      );
+      const value = evalExpr(substituted, constants);
+      if (value !== null && Number.isFinite(value)) constants[name] = value;
+    }
   }
   return constants;
+}
+
+function allocatedMemberArrays(
+  source: string,
+  constants: Record<string, number>,
+): Map<string, number[]> {
+  const arrays = new Map<string, number[]>();
+  for (const allocation of source.matchAll(
+    /\b(m_\w+)\s*=\s*std::make_unique\s*<[^>]*\[\]>\s*\(([^)]+)\)\s*;/g,
+  )) {
+    const count = evalExpr(allocation[2]!.trim(), constants);
+    if (count === null || !Number.isInteger(count) || count <= 0) continue;
+    const fill = new RegExp(
+      `std::fill_n\\s*\\(\\s*&${allocation[1]}\\[0\\]\\s*,\\s*` +
+      `[^,]+,\\s*([^\\)]+)\\)`,
+    ).exec(source);
+    const initial = fill ? evalExpr(fill[1]!.trim(), constants) : 0;
+    arrays.set(
+      allocation[1]!,
+      Array.from({ length: count }, () => initial ?? 0),
+    );
+  }
+  return arrays;
+}
+
+function fixedMemberArrays(
+  source: string,
+  constants: Record<string, number>,
+): Map<string, number[]> {
+  const arrays = new Map<string, number[]>();
+  for (const declaration of source.matchAll(
+    /^\s*(?:const\s+)?[\w:]+\s+(m_\w+)\s*\[([^\]]+)\]\s*;/gm,
+  )) {
+    const count = evalExpr(declaration[2]!.trim(), constants);
+    if (count === null || !Number.isInteger(count) || count <= 0) continue;
+    arrays.set(declaration[1]!, Array.from({ length: count }, () => 0));
+  }
+  return arrays;
 }
 
 function constantTables(source: string): Record<string, string[]> {

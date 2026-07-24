@@ -251,7 +251,10 @@ class GeneratedPalette {
     }
     const penCount = Math.max(
       1,
-      ...plan.banks.map(bank => bank.penOffset + (bank.lookupCount ?? plan.lookupCount)),
+      ...plan.banks.map(bank => {
+        const count = bank.lookupCount ?? plan.lookupCount;
+        return bank.penOffset + Math.max(0, count - 1) * (bank.penStride ?? 1) + 1;
+      }),
     );
     this.colors = new Uint32Array(penCount);
     this.indirect = new Uint16Array(penCount);
@@ -260,9 +263,9 @@ class GeneratedPalette {
       const lookupCount = bank.lookupCount ?? plan.lookupCount;
       for (let index = 0; index < lookupCount; index++) {
         const indirect = bank.direct
-          ? bank.colorOr + index
+          ? bank.colorOr + index * (bank.colorStride ?? 1)
           : bank.colorOr | ((prom[lookupOffset + index] ?? 0) & plan.lookupMask);
-        const pen = bank.penOffset + index;
+        const pen = bank.penOffset + index * (bank.penStride ?? 1);
         this.indirect[pen] = indirect;
         this.colors[pen] = core[indirect] ?? 0xff000000;
       }
@@ -412,6 +415,11 @@ class GeneratedTilemap {
 
   mark_tile_dirty(index: number): void {
     if (Number.isInteger(index) && index >= 0) this.dirty[index] = 1;
+  }
+
+  mark_all_dirty(): void {
+    this.tiles.length = 0;
+    this.dirty.length = 0;
   }
 
   set_flip(flags: number): void {
@@ -615,6 +623,15 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     });
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {
       ...bindings.referenceCalls,
+      memregion: (...args) => {
+        const tag = String(generatedArgumentValue(args[0]) ?? '');
+        const bytes = regions[tag];
+        if (!bytes) throw new Error(`${machine.game}: missing video ROM region "${tag}"`);
+        return {
+          base: () => bytes,
+          bytes: () => bytes.length,
+        };
+      },
       rectangle: (...args) => new GeneratedRectangle(
         Number(args[0]), Number(args[1]), Number(args[2]), Number(args[3]),
       ),

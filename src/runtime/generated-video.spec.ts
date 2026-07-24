@@ -1,4 +1,5 @@
 import { compileMameHandler } from '../mame/handler-ir.ts';
+import { executeGeneratedProgram } from './generated-handler.ts';
 import type { GeneratedMachine } from './generated-machine.ts';
 import {
   createGeneratedTileInfoTarget,
@@ -91,12 +92,24 @@ if (generatedTileMemoryIndex(1012) !== 1012) {
   throw new Error('custom mapper memory index was folded into the logical tile count');
 }
 const screenState: Record<string, unknown> = {};
+const videoRegion = Uint8Array.of(0x12, 0x34);
 const generatedPrimitives = new GeneratedMameVideoPrimitives(
   machine,
-  {},
+  { gfx4: videoRegion },
   screenState,
   { calls: { 'm_screen.vpos': () => 37 } },
 );
+const romRead = compileMameHandler(`
+  uint8_t *rom = memregion("gfx4")->base();
+  return rom[1];
+`);
+const romReadResult = executeGeneratedProgram(
+  romRead,
+  generatedPrimitives.generatedVideoBindings(new Uint32Array(4)),
+);
+if (romReadResult.value !== 0x34) {
+  throw new Error(`generated memregion binding returned ${String(romReadResult.value)}`);
+}
 const generatedScreen = screenState.m_screen as {
   __frame: number;
   frame_number(): number;
@@ -111,4 +124,46 @@ generatedPrimitives.vblank();
 if (generatedScreen.frame_number() !== 1) {
   throw new Error('generated screen frame counter did not advance at vblank');
 }
-console.log('generated-video.spec: 8 passed');
+
+const tileMachine: GeneratedMachine = {
+  ...machine,
+  handlers: [
+    ...machine.handlers!,
+    {
+      id: 'handler:tile_info',
+      ownerClass: 'fixture_state',
+      method: 'tile_info',
+      program: compileMameHandler('tileinfo.set(0, 0, 0, 0);'),
+    },
+  ],
+  video: {
+    initialState: {},
+    gfx: [],
+    tilemaps: [{
+      member: 'm_bg_tilemap',
+      tileWidth: 8,
+      tileHeight: 8,
+      columns: 1,
+      rows: 1,
+      mapper: 'TILEMAP_SCAN_ROWS',
+      tileInfo: 'fixture_state.tile_info',
+    }],
+  },
+};
+const tileState: Record<string, unknown> = {};
+const tilePrimitives = new GeneratedMameVideoPrimitives(tileMachine, {}, tileState, {});
+const tilemap = tileState.m_bg_tilemap as {
+  tiles: unknown[];
+  dirty: number[];
+};
+tilemap.tiles.push(cachedTile);
+tilemap.dirty.push(0);
+executeGeneratedProgram(
+  compileMameHandler('m_bg_tilemap->mark_all_dirty();'),
+  tilePrimitives.generatedVideoBindings(new Uint32Array(4)),
+);
+if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
+  throw new Error('mark_all_dirty did not invalidate generated tile cache');
+}
+
+console.log('generated-video.spec: 10 passed');

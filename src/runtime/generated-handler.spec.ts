@@ -53,6 +53,14 @@ executeGeneratedHandler(compileMameHandler(`
 `), { members: { m_values: values } });
 assert.deepEqual([...values], [1, 2, 3, 4]);
 
+const pointerMemory = Uint8Array.of(0x11, 0x22, 0x33, 0x44);
+assert.equal(executeGeneratedHandler(compileMameHandler(`
+  uint8_t *cursor = m_memory + 2;
+  cursor[0] = 0xaa;
+  return cursor[1];
+`), { members: { m_memory: pointerMemory } }), 0x44);
+assert.deepEqual([...pointerMemory], [0x11, 0x22, 0xaa, 0x44]);
+
 const pixels: number[] = [];
 const bitmapProgram = compileMameHandler(`
   uint8_t x = 0xfe;
@@ -198,4 +206,17 @@ assert.equal(executeGeneratedHandler(pointerSlice, {
 }), 12 + 0xa5);
 assert.equal(spriteRam[14], 0xa5);
 
-console.log('generated-handler.spec: 15 passed');
+let requiredDeviceState = 0;
+const requiredDeviceCall = compileMameHandler('m_cpu->set_input_line(0, 1);');
+executeGeneratedHandler(requiredDeviceCall, {
+  members: { m_cpu: 0 },
+  calls: {
+    'm_cpu.set_input_line': (_line, state) => {
+      requiredDeviceState = Number(state);
+      return 0;
+    },
+  },
+});
+assert.equal(requiredDeviceState, 1);
+
+console.log('generated-handler.spec: 16 passed');

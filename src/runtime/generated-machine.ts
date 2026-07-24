@@ -28,6 +28,8 @@ export interface GeneratedDevice {
   id: string;
   tag: string;
   type: string;
+  /** Owning board device for a device_add_mconfig child. */
+  hostTag?: string;
   member?: string;
   clock?: number;
   configuration?: { method: string; args: number[] }[];
@@ -234,7 +236,11 @@ export interface GeneratedPromPalettePlan {
   lookupMask: number;
   banks: {
     penOffset: number;
+    /** Distance between destination pens written by successive loop iterations. */
+    penStride?: number;
     colorOr: number;
+    /** Distance between direct indirect-color values; defaults to one. */
+    colorStride?: number;
     lookupOffset?: number;
     lookupCount?: number;
     /** Direct palettes map pen N to color colorOr + N without a lookup PROM. */
@@ -395,7 +401,13 @@ export function wireDeviceCallbacks(
       signal,
       callback.targetPort
         ? () => applySignalTransforms(Number(endpoint(0)) || 0, callback.transforms)
-        : (...args) => endpoint(applySignalTransforms(args.at(-1) ?? 0, callback.transforms)),
+        : (...args) => {
+            // MAME devcb_write{8,16,32} emits (offset, data, mask), while
+            // devcb_write_line emits only state. The configured endpoint
+            // consumes data/state, never the trailing access mask.
+            const value = args.length >= 3 ? args.at(-2) : args.at(-1);
+            return endpoint(applySignalTransforms(value ?? 0, callback.transforms));
+          },
       callback.slot ?? 0,
     );
     bound.push(target);

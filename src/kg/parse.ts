@@ -110,7 +110,8 @@ function extractFunctionBody(src: string, headerRe: RegExp): { cls: string; name
 /**
  * Evaluate a MAME clock/size arithmetic expression to a number.
  * Handles: hex/dec literals, digit separators (18'432'000), XTAL(n),
- * named constants supplied by the caller, + - * / and parens.
+ * named constants supplied by the caller, arithmetic and bitwise operators,
+ * and parens.
  * Returns null if the expression contains anything else.
  */
 export function evalExpr(expr: string, consts: Record<string, number> = {}): number | null {
@@ -123,7 +124,7 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
   for (const [name, val] of Object.entries(consts)) {
     s = s.replace(new RegExp(`\\b${name}\\b`, 'g'), String(val));
   }
-  if (!/^[\s0-9a-fA-FxX+\-*/().^]*$/.test(s)) return null;
+  if (!/^[\s0-9a-fA-FxX+\-*/().<>&|^]*$/.test(s)) return null;
   // recursive-descent evaluation, no eval()
   let pos = 0;
   const peek = () => { while (pos < s.length && /\s/.test(s[pos])) pos++; return s[pos]; };
@@ -131,7 +132,7 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
     const c = peek();
     if (c === '(') {
       pos++;
-      const v = parseAddSub();
+      const v = parseBitOr();
       if (peek() !== ')') return null;
       pos++;
       return v;
@@ -168,18 +169,53 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
       } else return v;
     }
   }
-  function parseXor(): number | null {
+  function parseShift(): number | null {
     let v = parseAddSub();
+    if (v === null) return null;
+    for (;;) {
+      peek();
+      const operator = s.slice(pos, pos + 2);
+      if (operator !== '<<' && operator !== '>>') return v;
+      pos += 2;
+      const r = parseAddSub();
+      if (r === null) return null;
+      v = operator === '<<' ? v << r : v >> r;
+    }
+  }
+  function parseBitAnd(): number | null {
+    let v = parseShift();
+    if (v === null) return null;
+    while (peek() === '&' && s[pos + 1] !== '&') {
+      pos++;
+      const r = parseShift();
+      if (r === null) return null;
+      v = (v & r) >>> 0;
+    }
+    return v;
+  }
+  function parseXor(): number | null {
+    let v = parseBitAnd();
     if (v === null) return null;
     while (peek() === '^') {
       pos++;
-      const r = parseAddSub();
+      const r = parseBitAnd();
       if (r === null) return null;
       v = (v ^ r) >>> 0;
     }
     return v;
   }
-  const v = parseXor();
+  function parseBitOr(): number | null {
+    let v = parseXor();
+    if (v === null) return null;
+    while (peek() === '|' && s[pos + 1] !== '|') {
+      pos++;
+      const r = parseXor();
+      if (r === null) return null;
+      v = (v | r) >>> 0;
+    }
+    return v;
+  }
+  const v = parseBitOr();
   peek();
   return pos >= s.length && v !== null && Number.isFinite(v) ? v : null;
 }

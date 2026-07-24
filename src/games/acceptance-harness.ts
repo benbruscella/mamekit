@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gameOutputDir } from '../gen/output-layout.ts';
@@ -39,9 +39,10 @@ interface AyFrameRenderer {
 
 interface WsgCore {
   readonly sampleRate: number;
-  soundEnable(state: number): void;
-  write(offset: number, data: number): void;
-  render(out: Float32Array): void;
+}
+
+interface WsgFrameRenderer {
+  render(writes: readonly SoundWrite[]): Float32Array;
 }
 
 interface DiscreteAudioCore {
@@ -108,6 +109,7 @@ export async function runGameAcceptance(
 
   const pendingWrites: SoundWrite[] = [];
   const allWrites: SoundWrite[] = [];
+  const requiredAudioCounts = new Map<number, number>();
   const board = generatedRuntime.createBoard(
     { ...config.board, game: config.game },
     regions,
@@ -132,6 +134,16 @@ export async function runGameAcceptance(
     pendingWrites.length = 0;
     board.frame(framebuffer);
     const snapshot = board.snapshot();
+    for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {
+      if (snapshot.frame < requirement.fromFrame) continue;
+      if (requirement.toFrame !== undefined && snapshot.frame > requirement.toFrame) continue;
+      const count = pendingWrites.filter(write =>
+        write.method === requirement.method && write.data !== 0).length;
+      requiredAudioCounts.set(
+        index,
+        (requiredAudioCounts.get(index) ?? 0) + count,
+      );
+    }
     audio.render(pendingWrites, snapshot.frame >= 120);
     if (checkpointFrames.has(snapshot.frame)) {
       checkpoints[String(snapshot.frame)] = {
@@ -152,6 +164,15 @@ export async function runGameAcceptance(
     );
   }
   while (board.snapshot().frame < contract.frames) runFrame();
+  const finalSnapshot = board.snapshot();
+  if (process.env.MAMEKIT_CAPTURE_FRAME) {
+    writeFramePpm(
+      process.env.MAMEKIT_CAPTURE_FRAME,
+      framebuffer,
+      board.fbWidth,
+      board.fbHeight,
+    );
+  }
   const elapsedSeconds = (performance.now() - startedAt) / 1000;
   const emulatedFps = contract.frames / elapsedSeconds;
 
@@ -166,8 +187,33 @@ export async function runGameAcceptance(
   };
   assert.equal(Object.keys(checkpoints).length, contract.checkpoints.length);
   assert.ok(new Set(Object.values(checkpoints).map(value => value.video)).size >= 3);
-  assert.ok(result.audio.writes > 0, `${contract.game}: generated sound has no writes`);
-  assert.ok(result.audio.rms > 0.001, `${contract.game}: generated sound is silent`);
+  assert.ok(
+    result.audio.writes > 0,
+    `${contract.game}: generated sound has no writes (${JSON.stringify(result.audio)})`,
+  );
+  assert.ok(
+    result.audio.rms > 0.001,
+    `${contract.game}: generated sound is silent ` +
+      `(${JSON.stringify({ audio: result.audio, snapshot: finalSnapshot })})`,
+  );
+  for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {
+    const actual = requiredAudioCounts.get(index) ?? 0;
+    const window = requirement.toFrame === undefined
+      ? `after frame ${requirement.fromFrame}`
+      : `from frame ${requirement.fromFrame} through ${requirement.toFrame}`;
+    assert.ok(
+      actual >= requirement.minimumNonzeroWrites,
+      `${contract.game}: ${requirement.method} audio emitted ${actual} nonzero writes ` +
+        `${window} (minimum ${requirement.minimumNonzeroWrites})`,
+    );
+    if (requirement.maximumNonzeroWrites !== undefined) {
+      assert.ok(
+        actual <= requirement.maximumNonzeroWrites,
+        `${contract.game}: ${requirement.method} audio emitted ${actual} nonzero writes ` +
+          `${window} (maximum ${requirement.maximumNonzeroWrites})`,
+      );
+    }
+  }
   assert.ok(
     emulatedFps >= contract.minimumFps,
     `${contract.game}: ${emulatedFps.toFixed(1)} fps is below the ` +
@@ -258,26 +304,32 @@ async function createAudioProbe(
   if (config.sound.kind === 'wsg') {
     const generated = await import(
       moduleUrl(join(outRoot, 'runtime/generated/audio/wsg-worklet.js'))
-    ) as { GeneratedNamcoWsgCore: new (waveRom: Uint8Array, clock: number) => WsgCore };
+    ) as {
+      GeneratedNamcoWsgCore: new (
+        waveRom: Uint8Array,
+        clock: number,
+        auxiliary?: ShellConfig['sound']['auxiliary'],
+      ) => WsgCore;
+      GeneratedNamcoWsgFrameRenderer: new (
+        core: WsgCore,
+        refresh: number,
+      ) => WsgFrameRenderer;
+    };
     const waveRom = regions[config.sound.waveRegion ?? 'namco'];
     assert.ok(waveRom, `${config.game}: WSG wave ROM is missing`);
     const core = new generated.GeneratedNamcoWsgCore(
       waveRom,
       config.sound.clock ?? 96_000,
+      config.sound.auxiliary,
     );
     const chunks: Float32Array[] = [];
-    let sampleCarry = 0;
+    const renderer = new generated.GeneratedNamcoWsgFrameRenderer(
+      core,
+      config.board.screen.refresh,
+    );
     return {
       render(writes, capture) {
-        for (const write of writes) {
-          if (write.offset < 0) core.soundEnable(write.data);
-          else core.write(write.offset, write.data);
-        }
-        sampleCarry += core.sampleRate / config.board.screen.refresh;
-        const count = Math.floor(sampleCarry);
-        sampleCarry -= count;
-        const samples = new Float32Array(count);
-        core.render(samples);
+        const samples = renderer.render(writes);
         if (capture) chunks.push(samples);
       },
       finish(writes) {
@@ -403,4 +455,21 @@ function hash(bytes: Uint8Array): string {
 
 function moduleUrl(path: string): string {
   return pathToFileURL(path).href;
+}
+
+function writeFramePpm(
+  path: string,
+  frame: Uint32Array,
+  width: number,
+  height: number,
+): void {
+  const header = Buffer.from(`P6\n${width} ${height}\n255\n`, 'ascii');
+  const rgb = Buffer.allocUnsafe(width * height * 3);
+  for (let index = 0; index < frame.length; index++) {
+    const pixel = frame[index]!;
+    rgb[index * 3] = pixel & 0xff;
+    rgb[index * 3 + 1] = (pixel >>> 8) & 0xff;
+    rgb[index * 3 + 2] = (pixel >>> 16) & 0xff;
+  }
+  writeFileSync(path, Buffer.concat([header, rgb]));
 }

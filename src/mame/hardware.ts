@@ -17,6 +17,7 @@ import { generatedCpuExecutableSource } from './cpu-codegen.ts';
 import { generatedDeviceExecutableSource } from './device-codegen.ts';
 import { compileMameDevice } from './device-compiler.ts';
 import { compileNamco51Protocol } from './namco51-compiler.ts';
+import { compileNamco53Protocol } from './namco53-compiler.ts';
 import {
   compileAy8910,
   compileDiscreteSn76477,
@@ -428,8 +429,10 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     closure.hardware
       .filter(entry => [
         'GENERIC_LATCH_8',
+        'ER2055',
         'LS259',
         'MB14241',
+        'MB8844',
         'NAMCO_06XX',
         'NAMCO_54XX',
         'STARFIELD_05XX',
@@ -443,6 +446,9 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
   );
   if (closure.hardware.some(entry => entry.type === 'NAMCO_51XX')) {
     generatedDevices.set('NAMCO_51XX', compileNamco51Protocol());
+  }
+  if (closure.hardware.some(entry => entry.type === 'NAMCO_53XX')) {
+    generatedDevices.set('NAMCO_53XX', compileNamco53Protocol());
   }
   const namcoEntry = closure.hardware.find(entry => entry.type === 'NAMCO_WSG');
   const namcoWsg = namcoEntry?.definition

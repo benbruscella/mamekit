@@ -446,6 +446,12 @@ export function splitMameArgs(source: string): string[] {
         if (source[i] === '\\') current += source[++i] ?? '';
         else if (source[i] === quote) break;
       }
+    } else if (source.startsWith('<<', i)) {
+      current += '<<';
+      i++;
+    } else if (source.startsWith('>>', i) && closing.at(-1) !== '>') {
+      current += '>>';
+      i++;
     } else if (pairs[c]) {
       closing.push(pairs[c]);
       current += c;

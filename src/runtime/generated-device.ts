@@ -9,6 +9,7 @@ interface DeviceMember {
   name: string;
   valueType: string;
   bits?: 1 | 8 | 16 | 32;
+  signed?: boolean;
   initial?: number;
   values?: number[];
 }
@@ -50,6 +51,8 @@ export interface GeneratedDeviceDefinition {
   callbacks: DeviceCallback[];
   timers?: DeviceTimer[];
   methods: DeviceMethod[];
+  clockDivider?: number;
+  dataAddressBits?: number;
   compiledMethods?: GeneratedDeviceMethodMap;
   start?: string;
   reset?: string;
@@ -71,6 +74,8 @@ export interface Device {
   signalNames(): readonly string[];
   on(signal: string, listener: DeviceCallbackListener, slot?: number): Device;
   bindCall(name: string, listener: (...args: number[]) => unknown): Device;
+  cycleClock(): number;
+  dataAddressBits(): number | undefined;
 }
 
 const DEFINITIONS = new Map<string, GeneratedDeviceDefinition>();
@@ -129,6 +134,7 @@ class IrDevice implements Device {
   private readonly definition: GeneratedDeviceDefinition;
   private readonly members: Record<string, unknown> = {};
   private readonly memberBits = new Map<string, 1 | 8 | 16 | 32>();
+  private readonly memberSigned = new Set<string>();
   private readonly methods: Map<string, DeviceMethod>;
   /** Parameter names resolved once per method (the regex is a hot-path cost). */
   private readonly methodParams = new Map<string, string[]>();
@@ -136,13 +142,16 @@ class IrDevice implements Device {
   private readonly bindings: GeneratedHandlerBindings;
   private readonly executionContext: GeneratedDeviceExecutionContext;
   private readonly timers = new Map<string, { timer: IrTimer; callback: string }>();
+  private readonly clock: number;
 
   constructor(definition: GeneratedDeviceDefinition, clock: number) {
     this.definition = definition;
+    this.clock = clock;
     this.methods = new Map(definition.methods.map(method => [method.name, method]));
     for (const member of definition.members) {
       this.members[member.name] = member.values ? [...member.values] : member.initial ?? 0;
       if (member.bits) this.memberBits.set(member.name, member.bits);
+      if (member.signed) this.memberSigned.add(member.name);
     }
     for (const callback of definition.callbacks) {
       const slots = Array.from({ length: callback.slots }, () => [] as DeviceCallbackListener[]);
@@ -169,7 +178,7 @@ class IrDevice implements Device {
     for (const member of definition.members) {
       getters[member.name] = () => this.members[member.name] ?? 0;
       setters[member.name] = value => {
-        this.members[member.name] = wrap(value, member.bits);
+        this.members[member.name] = wrap(value, member.bits, member.signed);
       };
     }
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {};
@@ -191,8 +200,12 @@ class IrDevice implements Device {
       members: this.members,
       invoke: (name, ...args) => {
         const method = this.methods.get(name);
-        if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
-        return this.executeMethod(method, this.methodParams.get(name)!, args);
+        if (method) return this.executeMethod(method, this.methodParams.get(name)!, args);
+        const binding = this.bindings.calls?.[name];
+        if (binding) return binding(...args.map(Number));
+        const member = this.members[name];
+        if (typeof member === 'function') return member(...args);
+        return 0;
       },
     };
     const pendingTimers = [...this.timers.values()];
@@ -230,7 +243,11 @@ class IrDevice implements Device {
   }
 
   set(name: string, value: number): void {
-    this.members[name] = wrap(value, this.memberBits.get(name));
+    this.members[name] = wrap(
+      value,
+      this.memberBits.get(name),
+      this.memberSigned.has(name),
+    );
   }
 
   methodNames(): readonly string[] {
@@ -261,6 +278,14 @@ class IrDevice implements Device {
     return this;
   }
 
+  cycleClock(): number {
+    return this.clock / (this.definition.clockDivider ?? 1);
+  }
+
+  dataAddressBits(): number | undefined {
+    return this.definition.dataAddressBits;
+  }
+
   private executeMethod(
     method: DeviceMethod,
     parameterNames: string[],
@@ -284,10 +309,10 @@ function parameterName(parameter: string): string {
   return /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter)?.[1] ?? parameter;
 }
 
-function wrap(value: number, bits?: 1 | 8 | 16 | 32): number {
+function wrap(value: number, bits?: 1 | 8 | 16 | 32, signed = false): number {
   if (bits === 1) return value ? 1 : 0;
-  if (bits === 8) return value & 0xff;
-  if (bits === 16) return value & 0xffff;
-  if (bits === 32) return value >>> 0;
+  if (bits === 8) return signed ? value << 24 >> 24 : value & 0xff;
+  if (bits === 16) return signed ? value << 16 >> 16 : value & 0xffff;
+  if (bits === 32) return signed ? value | 0 : value >>> 0;
   return value;
 }

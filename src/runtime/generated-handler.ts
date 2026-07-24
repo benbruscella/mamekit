@@ -554,11 +554,32 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     if (expression.operator === '+' && isGeneratedPointer(leftValue)) {
       return offsetPointer(leftValue, toNumber(rightValue));
     }
+    if (expression.operator === '+' && isIndexableMemory(leftValue)) {
+      return {
+        generatedPointer: true,
+        source: leftValue,
+        offset: toNumber(rightValue),
+      };
+    }
     if (expression.operator === '+' && isGeneratedPointer(rightValue)) {
       return offsetPointer(rightValue, toNumber(leftValue));
     }
+    if (expression.operator === '+' && isIndexableMemory(rightValue)) {
+      return {
+        generatedPointer: true,
+        source: rightValue,
+        offset: toNumber(leftValue),
+      };
+    }
     if (expression.operator === '-' && isGeneratedPointer(leftValue)) {
       return offsetPointer(leftValue, -toNumber(rightValue));
+    }
+    if (expression.operator === '-' && isIndexableMemory(leftValue)) {
+      return {
+        generatedPointer: true,
+        source: leftValue,
+        offset: -toNumber(rightValue),
+      };
     }
     if (expression.operator === '==' || expression.operator === '!=') {
       const equal = comparableValue(leftValue) === comparableValue(rightValue);
@@ -658,6 +679,11 @@ function evaluateCall(
     const generated = context.bindings.referenceCalls?.[generatedName];
     if (generated) {
       return generated(...generatedCallArguments(generatedName, expression.args, context));
+    }
+    const direct = context.bindings.calls?.[generatedName];
+    if (direct) {
+      const args = expression.args.map(arg => evaluate(arg, context));
+      return direct(...args.map(callArgument));
     }
     const object = evaluate(expression.callee.object, context);
     const method = expression.callee.property;
@@ -951,6 +977,10 @@ function isGeneratedPointer(value: unknown): value is GeneratedPointer {
     value && typeof value === 'object' &&
     (value as GeneratedPointer).generatedPointer === true,
   );
+}
+
+function isIndexableMemory(value: unknown): value is ArrayLike<unknown> {
+  return ArrayBuffer.isView(value) || Array.isArray(value);
 }
 
 function isLValue(value: unknown): value is GeneratedLValue {

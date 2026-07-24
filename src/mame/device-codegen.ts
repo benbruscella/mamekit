@@ -17,11 +17,12 @@ interface Target {
   code: string;
   valueType?: string;
   bits?: 1 | 8 | 16 | 32;
+  signed?: boolean;
 }
 
 const SAFE_BINARY_OPERATORS = new Set([
   '|', '^', '&', '==', '!=', '<', '<=', '>', '>=',
-  '<<', '>>', '+', '-', '*', '%', '&&', '||',
+  '<<', '>>', '+', '-', '*', '/', '%', '&&', '||',
 ]);
 
 /**
@@ -35,7 +36,13 @@ export function generatedDeviceMethodsSource(
 ): { source: string; methods: string[] } {
   const roots = definition.methods.filter(method =>
     method.program.diagnostics.length === 0 &&
-    maximumLoopDepth(method.program.operations) >= 2);
+    (
+      maximumLoopDepth(method.program.operations) >= 2 ||
+      (
+        maximumLoopDepth(method.program.operations) >= 1 &&
+        containsSwitch(method.program.operations)
+      )
+    ));
   const selected = methodClosure(definition, roots);
   const compiled = new Set(selected.map(method => method.name));
   const supported = selected.filter(method => supportsMethod(method, definition, compiled));
@@ -54,6 +61,14 @@ ${functions}
   };
 })()`;
   return { source, methods: [...supportedNames] };
+}
+
+function containsSwitch(operations: GeneratedHandlerOperation[]): boolean {
+  let found = false;
+  visitOperations(operations, operation => {
+    if (operation.op === 'switch') found = true;
+  });
+  return found;
 }
 
 export function generatedDeviceExecutableSource(
@@ -139,7 +154,11 @@ function supportsMethod(
 ): boolean {
   const locals = new Set(parseParameters(method.parameters).map(parameter => parameter.name));
   collectLocalNames(method.program.operations, locals);
-  const members = new Set(definition.members.map(member => member.name));
+  const members = new Set([
+    ...definition.members.map(member => member.name),
+    ...definition.callbacks.map(callback => callback.member),
+    ...definition.timers.map(timer => timer.member),
+  ]);
   const constants = new Set(Object.keys(definition.constants));
   let supported = true;
   visitOperations(method.program.operations, operation => {
@@ -155,12 +174,11 @@ function supportsMethod(
       } else if (expression.kind === 'binary') {
         supported = SAFE_BINARY_OPERATORS.has(expression.operator);
       } else if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
-        supported = compiled.has(expression.callee.name) ||
-          ['BIT', 'BITSWAP', 'TABLE', 'bool', 'u8', 'uint8_t', 's8', 'int8_t',
-            'u16', 'uint16_t', 's16', 'int16_t', 'u32', 'uint32_t',
-            's32', 'int32_t'].includes(expression.callee.name);
+        // Unknown source macros/callbacks are dispatched through runtime.invoke;
+        // generated methods and primitive casts remain direct calls.
+        supported = true;
       } else if (expression.kind === 'call' && expression.callee.kind === 'index') {
-        supported = false;
+        supported = true;
       }
     });
   });
@@ -359,7 +377,8 @@ function emitCall(
     const object = emitExpression(expression.callee.object, context);
     return `${object}.${expression.callee.property}(${args.join(', ')})`;
   }
-  throw new Error('device codegen does not support indexed callable expressions');
+  const callable = emitExpression(expression.callee, context);
+  return `${callable}(${args.join(', ')})`;
 }
 
 function emitAssignment(
@@ -391,7 +410,13 @@ function targetInfo(expression: GeneratedExpression, context: EmitContext): Targ
       return { code: expression.name, valueType: context.locals.get(expression.name) };
     }
     const member = context.definition.members.find(candidate => candidate.name === expression.name);
-    if (member) return { code: `members.${member.name}`, bits: member.bits };
+    if (member) {
+      return {
+        code: `members.${member.name}`,
+        bits: member.bits,
+        signed: member.signed,
+      };
+    }
   }
   if (expression.kind === 'index') {
     return {
@@ -504,14 +529,20 @@ function visitExpression(
 }
 
 function wrapTarget(value: string, target: Target): string {
-  return target.bits ? wrapBits(value, target.bits) : wrapType(value, target.valueType);
+  return target.bits
+    ? wrapBits(value, target.bits, target.signed)
+    : wrapType(value, target.valueType);
 }
 
-function wrapBits(value: string, bits?: 1 | 8 | 16 | 32): string {
+function wrapBits(value: string, bits?: 1 | 8 | 16 | 32, signed = false): string {
   if (bits === 1) return `((${value}) ? 1 : 0)`;
-  if (bits === 8) return `((${value}) & 0xff)`;
-  if (bits === 16) return `((${value}) & 0xffff)`;
-  if (bits === 32) return `((${value}) >>> 0)`;
+  if (bits === 8) {
+    return signed ? `((${value}) << 24 >> 24)` : `((${value}) & 0xff)`;
+  }
+  if (bits === 16) {
+    return signed ? `((${value}) << 16 >> 16)` : `((${value}) & 0xffff)`;
+  }
+  if (bits === 32) return signed ? `((${value}) | 0)` : `((${value}) >>> 0)`;
   return value;
 }
 

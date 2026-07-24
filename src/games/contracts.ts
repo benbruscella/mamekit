@@ -4,6 +4,7 @@ import { timeplt } from './timeplt.ts';
 import { invaders } from './invaders.ts';
 import { galaxian } from './galaxian.ts';
 import { galaga } from './galaga.ts';
+import { digdug } from './digdug.ts';
 
 export const supportedGameContracts = [
   pacman,
@@ -12,4 +13,5 @@ export const supportedGameContracts = [
   invaders,
   galaxian,
   galaga,
+  digdug,
 ] as const;
