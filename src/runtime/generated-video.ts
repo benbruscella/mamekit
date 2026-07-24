@@ -608,8 +608,20 @@ class GeneratedTilemap {
             transparentMask = 1 << this.plan.transparentPen;
           }
         }
-        for (const wrappedX of wrappedPositions(x, mapWidth, clip.min_x, clip.max_x)) {
-          for (const wrappedY of wrappedPositions(y, mapHeight, clip.min_y, clip.max_y)) {
+        const firstWrappedX = modulo(x, mapWidth) - mapWidth;
+        const firstWrappedY = modulo(y, mapHeight) - mapHeight;
+        for (
+          let wrappedX = firstWrappedX;
+          wrappedX <= firstWrappedX + mapWidth * 2;
+          wrappedX += mapWidth
+        ) {
+          if (wrappedX > clip.max_x || wrappedX + mapWidth <= clip.min_x) continue;
+          for (
+            let wrappedY = firstWrappedY;
+            wrappedY <= firstWrappedY + mapHeight * 2;
+            wrappedY += mapHeight
+          ) {
+            if (wrappedY > clip.max_y || wrappedY + mapHeight <= clip.min_y) continue;
             gfx.draw(
               bitmap,
               clip,
@@ -642,17 +654,6 @@ export function generatedTileGroupTransparentMask(
   if (layers & 0x20) transparent |= mask.background;
   if (layers & 0x40) transparent = 0xffffffff;
   return transparent >>> 0;
-}
-
-function wrappedPositions(
-  position: number,
-  span: number,
-  clipMin: number,
-  clipMax: number,
-): number[] {
-  const wrapped = modulo(position, span);
-  return [wrapped - span, wrapped, wrapped + span]
-    .filter(value => value <= clipMax && value + span > clipMin);
 }
 
 export function generatedTileMemoryIndex(mapped: unknown): number {
