@@ -52,6 +52,7 @@ export class GeneratedVideoRenderer implements VideoRenderer {
    * region into the RGBA output frame.
    */
   private readonly penBuffer?: Uint32Array;
+  private partialNextY: number;
 
   constructor(machine: GeneratedMachine, primitives: GeneratedVideoPrimitives) {
     const screenUpdate = machine.callbacks.find(callback =>
@@ -65,6 +66,7 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     this.indexed = isIndexedScreen(machine);
     this.width = primitives.width;
     this.height = primitives.height;
+    this.partialNextY = machine.execution.screen.yOffset ?? 0;
     if (this.indexed) this.penBuffer = new Uint32Array(this.width * this.height);
   }
 
@@ -77,9 +79,26 @@ export class GeneratedVideoRenderer implements VideoRenderer {
       this.primitives.render(frame);
       return;
     }
-    const xOffset = this.machine.execution.screen.xOffset ?? 0;
     const yOffset = this.machine.execution.screen.yOffset ?? 0;
+    if (this.machine.execution.screen.updateMode === 'partial') {
+      const finalY = yOffset + this.height - 1;
+      if (this.partialNextY <= finalY) {
+        this.renderRegion(frame, this.partialNextY, finalY);
+      }
+      this.partialNextY = yOffset;
+      return;
+    }
     this.renderRegion(frame, yOffset, yOffset + this.height - 1);
+  }
+
+  updatePartial(frame: Uint32Array, line: number): void {
+    if (this.machine.execution.screen.updateMode !== 'partial') return;
+    const yOffset = this.machine.execution.screen.yOffset ?? 0;
+    const finalY = yOffset + this.height - 1;
+    const updateThrough = Math.min(Math.floor(line), finalY);
+    if (updateThrough < this.partialNextY) return;
+    this.renderRegion(frame, this.partialNextY, updateThrough);
+    this.partialNextY = updateThrough + 1;
   }
 
   renderLine(frame: Uint32Array, line: number): void {
@@ -130,6 +149,35 @@ export class GeneratedVideoRenderer implements VideoRenderer {
           target.fill(packed, start, y * this.width + clippedLastX + 1);
         }
       },
+      plotRect: (
+        x: number,
+        y: number,
+        pixelWidth: number,
+        pixelHeight: number,
+        color: number,
+      ) => {
+        const firstX = Math.floor((x - xOffset * xScale) / xScale);
+        const lastX = Math.floor((x + pixelWidth - 1 - xOffset * xScale) / xScale);
+        const firstY = Math.floor((y - yOffset * yScale) / yScale);
+        const lastY = Math.floor((y + pixelHeight - 1 - yOffset * yScale) / yScale);
+        const clippedFirstX = Math.max(0, firstX);
+        const clippedLastX = Math.min(this.width - 1, lastX);
+        const clippedFirstY = Math.max(0, firstY);
+        const clippedLastY = Math.min(this.height - 1, lastY);
+        if (clippedFirstX > clippedLastX || clippedFirstY > clippedLastY) return;
+        const packed = color >>> 0;
+        if (
+          clippedFirstX === clippedLastX &&
+          clippedFirstY === clippedLastY
+        ) {
+          target[clippedFirstY * this.width + clippedFirstX] = packed;
+          return;
+        }
+        for (let outputY = clippedFirstY; outputY <= clippedLastY; outputY++) {
+          const start = outputY * this.width + clippedFirstX;
+          target.fill(packed, start, outputY * this.width + clippedLastX + 1);
+        }
+      },
       'pix=': (y: number, x: number, color: number) => {
         const visibleX = Math.floor((x - xOffset * xScale) / xScale);
         const visibleY = Math.floor((y - yOffset * yScale) / yScale);
@@ -141,7 +189,14 @@ export class GeneratedVideoRenderer implements VideoRenderer {
         }
       },
     };
-    const screen = { visible_area: () => cliprect };
+    const screen = {
+      visible_area: () => new GeneratedRectangle(
+        xOffset * xScale,
+        (xOffset + this.width) * xScale - 1,
+        yOffset * yScale,
+        (yOffset + this.height) * yScale - 1,
+      ),
+    };
     const result = executeGeneratedCallbackHandler(
       this.machine,
       this.screenUpdate,
@@ -167,6 +222,13 @@ export class GeneratedVideoRenderer implements VideoRenderer {
 
 interface BitmapTarget {
   fill(color: number, rectangle?: GeneratedRectangle): void;
+  plotRect?(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: number,
+  ): void;
   'pix='(y: number, x: number, color: number): void;
 }
 
@@ -176,10 +238,12 @@ interface TileInfo {
   color: number;
   flags: number;
   category: number;
+  group: number;
 }
 
 export function createGeneratedTileInfoTarget(tile: TileInfo): {
   category: number;
+  group: number;
   set(gfx: number, code: number, color: number, flags: number): void;
 } {
   return {
@@ -188,6 +252,12 @@ export function createGeneratedTileInfoTarget(tile: TileInfo): {
     },
     set category(value: number) {
       tile.category = Number(value) & 0x0f;
+    },
+    get group(): number {
+      return tile.group;
+    },
+    set group(value: number) {
+      tile.group = Number(value) & 0xff;
     },
     set(gfx: number, code: number, color: number, flags: number): void {
       Object.assign(tile, { gfx, code, color, flags });
@@ -401,9 +471,13 @@ class GeneratedGfxElement {
         const packed = this.indexed
           ? colorBase + pen
           : this.palette.colors[colorBase + pen] ?? 0xff000000;
-        for (let yy = 0; yy < this.entry.yscale; yy++) {
-          for (let xx = 0; xx < this.entry.xscale; xx++) {
-            bitmap['pix='](y + yy, x + xx, packed);
+        if (bitmap.plotRect) {
+          bitmap.plotRect(x, y, this.entry.xscale, this.entry.yscale, packed);
+        } else {
+          for (let yy = 0; yy < this.entry.yscale; yy++) {
+            for (let xx = 0; xx < this.entry.xscale; xx++) {
+              bitmap['pix='](y + yy, x + xx, packed);
+            }
           }
         }
       }
@@ -522,11 +596,11 @@ class GeneratedTilemap {
         let tile = this.tiles[tileIndex];
         const needsUpdate = !tile || this.dirty[tileIndex] === 1;
         if (!tile) {
-          tile = { gfx: 0, code: 0, color: 0, flags: 0, category: 0 };
+          tile = { gfx: 0, code: 0, color: 0, flags: 0, category: 0, group: 0 };
           this.tiles[tileIndex] = tile;
         }
         if (needsUpdate) {
-          Object.assign(tile, { gfx: 0, code: 0, color: 0, flags: 0, category: 0 });
+          Object.assign(tile, { gfx: 0, code: 0, color: 0, flags: 0, category: 0, group: 0 });
           const tileinfo = createGeneratedTileInfoTarget(tile);
           executeGeneratedMachineProgram(
             this.machine,
@@ -561,14 +635,33 @@ class GeneratedTilemap {
         const y = outputRow * this.plan.tileHeight - yScroll + yDelta;
         let transparentMask = 0;
         if (!(_flags & 0x80)) {
-          if (this.plan.transparentIndirect !== undefined) {
+          const groupMask = generatedTileGroupTransparentMask(
+            this.plan,
+            tile.group,
+            _flags,
+          );
+          if (groupMask !== undefined) {
+            transparentMask = groupMask;
+          } else if (this.plan.transparentIndirect !== undefined) {
             transparentMask = gfx.indirectMask(tile.color, this.plan.transparentIndirect);
           } else if (this.plan.transparentPen !== undefined) {
             transparentMask = 1 << this.plan.transparentPen;
           }
         }
-        for (const wrappedX of wrappedPositions(x, mapWidth, clip.min_x, clip.max_x)) {
-          for (const wrappedY of wrappedPositions(y, mapHeight, clip.min_y, clip.max_y)) {
+        const firstWrappedX = modulo(x, mapWidth) - mapWidth;
+        const firstWrappedY = modulo(y, mapHeight) - mapHeight;
+        for (
+          let wrappedX = firstWrappedX;
+          wrappedX <= firstWrappedX + mapWidth * 2;
+          wrappedX += mapWidth
+        ) {
+          if (wrappedX > clip.max_x || wrappedX + mapWidth <= clip.min_x) continue;
+          for (
+            let wrappedY = firstWrappedY;
+            wrappedY <= firstWrappedY + mapHeight * 2;
+            wrappedY += mapHeight
+          ) {
+            if (wrappedY > clip.max_y || wrappedY + mapHeight <= clip.min_y) continue;
             gfx.draw(
               bitmap,
               clip,
@@ -587,15 +680,20 @@ class GeneratedTilemap {
   }
 }
 
-function wrappedPositions(
-  position: number,
-  span: number,
-  clipMin: number,
-  clipMax: number,
-): number[] {
-  const wrapped = modulo(position, span);
-  return [wrapped - span, wrapped, wrapped + span]
-    .filter(value => value <= clipMax && value + span > clipMin);
+export function generatedTileGroupTransparentMask(
+  plan: GeneratedTilemapPlan,
+  group: number,
+  flags: number,
+): number | undefined {
+  const mask = plan.transmasks?.find(candidate => candidate.group === group);
+  if (!mask) return undefined;
+  const layers = flags & 0x70;
+  if (layers === 0) return mask.foreground;
+  let transparent = 0;
+  if (layers & 0x10) transparent |= mask.foreground;
+  if (layers & 0x20) transparent |= mask.background;
+  if (layers & 0x40) transparent = 0xffffffff;
+  return transparent >>> 0;
 }
 
 export function generatedTileMemoryIndex(mapped: unknown): number {
@@ -636,6 +734,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     regions: Regions,
     state: Record<string, unknown>,
     bindings: GeneratedHandlerBindings,
+    updatePartial?: (line: number) => void,
   ) {
     this.machine = machine;
     this.state = state;
@@ -715,6 +814,19 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         Number(args[2] ?? 0),
         Number(args[3] ?? 0),
       ),
+      'machine().tilemap().mark_all_dirty': () => {
+        for (const plan of machine.video?.tilemaps ?? []) {
+          (state[plan.member] as GeneratedTilemap | undefined)?.mark_all_dirty();
+        }
+        return 0;
+      },
+      'machine().tilemap().set_flip_all': (...args) => {
+        const flags = Number(generatedArgumentValue(args[0]) ?? 0);
+        for (const plan of machine.video?.tilemaps ?? []) {
+          (state[plan.member] as GeneratedTilemap | undefined)?.set_flip(flags);
+        }
+        return 0;
+      },
     };
     if (lfsr?.rowRenderer) {
       const row = lfsr.rowRenderer;
@@ -764,7 +876,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       __frame: 0,
       frame_number(this: { __frame: number }) { return this.__frame; },
       vpos: () => bindings.calls?.['m_screen.vpos']?.() ?? 0,
-      update_partial: () => {},
+      update_partial: (line: number) => updatePartial?.(line),
       visible_area: () => new GeneratedRectangle(
         0,
         machine.execution.screen.width * (machine.video?.renderScale?.x ?? 1) - 1,
