@@ -7,10 +7,10 @@ behavioral baseline may change.
 
 ## 1. GOAL
 
-When a new machine is added, Pac-Man, Pooyan, Time Pilot, Space Invaders,
-Galaxian and Galaga must continue to produce the same generated machine
-behavior unless an intentional, reviewed fix changes them. The tests therefore
-protect both sides of the compiler boundary:
+When a new machine is added, every target in `src/games` must continue to
+produce the same generated machine behavior unless an intentional, reviewed
+fix changes it. The tests therefore protect both sides of the compiler
+boundary:
 
 1. MAME source is parsed and lowered as expected;
 2. a clean generated distribution remains complete and self-contained;
@@ -51,14 +51,21 @@ machine. They do not load ROMs or import a handwritten game implementation.
 `npm run build` is also non-emitting, so colocated specs and QA tokens can
 never be compiled into or pollute the canonical generated `dist` tree.
 
+Every executable module in `src/runtime` must have an adjacent spec. The
+`runtime-spec-inventory.spec.ts` guard enforces this as new files are added.
+Declaration-only modules (`types.ts` and `audio-protocol.ts`) are explicit
+exceptions because they have no runtime behavior to execute. Browser
+orchestrators expose small pure contracts for Node unit tests; complete DOM,
+canvas, audio and interaction behavior remains part of browser QA.
+
 ### CURRENT CLEAN GENERATION
 
 `test:current` invokes `gen:all`, which deletes `dist`, generates Pac-Man,
-Pooyan, Time Pilot, Space Invaders, Galaxian, Galaga, Dig Dug, Moon Patrol and
-Roc'n Rope and Juno First from MAME, builds their shared hardware closure and app, then runs
-the generated-output audit. It detects stale-output masking, missing modules,
-unsupported hardware, duplicate trees, embedded machine JSON, imports from
-`src`, and blocked catalog entries.
+Pooyan, Time Pilot, Space Invaders, Galaxian, Galaga, Dig Dug, Moon Patrol,
+Roc'n Rope and Juno First from MAME, builds their shared hardware closure and
+app, then runs the generated-output audit. It detects stale-output masking,
+missing modules, unsupported hardware, duplicate trees, embedded machine JSON,
+imports from `src`, and blocked catalog entries.
 
 ### ALL-TARGET GENERATION
 
@@ -124,6 +131,14 @@ src/games/galaxian.ts
 src/games/galaxian.spec.ts
 src/games/galaga.ts
 src/games/galaga.spec.ts
+src/games/digdug.ts
+src/games/digdug.spec.ts
+src/games/mpatrol.ts
+src/games/mpatrol.spec.ts
+src/games/rocnrope.ts
+src/games/rocnrope.spec.ts
+src/games/junofrst.ts
+src/games/junofrst.spec.ts
 ```
 
 The token declares only:

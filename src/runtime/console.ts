@@ -72,11 +72,15 @@ function el(tag: string, css: string): HTMLElement {
 }
 
 /** greedy word-wrap into at most 2 lines, ellipsizing overflow */
-function wrapTitle(s: string, max = 17): string[] {
+export function wrapCartTitle(s: string, max = 17): string[] {
   const words = s.split(/\s+/).filter(Boolean);
   const lines = ['', ''];
   let li = 0;
   for (const w of words) {
+    if (!lines[li] && w.length > max) {
+      lines[li] = w.slice(0, max - 1) + '…';
+      continue;
+    }
     const t = lines[li] ? `${lines[li]} ${w}` : w;
     if (t.length <= max) { lines[li] = t; continue; }
     if (li === 0 && !lines[1]) { li = 1; lines[1] = w; continue; }
@@ -98,7 +102,7 @@ function cartSvg(o: { title: string; sub: string; state: CartState }): string {
   const dashed = o.state === 'placeholder';
   const titleColor = dim ? '#8b8b86' : '#181818';
   const subColor = dim ? '#7a7a75' : '#6b6045';
-  const lines = wrapTitle(o.title);
+  const lines = wrapCartTitle(o.title);
 
   let ridges = '';
   for (let i = 0; i < 5; i++) {
