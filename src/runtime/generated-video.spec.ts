@@ -263,4 +263,94 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
   throw new Error('mark_all_dirty did not invalidate generated tile cache');
 }
 
-console.log('generated-video.spec: 19 passed');
+// A scrolled tilemap must repaint the whole visible area. Ghosts'n Goblins
+// scrolls a single-band 32x32 map of 16px tiles: at scrollx 140 a tile range
+// derived from the clip alone paints x -140..115 and leaves 116..255 holding
+// the previous frame's pens, which shows up as a torn vertical band.
+{
+  const scrollMachine: GeneratedMachine = {
+    schemaVersion: 2,
+    game: 'scroll',
+    family: 'scroll',
+    driverFile: 'src/mame/fixture/scroll.cpp',
+    execution: {
+      cpus: [],
+      screen: {
+        width: 256, height: 224, xOffset: 0, yOffset: 0,
+        refresh: 60, vtotal: 262, vbstart: 240, rotate: 0,
+      },
+      frameEvents: [],
+      screenUpdate: { handler: 'fixture_state.screen_update' },
+    },
+    callbacks: [{
+      id: 'screen-update',
+      ownerTag: 'screen',
+      signal: 'set_screen_update',
+      operation: 'set',
+      targetClass: 'fixture_state',
+      targetMethod: 'screen_update',
+    }],
+    handlers: [
+      {
+        id: 'handler:fixture_state.screen_update',
+        ownerClass: 'fixture_state',
+        method: 'screen_update',
+        parameters: 'screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect',
+        program: compileMameHandler(
+          'm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0); return 0;',
+        ),
+      },
+      {
+        id: 'handler:fixture_state.tile_info',
+        ownerClass: 'fixture_state',
+        method: 'tile_info',
+        parameters: '',
+        // Every tile is gfx 0, code 0, colour 0 — an opaque fill.
+        program: compileMameHandler('tileinfo.set(0, 0, 0, 0);'),
+      },
+    ],
+    video: {
+      gfx: [{
+        region: 'tiles', offset: 0, colorBase: 0, colorCount: 1, xscale: 1, yscale: 1,
+        layout: {
+          width: 16, height: 16, total: 1, planes: 1,
+          planeOffsets: [0], charIncrement: 256,
+          xOffsets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+          yOffsets: [0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240],
+        },
+      }],
+      tilemaps: [{
+        member: 'm_bg_tilemap',
+        tileWidth: 16, tileHeight: 16, columns: 32, rows: 32,
+        mapper: 'TILEMAP_SCAN_ROWS',
+        tileInfo: 'fixture_state.tile_info',
+      }],
+      ramPalette: {
+        tag: 'palette',
+        entries: 2,
+        bytesPerEntry: 1,
+        channels: [
+          { channel: 'r', bits: 4, shift: 4 },
+          { channel: 'g', bits: 4, shift: 4 },
+          { channel: 'b', bits: 4, shift: 4 },
+        ],
+      },
+      initialState: {},
+    },
+  };
+  const regions = { tiles: new Uint8Array(32) };
+  const scrollState: Record<string, unknown> = {};
+  const primitives = new GeneratedMameVideoPrimitives(scrollMachine, regions, scrollState, {});
+  const renderer = new GeneratedVideoRenderer(scrollMachine, primitives);
+  const map = scrollState.m_bg_tilemap as { set_scrollx(row: number, value: number): void };
+
+  const frame = new Uint32Array(256 * 224);
+  frame.fill(0xdeadbeef);
+  map.set_scrollx(0, 140);
+  renderer.render(frame);
+  const stale = [...frame].filter(pixel => pixel === 0xdeadbeef).length;
+  assert.equal(stale, 0,
+    'a scrolled opaque tilemap must repaint every visible pixel, not just the clip-derived tiles');
+}
+
+console.log('generated-video.spec: 20 passed');

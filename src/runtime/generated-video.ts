@@ -662,16 +662,26 @@ class GeneratedTilemap {
     const mapFlip = this.flip | globalFlip;
     const flipX = Boolean(mapFlip & 1);
     const flipY = Boolean(mapFlip & 2);
-    const firstOutputRow = this.plan.scrollColumns
+    // A scrolled tilemap paints each tile at an offset, so a tile range derived
+    // from the clip alone stops covering the visible area: with scrollx 140 the
+    // clip-derived columns paint x -140..115 while the screen needs 0..255, and
+    // the wrapped copies land a whole map away. Walk the entire map whenever a
+    // scroll is live, exactly as a multi-band scroll already does; the wrap loop
+    // then places every tile and the clip rejects the rest.
+    const scrollsVertically = Boolean(this.plan.scrollColumns) ||
+      this.scrollY.some(value => value !== 0);
+    const scrollsHorizontally = Boolean(this.plan.scrollRows) ||
+      this.scrollX.some(value => value !== 0);
+    const firstOutputRow = scrollsVertically
       ? 0
       : Math.max(0, Math.floor(clip.min_y / this.plan.tileHeight));
-    const lastOutputRow = this.plan.scrollColumns
+    const lastOutputRow = scrollsVertically
       ? this.plan.rows - 1
       : Math.min(this.plan.rows - 1, Math.floor(clip.max_y / this.plan.tileHeight));
-    const firstOutputColumn = this.plan.scrollRows
+    const firstOutputColumn = scrollsHorizontally
       ? 0
       : Math.max(0, Math.floor(clip.min_x / this.plan.tileWidth));
-    const lastOutputColumn = this.plan.scrollRows
+    const lastOutputColumn = scrollsHorizontally
       ? this.plan.columns - 1
       : Math.min(this.plan.columns - 1, Math.floor(clip.max_x / this.plan.tileWidth));
     for (let outputRow = firstOutputRow; outputRow <= lastOutputRow; outputRow++) {
