@@ -171,4 +171,33 @@ const constexprLocal = compileMameHandler('constexpr uint8_t HEIGHT = 128;');
 assert.deepEqual(constexprLocal.diagnostics, []);
 assert.equal(constexprLocal.operations[0]?.op, 'declare');
 
-console.log('handler-ir.spec: 31 passed');
+// Explicit template arguments on a qualified name select a C++ overload; the
+// IR keeps the bare name so the runtime can bind std::min once.
+const templateCall = compileMameHandler(
+  'memcpy(&m_buffered[0], m_spriteram + srcoffset,' +
+  ' (std::min<size_t>)(srclength, length() - srcoffset) * sizeof(uint8_t));',
+);
+assert.deepEqual(templateCall.diagnostics, []);
+const memcpyCall = templateCall.operations[0];
+assert.equal(memcpyCall?.op, 'call');
+assert.equal(
+  memcpyCall.op === 'call' && memcpyCall.expression.callee.kind === 'identifier'
+    ? memcpyCall.expression.callee.name
+    : '',
+  'memcpy',
+);
+const scaled = memcpyCall.op === 'call' ? memcpyCall.expression.args[2] : undefined;
+assert.equal(
+  scaled?.kind === 'binary' && scaled.left.kind === 'call' &&
+    scaled.left.callee.kind === 'identifier'
+    ? scaled.left.callee.name
+    : '',
+  'std::min',
+);
+
+// A less-than comparison against a qualified name must not be mistaken for one.
+const comparison = compileMameHandler('if (a::b < c) m_x = 1;');
+assert.deepEqual(comparison.diagnostics, []);
+assert.equal(comparison.operations[0]?.op, 'if');
+
+console.log('handler-ir.spec: 34 passed');

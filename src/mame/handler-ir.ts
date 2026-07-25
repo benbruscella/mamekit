@@ -506,6 +506,9 @@ class HandlerParser {
           kind: 'identifier',
           name: `${expressionName(expression)}::${property.text}`,
         };
+        // Explicit template arguments (std::min<size_t>) select an overload;
+        // they carry no numeric behavior, so the IR keeps the bare name.
+        this.consumeTemplateArguments();
       } else if (this.consume('++') || this.consume('--')) {
         expression = {
           kind: 'assignment',
@@ -519,6 +522,31 @@ class HandlerParser {
       }
     }
     return expression;
+  }
+
+  /**
+   * Consume a template argument list on a qualified name when it is
+   * unambiguously one: only type-shaped tokens inside, and a call or a closing
+   * parenthesis after. Anything else stays a less-than comparison.
+   */
+  private consumeTemplateArguments(): boolean {
+    if (!this.atText('<')) return false;
+    let cursor = this.index + 1;
+    let depth = 1;
+    while (depth > 0) {
+      const token = this.tokens[cursor];
+      if (!token || token.kind === 'eof') return false;
+      if (token.text === '<') depth++;
+      else if (token.text === '>') depth--;
+      else if (
+        token.kind !== 'identifier' && token.kind !== 'number' &&
+        ![',', '*', '&', '::'].includes(token.text)
+      ) return false;
+      cursor++;
+    }
+    if (!['(', ')'].includes(this.tokens[cursor]?.text ?? '')) return false;
+    this.index = cursor;
+    return true;
   }
 
   private parseArguments(): GeneratedExpression[] | undefined {

@@ -633,42 +633,44 @@ export interface MemoryBankDef {
   raw: string;
 }
 
-/** Parse MAME memory_bank configuration from a machine_start body. */
+/**
+ * Parse MAME memory_bank configuration from a machine_start body.
+ *
+ * A bank may be configured by several calls: `configure_entries` fills a run of
+ * equally spaced entries, and `configure_entry` places one entry anywhere. Each
+ * call becomes its own definition so a bank whose entries are not one
+ * arithmetic run (Ghosts'n Goblins puts entry 4 outside the banked run) stays
+ * source-accurate.
+ */
 export function parseMemoryBanks(
   body: string,
   memberTags: Record<string, string>,
   consts: Record<string, number>,
 ): MemoryBankDef[] {
   const banks: MemoryBankDef[] = [];
-  const call = /\b(m_\w+)\s*->\s*configure_entries\s*\(/g;
+  const regionAliases = pointerRegionAliases(body);
+  const call = /\b(m_\w+)\s*->\s*configure_(entries|entry)\s*\(/g;
   let match: RegExpExecArray | null;
   while ((match = call.exec(body)) !== null) {
-    const open = body.indexOf('(', match.index);
+    const open = body.indexOf('(', match.index + match[1]!.length);
     const close = matchParen(body, open);
     if (close < 0) continue;
+    const plural = match[2] === 'entries';
     const args = splitArgs(body.slice(open + 1, close));
-    if (args.length !== 4) continue;
-    const source = /^memregion\(\s*"([^"]+)"\s*\)->base\(\)\s*(?:\+\s*(.+))?$/
-      .exec(args[2]!.trim());
+    if (args.length !== (plural ? 4 : 2)) continue;
+    const source = regionPointer(args[plural ? 2 : 1]!, regionAliases, consts);
     const startEntry = evalExpr(args[0]!, consts);
-    const entries = evalExpr(args[1]!, consts);
-    const offset = evalExpr(source?.[2] ?? '0', consts);
-    const stride = evalExpr(args[3]!, consts);
-    if (
-      !source ||
-      startEntry === null ||
-      entries === null ||
-      offset === null ||
-      stride === null
-    ) continue;
+    const entries = plural ? evalExpr(args[1]!, consts) : 1;
+    const stride = plural ? evalExpr(args[3]!, consts) : 0;
+    if (!source || startEntry === null || entries === null || stride === null) continue;
     const member = match[1]!;
     banks.push({
       member,
       tag: memberTags[member] ?? member.replace(/^m_/, ''),
       startEntry,
       entries,
-      region: source[1]!,
-      offset,
+      region: source.region,
+      offset: source.offset,
       stride,
       raw: body.slice(match.index, close + 1).trim(),
     });
@@ -677,13 +679,93 @@ export function parseMemoryBanks(
   return banks;
 }
 
-/** Parse `m_foo(*this, "tag")` from state-class constructor initializer lists. */
+/** Local pointers aliasing a region base: `uint8_t *rombase = memregion(...)`. */
+function pointerRegionAliases(body: string): Record<string, string> {
+  const aliases: Record<string, string> = {};
+  const re =
+    /\b(?:const\s+)?(?:uint8_t|u8|char)\s*\*\s*(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)\s*->\s*base\(\)/g;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(body)) !== null) aliases[match[1]!] = match[2]!;
+  return aliases;
+}
+
+/**
+ * Resolve a bank base expression to a region and byte offset. MAME writes these
+ * as `memregion("r")->base() + n`, `&alias[n]` or `alias + n`.
+ */
+function regionPointer(
+  expression: string,
+  aliases: Record<string, string>,
+  consts: Record<string, number>,
+): { region: string; offset: number } | undefined {
+  const text = expression.trim();
+  const direct = /^memregion\(\s*"([^"]+)"\s*\)\s*->\s*base\(\)\s*(?:\+\s*(.+))?$/.exec(text);
+  if (direct) {
+    const offset = evalExpr(direct[2] ?? '0', consts);
+    return offset === null ? undefined : { region: direct[1]!, offset };
+  }
+  const indexed = /^&\s*(\w+)\s*\[\s*(.+?)\s*\]$/.exec(text);
+  if (indexed && aliases[indexed[1]!]) {
+    const offset = evalExpr(indexed[2]!, consts);
+    return offset === null ? undefined : { region: aliases[indexed[1]!]!, offset };
+  }
+  const added = /^(\w+)\s*(?:\+\s*(.+))?$/.exec(text);
+  if (added && aliases[added[1]!]) {
+    const offset = evalExpr(added[2] ?? '0', consts);
+    return offset === null ? undefined : { region: aliases[added[1]!]!, offset };
+  }
+  return undefined;
+}
+
+/**
+ * Parse `m_foo(*this, "tag")` from state-class constructor initializer lists.
+ *
+ * MAME's array finders take a printf format and a starting index instead —
+ * `m_ym(*this, "ym%u", 1)` names the devices `ym1` and `ym2`. Those elements are
+ * referenced as `m_ym[0]`/`m_ym[1]` in the machine config while the address map
+ * uses the formatted tags, so both spellings are recorded here.
+ */
 export function parseMemberTags(src: string): Record<string, string> {
   const out: Record<string, string> = {};
-  const re = /m_(\w+)\(\*this,\s*"([^"]+)"/g;
+  const counts = arrayFinderCounts(src);
+  const re = /m_(\w+)\(\*this,\s*"([^"]+)"(?:\s*,\s*('?[\w']+'?)\s*)?\)/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(src)) !== null) out[`m_${m[1]}`] = m[2];
+  while ((m = re.exec(src)) !== null) {
+    const member = `m_${m[1]}`;
+    const format = m[2];
+    const start = m[3];
+    out[member] = format;
+    if (start === undefined || !/%[-0-9.]*[a-z]/i.test(format)) continue;
+    const count = counts[member];
+    if (!count) continue;
+    for (let index = 0; index < count; index++) {
+      out[`${member}[${index}]`] = formatFinderTag(format, start, index);
+    }
+  }
   return out;
+}
+
+/** Element count of each `*_array<Type, N> m_member;` declaration. */
+function arrayFinderCounts(src: string): Record<string, number> {
+  const counts: Record<string, number> = {};
+  const re = /\b(?:required|optional)_\w*array\s*<[^<>]*?,\s*(\d+)\s*>\s+(m_\w+)\s*;/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src)) !== null) counts[m[2]] = Number(m[1]);
+  return counts;
+}
+
+/** MAME formats array-finder tags with string_format(format, start + index). */
+function formatFinderTag(format: string, start: string, index: number): string {
+  const character = /^'(.)'$/.exec(start);
+  return format.replace(/%[-0-9.]*([a-z])/i, (_match, conversion: string) => {
+    if (conversion === 'c' || character) {
+      const base = character
+        ? character[1].charCodeAt(0)
+        : Number(start);
+      return String.fromCharCode(base + index);
+    }
+    return String(Number(start) + index);
+  });
 }
 
 const DEVICE_MACRO_RE = /^(?:[\w]+\s+)?(?:&?\s*(\w+)\s*\(\s*)?([A-Z][A-Z0-9_]{1,})\s*\(\s*config\s*,\s*([^,)]+)\s*(?:,\s*([^;]+?))?\)\s*\)?/;
@@ -780,7 +862,9 @@ export function parseMachineConfigs(
       }
 
       // member/local/tag method calls: m_x->..., var.set_raw(...), subdevice
-      const mc = /^([\w."<>]+?)\s*(?:->|\.)\s*(\w+)(<\d+>)?\s*\(/.exec(s);
+      // Device-array elements are referenced with a subscript, as in
+      // m_ym[0]->add_route(...); the byRef lookup below rejects non-devices.
+      const mc = /^([\w."<>[\]]+?)\s*(?:->|\.)\s*(\w+)(<\d+>)?\s*\(/.exec(s);
       if (mc) {
         const [, refRaw, method] = mc;
         const dev = byRef.get(refRaw) ?? byRef.get(resolveTag(refRaw));

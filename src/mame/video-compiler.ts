@@ -5,6 +5,7 @@ import { evalExpr } from '../kg/parse.ts';
 import type {
   GeneratedHandler,
   GeneratedPromPalettePlan,
+  GeneratedRamPalettePlan,
   GeneratedSourceRef,
   GeneratedVideoPlan,
 } from '../runtime/generated-machine.ts';
@@ -16,6 +17,8 @@ export interface CompiledMameVideo {
   plan: GeneratedVideoPlan;
   handlers: GeneratedHandler[];
 }
+
+const TILEMAP_FRAMEWORK_HEADER = 'src/emu/tilemap.h';
 
 export function compileMameVideo(
   graph: KnowledgeGraph,
@@ -64,7 +67,13 @@ export function compileMameVideo(
   const source = [...new Set(files)]
     .map(file => readFileSync(join(mameSrc, file), 'utf8'))
     .join('\n');
-  const constants = sourceNumericConstants(source);
+  // MAME's tilemap framework header is part of the vocabulary driver video code
+  // uses: TILEMAP_DRAW_LAYERn, TILE_FLIPYX and kin are declared there, not in
+  // the driver. Driver constants take precedence over framework ones.
+  const constants = {
+    ...sourceNumericConstants(readFileSync(join(mameSrc, TILEMAP_FRAMEWORK_HEADER), 'utf8')),
+    ...sourceNumericConstants(source),
+  };
   const memberDefaults = sourceMemberDefaults(source, constants);
   const machineIds = machineConfigClosure(graph, machineId);
   const screenCallback = graph.nodes.find(node =>
@@ -171,7 +180,12 @@ export function compileMameVideo(
     ? compileNamedPalettes(graph, ast, source, constants, paletteMembers)
     : [];
   const palette = palettes.length ? undefined : compilePalette(graph, machineIds, ast, constants);
-  if (!palette && palettes.length !== paletteMembers.length) {
+  // A palette_device with no init callback colors CPU-writable palette RAM
+  // through the set_format converter named in the machine configuration.
+  const ramPalette = palette || palettes.length
+    ? undefined
+    : compileSetFormatRamPalette(graph, machineIds, mameSrc);
+  if (!palette && !ramPalette && palettes.length !== paletteMembers.length) {
     return fail(`palette callback did not lower`);
   }
   const colorTables = compileVideoColorTables(source, constants);
@@ -185,6 +199,7 @@ export function compileMameVideo(
       gfx,
       ...(palette ? { palette } : {}),
       ...(palettes.length ? { palettes } : {}),
+      ...(ramPalette ? { ramPalette } : {}),
       tilemaps,
       initialState: {
         ...arrayState(memberDefaults),
@@ -764,6 +779,88 @@ function resistorMaximum(
     const r1 = 1 / high;
     return sum + Math.min(maximum, Math.max(0, maximum * r0 / (r1 + r0)));
   }, 0);
+}
+
+/**
+ * Lower a palette_device that colors CPU-writable palette RAM through a
+ * set_format converter instead of a color PROM.
+ *
+ * Everything comes from MAME: the machine configuration names the format
+ * enumerator and entry count, emupal.h maps that enumerator to its overload
+ * type, emupal.cpp's overload gives bytes-per-entry and the
+ * standard_rgb_decoder bit widths and shifts, and palette_device::device_start
+ * defines the base/ext share tags.
+ */
+function compileSetFormatRamPalette(
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+  mameSrc: string,
+): GeneratedRamPalettePlan | undefined {
+  const fail = (reason: string): undefined => {
+    if (process.env.MAMEKIT_DEBUG_VIDEO === '1') console.error(`ram palette: ${reason}`);
+    return undefined;
+  };
+  const deviceIds = new Set(graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
+    .map(edge => edge.to));
+  const device = graph.nodes.find(node =>
+    deviceIds.has(node.id) && node.label === 'Device' && node.props.type === 'PALETTE');
+  if (!device) return fail('no PALETTE device in machine composition');
+  const raw = ((device.props.config as string[] | undefined) ?? []).join('\n');
+  const format = /\.set_format\s*\(\s*(?:palette_device::)?(\w+)\s*,\s*([^,)]+)/.exec(raw);
+  if (!format) return fail(`no set_format in ${raw}`);
+  const entries = expressionNumber(format[2]);
+  if (!entries) return fail(`set_format entry count did not evaluate: ${format[2]}`);
+
+  const headerFile = 'src/emu/emupal.h';
+  const sourceFile = 'src/emu/emupal.cpp';
+  const header = readFileSync(join(mameSrc, headerFile), 'utf8');
+  const implementation = readFileSync(join(mameSrc, sourceFile), 'utf8');
+  // emupal.h declares one enum per format; its tag is the set_format overload
+  // parameter type, e.g. `enum rgbx_444_t { RGBx_444, RRRRGGGGBBBBxxxx };`.
+  const overloadType = [...header.matchAll(/enum\s+(\w+_t)\s*\{([^}]*)\}/g)]
+    .find(match => splitMameArgs(match[2]!).some(name => name.trim() === format[1]))?.[1];
+  if (!overloadType) return fail(`no emupal.h enum declares ${format[1]}`);
+  const overload = new RegExp(
+    `palette_device::set_format\\s*\\(\\s*${overloadType}\\s*,[^)]*\\)\\s*\\{([\\s\\S]*?)\\n\\}`,
+  ).exec(implementation);
+  if (!overload) return fail(`emupal.cpp has no set_format(${overloadType}) overload`);
+  const decoder = /set_format\s*\(\s*(\d+)\s*,\s*&raw_to_rgb_converter::(\w+)_rgb_decoder\s*<([^>]*)>/
+    .exec(overload[1]!);
+  if (!decoder) return fail(`set_format(${overloadType}) is not a standard rgb decoder`);
+  const template = splitMameArgs(decoder[3]!).map(value => Number(value.trim()));
+  if (template.length !== 6 || template.some(value => !Number.isFinite(value))) {
+    return fail(`unsupported rgb decoder template <${decoder[3]}>`);
+  }
+  const inverted = decoder[2] === 'inverted';
+  if (!inverted && decoder[2] !== 'standard') {
+    return fail(`unsupported rgb decoder kind ${decoder[2]}`);
+  }
+
+  // palette_device::device_start binds memshare(tag()) and tag() + "_ext".
+  const tag = String(device.props.tag);
+  const shares = new Set(graph.nodes
+    .filter(node => node.label === 'AddressRange')
+    .map(node => String(node.props.share ?? '')));
+  if (!shares.has(tag)) return fail(`no address-map share named "${tag}"`);
+  const extShare = `${tag}_ext`;
+  return {
+    tag,
+    ...(shares.has(extShare) ? { extShare } : {}),
+    entries,
+    bytesPerEntry: Number(decoder[1]),
+    channels: (['r', 'g', 'b'] as const).map((channel, index) => ({
+      channel,
+      bits: template[index]!,
+      shift: template[index + 3]!,
+    })),
+    ...(inverted ? { inverted: true } : {}),
+    source: { file: sourceFile, line: lineOf(implementation, overload.index) },
+  };
+}
+
+function lineOf(source: string, offset: number): number {
+  return source.slice(0, offset).split('\n').length;
 }
 
 function compilePalette(

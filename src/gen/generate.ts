@@ -361,7 +361,18 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     : devices.some(d => d.props.type === 'NAMCO_WSG' || d.props.type === 'NAMCO')
     ? { kind: 'wsg', clock: Number(byTag.get('namco')?.props.clock ?? 96000), waveRegion: 'namco' }
     : ymChips.length
-      ? { kind: 'ym2203', clock: Number(ymChips[0].props.clock), chips: ymChips.length }
+      ? (() => {
+          const ymRoutes = lowerAudioRoutes(
+            graph,
+            ymChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
+          );
+          return {
+            kind: 'ym2203',
+            clock: Number(ymChips[0].props.clock),
+            chips: ymChips.length,
+            ...(ymRoutes.length ? { routes: ymRoutes } : {}),
+          };
+        })()
       : ayChips.length
         ? {
             kind: 'ay8910',

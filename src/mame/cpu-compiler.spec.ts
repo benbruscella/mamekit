@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   compileMameI8080,
   compileMameKonami1,
+  compileMameMc6809,
   compileMameM6803,
   compileMameZ80,
 } from './cpu-compiler.ts';
@@ -261,4 +262,41 @@ cwai.step();
 assert.equal(cwai.get('m_pc'), 0x9000, 'CWAI must evaluate and retain its pending IRQ vector');
 assert.equal(cwai.get('m_s'), cwaiStack, 'CWAI wake-up must not push the state twice');
 
-console.log('cpu-compiler.spec: 44 passed');
+// MC6809 is the same 6809 core without KONAMI-1's opcode fetch transform:
+// mc6809_device keeps mi_default and only adds the internal clock divider,
+// which is a machine-configuration fact carried by the generated CPU schedule.
+const mc6809Definition = compileMameMc6809(process.env.MAME_SRC ?? '../mame');
+assert.equal(mc6809Definition.type, 'MC6809');
+assert.equal(mc6809Definition.dialect, 'mame-m6809-lst');
+assert.equal(mc6809Definition.summary.opcodes, konami1Definition.summary.opcodes);
+assert.equal(mc6809Definition.summary.compiledOpcodes, mc6809Definition.summary.opcodes);
+assert.equal(mc6809Definition.summary.diagnostics, 0);
+assert.equal(mc6809Definition.opcodeDecrypt, undefined,
+  'a plain MC6809 must not carry an opcode decryption table');
+assert.ok(mc6809Definition.sourceFiles.includes('src/devices/cpu/m6809/m6809.lst'));
+assert.ok(
+  !mc6809Definition.sourceFiles.some(file => file.includes('konami1')),
+  'MC6809 provenance must not reference the KONAMI-1 device',
+);
+
+clearGeneratedCpus();
+registerGeneratedCpu(mc6809Definition);
+const mc6809Memory = new Uint8Array(0x10000);
+// LDA #$42 ; STA $1000 — plain opcodes, no decryption.
+mc6809Memory.set([0x86, 0x42, 0xb7, 0x10, 0x00], 0x8000);
+mc6809Memory[0xfffe] = 0x80;
+mc6809Memory[0xffff] = 0x00;
+const mc6809 = createCpu('MC6809', {
+  read: address => mc6809Memory[address]!,
+  write: (address, data) => { mc6809Memory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+mc6809.reset();
+assert.equal(mc6809.get('m_pc'), 0x8000, 'MC6809 must start at the reset vector');
+mc6809.step();
+assert.equal(mc6809.get('m_d.b.h'), 0x42);
+mc6809.step();
+assert.equal(mc6809Memory[0x1000], 0x42, 'MC6809 extended store must reach the bus');
+
+console.log('cpu-compiler.spec: 55 passed');

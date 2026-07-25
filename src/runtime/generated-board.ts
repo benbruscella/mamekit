@@ -19,7 +19,7 @@ import {
   wireGeneratedDevice,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
-import type { GeneratedMachine } from './generated-machine.ts';
+import { callbackTarget, type GeneratedMachine } from './generated-machine.ts';
 import { portHandlers } from './input.ts';
 import {
   AY_FILTER_CONTROL_BASE,
@@ -45,6 +45,20 @@ const GENERATED_BOARDS = new Map<string, BoardFactory>();
 
 export function registerGeneratedBoard(game: string, factory: BoardFactory): void {
   GENERATED_BOARDS.set(game, factory);
+}
+
+/**
+ * MAME's driver_device interrupt generators: irqN_line_hold/assert clear on
+ * acknowledge or stay asserted, and nmi_line_pulse/assert drive the NMI pin.
+ */
+function interruptGenerator(
+  method: string | undefined,
+): { line: number | 'nmi'; hold: boolean } | undefined {
+  const irq = /^irq(\d)_line_(hold|assert)$/.exec(method ?? '');
+  if (irq) return { line: Number(irq[1]), hold: irq[2] === 'hold' };
+  const nmi = /^nmi_line_(pulse|assert)$/.exec(method ?? '');
+  if (nmi) return { line: 'nmi', hold: nmi[1] === 'pulse' };
+  return undefined;
 }
 
 export function createBoard(
@@ -90,6 +104,7 @@ class IrBoard implements Board {
   private readonly devices = new Map<string, Device>();
   private readonly state: Record<string, unknown> = {};
   private readonly shares: Record<string, Uint8Array> = {};
+  private videoPrimitives?: GeneratedMameVideoPrimitives;
   private readonly frameRunner: GeneratedFrameRunner;
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
@@ -105,9 +120,21 @@ class IrBoard implements Board {
     this.fbWidth = machine.execution.screen.width;
     this.fbHeight = machine.execution.screen.height;
 
+    // MAME devices may alias board memory shares (buffered spriteram binds its
+    // own tag), so every declared share exists before any device is created.
+    for (const cpu of machine.execution.cpus) {
+      for (const range of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])]) {
+        if (!range.share) continue;
+        this.shares[range.share] ??= new Uint8Array(range.end - range.start + 1);
+      }
+    }
     for (const specification of machine.devices ?? []) {
       if (hasGeneratedDevice(specification.type)) {
-        const device = createDevice(specification.type, { clock: specification.clock });
+        const device = createDevice(specification.type, {
+          clock: specification.clock,
+          tag: specification.tag,
+          shares: this.shares,
+        });
         // Machine-config chained setup calls (m_starfield->set_starfield_config(...))
         // lowered from the driver's constant arguments.
         for (const configuration of specification.configuration ?? []) {
@@ -133,7 +160,8 @@ class IrBoard implements Board {
     for (const [tag, device] of this.devices) {
       const specification = machine.devices?.find(candidate => candidate.tag === tag);
       for (const method of device.methodNames()) {
-        const invoke = (...args: number[]) => device.call(method, ...args);
+        const invoke = (...args: unknown[]) =>
+          device.invoke(method, ...args as Parameters<typeof device.invoke>[1][]);
         calls[`${tag}.${method}`] = invoke;
         calls[`m_${tag}.${method}`] = invoke;
         if (specification?.member) calls[`${specification.member}.${method}`] = invoke;
@@ -314,7 +342,7 @@ class IrBoard implements Board {
     let activeFramebuffer: Uint32Array | undefined;
     let video: GeneratedVideoRenderer | undefined;
     if (machine.execution.screenUpdate) {
-      const primitives = new GeneratedMameVideoPrimitives(
+      const primitives = this.videoPrimitives = new GeneratedMameVideoPrimitives(
         machine,
         regions,
         this.state,
@@ -542,8 +570,13 @@ class IrBoard implements Board {
     }
     for (const key of usedHandlers(machine, 'write')) {
       if (registry.write[key]) continue;
-      if (key === 'palette.write8') {
-        registry.write[key] = () => {};
+      // palette_device RAM writes color a source-derived set_format palette;
+      // boards whose palette comes from a PROM ignore the RAM as MAME does.
+      const paletteWrite = /^palette\.write(?:8|16|32)(_ext)?$/.exec(key);
+      if (paletteWrite) {
+        const ext = Boolean(paletteWrite[1]);
+        registry.write[key] = (_address, offset, data) =>
+          this.videoPrimitives?.writePaletteRam?.(offset, data, ext);
         continue;
       }
       if (key.startsWith('watchdog.')) registry.write[key] = () => {};
@@ -603,26 +636,23 @@ class IrBoard implements Board {
       if (!region) {
         throw new Error(`${machine.game}: memory bank "${bank.tag}" has no region "${bank.region}"`);
       }
-      let entry = bank.startEntry;
+      let base = bank.entryOffsets.find(value => value !== null) ?? 0;
       const setEntry = (value: number): number => {
-        if (value < bank.startEntry || value >= bank.startEntry + bank.entries) {
+        const configured = bank.entryOffsets[value];
+        if (configured === undefined || configured === null) {
           throw new Error(
             `${machine.game}: memory bank "${bank.tag}" selected invalid entry ${value}`,
           );
         }
-        entry = value;
-        return entry;
+        base = configured;
+        return value;
       };
       for (const alias of [bank.tag, `m_${bank.tag}`, bank.member]) {
         this.bindings.calls![`${alias}.set_entry`] = setEntry;
       }
-      const read = (_address: number, offset: number): number => {
-        const index = bank.offset + (entry - bank.startEntry) * bank.stride + offset;
-        return region[index] ?? 0xff;
-      };
-      registry.read[`bank.${bank.tag}`] = read;
+      registry.read[`bank.${bank.tag}`] = (_address, offset) => region[base + offset] ?? 0xff;
       registry.write[`bank.${bank.tag}`] = (_address, offset, data) => {
-        const index = bank.offset + (entry - bank.startEntry) * bank.stride + offset;
+        const index = base + offset;
         if (index >= 0 && index < region.length) region[index] = data;
       };
     }
@@ -737,6 +767,33 @@ class IrBoard implements Board {
       }
       return;
     }
+    if (sound.kind === 'ym2203') {
+      // Each YM2203 exposes an address/data port pair; the bank is addressed
+      // as chip * 2 + port so one worklet hosts every chip on the board.
+      const tags = sound.deviceTags ?? [sound.deviceTag];
+      tags.forEach((tag, chip) => {
+        for (const method of sound.writeMethods) {
+          const write = (offset: number, data: number): void => {
+            sinks.soundWrite(chip * 2 + (offset & 1), data, this.soundFraction(), method);
+          };
+          registry.write[`${tag}.${method}`] = (_address, offset, data) => write(offset, data);
+          const member = machine.devices?.find(device => device.tag === tag)?.member;
+          for (const alias of [tag, `m_${tag}`, member].filter(Boolean) as string[]) {
+            this.bindings.calls![`${alias}.${method}`] = (offset, data) =>
+              write(Number(offset), Number(data));
+          }
+        }
+        // ym_reset_w and kin reset the chip through the generated device port.
+        const member = machine.devices?.find(device => device.tag === tag)?.member;
+        for (const alias of [tag, `m_${tag}`, member].filter(Boolean) as string[]) {
+          this.bindings.calls![`${alias}.reset`] = () => {
+            sinks.soundWrite(chip * 2, 0, this.soundFraction(), 'reset');
+            return 0;
+          };
+        }
+      });
+      return;
+    }
     for (const method of sound.writeMethods) {
       const key = `${sound.deviceTag}.${method}`;
       registry.write[key] = (_address, offset, data) => {
@@ -766,15 +823,24 @@ class IrBoard implements Board {
           driverMethod(state);
         };
       }
-      if (
-        callback.signal === 'set_vblank_int' &&
-        callback.targetTag &&
-        /^irq\d+_line_hold$/.test(callback.targetMethod ?? '')
-      ) {
+      // MAME's driver_device interrupt generators (irqN_line_hold and kin) act
+      // on the device the interrupt is installed on, whichever signal installs
+      // it: set_vblank_int, set_periodic_int or set_irq_acknowledge_callback.
+      const generator = interruptGenerator(callback.targetMethod);
+      if (generator && callbackTarget(callback)) {
         const cpu = this.cpus.get(callback.ownerTag);
         if (cpu) {
-          endpoints[`${callback.targetTag}.${callback.targetMethod}`] = state =>
-            cpu.setIrqLine(state !== 0, 0xff, state !== 0);
+          endpoints[callbackTarget(callback)!] = state => {
+            if (generator.line === 'nmi') {
+              if (state) cpu.nmi();
+              return;
+            }
+            cpu.setIrqLine(
+              state !== 0,
+              0xff,
+              generator.hold ? state !== 0 : false,
+            );
+          };
         }
       }
       if (!callback.targetTag) continue;

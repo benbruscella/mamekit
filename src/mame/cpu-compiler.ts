@@ -729,25 +729,32 @@ export function compileMameM6803(mameSrc: string): GeneratedCpuDefinition {
 }
 
 /**
- * Compile MAME's standard 6809 microcode DSL and apply the KONAMI-1 opcode
- * fetch transform from the device source. Operand/data reads remain plain,
- * matching konami1_device::mi_konami1.
+ * Compile MAME's standard 6809 microcode DSL into an executable CPU definition.
+ *
+ * `m6809.lst` plus `base6x09.lst` are the whole instruction set, and
+ * `m6809_base_device` carries the shared state machine, so every 6809 variant
+ * lowers from the same source. A variant is described only by its MAME device
+ * type and, where the device installs its own `memory_interface`, an opcode
+ * fetch transform. KONAMI-1 supplies one; a plain MC6809 does not.
  */
-export function compileMameKonami1(mameSrc: string): GeneratedCpuDefinition {
+function compileM6809Core(
+  mameSrc: string,
+  variant: {
+    type: string;
+    deviceSourceFiles?: string[];
+    opcodeDecrypt?: GeneratedCpuDefinition['opcodeDecrypt'];
+  },
+): GeneratedCpuDefinition {
   const cppFile = 'src/devices/cpu/m6809/m6809.cpp';
   const headerFile = 'src/devices/cpu/m6809/m6809.h';
   const inlineFile = 'src/devices/cpu/m6809/m6809inl.h';
   const dslFile = 'src/devices/cpu/m6809/m6809.lst';
   const baseDslFile = 'src/devices/cpu/m6809/base6x09.lst';
-  const deviceFile = 'src/mame/konami/konami1.cpp';
-  const deviceHeaderFile = 'src/mame/konami/konami1.h';
   const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
   const header = readFileSync(join(mameSrc, headerFile), 'utf8');
   const inline = readFileSync(join(mameSrc, inlineFile), 'utf8');
   const dslSource = readFileSync(join(mameSrc, dslFile), 'utf8');
   const baseDsl = readFileSync(join(mameSrc, baseDslFile), 'utf8');
-  const device = readFileSync(join(mameSrc, deviceFile), 'utf8');
-  const deviceHeader = readFileSync(join(mameSrc, deviceHeaderFile), 'utf8');
   const dsl = parseM6809Dsl(dslSource, baseDsl);
   const baseUnit = parseMameSource(cppFile, cpp);
   const inlineUnit = parseMameSource(inlineFile, inline);
@@ -1002,7 +1009,6 @@ export function compileMameKonami1(mameSrc: string): GeneratedCpuDefinition {
     { name: 'cycles' },
     { name: 'm_icount' },
   ];
-  const opcodeDecrypt = extractKonami1Decrypt(device, deviceHeader);
   const programs = [
     start,
     reset,
@@ -1014,7 +1020,7 @@ export function compileMameKonami1(mameSrc: string): GeneratedCpuDefinition {
   ];
   return {
     schemaVersion: 1,
-    type: 'KONAMI1',
+    type: variant.type,
     dialect: 'mame-m6809-lst',
     sourceFiles: [
       cppFile,
@@ -1022,8 +1028,7 @@ export function compileMameKonami1(mameSrc: string): GeneratedCpuDefinition {
       inlineFile,
       dslFile,
       baseDslFile,
-      deviceFile,
-      deviceHeaderFile,
+      ...(variant.deviceSourceFiles ?? []),
     ],
     constants,
     aliases: {},
@@ -1049,7 +1054,7 @@ export function compileMameKonami1(mameSrc: string): GeneratedCpuDefinition {
         },
       },
     },
-    opcodeDecrypt,
+    ...(variant.opcodeDecrypt ? { opcodeDecrypt: variant.opcodeDecrypt } : {}),
     summary: {
       opcodes: opcodes.length,
       compiledOpcodes: opcodes.filter(opcode => !opcode.program.diagnostics.length).length,
@@ -1058,6 +1063,34 @@ export function compileMameKonami1(mameSrc: string): GeneratedCpuDefinition {
       diagnostics: programs.reduce((count, program) => count + program.diagnostics.length, 0),
     },
   };
+}
+
+/**
+ * Compile the 6809 core and apply the KONAMI-1 opcode fetch transform from the
+ * device source. Operand/data reads remain plain, matching
+ * konami1_device::mi_konami1.
+ */
+export function compileMameKonami1(mameSrc: string): GeneratedCpuDefinition {
+  const deviceFile = 'src/mame/konami/konami1.cpp';
+  const deviceHeaderFile = 'src/mame/konami/konami1.h';
+  return compileM6809Core(mameSrc, {
+    type: 'KONAMI1',
+    deviceSourceFiles: [deviceFile, deviceHeaderFile],
+    opcodeDecrypt: extractKonami1Decrypt(
+      readFileSync(join(mameSrc, deviceFile), 'utf8'),
+      readFileSync(join(mameSrc, deviceHeaderFile), 'utf8'),
+    ),
+  });
+}
+
+/**
+ * Compile the plain Motorola MC6809. mc6809_device adds only the internal
+ * clock divider to m6809_base_device (a machine-configuration fact already
+ * carried by the generated CPU schedule), and keeps mi_default, so the core
+ * lowering needs no fetch transform.
+ */
+export function compileMameMc6809(mameSrc: string): GeneratedCpuDefinition {
+  return compileM6809Core(mameSrc, { type: 'MC6809' });
 }
 
 interface MameOperationMacro {

@@ -12,6 +12,11 @@ interface DeviceMember {
   signed?: boolean;
   initial?: number;
   values?: number[];
+  memory?: {
+    kind: 'shared' | 'owned';
+    elementBytes: number;
+    share?: 'self' | string;
+  };
 }
 
 interface DeviceCallback {
@@ -67,6 +72,8 @@ export interface Device {
   reset(): void;
   tick(seconds: number): void;
   call(name: string, ...args: number[]): number;
+  /** Call a method preserving non-numeric results (memory pointers). */
+  invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
   get(name: string): number;
   set(name: string, value: number): void;
   methodNames(): readonly string[];
@@ -97,10 +104,18 @@ export function hasGeneratedDevice(type: string): boolean {
   return DEFINITIONS.has(type.toUpperCase());
 }
 
-export function createDevice(type: string, options: { clock?: number } = {}): Device {
+export interface GeneratedDeviceOptions {
+  clock?: number;
+  /** Device tag, resolving MAME's DEVICE_SELF memory share binding. */
+  tag?: string;
+  /** Board memory shares available to required/optional_shared_ptr members. */
+  shares?: Record<string, Uint8Array>;
+}
+
+export function createDevice(type: string, options: GeneratedDeviceOptions = {}): Device {
   const definition = DEFINITIONS.get(type.toUpperCase());
   if (!definition) throw new Error(`generated device "${type}" was not registered`);
-  return new IrDevice(definition, options.clock ?? 0);
+  return new IrDevice(definition, options.clock ?? 0, options);
 }
 
 class IrTimer {
@@ -138,18 +153,26 @@ class IrDevice implements Device {
   private readonly methods: Map<string, DeviceMethod>;
   /** Parameter names resolved once per method (the regex is a hot-path cost). */
   private readonly methodParams = new Map<string, string[]>();
+  /** C++ default argument values, applied when a caller omits a parameter. */
+  private readonly methodDefaults = new Map<string, (number | undefined)[]>();
   private readonly listeners = new Map<string, DeviceCallbackListener[][]>();
   private readonly bindings: GeneratedHandlerBindings;
   private readonly executionContext: GeneratedDeviceExecutionContext;
   private readonly timers = new Map<string, { timer: IrTimer; callback: string }>();
   private readonly clock: number;
 
-  constructor(definition: GeneratedDeviceDefinition, clock: number) {
+  constructor(
+    definition: GeneratedDeviceDefinition,
+    clock: number,
+    options: GeneratedDeviceOptions = {},
+  ) {
     this.definition = definition;
     this.clock = clock;
     this.methods = new Map(definition.methods.map(method => [method.name, method]));
     for (const member of definition.members) {
-      this.members[member.name] = member.values ? [...member.values] : member.initial ?? 0;
+      this.members[member.name] = member.memory
+        ? memoryMember(member, options)
+        : member.values ? [...member.values] : member.initial ?? 0;
       if (member.bits) this.memberBits.set(member.name, member.bits);
       if (member.signed) this.memberSigned.add(member.name);
     }
@@ -215,6 +238,7 @@ class IrDevice implements Device {
       const names = parameters.map(parameterName);
       callParameters[method.name] = parameters;
       this.methodParams.set(method.name, names);
+      this.methodDefaults.set(method.name, parameters.map(parameterDefault));
       referenceCalls[method.name] = (...args) => this.executeMethod(method, names, args);
     }
 
@@ -233,9 +257,13 @@ class IrDevice implements Device {
   }
 
   call(name: string, ...args: number[]): number {
+    return Number(this.invoke(name, ...args)) || 0;
+  }
+
+  invoke(name: string, ...args: GeneratedCallArgument[]): unknown {
     const method = this.methods.get(name);
     if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
-    return Number(this.executeMethod(method, this.methodParams.get(name)!, args)) || 0;
+    return this.executeMethod(method, this.methodParams.get(name)!, args);
   }
 
   get(name: string): number {
@@ -294,11 +322,33 @@ class IrDevice implements Device {
     const compiled = this.definition.compiledMethods?.[method.name];
     if (compiled) return compiled(this.executionContext, ...args);
     const locals: Record<string, unknown> = {};
+    const defaults = this.methodDefaults.get(method.name);
     for (let index = 0; index < parameterNames.length; index++) {
-      locals[parameterNames[index]!] = args[index] ?? 0;
+      locals[parameterNames[index]!] = args[index] ?? defaults?.[index] ?? 0;
     }
     return executeGeneratedProgram(method.program, this.bindings, locals).value;
   }
+}
+
+/**
+ * Bind a MAME memory container member: a shared pointer aliases the board share
+ * MAME's constructor names (DEVICE_SELF is the device's own tag), and an owned
+ * vector starts empty for device_start to size.
+ */
+function memoryMember(
+  member: DeviceMember,
+  options: GeneratedDeviceOptions,
+): ArrayLike<number> {
+  const memory = member.memory!;
+  if (memory.kind === 'owned') return new Uint8Array(0);
+  const tag = memory.share === 'self' ? options.tag : memory.share;
+  const bytes = tag ? options.shares?.[tag] : undefined;
+  if (!bytes) {
+    throw new Error(
+      `generated device memory share "${tag ?? memory.share}" is not available for ${member.name}`,
+    );
+  }
+  return bytes;
 }
 
 function splitParameters(parameters: string): string[] {
@@ -306,7 +356,20 @@ function splitParameters(parameters: string): string[] {
 }
 
 function parameterName(parameter: string): string {
-  return /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter)?.[1] ?? parameter;
+  return /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.replace(/=[\s\S]*$/, '')) ?.[1]
+    ?? /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter)?.[1]
+    ?? parameter;
+}
+
+/** A C++ default argument, when it is a plain numeric literal. */
+function parameterDefault(parameter: string): number | undefined {
+  const value = /=\s*([\s\S]+)$/.exec(parameter)?.[1]?.trim();
+  if (value === undefined) return undefined;
+  const numeric = /^(?:0[xX][\da-fA-F]+|\d+)[uUlL]*$/.exec(value);
+  if (numeric) return Number(value.replace(/[uUlL]+$/, ''));
+  // `~Type(0)` and kin are MAME's all-ones memory masks.
+  if (/^~\s*\w+\s*\(\s*0\s*\)$/.test(value)) return 0xffffffff;
+  return undefined;
 }
 
 function wrap(value: number, bits?: 1 | 8 | 16 | 32, signed = false): number {

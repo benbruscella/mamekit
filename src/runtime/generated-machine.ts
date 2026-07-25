@@ -172,11 +172,14 @@ export interface GeneratedExecutionPlan {
   banks?: {
     tag: string;
     member: string;
-    startEntry: number;
-    entries: number;
     region: string;
-    offset: number;
-    stride: number;
+    /**
+     * Byte offset into the region for each bank entry, indexed by MAME entry
+     * number. A bank configured by several calls (configure_entries plus a
+     * stray configure_entry) is fully described here; unconfigured entries are
+     * null, and selecting one is an error just as it is in MAME.
+     */
+    entryOffsets: (number | null)[];
     source?: GeneratedSourceRef;
   }[];
   screen: GeneratedScreen;
@@ -271,6 +274,31 @@ export interface GeneratedPromPalettePlan {
   source?: GeneratedSourceRef;
 }
 
+/**
+ * MAME palette_device configured by set_format over CPU-writable palette RAM
+ * (no color PROM). The channel decode comes from the emupal.cpp overload the
+ * driver names, and the share tags follow palette_device::device_start, which
+ * binds memshare(tag()) plus an optional tag()+"_ext" high-byte share.
+ */
+export interface GeneratedRamPalettePlan {
+  /** palette_device tag; also the base memory share name. */
+  tag: string;
+  /** High-byte share tag when MAME splits palette RAM across two shares. */
+  extShare?: string;
+  entries: number;
+  /** raw_to_rgb_converter bytes per entry, before any base/ext split. */
+  bytesPerEntry: number;
+  /** MAME standard_rgb_decoder template arguments, per channel. */
+  channels: {
+    channel: 'r' | 'g' | 'b';
+    bits: number;
+    shift: number;
+  }[];
+  /** inverted_rgb_decoder complements the raw value before expansion. */
+  inverted?: boolean;
+  source?: GeneratedSourceRef;
+}
+
 export interface GeneratedTilemapPlan {
   member: string;
   /** MAME gfxdecode member passed to tilemap::create. */
@@ -335,6 +363,8 @@ export interface GeneratedVideoPlan {
     member: string;
     plan: GeneratedPromPalettePlan;
   }[];
+  /** Palette RAM decoded by a MAME set_format converter instead of a PROM. */
+  ramPalette?: GeneratedRamPalettePlan;
   tilemaps: GeneratedTilemapPlan[];
   initialState: Record<string, number | number[]>;
   /** MAME may render at a hardware sub-pixel scale (Galaxian uses 3x horizontally). */

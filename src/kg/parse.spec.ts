@@ -12,6 +12,7 @@ import {
   parseGames,
   parseGfxLayouts,
   parseMachineConfigs,
+  parseMemberTags,
   parseMemoryBanks,
   parseRomSets,
 } from './parse.ts';
@@ -208,6 +209,54 @@ void timeplt_state::main_map(address_map &map)
   eq('lw8 inline parameters', handler?.inlineParameters, 'offs_t offset, u8 data');
   eq('lw8 inline body', handler?.inlineBody, 'm_mainlatch->write_d0(offset >> 1, data);');
 }
+
+// MAME array finders format their tags from a printf pattern and a starting
+// index; the machine config references elements by subscript while the address
+// map uses the formatted tag, so both spellings must resolve.
+eq('device array finder tags', parseMemberTags(`
+	gng_state(const machine_config &mconfig, device_type type, const char *tag) :
+		m_maincpu(*this, "maincpu"),
+		m_ym(*this, "ym%u", 1)
+	{ }
+	required_device_array<ym2203_device, 2> m_ym;
+`), {
+  m_maincpu: 'maincpu',
+  m_ym: 'ym%u',
+  'm_ym[0]': 'ym1',
+  'm_ym[1]': 'ym2',
+});
+
+// add_route on an array element must still lower, and a bank may be configured
+// by several calls through a local pointer alias to a region base.
+{
+  const [cfg] = parseMachineConfigs(`
+void gng_state::gng(machine_config &config)
+{
+	YM2203(config, m_ym[0], 1500000);
+	m_ym[0]->add_route(0, "mono", 0.40);
+	m_ym[0]->add_route(3, "mono", 0.20);
+}
+`, { 'm_ym[0]': 'ym1' }, {});
+  eq('array-element device tag', cfg?.devices[0]?.tag, 'ym1');
+  eq('array-element add_route gains',
+    cfg?.devices[0]?.audioRoutes?.map(route => route.gain), [0.4, 0.2]);
+}
+
+eq('bank windows from a pointer alias', parseMemoryBanks(`
+	uint8_t *rombase = memregion("maincpu")->base();
+	m_mainbank->configure_entries(0, 4, &rombase[0x10000], 0x2000);
+	m_mainbank->configure_entry(4, &rombase[0x4000]);
+`, { m_mainbank: 'mainbank' }, {}).map(bank => ({
+  tag: bank.tag,
+  region: bank.region,
+  startEntry: bank.startEntry,
+  entries: bank.entries,
+  offset: bank.offset,
+  stride: bank.stride,
+})), [
+  { tag: 'mainbank', region: 'maincpu', startEntry: 0, entries: 4, offset: 0x10000, stride: 0x2000 },
+  { tag: 'mainbank', region: 'maincpu', startEntry: 4, entries: 1, offset: 0x4000, stride: 0 },
+]);
 
 console.log(`\nparse.spec: ${totalPass} passed, ${totalFail} failed`);
 if (totalFail > 0) process.exitCode = 1;

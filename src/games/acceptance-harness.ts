@@ -369,6 +369,45 @@ async function createAudioProbe(
       },
     };
   }
+  if (config.sound.kind === 'ym2203') {
+    const generated = await import(
+      moduleUrl(join(outRoot, 'runtime/generated/audio/ym2203-worklet.js'))
+    ) as {
+      GeneratedYm2203Mixer: new (
+        clock: number,
+        chips: number,
+        outputRate: number,
+        routes?: NonNullable<ShellConfig['sound']['routes']>,
+      ) => AyMixer;
+      GeneratedYm2203FrameRenderer: new (
+        mixer: AyMixer,
+        outputRate: number,
+        refresh: number,
+      ) => AyFrameRenderer;
+    };
+    const outputRate = 48_000;
+    const mixer = new generated.GeneratedYm2203Mixer(
+      config.sound.clock ?? 1_500_000,
+      config.sound.chips ?? 1,
+      outputRate,
+      config.sound.routes,
+    );
+    const renderer = new generated.GeneratedYm2203FrameRenderer(
+      mixer,
+      outputRate,
+      config.board.screen.refresh,
+    );
+    const chunks: Float32Array[] = [];
+    return {
+      render(writes, capture) {
+        const samples = renderer.render(writes);
+        if (capture) chunks.push(samples);
+      },
+      finish(writes) {
+        return audioResult(writes, chunks);
+      },
+    };
+  }
   if (config.sound.kind === 'wsg') {
     const generated = await import(
       moduleUrl(join(outRoot, 'runtime/generated/audio/wsg-worklet.js'))

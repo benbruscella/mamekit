@@ -266,8 +266,13 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (target) g.edge(cfgId, `machine:${target.cls}.${target.name}`, 'CALLS');
     }
     const machineStart = ast.findFunctionInHierarchy(cfg.cls, 'machine_start');
-    for (const bank of parseMemoryBanks(machineStart?.body ?? '', memberTags, consts)) {
-      const bankId = `bank:${cfg.cls}.${cfg.name}/${bank.tag}`;
+    const banks = parseMemoryBanks(machineStart?.body ?? '', memberTags, consts);
+    for (const [index, bank] of banks.entries()) {
+      // One node per configure call: a bank's entries may be placed by several.
+      const window = banks.filter(other => other.tag === bank.tag).length > 1
+        ? `/${index}`
+        : '';
+      const bankId = `bank:${cfg.cls}.${cfg.name}/${bank.tag}${window}`;
       g.node('MemoryBank', bankId, {
         tag: bank.tag,
         member: bank.member,

@@ -17,6 +17,7 @@ import {
   compileMameI8080,
   compileMameKonami1,
   compileMameM6803,
+  compileMameMc6809,
   compileMameZ80,
 } from './cpu-compiler.ts';
 import { generatedCpuExecutableSource } from './cpu-codegen.ts';
@@ -35,6 +36,7 @@ import {
   generatedCounterLfsrDiscreteWorkletSource,
   generatedNamcoWsgWorkletSource,
 } from './audio-compiler.ts';
+import { compileYm2203, generatedYm2203WorkletSource } from './opn-compiler.ts';
 
 export interface HardwareUse {
   game: string;
@@ -486,9 +488,13 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
   const konami1 = closure.hardware.some(entry => entry.type === 'KONAMI1')
     ? compileMameKonami1(closure.mameSource)
     : undefined;
+  const mc6809 = closure.hardware.some(entry => entry.type === 'MC6809')
+    ? compileMameMc6809(closure.mameSource)
+    : undefined;
   const generatedDevices = new Map(
     closure.hardware
       .filter(entry => [
+        'BUFFERED_SPRITERAM8',
         'GENERIC_LATCH_8',
         'ER2055',
         'LS259',
@@ -518,6 +524,10 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
   const ayEntry = closure.hardware.find(entry => entry.type === 'AY8910');
   const ay8910 = ayEntry?.definition
     ? compileAy8910(closure.mameSource, ayEntry.definition)
+    : undefined;
+  const ymEntry = closure.hardware.find(entry => entry.type === 'YM2203');
+  const ym2203 = ymEntry?.definition
+    ? compileYm2203(closure.mameSource, ymEntry.definition)
     : undefined;
   const msmEntry = closure.hardware.find(entry => entry.type === 'MSM5205');
   const msm5205 = msmEntry?.definition
@@ -570,9 +580,11 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     ...(i8039 ? ['I8039'] : []),
     ...(m6803 ? ['M6803'] : []),
     ...(konami1 ? ['KONAMI1'] : []),
+    ...(mc6809 ? ['MC6809'] : []),
     ...generatedDevices.keys(),
     ...(namcoWsg ? ['NAMCO_WSG'] : []),
     ...(ay8910 ? ['AY8910'] : []),
+    ...(ym2203 ? ['YM2203'] : []),
     ...(msm5205 && ay8910 ? ['MSM5205'] : []),
     ...(routedDac ? ['DAC_8BIT_R2R'] : []),
     ...(discreteSn76477 ? [discreteSn76477.deviceType, 'SN76477'] : []),
@@ -606,7 +618,7 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
       ...compactEntry(entry),
       executable: executableTypes.has(entry.type),
       ...(hostedBy(entry) ? { hostedBy: hostedBy(entry) } : {}),
-      ...(['Z80', 'I8080', 'I8039', 'M6803', 'KONAMI1'].includes(entry.type)
+      ...(['Z80', 'I8080', 'I8039', 'M6803', 'KONAMI1', 'MC6809'].includes(entry.type)
         ? {
             executableKind: 'cpu',
             executableArtifact: `devices/${entry.type.toLowerCase()}.cpu.ir.json`,
@@ -625,6 +637,11 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
           ? {
               executableKind: 'audio',
               executableArtifact: 'audio/ay8910-worklet.ts',
+            }
+        : entry.type === 'YM2203'
+          ? {
+              executableKind: 'audio',
+              executableArtifact: 'audio/ym2203-worklet.ts',
             }
         : entry.type === 'MSM5205' && msm5205 && ay8910
           ? {
@@ -689,6 +706,18 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
       JSON.stringify(msm5205, null, 2),
     );
   }
+  if (ym2203) {
+    const audioDir = join(root, 'audio');
+    mkdirSync(audioDir, { recursive: true });
+    writeFileSync(
+      join(audioDir, 'ym2203.audio.ir.json'),
+      JSON.stringify(ym2203, null, 2),
+    );
+    writeFileSync(
+      join(audioDir, 'ym2203-worklet.ts'),
+      generatedYm2203WorkletSource(ym2203),
+    );
+  }
   if (discreteSn76477) {
     const audioDir = join(root, 'audio');
     mkdirSync(audioDir, { recursive: true });
@@ -728,6 +757,8 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
           ? m6803
           : entry.type === 'KONAMI1'
             ? konami1
+          : entry.type === 'MC6809'
+            ? mc6809
           : undefined;
     if (cpu) {
       writeFileSync(

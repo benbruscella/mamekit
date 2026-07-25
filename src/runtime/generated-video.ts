@@ -5,6 +5,7 @@ import type {
   GeneratedHandler,
   GeneratedMachine,
   GeneratedPromPalettePlan,
+  GeneratedRamPalettePlan,
   GeneratedTilemapPlan,
 } from './generated-machine.ts';
 import {
@@ -19,6 +20,8 @@ export interface GeneratedVideoPrimitives extends VideoRenderer {
   generatedVideoArgs?(frame: Uint32Array): Record<string, unknown>;
   /** Resolve composed pen indices from the pen buffer into the RGBA frame. */
   resolveScreenPens?(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void;
+  /** Route a MAME palette_device RAM write when the plan declares one. */
+  writePaletteRam?(offset: number, data: number, ext?: boolean): void;
 }
 
 /**
@@ -292,7 +295,107 @@ class GeneratedRectangle {
   }
 }
 
-class GeneratedPalette {
+/** The palette surface generated gfx, tilemap and screen code binds against. */
+interface GeneratedPaletteDevice {
+  readonly colors: Uint32Array;
+  transpen_mask(gfx: GeneratedGfxElement, color: number, transparent: number): number;
+  black_pen(): number;
+  pens(): Uint32Array;
+}
+
+/**
+ * MAME palette RAM colored by a set_format raw_to_rgb converter. Writes follow
+ * palette_device::write8/write8_ext: store the byte, then recompute the
+ * affected entry, so mid-frame writes reach partial screen updates the same way
+ * they do in MAME.
+ */
+class GeneratedRamPalette implements GeneratedPaletteDevice {
+  readonly colors: Uint32Array;
+  private readonly plan: GeneratedRamPalettePlan;
+  private readonly ram: Uint8Array;
+  private readonly ext?: Uint8Array;
+  /** palette_device::device_start halves bytes-per-entry across a split share. */
+  private readonly bytesPerEntry: number;
+
+  constructor(plan: GeneratedRamPalettePlan) {
+    this.plan = plan;
+    this.bytesPerEntry = plan.extShare ? plan.bytesPerEntry / 2 : plan.bytesPerEntry;
+    this.ram = new Uint8Array(plan.entries * this.bytesPerEntry);
+    if (plan.extShare) this.ext = new Uint8Array(plan.entries * this.bytesPerEntry);
+    this.colors = new Uint32Array(plan.entries);
+    for (let pen = 0; pen < plan.entries; pen++) this.update(pen);
+  }
+
+  /** palette_device::write8 / write8_ext, then update_for_write. */
+  write(offset: number, data: number, ext = false): void {
+    const bytes = ext ? this.ext : this.ram;
+    if (!bytes || offset < 0 || offset >= bytes.length) return;
+    bytes[offset] = data & 0xff;
+    const count = Math.ceil(1 / this.bytesPerEntry);
+    const base = Math.floor(offset / this.bytesPerEntry);
+    for (let index = 0; index < count; index++) this.update(base + index);
+  }
+
+  /** palette_device::read_entry, little-endian across base then ext bytes. */
+  private entry(pen: number): number {
+    let raw = 0;
+    for (let byte = 0; byte < this.bytesPerEntry; byte++) {
+      raw |= (this.ram[pen * this.bytesPerEntry + byte] ?? 0) << (8 * byte);
+    }
+    if (this.ext) {
+      for (let byte = 0; byte < this.bytesPerEntry; byte++) {
+        raw |= (this.ext[pen * this.bytesPerEntry + byte] ?? 0) <<
+          (8 * (this.bytesPerEntry + byte));
+      }
+    }
+    return raw >>> 0;
+  }
+
+  private update(pen: number): void {
+    if (pen < 0 || pen >= this.colors.length) return;
+    const raw = this.plan.inverted ? ~this.entry(pen) : this.entry(pen);
+    const rgb: Record<'r' | 'g' | 'b', number> = { r: 0, g: 0, b: 0 };
+    for (const channel of this.plan.channels) {
+      rgb[channel.channel] = palExpand(raw >>> channel.shift, channel.bits);
+    }
+    this.colors[pen] = packRgb(rgb.r, rgb.g, rgb.b);
+  }
+
+  /** A direct palette declares no indirect entries, so nothing is masked. */
+  transpen_mask(): number {
+    return 0;
+  }
+
+  black_pen(): number {
+    for (let pen = 0; pen < this.colors.length; pen++) {
+      if (this.colors[pen] === 0xff000000) return pen;
+    }
+    return 0;
+  }
+
+  pens(): Uint32Array {
+    return this.colors;
+  }
+}
+
+/**
+ * MAME palexpand<NumBits>: fill eight bits by repeating the raw value from the
+ * most significant bit down, truncating the final partial copy.
+ */
+function palExpand(value: number, bits: number): number {
+  if (bits <= 0) return 0;
+  const masked = value & ((1 << bits) - 1);
+  if (bits >= 8) return masked & 0xff;
+  let expanded = 0;
+  for (let filled = 0; filled < 8;) {
+    const take = Math.min(bits, 8 - filled);
+    expanded = ((expanded << take) | (masked >>> (bits - take))) & 0xff;
+    filled += take;
+  }
+  return expanded;
+}
+
+class GeneratedPalette implements GeneratedPaletteDevice {
   readonly colors: Uint32Array;
   readonly indirect: Uint16Array;
   private readonly transparentIndirect: number;
@@ -390,14 +493,14 @@ class GeneratedGfxElement {
   readonly entry: GeneratedGfxEntry;
   readonly decoded: GfxSet;
   readonly granularity: number;
-  private readonly palette: GeneratedPalette;
+  private readonly palette: GeneratedPaletteDevice;
   /** Indexed (bitmap_ind16) screens compose pens; the screen resolves them. */
   private readonly indexed: boolean;
 
   constructor(
     entry: GeneratedGfxEntry,
     decoded: GfxSet,
-    palette: GeneratedPalette,
+    palette: GeneratedPaletteDevice,
     indexed = false,
   ) {
     this.entry = entry;
@@ -724,8 +827,9 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private readonly machine: GeneratedMachine;
   private readonly state: Record<string, unknown>;
   private readonly gfx: GeneratedGfxElement[];
-  private readonly palette?: GeneratedPalette;
-  private readonly palettes = new Map<string, GeneratedPalette>();
+  private readonly palette?: GeneratedPaletteDevice;
+  private readonly palettes = new Map<string, GeneratedPaletteDevice>();
+  private readonly ramPalette?: GeneratedRamPalette;
   private readonly gfxByDecode = new Map<string, GeneratedGfxElement[]>();
   private readonly bindings: GeneratedHandlerBindings;
 
@@ -767,6 +871,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     }
     if (machine.video?.palette) {
       this.palettes.set('m_palette', new GeneratedPalette(machine.video.palette, regions));
+    }
+    if (machine.video?.ramPalette) {
+      this.ramPalette = new GeneratedRamPalette(machine.video.ramPalette);
+      this.palettes.set('m_palette', this.ramPalette);
     }
     for (const palette of machine.video?.palettes ?? []) {
       this.palettes.set(palette.member, new GeneratedPalette(palette.plan, regions));
@@ -914,6 +1022,11 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
 
   generatedVideoBindings(_frame: Uint32Array): GeneratedHandlerBindings {
     return this.bindings;
+  }
+
+  /** palette_device::write8 / write8_ext into source-derived palette RAM. */
+  writePaletteRam(offset: number, data: number, ext = false): void {
+    this.ramPalette?.write(offset, data, ext);
   }
 
   resolveScreenPens(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void {

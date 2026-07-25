@@ -207,18 +207,7 @@ export function lowerGeneratedMachine(
       };
     }),
     ...(graph.nodes.some(node => node.label === 'MemoryBank') ? {
-      banks: graph.nodes
-        .filter(node => node.label === 'MemoryBank')
-        .map(node => ({
-          tag: String(node.props.tag),
-          member: String(node.props.member),
-          startEntry: Number(node.props.startEntry),
-          entries: Number(node.props.entries),
-          region: String(node.props.region),
-          offset: Number(node.props.offset),
-          stride: Number(node.props.stride),
-          ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
-        })),
+      banks: lowerMemoryBanks(graph, sourceRef),
     } : {}),
     screen: {
       ...board.screen,
@@ -247,6 +236,7 @@ export function lowerGeneratedMachine(
   };
   const soundDevice = devices.find(device => device.type === 'NAMCO_WSG');
   const ayDevices = devices.filter(device => device.type === 'AY8910');
+  const ymDevices = devices.filter(device => device.type === 'YM2203');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
     .filter((key): key is string => Boolean(key));
@@ -272,6 +262,20 @@ export function lowerGeneratedMachine(
           .map(callback => callback.targetMethod!))],
         controlOffset: -1,
       }
+    : ymDevices.length
+      ? {
+          kind: 'ym2203',
+          deviceTag: ymDevices[0]!.tag,
+          deviceTags: ymDevices.map(device => device.tag),
+          deviceType: 'YM2203',
+          // ym2203_device maps a two-byte address/data port pair.
+          writeMethods: ['write'],
+          enableMethods: [],
+          controlOffset: -1,
+          ...(lowerAudioRoutes(graph, ymDevices).length
+            ? { routes: lowerAudioRoutes(graph, ymDevices) }
+            : {}),
+        }
     : ayDevices.length
       ? {
           kind: 'ay8910',
@@ -350,6 +354,46 @@ export function inferredMemberIndexRank(
   };
   for (const handler of handlers) visit(handler.program);
   return maximum;
+}
+
+/**
+ * Collapse a bank's configure calls into one entry-indexed window list. MAME
+ * banks may be configured by more than one call, so the entry table is the
+ * faithful shape rather than a single base/stride pair.
+ */
+function lowerMemoryBanks(
+  graph: KnowledgeGraph,
+  sourceRef: (props: Record<string, unknown>) => GeneratedSourceRef | undefined,
+): NonNullable<GeneratedMachine['execution']['banks']> {
+  const windows = graph.nodes.filter(node => node.label === 'MemoryBank');
+  const byTag = new Map<string, typeof windows>();
+  for (const node of windows) {
+    const tag = String(node.props.tag);
+    byTag.set(tag, [...(byTag.get(tag) ?? []), node]);
+  }
+  return [...byTag].map(([tag, nodes]) => {
+    const entryOffsets: (number | null)[] = [];
+    for (const node of nodes) {
+      const startEntry = Number(node.props.startEntry);
+      const entries = Number(node.props.entries);
+      const offset = Number(node.props.offset);
+      const stride = Number(node.props.stride);
+      for (let index = 0; index < entries; index++) {
+        entryOffsets[startEntry + index] = offset + index * stride;
+      }
+    }
+    for (let index = 0; index < entryOffsets.length; index++) {
+      entryOffsets[index] ??= null;
+    }
+    const first = nodes[0]!;
+    return {
+      tag,
+      member: String(first.props.member),
+      region: String(first.props.region),
+      entryOffsets,
+      ...(sourceRef(first.props) ? { source: sourceRef(first.props)! } : {}),
+    };
+  });
 }
 
 export function lowerAudioRoutes(
