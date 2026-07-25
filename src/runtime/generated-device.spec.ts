@@ -83,5 +83,50 @@ assert.throws(() => device.call('missing'), /no generated method/);
 assert.throws(() => device.on('missing', () => {}), /no callback signal/);
 assert.throws(() => device.on('q_out_cb', () => {}, 2), /has no slot 2/);
 
+// A required_shared_ptr member binds a board memory share (DEVICE_SELF is the
+// device's own tag), a std::vector member is device-owned, and C++ default
+// arguments apply when a caller omits them.
+registerGeneratedDevice({
+  type: 'MEMORY_TEST',
+  constants: {},
+  members: [
+    {
+      name: 'm_live',
+      valueType: 'required_shared_ptr<uint8_t>',
+      memory: { kind: 'shared', elementBytes: 1, share: 'self' },
+    },
+    {
+      name: 'm_buffered',
+      valueType: 'std::vector<uint8_t>',
+      memory: { kind: 'owned', elementBytes: 1 },
+    },
+  ],
+  callbacks: [],
+  methods: [
+    method('bytes', '', 'return m_live.bytes();'),
+    method('device_start', '', 'm_buffered.resize(bytes());'),
+    method('buffer', '', 'return &m_buffered[0];'),
+    method(
+      'copy',
+      'uint32_t srcoffset = 0, uint32_t srclength = 0x7fffffff',
+      'memcpy(&m_buffered[0], m_live + srcoffset,' +
+      ' (std::min<size_t>)(srclength, bytes() - srcoffset) * sizeof(uint8_t));',
+    ),
+  ],
+  start: 'device_start',
+  summary: { diagnostics: 0 },
+});
+const share = Uint8Array.from([9, 8, 7, 6]);
+const memoryDevice = createDevice('MEMORY_TEST', { tag: 'spriteram', shares: { spriteram: share } });
+assert.equal(memoryDevice.call('bytes'), 4);
+memoryDevice.invoke('copy');
+const buffered = memoryDevice.invoke('buffer') as { source?: Uint8Array };
+assert.deepEqual([...(buffered.source ?? new Uint8Array(0))], [9, 8, 7, 6],
+  'the default srclength argument must copy the whole buffer');
+assert.throws(
+  () => createDevice('MEMORY_TEST', { tag: 'missing', shares: {} }),
+  /memory share "missing" is not available/,
+);
+
 clearGeneratedDevices();
-console.log('generated-device.spec: registration, IR, callbacks, timers and compiled methods passed');
+console.log('generated-device.spec: registration, IR, callbacks, timers, memory shares and compiled methods passed');

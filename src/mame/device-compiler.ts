@@ -22,6 +22,17 @@ export interface GeneratedDeviceMember {
   signed?: boolean;
   initial?: number;
   values?: number[];
+  /**
+   * MAME memory containers rather than scalar state. A `shared` member is a
+   * required/optional_shared_ptr bound to a board memory share; an `owned`
+   * member is a device-local vector sized by device_start.
+   */
+  memory?: {
+    kind: 'shared' | 'owned';
+    elementBytes: number;
+    /** Share tag; DEVICE_SELF resolves to the device's own tag at runtime. */
+    share?: 'self' | string;
+  };
 }
 
 export interface GeneratedDeviceCallback {
@@ -87,6 +98,19 @@ export function compileMameDevice(
   );
   const hierarchy = classHierarchy(definition.className, classes);
   const classSet = new Set(hierarchy);
+  // MAME instantiates some device families from a template base (the buffered
+  // spriteram widths). Resolving the concrete arguments keeps the generated
+  // device tied to the width the driver actually declares.
+  const templateArguments = resolveTemplateArguments(definition.className, classes);
+  const specialize = (className: string, text: string): string => {
+    const substitutions = templateArguments.get(className);
+    if (!substitutions) return text;
+    let specialized = text;
+    for (const [parameter, argument] of Object.entries(substitutions)) {
+      specialized = specialized.replace(new RegExp(`\\b${parameter}\\b`, 'g'), argument);
+    }
+    return specialized;
+  };
   const constants = Object.assign(
     {},
     ...sources.map(({ source }) => numericConstants(source)),
@@ -122,16 +146,18 @@ export function compileMameDevice(
     .flatMap(unit => unit.functions)
     .filter(method => classSet.has(method.className))
     .filter(method => !ignoredMethods.has(method.name))
-    .map(method => compileMethod(method, interruptCallbacks, sourceTables));
+    .map(method => compileMethod(specializeMethod(method, specialize), interruptCallbacks, sourceTables));
 
   for (const className of hierarchy) {
     const declaration = classes.get(className);
     if (!declaration) continue;
     for (const method of inlineMethods(declaration)) {
+      const specialized = specializeMethod(method, specialize);
       if (methods.some(candidate =>
-        candidate.name === method.name && candidate.parameters === method.parameters)) continue;
-      if (ignoredMethods.has(method.name)) continue;
-      methods.push(compileMethod(method, interruptCallbacks, sourceTables));
+        candidate.name === specialized.name &&
+        candidate.parameters === specialized.parameters)) continue;
+      if (ignoredMethods.has(specialized.name)) continue;
+      methods.push(compileMethod(specialized, interruptCallbacks, sourceTables));
     }
   }
 
@@ -144,10 +170,16 @@ export function compileMameDevice(
     [...classes.values()].map(declaration => declaration.body).join('\n'),
     constants,
   );
+  const constructorBindings = memberConstructorBindings(
+    sources.map(source => source.source).join('\n'),
+  );
   const members: GeneratedDeviceMember[] = hierarchy.flatMap(className => {
     const declaration = classes.get(className);
     if (!declaration) return [];
-    return memberDeclarations(declaration).flatMap(member => {
+    return memberDeclarations(declaration).map(member => ({
+      ...member,
+      valueType: specialize(className, member.valueType),
+    })).flatMap(member => {
       if (member.valueType.startsWith('devcb_')) {
         callbacks.push({
           signal: member.name.replace(/^m_/, ''),
@@ -160,12 +192,14 @@ export function compileMameDevice(
       const bits = integerBits(member.valueType);
       const signed = integerSigned(member.valueType);
       const allocated = allocatedArrays.get(member.name) ?? fixedArrays.get(member.name);
+      const memory = memoryContainer(member.valueType, member.name, constructorBindings);
       return [{
         name: member.name,
         valueType: member.valueType,
         ...(bits ? { bits } : {}),
         ...(signed ? { signed } : {}),
         ...(allocated ? { values: allocated } : {}),
+        ...(memory ? { memory } : {}),
       }];
     });
   });
@@ -278,6 +312,46 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
   return [sourceFile, relative(mameSrc, header)];
 }
 
+/**
+ * Map each template class in the hierarchy to the arguments its derived class
+ * supplies, e.g. buffered_spriteram_device -> { Type: 'uint8_t' }.
+ */
+function resolveTemplateArguments(
+  className: string,
+  classes: Map<string, MameClass>,
+): Map<string, Record<string, string>> {
+  const resolved = new Map<string, Record<string, string>>();
+  const visited = new Set<string>();
+  const visit = (name: string): void => {
+    if (visited.has(name)) return;
+    visited.add(name);
+    const declaration = classes.get(name);
+    if (!declaration) return;
+    for (const base of declaration.bases) {
+      const args = declaration.baseTemplateArguments?.[base];
+      const parameters = classes.get(base)?.templateParameters;
+      if (args?.length && parameters?.length) {
+        resolved.set(base, Object.fromEntries(
+          parameters.map((parameter, index) => [parameter, args[index] ?? parameter]),
+        ));
+      }
+      visit(base);
+    }
+  };
+  visit(className);
+  return resolved;
+}
+
+function specializeMethod(
+  method: MameFunction,
+  specialize: (className: string, text: string) => string,
+): MameFunction {
+  const parameters = specialize(method.className, method.parameters);
+  const body = specialize(method.className, method.body);
+  if (parameters === method.parameters && body === method.body) return method;
+  return { ...method, parameters, body };
+}
+
 function classHierarchy(
   className: string,
   classes: Map<string, MameClass>,
@@ -340,8 +414,10 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
   const source = declaration.body;
   const masked = source.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, match =>
     match.replace(/[^\r\n]/g, ' '));
+  // MAME declares pointer-returning accessors as `Type *buffer()`, so the
+  // sigils sit against the method name rather than the return type.
   const pattern =
-    /(?:^|\n)\s*(?:template\s*<[^>{}]+>\s*)?(?:[\w:<>,~*&]+\s+)+(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
+    /(?:^|\n)\s*(?:template\s*<[^>{}]+>\s*)?(?:[\w:<>,~*&]+\s+)+[*&]*\s*(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', match.index + match[0].length - 1);
@@ -404,6 +480,43 @@ function memberDeclarations(
     }
   }
   return members;
+}
+
+/**
+ * Classify a MAME memory container member. required/optional_shared_ptr aliases
+ * a board memory share; std::vector is device-owned storage sized at start.
+ */
+function memoryContainer(
+  valueType: string,
+  name: string,
+  constructorBindings: Record<string, string[]>,
+): GeneratedDeviceMember['memory'] {
+  const container = /^(?:required|optional)_shared_ptr<([\w:]+)>$/.exec(valueType) ??
+    /^std::vector<([\w:]+)>$/.exec(valueType);
+  if (!container) return undefined;
+  const elementBytes = (integerBits(container[1]!) ?? 8) / 8;
+  if (valueType.startsWith('std::vector')) return { kind: 'owned', elementBytes };
+  // required_shared_ptr(*this, DEVICE_SELF) binds the device's own tag.
+  const args = constructorBindings[name] ?? [];
+  const target = args.at(-1) ?? '';
+  return {
+    kind: 'shared',
+    elementBytes,
+    share: target === 'DEVICE_SELF' ? 'self' : unquoteToken(target) ?? 'self',
+  };
+}
+
+function unquoteToken(value: string): string | undefined {
+  return /^"([^"]*)"$/.exec(value.trim())?.[1];
+}
+
+/** Constructor member-initializer argument lists, e.g. m_x(*this, "tag"). */
+function memberConstructorBindings(source: string): Record<string, string[]> {
+  const bindings: Record<string, string[]> = {};
+  for (const match of source.matchAll(/[,:]\s*(m_\w+)\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g)) {
+    bindings[match[1]!] ??= splitMameArgs(match[2]!).map(argument => argument.trim());
+  }
+  return bindings;
 }
 
 function callbackSlots(valueType: string): number {

@@ -248,4 +248,35 @@ executeGeneratedHandler(requiredDeviceCall, {
 });
 assert.equal(requiredDeviceState, 1);
 
-console.log('generated-handler.spec: 16 passed');
+// C and C++ library primitives MAME device sources rely on.
+const buffered = new Uint8Array(8);
+const live = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+executeGeneratedHandler(
+  compileMameHandler(
+    'memcpy(&m_buffered[0], m_live + 2, (std::min<size_t>)(3, 8) * sizeof(uint8_t));',
+  ),
+  { members: { m_buffered: buffered, m_live: live } },
+);
+assert.deepEqual([...buffered], [3, 4, 5, 0, 0, 0, 0, 0]);
+
+const clamped = executeGeneratedHandler(
+  compileMameHandler('return std::max(3, std::min(9, 5));'),
+  { members: {} },
+);
+assert.equal(clamped, 5);
+
+// A memory container assigned to a member must stay a container: numeric
+// setters exist to apply bit widths and would flatten it to zero.
+const resized: Record<string, unknown> = { m_buffered: new Uint8Array(0) };
+executeGeneratedHandler(
+  compileMameHandler('m_buffered.resize(4);'),
+  {
+    members: resized,
+    getters: { m_buffered: () => resized.m_buffered },
+    setters: { m_buffered: value => { resized.m_buffered = value; } },
+  },
+);
+assert.ok(ArrayBuffer.isView(resized.m_buffered), 'resize must preserve the container');
+assert.equal((resized.m_buffered as Uint8Array).length, 4);
+
+console.log('generated-handler.spec: 20 passed');

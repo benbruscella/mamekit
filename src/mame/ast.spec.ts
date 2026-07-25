@@ -98,5 +98,41 @@ check('timer callback member parsed',
   ['test_state', 'scanline_tick', 'int param']);
 check('IRQ callback member parsed', memberMacros.functions[1]?.name, 'interrupt_vector');
 
+// MAME instantiates some device families from a template base; the base name,
+// its parameters and the derived class's arguments all have to survive parsing.
+const templates = parseMameSource('bufsprite.h', `
+template <typename Type>
+class buffered_spriteram_device : public device_t
+{
+public:
+  Type *buffer() { return &m_buffered[0]; }
+private:
+  required_shared_ptr<Type> m_spriteram;
+};
+
+class buffered_spriteram8_device : public buffered_spriteram_device<uint8_t>
+{
+public:
+  buffered_spriteram8_device(const machine_config &mconfig, const char *tag);
+};
+`);
+const base = templates.classes.find(entry => entry.name === 'buffered_spriteram_device');
+const derived = templates.classes.find(entry => entry.name === 'buffered_spriteram8_device');
+check('template parameters parsed', base?.templateParameters, ['Type']);
+check('template base name parsed', derived?.bases, ['buffered_spriteram_device']);
+check('template base arguments parsed',
+  derived?.baseTemplateArguments?.buffered_spriteram_device, ['uint8_t']);
+
+const outOfLine = parseMameSource('bufsprite.cpp', `
+template <typename Type>
+void buffered_spriteram_device<Type>::device_start()
+{
+	m_buffered.resize(length());
+}
+`);
+check('out-of-line template method class', outOfLine.functions[0]?.className,
+  'buffered_spriteram_device');
+check('out-of-line template method name', outOfLine.functions[0]?.name, 'device_start');
+
 console.log(`ast.spec: ${passed} passed, ${failed} failed`);
 if (failed) process.exitCode = 1;

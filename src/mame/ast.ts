@@ -54,7 +54,12 @@ export interface MameMacro {
 export interface MameClass {
   kind: 'class';
   name: string;
+  /** Base class names with any template argument list stripped. */
   bases: string[];
+  /** Template arguments this class supplies to a template base, by base name. */
+  baseTemplateArguments?: Record<string, string[]>;
+  /** Template parameter names when this class is itself a template. */
+  templateParameters?: string[];
   body: string;
   span: SourceSpan;
   bodySpan: SourceSpan;
@@ -118,13 +123,15 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
 
   const functions: MameFunction[] = [];
   const occupied: [number, number][] = [];
-  const functionRe = /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(\w+)::(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
+  const functionRe =
+    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(\w+)(?:\s*<[^<>();{}]*>)?::(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
   let fm: RegExpExecArray | null;
   while ((fm = functionRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', fm.index + fm[0].length - 1);
     const braceEnd = matchPair(masked, braceStart, '{', '}');
     if (braceEnd < 0) continue;
-    const qualifiedName = masked.indexOf(`${fm[1]}::${fm[2]}`, fm.index);
+    const qualifiedName = masked.slice(fm.index, braceStart)
+      .search(new RegExp(`\\b${fm[1]}\\b`)) + fm.index;
     const lineStart = masked.lastIndexOf('\n', qualifiedName) + 1;
     const start = lineStart + (masked.slice(lineStart, qualifiedName).search(/\S/) < 0
       ? masked.slice(lineStart, qualifiedName).length
@@ -197,14 +204,30 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     const braceStart = masked.indexOf('{', cm.index + cm[0].length - 1);
     const braceEnd = matchPair(masked, braceStart, '{', '}');
     if (braceEnd < 0) continue;
-    const bases = cm[2]
-      .split(',')
-      .map(base => base.replace(/\b(public|protected|private|virtual)\b/g, '').trim())
-      .filter(base => /^\w+(?:::\w+)*$/.test(base));
+    // MAME device families are sometimes templates instantiated per data width
+    // (buffered_spriteram_device<u8> and kin). Keep the base name and record
+    // the arguments so the instantiated width stays source-derived.
+    const bases: string[] = [];
+    const baseTemplateArguments: Record<string, string[]> = {};
+    for (const raw of splitMameArgs(cm[2])) {
+      const base = raw.replace(/\b(public|protected|private|virtual)\b/g, '').trim();
+      const templated = /^(\w+(?:::\w+)*)\s*<([^<>]*)>$/.exec(base);
+      const name = (templated?.[1] ?? base).split('::').at(-1)!;
+      if (!/^\w+$/.test(name)) continue;
+      bases.push(name);
+      if (templated) {
+        baseTemplateArguments[name] = splitMameArgs(templated[2]!)
+          .map(argument => argument.trim())
+          .filter(Boolean);
+      }
+    }
+    const templateParameters = classTemplateParameters(masked, cm.index);
     classes.push({
       kind: 'class',
       name: cm[1],
       bases,
+      ...(Object.keys(baseTemplateArguments).length ? { baseTemplateArguments } : {}),
+      ...(templateParameters.length ? { templateParameters } : {}),
       body: source.slice(braceStart + 1, braceEnd),
       span: span(cm.index, braceEnd + 1),
       bodySpan: span(braceStart + 1, braceEnd),
@@ -233,6 +256,16 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   }
 
   return { file, source, masked, macros, classes, functions };
+}
+
+/** `template <typename Type>` immediately preceding a class declaration. */
+function classTemplateParameters(masked: string, classIndex: number): string[] {
+  const preceding = masked.slice(Math.max(0, classIndex - 200), classIndex);
+  const match = /template\s*<([^<>]*)>\s*$/.exec(preceding);
+  if (!match) return [];
+  return splitMameArgs(match[1]!)
+    .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1] ?? '')
+    .filter(Boolean);
 }
 
 function memberMacroParameters(name: string): string {

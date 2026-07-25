@@ -9,6 +9,7 @@ import { mpatrol } from './mpatrol.ts';
 import { rocnrope } from './rocnrope.ts';
 import { junofrst } from './junofrst.ts';
 import { gyruss } from './gyruss.ts';
+import { gng } from './gng.ts';
 
 export const supportedGameContracts = [
   pacman,
@@ -22,4 +23,5 @@ export const supportedGameContracts = [
   rocnrope,
   junofrst,
   gyruss,
+  gng,
 ] as const;

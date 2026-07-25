@@ -26,8 +26,9 @@ historical evidence and may describe deleted architectures.
 
 - MAME source is normally at `../mame`.
 - Node.js 23.6+ runs repository TypeScript directly.
-- `npm run gen:all` currently generates Pac-Man and Pooyan during the
-  one-machine-at-a-time issue-21 migration.
+- `npm run gen:all` currently generates the accepted working set during the
+  one-machine-at-a-time issue-21 migration; `package.json` is the source of
+  truth for that list.
 - Run `npm run test:unit`, `npm run audit:generated`, and relevant real-ROM
   acceptance after changes.
 - Use `npm run test:generation` for broad parser, graph, IR, runtime or output

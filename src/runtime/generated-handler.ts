@@ -639,6 +639,25 @@ function evaluateCall(
         0,
       );
     }
+    // C and C++ standard-library primitives MAME device sources rely on.
+    if (name === 'std::min') {
+      return Math.min(...args.map(toNumber));
+    }
+    if (name === 'std::max') {
+      return Math.max(...args.map(toNumber));
+    }
+    if (name === 'assert' || name === 'static_assert') return 0;
+    if (name === 'sizeof') {
+      return typeByteWidth(generatedExpressionName(expression.args[0]!));
+    }
+    if (name === 'memcpy' || name === 'memmove') {
+      copyGeneratedMemory(args[0], args[1], toNumber(args[2]));
+      return args[0];
+    }
+    if (name === 'memset') {
+      fillGeneratedMemory(args[0], toNumber(args[1]), toNumber(args[2]));
+      return args[0];
+    }
     if (name === 'rgb_t::black') return 0xff000000;
     if (name === 'rgb_t::white') return 0xffffffff;
     if (name === 'CAP_P') return toNumber(args[0]) * 1e-12;
@@ -725,6 +744,18 @@ function evaluateCall(
       const args = expression.args.map(arg => evaluate(arg, context));
       const methodValue = (object as Record<string, unknown>)[method];
       if (typeof methodValue === 'function') return methodValue.apply(object, args);
+      // MAME memory containers (required_shared_ptr, std::vector) expose their
+      // extent and, for vectors, in-place resizing.
+      if (isIndexableMemory(object)) {
+        if (method === 'bytes' || method === 'size' || method === 'length') {
+          return object.length;
+        }
+        if (method === 'resize') {
+          resizeGeneratedMemory(expression.callee.object, toNumber(args[0]), context);
+          return 0;
+        }
+        if (method === 'target' || method === 'base' || method === 'get') return object;
+      }
     }
   }
   if (expression.callee.kind === 'index') {
@@ -754,7 +785,11 @@ function assign(
       else context.locals[target.name] = wrapped;
     }
     else {
-      const setter = context.bindings.setters?.[target.name];
+      // Setters exist to apply a member's declared bit width, which is
+      // meaningless for a memory container; those store by reference.
+      const setter = typeof next === 'number' || typeof next === 'boolean'
+        ? context.bindings.setters?.[target.name]
+        : undefined;
       if (setter) setter(toNumber(next));
       else (context.bindings.members ??= {})[target.name] = next;
     }
@@ -985,6 +1020,57 @@ function isGeneratedPointer(value: unknown): value is GeneratedPointer {
     value && typeof value === 'object' &&
     (value as GeneratedPointer).generatedPointer === true,
   );
+}
+
+/** sizeof for the fixed-width integer names MAME device sources use. */
+function typeByteWidth(name: string): number {
+  const match = /(?:^|_)(?:u|s|int|uint)?(8|16|32|64)(?:_t)?$/.exec(name);
+  if (match) return Number(match[1]) / 8;
+  if (['char', 'bool', 'u8', 's8'].includes(name)) return 1;
+  return 1;
+}
+
+/** Resolve the byte view a pointer or container expression addresses. */
+function generatedMemoryView(
+  value: unknown,
+): { bytes: ArrayLike<unknown>; offset: number } | undefined {
+  if (isGeneratedPointer(value)) {
+    const source = value.source;
+    return isIndexableMemory(source) ? { bytes: source, offset: value.offset } : undefined;
+  }
+  return isIndexableMemory(value) ? { bytes: value, offset: 0 } : undefined;
+}
+
+function copyGeneratedMemory(destination: unknown, source: unknown, count: number): void {
+  const target = generatedMemoryView(destination);
+  const origin = generatedMemoryView(source);
+  if (!target || !origin) return;
+  const writable = target.bytes as unknown as { [index: number]: unknown };
+  for (let index = 0; index < count; index++) {
+    writable[target.offset + index] = origin.bytes[origin.offset + index] ?? 0;
+  }
+}
+
+function fillGeneratedMemory(destination: unknown, value: number, count: number): void {
+  const target = generatedMemoryView(destination);
+  if (!target) return;
+  const writable = target.bytes as unknown as { [index: number]: unknown };
+  for (let index = 0; index < count; index++) writable[target.offset + index] = value;
+}
+
+/** std::vector::resize over a member bound to a growable byte container. */
+function resizeGeneratedMemory(
+  target: GeneratedExpression,
+  length: number,
+  context: ExecutionContext,
+): void {
+  const current = evaluate(target, context);
+  if (!isIndexableMemory(current) || current.length === length) return;
+  const resized = ArrayBuffer.isView(current)
+    ? new (current.constructor as new (size: number) => ArrayLike<unknown>)(length)
+    : new Array<number>(length).fill(0);
+  copyGeneratedMemory(resized, current, Math.min(length, current.length));
+  assign(target, '=', resized, context);
 }
 
 function isIndexableMemory(value: unknown): value is ArrayLike<unknown> {

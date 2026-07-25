@@ -31,6 +31,7 @@ jobs:
           sparse-checkout: |
             src
             hash/nes.xml
+            3rdparty/ymfm/src
           sparse-checkout-cone-mode: false
 
       - name: Set up Node.js
