@@ -11,7 +11,7 @@ export const gng: GameTestContract = {
   frames: 3000,
   minimumFps: 45,
   // 2400 and 3000 land in scrolling gameplay: a background scroll is what
-  // exposes tilemap coverage bugs, and the attract screens alone cannot...
+  // exposes tilemap coverage bugs, and the attract screens alone cannot.
   checkpoints: [1, 60, 300, 480, 900, 1200, 1800, 2400, 3000],
   actions: [
     { atFrame: 900, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
