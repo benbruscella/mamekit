@@ -30,7 +30,7 @@ export const galaxian: GameTestContract = {
         state: 'be17ce9d',
       },
       '60': {
-        video: 'eccebf8e',
+        video: '47ebbaad',
         state: '1419bc9e',
       },
       '180': {
@@ -42,15 +42,15 @@ export const galaxian: GameTestContract = {
         state: '216d30f1',
       },
       '480': {
-        video: '2727e0da',
+        video: '7bec3347',
         state: 'b9383f89',
       },
       '500': {
-        video: 'f002958b',
+        video: '84ced788',
         state: '0edb7399',
       },
       '900': {
-        video: '1aee009f',
+        video: '248a8878',
         state: '055823fc',
       },
     },
