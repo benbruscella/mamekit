@@ -8,14 +8,17 @@ export const gng: GameTestContract = {
   romEnvironment: 'MAMEKIT_GNG_ROM',
   screen: { width: 256, height: 224 },
   soundKind: 'ym2203',
-  frames: 1800,
+  frames: 3000,
   minimumFps: 45,
-  checkpoints: [1, 60, 300, 480, 900, 1200, 1800],
+  // 2400 and 3000 land in scrolling gameplay: a background scroll is what
+  // exposes tilemap coverage bugs, and the attract screens alone cannot.
+  checkpoints: [1, 60, 300, 480, 900, 1200, 1800, 2400, 3000],
   actions: [
-    { atFrame: 1200, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
-    { atFrame: 1260, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
-    { atFrame: 1500, code: 'ArrowRight', heldFrames: 60, releasedFrames: 20 },
-    { atFrame: 1620, code: 'Space', heldFrames: 30, releasedFrames: 20 },
+    { atFrame: 900, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 960, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 1400, code: 'ArrowRight', heldFrames: 900, releasedFrames: 20 },
+    { atFrame: 2400, code: 'Space', heldFrames: 30, releasedFrames: 20 },
+    { atFrame: 2500, code: 'ArrowRight', heldFrames: 400, releasedFrames: 20 },
   ],
   golden: {
     regions: {
@@ -33,15 +36,17 @@ export const gng: GameTestContract = {
       300: { video: 'f7e6ac81', state: 'a3eb4241' },
       480: { video: '5b5e30a1', state: 'cfa6424a' },
       900: { video: '008a572c', state: '16a21cbf' },
-      1200: { video: '5096058f', state: 'd378622c' },
-      1800: { video: 'bf728f58', state: '117b6ba8' },
+      1200: { video: '9fc16ce3', state: '5410d118' },
+      1800: { video: '58d45496', state: '1c7348f4' },
+      2400: { video: 'c78bec9d', state: 'ae60d957' },
+      3000: { video: '4c7abb46', state: '994ff023' },
     },
     audio: {
-      writes: 262602,
-      nonzeroWrites: 138158,
-      writeHash: 'f60a1eab',
-      pcmHash: '4dafbfe9',
-      rms: 0.054557,
+      writes: 478542,
+      nonzeroWrites: 250736,
+      writeHash: '15db3517',
+      pcmHash: '41eb6206',
+      rms: 0.07416,
     },
   },
 };
