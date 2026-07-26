@@ -1,7 +1,8 @@
 // Registration and signal wiring for decoded boards. The IR types themselves
 // live in src/ir/board.ts, which both the compiler and this runtime import.
 
-import type { BoardIr, GeneratedCallback, GeneratedHandler } from '../ir/board.ts';
+import type { BoardIr, GeneratedHandler } from '../ir/board.ts';
+import { applyBoardTransforms, type BoundEffect } from './generated-effects.ts';
 
 export type SignalEndpoint = (state: number) => number | void;
 
@@ -28,95 +29,54 @@ export function clearGeneratedMachines(): void {
 }
 
 /**
- * MAME's `.set_nop()` declares an output that is deliberately left unconnected
- * (pooyan's mainlatch bit 5 is the unused PAY OUT line). That is a fact about
- * the board, not a hole in generation, so it needs no runtime endpoint — while
- * any *other* unbindable callback stays a hard error.
- */
-export function isUnconnected(callback: GeneratedCallback): boolean {
-  return callback.operation === 'set_nop';
-}
-
-/**
- * Apply source-generated callback wiring to an executable generated device.
+ * Attach a device signal to the effects the compiler resolved for it.
  *
- * Every matching callback must resolve to an endpoint or be explicitly
- * unconnected. A callback the board cannot deliver is a generation gap, not a
- * runtime detail to skip: silently dropping one produces a machine that boots
- * and then behaves wrongly.
+ * Every matching callback must have a bound effect. A callback the board
+ * cannot deliver is a generation gap, not a runtime detail to skip: silently
+ * dropping one produces a machine that boots and then behaves wrongly.
  */
 export function wireDeviceCallbacks(
   device: CallbackDevice,
   machine: BoardIr,
   ownerTag: string,
   signal: string,
-  endpoints: Record<string, SignalEndpoint>,
+  effects: Map<string, BoundEffect>,
 ): string[] {
   const bound: string[] = [];
   const unresolved: string[] = [];
   for (const callback of machine.callbacks) {
     if (callback.ownerTag !== ownerTag || callback.signal !== signal) continue;
-    if (isUnconnected(callback)) continue;
-    const target = callbackTarget(callback);
-    const endpoint = target ? endpoints[target] : undefined;
-    if (!target || !endpoint) {
-      unresolved.push(`${callback.id} (${target ?? 'no target'})`);
+    const effect = effects.get(callback.id);
+    if (!effect) {
+      unresolved.push(callback.id);
       continue;
     }
-    // Read callbacks (set_ioport) pull a value FROM the port: the device calls
-    // the callback with no data and the transform (mask/rshift) applies to the
-    // value read back. Write callbacks push data TO the endpoint: the transform
-    // applies to the emitted argument.
+    // Read effects (set_ioport) pull a value FROM the port: the device calls
+    // with no data and the transform applies to the value read back. Write
+    // effects push data TO the target, so the transform applies to the
+    // emitted argument.
     device.on(
       signal,
-      callback.targetPort
-        ? () => applySignalTransforms(Number(endpoint(0)) || 0, callback.transforms)
+      effect.reads
+        ? () => applyBoardTransforms(Number(effect.run(0)) || 0, effect.transforms)
         : (...args) => {
             // MAME devcb_write{8,16,32} emits (offset, data, mask), while
-            // devcb_write_line emits only state. The configured endpoint
-            // consumes data/state, never the trailing access mask.
+            // devcb_write_line emits only state. The effect consumes
+            // data/state, never the trailing access mask.
             const value = args.length >= 3 ? args.at(-2) : args.at(-1);
-            return endpoint(applySignalTransforms(value ?? 0, callback.transforms));
+            return effect.run(applyBoardTransforms(value ?? 0, effect.transforms));
           },
       callback.slot ?? 0,
     );
-    bound.push(target);
+    bound.push(callback.id);
   }
   if (unresolved.length) {
     throw new Error(
-      `${machine.game}: ${ownerTag}.${signal} has unresolved callback endpoints: ` +
+      `${machine.game}: ${ownerTag}.${signal} has callbacks with no bound effect: ` +
       unresolved.sort().join(', '),
     );
   }
   return bound;
-}
-
-export function applySignalTransforms(value: number, transforms: string[] = []): number {
-  let result = value;
-  for (const transform of transforms) {
-    // devcb invert() complements the callback's full width; the KG only
-    // extracts invert from line callbacks today, where the width is one bit.
-    if (transform === 'invert') result ^= 1;
-    const mask = /^mask\((0x[\da-f]+|\d+)\)$/i.exec(transform);
-    if (mask) result &= Number(mask[1]);
-    const right = /^rshift\((\d+)\)$/.exec(transform);
-    if (right) result >>>= Number(right[1]);
-    // digdug/galaga build the 53xx K-port MOD value from three LS259 bits,
-    // each shifted into place (galaga.cpp:1906). lshift had no implementation,
-    // so those bits collapsed onto bit 0 and the MCU saw the wrong MOD.
-    const left = /^lshift\((\d+)\)$/.exec(transform);
-    if (left) result = (result << Number(left[1])) >>> 0;
-  }
-  return result;
-}
-
-export function callbackTarget(callback: GeneratedCallback): string | undefined {
-  if (callback.targetPort) return `port.${callback.targetPort}`;
-  if (callback.targetTag && callback.inputLine) return `${callback.targetTag}.${callback.inputLine}`;
-  if (!callback.targetMethod) return undefined;
-  if (callback.targetTag) return `${callback.targetTag}.${callback.targetMethod}`;
-  if (callback.targetClass) return `${callback.targetClass}.${callback.targetMethod}`;
-  return callback.targetMethod;
 }
 
 export function generatedScreenHandler(machine: BoardIr): GeneratedHandler | undefined {

@@ -1,7 +1,7 @@
 import type { BoardIr } from '../ir/board.ts';
 import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
+import { applyBoardTransforms, bindBoardEffects, type EffectBindings } from './generated-effects.ts';
 import {
-  callbackTarget,
   clearGeneratedMachines,
   generatedMachine,
   registerGeneratedMachine,
@@ -31,7 +31,6 @@ function throws(name: string, run: () => void, includes: string): void {
 
 const machine: BoardIr = {
   schemaVersion: BOARD_IR_SCHEMA_VERSION,
-  connections: [],
   game: 'fixture',
   family: 'fixture',
   driverFile: 'src/mame/fixture.cpp',
@@ -54,25 +53,81 @@ const machine: BoardIr = {
     },
     {
       id: 'callback:2',
-      ownerTag: 'mainlatch', signal: 'q_out_cb', slot: 7, operation: 'set',
-      targetClass: 'fixture_state', targetMethod: 'bookkeeping_w',
-    },
-    {
-      id: 'callback:3',
       ownerTag: 'mainlatch', signal: 'parallel_out_cb', operation: 'set',
       targetClass: 'fixture_state', targetMethod: 'parallel_w',
       transforms: ['mask(0x33)'],
     },
     // MAME .set_nop(): an output the board deliberately leaves unconnected.
-    { id: 'callback:4', ownerTag: 'mainlatch', signal: 'nop_out_cb', operation: 'set_nop' },
+    { id: 'callback:3', ownerTag: 'mainlatch', signal: 'nop_out_cb', operation: 'set_nop' },
+  ],
+  connections: [
+    {
+      callbackId: 'callback:0',
+      effect: { kind: 'handler', handler: 'fixture_state.irq_w' },
+      transforms: [],
+    },
+    {
+      callbackId: 'callback:1',
+      effect: { kind: 'device-method', tag: 'screen', method: 'flip_w' },
+      transforms: [{ kind: 'invert' }],
+    },
+    {
+      callbackId: 'callback:2',
+      effect: { kind: 'handler', handler: 'fixture_state.parallel_w' },
+      transforms: [{ kind: 'mask', value: 0x33 }],
+    },
+    { callbackId: 'callback:3', effect: { kind: 'unconnected' }, transforms: [] },
   ],
 };
 
 clearGeneratedMachines();
 registerGeneratedMachine(machine);
 check('registry', generatedMachine('fixture'), machine);
-check('target class', callbackTarget(machine.callbacks[0]!), 'fixture_state.irq_w');
-check('target tag wins', callbackTarget(machine.callbacks[1]!), 'screen.flip_w');
+
+check('transforms compose in order', applyBoardTransforms(0xff, [
+  { kind: 'mask', value: 0xf0 },
+  { kind: 'rshift', bits: 4 },
+]), 0x0f);
+// digdug/galaga shift LS259 bits into the 53xx K-port MOD field.
+check('lshift is applied', applyBoardTransforms(1, [{ kind: 'lshift', bits: 3 }]), 8);
+
+const states: number[] = [];
+const bindings: EffectBindings = {
+  cpuLine: () => undefined,
+  deviceMethod: (tag, method) =>
+    tag === 'screen' && method === 'flip_w' ? state => states.push(state * 10) : undefined,
+  handler: key => key === 'fixture_state.irq_w'
+    ? state => states.push(state)
+    : key === 'fixture_state.parallel_w'
+      ? state => parallel.push(state)
+      : undefined,
+  portRead: () => undefined,
+  videoControl: () => undefined,
+  audioControl: () => undefined,
+  audioWrite: () => undefined,
+};
+const parallel: number[] = [];
+
+// A connection the runtime cannot execute aborts construction. Silently
+// skipping one produced machines that booted and then behaved wrongly.
+throws(
+  'an unbindable effect fails board construction',
+  () => bindBoardEffects(
+    {
+      ...machine,
+      connections: [{
+        callbackId: 'callback:0',
+        effect: { kind: 'device-method', tag: 'absent', method: 'w' },
+        transforms: [],
+        source: { file: 'src/mame/fixture.cpp', line: 7 },
+      }],
+    },
+    bindings,
+  ),
+  'cannot execute these connections',
+);
+
+const effects = bindBoardEffects(machine, bindings);
 
 const listeners = new Map<number, (...args: number[]) => void>();
 const device = {
@@ -81,43 +136,20 @@ const device = {
   },
 };
 
-// callback:2 (bookkeeping_w) has no endpoint. Silently skipping it is what
-// produced boards that boot and then behave wrongly, so it must throw.
-throws(
-  'an unbindable callback fails instead of being ignored',
-  () => wireDeviceCallbacks(device, machine, 'mainlatch', 'q_out_cb', {
-    'fixture_state.irq_w': () => {},
-    'screen.flip_w': () => {},
-  }),
-  'unresolved callback endpoints',
-);
-
-const states: number[] = [];
-const bound = wireDeviceCallbacks(device, machine, 'mainlatch', 'q_out_cb', {
-  'fixture_state.irq_w': state => states.push(state),
-  'screen.flip_w': state => states.push(state * 10),
-  'fixture_state.bookkeeping_w': state => states.push(state * 100),
-});
+const bound = wireDeviceCallbacks(device, machine, 'mainlatch', 'q_out_cb', effects);
 listeners.get(0)?.(0, 1);
 listeners.get(1)?.(1);
-check('generated callbacks execute with transforms', states, [1, 0]);
-check('bound targets', bound, [
-  'fixture_state.irq_w',
-  'screen.flip_w',
-  'fixture_state.bookkeeping_w',
-]);
+check('bound effects execute with their transforms', states, [1, 0]);
+check('wiring reports the callbacks it bound', bound, ['callback:0', 'callback:1']);
 
-const parallel: number[] = [];
-wireDeviceCallbacks(device, machine, 'mainlatch', 'parallel_out_cb', {
-  'fixture_state.parallel_w': state => parallel.push(state),
-});
+wireDeviceCallbacks(device, machine, 'mainlatch', 'parallel_out_cb', effects);
 listeners.get(0)?.(0, 0x33, 0x02);
 check('parallel callbacks forward data instead of access mask', parallel, [0x33]);
 
 check(
-  'an explicitly unconnected output needs no endpoint',
-  wireDeviceCallbacks(device, machine, 'mainlatch', 'nop_out_cb', {}),
-  [],
+  'an explicitly unconnected output binds to a no-op',
+  wireDeviceCallbacks(device, machine, 'mainlatch', 'nop_out_cb', effects),
+  ['callback:3'],
 );
 
 console.log(`generated-machine.spec: ${passed} passed, 0 failed`);

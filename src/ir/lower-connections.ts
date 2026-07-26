@@ -27,6 +27,8 @@ export interface ConnectionContext {
   soundEnableMethods?: Set<string>;
   /** Register offset the sound backend uses for its enable control. */
   soundControlOffset?: number;
+  /** Secondary stream devices the generated worklet mixes, by tag -> methods. */
+  auxiliaryAudio?: Map<string, Set<string>>;
 }
 
 /**
@@ -140,6 +142,16 @@ export function lowerCallbackEffect(
     };
   }
 
+  // A secondary audio stream device: the board never instantiates it, so the
+  // write goes to the audio sink rather than to a device method.
+  if (
+    callback.targetTag &&
+    callback.targetMethod &&
+    context.auxiliaryAudio?.get(callback.targetTag)?.has(callback.targetMethod)
+  ) {
+    return { kind: 'audio-write', tag: callback.targetTag, method: callback.targetMethod };
+  }
+
   // A method on a generated device the runtime instantiates.
   if (
     callback.targetTag &&
@@ -147,7 +159,12 @@ export function lowerCallbackEffect(
     context.deviceTags.has(callback.targetTag) &&
     !context.cpuTags.has(callback.targetTag)
   ) {
-    return { kind: 'device-method', tag: callback.targetTag, method: callback.targetMethod };
+    return {
+      kind: 'device-method',
+      tag: callback.targetTag,
+      method: callback.targetMethod,
+      ...(callback.targetClass ? { ownerClass: callback.targetClass } : {}),
+    };
   }
 
   // A generated handler program on the driver class or a device class.

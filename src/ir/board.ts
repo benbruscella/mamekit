@@ -76,8 +76,13 @@ export type CpuLineDelivery = 'hold' | 'assert' | 'pulse' | 'level';
 export type BoardEffect =
   /** Drive a CPU interrupt or control pin. */
   | { kind: 'cpu-line'; tag: string; line: CpuLine; delivery: CpuLineDelivery }
-  /** Call a method on a generated device. */
-  | { kind: 'device-method'; tag: string; method: string }
+  /**
+   * Call a method on a device. `ownerClass` names the MAME class that declares
+   * it, because a device may be implemented either as an instantiated
+   * generated device or — for composite boards such as timeplt_audio — by the
+   * generated handler for that class. The runtime picks whichever exists.
+   */
+  | { kind: 'device-method'; tag: string; method: string; ownerClass?: string }
   /** Execute a generated handler program. */
   | { kind: 'handler'; handler: string }
   /** Read an input port back to the caller (MAME set_ioport). */
@@ -86,6 +91,12 @@ export type BoardEffect =
   | { kind: 'video-control'; control: 'flip-screen' | 'flip-screen-x' | 'flip-screen-y' }
   /** Audio control routed to the generated sound backend. */
   | { kind: 'audio-control'; tag: string; control: 'mute' | 'enable'; offset?: number }
+  /**
+   * Register write to a secondary stream device that the generated worklet
+   * mixes (junofrst's R2R DAC). The device is not instantiated by the board,
+   * so the write is forwarded to the audio sink by name.
+   */
+  | { kind: 'audio-write'; tag: string; method: string }
   /** MAME .set_nop(): the board deliberately leaves this output unconnected. */
   | { kind: 'unconnected' };
 

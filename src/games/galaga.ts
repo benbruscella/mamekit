@@ -38,6 +38,10 @@ export const galaga: GameTestContract = {
       minimumNonzeroWrites: 100,
     },
   ],
+  // The checkpoint state hashes from frame 900 on record a maincpu cycle/PC
+  // shift of a few cycles, from fixing NMI delivery: releasing the Namco 06xx
+  // NMI used to fall through and clear maincpu's IRQ0 as well. Every video and
+  // audio hash is unchanged, so no frame or sample moved.
   golden: {
     regions: {
       '54xx:mcu': 'ee7357e0',
@@ -64,27 +68,27 @@ export const galaga: GameTestContract = {
       },
       '900': {
         video: 'd4ed5a0c',
-        state: 'b65c7a6a',
+        state: '89ec91f1',
       },
       '1050': {
         video: 'f0cb037c',
-        state: '6ca53089',
+        state: '32f3e31d',
       },
       '1300': {
         video: '9505b9bf',
-        state: 'd3e070c8',
+        state: '26e66a55',
       },
       '1600': {
         video: '83a2539e',
-        state: 'e6289a01',
+        state: '6db93f95',
       },
       '2456': {
         video: '492457b6',
-        state: '35455f7c',
+        state: '36ba2aaf',
       },
       '2600': {
         video: 'fd5bcec5',
-        state: 'af98e8f5',
+        state: '6c74795c',
       },
     },
     audio: {

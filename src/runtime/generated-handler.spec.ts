@@ -4,6 +4,7 @@ import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   executeGeneratedHandler,
+  executeGeneratedMachineHandler,
   executeGeneratedMachineProgram,
   generatedHandlerRegistry,
   wireGeneratedDevice,
@@ -143,7 +144,7 @@ const device = {
     if (slot === 0) q0 = callback;
   },
 };
-wireGeneratedDevice(device, {
+const latchMachine: BoardIr = {
   ...machine,
   callbacks: [{
     id: 'callback:latch:0',
@@ -154,15 +155,33 @@ wireGeneratedDevice(device, {
     targetClass: 'fixture_state',
     targetMethod: 'irq_w',
   }],
+  connections: [{
+    callbackId: 'callback:latch:0',
+    effect: { kind: 'handler', handler: 'fixture_state.irq_w' },
+    transforms: [],
+  }],
   handlers: [{
     id: 'handler:fixture_state:irq_w',
     ownerClass: 'fixture_state',
     method: 'irq_w',
     program: compileMameHandler('m_irq_mask = state;'),
   }],
-}, 'latch', 'q_out_cb', {
-  setters: { m_irq_mask: value => { irqMask = value; } },
-});
+};
+const latchHandler = latchMachine.handlers![0]!;
+wireGeneratedDevice(device, latchMachine, 'latch', 'q_out_cb', new Map([
+  ['callback:latch:0', {
+    run: (state: number) => {
+      executeGeneratedMachineHandler(
+        latchMachine,
+        latchHandler,
+        { setters: { m_irq_mask: value => { irqMask = value; } } },
+        { state, data: state },
+      );
+    },
+    transforms: [],
+    reads: false,
+  }],
+]));
 q0?.(1);
 assert.equal(irqMask, 1);
 

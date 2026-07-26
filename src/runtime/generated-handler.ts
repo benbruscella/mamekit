@@ -2,12 +2,8 @@ import type { HandlerRegistry, ReadHandler, WriteHandler } from './bus.ts';
 import type { InputPorts } from './types.ts';
 import type { BoardIr, GeneratedCallback, GeneratedExpression, GeneratedHandler, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
 import type { CallbackDevice } from './generated-machine.ts';
-import {
-  applySignalTransforms,
-  callbackTarget,
-  wireDeviceCallbacks,
-  isUnconnected,
-} from './generated-machine.ts';
+import { wireDeviceCallbacks } from './generated-machine.ts';
+import { applyBoardTransforms, type BoundEffect } from './generated-effects.ts';
 
 export interface GeneratedHandlerBindings {
   /** MAME member names, including the leading m_ used in the source. */
@@ -175,37 +171,15 @@ export function generatedHandlerRegistry(
   return registry;
 }
 
-/** Wire a generated device signal to compiled MAME methods and host endpoints. */
+/** Wire a generated device signal to the effects bound for its callbacks. */
 export function wireGeneratedDevice(
   device: CallbackDevice,
   machine: BoardIr,
   ownerTag: string,
   signal: string,
-  bindings: GeneratedHandlerBindings,
-  endpoints: Record<string, (state: number) => void> = {},
+  effects: Map<string, BoundEffect>,
 ): string[] {
-  const compiled = new Map(
-    (machine.handlers ?? [])
-      .filter(handler => handler.program && handler.program.diagnostics.length === 0)
-      .map(handler => [`${handler.ownerClass}.${handler.method}`, handler]),
-  );
-  const generatedEndpoints: Record<string, (state: number) => void> = {};
-  for (const callback of machine.callbacks) {
-    if (callback.ownerTag !== ownerTag || !callback.targetClass || !callback.targetMethod) continue;
-    const target = callbackTarget(callback);
-    const handler = compiled.get(`${callback.targetClass}.${callback.targetMethod}`);
-    if (!target || !handler?.program) continue;
-    generatedEndpoints[target] = state => {
-      executeGeneratedMachineHandler(machine, handler, bindings, { state, data: state });
-    };
-  }
-  return wireDeviceCallbacks(
-    device,
-    machine,
-    ownerTag,
-    signal,
-    { ...generatedEndpoints, ...endpoints },
-  );
+  return wireDeviceCallbacks(device, machine, ownerTag, signal, effects);
 }
 
 export function dispatchGeneratedCallbacks(
@@ -213,60 +187,31 @@ export function dispatchGeneratedCallbacks(
   ownerTag: string,
   signal: string,
   state: number,
-  bindings: GeneratedHandlerBindings,
-  endpoints: Record<string, (state: number) => void> = {},
+  effects: Map<string, BoundEffect>,
 ): string[] {
   const bound: string[] = [];
   for (const callback of machine.callbacks) {
     if (callback.ownerTag !== ownerTag || callback.signal !== signal) continue;
-    bound.push(...dispatchGeneratedCallback(machine, callback, state, bindings, endpoints));
+    bound.push(...dispatchGeneratedCallback(machine, callback.id, state, effects));
   }
   return bound;
 }
 
 export function dispatchGeneratedCallback(
   machine: BoardIr,
-  callbackOrId: GeneratedCallback | string,
+  callbackId: string,
   state: number,
-  bindings: GeneratedHandlerBindings,
-  endpoints: Record<string, (state: number) => void> = {},
+  effects: Map<string, BoundEffect>,
 ): string[] {
-  const callback = typeof callbackOrId === 'string'
-    ? machine.callbacks.find(candidate => candidate.id === callbackOrId)
-    : callbackOrId;
-  if (!callback) {
+  const effect = effects.get(callbackId);
+  if (!effect) {
     throw new Error(
-      `${machine.game}: dispatch names unknown callback "${String(callbackOrId)}"`,
+      `${machine.game}: callback "${callbackId}" has no bound effect — ` +
+      'every connection is resolved at generation time, so this is a composition bug',
     );
   }
-  if (isUnconnected(callback)) return [];
-  const target = callbackTarget(callback);
-  const endpoint = target ? endpoints[target] : undefined;
-  const handler = callback.targetClass && callback.targetMethod
-    ? machine.handlers?.find(candidate =>
-        candidate.ownerClass === callback.targetClass &&
-        candidate.method === callback.targetMethod &&
-        candidate.program &&
-        candidate.program.diagnostics.length === 0)
-    : undefined;
-  const transformed = applySignalTransforms(state, callback.transforms);
-  if (endpoint) {
-    endpoint(transformed);
-    return [target!];
-  }
-  if (handler?.program) {
-    executeGeneratedMachineHandler(
-      machine,
-      handler,
-      bindings,
-      { state: transformed, data: transformed },
-    );
-    return [target ?? `${handler.ownerClass}.${handler.method}`];
-  }
-  throw new Error(
-    `${machine.game}: callback "${callback.id}" (${callback.ownerTag}.${callback.signal}) ` +
-    `reaches no endpoint or generated handler — target ${target ?? 'is undeclared'}`,
-  );
+  effect.run(applyBoardTransforms(state, effect.transforms));
+  return [callbackId];
 }
 
 export function executeGeneratedCallbackHandler(

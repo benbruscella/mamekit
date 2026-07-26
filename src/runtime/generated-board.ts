@@ -19,8 +19,13 @@ import {
   wireGeneratedDevice,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
-import { callbackTarget } from './generated-machine.ts';
 import type { BoardIr } from '../ir/board.ts';
+import {
+  bindBoardEffects,
+  type BoundEffect,
+  type EffectBindings,
+  type EffectExecutor,
+} from './generated-effects.ts';
 import { portHandlers } from './input.ts';
 import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE } from '../ir/audio-protocol.ts';
 import type {
@@ -43,20 +48,6 @@ const GENERATED_BOARDS = new Map<string, BoardFactory>();
 
 export function registerGeneratedBoard(game: string, factory: BoardFactory): void {
   GENERATED_BOARDS.set(game, factory);
-}
-
-/**
- * MAME's driver_device interrupt generators: irqN_line_hold/assert clear on
- * acknowledge or stay asserted, and nmi_line_pulse/assert drive the NMI pin.
- */
-function interruptGenerator(
-  method: string | undefined,
-): { line: number | 'nmi'; hold: boolean } | undefined {
-  const irq = /^irq(\d)_line_(hold|assert)$/.exec(method ?? '');
-  if (irq) return { line: Number(irq[1]), hold: irq[2] === 'hold' };
-  const nmi = /^nmi_line_(pulse|assert)$/.exec(method ?? '');
-  if (nmi) return { line: 'nmi', hold: nmi[1] === 'pulse' };
-  return undefined;
 }
 
 export function createBoard(
@@ -103,6 +94,8 @@ class IrBoard implements Board {
   private readonly state: Record<string, unknown> = {};
   private readonly shares: Record<string, Uint8Array> = {};
   private videoPrimitives?: GeneratedMameVideoPrimitives;
+  /** Typed effects bound per callback id; see generated-effects.ts. */
+  private effects: Map<string, BoundEffect> = new Map();
   private readonly frameRunner: GeneratedFrameRunner;
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
@@ -180,6 +173,10 @@ class IrBoard implements Board {
     this.installDeclarativeHandlers(machine, config, inputs, registry);
     this.installInterruptVectorWriters(machine, registry);
 
+    // Bound before any CPU exists: a generated CPU may emit a signal from its
+    // own constructor, and every connection must already be executable.
+    this.effects = bindBoardEffects(machine, this.effectBindings(sinks));
+
     for (const specification of machine.execution.cpus) {
       const type = specification.type ?? 'Z80';
       if (!hasGeneratedCpu(type)) {
@@ -222,14 +219,7 @@ class IrBoard implements Board {
               )
             : undefined;
           if (value !== undefined) return value;
-          dispatchGeneratedCallbacks(
-            machine,
-            specification.tag,
-            signal,
-            state,
-            this.bindings,
-            this.callbackEndpoints(sinks),
-          );
+          dispatchGeneratedCallbacks(machine, specification.tag, signal, state, this.effects);
           return 0;
         },
       });
@@ -281,17 +271,9 @@ class IrBoard implements Board {
       bindGeneratedShareState(this.state, tag, bytes);
     }
 
-    const callbackEndpoints = this.callbackEndpoints(sinks);
     for (const [tag, device] of this.devices) {
       for (const signal of device.signalNames()) {
-        wireGeneratedDevice(
-          device,
-          machine,
-          tag,
-          signal,
-          this.bindings,
-          callbackEndpoints,
-        );
+        wireGeneratedDevice(device, machine, tag, signal, this.effects);
       }
     }
     const hostedProcessors = (machine.devices ?? []).flatMap(specification => {
@@ -330,10 +312,9 @@ class IrBoard implements Board {
       if (!source) continue;
       dispatchGeneratedCallback(
         machine,
-        callback,
+        callback.id,
         (source.get('m_q') >> callback.slot) & 1,
-        this.bindings,
-        callbackEndpoints,
+        this.effects,
       );
     }
 
@@ -375,13 +356,7 @@ class IrBoard implements Board {
             `${event.ownerTag}.vck`,
           );
         }
-        dispatchGeneratedCallback(
-          machine,
-          event.callbackId,
-          event.state,
-          this.bindings,
-          callbackEndpoints,
-        );
+        dispatchGeneratedCallback(machine, event.callbackId, event.state, this.effects);
       },
       onLine: (line, phase, framebuffer) => {
         if (phase === 'before-processors') activeFramebuffer = framebuffer;
@@ -681,14 +656,7 @@ class IrBoard implements Board {
               ? 'port_b_write_callback'
               : undefined;
           if (signal) {
-            dispatchGeneratedCallbacks(
-              machine,
-              tag,
-              signal,
-              data,
-              this.bindings,
-              this.callbackEndpoints(sinks),
-            );
+            dispatchGeneratedCallbacks(machine, tag, signal, data, this.effects);
           }
         };
         const dataRead = (): number => {
@@ -806,97 +774,88 @@ class IrBoard implements Board {
     return this.currentLine / this.machine.execution.screen.vtotal;
   }
 
-  private callbackEndpoints(sinks: BoardSinks): Record<string, (state: number) => number | void> {
-    const endpoints: Record<string, (state: number) => number | void> = {};
-    for (const port of new Set(this.machine.callbacks.flatMap(callback =>
-      callback.targetPort ? [callback.targetPort] : []))) {
-      endpoints[`port.${port}`] = () => this.bindings.inputs?.read(port) ?? 0xff;
-    }
-    for (const callback of this.machine.callbacks) {
-      const driverMethod = callback.targetMethod
-        ? this.bindings.calls?.[callback.targetMethod]
-        : undefined;
-      if (!callback.targetTag && callback.targetClass && driverMethod) {
-        endpoints[`${callback.targetClass}.${callback.targetMethod}`] = state => {
-          driverMethod(state);
-        };
-      }
-      // MAME's driver_device interrupt generators (irqN_line_hold and kin) act
-      // on the device the interrupt is installed on, whichever signal installs
-      // it: set_vblank_int, set_periodic_int or set_irq_acknowledge_callback.
-      const generator = interruptGenerator(callback.targetMethod);
-      if (generator && callbackTarget(callback)) {
-        const cpu = this.cpus.get(callback.ownerTag);
-        if (cpu) {
-          endpoints[callbackTarget(callback)!] = state => {
-            if (generator.line === 'nmi') {
-              if (state) cpu.nmi();
-              return;
-            }
-            cpu.setIrqLine(
-              state !== 0,
-              0xff,
-              generator.hold ? state !== 0 : false,
-            );
+  /**
+   * Executors for the typed effects the compiler resolved. This switches on a
+   * closed union; the MAME method names that used to be re-parsed here are
+   * interpreted once, during generation, by src/ir/lower-connections.ts.
+   */
+  /** Execute a generated handler program, when one compiled for this key. */
+  private handlerExecutor(key: string): EffectExecutor | undefined {
+    const handler = this.machine.handlers?.find(candidate =>
+      `${candidate.ownerClass}.${candidate.method}` === key &&
+      candidate.program &&
+      !candidate.program.diagnostics.length);
+    if (!handler?.program) return undefined;
+    return state => {
+      executeGeneratedMachineHandler(this.machine, handler, this.bindings, { state, data: state });
+    };
+  }
+
+  private effectBindings(sinks: BoardSinks): EffectBindings {
+    return {
+      cpuLine: (tag, line, delivery) => {
+        // Validated against the IR, not the live map: a generated CPU can fire
+        // a signal from inside its own constructor (the I8039 resets on
+        // create), so the target may not be instantiated yet at bind time.
+        if (!this.machine.execution.cpus.some(cpu => cpu.tag === tag)) return undefined;
+        if (line === 'nmi') {
+          // Only the NMI pin. Clearing it must not touch IRQ.
+          return state => { if (state) this.cpus.get(tag)?.nmi(); };
+        }
+        if (line === 'reset') {
+          return state => {
+            this.cpuHeld.set(tag, Boolean(state));
+            if (state) this.cpus.get(tag)?.reset();
           };
         }
-      }
-      if (!callback.targetTag) continue;
-      const target = callback.inputLine
-        ? `${callback.targetTag}.${callback.inputLine}`
-        : callback.targetMethod
-          ? `${callback.targetTag}.${callback.targetMethod}`
-          : undefined;
-      const device = this.devices.get(callback.targetTag);
-      if (target && callback.targetMethod && device?.methodNames().includes(callback.targetMethod)) {
-        endpoints[target] = state => device.call(callback.targetMethod!, state);
-      }
-      const cpu = this.cpus.get(callback.targetTag);
-      if (cpu && callback.inputLine) {
-        endpoints[target!] = state => {
-          if (callback.inputLine === 'INPUT_LINE_NMI' && state) cpu.nmi();
-          else if (callback.inputLine === 'INPUT_LINE_RESET') {
-            this.cpuHeld.set(callback.targetTag!, Boolean(state));
-            if (state) cpu.reset();
-          } else {
-            cpu.setIrqLine(state !== 0);
-          }
+        if (line === 'halt') return state => { this.cpuHeld.set(tag, Boolean(state)); };
+        // irq/firq. MAME's *_line_hold keeps the line asserted until the CPU
+        // acknowledges it; assert and level leave it to the source to clear.
+        return state => {
+          this.cpus.get(tag)?.setIrqLine(state !== 0, 0xff, delivery === 'hold' && state !== 0);
         };
-      }
-      if (target && callback.targetTag === 'speaker') {
-        endpoints[target!] = state =>
-          sinks.soundWrite(callback.slot ?? 0, state, this.soundFraction());
-      }
-      const sound = this.machine.sound;
-      if (
-        sound &&
-        callback.targetTag === sound.deviceTag &&
-        callback.targetMethod &&
-        sound.enableMethods.includes(callback.targetMethod)
-      ) {
-        endpoints[target!] = state =>
-          sinks.soundWrite(sound.controlOffset, state, this.soundFraction());
-      }
-      if (
-        sound &&
-        callback.targetMethod === 'mute_w'
-      ) {
-        endpoints[target!] = state => sinks.soundWrite(-1, state, this.soundFraction());
-      }
-      const auxiliary = sound?.auxiliaryDevices?.find(device =>
-        device.deviceTag === callback.targetTag &&
-        callback.targetMethod &&
-        device.writeMethods.includes(callback.targetMethod));
-      if (target && auxiliary && callback.targetMethod) {
-        endpoints[target] = state => sinks.soundWrite(
-          0,
+      },
+      deviceMethod: (tag, method, ownerClass) => {
+        const device = this.devices.get(tag);
+        if (device?.methodNames().includes(method)) {
+          return state => device.call(method, state);
+        }
+        // A composite MAME device (timeplt_audio) is not instantiated; its
+        // methods are the generated handlers for its class.
+        if (ownerClass) {
+          const run = this.handlerExecutor(`${ownerClass}.${method}`);
+          if (run) return run;
+        }
+        // Driver-class methods reachable as generated calls (m_tag.method).
+        const call = this.bindings.calls?.[`${tag}.${method}`] ??
+          this.bindings.calls?.[`m_${tag}.${method}`];
+        return call ? state => { call(state); } : undefined;
+      },
+      handler: key => {
+        const run = this.handlerExecutor(key);
+        if (run) return run;
+        // A driver method the board binds directly rather than lowering.
+        const call = this.bindings.calls?.[key.split('.').at(-1)!];
+        return call ? state => { call(state); } : undefined;
+      },
+      portRead: port => () => this.bindings.inputs?.read(port) ?? 0xff,
+      videoControl: control => {
+        const setter = control === 'flip-screen'
+          ? this.bindings.calls?.flip_screen_set
+          : control === 'flip-screen-x'
+            ? this.bindings.calls?.flip_screen_x_set
+            : this.bindings.calls?.flip_screen_y_set;
+        return setter ? state => { setter(state); } : undefined;
+      },
+      audioControl: (_tag, control, offset) => state =>
+        sinks.soundWrite(
+          control === 'mute' ? -1 : offset ?? this.machine.sound?.controlOffset ?? 0,
           state,
           this.soundFraction(),
-          `${auxiliary.deviceTag}.${callback.targetMethod}`,
-        );
-      }
-    }
-    return endpoints;
+        ),
+      audioWrite: (tag, method) => state =>
+        sinks.soundWrite(0, state, this.soundFraction(), `${tag}.${method}`),
+    };
   }
 }
 

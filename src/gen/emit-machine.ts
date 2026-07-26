@@ -320,6 +320,12 @@ export function lowerGeneratedMachine(
           soundTag: sound.deviceTag,
           soundEnableMethods: new Set(sound.enableMethods),
           soundControlOffset: sound.controlOffset,
+          auxiliaryAudio: new Map(
+            ('auxiliaryDevices' in sound ? sound.auxiliaryDevices ?? [] : []).map(
+              (device: GeneratedAuxiliaryAudioDevice) =>
+                [device.deviceTag, new Set(device.writeMethods)] as const,
+            ),
+          ),
         }
       : {}),
   });
