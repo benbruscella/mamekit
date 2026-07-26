@@ -5,6 +5,7 @@ import type { BoardIr } from '../ir/board.ts';
 
 const machine: BoardIr = {
   schemaVersion: BOARD_IR_SCHEMA_VERSION,
+  connections: [],
   game: 'fixture',
   family: 'fixture',
   driverFile: 'fixture.cpp',

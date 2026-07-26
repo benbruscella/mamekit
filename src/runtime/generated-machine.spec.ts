@@ -31,6 +31,7 @@ function throws(name: string, run: () => void, includes: string): void {
 
 const machine: BoardIr = {
   schemaVersion: BOARD_IR_SCHEMA_VERSION,
+  connections: [],
   game: 'fixture',
   family: 'fixture',
   driverFile: 'src/mame/fixture.cpp',

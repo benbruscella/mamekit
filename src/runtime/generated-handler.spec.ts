@@ -103,6 +103,7 @@ assert.equal(executeGeneratedHandler(tileFlags, {}, { attr: 0x60 }), 3);
 
 const machine: BoardIr = {
   schemaVersion: BOARD_IR_SCHEMA_VERSION,
+  connections: [],
   game: 'fixture',
   family: 'fixture',
   driverFile: 'fixture.cpp',

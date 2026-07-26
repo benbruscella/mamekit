@@ -99,8 +99,13 @@ export function applySignalTransforms(value: number, transforms: string[] = []):
     if (transform === 'invert') result ^= 1;
     const mask = /^mask\((0x[\da-f]+|\d+)\)$/i.exec(transform);
     if (mask) result &= Number(mask[1]);
-    const shift = /^rshift\((\d+)\)$/.exec(transform);
-    if (shift) result >>>= Number(shift[1]);
+    const right = /^rshift\((\d+)\)$/.exec(transform);
+    if (right) result >>>= Number(right[1]);
+    // digdug/galaga build the 53xx K-port MOD value from three LS259 bits,
+    // each shifted into place (galaga.cpp:1906). lshift had no implementation,
+    // so those bits collapsed onto bit 0 and the MCU saw the wrong MOD.
+    const left = /^lshift\((\d+)\)$/.exec(transform);
+    if (left) result = (result << Number(left[1])) >>> 0;
   }
   return result;
 }

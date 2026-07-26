@@ -58,6 +58,7 @@ const body = `
 `;
 const machine: BoardIr = {
   schemaVersion: BOARD_IR_SCHEMA_VERSION,
+  connections: [],
   game: 'fixture',
   family: 'fixture',
   driverFile: 'fixture.cpp',
@@ -271,6 +272,7 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
 {
   const scrollMachine: BoardIr = {
     schemaVersion: BOARD_IR_SCHEMA_VERSION,
+    connections: [],
     game: 'scroll',
     family: 'scroll',
     driverFile: 'src/mame/fixture/scroll.cpp',

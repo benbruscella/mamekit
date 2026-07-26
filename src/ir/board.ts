@@ -49,6 +49,63 @@ export interface GeneratedCallback {
   source?: BoardSourceRef;
 }
 
+// ---------------------------------------------------------------------------
+// Typed effects
+//
+// A GeneratedCallback is a record of what the MAME source said. It carries C++
+// method names, and the runtime used to re-read them: a regex recovered
+// `irq0_line_hold` and `nmi_line_pulse`, string comparisons recovered
+// INPUT_LINE_NMI, `mute_w` and `flip_screen_set`. A name the runtime failed to
+// recognise produced no error — the operation was simply never performed.
+//
+// A BoardEffect is what the board actually does, resolved during generation.
+// The runtime executes effects and never parses a MAME name; an effect the
+// compiler cannot resolve fails the build instead of disappearing.
+// ---------------------------------------------------------------------------
+
+/** CPU interrupt/control pins, named as pins rather than as MAME methods. */
+export type CpuLine = 'irq' | 'firq' | 'nmi' | 'reset' | 'halt';
+
+/**
+ * How a source drives the pin. MAME's driver_device interrupt generators
+ * distinguish these: irqN_line_hold stays asserted until acknowledged,
+ * irqN_line_assert leaves the line up, nmi_line_pulse strobes it.
+ */
+export type CpuLineDelivery = 'hold' | 'assert' | 'pulse' | 'level';
+
+export type BoardEffect =
+  /** Drive a CPU interrupt or control pin. */
+  | { kind: 'cpu-line'; tag: string; line: CpuLine; delivery: CpuLineDelivery }
+  /** Call a method on a generated device. */
+  | { kind: 'device-method'; tag: string; method: string }
+  /** Execute a generated handler program. */
+  | { kind: 'handler'; handler: string }
+  /** Read an input port back to the caller (MAME set_ioport). */
+  | { kind: 'port-read'; port: string }
+  /** Board-level video control lowered from MAME's flip_screen helpers. */
+  | { kind: 'video-control'; control: 'flip-screen' | 'flip-screen-x' | 'flip-screen-y' }
+  /** Audio control routed to the generated sound backend. */
+  | { kind: 'audio-control'; tag: string; control: 'mute' | 'enable'; offset?: number }
+  /** MAME .set_nop(): the board deliberately leaves this output unconnected. */
+  | { kind: 'unconnected' };
+
+export type BoardTransform =
+  | { kind: 'invert' }
+  | { kind: 'mask'; value: number }
+  | { kind: 'rshift'; bits: number }
+  | { kind: 'lshift'; bits: number };
+
+/**
+ * One resolved connection from a source callback to the effect it performs.
+ * `callbackId` keeps the MAME provenance a step away rather than duplicating it.
+ */
+export interface BoardConnection {
+  callbackId: string;
+  effect: BoardEffect;
+  transforms: BoardTransform[];
+  source?: BoardSourceRef;
+}
+
 export interface GeneratedDevice {
   id: string;
   tag: string;
@@ -446,7 +503,10 @@ export interface BoardIr {
   game: string;
   family: string;
   driverFile: string;
+  /** What the MAME source declared, with its spans — the provenance record. */
   callbacks: GeneratedCallback[];
+  /** What the board does, resolved at generation time — the executable model. */
+  connections: BoardConnection[];
   execution: GeneratedExecutionPlan;
   devices?: GeneratedDevice[];
   handlers?: GeneratedHandler[];

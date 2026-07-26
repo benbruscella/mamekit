@@ -16,6 +16,7 @@ import type {
 } from '../ir/board.ts';
 import type { GeneratedAuxiliaryAudioDevice } from '../ir/audio-protocol.ts';
 import { BoardIrError } from '../ir/decode.ts';
+import { lowerConnections } from '../ir/lower-connections.ts';
 import { validateBoardIr } from '../ir/validate.ts';
 import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import type { BoardConfig } from '../runtime/types.ts';
@@ -310,12 +311,34 @@ export function lowerGeneratedMachine(
           };
         })()
       : undefined;
+  const lowered = lowerConnections(callbacks, {
+    cpuTags: new Set(execution.cpus.map(cpu => cpu.tag)),
+    deviceTags: new Set(devices.map(device => device.tag)),
+    handlerKeys: new Set(handlers.map(handler => `${handler.ownerClass}.${handler.method}`)),
+    ...(sound
+      ? {
+          soundTag: sound.deviceTag,
+          soundEnableMethods: new Set(sound.enableMethods),
+          soundControlOffset: sound.controlOffset,
+        }
+      : {}),
+  });
+  if (lowered.unresolved.length) {
+    throw new BoardIrError(game, lowered.unresolved.map(({ callback, reason }) => ({
+      path: `callbacks[${callbacks.indexOf(callback)}]`,
+      message:
+        `${callback.ownerTag}.${callback.signal} cannot be lowered to a board effect: ${reason}. ` +
+        'A recognised connection that reaches nothing must fail generation.',
+      ...(callback.source ? { source: callback.source } : {}),
+    })));
+  }
   return {
     schemaVersion: BOARD_IR_SCHEMA_VERSION,
     game,
     family,
     driverFile: graph.meta.driverFile,
     callbacks,
+    connections: lowered.connections,
     execution,
     devices,
     handlers,

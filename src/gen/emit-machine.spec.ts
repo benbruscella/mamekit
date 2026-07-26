@@ -73,6 +73,12 @@ const board: BoardConfig = {
         write: 'test_state.vector_w',
       }],
     },
+  }, {
+    // The fixture callback drives this CPU's reset line; a board that wires a
+    // line to an undeclared CPU is exactly what connection lowering rejects.
+    tag: 'sub',
+    clock: 1_000_000,
+    region: 'sub',
   }],
   ranges: [],
   screen: { width: 256, height: 224, refresh: 60, vtotal: 256, vbstart: 240, rotate: 0 },
@@ -81,6 +87,13 @@ const board: BoardConfig = {
 const machine = lowerGeneratedMachine(graph, 'test', 'test', board);
 if (machine.callbacks[0]?.slot !== 3) throw new Error('slot should lower to a number');
 if (machine.callbacks[0]?.source?.line !== 42) throw new Error('source provenance missing');
+const reset = machine.connections[0];
+if (reset?.effect.kind !== 'cpu-line' || reset.effect.line !== 'reset' || reset.effect.tag !== 'sub') {
+  throw new Error('INPUT_LINE_RESET should lower to a typed cpu-line effect');
+}
+if (reset.callbackId !== machine.callbacks[0]?.id) {
+  throw new Error('connection lost its callback provenance');
+}
 if (machine.execution.cpus[0]?.clock !== 1_000_000) throw new Error('execution plan missing CPU clock');
 if (machine.execution.cpus[0]?.interruptVectorWriters?.[0] !== 'test_state.vector_w') {
   throw new Error('interrupt-vector writer relation was not lowered from handler IR');
