@@ -8,13 +8,8 @@ import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig } from './types.ts';
-import type { GeneratedAudioRoute } from './generated-machine.ts';
-import type {
-  GeneratedAuxiliaryAudioDevice,
-  GeneratedDacFilterPlan,
-  GeneratedDiscreteMixerPlan,
-  GeneratedSpeakerFilterPlan,
-} from './audio-protocol.ts';
+import type { GeneratedAudioRoute } from '../ir/board.ts';
+import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 
 export interface RomLoad {
   file: string; offset: number; size: number; crc: string;

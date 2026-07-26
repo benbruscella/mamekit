@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
+import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import { GeneratedFrameRunner } from './generated-frame.ts';
-import type { GeneratedMachine } from './generated-machine.ts';
+import type { BoardIr } from '../ir/board.ts';
 
-const machine: GeneratedMachine = {
-  schemaVersion: 2,
+const machine: BoardIr = {
+  schemaVersion: BOARD_IR_SCHEMA_VERSION,
   game: 'fixture',
   family: 'fixture',
   driverFile: 'fixture.cpp',
@@ -62,7 +63,7 @@ assert.equal(runner.frameCount, 1);
 
 const scanlines: number[] = [];
 const scanlineTimeline: string[] = [];
-const scanlineMachine: GeneratedMachine = {
+const scanlineMachine: BoardIr = {
   ...machine,
   execution: {
     ...machine.execution,
@@ -93,7 +94,7 @@ runner.reset();
 assert.equal(runner.frameCount, 0);
 assert.deepEqual(runner.currentCarry, [0]);
 
-const periodicMachine: GeneratedMachine = {
+const periodicMachine: BoardIr = {
   ...machine,
   execution: {
     ...machine.execution,

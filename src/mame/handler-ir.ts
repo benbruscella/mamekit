@@ -1,9 +1,5 @@
 import { maskComments } from './ast.ts';
-import type {
-  GeneratedExpression,
-  GeneratedHandlerOperation,
-  GeneratedHandlerProgram,
-} from '../runtime/generated-machine.ts';
+import type { GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
 
 interface Token {
   kind: 'identifier' | 'number' | 'string' | 'operator' | 'punctuation' | 'eof';

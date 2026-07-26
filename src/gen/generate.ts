@@ -945,6 +945,13 @@ export function buildApp(outRoot: string): boolean {
     recursive: true,
     filter: source => !source.endsWith('.spec.ts'),
   });
+  // The neutral IR ships alongside the runtime as dist/runtime/ir. Staging it
+  // one level above runtime/core keeps every `../ir/...` import resolving to
+  // the same place it does in src, so no path rewriting is needed.
+  cpSync(join(projectRoot, 'src/ir'), join(srcDir, 'runtime/ir'), {
+    recursive: true,
+    filter: source => !source.endsWith('.spec.ts'),
+  });
   const hardwareImports: string[] = [];
   const cpuBindings: string[] = [];
   const deviceBindings: string[] = [];

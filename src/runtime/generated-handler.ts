@@ -1,19 +1,12 @@
 import type { HandlerRegistry, ReadHandler, WriteHandler } from './bus.ts';
 import type { InputPorts } from './types.ts';
-import type {
-  CallbackDevice,
-  GeneratedCallback,
-  GeneratedExpression,
-  GeneratedHandler,
-  GeneratedHandlerOperation,
-  GeneratedHandlerProgram,
-  GeneratedMachine,
-} from './generated-machine.ts';
+import type { BoardIr, GeneratedCallback, GeneratedExpression, GeneratedHandler, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
+import type { CallbackDevice } from './generated-machine.ts';
 import {
   applySignalTransforms,
   callbackTarget,
   wireDeviceCallbacks,
-  type WiringResult,
+  isUnconnected,
 } from './generated-machine.ts';
 
 export interface GeneratedHandlerBindings {
@@ -72,7 +65,7 @@ interface PreparedMachineCalls {
 }
 
 const MACHINE_CALL_CACHE = new WeakMap<
-  GeneratedMachine,
+  BoardIr,
   WeakMap<GeneratedHandlerBindings, Map<string, PreparedMachineCalls>>
 >();
 const MACHINE_CALL_STACK: string[] = [];
@@ -146,7 +139,7 @@ export function executeGeneratedProgram(
  * they belong to reusable device implementations.
  */
 export function generatedHandlerRegistry(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   bindings: GeneratedHandlerBindings = {},
 ): HandlerRegistry {
   const registry: HandlerRegistry = { read: {}, write: {} };
@@ -185,12 +178,12 @@ export function generatedHandlerRegistry(
 /** Wire a generated device signal to compiled MAME methods and host endpoints. */
 export function wireGeneratedDevice(
   device: CallbackDevice,
-  machine: GeneratedMachine,
+  machine: BoardIr,
   ownerTag: string,
   signal: string,
   bindings: GeneratedHandlerBindings,
   endpoints: Record<string, (state: number) => void> = {},
-): WiringResult {
+): string[] {
   const compiled = new Map(
     (machine.handlers ?? [])
       .filter(handler => handler.program && handler.program.diagnostics.length === 0)
@@ -216,35 +209,37 @@ export function wireGeneratedDevice(
 }
 
 export function dispatchGeneratedCallbacks(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   ownerTag: string,
   signal: string,
   state: number,
   bindings: GeneratedHandlerBindings,
   endpoints: Record<string, (state: number) => void> = {},
-): WiringResult {
+): string[] {
   const bound: string[] = [];
-  const ignored = [];
   for (const callback of machine.callbacks) {
     if (callback.ownerTag !== ownerTag || callback.signal !== signal) continue;
-    const result = dispatchGeneratedCallback(machine, callback, state, bindings, endpoints);
-    bound.push(...result.bound);
-    ignored.push(...result.ignored);
+    bound.push(...dispatchGeneratedCallback(machine, callback, state, bindings, endpoints));
   }
-  return { bound, ignored };
+  return bound;
 }
 
 export function dispatchGeneratedCallback(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   callbackOrId: GeneratedCallback | string,
   state: number,
   bindings: GeneratedHandlerBindings,
   endpoints: Record<string, (state: number) => void> = {},
-): WiringResult {
+): string[] {
   const callback = typeof callbackOrId === 'string'
     ? machine.callbacks.find(candidate => candidate.id === callbackOrId)
     : callbackOrId;
-  if (!callback) return { bound: [], ignored: [] };
+  if (!callback) {
+    throw new Error(
+      `${machine.game}: dispatch names unknown callback "${String(callbackOrId)}"`,
+    );
+  }
+  if (isUnconnected(callback)) return [];
   const target = callbackTarget(callback);
   const endpoint = target ? endpoints[target] : undefined;
   const handler = callback.targetClass && callback.targetMethod
@@ -257,7 +252,7 @@ export function dispatchGeneratedCallback(
   const transformed = applySignalTransforms(state, callback.transforms);
   if (endpoint) {
     endpoint(transformed);
-    return { bound: [target!], ignored: [] };
+    return [target!];
   }
   if (handler?.program) {
     executeGeneratedMachineHandler(
@@ -266,13 +261,16 @@ export function dispatchGeneratedCallback(
       bindings,
       { state: transformed, data: transformed },
     );
-    return { bound: [target ?? `${handler.ownerClass}.${handler.method}`], ignored: [] };
+    return [target ?? `${handler.ownerClass}.${handler.method}`];
   }
-  return { bound: [], ignored: [callback] };
+  throw new Error(
+    `${machine.game}: callback "${callback.id}" (${callback.ownerTag}.${callback.signal}) ` +
+    `reaches no endpoint or generated handler — target ${target ?? 'is undeclared'}`,
+  );
 }
 
 export function executeGeneratedCallbackHandler(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   callbackOrId: GeneratedCallback | string,
   bindings: GeneratedHandlerBindings,
   args: Record<string, unknown> = {},
@@ -292,7 +290,7 @@ export function executeGeneratedCallbackHandler(
 }
 
 export function generatedPeriodicLines(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   ownerTag: string,
   refreshHz: number,
   vtotal: number,
@@ -311,7 +309,7 @@ export function generatedPeriodicLines(
 }
 
 function makeReadHandler(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   handler: GeneratedHandler,
   bindings: GeneratedHandlerBindings,
 ): ReadHandler {
@@ -324,7 +322,7 @@ function makeReadHandler(
 }
 
 function makeWriteHandler(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   handler: GeneratedHandler,
   bindings: GeneratedHandlerBindings,
 ): WriteHandler {
@@ -339,7 +337,7 @@ function makeWriteHandler(
 }
 
 export function executeGeneratedMachineProgram(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   handler: GeneratedHandler,
   bindings: GeneratedHandlerBindings,
   args: Record<string, unknown>,
@@ -360,7 +358,7 @@ export function executeGeneratedMachineProgram(
 }
 
 function preparedMachineCalls(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   bindings: GeneratedHandlerBindings,
   ownerClass: string,
 ): PreparedMachineCalls {
@@ -428,7 +426,7 @@ function preparedMachineCalls(
 }
 
 export function executeGeneratedMachineHandler(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   handler: GeneratedHandler,
   bindings: GeneratedHandlerBindings,
   args: Record<string, unknown>,

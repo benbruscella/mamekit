@@ -2,13 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 import { evalExpr } from '../kg/parse.ts';
-import type {
-  GeneratedHandler,
-  GeneratedPromPalettePlan,
-  GeneratedRamPalettePlan,
-  GeneratedSourceRef,
-  GeneratedVideoPlan,
-} from '../runtime/generated-machine.ts';
+import type { BoardSourceRef, GeneratedHandler, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
 import { MameAstIndex, parseMameAst, splitMameArgs, type MameFunction } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
@@ -1567,6 +1561,6 @@ function numericForLoops(source: string): {
   return loops;
 }
 
-function sourceRef(fn: MameFunction): GeneratedSourceRef {
+function sourceRef(fn: MameFunction): BoardSourceRef {
   return { file: fn.span.file, line: fn.span.line, column: fn.span.column };
 }

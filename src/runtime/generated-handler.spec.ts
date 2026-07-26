@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
@@ -7,7 +8,7 @@ import {
   generatedHandlerRegistry,
   wireGeneratedDevice,
 } from './generated-handler.ts';
-import type { GeneratedMachine } from './generated-machine.ts';
+import type { BoardIr } from '../ir/board.ts';
 
 const shares = { m_videoram: new Uint8Array(8) };
 const program = compileMameHandler(`
@@ -100,8 +101,8 @@ assert.equal(executeGeneratedHandler(tileFlags, {}, { attr: 0x40 }), 1);
 assert.equal(executeGeneratedHandler(tileFlags, {}, { attr: 0x20 }), 2);
 assert.equal(executeGeneratedHandler(tileFlags, {}, { attr: 0x60 }), 3);
 
-const machine: GeneratedMachine = {
-  schemaVersion: 2,
+const machine: BoardIr = {
+  schemaVersion: BOARD_IR_SCHEMA_VERSION,
   game: 'fixture',
   family: 'fixture',
   driverFile: 'fixture.cpp',
@@ -165,7 +166,7 @@ q0?.(1);
 assert.equal(irqMask, 1);
 
 const filterCalls: number[][] = [];
-const filterMachine: GeneratedMachine = {
+const filterMachine: BoardIr = {
   ...machine,
   handlers: [{
     id: 'handler:audio:filter_w',

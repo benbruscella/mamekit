@@ -1,10 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
 import { evalExpr } from '../kg/parse.ts';
-import type {
-  GeneratedHandlerProgram,
-  GeneratedSourceRef,
-} from '../runtime/generated-machine.ts';
+import type { BoardSourceRef, GeneratedHandlerProgram } from '../ir/board.ts';
 import {
   parseMameAst,
   splitMameArgs,
@@ -51,7 +48,7 @@ export interface GeneratedDeviceMethod {
   name: string;
   parameters: string;
   program: GeneratedHandlerProgram;
-  source: GeneratedSourceRef;
+  source: BoardSourceRef;
 }
 
 export interface GeneratedDeviceDefinition {

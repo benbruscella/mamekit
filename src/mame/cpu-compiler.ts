@@ -1,9 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import type {
-  GeneratedHandlerProgram,
-  GeneratedSourceRef,
-} from '../runtime/generated-machine.ts';
+import type { BoardSourceRef, GeneratedHandlerProgram } from '../ir/board.ts';
 import { parseMameAst, parseMameSource, splitMameArgs } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import {
@@ -32,7 +29,7 @@ export interface GeneratedCpuMethod {
   name: string;
   parameters: string;
   program: GeneratedHandlerProgram;
-  source: GeneratedSourceRef;
+  source: BoardSourceRef;
 }
 
 export interface GeneratedCpuOpcode {
@@ -40,7 +37,7 @@ export interface GeneratedCpuOpcode {
   description?: string;
   dispatch: boolean;
   program: GeneratedHandlerProgram;
-  source: GeneratedSourceRef;
+  source: BoardSourceRef;
 }
 
 export interface GeneratedCpuDefinition {
@@ -1818,7 +1815,7 @@ function lineAt(source: string, offset: number): number {
   return source.slice(0, offset).split('\n').length;
 }
 
-function sourceRef(file: string, line: number): GeneratedSourceRef {
+function sourceRef(file: string, line: number): BoardSourceRef {
   return { file, line };
 }
 

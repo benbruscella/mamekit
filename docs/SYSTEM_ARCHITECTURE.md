@@ -180,7 +180,7 @@ The serialized machine contains:
 - sound routing metadata;
 - source locations for executable elements.
 
-The machine is emitted as `generated/machine.json`. The adjacent `board.ts` is
+The machine is emitted as `generated/board.json`. The adjacent `board.ts` is
 intentionally small: it imports the JSON, validates it through
 `defineMachine()`, and delegates construction to `createGeneratedBoard()`.
 
@@ -339,7 +339,7 @@ dist/
 
 Generated game directories contain configuration, graphs, metadata, reports,
 `DOSSIER.md`, and a `generated/` directory with `board.ts`, `board.js`,
-`machine.json` and `provenance.json`.
+`board.json` and `provenance.json`.
 
 ## 11. DATA AND BEHAVIOR RULE
 

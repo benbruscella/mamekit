@@ -1,18 +1,17 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
-import type { GeneratedHandlerProgram } from '../runtime/generated-machine.ts';
+import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import { parseMameAst, splitMameArgs, type MameFunction } from './ast.ts';
 import { evalExpr } from '../kg/parse.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
-import {
-  AY_FILTER_CONTROL_BASE,
-  AY_FILTER_CONTROL_STRIDE,
-  type GeneratedDacFilterPlan,
-  type GeneratedDiscreteMixerPlan,
-  type GeneratedSpeakerFilterPlan,
-} from '../runtime/audio-protocol.ts';
+import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE } from '../ir/audio-protocol.ts';
+import type {
+  GeneratedDacFilterPlan,
+  GeneratedDiscreteMixerPlan,
+  GeneratedSpeakerFilterPlan,
+} from '../ir/audio-protocol.ts';
 
 export function compileMameSpeakerFilter(
   mameSrc: string,
@@ -1104,7 +1103,7 @@ export function generatedNamcoWsgWorkletSource(plan: GeneratedNamcoWsgPlan): str
 // Register behavior is executable MAME handler IR. Mixer constants and waveform
 // addressing are lowered from namco_audio_device<${plan.voices}, ${plan.packed}>.
 import { executeGeneratedProgram } from '../../core/generated-handler.js';
-import type { GeneratedHandlerProgram } from '../../core/generated-machine.js';
+import type { GeneratedHandlerProgram } from '../../ir/board.js';
 
 const plan = ${JSON.stringify(plan, null, 2)} as unknown as {
   voices: number;

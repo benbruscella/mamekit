@@ -19,12 +19,10 @@ import {
   wireGeneratedDevice,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
-import { callbackTarget, type GeneratedMachine } from './generated-machine.ts';
+import { callbackTarget } from './generated-machine.ts';
+import type { BoardIr } from '../ir/board.ts';
 import { portHandlers } from './input.ts';
-import {
-  AY_FILTER_CONTROL_BASE,
-  AY_FILTER_CONTROL_STRIDE,
-} from './audio-protocol.ts';
+import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE } from '../ir/audio-protocol.ts';
 import type {
   Board,
   BoardConfig,
@@ -84,7 +82,7 @@ export function createBoard(
  * CPU, device, handler, callback and scheduling definitions.
  */
 export function createGeneratedBoard(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   config: BoardConfig,
   regions: Regions,
   inputs: InputPorts,
@@ -97,7 +95,7 @@ class IrBoard implements Board {
   readonly fbWidth: number;
   readonly fbHeight: number;
 
-  private readonly machine: GeneratedMachine;
+  private readonly machine: BoardIr;
   private readonly cpus = new Map<string, Cpu>();
   private readonly cpuCycles = new Map<string, number>();
   private readonly cpuHeld = new Map<string, boolean>();
@@ -110,7 +108,7 @@ class IrBoard implements Board {
   private currentLine = 0;
 
   constructor(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     config: BoardConfig,
     regions: Regions,
     inputs: InputPorts,
@@ -502,7 +500,7 @@ class IrBoard implements Board {
   }
 
   private installDeviceHandlers(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     registry: HandlerRegistry,
   ): void {
     for (const map of machine.maps ?? []) {
@@ -530,7 +528,7 @@ class IrBoard implements Board {
   }
 
   private installDeclarativeHandlers(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     config: BoardConfig,
     inputs: InputPorts,
     registry: HandlerRegistry,
@@ -603,7 +601,7 @@ class IrBoard implements Board {
   }
 
   private installInterruptVectorWriters(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     registry: HandlerRegistry,
   ): void {
     const cpuTagsByWriter = new Map<string, string[]>();
@@ -627,7 +625,7 @@ class IrBoard implements Board {
   }
 
   private installMemoryBanks(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     regions: Regions,
     registry: HandlerRegistry,
   ): void {
@@ -659,7 +657,7 @@ class IrBoard implements Board {
   }
 
   private installGeneratedSoundHandlers(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     sinks: BoardSinks,
     registry: HandlerRegistry,
   ): void {
@@ -904,7 +902,7 @@ class IrBoard implements Board {
 
 export function bindGeneratedAudioFilters(
   state: Record<string, unknown>,
-  sound: NonNullable<GeneratedMachine['sound']>,
+  sound: NonNullable<BoardIr['sound']>,
   soundWrite: BoardSinks['soundWrite'],
   fraction: () => number = () => 0,
 ): void {
@@ -977,7 +975,7 @@ export function bindGeneratedShareState(
 }
 
 function usedHandlers(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   kind: 'read' | 'write',
 ): string[] {
   return (machine.maps ?? []).flatMap(map =>

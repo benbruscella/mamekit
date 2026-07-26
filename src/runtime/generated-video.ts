@@ -1,13 +1,6 @@
 import type { VideoRenderer } from './types.ts';
 import type { Regions, VideoRenderer as Renderer } from './types.ts';
-import type {
-  GeneratedGfxEntry,
-  GeneratedHandler,
-  GeneratedMachine,
-  GeneratedPromPalettePlan,
-  GeneratedRamPalettePlan,
-  GeneratedTilemapPlan,
-} from './generated-machine.ts';
+import type { BoardIr, GeneratedGfxEntry, GeneratedHandler, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
 import {
   executeGeneratedCallbackHandler,
   executeGeneratedMachineProgram,
@@ -29,7 +22,7 @@ export interface GeneratedVideoPrimitives extends VideoRenderer {
  * compose palette pen indices that the screen resolves on output, while
  * bitmap_rgb32 screens write final colors.
  */
-export function isIndexedScreen(machine: GeneratedMachine): boolean {
+export function isIndexedScreen(machine: BoardIr): boolean {
   const target = machine.execution.screenUpdate?.handler;
   if (!target) return false;
   const handler = machine.handlers?.find(candidate =>
@@ -45,9 +38,9 @@ export class GeneratedVideoRenderer implements VideoRenderer {
   readonly width: number;
   readonly height: number;
 
-  private readonly machine: GeneratedMachine;
+  private readonly machine: BoardIr;
   private readonly primitives: GeneratedVideoPrimitives;
-  private readonly screenUpdate: NonNullable<GeneratedMachine['callbacks']>[number];
+  private readonly screenUpdate: NonNullable<BoardIr['callbacks']>[number];
   private readonly indexed: boolean;
   /**
    * bitmap_ind16 machines compose pen indices here, persisting across frames
@@ -57,7 +50,7 @@ export class GeneratedVideoRenderer implements VideoRenderer {
   private readonly penBuffer?: Uint32Array;
   private partialNextY: number;
 
-  constructor(machine: GeneratedMachine, primitives: GeneratedVideoPrimitives) {
+  constructor(machine: BoardIr, primitives: GeneratedVideoPrimitives) {
     const screenUpdate = machine.callbacks.find(callback =>
       callback.signal === 'set_screen_update');
     if (!screenUpdate) {
@@ -592,7 +585,7 @@ class GeneratedTilemap {
   private readonly plan: GeneratedTilemapPlan;
   private readonly mapper?: GeneratedHandler;
   private readonly tileInfo: GeneratedHandler;
-  private readonly machine: GeneratedMachine;
+  private readonly machine: BoardIr;
   private readonly bindings: () => GeneratedHandlerBindings;
   private readonly gfx: GeneratedGfxElement[];
   private readonly tiles: Array<TileInfo | undefined> = [];
@@ -603,7 +596,7 @@ class GeneratedTilemap {
 
   constructor(
     plan: GeneratedTilemapPlan,
-    machine: GeneratedMachine,
+    machine: BoardIr,
     bindings: () => GeneratedHandlerBindings,
     gfx: GeneratedGfxElement[],
   ) {
@@ -834,7 +827,7 @@ export function generatedScrollBand(
 export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, Renderer {
   readonly width: number;
   readonly height: number;
-  private readonly machine: GeneratedMachine;
+  private readonly machine: BoardIr;
   private readonly state: Record<string, unknown>;
   private readonly gfx: GeneratedGfxElement[];
   private readonly palette?: GeneratedPaletteDevice;
@@ -844,7 +837,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private readonly bindings: GeneratedHandlerBindings;
 
   constructor(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     regions: Regions,
     state: Record<string, unknown>,
     bindings: GeneratedHandlerBindings,
@@ -1103,7 +1096,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
 }
 
 function createRamPalette(
-  plan: NonNullable<NonNullable<GeneratedMachine['video']>['bitmap']>['paletteRam'] & {},
+  plan: NonNullable<NonNullable<BoardIr['video']>['bitmap']>['paletteRam'] & {},
   bytes: Uint8Array,
 ): Uint32Array {
   const network = {
@@ -1149,7 +1142,7 @@ function generatedArgumentValue(value: unknown): unknown {
   return value;
 }
 
-function requiredHandler(machine: GeneratedMachine, key: string): GeneratedHandler {
+function requiredHandler(machine: BoardIr, key: string): GeneratedHandler {
   const handler = machine.handlers?.find(candidate =>
     `${candidate.ownerClass}.${candidate.method}` === key &&
     candidate.program &&

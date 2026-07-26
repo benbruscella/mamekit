@@ -93,7 +93,7 @@ Inspect these files before opening the browser:
 - `graph.json`: target dependency graph;
 - `graph.full.json`: full driver context;
 - `config.json`: browser/ROM/input facts;
-- `generated/machine.json`: complete executable machine IR;
+- `generated/board.json`: complete executable board IR;
 - `generated/provenance.json`: source ownership;
 - `runtime-report.md`: generated behavior and hardware gaps;
 - `DOSSIER.md`: generated archival machine document.

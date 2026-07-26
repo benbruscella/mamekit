@@ -63,14 +63,6 @@ export function layerOf(file: string): Layer {
  * listed one is gone, so the list cannot silently rot.
  */
 const KNOWN_VIOLATIONS: Record<string, string> = {
-  'mame/cpu-compiler.ts -> runtime/generated-machine.ts': 'phase 1: IR types move to src/ir/board.ts',
-  'mame/cpu-codegen.ts -> runtime/generated-machine.ts': 'phase 1: IR types move to src/ir/board.ts',
-  'mame/device-compiler.ts -> runtime/generated-machine.ts': 'phase 1: IR types move to src/ir/board.ts',
-  'mame/device-codegen.ts -> runtime/generated-machine.ts': 'phase 1: IR types move to src/ir/board.ts',
-  'mame/handler-ir.ts -> runtime/generated-machine.ts': 'phase 1: IR types move to src/ir/board.ts',
-  'mame/video-compiler.ts -> runtime/generated-machine.ts': 'phase 1: IR types move to src/ir/board.ts',
-  'mame/audio-compiler.ts -> runtime/generated-machine.ts': 'phase 1: IR types move to src/ir/board.ts',
-  'mame/audio-compiler.ts -> runtime/audio-protocol.ts': 'phase 1: audio protocol types move to src/ir',
   'kg/build.ts -> runtime/generated-handler.ts': 'phase 2: the generic IR interpreter moves to src/ir',
 };
 

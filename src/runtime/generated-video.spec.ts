@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
+import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { executeGeneratedProgram } from './generated-handler.ts';
-import type { GeneratedMachine } from './generated-machine.ts';
+import type { BoardIr } from '../ir/board.ts';
 import {
   createGeneratedTileInfoTarget,
   generatedScrollBand,
@@ -55,8 +56,8 @@ const body = `
   m_fg_tilemap->draw(screen, bitmap, cliprect, 0, 0);
   return 0;
 `;
-const machine: GeneratedMachine = {
-  schemaVersion: 2,
+const machine: BoardIr = {
+  schemaVersion: BOARD_IR_SCHEMA_VERSION,
   game: 'fixture',
   family: 'fixture',
   driverFile: 'fixture.cpp',
@@ -108,7 +109,7 @@ if (
   throw new Error(`generated visible-area translation is wrong: ${[...frame]}`);
 }
 const partialStarts: number[] = [];
-const partialMachine: GeneratedMachine = {
+const partialMachine: BoardIr = {
   ...machine,
   callbacks: [{
     ...machine.callbacks[0]!,
@@ -222,7 +223,7 @@ if (generatedScreen.frame_number() !== 1) {
   throw new Error('generated screen frame counter did not advance at vblank');
 }
 
-const tileMachine: GeneratedMachine = {
+const tileMachine: BoardIr = {
   ...machine,
   handlers: [
     ...machine.handlers!,
@@ -268,8 +269,8 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
 // derived from the clip alone paints x -140..115 and leaves 116..255 holding
 // the previous frame's pens, which shows up as a torn vertical band.
 {
-  const scrollMachine: GeneratedMachine = {
-    schemaVersion: 2,
+  const scrollMachine: BoardIr = {
+    schemaVersion: BOARD_IR_SCHEMA_VERSION,
     game: 'scroll',
     family: 'scroll',
     driverFile: 'src/mame/fixture/scroll.cpp',

@@ -86,10 +86,12 @@ if (machine.execution.cpus[0]?.interruptVectorWriters?.[0] !== 'test_state.vecto
   throw new Error('interrupt-vector writer relation was not lowered from handler IR');
 }
 const source = generatedBoardSource(machine);
-if (!source.includes('defineMachine')) throw new Error('generated module is not executable TypeScript');
+if (!source.includes('decodeBoardIr(')) {
+  throw new Error('generated module asserts its IR instead of decoding it');
+}
 if (!source.includes('src/mame/test.cpp')) throw new Error('generated module lost source provenance');
-if (!source.includes("from './machine.json' with { type: 'json' }")) {
-  throw new Error('generated board does not import machine JSON');
+if (!source.includes("from './board.json' with { type: 'json' }")) {
+  throw new Error('generated board does not import board JSON');
 }
 if (source.includes('JSON.parse')) throw new Error('generated board embeds machine JSON');
 

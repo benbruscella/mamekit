@@ -1,7 +1,4 @@
-import type {
-  GeneratedExpression,
-  GeneratedHandlerOperation,
-} from '../runtime/generated-machine.ts';
+import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
 import type {
   GeneratedDeviceDefinition,
   GeneratedDeviceMethod,
