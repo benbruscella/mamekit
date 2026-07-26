@@ -130,7 +130,7 @@ it does not flag them.
 
 ## 4. CALLBACK VOCABULARY TO LOWER (PHASE 2 WORK LIST)
 
-220 callbacks across the 12 targets, carrying 79 distinct MAME `targetMethod` strings
+171 callbacks across the 12 targets, carrying 79 distinct MAME `targetMethod` strings
 into the browser. Only these are actually *interpreted by name* at runtime today and
 must become typed triggers and actions:
 
