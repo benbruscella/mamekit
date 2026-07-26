@@ -61,10 +61,10 @@ export function layerOf(file: string): Layer {
  * Violations present at the issue #38 baseline, each with the phase that
  * removes it. The spec fails when an unlisted violation appears AND when a
  * listed one is gone, so the list cannot silently rot.
+ *
+ * Empty since phase 2: compile -> IR -> execution now holds throughout.
  */
-const KNOWN_VIOLATIONS: Record<string, string> = {
-  'kg/build.ts -> runtime/generated-handler.ts': 'phase 2: the generic IR interpreter moves to src/ir',
-};
+const KNOWN_VIOLATIONS: Record<string, string> = {};
 
 function sourceFiles(dir: string): string[] {
   const out: string[] = [];

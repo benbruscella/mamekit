@@ -297,22 +297,26 @@ export async function runGameAcceptance(
       );
     }
   }
-  assert.ok(
-    emulatedFps >= contract.minimumFps,
-    `${contract.game}: ${emulatedFps.toFixed(1)} fps is below the ` +
-      `${contract.minimumFps} fps acceptance floor`,
-  );
   console.log(
     `${contract.game}: ${emulatedFps.toFixed(1)} emulated fps ` +
       `(minimum ${contract.minimumFps})`,
   );
 
+  // Behaviour is asserted before throughput. The fps floor depends on how busy
+  // the host is, so checking it first let a loaded machine abort the run before
+  // it ever compared hashes — hiding a real behavioural regression behind a
+  // performance failure.
   if (process.env.MAMEKIT_UPDATE_GOLDENS === '1') {
     console.log(`${contract.game}:\n${JSON.stringify(result, null, 2)}`);
   } else {
     assert.ok(contract.golden, `${contract.game}: no acceptance golden is recorded`);
     assert.deepEqual(result, contract.golden, `${contract.game}: generated behavior changed`);
   }
+  assert.ok(
+    emulatedFps >= contract.minimumFps,
+    `${contract.game}: ${emulatedFps.toFixed(1)} fps is below the ` +
+      `${contract.minimumFps} fps acceptance floor`,
+  );
   return result;
 }
 

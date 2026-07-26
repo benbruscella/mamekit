@@ -9,7 +9,7 @@ import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
-} from '../runtime/generated-handler.ts';
+} from '../ir/execute.ts';
 import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
