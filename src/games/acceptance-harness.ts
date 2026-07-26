@@ -76,12 +76,29 @@ export async function runGameAcceptance(
   assert.equal(config.sound.kind, contract.soundKind);
 
   const files = await readZip(new Uint8Array(readFileSync(romPath)));
+  // MAME commonised device ROMs into their own sets, so a board's parts come
+  // from several zips: galaga.zip plus namco51.zip and namco54.zip. The set
+  // names are the MAME device short names carried in the generated manifest.
+  for (const romSet of new Set(config.roms.flatMap(spec => spec.romSet ? [spec.romSet] : []))) {
+    const devicePath = resolve(join(root, `roms/${contract.category}/${romSet}.zip`));
+    assert.ok(
+      existsSync(devicePath),
+      `${contract.game}: MAME device ROM set "${romSet}" is missing: ${devicePath}`,
+    );
+    for (const [name, bytes] of await readZip(new Uint8Array(readFileSync(devicePath)))) {
+      files.set(name, bytes);
+    }
+  }
+
   const critical = new Set(config.board.cpus.map(cpu => cpu.region));
   const romCheck = checkRomSet(config.roms, files, critical);
-  assert.deepEqual(romCheck.missingCritical, []);
+  // Every chip MAME says is dumped must be present. Zero-filling a missing
+  // ROM and carrying on produces goldens for hardware that does not exist;
+  // undumped chips (NO_DUMP in MAME) are excluded by checkRomSet itself.
   assert.deepEqual(
-    romCheck.missingOther.filter(file => !contract.optionalRomFiles?.includes(file)),
+    [...romCheck.missingCritical, ...romCheck.missingOther],
     [],
+    `${contract.game}: ROM set is incomplete`,
   );
   assert.deepEqual(romCheck.crcMismatch, []);
   const regions = assembleRegions(config.roms, files, () => {}, critical);

@@ -23,7 +23,7 @@ import {
   compileMameSpeakerFilter,
   compileNamco54Discrete,
 } from '../mame/audio-compiler.ts';
-import { mameDeviceRomSet } from '../mame/device-compiler.ts';
+import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.ts';
 import {
   GAME_CATEGORIES,
   gameDataPath,
@@ -465,6 +465,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         crc,
         ...(alts.length ? { alt: alts } : {}),
         ...(rom.props.reloadOffsets ? { reloadOffsets: rom.props.reloadOffsets as number[] } : {}),
+        ...(rom.props.status ? { status: rom.props.status as 'nodump' | 'baddump' } : {}),
       };
     }),
   }));
@@ -486,15 +487,20 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         : undefined;
       const deviceRomSet = romSetName && full.node(`romset:${romSetName}`);
       if (!deviceRomSet) continue;
+      // MAME loads a device's ROMs from its own set, named by the device short
+      // name in DEFINE_DEVICE_TYPE — namco54.zip, not the parent game's zip.
+      const romSet = mameDeviceShortName(opts.mameSrc, sourceFile, className);
       for (const { node: region } of full.out(deviceRomSet.id, 'HAS_REGION')) {
         roms.push({
           region: `${host.props.tag}:${region.props.tag}`,
           size: Number(region.props.size),
+          ...(romSet ? { romSet } : {}),
           loads: full.out(region.id, 'LOADS').map(({ node: rom }) => ({
             file: String(rom.props.file),
             offset: Number(rom.props.offset),
             size: Number(rom.props.size),
             crc: String(rom.props.crc),
+            ...(rom.props.status ? { status: rom.props.status as 'nodump' | 'baddump' } : {}),
           })),
         });
       }

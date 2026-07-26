@@ -16,13 +16,31 @@ export interface RomLoad {
   /** same-slot chips from sibling sets (other revisions of the same game) */
   alt?: { file: string; crc: string }[];
   reloadOffsets?: number[];
+  /**
+   * MAME's dump status for the chip. `nodump` means no copy exists anywhere,
+   * so no ROM set can supply it and MAME leaves those bytes erased; it is not
+   * an incomplete set. `baddump` bytes are known-imperfect but usable.
+   */
+  status?: 'nodump' | 'baddump';
 }
 export interface RomRegionSpec {
   region: string;
   size: number;
   /** MAME ROMREGION_ERASE00/ERASEFF initialization for unloaded bytes. */
   fill?: number;
+  /**
+   * MAME device short name owning this region's ROMs, when they come from a
+   * device set rather than the game set. MAME commonised device ROMs so one
+   * copy serves every board using the part, and loads them from
+   * `<romSet>.zip` — namco54.zip, not galaga.zip.
+   */
+  romSet?: string;
   loads: RomLoad[];
+}
+
+/** A chip MAME says exists on the board and can actually be supplied. */
+export function isDumpedRom(load: RomLoad): boolean {
+  return load.status !== 'nodump';
 }
 
 export interface SoundSpec {
@@ -130,6 +148,9 @@ export function checkRomSet(
   const check: RomCheck = { perFile: [], missingCritical: [], missingOther: [], crcMismatch: [] };
   for (const spec of specs) {
     for (const load of spec.loads) {
+      // An undumped chip cannot be in any ROM set. Reporting it as missing
+      // told users to go looking for a file that does not exist.
+      if (!isDumpedRom(load)) continue;
       const isCrit = critical.has(spec.region);
       const { bytes, exact } = findRomBytes(load, files, byCrc);
       let status: 'ok' | 'crc' | 'missing';
@@ -337,6 +358,9 @@ export function assembleRegions(
     const bytes = new Uint8Array(spec.size);
     if (spec.fill) bytes.fill(spec.fill & 0xff);
     for (const load of spec.loads) {
+      // MAME erases an undumped chip's bytes and runs; so do we, without
+      // claiming the user's ROM set is short a file.
+      if (!isDumpedRom(load)) continue;
       // primary chip by name/swapped-name/CRC, else a clone-revision
       // alternate from the same slot (see findRomBytes)
       const { bytes: f, exact } = findRomBytes(load, files, byCrc);

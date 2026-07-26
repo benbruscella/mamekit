@@ -155,6 +155,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
           ...spanProps(ast.findMacro('ROM_LOAD', 0, load.file)?.span),
         };
         if (load.reloadOffsets.length) props.reloadOffsets = load.reloadOffsets;
+        if (load.status) props.status = load.status;
         g.node('Rom', romId, props);
         g.edge(regId, romId, 'LOADS');
       }

@@ -306,6 +306,14 @@ function unquote(s: string): string {
 
 export interface RomLoad {
   file: string; offset: number; size: number; crc: string; sha1: string; reloadOffsets: number[];
+  /**
+   * MAME's own dump status for this chip. `nodump` means no copy of the part
+   * exists anywhere (rocnrope's h100.6g PAL: "Schematics obfuscated"), so no
+   * ROM set can supply it and MAME leaves the region erased. `baddump` means
+   * the bytes are known-imperfect but usable. Without this, an undumped chip
+   * is indistinguishable from a ROM set that is simply incomplete.
+   */
+  status?: 'nodump' | 'baddump';
 }
 export interface RomRegionDef {
   tag: string; size: number; flags: string; loads: RomLoad[];
@@ -361,8 +369,9 @@ export function parseRomSets(src: string): RomSetDef[] {
         }
         case 'ROM_LOAD': {
           if (!region) break;
-          const crc = /CRC\(([0-9a-fA-F]+)\)/.exec(args[3] ?? '');
-          const sha1 = /SHA1\(([0-9a-fA-F]+)\)/.exec(args[3] ?? '');
+          const flags = args[3] ?? '';
+          const crc = /CRC\(([0-9a-fA-F]+)\)/.exec(flags);
+          const sha1 = /SHA1\(([0-9a-fA-F]+)\)/.exec(flags);
           lastLoad = {
             file: unquote(args[0]),
             offset: evalExpr(args[1]) ?? 0,
@@ -370,6 +379,11 @@ export function parseRomSets(src: string): RomSetDef[] {
             crc: crc ? crc[1] : '',
             sha1: sha1 ? sha1[1] : '',
             reloadOffsets: [],
+            ...(/\bNO_DUMP\b/.test(flags)
+              ? { status: 'nodump' as const }
+              : /\bBAD_DUMP\b/.test(flags)
+                ? { status: 'baddump' as const }
+                : {}),
           };
           region.loads.push(lastLoad);
           break;

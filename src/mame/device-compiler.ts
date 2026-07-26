@@ -279,6 +279,28 @@ export function mameDeviceRomSet(
   return fallback?.[1];
 }
 
+/**
+ * MAME's short name for a device, from
+ * `DEFINE_DEVICE_TYPE(NAMCO_54XX, namco_54xx_device, "namco54", "Namco 54xx")`.
+ *
+ * This is the name MAME searches the rompath for, so a device that owns ROMs
+ * loads them from `<shortname>.zip` — namco54.zip, not the parent game's set.
+ * MAME commonised these device ROMs precisely so one copy serves every board
+ * that uses the part, and MAMEKIT has to look in the same place.
+ */
+export function mameDeviceShortName(
+  mameSrc: string,
+  sourceFile: string,
+  className: string,
+): string | undefined {
+  const source = readFileSync(join(mameSrc, sourceFile), 'utf8');
+  const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = new RegExp(
+    `DEFINE_DEVICE_TYPE\\s*\\(\\s*\\w+\\s*,\\s*${escaped}\\s*,\\s*"([^"]+)"`,
+  ).exec(source);
+  return match?.[1];
+}
+
 function executionClockDivider(source: string): number | undefined {
   const match = /execute_cycles_to_clocks\s*\([^)]*\)[^{]*\{[^}]*return\s*\([^;]*\*\s*(\d+)\s*\)/s
     .exec(source);
