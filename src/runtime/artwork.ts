@@ -7,8 +7,31 @@
 import { readZip } from './zip.ts';
 
 export interface ArtWindow { x: number; y: number; w: number; h: number }
+export interface ArtTint {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  red: number;
+  green: number;
+  blue: number;
+  alpha: number;
+}
 /** bmp is pre-rotated per the lay's <orientation> (canvas when rotated) */
-export interface Artwork { bmp: ImageBitmap | HTMLCanvasElement; window: ArtWindow | null }
+export interface Artwork {
+  bmp: ImageBitmap | HTMLCanvasElement;
+  window: ArtWindow | null;
+  tints: ArtTint[];
+}
+
+interface LayoutView {
+  name: string;
+  screen: ArtWindow;
+  art: ArtWindow;
+  file: string;
+  rotate: number;
+  tints: ArtTint[];
+}
 
 /**
  * Load a game's artwork. The zip's MAME `default.lay` layout is the source
@@ -36,7 +59,7 @@ export async function loadArtwork(game: string, prefer: 'marquee' | 'bezel'): Pr
     };
     pngs.sort((a, b) => score(b[0]) - score(a[0]) || b[1].length - a[1].length);
     const bmp = await createImageBitmap(new Blob([pngs[0][1].slice().buffer], { type: 'image/png' }));
-    return { bmp, window: findWindow(bmp) };
+    return { bmp, window: findWindow(bmp), tints: [] };
   } catch {
     return null;
   }
@@ -46,39 +69,8 @@ export async function loadArtwork(game: string, prefer: 'marquee' | 'bezel'): Pr
 async function layArtwork(files: Map<string, Uint8Array>): Promise<Artwork | null> {
   const layBytes = files.get('default.lay');
   if (!layBytes) return null;
-  const lay = new TextDecoder().decode(layBytes).replace(/<!--[\s\S]*?-->/g, '');
-
-  // element name -> image file
-  const images = new Map<string, string>();
-  for (const m of lay.matchAll(/<element name="([^"]+)"[^>]*>\s*<image file="([^"]+)"/g)) {
-    images.set(m[1], m[2]);
-  }
-
-  const bounds = (tag: string) => {
-    const b = /<bounds\s+([^/]*)\/>/.exec(tag);
-    if (!b) return null;
-    const attrs: Record<string, number> = {};
-    for (const a of b[1].matchAll(/(\w+)="([\d.]+)"/g)) attrs[a[1]] = Number(a[2]);
-    return { x: attrs.x ?? 0, y: attrs.y ?? 0, w: attrs.width, h: attrs.height };
-  };
-
-  interface View { name: string; screen: NonNullable<ReturnType<typeof bounds>>; art: NonNullable<ReturnType<typeof bounds>>; file: string; rotate: number }
-  const views: View[] = [];
-  for (const v of lay.matchAll(/<view name="([^"]+)">([\s\S]*?)<\/view>/g)) {
-    const body = v[2];
-    const sm = /<screen[^>]*>[\s\S]*?<\/screen>|<screen[^>]*>\s*<bounds[^/]*\/>/.exec(body);
-    const am = /<(?:bezel|backdrop|overlay)\s+element="([^"]+)"[^>]*>[\s\S]*?<\/(?:bezel|backdrop|overlay)>/.exec(body);
-    if (!sm || !am) continue;
-    const screen = bounds(sm[0]);
-    const art = bounds(am[0]);
-    const file = images.get(am[1]);
-    const rotate = Number(/<orientation\s+rotate="(\d+)"/.exec(am[0])?.[1] ?? 0);
-    if (screen && art && art.w && art.h && file) views.push({ name: v[1], screen, art, file, rotate });
-  }
-  if (!views.length) return null;
-  // prefer the real cabinet view
-  views.sort((a, b) => Number(/upright/i.test(b.name)) - Number(/upright/i.test(a.name)));
-  const view = views[0];
+  const view = parseArtworkLayout(new TextDecoder().decode(layBytes));
+  if (!view) return null;
 
   const findFile = (name: string) => files.get(name) ?? files.get(name.toLowerCase());
   const png = findFile(view.file);
@@ -105,7 +97,150 @@ async function layArtwork(files: Map<string, Uint8Array>): Promise<Artwork | nul
       w: view.screen.w * sx,
       h: view.screen.h * sy,
     },
+    tints: view.tints,
   };
+}
+
+/**
+ * Resolve the cabinet view from a MAME layout. Both the original
+ * `<bezel element="…">` syntax and current collection/element syntax occur in
+ * artwork packs, so this deliberately supports both.
+ */
+export function parseArtworkLayout(source: string): LayoutView | null {
+  const lay = source.replace(/<!--[\s\S]*?-->/g, '');
+  const elementBodies = new Map<string, string>();
+  const images = new Map<string, string>();
+  for (const match of lay.matchAll(
+    /<element\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/element>/g,
+  )) {
+    elementBodies.set(match[1], match[2]);
+    const file = /<image\s+[^>]*file="([^"]+)"/.exec(match[2])?.[1];
+    if (file) images.set(match[1], file);
+  }
+
+  const views: LayoutView[] = [];
+  for (const match of lay.matchAll(/<view\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/view>/g)) {
+    const name = match[1];
+    const body = match[2];
+    const screenTag = /<screen\b[^>]*>[\s\S]*?<\/screen>/.exec(body)?.[0];
+    const screen = layoutBounds(screenTag);
+    if (!screen?.w || !screen.h) continue;
+
+    let artTag: string | undefined;
+    let artElement: string | undefined;
+    for (const kind of ['bezel', 'backdrop'] as const) {
+      const legacy = new RegExp(
+        `<${kind}\\s+[^>]*element="([^"]+)"[^>]*>[\\s\\S]*?<\\/${kind}>`,
+      ).exec(body);
+      if (legacy) {
+        artTag = legacy[0];
+        artElement = legacy[1];
+        break;
+      }
+    }
+    if (!artTag) {
+      const bezelCollection = /<collection\s+name="Bezel"[^>]*>([\s\S]*?)<\/collection>/i
+        .exec(body)?.[1];
+      const placed = placedLayoutElements(bezelCollection ?? body)
+        .find(candidate => images.has(candidate.ref) &&
+          (/bezel/i.test(candidate.ref) || Boolean(bezelCollection)));
+      if (placed) {
+        artTag = placed.tag;
+        artElement = placed.ref;
+      }
+    }
+    const art = layoutBounds(artTag);
+    const file = artElement ? images.get(artElement) : undefined;
+    if (!art?.w || !art.h || !file) continue;
+
+    const overlayCollection = /<collection\s+name="Overlay"[^>]*>([\s\S]*?)<\/collection>/i
+      .exec(body)?.[1];
+    const overlayPlacement = overlayCollection
+      ? placedLayoutElements(overlayCollection).find(candidate =>
+        /\bblend="multiply"/.test(candidate.tag))
+      : undefined;
+    const tints = overlayPlacement
+      ? layoutTints(
+        elementBodies.get(overlayPlacement.ref) ?? '',
+        layoutBounds(overlayPlacement.tag),
+        screen,
+      )
+      : [];
+    const rotate = Number(
+      /<orientation\s+[^>]*rotate="(\d+)"/.exec(artTag ?? '')?.[1] ?? 0,
+    );
+    views.push({ name, screen, art, file, rotate, tints });
+  }
+  views.sort((a, b) =>
+    Number(/upright/i.test(b.name)) - Number(/upright/i.test(a.name)));
+  return views[0] ?? null;
+}
+
+function placedLayoutElements(source: string): { ref: string; tag: string }[] {
+  return [...source.matchAll(
+    /<element\s+[^>]*ref="([^"]+)"[^>]*>[\s\S]*?<\/element>/g,
+  )].map(match => ({ ref: match[1], tag: match[0] }));
+}
+
+function layoutBounds(source: string | undefined): ArtWindow | null {
+  const raw = /<bounds\s+([^>]*?)(?:\/>|>)/.exec(source ?? '')?.[1];
+  if (!raw) return null;
+  const attrs: Record<string, number> = {};
+  for (const match of raw.matchAll(/(\w+)="(-?[\d.]+)"/g)) {
+    attrs[match[1]] = Number(match[2]);
+  }
+  const x = attrs.x ?? attrs.left ?? 0;
+  const y = attrs.y ?? attrs.top ?? 0;
+  const w = attrs.width ?? (
+    Number.isFinite(attrs.right) ? attrs.right - x : Number.NaN
+  );
+  const h = attrs.height ?? (
+    Number.isFinite(attrs.bottom) ? attrs.bottom - y : Number.NaN
+  );
+  return { x, y, w, h };
+}
+
+function layoutTints(
+  elementBody: string,
+  placement: ArtWindow | null,
+  screen: ArtWindow,
+): ArtTint[] {
+  if (!placement?.w || !placement.h) return [];
+  const rects = [...elementBody.matchAll(/<rect\b[^>]*>([\s\S]*?)<\/rect>/g)]
+    .map(match => {
+      const bounds = layoutBounds(match[0]);
+      const colorTag = /<color\s+([^>]*?)(?:\/>|>)/.exec(match[1])?.[1] ?? '';
+      const color: Record<string, number> = {};
+      for (const component of colorTag.matchAll(/(\w+)="([\d.]+)"/g)) {
+        color[component[1]] = Number(component[2]);
+      }
+      return bounds?.w && bounds.h ? { bounds, color } : null;
+    })
+    .filter((value): value is NonNullable<typeof value> => Boolean(value));
+  if (!rects.length) return [];
+  const left = Math.min(...rects.map(rect => rect.bounds.x));
+  const top = Math.min(...rects.map(rect => rect.bounds.y));
+  const right = Math.max(...rects.map(rect => rect.bounds.x + rect.bounds.w));
+  const bottom = Math.max(...rects.map(rect => rect.bounds.y + rect.bounds.h));
+  const width = right - left;
+  const height = bottom - top;
+  if (!(width > 0 && height > 0)) return [];
+  return rects.map(({ bounds, color }) => {
+    const viewX = placement.x + (bounds.x - left) / width * placement.w;
+    const viewY = placement.y + (bounds.y - top) / height * placement.h;
+    return {
+      x: (viewX - screen.x) / screen.w,
+      y: (viewY - screen.y) / screen.h,
+      w: bounds.w / width * placement.w / screen.w,
+      h: bounds.h / height * placement.h / screen.h,
+      red: color.red ?? 1,
+      green: color.green ?? 1,
+      blue: color.blue ?? 1,
+      alpha: color.alpha ?? 1,
+    };
+  }).filter(tint =>
+    tint.alpha > 0 &&
+    (tint.red !== 1 || tint.green !== 1 || tint.blue !== 1 || tint.alpha !== 1));
 }
 
 /** Bounding box of the transparent CRT cut-out, found by flood fill from the center. */

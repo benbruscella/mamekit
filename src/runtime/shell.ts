@@ -3,7 +3,7 @@
 // Pure DOM — no libraries.
 
 import { createBoard } from './generated-board.ts';
-import { loadArtwork, type ArtWindow } from './artwork.ts';
+import { loadArtwork, type ArtTint, type ArtWindow } from './artwork.ts';
 import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
@@ -239,7 +239,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
 
   // cabinet bezel surround: play inside the real artwork's CRT window
   void loadArtwork(cfg.game, 'bezel').then(art => {
-    if (art?.window) ui.setBezel(art.bmp, art.window);
+    if (art?.window) ui.setBezel(art.bmp, art.window, art.tints);
   });
 
   // Esc: back to the boot menu (registered first + capture so a single press
@@ -510,6 +510,7 @@ function buildDom(cfg: ShellConfig) {
   // optional cabinet bezel: the game canvas sits inside its transparent
   // CRT window, the artwork drawn on top (pointer-events off)
   let bezel: { w: number; h: number; win: ArtWindow } | null = null;
+  let artworkTints: ArtTint[] = [];
   const bezelCanvas = document.createElement('canvas');
   bezelCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none';
 
@@ -744,11 +745,16 @@ function buildDom(cfg: ShellConfig) {
         },
       };
     },
-    setBezel: (bmp: ImageBitmap | HTMLCanvasElement, win: ArtWindow) => {
+    setBezel: (
+      bmp: ImageBitmap | HTMLCanvasElement,
+      win: ArtWindow,
+      tints: ArtTint[],
+    ) => {
       bezelCanvas.width = bmp.width; bezelCanvas.height = bmp.height;
       bezelCanvas.getContext('2d')!.drawImage(bmp, 0, 0);
       holder.insertBefore(bezelCanvas, overlay); // above the game, below the overlay
       bezel = { w: bmp.width, h: bmp.height, win };
+      artworkTints = tints;
       fit();
     },
     blit: (image: ImageData) => {
@@ -768,6 +774,21 @@ function buildDom(cfg: ShellConfig) {
       }
       ctx.drawImage(off, 0, 0);
       ctx.restore();
+      if (artworkTints.length) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'multiply';
+        for (const tint of artworkTints) {
+          ctx.fillStyle = `rgba(${tint.red * 255},${tint.green * 255},` +
+            `${tint.blue * 255},${tint.alpha})`;
+          ctx.fillRect(
+            tint.x * dispW,
+            tint.y * dispH,
+            tint.w * dispW,
+            tint.h * dispH,
+          );
+        }
+        ctx.restore();
+      }
     },
   };
 }
