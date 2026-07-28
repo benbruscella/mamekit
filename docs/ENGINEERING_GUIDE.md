@@ -32,7 +32,7 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 |---|---|
 | `npm run clean` | remove all generated distribution output |
 | `npm run gen -- <target>` | extract and generate one target, then build app |
-| `npm run gen:all` | clean and generate the branch's currently selected targets |
+| `npm run gen:all` | clean and generate every target with an acceptance contract |
 | `npm run build` | type-check repository TypeScript without writing to `dist` |
 | `npm run test:unit` | strict type check plus every source/compiler/runtime spec |
 | `npm run test:current` | clean-generate and audit the currently supported games |
@@ -44,8 +44,14 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run deploy -- --artwork` | clean-generate and publish the static site |
 
 The broad `test:generation` command is destructive to `dist` and expensive. It
-generates all targets in `src/gen/targets.ts`, not only the targets listed in
-`gen:all`.
+generates every target in `REQUIRED_TARGETS`, which is the accepted set plus
+consoles that have no acceptance contract yet.
+
+Neither command holds a target list of its own. `gen:all` is
+`node bin/mamekit.js --all`, and the set is derived from the acceptance
+contracts in `src/games/contracts.ts`: a game with a contract is by definition
+one that must generate and pass. `src/gen/targets.spec.ts` asserts that target
+discovery, the generated catalog and the contracts name the same set.
 
 ## 3. CLEAN GENERATION IS MANDATORY
 
@@ -78,8 +84,10 @@ node bin/mamekit.js --build-runtime --build-app --targets <target>
 npm run audit:generated
 ```
 
-`--targets` accepts registered targets from `src/gen/targets.ts`. Add a new
-target there before building its shared hardware closure.
+`--targets` accepts registered targets from `src/gen/targets.ts`, which derives
+from the acceptance contracts. A `--targets` build produces a partial
+distribution on purpose; `audit:generated` rejects it as a mixed build until a
+full `gen:all` rebuilds the closure and the manifest together.
 
 The target is categorized from its MAME declaration:
 
@@ -93,7 +101,7 @@ Inspect these files before opening the browser:
 - `graph.json`: target dependency graph;
 - `graph.full.json`: full driver context;
 - `config.json`: browser/ROM/input facts;
-- `generated/board.json`: complete executable board IR;
+- `generated/board.json`: complete executable board IR (decoded, not asserted);
 - `generated/provenance.json`: source ownership;
 - `runtime-report.md`: generated behavior and hardware gaps;
 - `DOSSIER.md`: generated archival machine document.
@@ -102,8 +110,9 @@ Inspect these files before opening the browser:
 
 ### STEP 1: REGISTER AND EXTRACT
 
-Add the MAME short name to `src/gen/targets.ts` when it should participate in
-the all-target generation contract. Then run:
+A game joins the accepted set by gaining an acceptance contract in
+`src/games/`; the target lists derive from there. To look at a driver before it
+has one, run:
 
 ```sh
 node bin/mamekit.js graph <target>
@@ -167,11 +176,35 @@ Acceptance tests import compiled modules from `dist`. They should not import a
 source-side emulation implementation because that bypasses the artifact being
 validated.
 
-### STEP 5: EXPAND `gen:all`
+### STEP 5: JOIN THE ACCEPTED SET
 
-Only add the target to `package.json`'s `gen:all` target list after its clean
-generation and browser acceptance pass. This keeps branch-wide iteration
-focused while preserving the broader required-target test separately.
+Add the game's contract to `src/games/contracts.ts` once its clean generation
+and browser acceptance pass. That single edit puts it in `gen:all`, in the
+required-target set and in the acceptance run — there is no separate list to
+update, and `src/gen/targets.spec.ts` fails if the sets ever disagree.
+
+## 5A. ADDING HARDWARE
+
+A MAME device family is one package under `src/hardware/<family>/`:
+
+| File | Layer | Purpose |
+|---|---|---|
+| `definition.ts` | neutral | id, MAME types, typed ports, browser constants |
+| `extract.ts` | compile time | MAME source to IR plus emitted artifacts |
+| `acceptance.ts` | tooling | probe against the emitted artifact in `dist` |
+
+Register it in `src/hardware/registry.ts` (compile time) and, for audio, in
+`src/hardware/acceptance-registry.ts`. `registry.spec.ts` fails if a package
+directory exists but is not registered.
+
+`extract.ts` must return undefined when it cannot lower the family, so the
+manifest leaves the type unresolved rather than claiming an executable core
+that is not there. It must also not touch MAME source before it has seen its
+device: every registered extractor runs against every closure.
+
+Never import `extract.ts` from a neutral or runtime module —
+`src/ir/dependency-direction.spec.ts` enforces the compile -> IR -> execution
+direction and will fail the build.
 
 ## 6. WHERE TO FIX A FAILURE
 
@@ -189,6 +222,9 @@ Choose the layer from evidence, not from the visible symptom.
 | Audio control/topology/component plan incomplete | audio compiler and generated worklet |
 | IR is correct but execution is wrong for every target | generic runtime |
 | Only one game needs a hardcoded branch | source/graph/IR model is still missing a fact |
+| A callback does nothing at run time | connection lowering in `src/ir/lower-connections.ts` |
+| A hardware family needs a new central branch | it needs a capability package instead |
+| Audit reports a mixed build | regenerate fully; `--targets` builds are partial by design |
 | App cannot locate config/module | output layout, manifest `dataPath`, or relative URL |
 | Old deleted code appears to work | stale `dist`; clean and reproduce |
 
