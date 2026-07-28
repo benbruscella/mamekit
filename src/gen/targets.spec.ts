@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { supportedGameContracts } from '../games/contracts.ts';
+import { loadGameContracts } from '../games/contracts.ts';
 import { readBuildManifest } from './build-manifest.ts';
 import { generatedGameOutputs } from './output-layout.ts';
 import { ACCEPTED_TARGETS, REQUIRED_TARGETS } from './targets.ts';
@@ -17,11 +17,17 @@ const check = (name: string, run: () => void): void => { run(); passed++; void n
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
+const contracts = await loadGameContracts();
+
 check('the accepted set is exactly the games with acceptance contracts', () => {
-  assert.deepEqual(
-    [...ACCEPTED_TARGETS].sort(),
-    supportedGameContracts.map(contract => contract.game).sort(),
-  );
+  assert.deepEqual([...ACCEPTED_TARGETS].sort(), contracts.map(c => c.game).sort());
+});
+
+// Discovery must find a real contract for every module it picks up, and every
+// contract's module name must match its game.
+check('every discovered module exports a matching contract', () => {
+  assert.equal(contracts.length, ACCEPTED_TARGETS.length);
+  for (const contract of contracts) assert.ok(ACCEPTED_TARGETS.includes(contract.game));
 });
 
 check('every accepted target is a required target', () => {

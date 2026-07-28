@@ -1,16 +1,16 @@
 import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runGameAcceptance } from './acceptance-harness.ts';
-import { supportedGameContracts } from './contracts.ts';
+import { loadGameContracts } from './contracts.ts';
 
 export async function verifySupportedGames(): Promise<void> {
-  for (const contract of supportedGameContracts) {
+  for (const contract of await loadGameContracts()) {
     await runIsolated(contract.game);
   }
 }
 
 async function verifyGame(game: string): Promise<void> {
-  const contract = supportedGameContracts.find(candidate => candidate.game === game);
+  const contract = (await loadGameContracts()).find(candidate => candidate.game === game);
   if (!contract) throw new Error(`unknown supported game: ${game}`);
   await runGameAcceptance(contract);
   console.log(`${contract.game}: ROM/input/video/audio/timing contract passed`);
