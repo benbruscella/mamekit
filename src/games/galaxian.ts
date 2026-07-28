@@ -58,8 +58,8 @@ export const galaxian: GameTestContract = {
       writes: 4002,
       nonzeroWrites: 2175,
       writeHash: 'dbbd04b8',
-      pcmHash: 'd04601f8',
-      rms: 0.104197,
+      pcmHash: '09a04eb2',
+      rms: 0.101243,
     },
   },
 };

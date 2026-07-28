@@ -442,6 +442,29 @@ export interface GeneratedCounterLfsrDiscretePlan {
   clockDivider: number;
   lfsr: { bits: number; reset: number; tap0: number; tap1: number };
   lfoResistors: number[];
+  backgroundLfo: {
+    bitVoltage: number;
+    biasVoltage: number;
+    biasResistance: number;
+    groundResistance: number;
+    currentResistance: number;
+    capacitance: number;
+    supplyVoltage: number;
+    junctionVoltage: number;
+    controlGain: number;
+    controlOffset: number;
+    controlMinimum: number;
+    controlMaximum: number;
+  };
+  background555: {
+    chargeResistors: number[];
+    dischargeResistors: number[];
+    capacitors: number[];
+    supplyVoltage: number;
+    outputHighVoltage: number;
+    mixerResistances: number[];
+    filterCapacitance: number;
+  };
   backgroundResistors: number[];
   backgroundCapacitors: number[];
   toneResistors: number[];
@@ -516,14 +539,80 @@ export function compileCounterLfsrDiscrete(
   }
   const dac = callArgs(netlist, 'DISCRETE_DAC_R1')[0] ?? [];
   const dacDescriptor = /&(\w+)/.exec(dac.at(-1) ?? '')?.[1];
-  const lfoResistors = dacDescriptor
-    ? structValues(cpp, dacDescriptor).firstArray.slice(0, 4).map(analog)
+  const dacValues = dacDescriptor ? structValues(cpp, dacDescriptor) : undefined;
+  const dacFields = dacValues
+    ? splitMameArgs(dacValues.body
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/.*$/gm, ''))
     : [];
+  const lfoResistors = dacDescriptor
+    ? dacValues!.firstArray.slice(0, 4).map(analog)
+    : [];
+  const lfo555 = callArgs(netlist, 'DISCRETE_555_CC')[0] ?? [];
+  const lfo555Descriptor = /&(\w+)/.exec(lfo555.at(-1) ?? '')?.[1];
+  const lfo555Fields = lfo555Descriptor
+    ? splitMameArgs(structValues(cpp, lfo555Descriptor).body
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/.*$/gm, ''))
+    : [];
+  const lfoNode = lfo555[0]?.trim();
+  const backgroundControl = callArgs(netlist, 'DISCRETE_MULTADD')
+    .find(args => args[1]?.trim() === lfoNode);
+  const parallelControl = callArgs(backgroundControl?.[2] ?? '', 'RES_3_PARALLEL')[0] ?? [];
+  const controlNumerator = /^(.+?)\s*\/\s*RES_3_PARALLEL/.exec(
+    backgroundControl?.[2] ?? '',
+  )?.[1];
+  const controlParallelResistance = parallelControl.length === 3
+    ? 1 / parallelControl.reduce((sum, value) => sum + 1 / analog(value), 0)
+    : Number.NaN;
+  const backgroundClamp = callArgs(netlist, 'DISCRETE_CLAMP')
+    .find(args => args[1]?.trim() === backgroundControl?.[0]?.trim());
   const astables = callArgs(netlist, 'DISCRETE_555_ASTABLE_CV')
     .filter(args => !/^1(?:\.0)?$/.test(args[1]?.trim() ?? ''));
+  const backgroundChargeResistors = astables.map(args => analog(args[2]));
   const backgroundResistors = astables.map(args => analog(args[3]));
   const backgroundCapacitors = astables.map(args => analog(args[4]));
   const backgroundNodes = astables.map(args => args[1]!.trim());
+  const backgroundOutputNodes = astables.map(args => args[0]!.trim());
+  const background555Descriptor = /&(\w+)/.exec(astables[0]?.at(-1) ?? '')?.[1];
+  const background555Fields = background555Descriptor
+    ? splitMameArgs(structValues(cpp, background555Descriptor).body
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/.*$/gm, ''))
+    : [];
+  const backgroundMixer = callArgs(netlist, 'DISCRETE_MIXER3').find(args =>
+    backgroundOutputNodes.every(node => args.slice(2, -1).some(arg => arg.trim() === node)));
+  const backgroundMixerDescriptor = /&(\w+)/.exec(backgroundMixer?.at(-1) ?? '')?.[1];
+  const backgroundMixerFields = backgroundMixerDescriptor
+    ? splitMameArgs(structValues(cpp, backgroundMixerDescriptor).body
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/.*$/gm, ''))
+    : [];
+  const backgroundLfo = {
+    bitVoltage: analog(dac[2]),
+    biasVoltage: analog(dacFields[2]),
+    biasResistance: analog(dacFields[3]),
+    groundResistance: analog(dacFields[4]),
+    currentResistance: analog(lfo555[3]),
+    capacitance: analog(lfo555[4]),
+    supplyVoltage: analog(lfo555Fields[1]),
+    junctionVoltage: analog(lfo555Fields[3]),
+    controlGain: analog(controlNumerator) / controlParallelResistance,
+    controlOffset: analog(backgroundControl?.[3]),
+    controlMinimum: analog(backgroundClamp?.[2]),
+    controlMaximum: analog(backgroundClamp?.[3]),
+  };
+  const background555 = {
+    chargeResistors: backgroundChargeResistors,
+    dischargeResistors: backgroundResistors,
+    capacitors: backgroundCapacitors,
+    supplyVoltage: analog(background555Fields[1]),
+    outputHighVoltage: analog(background555Fields[3]),
+    mixerResistances: backgroundMixerDescriptor
+      ? structValues(cpp, backgroundMixerDescriptor).firstArray.slice(0, 3).map(analog)
+      : [],
+    filterCapacitance: analog(backgroundMixerFields[6]),
+  };
   const inputData = callArgs(netlist, 'DISCRETE_INPUTX_DATA');
   const inputResistors = new Map(inputData.map(args => [args[0]!.trim(), analog(args[1])]));
   const bitsNode = callArgs(netlist, 'DISCRETE_BITS_DECODE')[0]?.[0]?.trim();
@@ -595,7 +684,16 @@ export function compileCounterLfsrDiscrete(
     volume: offsetsFor(target => volumeNodes.has(target)),
   };
   if (
-    lfoResistors.length !== 4 || backgroundResistors.length !== 3 ||
+    lfoResistors.length !== 4 ||
+    Object.values(backgroundLfo).some(value => !Number.isFinite(value)) ||
+    background555.chargeResistors.length !== 3 ||
+    background555.dischargeResistors.length !== 3 ||
+    background555.capacitors.length !== 3 ||
+    !Number.isFinite(background555.supplyVoltage) ||
+    !Number.isFinite(background555.outputHighVoltage) ||
+    background555.mixerResistances.length !== 3 ||
+    !Number.isFinite(background555.filterCapacitance) ||
+    backgroundResistors.length !== 3 ||
     backgroundCapacitors.length !== 3 || toneResistors.length !== 4 ||
     !hit || !fire || hitBandpassValues.length < 11 || !Number.isFinite(hitMixGain) ||
     !Number.isFinite(diodeDrop) || !Number.isFinite(positiveRailOffset) ||
@@ -629,6 +727,8 @@ export function compileCounterLfsrDiscrete(
       tap1: lfsr[4]!,
     },
     lfoResistors,
+    backgroundLfo,
+    background555,
     backgroundResistors,
     backgroundCapacitors,
     toneResistors,
@@ -1148,9 +1248,11 @@ export class GeneratedDiscreteAudioCore {
   private volume = 0;
   private tonePhase = 0;
   private lfoValue = 0;
-  private lfoPhase = 0;
+  private lfoCapacitor = 0;
   private readonly backgroundEnabled = [false, false, false];
-  private readonly backgroundPhase = new Float64Array(3);
+  private readonly backgroundCapacitor = new Float64Array(3);
+  private readonly backgroundHigh = [true, true, true];
+  private backgroundFilter = 0;
   private hitEnabled = false;
   private hitCapacitor = 0;
   private hitInput1 = 0;
@@ -1267,22 +1369,123 @@ export class GeneratedDiscreteAudioCore {
       mix += (conductances.reduce((sum, value) => sum + value, 0) / maximum - 0.25) * 0.7;
     }
 
-    let lfoConductance = 1 / 330_000;
+    // Galaxian's four LFO bits feed a resistor DAC, a constant-current 555
+    // sawtooth, and an op-amp before controlling the three background 555s.
+    // Keeping those stages matters: treating the DAC conductance as a direct
+    // triangle frequency makes the fleet sound modulate about 15x too fast.
+    const lfo = plan.backgroundLfo;
+    const dacConductance = plan.lfoResistors.reduce(
+      (sum, resistance) => sum + 1 / resistance,
+      1 / lfo.biasResistance + 1 / lfo.groundResistance,
+    );
+    let dacCurrent = lfo.biasVoltage / lfo.biasResistance;
     plan.lfoResistors.forEach((resistance, bit) => {
-      if (this.lfoValue & (1 << bit)) lfoConductance += 1 / resistance;
+      if (this.lfoValue & (1 << bit)) dacCurrent += lfo.bitVoltage / resistance;
     });
-    const lfoHz = 0.15 + 600_000 * lfoConductance;
-    this.lfoPhase = (this.lfoPhase + lfoHz * dt) % 1;
-    const sweep = this.lfoPhase < 0.5 ? this.lfoPhase * 2 : 2 - this.lfoPhase * 2;
-    for (let voice = 0; voice < 3; voice++) {
-      if (!this.backgroundEnabled[voice]) continue;
-      const r = plan.backgroundResistors[voice];
-      const c = plan.backgroundCapacitors[voice];
-      const base = 1.44 / ((100_000 + 2 * r) * c);
-      this.backgroundPhase[voice] = (this.backgroundPhase[voice]! +
-        base * (0.68 + 0.32 * sweep) * dt) % 1;
-      mix += (this.backgroundPhase[voice]! < 0.5 ? 1 : -1) * 0.075;
+    const dacVoltage = dacCurrent / dacConductance;
+    const chargeCurrent = Math.max(
+      0,
+      (lfo.supplyVoltage - dacVoltage - lfo.junctionVoltage) /
+        lfo.currentResistance,
+    );
+    const lfoThreshold = lfo.supplyVoltage * 2 / 3;
+    const lfoTrigger = lfo.supplyVoltage / 3;
+    let lfoTime = dt;
+    if (chargeCurrent > 0) {
+      for (let transitions = 0; transitions < 4 && lfoTime > 0; transitions++) {
+        const chargeTime = Math.max(0, lfoThreshold - this.lfoCapacitor) *
+          lfo.capacitance / chargeCurrent;
+        if (chargeTime > lfoTime) {
+          this.lfoCapacitor += chargeCurrent * lfoTime / lfo.capacitance;
+          lfoTime = 0;
+        } else {
+          // This constant-current 555 has no discharge resistor, so MAME's
+          // circuit model discharges it immediately to the trigger voltage.
+          this.lfoCapacitor = lfoTrigger;
+          lfoTime -= chargeTime;
+        }
+      }
+    } else {
+      this.lfoCapacitor *= Math.exp(-dt / (10_000_000 * lfo.capacitance));
     }
+    const controlVoltage = Math.max(
+      lfo.controlMinimum,
+      Math.min(
+        lfo.controlMaximum,
+        this.lfoCapacitor * lfo.controlGain + lfo.controlOffset,
+      ),
+    );
+    let backgroundVoltage = 0;
+    for (let voice = 0; voice < 3; voice++) {
+      if (!this.backgroundEnabled[voice]) {
+        this.backgroundCapacitor[voice] = 0;
+        this.backgroundHigh[voice] = true;
+        continue;
+      }
+      const circuit = plan.background555;
+      const threshold = controlVoltage;
+      const trigger = controlVoltage / 2;
+      let capacitor = this.backgroundCapacitor[voice]!;
+      let high = this.backgroundHigh[voice]!;
+      if (capacitor >= threshold) high = false;
+      else if (capacitor <= trigger) high = true;
+      let remaining = dt;
+      let transitionRemainder = 0;
+      let changed = false;
+      for (let transitions = 0; transitions < 8 && remaining > 0; transitions++) {
+        if (high) {
+          const timeConstant = (
+            circuit.chargeResistors[voice]! + circuit.dischargeResistors[voice]!
+          ) * circuit.capacitors[voice]!;
+          const transitionTime = timeConstant * Math.log(
+            (circuit.supplyVoltage - capacitor) /
+              (circuit.supplyVoltage - threshold),
+          );
+          if (!Number.isFinite(transitionTime) || transitionTime >= remaining) {
+            capacitor = circuit.supplyVoltage -
+              (circuit.supplyVoltage - capacitor) * Math.exp(-remaining / timeConstant);
+            remaining = 0;
+          } else {
+            capacitor = threshold;
+            remaining -= Math.max(0, transitionTime);
+            transitionRemainder = remaining;
+            changed = true;
+            high = false;
+          }
+        } else {
+          const timeConstant = circuit.dischargeResistors[voice]! *
+            circuit.capacitors[voice]!;
+          const transitionTime = timeConstant * Math.log(capacitor / trigger);
+          if (!Number.isFinite(transitionTime) || transitionTime >= remaining) {
+            capacitor *= Math.exp(-remaining / timeConstant);
+            remaining = 0;
+          } else {
+            capacitor = trigger;
+            remaining -= Math.max(0, transitionTime);
+            transitionRemainder = remaining;
+            changed = true;
+            high = true;
+          }
+        }
+      }
+      this.backgroundCapacitor[voice] = capacitor;
+      this.backgroundHigh[voice] = high;
+      const highFraction = changed
+        ? (high ? transitionRemainder / dt : 1 - transitionRemainder / dt)
+        : Number(high);
+      backgroundVoltage += highFraction / 3;
+    }
+    // The three equal mixer inputs share a source-derived output filter. The
+    // browser's final high-pass stage then removes the remaining 555 DC bias.
+    const mixerResistance = 1 / plan.background555.mixerResistances.reduce(
+      (sum, resistance) => sum + 1 / resistance,
+      0,
+    );
+    const filterTime = mixerResistance * plan.background555.filterCapacitance;
+    this.backgroundFilter += (backgroundVoltage - this.backgroundFilter) *
+      (1 - Math.exp(-dt / filterTime));
+    const enabledBackgrounds = this.backgroundEnabled.filter(Boolean).length;
+    mix += (this.backgroundFilter - enabledBackgrounds / 6) * 0.45;
 
     this.noisePhase += 7_920 * dt;
     while (this.noisePhase >= 1) {
