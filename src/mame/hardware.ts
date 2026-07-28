@@ -13,15 +13,6 @@ import { GraphBuilder, type KnowledgeGraph } from '../kg/types.ts';
 import { parseMameSource, type MameMacro, type MameTranslationUnit } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { parseZ80OpcodeDsl } from './opcode-dsl.ts';
-import {
-  compileMameMcs48,
-  compileMameI8080,
-  compileMameKonami1,
-  compileMameM6803,
-  compileMameMc6809,
-  compileMameZ80,
-} from './cpu-compiler.ts';
-import { generatedCpuExecutableSource } from './cpu-codegen.ts';
 import { generatedDeviceExecutableSource } from './device-codegen.ts';
 import { compileMameDevice } from './device-compiler.ts';
 import { compileNamco51Protocol } from './namco51-compiler.ts';
@@ -462,24 +453,6 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
       program: method.program,
     })),
   });
-  const z80 = closure.hardware.some(entry => entry.type === 'Z80')
-    ? compileMameZ80(closure.mameSource)
-    : undefined;
-  const i8080 = closure.hardware.some(entry => entry.type === 'I8080')
-    ? compileMameI8080(closure.mameSource)
-    : undefined;
-  const i8039 = closure.hardware.some(entry => entry.type === 'I8039')
-    ? compileMameMcs48(closure.mameSource)
-    : undefined;
-  const m6803 = closure.hardware.some(entry => entry.type === 'M6803')
-    ? compileMameM6803(closure.mameSource)
-    : undefined;
-  const konami1 = closure.hardware.some(entry => entry.type === 'KONAMI1')
-    ? compileMameKonami1(closure.mameSource)
-    : undefined;
-  const mc6809 = closure.hardware.some(entry => entry.type === 'MC6809')
-    ? compileMameMc6809(closure.mameSource)
-    : undefined;
   const generatedDevices = new Map(
     closure.hardware
       .filter(entry => [
@@ -543,12 +516,6 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
 
   const leafExecutableTypes = new Set<string>([
     ...capabilityExecutable.keys(),
-    ...(z80 ? ['Z80'] : []),
-    ...(i8080 ? ['I8080'] : []),
-    ...(i8039 ? ['I8039'] : []),
-    ...(m6803 ? ['M6803'] : []),
-    ...(konami1 ? ['KONAMI1'] : []),
-    ...(mc6809 ? ['MC6809'] : []),
     ...generatedDevices.keys(),
   ]);
   const executableTypes = resolveCompositeExecutableTypes(
@@ -584,11 +551,6 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
             executableKind: capabilityExecutable.get(entry.type)!.kind,
             executableArtifact: capabilityExecutable.get(entry.type)!.artifact,
           }
-        : ['Z80', 'I8080', 'I8039', 'M6803', 'KONAMI1', 'MC6809'].includes(entry.type)
-        ? {
-            executableKind: 'cpu',
-            executableArtifact: `devices/${entry.type.toLowerCase()}.cpu.ir.json`,
-          }
         : generatedDevices.has(entry.type)
           ? {
               executableKind: 'device',
@@ -619,27 +581,8 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     const slug = entry.type.toLowerCase();
     const emitted = compactEntry(entry);
     writeFileSync(join(devicesDir, `${slug}.ir.json`), JSON.stringify(emitted, null, 2));
-    const cpu = entry.type === 'Z80'
-      ? z80
-      : entry.type === 'I8080'
-        ? i8080
-        : entry.type === 'I8039'
-          ? i8039
-        : entry.type === 'M6803'
-          ? m6803
-          : entry.type === 'KONAMI1'
-            ? konami1
-          : entry.type === 'MC6809'
-            ? mc6809
-          : undefined;
-    if (cpu) {
-      writeFileSync(
-        join(devicesDir, `${slug}.cpu.ir.json`),
-        JSON.stringify(cpu, null, 2),
-      );
-      writeFileSync(join(devicesDir, `${slug}.ts`), generatedCpuExecutableSource(cpu));
-      continue;
-    }
+    // CPU cores are emitted by their capability packages.
+    if (capabilityExecutable.get(entry.type)?.kind === 'cpu') continue;
     const device = generatedDevices.get(entry.type);
     if (device) {
       writeFileSync(
