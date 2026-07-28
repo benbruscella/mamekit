@@ -54,6 +54,9 @@ export function layerOf(file: string): Layer {
     // registry.ts wires each package's extract.ts into one list, so it is
     // compile-time; the browser gets its providers from a separate registry.
     if (name === 'registry.ts') return 'compile';
+    // acceptance-registry.ts runs in Node against dist artifacts, alongside
+    // src/games, and is deliberately kept apart from the compile-time one.
+    if (name === 'acceptance-registry.ts') return 'tooling';
     // contract.ts, ports.ts, definition.ts, validate.ts
     return 'neutral';
   }
