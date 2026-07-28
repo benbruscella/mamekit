@@ -9,7 +9,7 @@
 // closure do not match it.
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   BOARD_IR_SCHEMA_VERSION,
@@ -63,6 +63,32 @@ export function writeBuildManifest(
   };
   writeFileSync(join(outRoot, BUILD_MANIFEST_FILE), JSON.stringify(manifest, null, 2));
   return manifest;
+}
+
+/**
+ * Replace `dist` with a freshly built tree in one step.
+ *
+ * Generation used to write straight into dist: it overwrote the hardware
+ * closure, rebuilt the app, then wrote the manifest last. A failure anywhere in
+ * that sequence left a partially replaced distribution that still looked
+ * servable. Building into a staging directory and swapping means dist is
+ * either the old build or the new one, never half of each.
+ */
+export function swapStagedBuild(stagingRoot: string, outRoot: string): void {
+  if (!existsSync(stagingRoot)) {
+    throw new Error(`staged build is missing: ${stagingRoot}`);
+  }
+  const previous = `${outRoot}.previous`;
+  rmSync(previous, { recursive: true, force: true });
+  if (existsSync(outRoot)) renameSync(outRoot, previous);
+  try {
+    renameSync(stagingRoot, outRoot);
+  } catch (error) {
+    // Put the old build back rather than leaving nothing in place.
+    if (existsSync(previous) && !existsSync(outRoot)) renameSync(previous, outRoot);
+    throw error;
+  }
+  rmSync(previous, { recursive: true, force: true });
 }
 
 export function readBuildManifest(outRoot: string): BuildManifest | undefined {

@@ -123,10 +123,13 @@ export function decodeBoardIr(value: unknown, subject = 'board'): BoardIr {
   reader.string(root.driverFile, 'driverFile');
 
   decodeCallbacks(reader, root.callbacks);
+  decodeConnections(reader, root.connections);
   decodeExecution(reader, root.execution);
   decodeDevices(reader, root.devices);
   decodeHandlers(reader, root.handlers);
   decodeMaps(reader, root.maps);
+  decodeVideo(reader, root.video);
+  decodeSound(reader, root.sound);
 
   if (reader.diagnostics.length) {
     throw new BoardIrError(game || subject, reader.diagnostics);
@@ -153,6 +156,147 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
         reader.string(transform, `${path}.transforms[${position}]`, source);
       }
     }
+  }
+}
+
+const EFFECT_KINDS = new Set([
+  'cpu-line', 'device-method', 'handler', 'port-read',
+  'video-control', 'audio-control', 'audio-write', 'unconnected',
+]);
+const CPU_LINES = new Set(['irq', 'firq', 'nmi', 'reset', 'halt']);
+const DELIVERIES = new Set(['hold', 'assert', 'pulse', 'level']);
+const TRANSFORM_KINDS = new Set(['invert', 'mask', 'rshift', 'lshift']);
+
+/**
+ * Connections are the executable wiring, so a malformed one is exactly what
+ * this boundary exists to stop reaching the runtime.
+ */
+function decodeConnections(reader: Reader, value: unknown): void {
+  for (const [index, entry] of reader.array(value, 'connections').entries()) {
+    const path = `connections[${index}]`;
+    const connection = reader.object(entry, path);
+    const source = sourceOf(connection);
+    reader.string(connection.callbackId, `${path}.callbackId`, source);
+
+    const effect = reader.object(connection.effect, `${path}.effect`, source);
+    const kind = effect.kind;
+    if (typeof kind !== 'string' || !EFFECT_KINDS.has(kind)) {
+      reader.fail(
+        `${path}.effect.kind`,
+        `expected one of ${[...EFFECT_KINDS].join(', ')}, got ${describe(kind)}`,
+        source,
+      );
+    } else if (kind === 'cpu-line') {
+      reader.string(effect.tag, `${path}.effect.tag`, source);
+      if (!CPU_LINES.has(effect.line as string)) {
+        reader.fail(`${path}.effect.line`, `unknown CPU line ${describe(effect.line)}`, source);
+      }
+      if (!DELIVERIES.has(effect.delivery as string)) {
+        reader.fail(
+          `${path}.effect.delivery`,
+          `unknown delivery mode ${describe(effect.delivery)}`,
+          source,
+        );
+      }
+    } else if (kind === 'device-method' || kind === 'audio-write') {
+      reader.string(effect.tag, `${path}.effect.tag`, source);
+      reader.string(effect.method, `${path}.effect.method`, source);
+    } else if (kind === 'handler') {
+      reader.string(effect.handler, `${path}.effect.handler`, source);
+    } else if (kind === 'port-read') {
+      reader.string(effect.port, `${path}.effect.port`, source);
+    } else if (kind === 'video-control') {
+      reader.string(effect.control, `${path}.effect.control`, source);
+    } else if (kind === 'audio-control') {
+      reader.string(effect.tag, `${path}.effect.tag`, source);
+      reader.string(effect.control, `${path}.effect.control`, source);
+      reader.optionalNumber(effect.offset, `${path}.effect.offset`, source);
+    }
+
+    for (const [position, raw] of reader.array(
+      connection.transforms, `${path}.transforms`, source).entries()) {
+      const transformPath = `${path}.transforms[${position}]`;
+      const transform = reader.object(raw, transformPath, source);
+      const transformKind = transform.kind;
+      if (typeof transformKind !== 'string' || !TRANSFORM_KINDS.has(transformKind)) {
+        reader.fail(
+          `${transformPath}.kind`,
+          `expected one of ${[...TRANSFORM_KINDS].join(', ')}, got ${describe(transformKind)}`,
+          source,
+        );
+        continue;
+      }
+      if (transformKind === 'mask') reader.number(transform.value, `${transformPath}.value`, source);
+      if (transformKind === 'rshift' || transformKind === 'lshift') {
+        reader.number(transform.bits, `${transformPath}.bits`, source);
+      }
+    }
+  }
+}
+
+function decodeVideo(reader: Reader, value: unknown): void {
+  if (value === undefined) return;
+  const video = reader.object(value, 'video');
+  const source = sourceOf(video);
+  for (const [index, entry] of reader.array(video.gfx, 'video.gfx', source).entries()) {
+    const path = `video.gfx[${index}]`;
+    const gfx = reader.object(entry, path, source);
+    reader.string(gfx.region, `${path}.region`, source);
+    for (const field of ['offset', 'colorBase', 'colorCount', 'xscale', 'yscale']) {
+      reader.number(gfx[field], `${path}.${field}`, source);
+    }
+    const layout = reader.object(gfx.layout, `${path}.layout`, source);
+    for (const field of ['width', 'height', 'planes', 'charIncrement']) {
+      reader.number(layout[field], `${path}.layout.${field}`, source);
+    }
+  }
+  for (const [index, entry] of reader.array(video.tilemaps, 'video.tilemaps', source).entries()) {
+    const path = `video.tilemaps[${index}]`;
+    const tilemap = reader.object(entry, path, source);
+    reader.string(tilemap.member, `${path}.member`, source);
+    reader.string(tilemap.mapper, `${path}.mapper`, source);
+    reader.string(tilemap.tileInfo, `${path}.tileInfo`, source);
+    for (const field of ['tileWidth', 'tileHeight', 'columns', 'rows']) {
+      reader.number(tilemap[field], `${path}.${field}`, source);
+    }
+  }
+  if (video.ramPalette !== undefined) {
+    const palette = reader.object(video.ramPalette, 'video.ramPalette', source);
+    reader.string(palette.tag, 'video.ramPalette.tag', source);
+    reader.number(palette.entries, 'video.ramPalette.entries', source);
+    reader.number(palette.bytesPerEntry, 'video.ramPalette.bytesPerEntry', source);
+    for (const [index, channel] of reader.array(
+      palette.channels, 'video.ramPalette.channels', source).entries()) {
+      const path = `video.ramPalette.channels[${index}]`;
+      const decoded = reader.object(channel, path, source);
+      reader.number(decoded.bits, `${path}.bits`, source);
+      reader.number(decoded.shift, `${path}.shift`, source);
+    }
+  }
+}
+
+function decodeSound(reader: Reader, value: unknown): void {
+  if (value === undefined) return;
+  const sound = reader.object(value, 'sound');
+  reader.string(sound.kind, 'sound.kind');
+  reader.string(sound.deviceTag, 'sound.deviceTag');
+  reader.string(sound.deviceType, 'sound.deviceType');
+  reader.number(sound.controlOffset, 'sound.controlOffset');
+  for (const field of ['writeMethods', 'enableMethods']) {
+    for (const [index, method] of reader.array(sound[field], `sound.${field}`).entries()) {
+      reader.string(method, `sound.${field}[${index}]`);
+    }
+  }
+  if (sound.deviceTags !== undefined) {
+    for (const [index, tag] of reader.array(sound.deviceTags, 'sound.deviceTags').entries()) {
+      reader.string(tag, `sound.deviceTags[${index}]`);
+    }
+  }
+  for (const [index, entry] of reader.array(sound.routes ?? [], 'sound.routes').entries()) {
+    const path = `sound.routes[${index}]`;
+    const route = reader.object(entry, path);
+    for (const field of ['chip', 'channel', 'gain']) reader.number(route[field], `${path}.${field}`);
+    reader.string(route.target, `${path}.target`);
   }
 }
 

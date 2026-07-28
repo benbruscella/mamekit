@@ -4,10 +4,12 @@
 import { createServer } from 'node:http';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
+import { buildClosureFailures } from './gen/build-manifest.ts';
 import {
   GAME_CATEGORIES,
   gameDataPath,
   gameOutputDir,
+  generatedGameOutputs,
 } from './gen/output-layout.ts';
 
 // Public ROM mirror bucket behind the drop screen's "Try web search". The
@@ -38,6 +40,19 @@ const MIME: Record<string, string> = {
  * so source extraction alone can never be mistaken for playability. */
 export async function gamesManifest(outRoot: string, artDir: string): Promise<string> {
   const games: unknown[] = [];
+  // Fail CLOSED on a mixed build too. Scanning dist for game directories will
+  // happily find a target left over from an earlier --targets run, whose board
+  // is registered against a hardware closure that was never built for it.
+  const closureFailures = buildClosureFailures(
+    outRoot,
+    generatedGameOutputs(outRoot).map(entry => entry.game),
+  );
+  if (closureFailures.length) {
+    throw new Error(
+      `refusing to serve a mixed generated distribution:\n  ${closureFailures.join('\n  ')}\n` +
+      'run `npm run gen:all` to rebuild the catalog and closure together',
+    );
+  }
   // Fail CLOSED when the closure manifest is missing or unparseable: a stale
   // board.js without its manifest must never present as playable (a stale
   // bundle plus a fresh manifest burned us on junofrst once already).

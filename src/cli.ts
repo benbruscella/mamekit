@@ -7,7 +7,7 @@
 //   --out <dir>         output root (default: <mamekit>/out)
 //   --targets <games>   comma-separated runtime closure targets
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildGraph, gameSubgraph } from './kg/build.ts';
@@ -133,17 +133,24 @@ if (generateAll) {
   // One pass over the accepted target set, then one hardware closure and app
   // build across exactly those targets. The set comes from the acceptance
   // contracts, so there is no list here to fall out of step with them.
+  //
+  // Everything is built in a staging tree and swapped in at the end, so a
+  // failure part-way leaves the previous distribution intact rather than a
+  // half-replaced one.
   const { ACCEPTED_TARGETS } = await import('./gen/targets.ts');
+  const stagingRoot = `${outRoot}.staging`;
+  rmSync(stagingRoot, { recursive: true, force: true });
   for (const target of ACCEPTED_TARGETS) {
     console.log(`\nmamekit: generating ${target}`);
-    await pipeline(target);
+    await pipeline(target, stagingRoot, true);
   }
   const { buildHardwareClosure, emitHardwareClosure } = await import('./mame/hardware.ts');
   const targetGraphs = ACCEPTED_TARGETS.map(target => ({
     game: target,
     graph: JSON.parse(readFileSync(
       join(
-        existingGameOutputDir(outRoot, target) ?? gameOutputDir(outRoot, 'arcade', target),
+        existingGameOutputDir(stagingRoot, target)
+          ?? gameOutputDir(stagingRoot, 'arcade', target),
         'graph.json',
       ),
       'utf8',
@@ -151,23 +158,28 @@ if (generateAll) {
   }));
   console.log(`\nmamekit: resolving MAME hardware used by ${targetGraphs.length} targets`);
   const closure = buildHardwareClosure(mameSrc, targetGraphs);
-  emitHardwareClosure(closure, outRoot);
+  emitHardwareClosure(closure, stagingRoot);
   const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
-  const refreshedReports = refreshRuntimeReports(outRoot);
+  const refreshedReports = refreshRuntimeReports(stagingRoot);
   console.log(
     `generated hardware closure: ${closure.summary.sourceResolved}/${closure.summary.types} ` +
     `types source-resolved, ${closure.summary.unresolved} unresolved; ` +
     `${refreshedReports} generation reports refreshed`,
   );
   const { buildApp } = await import('./gen/generate.ts');
-  if (!buildApp(outRoot)) {
+  if (!buildApp(stagingRoot)) {
+    rmSync(stagingRoot, { recursive: true, force: true });
     process.exitCode = 1;
   } else {
     const { gamesManifest } = await import('./serve.ts');
-    writeFileSync(join(outRoot, 'games.json'),
-      await gamesManifest(outRoot, join(projectRoot, 'artwork')));
-    const { writeBuildManifest } = await import('./gen/build-manifest.ts');
-    writeBuildManifest(outRoot, ACCEPTED_TARGETS, mameSrc, String(process.hrtime.bigint()));
+    const { swapStagedBuild, writeBuildManifest } = await import('./gen/build-manifest.ts');
+    // The manifest is written before the swap so the staged tree is already
+    // self-describing; serving validates it against the catalog.
+    writeBuildManifest(stagingRoot, ACCEPTED_TARGETS, mameSrc, String(process.hrtime.bigint()));
+    writeFileSync(join(stagingRoot, 'games.json'),
+      await gamesManifest(stagingRoot, join(projectRoot, 'artwork')));
+    swapStagedBuild(stagingRoot, outRoot);
+    console.log(`\nmamekit: distribution replaced at ${outRoot}`);
   }
 } else if (buildAppOnly || buildRuntimeOnly) {
   const { REQUIRED_TARGETS } = await import('./gen/targets.ts');
@@ -230,7 +242,12 @@ if (generateAll) {
   await pipeline(game!);
 }
 
-async function pipeline(game: string): Promise<void> {
+/**
+ * `staged` marks a target generated as part of a full --all build: the catalog
+ * and closure are written once at the end, so an intermediate manifest here
+ * would describe a tree that is deliberately still incomplete.
+ */
+async function pipeline(game: string, root = outRoot, staged = false): Promise<void> {
 console.log(`mamekit: searching MAME source at ${mameSrc}`);
 const driverFile = findDriverFile(game);
 console.log(`mamekit: driver for "${game}" -> ${driverFile.slice(mameSrc.length + 1)}`);
@@ -282,6 +299,7 @@ if (command === 'run') {
   if (!('skip-app' in opts) && !buildApp(outRoot)) process.exitCode = 1;
   // static manifest so the built tree is servable as plain files (github
   // pages); the dev server's live /games.json route shadows it locally
+  if (staged) return;
   const { gamesManifest } = await import('./serve.ts');
   writeFileSync(join(outRoot, 'games.json'),
     await gamesManifest(outRoot, join(projectRoot, 'artwork')));
