@@ -15,3 +15,5 @@ artwork/
 # scratch files from investigation sessions
 *.tmp.*
 .files/
+dist.staging/
+dist.previous/

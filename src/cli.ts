@@ -260,7 +260,7 @@ if (!sub.nodes.some(n => n.id === `game:${game}`)) {
 }
 
 const category = gameCategory(sub.nodes.find(node => node.id === `game:${game}`)?.props.kind);
-const outDir = gameOutputDir(outRoot, category, game);
+const outDir = gameOutputDir(root, category, game);
 mkdirSync(outDir, { recursive: true });
 writeFileSync(join(outDir, 'graph.full.json'), JSON.stringify(graph, null, 2));
 writeFileSync(join(outDir, 'graph.json'), JSON.stringify(sub, null, 2));
@@ -296,13 +296,13 @@ if (regions.length) {
 if (command === 'run') {
   const { generate, buildApp } = await import('./gen/generate.ts');
   await generate(sub, { mameSrc, outDir, game, fullGraph: graph });
-  if (!('skip-app' in opts) && !buildApp(outRoot)) process.exitCode = 1;
+  if (!('skip-app' in opts) && !buildApp(root)) process.exitCode = 1;
   // static manifest so the built tree is servable as plain files (github
   // pages); the dev server's live /games.json route shadows it locally
   if (staged) return;
   const { gamesManifest } = await import('./serve.ts');
-  writeFileSync(join(outRoot, 'games.json'),
-    await gamesManifest(outRoot, join(projectRoot, 'artwork')));
+  writeFileSync(join(root, 'games.json'),
+    await gamesManifest(root, join(projectRoot, 'artwork')));
 }
 
 if ('serve' in opts || argv.includes('--serve')) {
