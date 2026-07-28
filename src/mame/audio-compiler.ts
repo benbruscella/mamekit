@@ -656,6 +656,8 @@ export function compileCounterLfsrDiscrete(
     : Number.NaN;
   const discreteFilterFile = 'src/devices/sound/disc_flt.hxx';
   const discreteHeaderFile = 'src/devices/sound/discrete.h';
+  const discreteDeviceFile = 'src/devices/sound/disc_dev.hxx';
+  const discreteMathFile = 'src/devices/sound/disc_mth.hxx';
   const discreteFilterSource = readFileSync(join(mameSrc, discreteFilterFile), 'utf8');
   const discreteHeaderSource = readFileSync(join(mameSrc, discreteHeaderFile), 'utf8');
   const diodeDrop = Number(/DST_RCDISC5__IN\s*-\s*([\d.]+)/.exec(
@@ -754,7 +756,13 @@ export function compileCounterLfsrDiscrete(
       resistance: analog(fire[3]),
       capacitance: analog(fire[4]),
     },
-    sourceFiles: [cppFile, discreteFilterFile, discreteHeaderFile],
+    sourceFiles: [
+      cppFile,
+      discreteFilterFile,
+      discreteHeaderFile,
+      discreteDeviceFile,
+      discreteMathFile,
+    ],
     source: { file: mapped[0]!.span.file, line: mapped[0]!.span.line },
   };
 }
