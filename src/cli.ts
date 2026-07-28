@@ -25,6 +25,7 @@ const projectRoot = resolve(here, '..');
 function usage(): never {
   console.error('usage: mamekit [graph|from-graph] <game> [--mame-src <path>] [--out <dir>] [--serve [port]]');
   console.error('       mamekit <game> --from-graph [graph.json]');
+  console.error('       mamekit --all              generate every accepted target, then the app');
   console.error('       mamekit --build-runtime [--build-app] [--targets <game,...>]');
   console.error('       mamekit --serve            serve the unified app + all generated games');
   process.exit(2);
@@ -45,7 +46,9 @@ for (let i = 0; i < argv.length; i++) {
     opts[key] = next && /^\d+$/.test(next) ? argv[++i] : 'true';
   } else if (key === 'from-graph') {
     opts[key] = next && next.endsWith('.json') ? argv[++i] : 'true';
-  } else if (key === 'skip-app' || key === 'build-app' || key === 'build-runtime') {
+  } else if (
+    key === 'skip-app' || key === 'build-app' || key === 'build-runtime' || key === 'all'
+  ) {
     opts[key] = 'true';
   } else {
     opts[key] = next && !next.startsWith('--') ? argv[++i] : '';
@@ -63,7 +66,8 @@ const game = positional[0] === 'graph' || positional[0] === 'from-graph'
 const serveOnly = !game && ('serve' in opts || argv.includes('--serve'));
 const buildAppOnly = !game && 'build-app' in opts;
 const buildRuntimeOnly = !game && 'build-runtime' in opts;
-if (!game && !serveOnly && !buildAppOnly && !buildRuntimeOnly) usage();
+const generateAll = !game && 'all' in opts;
+if (!game && !serveOnly && !buildAppOnly && !buildRuntimeOnly && !generateAll) usage();
 
 const outRoot = resolve(opts.out ?? join(projectRoot, 'dist'));
 const explicitMameSrc = opts['mame-src'] ?? process.env.MAME_SRC;
@@ -125,14 +129,51 @@ function findDriverFile(game: string): string {
 
 // ---------------------------------------------------------------------------
 
-if (buildAppOnly || buildRuntimeOnly) {
+if (generateAll) {
+  // One pass over the accepted target set, then one hardware closure and app
+  // build across exactly those targets. The set comes from the acceptance
+  // contracts, so there is no list here to fall out of step with them.
+  const { ACCEPTED_TARGETS } = await import('./gen/targets.ts');
+  for (const target of ACCEPTED_TARGETS) {
+    console.log(`\nmamekit: generating ${target}`);
+    await pipeline(target);
+  }
+  const { buildHardwareClosure, emitHardwareClosure } = await import('./mame/hardware.ts');
+  const targetGraphs = ACCEPTED_TARGETS.map(target => ({
+    game: target,
+    graph: JSON.parse(readFileSync(
+      join(
+        existingGameOutputDir(outRoot, target) ?? gameOutputDir(outRoot, 'arcade', target),
+        'graph.json',
+      ),
+      'utf8',
+    )),
+  }));
+  console.log(`\nmamekit: resolving MAME hardware used by ${targetGraphs.length} targets`);
+  const closure = buildHardwareClosure(mameSrc, targetGraphs);
+  emitHardwareClosure(closure, outRoot);
+  const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
+  const refreshedReports = refreshRuntimeReports(outRoot);
+  console.log(
+    `generated hardware closure: ${closure.summary.sourceResolved}/${closure.summary.types} ` +
+    `types source-resolved, ${closure.summary.unresolved} unresolved; ` +
+    `${refreshedReports} generation reports refreshed`,
+  );
+  const { buildApp } = await import('./gen/generate.ts');
+  if (!buildApp(outRoot)) {
+    process.exitCode = 1;
+  } else {
+    const { gamesManifest } = await import('./serve.ts');
+    writeFileSync(join(outRoot, 'games.json'),
+      await gamesManifest(outRoot, join(projectRoot, 'artwork')));
+  }
+} else if (buildAppOnly || buildRuntimeOnly) {
   const { REQUIRED_TARGETS } = await import('./gen/targets.ts');
   const { buildHardwareClosure, emitHardwareClosure } = await import('./mame/hardware.ts');
   const targets = opts.targets
     ? opts.targets.split(',').map(target => target.trim()).filter(Boolean)
     : [...REQUIRED_TARGETS];
-  const unknownTargets = targets.filter(target =>
-    !REQUIRED_TARGETS.includes(target as (typeof REQUIRED_TARGETS)[number]));
+  const unknownTargets = targets.filter(target => !REQUIRED_TARGETS.includes(target));
   if (!targets.length || unknownTargets.length) {
     throw new Error(
       `invalid runtime closure targets: ${unknownTargets.length ? unknownTargets.join(', ') : '(none)'}`,
