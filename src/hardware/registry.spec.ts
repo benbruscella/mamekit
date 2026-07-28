@@ -34,7 +34,8 @@ check('every registered capability has a package directory', () => {
 
 check('a package owns its extraction, ports and MAME types', () => {
   for (const capability of HARDWARE_CAPABILITIES) {
-    assert.ok(capability.mameTypes.length, `${capability.id} claims no MAME device type`);
+    // mameTypes is empty for families whose MAME class is named per driver;
+    // those are recognised by shape inside extract().
     assert.ok(capability.ports.length, `${capability.id} declares no ports`);
     assert.equal(typeof capability.extract, 'function');
   }

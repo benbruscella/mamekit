@@ -10,21 +10,72 @@
 // must never be imported by the browser runtime.
 
 import type { HardwareCapability } from './contract.ts';
-import { extractYm2203 } from './ym2203/extract.ts';
+import {
+  AY8910_ID,
+  AY8910_MAME_TYPES,
+  AY8910_MASTER_GAIN,
+  AY8910_PORTS,
+} from './ay8910/definition.ts';
+import { extractAy8910 } from './ay8910/extract.ts';
+import {
+  DISCRETE_COUNTER_LFSR_ID,
+  DISCRETE_COUNTER_LFSR_PORTS,
+} from './discrete-counter-lfsr/definition.ts';
+import { extractDiscreteCounterLfsr } from './discrete-counter-lfsr/extract.ts';
+import {
+  DISCRETE_SN76477_ID,
+  DISCRETE_SN76477_PORTS,
+} from './discrete-sn76477/definition.ts';
+import { extractDiscreteSn76477 } from './discrete-sn76477/extract.ts';
+import {
+  NAMCO_WSG_ID,
+  NAMCO_WSG_MAME_TYPES,
+  NAMCO_WSG_MASTER_GAIN,
+  NAMCO_WSG_PORTS,
+} from './namco-wsg/definition.ts';
+import { extractNamcoWsg } from './namco-wsg/extract.ts';
 import {
   YM2203_ID,
   YM2203_MAME_TYPES,
   YM2203_MASTER_GAIN,
   YM2203_PORTS,
 } from './ym2203/definition.ts';
+import { extractYm2203 } from './ym2203/extract.ts';
 
 export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
+  {
+    id: NAMCO_WSG_ID,
+    mameTypes: NAMCO_WSG_MAME_TYPES,
+    ports: NAMCO_WSG_PORTS,
+    extract: extractNamcoWsg,
+    masterGain: NAMCO_WSG_MASTER_GAIN,
+  },
+  {
+    id: AY8910_ID,
+    mameTypes: AY8910_MAME_TYPES,
+    ports: AY8910_PORTS,
+    extract: extractAy8910,
+    masterGain: AY8910_MASTER_GAIN,
+  },
   {
     id: YM2203_ID,
     mameTypes: YM2203_MAME_TYPES,
     ports: YM2203_PORTS,
     extract: extractYm2203,
     masterGain: YM2203_MASTER_GAIN,
+  },
+  // Recognised by shape: their MAME classes are named per driver.
+  {
+    id: DISCRETE_SN76477_ID,
+    mameTypes: [],
+    ports: DISCRETE_SN76477_PORTS,
+    extract: extractDiscreteSn76477,
+  },
+  {
+    id: DISCRETE_COUNTER_LFSR_ID,
+    mameTypes: [],
+    ports: DISCRETE_COUNTER_LFSR_PORTS,
+    extract: extractDiscreteCounterLfsr,
   },
 ];
 

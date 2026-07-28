@@ -26,17 +26,6 @@ import { generatedDeviceExecutableSource } from './device-codegen.ts';
 import { compileMameDevice } from './device-compiler.ts';
 import { compileNamco51Protocol } from './namco51-compiler.ts';
 import { compileNamco53Protocol } from './namco53-compiler.ts';
-import {
-  compileAy8910,
-  compileDiscreteSn76477,
-  compileCounterLfsrDiscrete,
-  compileMsm5205,
-  compileNamcoWsg,
-  generatedAy8910WorkletSource,
-  generatedDiscreteSn76477WorkletSource,
-  generatedCounterLfsrDiscreteWorkletSource,
-  generatedNamcoWsgWorkletSource,
-} from './audio-compiler.ts';
 
 export interface HardwareUse {
   game: string;
@@ -517,38 +506,6 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
   if (closure.hardware.some(entry => entry.type === 'NAMCO_53XX')) {
     generatedDevices.set('NAMCO_53XX', compileNamco53Protocol());
   }
-  const namcoEntry = closure.hardware.find(entry => entry.type === 'NAMCO_WSG');
-  const namcoWsg = namcoEntry?.definition
-    ? compileNamcoWsg(closure.mameSource, namcoEntry.definition)
-    : undefined;
-  const ayEntry = closure.hardware.find(entry => entry.type === 'AY8910');
-  const ay8910 = ayEntry?.definition
-    ? compileAy8910(closure.mameSource, ayEntry.definition)
-    : undefined;
-  const msmEntry = closure.hardware.find(entry => entry.type === 'MSM5205');
-  const msm5205 = msmEntry?.definition
-    ? compileMsm5205(closure.mameSource, msmEntry.definition)
-    : undefined;
-  const routedDac = ay8910 && closure.hardware.some(entry =>
-    entry.type === 'DAC_8BIT_R2R');
-  const snGames = new Set(
-    closure.hardware.find(entry => entry.type === 'SN76477')?.uses.map(use => use.game) ?? [],
-  );
-  const discreteSoundboardEntry = closure.hardware.find(entry =>
-    entry.type.endsWith('_AUDIO') &&
-    entry.definition &&
-    entry.uses.some(use => snGames.has(use.game)));
-  const discreteSn76477 = discreteSoundboardEntry?.definition
-    ? compileDiscreteSn76477(closure.mameSource, discreteSoundboardEntry.definition)
-    : undefined;
-  const counterLfsrEntry = closure.hardware.find(entry =>
-    entry.type.endsWith('_SOUND') &&
-    entry.definition &&
-    ['pitch_w', 'lfo_freq_w', 'sound_w'].every(name =>
-      entry.methods.some(method => method.name === name)));
-  const counterLfsrDiscrete = counterLfsrEntry?.definition
-    ? compileCounterLfsrDiscrete(closure.mameSource, counterLfsrEntry.definition)
-    : undefined;
   for (const entry of closure.hardware) {
     const device = generatedDevices.get(entry.type);
     if (!device) continue;
@@ -593,12 +550,6 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     ...(konami1 ? ['KONAMI1'] : []),
     ...(mc6809 ? ['MC6809'] : []),
     ...generatedDevices.keys(),
-    ...(namcoWsg ? ['NAMCO_WSG'] : []),
-    ...(ay8910 ? ['AY8910'] : []),
-    ...(msm5205 && ay8910 ? ['MSM5205'] : []),
-    ...(routedDac ? ['DAC_8BIT_R2R'] : []),
-    ...(discreteSn76477 ? [discreteSn76477.deviceType, 'SN76477'] : []),
-    ...(counterLfsrDiscrete ? [counterLfsrDiscrete.deviceType] : []),
   ]);
   const executableTypes = resolveCompositeExecutableTypes(
     closure.hardware,
@@ -643,41 +594,10 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
               executableKind: 'device',
               executableArtifact: `devices/${entry.type.toLowerCase()}.device.ir.json`,
             }
-        : entry.type === 'NAMCO_WSG'
-          ? {
-              executableKind: 'audio',
-              executableArtifact: 'audio/wsg-worklet.ts',
-            }
-        : entry.type === 'AY8910'
-          ? {
-              executableKind: 'audio',
-              executableArtifact: 'audio/ay8910-worklet.ts',
-            }
-        : entry.type === 'MSM5205' && msm5205 && ay8910
-          ? {
-              executableKind: 'audio',
-              executableArtifact: 'audio/msm5205.audio.ir.json',
-            }
-        : entry.type === 'DAC_8BIT_R2R' && routedDac
-          ? {
-              executableKind: 'audio',
-              executableArtifact: 'audio/ay8910-worklet.ts',
-            }
         : compositeTypes.has(entry.type)
           ? {
               executableKind: 'composition',
               executableArtifact: 'generated machine handlers',
-            }
-        : discreteSn76477 &&
-            (entry.type === discreteSn76477.deviceType || entry.type === 'SN76477')
-          ? {
-              executableKind: entry.type === 'SN76477' ? 'composition' : 'audio',
-              executableArtifact: `audio/${discreteSn76477.workletName}-worklet.ts`,
-            }
-        : counterLfsrDiscrete && entry.type === counterLfsrDiscrete.deviceType
-          ? {
-              executableKind: 'audio',
-              executableArtifact: `audio/${counterLfsrDiscrete.workletName}-worklet.ts`,
             }
         : {}),
     })),
@@ -687,65 +607,12 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     join(root, 'hardware-graph.json'),
     JSON.stringify(hardwareKnowledgeGraph(closure, executableTypes), null, 2),
   );
-  if (namcoWsg) {
-    const audioDir = join(root, 'audio');
-    mkdirSync(audioDir, { recursive: true });
-    writeFileSync(
-      join(audioDir, 'namco-wsg.audio.ir.json'),
-      JSON.stringify(namcoWsg, null, 2),
-    );
-    writeFileSync(join(audioDir, 'wsg-worklet.ts'), generatedNamcoWsgWorkletSource(namcoWsg));
-  }
-  if (ay8910) {
-    const audioDir = join(root, 'audio');
-    mkdirSync(audioDir, { recursive: true });
-    writeFileSync(
-      join(audioDir, 'ay8910.audio.ir.json'),
-      JSON.stringify(ay8910, null, 2),
-    );
-    writeFileSync(
-      join(audioDir, 'ay8910-worklet.ts'),
-      generatedAy8910WorkletSource(ay8910, msm5205),
-    );
-  }
-  if (msm5205 && ay8910) {
-    const audioDir = join(root, 'audio');
-    mkdirSync(audioDir, { recursive: true });
-    writeFileSync(
-      join(audioDir, 'msm5205.audio.ir.json'),
-      JSON.stringify(msm5205, null, 2),
-    );
-  }
   for (const { result } of extracted) {
     for (const artifact of result.artifacts) {
       const target = join(root, artifact.path);
       mkdirSync(dirname(target), { recursive: true });
       writeFileSync(target, artifact.contents);
     }
-  }
-  if (discreteSn76477) {
-    const audioDir = join(root, 'audio');
-    mkdirSync(audioDir, { recursive: true });
-    writeFileSync(
-      join(audioDir, `${discreteSn76477.workletName}.audio.ir.json`),
-      JSON.stringify(discreteSn76477, null, 2),
-    );
-    writeFileSync(
-      join(audioDir, `${discreteSn76477.workletName}-worklet.ts`),
-      generatedDiscreteSn76477WorkletSource(discreteSn76477),
-    );
-  }
-  if (counterLfsrDiscrete) {
-    const audioDir = join(root, 'audio');
-    mkdirSync(audioDir, { recursive: true });
-    writeFileSync(
-      join(audioDir, `${counterLfsrDiscrete.workletName}.audio.ir.json`),
-      JSON.stringify(counterLfsrDiscrete, null, 2),
-    );
-    writeFileSync(
-      join(audioDir, `${counterLfsrDiscrete.workletName}-worklet.ts`),
-      generatedCounterLfsrDiscreteWorkletSource(counterLfsrDiscrete),
-    );
   }
 
   for (const entry of closure.hardware) {

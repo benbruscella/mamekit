@@ -27,6 +27,8 @@ export interface CapabilityEntry {
   definition?: unknown;
   /** Methods lowered from the device's MAME class. */
   methods: readonly { name: string }[];
+  /** Targets that use this device type. */
+  uses?: readonly { game: string }[];
 }
 
 /** A file the capability emits into dist/runtime/generated. */
