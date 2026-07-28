@@ -13,10 +13,6 @@ import { GraphBuilder, type KnowledgeGraph } from '../kg/types.ts';
 import { parseMameSource, type MameMacro, type MameTranslationUnit } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { parseZ80OpcodeDsl } from './opcode-dsl.ts';
-import { generatedDeviceExecutableSource } from './device-codegen.ts';
-import { compileMameDevice } from './device-compiler.ts';
-import { compileNamco51Protocol } from './namco51-compiler.ts';
-import { compileNamco53Protocol } from './namco53-compiler.ts';
 
 export interface HardwareUse {
   game: string;
@@ -453,53 +449,6 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
       program: method.program,
     })),
   });
-  const generatedDevices = new Map(
-    closure.hardware
-      .filter(entry => [
-        'BUFFERED_SPRITERAM8',
-        'GENERIC_LATCH_8',
-        'ER2055',
-        'LS259',
-        'MB14241',
-        'MB8844',
-        'NAMCO_06XX',
-        'NAMCO_54XX',
-        'STARFIELD_05XX',
-      ].includes(entry.type))
-      .flatMap(entry => {
-        if (!entry.definition) return [];
-        const device = compileMameDevice(closure.mameSource, entry.definition);
-        if (device.summary.diagnostics) return [];
-        return [[entry.type, device] as const];
-      }),
-  );
-  if (closure.hardware.some(entry => entry.type === 'NAMCO_51XX')) {
-    generatedDevices.set('NAMCO_51XX', compileNamco51Protocol());
-  }
-  if (closure.hardware.some(entry => entry.type === 'NAMCO_53XX')) {
-    generatedDevices.set('NAMCO_53XX', compileNamco53Protocol());
-  }
-  for (const entry of closure.hardware) {
-    const device = generatedDevices.get(entry.type);
-    if (!device) continue;
-    const previousMethods = entry.methods;
-    entry.methods = device.methods.map(method => ({
-      name: method.name,
-      parameters: method.parameters,
-      sourceFile: method.source.file,
-      sourceLine: method.source.line,
-      body: '',
-      program: method.program,
-    }));
-    entry.sourceFiles = device.sourceFiles;
-    closure.summary.methods += entry.methods.length - previousMethods.length;
-    closure.summary.compiledMethods +=
-      entry.methods.filter(method => !method.program.diagnostics.length).length -
-      previousMethods.filter(method => !method.program.diagnostics.length).length;
-    closure.summary.blockedMethods +=
-      entry.methods.filter(method => method.program.diagnostics.length).length -
-      previousMethods.filter(method => method.program.diagnostics.length).length;
-  }
   // Capability packages own their own extraction, emitted artifacts and
   // manifest entry. Everything below this line is hardware still awaiting a
   // package; adding one must not require editing this function again.
@@ -513,11 +462,29 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
   const capabilityExecutable = new Map(
     extracted.flatMap(({ result }) => Object.entries(result.executable)),
   );
+  // A capability that lowered a device through MAME's inheritance knows its
+  // real method set; the closure's first pass over the class does not.
+  for (const { result } of extracted) {
+    for (const [type, files] of Object.entries(result.entrySourceFiles ?? {})) {
+      const entry = closure.hardware.find(candidate => candidate.type === type);
+      if (entry) entry.sourceFiles = [...files];
+    }
+    for (const [type, methods] of Object.entries(result.entryMethods ?? {})) {
+      const entry = closure.hardware.find(candidate => candidate.type === type);
+      if (!entry) continue;
+      const previous = entry.methods;
+      entry.methods = methods as typeof entry.methods;
+      const compiledCount = (list: typeof entry.methods): number =>
+        list.filter(method => !method.program.diagnostics.length).length;
+      closure.summary.methods += entry.methods.length - previous.length;
+      closure.summary.compiledMethods += compiledCount(entry.methods) - compiledCount(previous);
+      closure.summary.blockedMethods +=
+        (entry.methods.length - compiledCount(entry.methods)) -
+        (previous.length - compiledCount(previous));
+    }
+  }
 
-  const leafExecutableTypes = new Set<string>([
-    ...capabilityExecutable.keys(),
-    ...generatedDevices.keys(),
-  ]);
+  const leafExecutableTypes = new Set<string>(capabilityExecutable.keys());
   const executableTypes = resolveCompositeExecutableTypes(
     closure.hardware,
     leafExecutableTypes,
@@ -553,11 +520,6 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
             executableKind: capabilityExecutable.get(entry.type)!.kind,
             executableArtifact: capabilityExecutable.get(entry.type)!.artifact,
           }
-        : generatedDevices.has(entry.type)
-          ? {
-              executableKind: 'device',
-              executableArtifact: `devices/${entry.type.toLowerCase()}.device.ir.json`,
-            }
         : compositeTypes.has(entry.type)
           ? {
               executableKind: 'composition',
@@ -583,20 +545,8 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     const slug = entry.type.toLowerCase();
     const emitted = compactEntry(entry);
     writeFileSync(join(devicesDir, `${slug}.ir.json`), JSON.stringify(emitted, null, 2));
-    // CPU cores are emitted by their capability packages.
-    if (capabilityExecutable.get(entry.type)?.kind === 'cpu') continue;
-    const device = generatedDevices.get(entry.type);
-    if (device) {
-      writeFileSync(
-        join(devicesDir, `${slug}.device.ir.json`),
-        JSON.stringify(device, null, 2),
-      );
-      writeFileSync(
-        join(devicesDir, `${slug}.ts`),
-        generatedDeviceExecutableSource(device, `${slug}.device.ir.json`),
-      );
-      continue;
-    }
+    // CPU cores and devices are emitted by their capability packages.
+    if (['cpu', 'device'].includes(capabilityExecutable.get(entry.type)?.kind ?? '')) continue;
   }
 
   for (const file of new Set(closure.hardware.flatMap(entry => entry.dslFiles))) {

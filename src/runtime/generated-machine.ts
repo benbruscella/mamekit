@@ -1,7 +1,7 @@
 // Registration and signal wiring for decoded boards. The IR types themselves
 // live in src/ir/board.ts, which both the compiler and this runtime import.
 
-import type { BoardIr, GeneratedHandler } from '../ir/board.ts';
+import type { BoardIr } from '../ir/board.ts';
 import { applyBoardTransforms, type BoundEffect } from './generated-effects.ts';
 
 export type SignalEndpoint = (state: number) => number | void;
@@ -77,10 +77,4 @@ export function wireDeviceCallbacks(
     );
   }
   return bound;
-}
-
-export function generatedScreenHandler(machine: BoardIr): GeneratedHandler | undefined {
-  const target = machine.execution.screenUpdate?.handler;
-  if (!target) return undefined;
-  return machine.handlers?.find(handler => `${handler.ownerClass}.${handler.method}` === target);
 }

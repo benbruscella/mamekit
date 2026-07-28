@@ -33,26 +33,3 @@ export interface PortDeclaration {
   /** Human-readable note tying the port to its MAME source concept. */
   note?: string;
 }
-
-/** Ports that can accept a connection from `kind`. */
-const COMPATIBLE: Record<PortKind, readonly PortKind[]> = {
-  'interrupt-out': ['interrupt-in'],
-  'interrupt-in': [],
-  bus: ['registers'],
-  registers: [],
-  clock: ['clock'],
-  'audio-out': ['audio-out'],
-  video: ['video'],
-  input: ['input'],
-};
-
-export function portsCompatible(from: PortKind, to: PortKind): boolean {
-  return COMPATIBLE[from].includes(to);
-}
-
-export function findPort(
-  ports: readonly PortDeclaration[],
-  name: string,
-): PortDeclaration | undefined {
-  return ports.find(port => port.name === name);
-}

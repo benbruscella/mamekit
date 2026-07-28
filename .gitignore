@@ -11,3 +11,7 @@ artwork/
 .playwright-mcp/
 .env
 .files
+
+# scratch files from investigation sessions
+*.tmp.*
+.files/

@@ -51,6 +51,27 @@ export interface CapabilityExtraction {
    */
   executable: Record<string, { kind: CapabilityKind; artifact: string }>;
   artifacts: CapabilityArtifact[];
+  /**
+   * Methods this extraction lowered for a device type, replacing whatever the
+   * closure scraped from the class. A device compiled through MAME's device
+   * inheritance knows its real method set; the closure's first pass does not.
+   */
+  entryMethods?: Record<string, readonly LoweredMethod[]>;
+  /**
+   * Source files a lowered device actually came from, replacing the closure's
+   * first guess. MAME device inheritance pulls in the header and the parent
+   * class, which the initial scrape does not see.
+   */
+  entrySourceFiles?: Record<string, readonly string[]>;
+}
+
+export interface LoweredMethod {
+  name: string;
+  parameters: string;
+  sourceFile: string;
+  sourceLine: number;
+  body: string;
+  program: { diagnostics: string[] };
 }
 
 export type CapabilityKind = 'cpu' | 'device' | 'audio' | 'composition';

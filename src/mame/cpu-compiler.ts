@@ -1220,7 +1220,7 @@ function normalizeI8080Source(source: string): string {
   return normalizePairLocals(source);
 }
 
-export function normalizeM6809Source(source: string): string {
+function normalizeM6809Source(source: string): string {
   const wordLocals = new Set(
     [...source.matchAll(/\b(?:u?int16_t|[us]16)\s+([A-Za-z_]\w*)\b/g)]
       .map(match => match[1]!),
@@ -1817,13 +1817,4 @@ function lineAt(source: string, offset: number): number {
 
 function sourceRef(file: string, line: number): BoardSourceRef {
   return { file, line };
-}
-
-export function z80SourcePaths(mameSrc: string): string[] {
-  return [
-    'src/devices/cpu/z80/z80.cpp',
-    'src/devices/cpu/z80/z80.h',
-    'src/devices/cpu/z80/z80.inc',
-    'src/devices/cpu/z80/z80.lst',
-  ].map(file => relative(mameSrc, join(mameSrc, file)));
 }
