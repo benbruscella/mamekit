@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { BoardIrError, decodeBoardIr } from './decode.ts';
+import { BoardIrError, decodeBoardIr, type BoardIrDiagnostic } from './decode.ts';
 import { BOARD_IR_SCHEMA_VERSION } from './version.ts';
 
 let passed = 0;
@@ -22,7 +22,7 @@ function board(overrides: Record<string, unknown> = {}): Record<string, unknown>
   };
 }
 
-function diagnostics(value: unknown): { path: string; message: string }[] {
+function diagnostics(value: unknown): BoardIrDiagnostic[] {
   try {
     decodeBoardIr(value, 'fixture');
   } catch (error) {
