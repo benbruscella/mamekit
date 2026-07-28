@@ -24,6 +24,7 @@ import {
   compileNamco54Discrete,
 } from '../mame/audio-compiler.ts';
 import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.ts';
+import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 import {
   GAME_CATEGORIES,
   gameDataPath,
@@ -390,6 +391,14 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               worklet: String(discreteDevice.props.type).toLowerCase().replace(/_/g, '-'),
             }
           : { kind: 'none' };
+  // The post-mix level belongs to the sound family's capability package, so
+  // the shell reads it from the generated config instead of keeping a table
+  // that every new family would have to be added to.
+  const soundGain = devices
+    .map(device => capabilityForType(HARDWARE_CAPABILITIES, String(device.props.type)))
+    .find(capability => capability?.masterGain !== undefined)?.masterGain;
+  if (soundGain !== undefined) Object.assign(sound, { masterGain: soundGain });
+
   const discreteNetlist = devices
     .filter(device => device.props.type === 'DISCRETE')
     .flatMap(device => Array.isArray(device.props.config) ? device.props.config : [])

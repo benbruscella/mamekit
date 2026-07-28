@@ -63,6 +63,12 @@ export interface SoundSpec {
   discreteMixer?: GeneratedDiscreteMixerPlan;
   /** MAME's source-derived post-mix speaker effect. */
   speakerFilter?: GeneratedSpeakerFilterPlan;
+  /**
+   * Post-mix level for this sound family, from its capability package. MAME's
+   * add_route gains set the relative mix between chips; this is the single
+   * master level the shell applies.
+   */
+  masterGain?: number;
 }
 
 /** the ROM drop target's visual states (built by buildDom().dropZone) */
@@ -282,12 +288,10 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
       `${cfg.runtimeUrl}${cfg.sound.worklet ?? cfg.sound.kind}-worklet.js`,
       cfg.sound.kind,
     ).then(() => {
-      // per-core master gains: wsg = MAME route gain 0.90*10/16; the AY bank
-      // runs hot against the others — tamed to sit level with them
-      const VOLUMES: Record<string, number> = {
-        wsg: 0.5625, ay8910: 0.7, nes: 0.8, ym2203: 0.7,
-      };
-      audio.setVolume(VOLUMES[cfg.sound.kind] ?? 1);
+      // The post-mix level belongs to the sound family, so it is generated
+      // from its capability package rather than kept in a table here that
+      // every new family would have to be added to.
+      audio.setVolume(cfg.sound.masterGain ?? 1);
     }).catch(err => console.warn('audio unavailable:', err));
     const resumeAudio = () => audio.resume();
     addEventListener('pointerdown', resumeAudio, { once: true });
