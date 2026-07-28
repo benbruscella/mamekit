@@ -221,11 +221,13 @@ if (generateAll) {
   if (!buildApp(outRoot)) {
     process.exitCode = 1;
   } else {
+    const { writeBuildManifest } = await import('./gen/build-manifest.ts');
+    // gamesManifest validates the catalog against this manifest, so make the
+    // updated closure self-describing before asking it to build games.json.
+    writeBuildManifest(outRoot, targets, mameSrc, String(process.hrtime.bigint()));
     const { gamesManifest } = await import('./serve.ts');
     writeFileSync(join(outRoot, 'games.json'),
       await gamesManifest(outRoot, join(projectRoot, 'artwork')));
-    const { writeBuildManifest } = await import('./gen/build-manifest.ts');
-    writeBuildManifest(outRoot, targets, mameSrc, String(process.hrtime.bigint()));
   }
 } else if (serveOnly) {
   const { buildApp } = await import('./gen/generate.ts');
@@ -296,13 +298,15 @@ if (regions.length) {
 if (command === 'run') {
   const { generate, buildApp } = await import('./gen/generate.ts');
   await generate(sub, { mameSrc, outDir, game, fullGraph: graph });
-  if (!('skip-app' in opts) && !buildApp(root)) process.exitCode = 1;
+  const skipApp = 'skip-app' in opts;
+  if (!skipApp && !buildApp(root)) process.exitCode = 1;
   // static manifest so the built tree is servable as plain files (github
   // pages); the dev server's live /games.json route shadows it locally
-  if (staged) return;
-  const { gamesManifest } = await import('./serve.ts');
-  writeFileSync(join(root, 'games.json'),
-    await gamesManifest(root, join(projectRoot, 'artwork')));
+  if (!staged && !skipApp) {
+    const { gamesManifest } = await import('./serve.ts');
+    writeFileSync(join(root, 'games.json'),
+      await gamesManifest(root, join(projectRoot, 'artwork')));
+  }
 }
 
 if ('serve' in opts || argv.includes('--serve')) {

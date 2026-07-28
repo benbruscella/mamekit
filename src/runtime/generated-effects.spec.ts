@@ -115,6 +115,18 @@ check('port-read effects are marked as reads', () => {
   assert.equal(effects.get('p')!.reads, true);
 });
 
+check('duplicate callback connections abort construction', () => {
+  const connection = {
+    callbackId: 'duplicate',
+    effect: { kind: 'unconnected' as const },
+    transforms: [],
+  };
+  assert.throws(
+    () => bindBoardEffects(machineWith([connection, connection]), bindings),
+    /callback "duplicate" has more than one connection/,
+  );
+});
+
 // A connection the runtime cannot execute must abort construction. Skipping one
 // produced boards that started and then behaved wrongly with no diagnostic.
 check('an unbindable effect aborts construction with its source line', () => {

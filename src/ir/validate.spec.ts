@@ -67,6 +67,12 @@ check('a timer owns itself', () => {
       id: 'c0', ownerTag: 'irq_timer', signal: 'timer', operation: 'adjust',
       targetClass: 'fixture_state', targetMethod: 'tick',
     }],
+    connections: [{
+      callbackId: 'c0',
+      effect: { kind: 'handler', handler: 'fixture_state.tick' },
+      transforms: [],
+    }],
+    handlers: [{ id: 'handler:tick', ownerClass: 'fixture_state', method: 'tick' }],
   });
   assert.deepEqual(validateBoardIr(ir), []);
 });
@@ -84,6 +90,7 @@ check('a callback that names no target is rejected', () => {
 check('an explicitly unconnected output is accepted', () => {
   const ir = board({
     callbacks: [{ id: 'c0', ownerTag: 'maincpu', signal: 'q_out_cb', operation: 'set_nop' }],
+    connections: [{ callbackId: 'c0', effect: { kind: 'unconnected' }, transforms: [] }],
   });
   assert.deepEqual(validateBoardIr(ir), []);
 });
@@ -105,6 +112,11 @@ check('a port-directed callback does not constrain the device tags', () => {
       id: 'c0', ownerTag: 'maincpu', signal: 'input_callback', operation: 'set_ioport',
       targetTag: 'IN0', targetPort: 'IN0',
     }],
+    connections: [{
+      callbackId: 'c0',
+      effect: { kind: 'port-read', port: 'IN0' },
+      transforms: [],
+    }],
   });
   assert.deepEqual(validateBoardIr(ir), []);
 });
@@ -115,6 +127,63 @@ check('duplicate callback ids are rejected', () => {
   };
   const ir = board({ callbacks: [{ id: 'c0', ...shared }, { id: 'c0', ...shared }] });
   assert.match(messages(ir), /duplicate callback id "c0"/);
+});
+
+check('a callback with no connection is rejected before runtime', () => {
+  const ir = board({
+    callbacks: [{
+      id: 'c0', ownerTag: 'maincpu', signal: 'irq', operation: 'set',
+      targetTag: 'maincpu', inputLine: 'INPUT_LINE_IRQ0',
+    }],
+  });
+  assert.match(messages(ir), /callback "c0" has no executable connection/);
+});
+
+check('a connection naming an unknown callback is rejected', () => {
+  const ir = board({
+    connections: [{ callbackId: 'ghost', effect: { kind: 'unconnected' }, transforms: [] }],
+  });
+  assert.match(messages(ir), /connection references unknown callback "ghost"/);
+});
+
+check('duplicate connections for one callback are rejected', () => {
+  const connection = {
+    callbackId: 'c0',
+    effect: { kind: 'unconnected' as const },
+    transforms: [],
+  };
+  const ir = board({
+    callbacks: [{ id: 'c0', ownerTag: 'maincpu', signal: 'q_out_cb', operation: 'set_nop' }],
+    connections: [connection, connection],
+  });
+  assert.match(messages(ir), /callback "c0" has more than one connection/);
+});
+
+check('a connection effect targeting an undeclared device is rejected', () => {
+  const ir = board({
+    callbacks: [{
+      id: 'c0', ownerTag: 'maincpu', signal: 'irq', operation: 'set',
+      targetTag: 'maincpu', inputLine: 'INPUT_LINE_IRQ0',
+    }],
+    connections: [{
+      callbackId: 'c0',
+      effect: { kind: 'cpu-line', tag: 'ghost', line: 'irq', delivery: 'level' },
+      transforms: [],
+    }],
+  });
+  assert.match(messages(ir), /CPU-line effect targets undeclared CPU "ghost"/);
+});
+
+check('set_nop and executable effects cannot disagree', () => {
+  const ir = board({
+    callbacks: [{ id: 'c0', ownerTag: 'maincpu', signal: 'q_out_cb', operation: 'set_nop' }],
+    connections: [{
+      callbackId: 'c0',
+      effect: { kind: 'cpu-line', tag: 'maincpu', line: 'irq', delivery: 'level' },
+      transforms: [],
+    }],
+  });
+  assert.match(messages(ir), /declared unconnected but has an executable effect/);
 });
 
 check('a frame event naming an unknown callback is rejected', () => {

@@ -525,4 +525,3 @@ export interface BoardIr {
   video?: GeneratedVideoPlan;
   sound?: GeneratedSoundBinding;
 }
-

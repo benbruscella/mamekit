@@ -97,6 +97,18 @@ check('a stale schema version is rejected', () => {
   rmSync(root, { recursive: true, force: true });
 });
 
+check('a stale graph schema version is rejected', () => {
+  const root = dist(['pacman'], ['z80']);
+  writeBuildManifest(root, ['pacman'], '', 'test');
+  const manifest = readBuildManifest(root)!;
+  writeFileSync(
+    join(root, BUILD_MANIFEST_FILE),
+    JSON.stringify({ ...manifest, graphSchemaVersion: manifest.graphSchemaVersion - 1 }),
+  );
+  assert.match(buildClosureFailures(root, ['pacman']).join('\n'), /graph schema is/);
+  rmSync(root, { recursive: true, force: true });
+});
+
 check('a distribution with no manifest is rejected', () => {
   const root = dist(['pacman'], ['z80']);
   assert.match(buildClosureFailures(root, ['pacman']).join('\n'), /build manifest is missing/);

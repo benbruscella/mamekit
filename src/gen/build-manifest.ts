@@ -132,6 +132,12 @@ export function buildClosureFailures(
       `this compiler emits ${BOARD_IR_SCHEMA_VERSION}`,
     );
   }
+  if (manifest.graphSchemaVersion !== GRAPH_SCHEMA_VERSION) {
+    failures.push(
+      `build manifest graph schema is ${manifest.graphSchemaVersion}, ` +
+      `this compiler emits ${GRAPH_SCHEMA_VERSION}`,
+    );
+  }
   if (manifest.compilerVersion !== COMPILER_VERSION) {
     failures.push(
       `build manifest compiler version is ${manifest.compilerVersion}, ` +

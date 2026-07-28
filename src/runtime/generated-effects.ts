@@ -65,8 +65,15 @@ export function bindBoardEffects(
   bindings: EffectBindings,
 ): Map<string, BoundEffect> {
   const bound = new Map<string, BoundEffect>();
+  const seen = new Set<string>();
   const unbound: string[] = [];
   for (const connection of machine.connections) {
+    if (seen.has(connection.callbackId)) {
+      throw new Error(
+        `${machine.game}: callback "${connection.callbackId}" has more than one connection`,
+      );
+    }
+    seen.add(connection.callbackId);
     const run = executorFor(connection.effect, bindings);
     if (!run) {
       unbound.push(

@@ -67,6 +67,10 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
   }
 
   const tags = new Set([...deviceTags, ...cpuTags]);
+  const handlerKeys = new Set(
+    (board.handlers ?? []).map(handler => `${handler.ownerClass}.${handler.method}`),
+  );
+  const handlerMethods = new Set((board.handlers ?? []).map(handler => handler.method));
   // A MAME timer_device is declared by the callback that schedules it rather
   // than by a machine-config device line, so it owns itself.
   const timerOwners = new Set(
@@ -108,6 +112,84 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     }
   }
 
+  // Lowering emits exactly one executable connection for every callback,
+  // including an explicit no-op for MAME .set_nop(). Keep that invariant at
+  // the decoded boundary: otherwise a missing connection survives generation
+  // and fails only when the signal happens to fire in the browser, while a
+  // duplicate is silently overwritten in the runtime's callback map.
+  const connectionCounts = new Map<string, number>();
+  for (const [index, connection] of board.connections.entries()) {
+    const path = `connections[${index}]`;
+    const count = (connectionCounts.get(connection.callbackId) ?? 0) + 1;
+    connectionCounts.set(connection.callbackId, count);
+    if (!callbackIds.has(connection.callbackId)) {
+      fail(
+        `${path}.callbackId`,
+        `connection references unknown callback "${connection.callbackId}"`,
+        connection.source,
+      );
+    } else if (count > 1) {
+      fail(
+        `${path}.callbackId`,
+        `callback "${connection.callbackId}" has more than one connection`,
+        connection.source,
+      );
+    }
+
+    const callback = board.callbacks.find(candidate => candidate.id === connection.callbackId);
+    if (connection.effect.kind === 'unconnected') {
+      if (callback && !isUnconnectedCallback(callback)) {
+        fail(
+          `${path}.effect`,
+          `callback "${connection.callbackId}" is executable but its connection is unconnected`,
+          connection.source ?? callback.source,
+        );
+      }
+      continue;
+    }
+    if (callback && isUnconnectedCallback(callback)) {
+      fail(
+        `${path}.effect`,
+        `callback "${connection.callbackId}" is declared unconnected but has an executable effect`,
+        connection.source ?? callback.source,
+      );
+    }
+
+    const effect = connection.effect;
+    if (effect.kind === 'cpu-line' && !cpuTags.has(effect.tag)) {
+      fail(
+        `${path}.effect.tag`,
+        `CPU-line effect targets undeclared CPU "${effect.tag}"`,
+        connection.source,
+      );
+    } else if (
+      (effect.kind === 'device-method' ||
+        effect.kind === 'audio-control' ||
+        effect.kind === 'audio-write') &&
+      !tags.has(effect.tag)
+    ) {
+      fail(
+        `${path}.effect.tag`,
+        `${effect.kind} effect targets undeclared device "${effect.tag}"`,
+        connection.source,
+      );
+    } else if (effect.kind === 'handler' && !handlerKeys.has(effect.handler)) {
+      fail(
+        `${path}.effect.handler`,
+        `connection handler "${effect.handler}" was not generated`,
+        connection.source,
+      );
+    }
+  }
+  for (const [index, callback] of board.callbacks.entries()) {
+    if ((connectionCounts.get(callback.id) ?? 0) !== 0) continue;
+    fail(
+      `callbacks[${index}].id`,
+      `callback "${callback.id}" has no executable connection`,
+      callback.source,
+    );
+  }
+
   for (const [index, event] of board.execution.frameEvents.entries()) {
     if (callbackIds.has(event.callbackId)) continue;
     fail(
@@ -141,10 +223,6 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     }
   }
 
-  const handlerKeys = new Set(
-    (board.handlers ?? []).map(handler => `${handler.ownerClass}.${handler.method}`),
-  );
-  const handlerMethods = new Set((board.handlers ?? []).map(handler => handler.method));
   const screenUpdate = board.execution.screenUpdate;
   if (screenUpdate && !handlerKeys.has(screenUpdate.handler)) {
     fail(
