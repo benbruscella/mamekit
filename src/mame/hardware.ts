@@ -542,6 +542,8 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
   };
   const compact = {
     ...closure,
+    /** Capability packages that lowered hardware for this closure. */
+    capabilities: extracted.map(({ capability }) => capability.id).sort(),
     hardware: closure.hardware.map(entry => ({
       ...compactEntry(entry),
       executable: executableTypes.has(entry.type),

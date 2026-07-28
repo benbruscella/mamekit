@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { BoardIr } from '../ir/board.ts';
 import { decodeBoardIr } from '../ir/decode.ts';
 import { validateBoardIr } from '../ir/validate.ts';
+import { buildClosureFailures } from './build-manifest.ts';
 import { gameDataPath, generatedGameOutputs } from './output-layout.ts';
 
 export { REQUIRED_TARGETS } from './targets.ts';
@@ -33,6 +34,17 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
   if (!registry) failures.push('unified generated registry is missing');
   else if (!registry.includes('registerGeneratedBoard')) {
     failures.push('unified generated registry does not register board factories');
+  }
+
+  // A dist whose catalog, hardware closure and build manifest disagree is a
+  // mixed build: boards registered against a closure that was not built for
+  // them. Serving or auditing it as if it were coherent is the failure this
+  // check exists to prevent.
+  for (const failure of buildClosureFailures(
+    outRoot,
+    generatedTargets.map(target => target.game),
+  )) {
+    failures.push(failure);
   }
 
   const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');

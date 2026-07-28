@@ -166,6 +166,8 @@ if (generateAll) {
     const { gamesManifest } = await import('./serve.ts');
     writeFileSync(join(outRoot, 'games.json'),
       await gamesManifest(outRoot, join(projectRoot, 'artwork')));
+    const { writeBuildManifest } = await import('./gen/build-manifest.ts');
+    writeBuildManifest(outRoot, ACCEPTED_TARGETS, mameSrc, String(process.hrtime.bigint()));
   }
 } else if (buildAppOnly || buildRuntimeOnly) {
   const { REQUIRED_TARGETS } = await import('./gen/targets.ts');
@@ -210,6 +212,8 @@ if (generateAll) {
     const { gamesManifest } = await import('./serve.ts');
     writeFileSync(join(outRoot, 'games.json'),
       await gamesManifest(outRoot, join(projectRoot, 'artwork')));
+    const { writeBuildManifest } = await import('./gen/build-manifest.ts');
+    writeBuildManifest(outRoot, targets, mameSrc, String(process.hrtime.bigint()));
   }
 } else if (serveOnly) {
   const { buildApp } = await import('./gen/generate.ts');
