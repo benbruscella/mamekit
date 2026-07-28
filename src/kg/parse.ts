@@ -1257,6 +1257,13 @@ export function parseDeviceDefaultClocks(src: string): Record<string, number> {
 }
 
 export interface RomPatchDef { region: string; offset: number; value: number }
+export interface RomTransformDef {
+  kind: 'conditional-byte-swap';
+  region: string;
+  indexMask: number;
+  indexValue: number;
+  displacement: number;
+}
 
 /**
  * ROM patches from driver init functions:
@@ -1273,6 +1280,55 @@ export function parseInitPatches(src: string, consts: Record<string, number> = {
       if (offset !== null && value !== null) patches.push({ region: m[1], offset, value: value & 0xff });
     }
     if (patches.length) out[name] = patches;
+  }
+  return out;
+}
+
+/**
+ * Declarative ROM transforms from driver init functions.
+ *
+ * Galaga stores its second character bank in a hardware-oriented byte order.
+ * MAME's init_galaga walks the gfx region and swaps `rom[i]` with `rom[i+n]`
+ * for indices selected by a mask. Preserve that source operation as data so
+ * every runtime applies it before graphics decoding.
+ */
+export function parseInitRomTransforms(
+  src: string,
+  consts: Record<string, number> = {},
+): Record<string, RomTransformDef[]> {
+  const out: Record<string, RomTransformDef[]> = {};
+  for (const { name, body } of extractFunctionBody(src, /void\s+(\w+)::(init_\w+)\(\)/g)) {
+    const transforms: RomTransformDef[] = [];
+    const aliases = new Map<string, string>();
+    for (const match of body.matchAll(
+      /\b(?:uint8_t|u8)\s*\*\s*(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)\s*->\s*base\(\s*\)\s*;/g,
+    )) {
+      aliases.set(match[1], match[2]);
+    }
+    for (const [alias, region] of aliases) {
+      const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const swap = new RegExp(
+        String.raw`if\s*\(\s*\(\s*(\w+)\s*&\s*([^)]+?)\s*\)\s*==\s*([^)]+?)\s*\)` +
+        String.raw`\s*\{[\s\S]*?\b\w+\s*=\s*${escaped}\s*\[\s*\1\s*\]\s*;` +
+        String.raw`\s*${escaped}\s*\[\s*\1\s*\]\s*=\s*${escaped}\s*\[\s*\1\s*\+\s*([^\]]+?)\s*\]\s*;` +
+        String.raw`\s*${escaped}\s*\[\s*\1\s*\+\s*\4\s*\]\s*=\s*\w+\s*;`,
+        'g',
+      );
+      for (const match of body.matchAll(swap)) {
+        const indexMask = evalExpr(match[2], consts);
+        const indexValue = evalExpr(match[3], consts);
+        const displacement = evalExpr(match[4], consts);
+        if (indexMask === null || indexValue === null || displacement === null) continue;
+        transforms.push({
+          kind: 'conditional-byte-swap',
+          region,
+          indexMask,
+          indexValue,
+          displacement,
+        });
+      }
+    }
+    if (transforms.length) out[name] = transforms;
   }
   return out;
 }

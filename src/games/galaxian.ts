@@ -9,7 +9,7 @@ export const galaxian: GameTestContract = {
   screen: { width: 256, height: 224 },
   soundKind: 'discrete',
   frames: 900,
-  minimumFps: 45,
+  minimumFps: 60,
   checkpoints: [1, 60, 180, 300, 480, 500, 900],
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },

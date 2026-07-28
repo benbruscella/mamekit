@@ -7,6 +7,7 @@ import { AUDIO_PROBES } from '../hardware/acceptance-registry.ts';
 import { KeyboardInput } from '../runtime/input.ts';
 import {
   assembleRegions,
+  applyRomTransforms,
   checkRomSet,
   type ShellConfig,
 } from '../runtime/shell.ts';
@@ -84,6 +85,7 @@ export async function runGameAcceptance(
     const region = regions[patch.region];
     if (region && patch.offset < region.length) region[patch.offset] = patch.value;
   }
+  applyRomTransforms(regions, config.romTransforms ?? []);
 
   const registry = await import(moduleUrl(join(outRoot, 'app/registry.js'))) as {
     registerGeneratedMachines(): void;

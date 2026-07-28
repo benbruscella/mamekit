@@ -692,6 +692,15 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         return { region, offset: Number(offset), value: Number(value) };
       })
     : undefined;
+  const romTransforms = Array.isArray(game.props.romTransforms)
+    ? game.props.romTransforms.map(value => JSON.parse(String(value)) as {
+        kind: 'conditional-byte-swap';
+        region: string;
+        indexMask: number;
+        indexValue: number;
+        displacement: number;
+      })
+    : undefined;
 
   const config = {
     game: opts.game,
@@ -703,6 +712,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     sound,
     roms,
     ...(romPatches ? { romPatches } : {}),
+    ...(romTransforms ? { romTransforms } : {}),
     ...(cart ? { cart } : {}),
     bindings,
     dipDefaults,

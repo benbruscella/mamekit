@@ -17,6 +17,15 @@ import { assertGameContract, gameSourceGraph, mameSourceRoot } from './test-supp
 assertGameContract(galaga);
 const mameSrc = mameSourceRoot();
 const graph = gameSourceGraph(galaga);
+const game = graph.nodes.find(node =>
+  node.label === 'Game' && node.props.name === galaga.game);
+assert.deepEqual(game?.props.romTransforms, [JSON.stringify({
+  kind: 'conditional-byte-swap',
+  region: 'gfx1',
+  indexMask: 0x0808,
+  indexValue: 0x0800,
+  displacement: 8,
+})]);
 const machine = graph.nodes.find(node =>
   node.label === 'MachineConfig' &&
   node.props.cls === galaga.machine.className &&

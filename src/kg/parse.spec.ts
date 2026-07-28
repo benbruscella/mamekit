@@ -11,6 +11,7 @@ import {
   parseDefines,
   parseGames,
   parseGfxLayouts,
+  parseInitRomTransforms,
   parseMachineConfigs,
   parseMemberTags,
   parseMemoryBanks,
@@ -257,6 +258,31 @@ eq('bank windows from a pointer alias', parseMemoryBanks(`
   { tag: 'mainbank', region: 'maincpu', startEntry: 0, entries: 4, offset: 0x10000, stride: 0x2000 },
   { tag: 'mainbank', region: 'maincpu', startEntry: 4, entries: 1, offset: 0x4000, stride: 0 },
 ]);
+
+eq('conditional driver-init byte swap', parseInitRomTransforms(`
+void galaga_state::init_galaga()
+{
+  uint8_t *rom = memregion("gfx1")->base();
+  int len = memregion("gfx1")->bytes();
+  for (int i = 0; i < len; i++)
+  {
+    if ((i & 0x0808) == 0x0800)
+    {
+      int t = rom[i];
+      rom[i] = rom[i+8];
+      rom[i+8] = t;
+    }
+  }
+}
+`), {
+  init_galaga: [{
+    kind: 'conditional-byte-swap',
+    region: 'gfx1',
+    indexMask: 0x0808,
+    indexValue: 0x0800,
+    displacement: 8,
+  }],
+});
 
 console.log(`\nparse.spec: ${totalPass} passed, ${totalFail} failed`);
 if (totalFail > 0) process.exitCode = 1;

@@ -14,7 +14,7 @@ export const galaga: GameTestContract = {
   frames: 2600,
   // The generated 05xx hot loop is AOT-compiled from device IR.
   minimumFps: 45,
-  checkpoints: [1, 300, 720, 900, 1050, 1300, 1600, 2456, 2600],
+  checkpoints: [1, 300, 720, 760, 900, 1050, 1300, 1600, 2456, 2600],
   actions: [
     { atFrame: 950, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 1000, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
@@ -45,7 +45,7 @@ export const galaga: GameTestContract = {
   golden: {
     regions: {
       '54xx:mcu': 'ee7357e0',
-      gfx1: '58b2f47c',
+      gfx1: '7cb09eec',
       gfx2: 'd11e0edf',
       maincpu: 'd249eb7d',
       namco: '55c1401a',
@@ -63,8 +63,12 @@ export const galaga: GameTestContract = {
         state: 'e4d52427',
       },
       '720': {
-        video: '7f7fea0b',
+        video: '972b5194',
         state: '8766b4c5',
+      },
+      '760': {
+        video: '21864713',
+        state: 'c2b08b5c',
       },
       '900': {
         video: 'd4ed5a0c',

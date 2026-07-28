@@ -188,6 +188,8 @@ export interface ShellConfig {
   roms: RomRegionSpec[];
   /** driver-init byte patches applied to assembled regions (from the graph) */
   romPatches?: { region: string; offset: number; value: number }[];
+  /** source-derived driver-init transforms applied before graphics decoding */
+  romTransforms?: RomTransform[];
   bindings: FieldBinding[];
   dipDefaults: DipDefault[];
   ports: PortSpec[];
@@ -197,6 +199,35 @@ export interface ShellConfig {
   runtimeUrl: string;
   /** where Esc returns to (the boot menu) */
   menuUrl?: string;
+}
+
+export type RomTransform = {
+  kind: 'conditional-byte-swap';
+  region: string;
+  indexMask: number;
+  indexValue: number;
+  displacement: number;
+};
+
+export function applyRomTransforms(regions: Regions, transforms: readonly RomTransform[]): void {
+  for (const transform of transforms) {
+    const region = regions[transform.region];
+    if (!region) throw new Error(`ROM transform has no region "${transform.region}"`);
+    if (transform.kind === 'conditional-byte-swap') {
+      for (let index = 0; index < region.length; index++) {
+        if (((index & transform.indexMask) >>> 0) !== (transform.indexValue >>> 0)) continue;
+        const other = index + transform.displacement;
+        if (other < 0 || other >= region.length) {
+          throw new Error(
+            `ROM transform for "${transform.region}" swaps ${index} with out-of-range ${other}`,
+          );
+        }
+        const value = region[index]!;
+        region[index] = region[other]!;
+        region[other] = value;
+      }
+    }
+  }
 }
 
 /**
@@ -244,6 +275,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     const region = regions[p.region];
     if (region && p.offset < region.length) region[p.offset] = p.value;
   }
+  applyRomTransforms(regions, cfg.romTransforms ?? []);
 
   // --- machine ----------------------------------------------------------------
   const input = new KeyboardInput(cfg.bindings, cfg.dipDefaults, cfg.ports);
@@ -489,12 +521,14 @@ function buildDom(cfg: ShellConfig) {
       holder.style.width = bezelCanvas.style.width = `${w * s}px`;
       holder.style.height = bezelCanvas.style.height = `${h * s}px`;
       const winW = win.w * s, winH = win.h * s;
-      const gs = Math.min(winW / dispW, winH / dispH);
       canvas.style.position = 'absolute';
-      canvas.style.left = `${win.x * s + (winW - dispW * gs) / 2}px`;
-      canvas.style.top = `${win.y * s + (winH - dispH * gs) / 2}px`;
-      canvas.style.width = `${dispW * gs}px`;
-      canvas.style.height = `${dispH * gs}px`;
+      canvas.style.left = `${win.x * s}px`;
+      canvas.style.top = `${win.y * s}px`;
+      // MAME layout screen bounds describe the physical CRT aspect, including
+      // its non-square pixel correction. Fill those exact bounds instead of
+      // preserving the raw raster aspect and letterboxing inside the artwork.
+      canvas.style.width = `${winW}px`;
+      canvas.style.height = `${winH}px`;
     } else {
       const displayScale = Math.max(1, Math.floor(availH / dispH));
       canvas.style.width = `${dispW * displayScale}px`;
