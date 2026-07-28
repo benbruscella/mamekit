@@ -967,6 +967,14 @@ export function buildApp(outRoot: string): boolean {
     recursive: true,
     filter: source => !source.endsWith('.spec.ts'),
   });
+  // Capability packages ship only their runtime-facing files. extract.ts pulls
+  // in the compiler and acceptance.ts drives dist from Node; neither belongs in
+  // the browser bundle, and excluding them here is what keeps that true.
+  cpSync(join(projectRoot, 'src/hardware'), join(srcDir, 'runtime/hardware'), {
+    recursive: true,
+    filter: source => !['.spec.ts', '/extract.ts', '/acceptance.ts', '/registry.ts',
+      '/acceptance-registry.ts'].some(name => source.endsWith(name)),
+  });
   const hardwareImports: string[] = [];
   const cpuBindings: string[] = [];
   const deviceBindings: string[] = [];

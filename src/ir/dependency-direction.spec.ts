@@ -57,6 +57,9 @@ export function layerOf(file: string): Layer {
     // acceptance-registry.ts runs in Node against dist artifacts, alongside
     // src/games, and is deliberately kept apart from the compile-time one.
     if (name === 'acceptance-registry.ts') return 'tooling';
+    // sound-runtime-registry.ts ships to the browser and imports only each
+    // package's runtime.ts, never its extract.ts.
+    if (name === 'sound-runtime-registry.ts') return 'execution';
     // contract.ts, ports.ts, definition.ts, validate.ts
     return 'neutral';
   }
