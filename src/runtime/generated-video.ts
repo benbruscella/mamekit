@@ -120,7 +120,18 @@ export class GeneratedVideoRenderer implements VideoRenderer {
       },
     };
     const target = this.penBuffer ?? frame;
+    const scaledXOffset = xOffset * xScale;
+    const scaledYOffset = yOffset * yScale;
     const bitmap = {
+      direct: {
+        pixels: target,
+        width: this.width,
+        height: this.height,
+        xScale,
+        yScale,
+        scaledXOffset,
+        scaledYOffset,
+      },
       fill: (color: number, rectangle?: GeneratedRectangle) => {
         const packed = color >>> 0;
         const firstX = rectangle
@@ -152,6 +163,23 @@ export class GeneratedVideoRenderer implements VideoRenderer {
         pixelHeight: number,
         color: number,
       ) => {
+        // Generated gfx entries are scaled to the same source-domain raster as
+        // the bitmap. The overwhelmingly common case is therefore one decoded
+        // pixel covering exactly one output pixel. Avoid four floors, four
+        // clamps and a fill loop for every tile/sprite pixel in that case.
+        if (pixelWidth === xScale && pixelHeight === yScale) {
+          const outputX = (x - scaledXOffset) / xScale;
+          const outputY = (y - scaledYOffset) / yScale;
+          if (
+            Number.isInteger(outputX) &&
+            Number.isInteger(outputY) &&
+            outputX >= 0 && outputX < this.width &&
+            outputY >= 0 && outputY < this.height
+          ) {
+            target[outputY * this.width + outputX] = color >>> 0;
+          }
+          return;
+        }
         const firstX = Math.floor((x - xOffset * xScale) / xScale);
         const lastX = Math.floor((x + pixelWidth - 1 - xOffset * xScale) / xScale);
         const firstY = Math.floor((y - yOffset * yScale) / yScale);
@@ -217,6 +245,15 @@ export class GeneratedVideoRenderer implements VideoRenderer {
 }
 
 interface BitmapTarget {
+  direct?: {
+    pixels: Uint32Array;
+    width: number;
+    height: number;
+    xScale: number;
+    yScale: number;
+    scaledXOffset: number;
+    scaledYOffset: number;
+  };
   fill(color: number, rectangle?: GeneratedRectangle): void;
   plotRect?(
     x: number,
@@ -554,10 +591,25 @@ class GeneratedGfxElement {
     const element = modulo(code, gfx.count);
     const base = element * gfx.width * gfx.height;
     const colorBase = this.entry.colorBase + color * this.granularity;
+    const direct = bitmap.direct;
+    const directStartX = direct &&
+        this.entry.xscale === direct.xScale &&
+        this.entry.yscale === direct.yScale
+      ? (sx - direct.scaledXOffset) / direct.xScale
+      : NaN;
+    const directStartY = direct
+      ? (sy - direct.scaledYOffset) / direct.yScale
+      : NaN;
+    const directPixels = direct &&
+        Number.isInteger(directStartX) &&
+        Number.isInteger(directStartY)
+      ? direct.pixels
+      : undefined;
     for (let py = 0; py < gfx.height; py++) {
       const y = sy + py * this.entry.yscale;
       if (y < clip.min_y || y > clip.max_y) continue;
       const sourceY = flipY ? gfx.height - 1 - py : py;
+      const outputY = directStartY + py;
       for (let px = 0; px < gfx.width; px++) {
         const x = sx + px * this.entry.xscale;
         if (x < clip.min_x || x > clip.max_x) continue;
@@ -567,7 +619,14 @@ class GeneratedGfxElement {
         const packed = this.indexed
           ? colorBase + pen
           : this.palette.colors[colorBase + pen] ?? 0xff000000;
-        if (bitmap.plotRect) {
+        const outputX = directStartX + px;
+        if (
+          directPixels &&
+          outputX >= 0 && outputX < direct!.width &&
+          outputY >= 0 && outputY < direct!.height
+        ) {
+          directPixels[outputY * direct!.width + outputX] = packed;
+        } else if (bitmap.plotRect) {
           bitmap.plotRect(x, y, this.entry.xscale, this.entry.yscale, packed);
         } else {
           for (let yy = 0; yy < this.entry.yscale; yy++) {
@@ -677,8 +736,18 @@ class GeneratedTilemap {
     const lastOutputColumn = scrollsHorizontally
       ? this.plan.columns - 1
       : Math.min(this.plan.columns - 1, Math.floor(clip.max_x / this.plan.tileWidth));
+    const mapWidth = this.plan.columns * this.plan.tileWidth;
+    const mapHeight = this.plan.rows * this.plan.tileHeight;
+    const xDelta = this.plan.scrollDx?.[flipX ? 1 : 0] ?? 0;
+    const yDelta = this.plan.scrollDy?.[flipY ? 1 : 0] ?? 0;
     for (let outputRow = firstOutputRow; outputRow <= lastOutputRow; outputRow++) {
       const row = flipY ? this.plan.rows - 1 - outputRow : outputRow;
+      const scrollRow = generatedScrollBand(
+        outputRow,
+        this.plan.rows,
+        this.scrollX.length,
+      );
+      const xScroll = this.scrollX[scrollRow] ?? 0;
       for (
         let outputColumn = firstOutputColumn;
         outputColumn <= lastOutputColumn;
@@ -721,22 +790,12 @@ class GeneratedTilemap {
         if (!gfx) continue;
         const tileFlipX = Boolean(tile.flags & 1) !== flipX;
         const tileFlipY = Boolean(tile.flags & 2) !== flipY;
-        const scrollRow = generatedScrollBand(
-          outputRow,
-          this.plan.rows,
-          this.scrollX.length,
-        );
         const scrollColumn = generatedScrollBand(
           outputColumn,
           this.plan.columns,
           this.scrollY.length,
         );
-        const xScroll = this.scrollX[scrollRow] ?? 0;
         const yScroll = this.scrollY[scrollColumn] ?? 0;
-        const mapWidth = this.plan.columns * this.plan.tileWidth;
-        const mapHeight = this.plan.rows * this.plan.tileHeight;
-        const xDelta = this.plan.scrollDx?.[flipX ? 1 : 0] ?? 0;
-        const yDelta = this.plan.scrollDy?.[flipY ? 1 : 0] ?? 0;
         const x = outputColumn * this.plan.tileWidth - xScroll + xDelta;
         const y = outputRow * this.plan.tileHeight - yScroll + yDelta;
         let transparentMask = 0;
@@ -761,13 +820,23 @@ class GeneratedTilemap {
           wrappedX <= firstWrappedX + mapWidth * 2;
           wrappedX += mapWidth
         ) {
-          if (wrappedX > clip.max_x || wrappedX + mapWidth <= clip.min_x) continue;
+          if (
+            wrappedX > clip.max_x ||
+            wrappedX + this.plan.tileWidth <= clip.min_x
+          ) {
+            continue;
+          }
           for (
             let wrappedY = firstWrappedY;
             wrappedY <= firstWrappedY + mapHeight * 2;
             wrappedY += mapHeight
           ) {
-            if (wrappedY > clip.max_y || wrappedY + mapHeight <= clip.min_y) continue;
+            if (
+              wrappedY > clip.max_y ||
+              wrappedY + this.plan.tileHeight <= clip.min_y
+            ) {
+              continue;
+            }
             gfx.draw(
               bitmap,
               clip,
@@ -974,6 +1043,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     };
     for (const [member, target] of Object.entries(machine.video?.delegates ?? {})) {
       const handler = requiredHandler(machine, target);
+      if (handler.program!.operations.length === 0) {
+        referenceCalls[member] = () => 0;
+        callParameters[member] = parameterDeclarations(handler.parameters);
+        state[member] = { isnull: () => 0 };
+        continue;
+      }
       // Parsed once per delegate, not once per call: these run per tile and
       // per pixel, and re-splitting the signature there was measurable.
       const names = parameterNames(handler.parameters);
