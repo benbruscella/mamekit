@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { supportedGameContracts } from '../games/contracts.ts';
+import { readBuildManifest } from './build-manifest.ts';
 import { generatedGameOutputs } from './output-layout.ts';
 import { ACCEPTED_TARGETS, REQUIRED_TARGETS } from './targets.ts';
 
@@ -44,9 +45,12 @@ check('gen:all names no targets of its own', () => {
   }
 });
 
-// Only meaningful against a build; skipped when dist has not been generated.
+// Only meaningful against a full build. A partial --targets dist is a
+// legitimate state that audit:generated rejects on its own; the unit suite
+// should not fail on whatever happens to be in dist.
 const outRoot = join(projectRoot, 'dist');
-if (existsSync(join(outRoot, 'games.json'))) {
+const manifest = readBuildManifest(outRoot);
+if (manifest && [...manifest.targets].sort().join(',') === [...ACCEPTED_TARGETS].sort().join(',')) {
   check('the generated catalog matches the accepted set', () => {
     assert.deepEqual(
       generatedGameOutputs(outRoot).map(entry => entry.game).sort(),
