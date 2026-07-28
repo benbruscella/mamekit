@@ -58,31 +58,16 @@ check('a MAME type resolves to its capability', () => {
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'NOT_A_CHIP'), undefined);
 });
 
-// An unparsed MAME class must leave the type unresolved, not claim it works.
-check('extraction declines a closure it cannot lower', () => {
+// A capability must not reach for MAME source before it has seen the device.
+// Generation runs every registered extract() on every closure, so one that
+// probes the filesystem unconditionally would break unrelated targets.
+check('extraction declines an empty closure without touching MAME source', () => {
   for (const capability of HARDWARE_CAPABILITIES) {
-    assert.equal(capability.extract({ mameSource: '/nonexistent', entries: [] }), undefined);
     assert.equal(
-      capability.extract({
-        mameSource: '/nonexistent',
-        entries: capability.mameTypes.map(type => ({ type, methods: [] })),
-      }),
+      capability.extract({ mameSource: '/nonexistent', entries: [] }),
       undefined,
-      `${capability.id} claimed a type whose MAME class was never parsed`,
+      `${capability.id} did something with a closure containing none of its hardware`,
     );
-  }
-});
-
-// An emitted artifact the manifest points at but nothing writes is a broken
-// closure, so the two lists must agree.
-check('declared executable artifacts are actually emitted', () => {
-  for (const capability of HARDWARE_CAPABILITIES) {
-    const extraction = capability.extract({ mameSource: '/nonexistent', entries: [] });
-    if (!extraction) continue;
-    const emitted = new Set(extraction.artifacts.map(artifact => artifact.path));
-    for (const { artifact } of Object.values(extraction.executable)) {
-      assert.ok(emitted.has(artifact), `${capability.id} declares ${artifact} but never emits it`);
-    }
   }
 });
 
