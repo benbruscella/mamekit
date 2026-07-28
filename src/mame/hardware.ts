@@ -8,6 +8,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
+import { HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 import { GraphBuilder, type KnowledgeGraph } from '../kg/types.ts';
 import { parseMameSource, type MameMacro, type MameTranslationUnit } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
@@ -36,7 +37,6 @@ import {
   generatedCounterLfsrDiscreteWorkletSource,
   generatedNamcoWsgWorkletSource,
 } from './audio-compiler.ts';
-import { compileYm2203, generatedYm2203WorkletSource } from './opn-compiler.ts';
 
 export interface HardwareUse {
   game: string;
@@ -525,10 +525,6 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
   const ay8910 = ayEntry?.definition
     ? compileAy8910(closure.mameSource, ayEntry.definition)
     : undefined;
-  const ymEntry = closure.hardware.find(entry => entry.type === 'YM2203');
-  const ym2203 = ymEntry?.definition
-    ? compileYm2203(closure.mameSource, ymEntry.definition)
-    : undefined;
   const msmEntry = closure.hardware.find(entry => entry.type === 'MSM5205');
   const msm5205 = msmEntry?.definition
     ? compileMsm5205(closure.mameSource, msmEntry.definition)
@@ -574,7 +570,22 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
       entry.methods.filter(method => method.program.diagnostics.length).length -
       previousMethods.filter(method => method.program.diagnostics.length).length;
   }
+  // Capability packages own their own extraction, emitted artifacts and
+  // manifest entry. Everything below this line is hardware still awaiting a
+  // package; adding one must not require editing this function again.
+  const extracted = HARDWARE_CAPABILITIES.flatMap(capability => {
+    const result = capability.extract({
+      mameSource: closure.mameSource,
+      entries: closure.hardware,
+    });
+    return result ? [{ capability, result }] : [];
+  });
+  const capabilityExecutable = new Map(
+    extracted.flatMap(({ result }) => Object.entries(result.executable)),
+  );
+
   const leafExecutableTypes = new Set<string>([
+    ...capabilityExecutable.keys(),
     ...(z80 ? ['Z80'] : []),
     ...(i8080 ? ['I8080'] : []),
     ...(i8039 ? ['I8039'] : []),
@@ -584,7 +595,6 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     ...generatedDevices.keys(),
     ...(namcoWsg ? ['NAMCO_WSG'] : []),
     ...(ay8910 ? ['AY8910'] : []),
-    ...(ym2203 ? ['YM2203'] : []),
     ...(msm5205 && ay8910 ? ['MSM5205'] : []),
     ...(routedDac ? ['DAC_8BIT_R2R'] : []),
     ...(discreteSn76477 ? [discreteSn76477.deviceType, 'SN76477'] : []),
@@ -618,7 +628,12 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
       ...compactEntry(entry),
       executable: executableTypes.has(entry.type),
       ...(hostedBy(entry) ? { hostedBy: hostedBy(entry) } : {}),
-      ...(['Z80', 'I8080', 'I8039', 'M6803', 'KONAMI1', 'MC6809'].includes(entry.type)
+      ...(capabilityExecutable.has(entry.type)
+        ? {
+            executableKind: capabilityExecutable.get(entry.type)!.kind,
+            executableArtifact: capabilityExecutable.get(entry.type)!.artifact,
+          }
+        : ['Z80', 'I8080', 'I8039', 'M6803', 'KONAMI1', 'MC6809'].includes(entry.type)
         ? {
             executableKind: 'cpu',
             executableArtifact: `devices/${entry.type.toLowerCase()}.cpu.ir.json`,
@@ -637,11 +652,6 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
           ? {
               executableKind: 'audio',
               executableArtifact: 'audio/ay8910-worklet.ts',
-            }
-        : entry.type === 'YM2203'
-          ? {
-              executableKind: 'audio',
-              executableArtifact: 'audio/ym2203-worklet.ts',
             }
         : entry.type === 'MSM5205' && msm5205 && ay8910
           ? {
@@ -706,17 +716,12 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
       JSON.stringify(msm5205, null, 2),
     );
   }
-  if (ym2203) {
-    const audioDir = join(root, 'audio');
-    mkdirSync(audioDir, { recursive: true });
-    writeFileSync(
-      join(audioDir, 'ym2203.audio.ir.json'),
-      JSON.stringify(ym2203, null, 2),
-    );
-    writeFileSync(
-      join(audioDir, 'ym2203-worklet.ts'),
-      generatedYm2203WorkletSource(ym2203),
-    );
+  for (const { result } of extracted) {
+    for (const artifact of result.artifacts) {
+      const target = join(root, artifact.path);
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, artifact.contents);
+    }
   }
   if (discreteSn76477) {
     const audioDir = join(root, 'audio');

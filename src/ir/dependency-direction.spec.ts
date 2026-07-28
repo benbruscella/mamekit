@@ -51,7 +51,10 @@ export function layerOf(file: string): Layer {
     if (name === 'runtime.ts') return 'execution';
     // acceptance.ts drives dist artifacts from Node, alongside src/games.
     if (name === 'acceptance.ts') return 'tooling';
-    // definition.ts, validate.ts, contract.ts, registry.ts
+    // registry.ts wires each package's extract.ts into one list, so it is
+    // compile-time; the browser gets its providers from a separate registry.
+    if (name === 'registry.ts') return 'compile';
+    // contract.ts, ports.ts, definition.ts, validate.ts
     return 'neutral';
   }
   return 'tooling';
