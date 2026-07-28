@@ -287,11 +287,22 @@ export function executeGeneratedMachineHandler(
   return result.returned && result.value !== undefined ? toNumber(result.value) : undefined;
 }
 
+// A MAME signature is a constant, so parsing it is cached by that string.
+// This runs on every machine-handler call, which for video handlers is per
+// tile and per pixel.
+const PARAMETER_NAMES = new Map<string, string[]>();
+
 function parameterNames(parameters: string | undefined): string[] {
-  return (parameters ?? '')
-    .split(',')
-    .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
-    .filter((name): name is string => Boolean(name));
+  const key = parameters ?? '';
+  let names = PARAMETER_NAMES.get(key);
+  if (!names) {
+    names = key
+      .split(',')
+      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+      .filter((name): name is string => Boolean(name));
+    PARAMETER_NAMES.set(key, names);
+  }
+  return names;
 }
 
 function executeOperations(

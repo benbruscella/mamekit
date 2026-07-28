@@ -974,11 +974,14 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     };
     for (const [member, target] of Object.entries(machine.video?.delegates ?? {})) {
       const handler = requiredHandler(machine, target);
+      // Parsed once per delegate, not once per call: these run per tile and
+      // per pixel, and re-splitting the signature there was measurable.
+      const names = parameterNames(handler.parameters);
       referenceCalls[member] = (...args) => executeGeneratedMachineProgram(
         machine,
         handler,
         this.bindings,
-        Object.fromEntries(parameterNames(handler.parameters).map((name, index) => [name, args[index] ?? 0])),
+        Object.fromEntries(names.map((name, index) => [name, args[index] ?? 0])),
       ).value ?? 0;
       callParameters[member] = parameterDeclarations(handler.parameters);
       state[member] = { isnull: () => 0 };
@@ -1122,14 +1125,30 @@ function createRamPalette(
   return colors;
 }
 
+// A MAME signature is a constant, so parsing it is cached by that string.
+const PARAMETER_NAMES = new Map<string, string[]>();
+const PARAMETER_DECLARATIONS = new Map<string, string[]>();
+
 function parameterNames(parameters: string | undefined): string[] {
-  return parameterDeclarations(parameters)
-    .map(parameter => /(\w+)\s*$/.exec(parameter)?.[1])
-    .filter((name): name is string => Boolean(name));
+  const key = parameters ?? '';
+  let names = PARAMETER_NAMES.get(key);
+  if (!names) {
+    names = parameterDeclarations(parameters)
+      .map(parameter => /(\w+)\s*$/.exec(parameter)?.[1])
+      .filter((name): name is string => Boolean(name));
+    PARAMETER_NAMES.set(key, names);
+  }
+  return names;
 }
 
 function parameterDeclarations(parameters: string | undefined): string[] {
-  return (parameters ?? '').split(',').map(value => value.trim()).filter(Boolean);
+  const key = parameters ?? '';
+  let declared = PARAMETER_DECLARATIONS.get(key);
+  if (!declared) {
+    declared = key.split(',').map(value => value.trim()).filter(Boolean);
+    PARAMETER_DECLARATIONS.set(key, declared);
+  }
+  return declared;
 }
 
 function generatedArgumentValue(value: unknown): unknown {
