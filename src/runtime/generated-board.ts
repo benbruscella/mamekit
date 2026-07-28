@@ -27,6 +27,7 @@ import {
   type EffectExecutor,
 } from './generated-effects.ts';
 import { portHandlers } from './input.ts';
+import { installSoundRuntime } from '../hardware/sound-runtime-registry.ts';
 import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE } from '../ir/audio-protocol.ts';
 import type {
   Board,
@@ -631,143 +632,34 @@ class IrBoard implements Board {
     }
   }
 
+  /**
+   * Sound register wiring belongs to the family's capability package; the
+   * board supplies only the generic machinery it needs.
+   */
   private installGeneratedSoundHandlers(
     machine: BoardIr,
     sinks: BoardSinks,
     registry: HandlerRegistry,
   ): void {
-    const sound = machine.sound;
-    if (!sound) return;
-    if (sound.kind === 'ay8910') {
-      const tags = sound.deviceTags ?? [sound.deviceTag];
-      const addresses = new Map(tags.map(tag => [tag, 0]));
-      const registers = new Map(tags.map(tag => [tag, new Uint8Array(16)]));
-      tags.forEach((tag, chip) => {
-        const addressWrite = (data: number): void => {
-          addresses.set(tag, data & 0x0f);
-        };
-        const dataWrite = (data: number): void => {
-          const register = addresses.get(tag) ?? 0;
-          registers.get(tag)![register] = data;
-          sinks.soundWrite(chip * 16 + register, data, this.soundFraction());
-          const signal = register === 14
-            ? 'port_a_write_callback'
-            : register === 15
-              ? 'port_b_write_callback'
-              : undefined;
-          if (signal) {
-            dispatchGeneratedCallbacks(machine, tag, signal, data, this.effects);
-          }
-        };
-        const dataRead = (): number => {
-          const register = addresses.get(tag) ?? 0;
-          const callback = machine.callbacks.find(candidate =>
-            candidate.ownerTag === tag &&
-            candidate.signal === (register === 14
-              ? 'port_a_read_callback'
-              : register === 15
-                ? 'port_b_read_callback'
-                : ''));
-          if (callback?.targetTag && callback.targetMethod) {
-            const device = this.devices.get(callback.targetTag);
-            if (device?.methodNames().includes(callback.targetMethod)) {
-              return device.call(callback.targetMethod);
-            }
-          }
-          if (callback?.targetClass && callback.targetMethod) {
-            return executeGeneratedCallbackHandler(
-              machine,
-              callback,
-              this.bindings,
-            ) ?? 0xff;
-          }
-          return registers.get(tag)![register] ?? 0xff;
-        };
-        registry.write[`${tag}.address_w`] = (_address, _offset, data) => addressWrite(data);
-        registry.write[`${tag}.data_w`] = (_address, _offset, data) => dataWrite(data);
-        registry.read[`${tag}.data_r`] = dataRead;
-        const member = machine.devices?.find(device => device.tag === tag)?.member;
-        for (const alias of [tag, `m_${tag}`, member].filter(Boolean) as string[]) {
-          this.bindings.calls![`${alias}.address_w`] = addressWrite;
-          this.bindings.calls![`${alias}.data_w`] = dataWrite;
-          this.bindings.calls![`${alias}.data_r`] = dataRead;
-        }
-      });
-      bindGeneratedAudioFilters(
-        this.state,
-        sound,
-        sinks.soundWrite,
-        () => this.soundFraction(),
-      );
-      for (const auxiliary of sound.auxiliaryDevices ?? []) {
-        const aliases = [
-          auxiliary.deviceTag,
-          `m_${auxiliary.deviceTag}`,
-          auxiliary.member,
-        ].filter(Boolean) as string[];
-        for (const method of auxiliary.writeMethods) {
-          const directKey = `${auxiliary.deviceTag}.${method}`;
-          registry.write[directKey] = (_address, offset, data) => {
-            sinks.soundWrite(
-              offset,
-              data,
-              this.soundFraction(),
-              `${auxiliary.deviceTag}.${method}`,
-            );
-          };
-          for (const alias of aliases) {
-            const key = `${alias}.${method}`;
-            const original = this.bindings.calls![key];
-            this.bindings.calls![key] = (...args: number[]) => {
-              const result = original?.(...args);
-              sinks.soundWrite(
-                0,
-                args.at(-1) ?? 0,
-                this.soundFraction(),
-                `${auxiliary.deviceTag}.${method}`,
-              );
-              return result;
-            };
-          }
-        }
-      }
-      return;
-    }
-    if (sound.kind === 'ym2203') {
-      // Each YM2203 exposes an address/data port pair; the bank is addressed
-      // as chip * 2 + port so one worklet hosts every chip on the board.
-      const tags = sound.deviceTags ?? [sound.deviceTag];
-      tags.forEach((tag, chip) => {
-        for (const method of sound.writeMethods) {
-          const write = (offset: number, data: number): void => {
-            sinks.soundWrite(chip * 2 + (offset & 1), data, this.soundFraction(), method);
-          };
-          registry.write[`${tag}.${method}`] = (_address, offset, data) => write(offset, data);
-          const member = machine.devices?.find(device => device.tag === tag)?.member;
-          for (const alias of [tag, `m_${tag}`, member].filter(Boolean) as string[]) {
-            this.bindings.calls![`${alias}.${method}`] = (offset, data) =>
-              write(Number(offset), Number(data));
-          }
-        }
-        // ym_reset_w and kin reset the chip through the generated device port.
-        const member = machine.devices?.find(device => device.tag === tag)?.member;
-        for (const alias of [tag, `m_${tag}`, member].filter(Boolean) as string[]) {
-          this.bindings.calls![`${alias}.reset`] = () => {
-            sinks.soundWrite(chip * 2, 0, this.soundFraction(), 'reset');
-            return 0;
-          };
-        }
-      });
-      return;
-    }
-    for (const method of sound.writeMethods) {
-      const key = `${sound.deviceTag}.${method}`;
-      registry.write[key] = (_address, offset, data) => {
-        // Raw register offset plus the method name: worklets route by name,
-        // so no offset-numbering convention exists between the two sides.
-        sinks.soundWrite(offset, data, this.soundFraction(), method);
-      };
-    }
+    if (!machine.sound) return;
+    installSoundRuntime({
+      board: machine,
+      sound: machine.sound,
+      registry,
+      calls: this.bindings.calls!,
+      state: this.state,
+      soundWrite: (offset, data, frac, method) =>
+        sinks.soundWrite(offset, data, frac, method),
+      fraction: () => this.soundFraction(),
+      callDevice: (tag, method) => {
+        const device = this.devices.get(tag);
+        return device?.methodNames().includes(method) ? device.call(method) : undefined;
+      },
+      runCallbackHandler: callbackId =>
+        executeGeneratedCallbackHandler(machine, callbackId, this.bindings),
+      dispatch: (ownerTag, signal, value) =>
+        void dispatchGeneratedCallbacks(machine, ownerTag, signal, value, this.effects),
+    });
   }
 
   private soundFraction(): number {
@@ -857,36 +749,6 @@ class IrBoard implements Board {
         sinks.soundWrite(0, state, this.soundFraction(), `${tag}.${method}`),
     };
   }
-}
-
-export function bindGeneratedAudioFilters(
-  state: Record<string, unknown>,
-  sound: NonNullable<BoardIr['sound']>,
-  soundWrite: BoardSinks['soundWrite'],
-  fraction: () => number = () => 0,
-): void {
-  const filterRows: unknown[][] = [];
-  for (const route of sound.routes ?? []) {
-    if (!route.filter) continue;
-    const { bank, channel, index } = route.filter;
-    const row = (filterRows[bank] ??= []);
-    if (row[channel]) continue;
-    let previous: number[] | undefined;
-    row[channel] = {
-      filter_rc_set_RC: (type: number, r1: number, r2: number, r3: number, c: number) => {
-        const values = [type, r1, r2, r3, c];
-        if (previous?.every((value, position) => value === values[position])) return;
-        previous = values;
-        const base = AY_FILTER_CONTROL_BASE + index * AY_FILTER_CONTROL_STRIDE;
-        values.forEach((value, parameter) =>
-          soundWrite(base + parameter, value, fraction()));
-      },
-    };
-  }
-  if (!filterRows.length) return;
-  state.m_filter = sound.filterLayout === 'flat'
-    ? filterRows.flatMap(row => row)
-    : filterRows;
 }
 
 export function bindGeneratedDriverState(

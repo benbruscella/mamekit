@@ -10,3 +10,4 @@
 artwork/
 .playwright-mcp/
 .env
+.files
