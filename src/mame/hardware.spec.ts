@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   deviceDefinitionsFromSource,
   hardwareKnowledgeGraph,
+  isDeclarativeHostHardwareType,
   resolveCompositeExecutableTypes,
 } from './hardware.ts';
 import type { HardwareClosureEntry } from './hardware.ts';
@@ -29,6 +30,19 @@ assert.deepEqual(
   ],
 );
 assert.equal(definitions[0]?.sourceLine, 3);
+
+for (const type of [
+  'NETLIST_LOGIC_INPUT',
+  'NETLIST_SOUND',
+  'NETLIST_STREAM_INPUT',
+  'NETLIST_STREAM_OUTPUT',
+]) {
+  assert.equal(
+    isDeclarativeHostHardwareType(type),
+    true,
+    `${type} should be hosted by its executable sound-board composition`,
+  );
+}
 
 const graph = hardwareKnowledgeGraph({
   schemaVersion: 1,
@@ -111,4 +125,4 @@ assert.ok(executable.has('SOUND_BOARD'));
 assert.ok(executable.has('CABINET'));
 assert.ok(!executable.has('INCOMPLETE_BOARD'));
 
-console.log('hardware.spec: 8 passed');
+console.log('hardware.spec: 12 passed');

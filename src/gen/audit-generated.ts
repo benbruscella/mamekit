@@ -200,6 +200,7 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
       const report = JSON.parse(readFileSync(reportPath, 'utf8')) as {
         schemaVersion?: number;
         boardMode?: string;
+        playable?: boolean;
         generationGaps?: string[];
         requirements?: {
           composition?: { status: string }[];
@@ -211,6 +212,14 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
       if (report.requirements?.composition?.some(item => item.status !== 'generated')) {
         failures.push(`${target}: generation report retains non-generated board composition`);
       }
+      if (report.playable !== true) {
+        failures.push(
+          `${target}: generation report is not playable` +
+          (report.generationGaps?.length
+            ? ` (blocked by ${report.generationGaps.join(', ')})`
+            : ''),
+        );
+      }
       const expectedGaps = hardwareEntries
         .filter(entry => entry.uses?.some(use => use.game === target))
         .filter(entry =>
@@ -220,7 +229,9 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
         .map(entry => entry.type)
         .sort();
       const actualGapTypes = (report.generationGaps ?? [])
-        .map(gap => gap.slice(gap.indexOf(':') + 1))
+        // Device tags may themselves be hierarchical (`snd_nl:cin0`), so
+        // the hardware type is the suffix after the final separator.
+        .map(gap => gap.slice(gap.lastIndexOf(':') + 1))
         .sort();
       for (const gap of expectedGaps) {
         if (!actualGapTypes.includes(gap)) {

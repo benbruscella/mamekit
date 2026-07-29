@@ -57,6 +57,8 @@ interface ExecutionContext {
 
 interface RuntimeReference {
   reference: string;
+  /** A device finder target known to exist in the generated machine. */
+  resolved?: true;
 }
 
 interface GeneratedPointer {
@@ -353,6 +355,14 @@ function executeOperations(
         if (result.control === 'return') return result;
         if (result.control === 'break') break;
       }
+    } else if (operation.op === 'do-while') {
+      let iterations = 0;
+      do {
+        if (++iterations > 65_536) throw new Error('generated handler loop exceeded 65536 iterations');
+        const result = executeOperations(operation.body, context);
+        if (result.control === 'return') return result;
+        if (result.control === 'break') break;
+      } while (truthy(evaluate(operation.condition, context)));
     } else if (operation.op === 'switch') {
       const value = toNumber(evaluate(operation.expression, context));
       let index = operation.cases.findIndex(candidate =>
@@ -580,6 +590,12 @@ function evaluateCall(
         return generated(...generatedCallArguments(key, expression.args, context));
       }
       const args = expression.args.map(arg => evaluate(arg, context));
+      // MAME device finders expose target() when source code needs a nullable
+      // device pointer. Preserve the selected device reference so subsequent
+      // calls through a local pointer still reach the bound runtime device.
+      if (method === 'target' && args.length === 0) {
+        return { reference: object.reference, resolved: true };
+      }
       if (object.reference.startsWith('ioport:') && method === 'read') {
         return context.bindings.inputs?.read(object.reference.slice('ioport:'.length)) ?? 0xff;
       }
@@ -862,11 +878,13 @@ function toNumber(value: unknown): number {
 
 function comparableValue(value: unknown): unknown {
   if (isLValue(value)) return comparableValue(value.get());
+  if (isReference(value) && value.resolved) return value;
   if (value && typeof value === 'object' && !isReference(value)) return value;
   return toNumber(value);
 }
 
 function truthy(value: unknown): boolean {
+  if (isReference(value) && value.resolved) return true;
   if (value && typeof value === 'object' && !isReference(value) && !isLValue(value)) {
     return true;
   }

@@ -263,7 +263,13 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     const cfgId = `machine:${cfg.cls}.${cfg.name}`;
     const cfgFunction = ast.findFunction(cfg.cls, cfg.name);
     g.node('MachineConfig', cfgId, {
-      cls: cfg.cls, name: cfg.name, calls: cfg.calls, ...spanProps(cfgFunction?.span),
+      cls: cfg.cls,
+      name: cfg.name,
+      calls: cfg.calls,
+      ...(cfg.devicePatches.length
+        ? { devicePatches: cfg.devicePatches.map(patch => JSON.stringify(patch)) }
+        : {}),
+      ...spanProps(cfgFunction?.span),
     });
     definedIn(cfgId, cfgFunction?.span);
     for (const callback of g.nodes.values()) {
@@ -324,6 +330,18 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         deviceTag: patch.tag,
         override: true,
       });
+    }
+    for (const patch of cfg.devicePatches) {
+      emitCallbacks(
+        g,
+        ast,
+        cfgFunction,
+        cfgId,
+        patch.tag,
+        patch.config,
+        memberTags,
+        consts,
+      );
     }
     for (const dev of cfg.devices) {
       // namespaced by class AND config name: every device-board class has a
@@ -747,7 +765,17 @@ function emitCallbacks(
     if (operationIndex < 0) continue;
 
     const operation = calls[operationIndex];
-    const signal = operationIndex > 0 ? calls[operationIndex - 1] : operation;
+    const chainedBinding = new Set([
+      'set',
+      'append',
+      'set_ioport',
+      'set_inputline',
+      'append_inputline',
+      'set_nop',
+    ]).has(operation.name);
+    const signal = chainedBinding && operationIndex > 0
+      ? calls[operationIndex - 1]
+      : operation;
     const transforms = calls.slice(operationIndex + 1).map(call =>
       `${call.name}${call.args.length ? `(${call.args.join(', ')})` : ''}`,
     );
@@ -1030,9 +1058,111 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
       queue.push(e.to);
     }
   }
+  const nodes = graph.nodes
+    .filter(n => out.has(n.id))
+    .map(node => ({ ...node, props: { ...node.props } }));
+  let edges = keepEdges.filter(e => out.has(e.from) && out.has(e.to));
+
+  // Apply inherited-device configuration in most-derived-first order. MAME
+  // machine configs routinely call a base helper and then alter its CPU or
+  // screen. The full graph must keep the shared base immutable, while this
+  // per-game subgraph can expose the effective device facts to every compiler.
+  const selectedMachine = edges.find(edge =>
+    edge.from === `game:${game}` && edge.rel === 'USES_MACHINE')?.to;
+  const configOrder: string[] = [];
+  if (selectedMachine) {
+    const pending = [selectedMachine];
+    const seen = new Set<string>();
+    while (pending.length) {
+      const id = pending.shift()!;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      configOrder.push(id);
+      pending.push(...edges
+        .filter(edge => edge.from === id && edge.rel === 'CALLS')
+        .map(edge => edge.to));
+    }
+  }
+  const patched = new Set<string>();
+  for (const configId of configOrder) {
+    const config = nodes.find(node => node.id === configId);
+    const encoded = Array.isArray(config?.props.devicePatches)
+      ? config.props.devicePatches.map(String)
+      : [];
+    for (const value of encoded) {
+      const patch = JSON.parse(value) as {
+        tag: string;
+        config: string[];
+        clock?: number;
+        screenRaw?: {
+          pixclock: number; htotal: number; hbend: number; hbstart: number;
+          vtotal: number; vbend: number; vbstart: number;
+        };
+      };
+      if (patched.has(patch.tag)) continue;
+      const deviceIds = new Set(configOrder.flatMap(id => edges
+        .filter(edge => edge.from === id && edge.rel === 'HAS_DEVICE')
+        .map(edge => edge.to)));
+      const device = nodes.find(node =>
+        deviceIds.has(node.id) &&
+        node.label === 'Device' &&
+        String(node.props.tag) === patch.tag);
+      if (!device) continue;
+      patched.add(patch.tag);
+      if (patch.clock !== undefined) device.props.clock = patch.clock;
+      if (patch.screenRaw) {
+        device.props.screenRaw = [
+          patch.screenRaw.pixclock,
+          patch.screenRaw.htotal,
+          patch.screenRaw.hbend,
+          patch.screenRaw.hbstart,
+          patch.screenRaw.vtotal,
+          patch.screenRaw.vbend,
+          patch.screenRaw.vbstart,
+        ];
+      }
+      const raw = Array.isArray(device.props.config)
+        ? device.props.config.map(String)
+        : [];
+      device.props.config = [...raw, ...patch.config];
+    }
+  }
+
+  // A setter in the derived config replaces the same callback binding from a
+  // called config. Drop the shadowed callback and its outgoing closure so
+  // consumers cannot accidentally select the base screen update by node order.
+  const shadowedCallbacks = new Set<string>();
+  const callbackKeys = new Set<string>();
+  for (const configId of configOrder) {
+    const levelKeys = new Set<string>();
+    const owners = new Set([
+      configId,
+      ...edges
+        .filter(edge => edge.from === configId && edge.rel === 'HAS_DEVICE')
+        .map(edge => edge.to),
+    ]);
+    for (const edge of edges.filter(candidate =>
+      owners.has(candidate.from) && candidate.rel === 'HAS_CALLBACK')) {
+      const callback = nodes.find(node => node.id === edge.to);
+      if (!callback) continue;
+      const key = [
+        String(callback.props.ownerTag),
+        String(callback.props.signal),
+        callback.props.slot === undefined ? '' : String(callback.props.slot),
+      ].join(':');
+      if (callbackKeys.has(key)) shadowedCallbacks.add(callback.id);
+      else if (String(callback.props.operation).startsWith('set')) levelKeys.add(key);
+    }
+    for (const key of levelKeys) callbackKeys.add(key);
+  }
+  if (shadowedCallbacks.size) {
+    edges = edges.filter(edge =>
+      !shadowedCallbacks.has(edge.from) && !shadowedCallbacks.has(edge.to));
+  }
+
   return {
     meta: graph.meta,
-    nodes: graph.nodes.filter(n => out.has(n.id)),
-    edges: keepEdges.filter(e => out.has(e.from) && out.has(e.to)),
+    nodes: nodes.filter(node => !shadowedCallbacks.has(node.id)),
+    edges,
   };
 }

@@ -91,10 +91,7 @@ class HandlerParser {
       while (!this.at('eof') && !this.consume(';')) this.take();
       return undefined;
     }
-    if (this.atText('do')) {
-      this.unsupportedStatement(`unsupported control flow "${this.peek().text}"`);
-      return undefined;
-    }
+    if (this.atText('do')) return this.parseDoWhile();
     if (this.isDeclaration()) return this.parseDeclaration();
 
     const start = this.peek();
@@ -277,6 +274,21 @@ class HandlerParser {
       return undefined;
     }
     return { op: 'while', condition, body: this.parseStatementAsBlock() };
+  }
+
+  private parseDoWhile(): GeneratedHandlerOperation | undefined {
+    this.take();
+    const body = this.parseStatementAsBlock();
+    if (!this.consume('while') || !this.consume('(')) {
+      this.unsupportedStatement('do without trailing while condition');
+      return undefined;
+    }
+    const condition = this.parseExpression();
+    if (!condition || !this.consume(')') || !this.consume(';')) {
+      this.unsupportedStatement('invalid do-while condition');
+      return undefined;
+    }
+    return { op: 'do-while', condition, body };
   }
 
   private parseSwitch(): GeneratedHandlerOperation | undefined {

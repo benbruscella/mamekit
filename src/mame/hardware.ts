@@ -79,12 +79,20 @@ const DECLARATIVE_HOST_TYPES = new Set([
   'DISCRETE',
   'FILTER_RC',
   'GFXDECODE',
+  'NETLIST_LOGIC_INPUT',
+  'NETLIST_SOUND',
+  'NETLIST_STREAM_INPUT',
+  'NETLIST_STREAM_OUTPUT',
   'PALETTE',
   'SCREEN',
   'SPEAKER',
   'TIMER',
   'WATCHDOG_TIMER',
 ]);
+
+export function isDeclarativeHostHardwareType(type: string): boolean {
+  return DECLARATIVE_HOST_TYPES.has(type);
+}
 
 /**
  * Parse DEFINE_DEVICE_TYPE* macros through the source-preserving MAME AST.
@@ -235,11 +243,11 @@ export function buildHardwareClosure(
       const usedBy = [...games.entries()]
         .sort(([left], [right]) => left.localeCompare(right))
         .map(([game, tags]) => ({ game, tags: [...tags].sort() }));
-      if (!definition || DECLARATIVE_HOST_TYPES.has(type)) {
+      if (!definition || isDeclarativeHostHardwareType(type)) {
         return {
           type,
           uses: usedBy,
-          status: DECLARATIVE_HOST_TYPES.has(type) ? 'declarative-host' : 'unresolved',
+          status: isDeclarativeHostHardwareType(type) ? 'declarative-host' : 'unresolved',
           ...(definition ? { definition } : {}),
           methods: [],
           dslFiles: [],

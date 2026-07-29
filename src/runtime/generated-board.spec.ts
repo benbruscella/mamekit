@@ -25,6 +25,15 @@ const regionState: Record<string, unknown> = {};
 const irqProm = Uint8Array.of(2, 6, 1, 5);
 bindGeneratedRegionState(regionState, 'irqprom', irqProm);
 assert.equal(regionState.m_irqprom, irqProm);
+const heightProm = Uint8Array.of(0, 1, 2);
+bindGeneratedRegionState(
+  regionState,
+  'spr_height_prom',
+  heightProm,
+  { m_sprite_height_prom: 'spr_height_prom' },
+);
+assert.equal(regionState.m_spr_height_prom, heightProm);
+assert.equal(regionState.m_sprite_height_prom, heightProm);
 
 let resets = 0;
 let nmis = 0;
