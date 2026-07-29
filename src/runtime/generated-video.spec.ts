@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
+import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { executeGeneratedProgram } from './generated-handler.ts';
-import type { GeneratedMachine } from './generated-machine.ts';
+import type { BoardIr } from '../ir/board.ts';
 import {
   createGeneratedTileInfoTarget,
   generatedScrollBand,
@@ -55,8 +56,9 @@ const body = `
   m_fg_tilemap->draw(screen, bitmap, cliprect, 0, 0);
   return 0;
 `;
-const machine: GeneratedMachine = {
-  schemaVersion: 2,
+const machine: BoardIr = {
+  schemaVersion: BOARD_IR_SCHEMA_VERSION,
+  connections: [],
   game: 'fixture',
   family: 'fixture',
   driverFile: 'fixture.cpp',
@@ -108,7 +110,7 @@ if (
   throw new Error(`generated visible-area translation is wrong: ${[...frame]}`);
 }
 const partialStarts: number[] = [];
-const partialMachine: GeneratedMachine = {
+const partialMachine: BoardIr = {
   ...machine,
   callbacks: [{
     ...machine.callbacks[0]!,
@@ -222,7 +224,7 @@ if (generatedScreen.frame_number() !== 1) {
   throw new Error('generated screen frame counter did not advance at vblank');
 }
 
-const tileMachine: GeneratedMachine = {
+const tileMachine: BoardIr = {
   ...machine,
   handlers: [
     ...machine.handlers!,
@@ -268,8 +270,9 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
 // derived from the clip alone paints x -140..115 and leaves 116..255 holding
 // the previous frame's pens, which shows up as a torn vertical band.
 {
-  const scrollMachine: GeneratedMachine = {
-    schemaVersion: 2,
+  const scrollMachine: BoardIr = {
+    schemaVersion: BOARD_IR_SCHEMA_VERSION,
+    connections: [],
     game: 'scroll',
     family: 'scroll',
     driverFile: 'src/mame/fixture/scroll.cpp',
@@ -353,4 +356,46 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
     'a scrolled opaque tilemap must repaint every visible pixel, not just the clip-derived tiles');
 }
 
-console.log('generated-video.spec: 20 passed');
+// machine_reset palette writes must be replayed both at construction and after
+// the generated board resets, including split palette_device ext RAM.
+{
+  const resetMachine: BoardIr = {
+    ...machine,
+    video: {
+      gfx: [],
+      tilemaps: [],
+      initialState: {},
+      ramPalette: {
+        tag: 'palette',
+        extShare: 'palette_ext',
+        entries: 1,
+        bytesPerEntry: 2,
+        channels: [
+          { channel: 'r', bits: 4, shift: 12 },
+          { channel: 'g', bits: 4, shift: 8 },
+          { channel: 'b', bits: 4, shift: 4 },
+        ],
+        resetWrites: [
+          { offset: 0, data: 0xf0 },
+          { offset: 0, data: 0xff, ext: true },
+        ],
+      },
+    },
+  };
+  const resetState: Record<string, unknown> = {};
+  const resetPrimitives = new GeneratedMameVideoPrimitives(
+    resetMachine,
+    {},
+    resetState,
+    {},
+  );
+  const resetPalette = resetState.m_palette as { colors: Uint32Array };
+  assert.equal(resetPalette.colors[0], 0xffffffff);
+  resetPrimitives.writePaletteRam(0, 0);
+  resetPrimitives.writePaletteRam(0, 0, true);
+  assert.equal(resetPalette.colors[0], 0xff000000);
+  resetPrimitives.reset();
+  assert.equal(resetPalette.colors[0], 0xffffffff);
+}
+
+console.log('generated-video.spec: 21 passed');

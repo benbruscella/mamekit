@@ -39,10 +39,11 @@ connected.
 
 ### INTERMEDIATE REPRESENTATION (IR)
 
-A typed, serializable execution plan lowered from source. MAMEKIT has several
-focused IRs rather than one universal representation:
+A typed, serializable execution plan lowered from source. `BoardIR` in
+`src/ir/` is the canonical one — the single contract every consumer derives
+from — alongside focused IRs for the hardware it composes:
 
-- machine composition IR;
+- board composition IR (`src/ir/board.ts`);
 - handler program IR;
 - CPU/opcode IR;
 - device IR;
@@ -180,22 +181,72 @@ The serialized machine contains:
 - sound routing metadata;
 - source locations for executable elements.
 
-The machine is emitted as `generated/machine.json`. The adjacent `board.ts` is
-intentionally small: it imports the JSON, validates it through
-`defineMachine()`, and delegates construction to `createGeneratedBoard()`.
+The board is emitted as `generated/board.json`. The adjacent `board.ts` is
+intentionally small: it imports the JSON, decodes it through `decodeBoardIr()`,
+and delegates construction to `createGeneratedBoard()`. Decoding is not a type
+assertion — a stale or malformed artifact fails there, naming the JSON field
+path and the MAME source line, instead of crashing deep inside execution.
 
 Handler source is parsed into typed operations in `src/mame/handler-ir.ts`.
 The operation vocabulary covers numeric expressions, state access, branches,
 calls, memory/device access and returns needed by selected MAME methods.
 Unsupported syntax produces diagnostics attached to generated reports.
 
-The machine IR is the contract between source lowering and browser execution.
+The board IR is the contract between source lowering and browser execution.
 It must not contain browser APIs or game-specific TypeScript classes.
 
-## 7. HARDWARE COMPILERS
+### TYPED EFFECTS
 
-`src/mame/hardware.ts` resolves the selected targets' hardware closure and
-coordinates focused compilers.
+`callbacks` records what the MAME source declared, with its spans.
+`connections` records what the board actually does: each callback resolved to a
+typed `BoardEffect` — a CPU pin with an explicit delivery mode, a device method,
+a handler, a port read, a video or audio control, or an explicit `unconnected`
+for MAME's `.set_nop()`.
+
+`src/ir/lower-connections.ts` is the only place a MAME C++ method name is
+interpreted, and it runs during generation. A callback it cannot resolve fails
+the build with its source line. Previously the same regexes ran in the browser,
+where an unrecognised name performed no operation and reported nothing.
+
+### VALIDATION
+
+`src/ir/validate.ts` cross-references the decoded board before it is written:
+unique and resolvable device tags, every CPU present in the device list, frame
+events naming real callbacks, banks that are actually configured, ranges inside
+their address space, and handlers that were generated. Generation fails rather
+than emitting a board that cannot be wired.
+
+## 7. HARDWARE CAPABILITIES
+
+`src/mame/hardware.ts` resolves the selected targets' hardware closure and runs
+the capability registry over it.
+
+A hardware family is one package under `src/hardware/<family>/`:
+
+```
+src/hardware/ym2203/
+├── definition.ts   id, MAME types, ports, browser-facing constants
+├── extract.ts      MAME source -> IR + emitted artifacts (compile time only)
+└── acceptance.ts   probe against the emitted artifact in dist
+```
+
+`definition.ts` is neutral and shared by both sides. `extract.ts` may reach into
+`src/mame` and never ships to the browser. `acceptance.ts` runs in Node against
+`dist`, so QA validates the artifact that actually ships.
+
+`src/hardware/registry.ts` lists the packages as explicit static imports — the
+supported set is a compile-time fact that type-checks, with no dynamic loading.
+`registry.spec.ts` reads the directory and fails when a package exists but is
+not registered, so the convention does not depend on remembering.
+
+Families whose MAME class is named per driver — a discrete soundboard is
+`GALAXIAN_SOUND` in one driver and `INVADERS_AUDIO` in another — declare no
+`mameTypes` and recognise the board by shape inside `extract()`. Recognition is
+never by game or board name.
+
+A capability that cannot lower a family returns undefined, leaving the type
+unresolved in the manifest rather than marking it executable with nothing
+behind it.
 
 ### CPU
 
@@ -241,8 +292,9 @@ rather than from a torn end-of-frame snapshot.
 
 ### AUDIO
 
-`src/mame/audio-compiler.ts` lowers supported MAME audio implementations and
-emits AudioWorklet source plus audio IR. Worklets live under
+Audio families are capability packages over `src/mame/audio-compiler.ts`, which
+lowers supported MAME audio implementations and emits AudioWorklet source plus
+audio IR. Worklets live under
 `dist/runtime/generated/audio` and import shared operations from
 `dist/runtime/core` when required.
 
@@ -258,6 +310,10 @@ Norton op-amp stages are lowered to stable browser component models; MAMEKIT
 does not yet implement MAME's complete analog discrete solver. The generated
 IR records that boundary instead of hiding it in a checked-in game sound class.
 
+A family's post-mix master gain is declared by its capability package and
+written into the generated config, so the shell applies whatever the family
+states rather than holding a table keyed by sound kind.
+
 ### DSL ARTIFACTS
 
 Source-derived DSL AST/IR remains available as JSON for auditability. Data-only
@@ -270,7 +326,10 @@ It has two responsibilities.
 
 ### GENERIC EXECUTION
 
-- `generated-machine.ts`: validates and registers machine IR;
+- `../ir/execute.ts`: the neutral handler-IR interpreter, shared with the
+  knowledge-graph builder so both agree what a lowered program means;
+- `generated-effects.ts`: executes typed board effects;
+- `generated-machine.ts`: registers decoded boards and wires device signals;
 - `generated-board.ts`: composes generated CPUs, buses, devices and rendering;
 - `generated-cpu.ts`: executes generated CPU definitions;
 - `generated-device.ts`: instantiates generated device definitions;
@@ -328,8 +387,10 @@ The final layout is:
 ```
 dist/
 ├── app/                       only app HTML and compiled entry/registry
+├── build-manifest.json        target set, capability closure, versions
 ├── runtime/
 │   ├── core/                  compiled generic runtime
+│   ├── ir/                    compiled neutral board IR
 │   └── generated/             shared MAME-derived hardware
 ├── games/
 │   ├── arcade/<game>/
@@ -339,7 +400,7 @@ dist/
 
 Generated game directories contain configuration, graphs, metadata, reports,
 `DOSSIER.md`, and a `generated/` directory with `board.ts`, `board.js`,
-`machine.json` and `provenance.json`.
+`board.json` and `provenance.json`.
 
 ## 11. DATA AND BEHAVIOR RULE
 
@@ -364,10 +425,17 @@ Generated runtime reports distinguish:
 - declarative browser-host services;
 - unresolved or unsupported generation gaps.
 
-`audit:generated` verifies canonical files, machine schema, callbacks, frame
-events, screen plans, hardware artifacts, registry imports, absence of
-handwritten MAME runtime files, absence of duplicated app modules, absence of
-embedded serialized IR, and self-contained browser imports.
+`audit:generated` decodes and validates every generated board, then verifies
+canonical files, frame events, screen plans, hardware artifacts, registry
+imports, absence of handwritten MAME runtime files, absence of duplicated app
+modules, absence of embedded serialized IR, and self-contained browser imports.
+
+It also refuses a mixed build. `dist/build-manifest.json` records the exact
+target set, the capability closure, the BoardIR and graph schema versions, the
+compiler version and the MAME revision. A `--targets` build regenerates the
+closure for a subset while other targets' data survives, so a catalog and a
+closure that disagree mean boards registered against a closure never built for
+them.
 
 ## 13. CATEGORY MODEL
 
@@ -400,5 +468,7 @@ Before accepting a change, ask:
 4. Is the generated artifact canonical, inspectable and source-linked?
 5. Will the same lowering improvement apply to the next MAME driver with the
    same source shape?
+6. Does a new hardware family arrive as one capability package, or does it need
+   edits in several unrelated central files?
 
 If the answer to any question is no, the change is probably at the wrong layer.

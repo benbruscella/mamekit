@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { findWindow, loadArtwork } from './artwork.ts';
+import { findWindow, loadArtwork, parseArtworkLayout } from './artwork.ts';
 
 const originalDocument = globalThis.document;
 const originalFetch = globalThis.fetch;
@@ -40,6 +40,47 @@ globalThis.fetch = (async input => {
 assert.equal(await loadArtwork('juno first', 'bezel'), null);
 assert.equal(requested, '../artwork/juno%20first.zip');
 
+const modernLayout = `
+<mamelayout version="2">
+  <element name="bezel_m"><image file="bezel.png" /></element>
+  <element name="overlay_m">
+    <rect><bounds left="0" top="0" right="1200" bottom="1600" />
+      <color red="1" green="1" blue="1" /></rect>
+    <rect><bounds left="0" top="1140" right="1200" bottom="1480" />
+      <color red="0.125" green="1" blue="0.125" /></rect>
+  </element>
+  <view name="Upright_Artwork_Midway">
+    <screen index="0"><bounds x="1227" y="1250" width="1547" height="2063" /></screen>
+    <collection name="Overlay">
+      <element ref="overlay_m" blend="multiply">
+        <bounds x="1227" y="1250" width="1547" height="2063" />
+      </element>
+    </collection>
+    <collection name="Bezel">
+      <element ref="bezel_m"><bounds x="0" y="0" width="4000" height="4133" /></element>
+    </collection>
+  </view>
+</mamelayout>`;
+const parsedModern = parseArtworkLayout(modernLayout);
+assert.ok(parsedModern);
+assert.deepEqual({ ...parsedModern, tints: [] }, {
+  name: 'Upright_Artwork_Midway',
+  screen: { x: 1227, y: 1250, w: 1547, h: 2063 },
+  art: { x: 0, y: 0, w: 4000, h: 4133 },
+  file: 'bezel.png',
+  rotate: 0,
+  tints: [],
+});
+assert.equal(parsedModern.tints.length, 1);
+assert.ok(Math.abs(parsedModern.tints[0]!.y - 0.7125) < 1e-12);
+assert.deepEqual(
+  { ...parsedModern.tints[0], y: 0.7125 },
+  {
+    x: 0, y: 0.7125, w: 1, h: 0.2125,
+    red: 0.125, green: 1, blue: 0.125, alpha: 1,
+  },
+);
+
 if (originalDocument === undefined) {
   delete (globalThis as { document?: Document }).document;
 } else {
@@ -47,4 +88,4 @@ if (originalDocument === undefined) {
 }
 globalThis.fetch = originalFetch;
 
-console.log('artwork.spec: transparent window detection and missing artwork fallback passed');
+console.log('artwork.spec: layout, transparent window and missing artwork fallback passed');

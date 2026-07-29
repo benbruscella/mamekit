@@ -3,31 +3,44 @@
 // Pure DOM — no libraries.
 
 import { createBoard } from './generated-board.ts';
-import { loadArtwork, type ArtWindow } from './artwork.ts';
+import { loadArtwork, type ArtTint, type ArtWindow } from './artwork.ts';
 import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig } from './types.ts';
-import type { GeneratedAudioRoute } from './generated-machine.ts';
-import type {
-  GeneratedAuxiliaryAudioDevice,
-  GeneratedDacFilterPlan,
-  GeneratedDiscreteMixerPlan,
-  GeneratedSpeakerFilterPlan,
-} from './audio-protocol.ts';
+import type { GeneratedAudioRoute } from '../ir/board.ts';
+import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 
 export interface RomLoad {
   file: string; offset: number; size: number; crc: string;
   /** same-slot chips from sibling sets (other revisions of the same game) */
   alt?: { file: string; crc: string }[];
   reloadOffsets?: number[];
+  /**
+   * MAME's dump status for the chip. `nodump` means no copy exists anywhere,
+   * so no ROM set can supply it and MAME leaves those bytes erased; it is not
+   * an incomplete set. `baddump` bytes are known-imperfect but usable.
+   */
+  status?: 'nodump' | 'baddump';
 }
 export interface RomRegionSpec {
   region: string;
   size: number;
   /** MAME ROMREGION_ERASE00/ERASEFF initialization for unloaded bytes. */
   fill?: number;
+  /**
+   * MAME device short name owning this region's ROMs, when they come from a
+   * device set rather than the game set. MAME commonised device ROMs so one
+   * copy serves every board using the part, and loads them from
+   * `<romSet>.zip` — namco54.zip, not galaga.zip.
+   */
+  romSet?: string;
   loads: RomLoad[];
+}
+
+/** A chip MAME says exists on the board and can actually be supplied. */
+export function isDumpedRom(load: RomLoad): boolean {
+  return load.status !== 'nodump';
 }
 
 export interface SoundSpec {
@@ -50,6 +63,12 @@ export interface SoundSpec {
   discreteMixer?: GeneratedDiscreteMixerPlan;
   /** MAME's source-derived post-mix speaker effect. */
   speakerFilter?: GeneratedSpeakerFilterPlan;
+  /**
+   * Post-mix level for this sound family, from its capability package. MAME's
+   * add_route gains set the relative mix between chips; this is the single
+   * master level the shell applies.
+   */
+  masterGain?: number;
 }
 
 /** the ROM drop target's visual states (built by buildDom().dropZone) */
@@ -135,6 +154,9 @@ export function checkRomSet(
   const check: RomCheck = { perFile: [], missingCritical: [], missingOther: [], crcMismatch: [] };
   for (const spec of specs) {
     for (const load of spec.loads) {
+      // An undumped chip cannot be in any ROM set. Reporting it as missing
+      // told users to go looking for a file that does not exist.
+      if (!isDumpedRom(load)) continue;
       const isCrit = critical.has(spec.region);
       const { bytes, exact } = findRomBytes(load, files, byCrc);
       let status: 'ok' | 'crc' | 'missing';
@@ -166,6 +188,8 @@ export interface ShellConfig {
   roms: RomRegionSpec[];
   /** driver-init byte patches applied to assembled regions (from the graph) */
   romPatches?: { region: string; offset: number; value: number }[];
+  /** source-derived driver-init transforms applied before graphics decoding */
+  romTransforms?: RomTransform[];
   bindings: FieldBinding[];
   dipDefaults: DipDefault[];
   ports: PortSpec[];
@@ -177,6 +201,35 @@ export interface ShellConfig {
   menuUrl?: string;
 }
 
+export type RomTransform = {
+  kind: 'conditional-byte-swap';
+  region: string;
+  indexMask: number;
+  indexValue: number;
+  displacement: number;
+};
+
+export function applyRomTransforms(regions: Regions, transforms: readonly RomTransform[]): void {
+  for (const transform of transforms) {
+    const region = regions[transform.region];
+    if (!region) throw new Error(`ROM transform has no region "${transform.region}"`);
+    if (transform.kind === 'conditional-byte-swap') {
+      for (let index = 0; index < region.length; index++) {
+        if (((index & transform.indexMask) >>> 0) !== (transform.indexValue >>> 0)) continue;
+        const other = index + transform.displacement;
+        if (other < 0 || other >= region.length) {
+          throw new Error(
+            `ROM transform for "${transform.region}" swaps ${index} with out-of-range ${other}`,
+          );
+        }
+        const value = region[index]!;
+        region[index] = region[other]!;
+        region[other] = value;
+      }
+    }
+  }
+}
+
 /**
  * `preloaded` bypasses the drop-zone/manifest path: the console room hands
  * over already-verified cart regions (regions.prg/chr) after identification.
@@ -186,7 +239,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
 
   // cabinet bezel surround: play inside the real artwork's CRT window
   void loadArtwork(cfg.game, 'bezel').then(art => {
-    if (art?.window) ui.setBezel(art.bmp, art.window);
+    if (art?.window) ui.setBezel(art.bmp, art.window, art.tints);
   });
 
   // Esc: back to the boot menu (registered first + capture so a single press
@@ -222,6 +275,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     const region = regions[p.region];
     if (region && p.offset < region.length) region[p.offset] = p.value;
   }
+  applyRomTransforms(regions, cfg.romTransforms ?? []);
 
   // --- machine ----------------------------------------------------------------
   const input = new KeyboardInput(cfg.bindings, cfg.dipDefaults, cfg.ports);
@@ -266,12 +320,10 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
       `${cfg.runtimeUrl}${cfg.sound.worklet ?? cfg.sound.kind}-worklet.js`,
       cfg.sound.kind,
     ).then(() => {
-      // per-core master gains: wsg = MAME route gain 0.90*10/16; the AY bank
-      // runs hot against the others — tamed to sit level with them
-      const VOLUMES: Record<string, number> = {
-        wsg: 0.5625, ay8910: 0.7, nes: 0.8, ym2203: 0.7,
-      };
-      audio.setVolume(VOLUMES[cfg.sound.kind] ?? 1);
+      // The post-mix level belongs to the sound family, so it is generated
+      // from its capability package rather than kept in a table here that
+      // every new family would have to be added to.
+      audio.setVolume(cfg.sound.masterGain ?? 1);
     }).catch(err => console.warn('audio unavailable:', err));
     const resumeAudio = () => audio.resume();
     addEventListener('pointerdown', resumeAudio, { once: true });
@@ -342,6 +394,9 @@ export function assembleRegions(
     const bytes = new Uint8Array(spec.size);
     if (spec.fill) bytes.fill(spec.fill & 0xff);
     for (const load of spec.loads) {
+      // MAME erases an undumped chip's bytes and runs; so do we, without
+      // claiming the user's ROM set is short a file.
+      if (!isDumpedRom(load)) continue;
       // primary chip by name/swapped-name/CRC, else a clone-revision
       // alternate from the same slot (see findRomBytes)
       const { bytes: f, exact } = findRomBytes(load, files, byCrc);
@@ -455,6 +510,7 @@ function buildDom(cfg: ShellConfig) {
   // optional cabinet bezel: the game canvas sits inside its transparent
   // CRT window, the artwork drawn on top (pointer-events off)
   let bezel: { w: number; h: number; win: ArtWindow } | null = null;
+  let artworkTints: ArtTint[] = [];
   const bezelCanvas = document.createElement('canvas');
   bezelCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none';
 
@@ -466,12 +522,14 @@ function buildDom(cfg: ShellConfig) {
       holder.style.width = bezelCanvas.style.width = `${w * s}px`;
       holder.style.height = bezelCanvas.style.height = `${h * s}px`;
       const winW = win.w * s, winH = win.h * s;
-      const gs = Math.min(winW / dispW, winH / dispH);
       canvas.style.position = 'absolute';
-      canvas.style.left = `${win.x * s + (winW - dispW * gs) / 2}px`;
-      canvas.style.top = `${win.y * s + (winH - dispH * gs) / 2}px`;
-      canvas.style.width = `${dispW * gs}px`;
-      canvas.style.height = `${dispH * gs}px`;
+      canvas.style.left = `${win.x * s}px`;
+      canvas.style.top = `${win.y * s}px`;
+      // MAME layout screen bounds describe the physical CRT aspect, including
+      // its non-square pixel correction. Fill those exact bounds instead of
+      // preserving the raw raster aspect and letterboxing inside the artwork.
+      canvas.style.width = `${winW}px`;
+      canvas.style.height = `${winH}px`;
     } else {
       const displayScale = Math.max(1, Math.floor(availH / dispH));
       canvas.style.width = `${dispW * displayScale}px`;
@@ -687,11 +745,16 @@ function buildDom(cfg: ShellConfig) {
         },
       };
     },
-    setBezel: (bmp: ImageBitmap | HTMLCanvasElement, win: ArtWindow) => {
+    setBezel: (
+      bmp: ImageBitmap | HTMLCanvasElement,
+      win: ArtWindow,
+      tints: ArtTint[],
+    ) => {
       bezelCanvas.width = bmp.width; bezelCanvas.height = bmp.height;
       bezelCanvas.getContext('2d')!.drawImage(bmp, 0, 0);
       holder.insertBefore(bezelCanvas, overlay); // above the game, below the overlay
       bezel = { w: bmp.width, h: bmp.height, win };
+      artworkTints = tints;
       fit();
     },
     blit: (image: ImageData) => {
@@ -711,6 +774,21 @@ function buildDom(cfg: ShellConfig) {
       }
       ctx.drawImage(off, 0, 0);
       ctx.restore();
+      if (artworkTints.length) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'multiply';
+        for (const tint of artworkTints) {
+          ctx.fillStyle = `rgba(${tint.red * 255},${tint.green * 255},` +
+            `${tint.blue * 255},${tint.alpha})`;
+          ctx.fillRect(
+            tint.x * dispW,
+            tint.y * dispH,
+            tint.w * dispW,
+            tint.h * dispH,
+          );
+        }
+        ctx.restore();
+      }
     },
   };
 }

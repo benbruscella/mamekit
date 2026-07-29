@@ -11,7 +11,6 @@ export const rocnrope: GameTestContract = {
   frames: 1200,
   minimumFps: 45,
   checkpoints: [1, 60, 300, 540, 720, 1200],
-  optionalRomFiles: ['h100.6g'],
   actions: [
     { atFrame: 540, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 570, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },

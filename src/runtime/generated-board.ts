@@ -19,12 +19,16 @@ import {
   wireGeneratedDevice,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
-import { callbackTarget, type GeneratedMachine } from './generated-machine.ts';
-import { portHandlers } from './input.ts';
+import type { BoardIr } from '../ir/board.ts';
 import {
-  AY_FILTER_CONTROL_BASE,
-  AY_FILTER_CONTROL_STRIDE,
-} from './audio-protocol.ts';
+  bindBoardEffects,
+  type BoundEffect,
+  type EffectBindings,
+  type EffectExecutor,
+} from './generated-effects.ts';
+import { portHandlers } from './input.ts';
+import { installSoundRuntime } from '../hardware/sound-runtime-registry.ts';
+import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE } from '../ir/audio-protocol.ts';
 import type {
   Board,
   BoardConfig,
@@ -45,20 +49,6 @@ const GENERATED_BOARDS = new Map<string, BoardFactory>();
 
 export function registerGeneratedBoard(game: string, factory: BoardFactory): void {
   GENERATED_BOARDS.set(game, factory);
-}
-
-/**
- * MAME's driver_device interrupt generators: irqN_line_hold/assert clear on
- * acknowledge or stay asserted, and nmi_line_pulse/assert drive the NMI pin.
- */
-function interruptGenerator(
-  method: string | undefined,
-): { line: number | 'nmi'; hold: boolean } | undefined {
-  const irq = /^irq(\d)_line_(hold|assert)$/.exec(method ?? '');
-  if (irq) return { line: Number(irq[1]), hold: irq[2] === 'hold' };
-  const nmi = /^nmi_line_(pulse|assert)$/.exec(method ?? '');
-  if (nmi) return { line: 'nmi', hold: nmi[1] === 'pulse' };
-  return undefined;
 }
 
 export function createBoard(
@@ -84,7 +74,7 @@ export function createBoard(
  * CPU, device, handler, callback and scheduling definitions.
  */
 export function createGeneratedBoard(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   config: BoardConfig,
   regions: Regions,
   inputs: InputPorts,
@@ -97,7 +87,7 @@ class IrBoard implements Board {
   readonly fbWidth: number;
   readonly fbHeight: number;
 
-  private readonly machine: GeneratedMachine;
+  private readonly machine: BoardIr;
   private readonly cpus = new Map<string, Cpu>();
   private readonly cpuCycles = new Map<string, number>();
   private readonly cpuHeld = new Map<string, boolean>();
@@ -105,12 +95,14 @@ class IrBoard implements Board {
   private readonly state: Record<string, unknown> = {};
   private readonly shares: Record<string, Uint8Array> = {};
   private videoPrimitives?: GeneratedMameVideoPrimitives;
+  /** Typed effects bound per callback id; see generated-effects.ts. */
+  private effects: Map<string, BoundEffect> = new Map();
   private readonly frameRunner: GeneratedFrameRunner;
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
 
   constructor(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     config: BoardConfig,
     regions: Regions,
     inputs: InputPorts,
@@ -182,6 +174,10 @@ class IrBoard implements Board {
     this.installDeclarativeHandlers(machine, config, inputs, registry);
     this.installInterruptVectorWriters(machine, registry);
 
+    // Bound before any CPU exists: a generated CPU may emit a signal from its
+    // own constructor, and every connection must already be executable.
+    this.effects = bindBoardEffects(machine, this.effectBindings(sinks));
+
     for (const specification of machine.execution.cpus) {
       const type = specification.type ?? 'Z80';
       if (!hasGeneratedCpu(type)) {
@@ -224,14 +220,7 @@ class IrBoard implements Board {
               )
             : undefined;
           if (value !== undefined) return value;
-          dispatchGeneratedCallbacks(
-            machine,
-            specification.tag,
-            signal,
-            state,
-            this.bindings,
-            this.callbackEndpoints(sinks),
-          );
+          dispatchGeneratedCallbacks(machine, specification.tag, signal, state, this.effects);
           return 0;
         },
       });
@@ -283,17 +272,9 @@ class IrBoard implements Board {
       bindGeneratedShareState(this.state, tag, bytes);
     }
 
-    const callbackEndpoints = this.callbackEndpoints(sinks);
     for (const [tag, device] of this.devices) {
       for (const signal of device.signalNames()) {
-        wireGeneratedDevice(
-          device,
-          machine,
-          tag,
-          signal,
-          this.bindings,
-          callbackEndpoints,
-        );
+        wireGeneratedDevice(device, machine, tag, signal, this.effects);
       }
     }
     const hostedProcessors = (machine.devices ?? []).flatMap(specification => {
@@ -332,10 +313,9 @@ class IrBoard implements Board {
       if (!source) continue;
       dispatchGeneratedCallback(
         machine,
-        callback,
+        callback.id,
         (source.get('m_q') >> callback.slot) & 1,
-        this.bindings,
-        callbackEndpoints,
+        this.effects,
       );
     }
 
@@ -377,13 +357,7 @@ class IrBoard implements Board {
             `${event.ownerTag}.vck`,
           );
         }
-        dispatchGeneratedCallback(
-          machine,
-          event.callbackId,
-          event.state,
-          this.bindings,
-          callbackEndpoints,
-        );
+        dispatchGeneratedCallback(machine, event.callbackId, event.state, this.effects);
       },
       onLine: (line, phase, framebuffer) => {
         if (phase === 'before-processors') activeFramebuffer = framebuffer;
@@ -477,6 +451,7 @@ class IrBoard implements Board {
   reset(): void {
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
+    this.videoPrimitives?.reset?.();
     for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
     this.frameRunner.reset();
     this.currentLine = 0;
@@ -502,7 +477,7 @@ class IrBoard implements Board {
   }
 
   private installDeviceHandlers(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     registry: HandlerRegistry,
   ): void {
     for (const map of machine.maps ?? []) {
@@ -530,7 +505,7 @@ class IrBoard implements Board {
   }
 
   private installDeclarativeHandlers(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     config: BoardConfig,
     inputs: InputPorts,
     registry: HandlerRegistry,
@@ -603,7 +578,7 @@ class IrBoard implements Board {
   }
 
   private installInterruptVectorWriters(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     registry: HandlerRegistry,
   ): void {
     const cpuTagsByWriter = new Map<string, string[]>();
@@ -627,7 +602,7 @@ class IrBoard implements Board {
   }
 
   private installMemoryBanks(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     regions: Regions,
     registry: HandlerRegistry,
   ): void {
@@ -658,278 +633,123 @@ class IrBoard implements Board {
     }
   }
 
+  /**
+   * Sound register wiring belongs to the family's capability package; the
+   * board supplies only the generic machinery it needs.
+   */
   private installGeneratedSoundHandlers(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     sinks: BoardSinks,
     registry: HandlerRegistry,
   ): void {
-    const sound = machine.sound;
-    if (!sound) return;
-    if (sound.kind === 'ay8910') {
-      const tags = sound.deviceTags ?? [sound.deviceTag];
-      const addresses = new Map(tags.map(tag => [tag, 0]));
-      const registers = new Map(tags.map(tag => [tag, new Uint8Array(16)]));
-      tags.forEach((tag, chip) => {
-        const addressWrite = (data: number): void => {
-          addresses.set(tag, data & 0x0f);
-        };
-        const dataWrite = (data: number): void => {
-          const register = addresses.get(tag) ?? 0;
-          registers.get(tag)![register] = data;
-          sinks.soundWrite(chip * 16 + register, data, this.soundFraction());
-          const signal = register === 14
-            ? 'port_a_write_callback'
-            : register === 15
-              ? 'port_b_write_callback'
-              : undefined;
-          if (signal) {
-            dispatchGeneratedCallbacks(
-              machine,
-              tag,
-              signal,
-              data,
-              this.bindings,
-              this.callbackEndpoints(sinks),
-            );
-          }
-        };
-        const dataRead = (): number => {
-          const register = addresses.get(tag) ?? 0;
-          const callback = machine.callbacks.find(candidate =>
-            candidate.ownerTag === tag &&
-            candidate.signal === (register === 14
-              ? 'port_a_read_callback'
-              : register === 15
-                ? 'port_b_read_callback'
-                : ''));
-          if (callback?.targetTag && callback.targetMethod) {
-            const device = this.devices.get(callback.targetTag);
-            if (device?.methodNames().includes(callback.targetMethod)) {
-              return device.call(callback.targetMethod);
-            }
-          }
-          if (callback?.targetClass && callback.targetMethod) {
-            return executeGeneratedCallbackHandler(
-              machine,
-              callback,
-              this.bindings,
-            ) ?? 0xff;
-          }
-          return registers.get(tag)![register] ?? 0xff;
-        };
-        registry.write[`${tag}.address_w`] = (_address, _offset, data) => addressWrite(data);
-        registry.write[`${tag}.data_w`] = (_address, _offset, data) => dataWrite(data);
-        registry.read[`${tag}.data_r`] = dataRead;
-        const member = machine.devices?.find(device => device.tag === tag)?.member;
-        for (const alias of [tag, `m_${tag}`, member].filter(Boolean) as string[]) {
-          this.bindings.calls![`${alias}.address_w`] = addressWrite;
-          this.bindings.calls![`${alias}.data_w`] = dataWrite;
-          this.bindings.calls![`${alias}.data_r`] = dataRead;
-        }
-      });
-      bindGeneratedAudioFilters(
-        this.state,
-        sound,
-        sinks.soundWrite,
-        () => this.soundFraction(),
-      );
-      for (const auxiliary of sound.auxiliaryDevices ?? []) {
-        const aliases = [
-          auxiliary.deviceTag,
-          `m_${auxiliary.deviceTag}`,
-          auxiliary.member,
-        ].filter(Boolean) as string[];
-        for (const method of auxiliary.writeMethods) {
-          const directKey = `${auxiliary.deviceTag}.${method}`;
-          registry.write[directKey] = (_address, offset, data) => {
-            sinks.soundWrite(
-              offset,
-              data,
-              this.soundFraction(),
-              `${auxiliary.deviceTag}.${method}`,
-            );
-          };
-          for (const alias of aliases) {
-            const key = `${alias}.${method}`;
-            const original = this.bindings.calls![key];
-            this.bindings.calls![key] = (...args: number[]) => {
-              const result = original?.(...args);
-              sinks.soundWrite(
-                0,
-                args.at(-1) ?? 0,
-                this.soundFraction(),
-                `${auxiliary.deviceTag}.${method}`,
-              );
-              return result;
-            };
-          }
-        }
-      }
-      return;
-    }
-    if (sound.kind === 'ym2203') {
-      // Each YM2203 exposes an address/data port pair; the bank is addressed
-      // as chip * 2 + port so one worklet hosts every chip on the board.
-      const tags = sound.deviceTags ?? [sound.deviceTag];
-      tags.forEach((tag, chip) => {
-        for (const method of sound.writeMethods) {
-          const write = (offset: number, data: number): void => {
-            sinks.soundWrite(chip * 2 + (offset & 1), data, this.soundFraction(), method);
-          };
-          registry.write[`${tag}.${method}`] = (_address, offset, data) => write(offset, data);
-          const member = machine.devices?.find(device => device.tag === tag)?.member;
-          for (const alias of [tag, `m_${tag}`, member].filter(Boolean) as string[]) {
-            this.bindings.calls![`${alias}.${method}`] = (offset, data) =>
-              write(Number(offset), Number(data));
-          }
-        }
-        // ym_reset_w and kin reset the chip through the generated device port.
-        const member = machine.devices?.find(device => device.tag === tag)?.member;
-        for (const alias of [tag, `m_${tag}`, member].filter(Boolean) as string[]) {
-          this.bindings.calls![`${alias}.reset`] = () => {
-            sinks.soundWrite(chip * 2, 0, this.soundFraction(), 'reset');
-            return 0;
-          };
-        }
-      });
-      return;
-    }
-    for (const method of sound.writeMethods) {
-      const key = `${sound.deviceTag}.${method}`;
-      registry.write[key] = (_address, offset, data) => {
-        // Raw register offset plus the method name: worklets route by name,
-        // so no offset-numbering convention exists between the two sides.
-        sinks.soundWrite(offset, data, this.soundFraction(), method);
-      };
-    }
+    if (!machine.sound) return;
+    installSoundRuntime({
+      board: machine,
+      sound: machine.sound,
+      registry,
+      calls: this.bindings.calls!,
+      state: this.state,
+      soundWrite: (offset, data, frac, method) =>
+        sinks.soundWrite(offset, data, frac, method),
+      fraction: () => this.soundFraction(),
+      callDevice: (tag, method) => {
+        const device = this.devices.get(tag);
+        return device?.methodNames().includes(method) ? device.call(method) : undefined;
+      },
+      runCallbackHandler: callbackId =>
+        executeGeneratedCallbackHandler(machine, callbackId, this.bindings),
+      dispatch: (ownerTag, signal, value) =>
+        void dispatchGeneratedCallbacks(machine, ownerTag, signal, value, this.effects),
+    });
   }
 
   private soundFraction(): number {
     return this.currentLine / this.machine.execution.screen.vtotal;
   }
 
-  private callbackEndpoints(sinks: BoardSinks): Record<string, (state: number) => number | void> {
-    const endpoints: Record<string, (state: number) => number | void> = {};
-    for (const port of new Set(this.machine.callbacks.flatMap(callback =>
-      callback.targetPort ? [callback.targetPort] : []))) {
-      endpoints[`port.${port}`] = () => this.bindings.inputs?.read(port) ?? 0xff;
-    }
-    for (const callback of this.machine.callbacks) {
-      const driverMethod = callback.targetMethod
-        ? this.bindings.calls?.[callback.targetMethod]
-        : undefined;
-      if (!callback.targetTag && callback.targetClass && driverMethod) {
-        endpoints[`${callback.targetClass}.${callback.targetMethod}`] = state => {
-          driverMethod(state);
-        };
-      }
-      // MAME's driver_device interrupt generators (irqN_line_hold and kin) act
-      // on the device the interrupt is installed on, whichever signal installs
-      // it: set_vblank_int, set_periodic_int or set_irq_acknowledge_callback.
-      const generator = interruptGenerator(callback.targetMethod);
-      if (generator && callbackTarget(callback)) {
-        const cpu = this.cpus.get(callback.ownerTag);
-        if (cpu) {
-          endpoints[callbackTarget(callback)!] = state => {
-            if (generator.line === 'nmi') {
-              if (state) cpu.nmi();
-              return;
-            }
-            cpu.setIrqLine(
-              state !== 0,
-              0xff,
-              generator.hold ? state !== 0 : false,
-            );
-          };
-        }
-      }
-      if (!callback.targetTag) continue;
-      const target = callback.inputLine
-        ? `${callback.targetTag}.${callback.inputLine}`
-        : callback.targetMethod
-          ? `${callback.targetTag}.${callback.targetMethod}`
-          : undefined;
-      const device = this.devices.get(callback.targetTag);
-      if (target && callback.targetMethod && device?.methodNames().includes(callback.targetMethod)) {
-        endpoints[target] = state => device.call(callback.targetMethod!, state);
-      }
-      const cpu = this.cpus.get(callback.targetTag);
-      if (cpu && callback.inputLine) {
-        endpoints[target!] = state => {
-          if (callback.inputLine === 'INPUT_LINE_NMI' && state) cpu.nmi();
-          else if (callback.inputLine === 'INPUT_LINE_RESET') {
-            this.cpuHeld.set(callback.targetTag!, Boolean(state));
-            if (state) cpu.reset();
-          } else {
-            cpu.setIrqLine(state !== 0);
-          }
-        };
-      }
-      if (target && callback.targetTag === 'speaker') {
-        endpoints[target!] = state =>
-          sinks.soundWrite(callback.slot ?? 0, state, this.soundFraction());
-      }
-      const sound = this.machine.sound;
-      if (
-        sound &&
-        callback.targetTag === sound.deviceTag &&
-        callback.targetMethod &&
-        sound.enableMethods.includes(callback.targetMethod)
-      ) {
-        endpoints[target!] = state =>
-          sinks.soundWrite(sound.controlOffset, state, this.soundFraction());
-      }
-      if (
-        sound &&
-        callback.targetMethod === 'mute_w'
-      ) {
-        endpoints[target!] = state => sinks.soundWrite(-1, state, this.soundFraction());
-      }
-      const auxiliary = sound?.auxiliaryDevices?.find(device =>
-        device.deviceTag === callback.targetTag &&
-        callback.targetMethod &&
-        device.writeMethods.includes(callback.targetMethod));
-      if (target && auxiliary && callback.targetMethod) {
-        endpoints[target] = state => sinks.soundWrite(
-          0,
-          state,
-          this.soundFraction(),
-          `${auxiliary.deviceTag}.${callback.targetMethod}`,
-        );
-      }
-    }
-    return endpoints;
-  }
-}
-
-export function bindGeneratedAudioFilters(
-  state: Record<string, unknown>,
-  sound: NonNullable<GeneratedMachine['sound']>,
-  soundWrite: BoardSinks['soundWrite'],
-  fraction: () => number = () => 0,
-): void {
-  const filterRows: unknown[][] = [];
-  for (const route of sound.routes ?? []) {
-    if (!route.filter) continue;
-    const { bank, channel, index } = route.filter;
-    const row = (filterRows[bank] ??= []);
-    if (row[channel]) continue;
-    let previous: number[] | undefined;
-    row[channel] = {
-      filter_rc_set_RC: (type: number, r1: number, r2: number, r3: number, c: number) => {
-        const values = [type, r1, r2, r3, c];
-        if (previous?.every((value, position) => value === values[position])) return;
-        previous = values;
-        const base = AY_FILTER_CONTROL_BASE + index * AY_FILTER_CONTROL_STRIDE;
-        values.forEach((value, parameter) =>
-          soundWrite(base + parameter, value, fraction()));
-      },
+  /**
+   * Executors for the typed effects the compiler resolved. This switches on a
+   * closed union; the MAME method names that used to be re-parsed here are
+   * interpreted once, during generation, by src/ir/lower-connections.ts.
+   */
+  /** Execute a generated handler program, when one compiled for this key. */
+  private handlerExecutor(key: string): EffectExecutor | undefined {
+    const handler = this.machine.handlers?.find(candidate =>
+      `${candidate.ownerClass}.${candidate.method}` === key &&
+      candidate.program &&
+      !candidate.program.diagnostics.length);
+    if (!handler?.program) return undefined;
+    return state => {
+      executeGeneratedMachineHandler(this.machine, handler, this.bindings, { state, data: state });
     };
   }
-  if (!filterRows.length) return;
-  state.m_filter = sound.filterLayout === 'flat'
-    ? filterRows.flatMap(row => row)
-    : filterRows;
+
+  private effectBindings(sinks: BoardSinks): EffectBindings {
+    return {
+      cpuLine: (tag, line, delivery) => {
+        // Validated against the IR, not the live map: a generated CPU can fire
+        // a signal from inside its own constructor (the I8039 resets on
+        // create), so the target may not be instantiated yet at bind time.
+        if (!this.machine.execution.cpus.some(cpu => cpu.tag === tag)) return undefined;
+        if (line === 'nmi') {
+          // Only the NMI pin. Clearing it must not touch IRQ.
+          return state => { if (state) this.cpus.get(tag)?.nmi(); };
+        }
+        if (line === 'reset') {
+          return state => {
+            this.cpuHeld.set(tag, Boolean(state));
+            if (state) this.cpus.get(tag)?.reset();
+          };
+        }
+        if (line === 'halt') return state => { this.cpuHeld.set(tag, Boolean(state)); };
+        // irq/firq. MAME's *_line_hold keeps the line asserted until the CPU
+        // acknowledges it; assert and level leave it to the source to clear.
+        return state => {
+          this.cpus.get(tag)?.setIrqLine(state !== 0, 0xff, delivery === 'hold' && state !== 0);
+        };
+      },
+      deviceMethod: (tag, method, ownerClass) => {
+        const device = this.devices.get(tag);
+        if (device?.methodNames().includes(method)) {
+          return state => device.call(method, state);
+        }
+        // A composite MAME device (timeplt_audio) is not instantiated; its
+        // methods are the generated handlers for its class.
+        if (ownerClass) {
+          const run = this.handlerExecutor(`${ownerClass}.${method}`);
+          if (run) return run;
+        }
+        // Driver-class methods reachable as generated calls (m_tag.method).
+        const call = this.bindings.calls?.[`${tag}.${method}`] ??
+          this.bindings.calls?.[`m_${tag}.${method}`];
+        return call ? state => { call(state); } : undefined;
+      },
+      handler: key => {
+        const run = this.handlerExecutor(key);
+        if (run) return run;
+        // A driver method the board binds directly rather than lowering.
+        const call = this.bindings.calls?.[key.split('.').at(-1)!];
+        return call ? state => { call(state); } : undefined;
+      },
+      portRead: port => () => this.bindings.inputs?.read(port) ?? 0xff,
+      videoControl: control => {
+        const setter = control === 'flip-screen'
+          ? this.bindings.calls?.flip_screen_set
+          : control === 'flip-screen-x'
+            ? this.bindings.calls?.flip_screen_x_set
+            : this.bindings.calls?.flip_screen_y_set;
+        return setter ? state => { setter(state); } : undefined;
+      },
+      audioControl: (_tag, control, offset) => state =>
+        sinks.soundWrite(
+          control === 'mute' ? -1 : offset ?? this.machine.sound?.controlOffset ?? 0,
+          state,
+          this.soundFraction(),
+        ),
+      audioWrite: (tag, method) => state =>
+        sinks.soundWrite(0, state, this.soundFraction(), `${tag}.${method}`),
+    };
+  }
 }
 
 export function bindGeneratedDriverState(
@@ -977,7 +797,7 @@ export function bindGeneratedShareState(
 }
 
 function usedHandlers(
-  machine: GeneratedMachine,
+  machine: BoardIr,
   kind: 'read' | 'write',
 ): string[] {
   return (machine.maps ?? []).flatMap(map =>

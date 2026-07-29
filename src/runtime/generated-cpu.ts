@@ -4,7 +4,7 @@ import {
   type GeneratedHandlerBindings,
   type GeneratedLValue,
 } from './generated-handler.ts';
-import type { GeneratedHandlerProgram } from './generated-machine.ts';
+import type { GeneratedHandlerProgram } from '../ir/board.ts';
 
 export interface CpuBus {
   read(address: number): number;

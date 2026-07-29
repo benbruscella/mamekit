@@ -1,8 +1,5 @@
 import type { VideoRenderer } from './types.ts';
-import type {
-  GeneratedFrameEvent,
-  GeneratedMachine,
-} from './generated-machine.ts';
+import type { BoardIr, GeneratedFrameEvent } from '../ir/board.ts';
 
 export interface GeneratedFrameProcessor {
   tag: string;
@@ -12,7 +9,7 @@ export interface GeneratedFrameProcessor {
 }
 
 export interface GeneratedFrameRunnerOptions {
-  machine: GeneratedMachine;
+  machine: BoardIr;
   processors: GeneratedFrameProcessor[];
   video?: VideoRenderer;
   eventPhase?: 'before-processors' | 'after-processors';
@@ -30,7 +27,7 @@ export interface GeneratedFrameRunnerOptions {
  * the generated machine owns when they run and when source callbacks fire.
  */
 export class GeneratedFrameRunner {
-  private readonly machine: GeneratedMachine;
+  private readonly machine: BoardIr;
   private readonly processors: {
     processor: GeneratedFrameProcessor;
     cyclesPerLine: number;

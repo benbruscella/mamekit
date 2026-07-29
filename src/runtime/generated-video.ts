@@ -1,13 +1,6 @@
 import type { VideoRenderer } from './types.ts';
 import type { Regions, VideoRenderer as Renderer } from './types.ts';
-import type {
-  GeneratedGfxEntry,
-  GeneratedHandler,
-  GeneratedMachine,
-  GeneratedPromPalettePlan,
-  GeneratedRamPalettePlan,
-  GeneratedTilemapPlan,
-} from './generated-machine.ts';
+import type { BoardIr, GeneratedGfxEntry, GeneratedHandler, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
 import {
   executeGeneratedCallbackHandler,
   executeGeneratedMachineProgram,
@@ -22,6 +15,8 @@ export interface GeneratedVideoPrimitives extends VideoRenderer {
   resolveScreenPens?(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void;
   /** Route a MAME palette_device RAM write when the plan declares one. */
   writePaletteRam?(offset: number, data: number, ext?: boolean): void;
+  /** Reapply driver-declared reset-time video state. */
+  reset?(): void;
 }
 
 /**
@@ -29,7 +24,7 @@ export interface GeneratedVideoPrimitives extends VideoRenderer {
  * compose palette pen indices that the screen resolves on output, while
  * bitmap_rgb32 screens write final colors.
  */
-export function isIndexedScreen(machine: GeneratedMachine): boolean {
+export function isIndexedScreen(machine: BoardIr): boolean {
   const target = machine.execution.screenUpdate?.handler;
   if (!target) return false;
   const handler = machine.handlers?.find(candidate =>
@@ -45,9 +40,9 @@ export class GeneratedVideoRenderer implements VideoRenderer {
   readonly width: number;
   readonly height: number;
 
-  private readonly machine: GeneratedMachine;
+  private readonly machine: BoardIr;
   private readonly primitives: GeneratedVideoPrimitives;
-  private readonly screenUpdate: NonNullable<GeneratedMachine['callbacks']>[number];
+  private readonly screenUpdate: NonNullable<BoardIr['callbacks']>[number];
   private readonly indexed: boolean;
   /**
    * bitmap_ind16 machines compose pen indices here, persisting across frames
@@ -57,7 +52,7 @@ export class GeneratedVideoRenderer implements VideoRenderer {
   private readonly penBuffer?: Uint32Array;
   private partialNextY: number;
 
-  constructor(machine: GeneratedMachine, primitives: GeneratedVideoPrimitives) {
+  constructor(machine: BoardIr, primitives: GeneratedVideoPrimitives) {
     const screenUpdate = machine.callbacks.find(callback =>
       callback.signal === 'set_screen_update');
     if (!screenUpdate) {
@@ -127,7 +122,18 @@ export class GeneratedVideoRenderer implements VideoRenderer {
       },
     };
     const target = this.penBuffer ?? frame;
+    const scaledXOffset = xOffset * xScale;
+    const scaledYOffset = yOffset * yScale;
     const bitmap = {
+      direct: {
+        pixels: target,
+        width: this.width,
+        height: this.height,
+        xScale,
+        yScale,
+        scaledXOffset,
+        scaledYOffset,
+      },
       fill: (color: number, rectangle?: GeneratedRectangle) => {
         const packed = color >>> 0;
         const firstX = rectangle
@@ -159,6 +165,23 @@ export class GeneratedVideoRenderer implements VideoRenderer {
         pixelHeight: number,
         color: number,
       ) => {
+        // Generated gfx entries are scaled to the same source-domain raster as
+        // the bitmap. The overwhelmingly common case is therefore one decoded
+        // pixel covering exactly one output pixel. Avoid four floors, four
+        // clamps and a fill loop for every tile/sprite pixel in that case.
+        if (pixelWidth === xScale && pixelHeight === yScale) {
+          const outputX = (x - scaledXOffset) / xScale;
+          const outputY = (y - scaledYOffset) / yScale;
+          if (
+            Number.isInteger(outputX) &&
+            Number.isInteger(outputY) &&
+            outputX >= 0 && outputX < this.width &&
+            outputY >= 0 && outputY < this.height
+          ) {
+            target[outputY * this.width + outputX] = color >>> 0;
+          }
+          return;
+        }
         const firstX = Math.floor((x - xOffset * xScale) / xScale);
         const lastX = Math.floor((x + pixelWidth - 1 - xOffset * xScale) / xScale);
         const firstY = Math.floor((y - yOffset * yScale) / yScale);
@@ -224,6 +247,15 @@ export class GeneratedVideoRenderer implements VideoRenderer {
 }
 
 interface BitmapTarget {
+  direct?: {
+    pixels: Uint32Array;
+    width: number;
+    height: number;
+    xScale: number;
+    yScale: number;
+    scaledXOffset: number;
+    scaledYOffset: number;
+  };
   fill(color: number, rectangle?: GeneratedRectangle): void;
   plotRect?(
     x: number,
@@ -324,6 +356,17 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
     if (plan.extShare) this.ext = new Uint8Array(plan.entries * this.bytesPerEntry);
     this.colors = new Uint32Array(plan.entries);
     for (let pen = 0; pen < plan.entries; pen++) this.update(pen);
+    this.reset();
+  }
+
+  /** Replay palette basemem/extmem writes lowered from machine_reset(). */
+  reset(): void {
+    this.ram.fill(0);
+    this.ext?.fill(0);
+    for (let pen = 0; pen < this.plan.entries; pen++) this.update(pen);
+    for (const write of this.plan.resetWrites ?? []) {
+      this.write(write.offset, write.data, Boolean(write.ext));
+    }
   }
 
   /** palette_device::write8 / write8_ext, then update_for_write. */
@@ -561,10 +604,25 @@ class GeneratedGfxElement {
     const element = modulo(code, gfx.count);
     const base = element * gfx.width * gfx.height;
     const colorBase = this.entry.colorBase + color * this.granularity;
+    const direct = bitmap.direct;
+    const directStartX = direct &&
+        this.entry.xscale === direct.xScale &&
+        this.entry.yscale === direct.yScale
+      ? (sx - direct.scaledXOffset) / direct.xScale
+      : NaN;
+    const directStartY = direct
+      ? (sy - direct.scaledYOffset) / direct.yScale
+      : NaN;
+    const directPixels = direct &&
+        Number.isInteger(directStartX) &&
+        Number.isInteger(directStartY)
+      ? direct.pixels
+      : undefined;
     for (let py = 0; py < gfx.height; py++) {
       const y = sy + py * this.entry.yscale;
       if (y < clip.min_y || y > clip.max_y) continue;
       const sourceY = flipY ? gfx.height - 1 - py : py;
+      const outputY = directStartY + py;
       for (let px = 0; px < gfx.width; px++) {
         const x = sx + px * this.entry.xscale;
         if (x < clip.min_x || x > clip.max_x) continue;
@@ -574,7 +632,14 @@ class GeneratedGfxElement {
         const packed = this.indexed
           ? colorBase + pen
           : this.palette.colors[colorBase + pen] ?? 0xff000000;
-        if (bitmap.plotRect) {
+        const outputX = directStartX + px;
+        if (
+          directPixels &&
+          outputX >= 0 && outputX < direct!.width &&
+          outputY >= 0 && outputY < direct!.height
+        ) {
+          directPixels[outputY * direct!.width + outputX] = packed;
+        } else if (bitmap.plotRect) {
           bitmap.plotRect(x, y, this.entry.xscale, this.entry.yscale, packed);
         } else {
           for (let yy = 0; yy < this.entry.yscale; yy++) {
@@ -592,7 +657,7 @@ class GeneratedTilemap {
   private readonly plan: GeneratedTilemapPlan;
   private readonly mapper?: GeneratedHandler;
   private readonly tileInfo: GeneratedHandler;
-  private readonly machine: GeneratedMachine;
+  private readonly machine: BoardIr;
   private readonly bindings: () => GeneratedHandlerBindings;
   private readonly gfx: GeneratedGfxElement[];
   private readonly tiles: Array<TileInfo | undefined> = [];
@@ -603,7 +668,7 @@ class GeneratedTilemap {
 
   constructor(
     plan: GeneratedTilemapPlan,
-    machine: GeneratedMachine,
+    machine: BoardIr,
     bindings: () => GeneratedHandlerBindings,
     gfx: GeneratedGfxElement[],
   ) {
@@ -684,8 +749,18 @@ class GeneratedTilemap {
     const lastOutputColumn = scrollsHorizontally
       ? this.plan.columns - 1
       : Math.min(this.plan.columns - 1, Math.floor(clip.max_x / this.plan.tileWidth));
+    const mapWidth = this.plan.columns * this.plan.tileWidth;
+    const mapHeight = this.plan.rows * this.plan.tileHeight;
+    const xDelta = this.plan.scrollDx?.[flipX ? 1 : 0] ?? 0;
+    const yDelta = this.plan.scrollDy?.[flipY ? 1 : 0] ?? 0;
     for (let outputRow = firstOutputRow; outputRow <= lastOutputRow; outputRow++) {
       const row = flipY ? this.plan.rows - 1 - outputRow : outputRow;
+      const scrollRow = generatedScrollBand(
+        outputRow,
+        this.plan.rows,
+        this.scrollX.length,
+      );
+      const xScroll = this.scrollX[scrollRow] ?? 0;
       for (
         let outputColumn = firstOutputColumn;
         outputColumn <= lastOutputColumn;
@@ -728,22 +803,12 @@ class GeneratedTilemap {
         if (!gfx) continue;
         const tileFlipX = Boolean(tile.flags & 1) !== flipX;
         const tileFlipY = Boolean(tile.flags & 2) !== flipY;
-        const scrollRow = generatedScrollBand(
-          outputRow,
-          this.plan.rows,
-          this.scrollX.length,
-        );
         const scrollColumn = generatedScrollBand(
           outputColumn,
           this.plan.columns,
           this.scrollY.length,
         );
-        const xScroll = this.scrollX[scrollRow] ?? 0;
         const yScroll = this.scrollY[scrollColumn] ?? 0;
-        const mapWidth = this.plan.columns * this.plan.tileWidth;
-        const mapHeight = this.plan.rows * this.plan.tileHeight;
-        const xDelta = this.plan.scrollDx?.[flipX ? 1 : 0] ?? 0;
-        const yDelta = this.plan.scrollDy?.[flipY ? 1 : 0] ?? 0;
         const x = outputColumn * this.plan.tileWidth - xScroll + xDelta;
         const y = outputRow * this.plan.tileHeight - yScroll + yDelta;
         let transparentMask = 0;
@@ -768,13 +833,23 @@ class GeneratedTilemap {
           wrappedX <= firstWrappedX + mapWidth * 2;
           wrappedX += mapWidth
         ) {
-          if (wrappedX > clip.max_x || wrappedX + mapWidth <= clip.min_x) continue;
+          if (
+            wrappedX > clip.max_x ||
+            wrappedX + this.plan.tileWidth <= clip.min_x
+          ) {
+            continue;
+          }
           for (
             let wrappedY = firstWrappedY;
             wrappedY <= firstWrappedY + mapHeight * 2;
             wrappedY += mapHeight
           ) {
-            if (wrappedY > clip.max_y || wrappedY + mapHeight <= clip.min_y) continue;
+            if (
+              wrappedY > clip.max_y ||
+              wrappedY + this.plan.tileHeight <= clip.min_y
+            ) {
+              continue;
+            }
             gfx.draw(
               bitmap,
               clip,
@@ -834,7 +909,7 @@ export function generatedScrollBand(
 export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, Renderer {
   readonly width: number;
   readonly height: number;
-  private readonly machine: GeneratedMachine;
+  private readonly machine: BoardIr;
   private readonly state: Record<string, unknown>;
   private readonly gfx: GeneratedGfxElement[];
   private readonly palette?: GeneratedPaletteDevice;
@@ -844,7 +919,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private readonly bindings: GeneratedHandlerBindings;
 
   constructor(
-    machine: GeneratedMachine,
+    machine: BoardIr,
     regions: Regions,
     state: Record<string, unknown>,
     bindings: GeneratedHandlerBindings,
@@ -981,11 +1056,20 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     };
     for (const [member, target] of Object.entries(machine.video?.delegates ?? {})) {
       const handler = requiredHandler(machine, target);
+      if (handler.program!.operations.length === 0) {
+        referenceCalls[member] = () => 0;
+        callParameters[member] = parameterDeclarations(handler.parameters);
+        state[member] = { isnull: () => 0 };
+        continue;
+      }
+      // Parsed once per delegate, not once per call: these run per tile and
+      // per pixel, and re-splitting the signature there was measurable.
+      const names = parameterNames(handler.parameters);
       referenceCalls[member] = (...args) => executeGeneratedMachineProgram(
         machine,
         handler,
         this.bindings,
-        Object.fromEntries(parameterNames(handler.parameters).map((name, index) => [name, args[index] ?? 0])),
+        Object.fromEntries(names.map((name, index) => [name, args[index] ?? 0])),
       ).value ?? 0;
       callParameters[member] = parameterDeclarations(handler.parameters);
       state[member] = { isnull: () => 0 };
@@ -1037,6 +1121,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   /** palette_device::write8 / write8_ext into source-derived palette RAM. */
   writePaletteRam(offset: number, data: number, ext = false): void {
     this.ramPalette?.write(offset, data, ext);
+  }
+
+  reset(): void {
+    this.ramPalette?.reset();
   }
 
   resolveScreenPens(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void {
@@ -1103,7 +1191,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
 }
 
 function createRamPalette(
-  plan: NonNullable<NonNullable<GeneratedMachine['video']>['bitmap']>['paletteRam'] & {},
+  plan: NonNullable<NonNullable<BoardIr['video']>['bitmap']>['paletteRam'] & {},
   bytes: Uint8Array,
 ): Uint32Array {
   const network = {
@@ -1129,14 +1217,30 @@ function createRamPalette(
   return colors;
 }
 
+// A MAME signature is a constant, so parsing it is cached by that string.
+const PARAMETER_NAMES = new Map<string, string[]>();
+const PARAMETER_DECLARATIONS = new Map<string, string[]>();
+
 function parameterNames(parameters: string | undefined): string[] {
-  return parameterDeclarations(parameters)
-    .map(parameter => /(\w+)\s*$/.exec(parameter)?.[1])
-    .filter((name): name is string => Boolean(name));
+  const key = parameters ?? '';
+  let names = PARAMETER_NAMES.get(key);
+  if (!names) {
+    names = parameterDeclarations(parameters)
+      .map(parameter => /(\w+)\s*$/.exec(parameter)?.[1])
+      .filter((name): name is string => Boolean(name));
+    PARAMETER_NAMES.set(key, names);
+  }
+  return names;
 }
 
 function parameterDeclarations(parameters: string | undefined): string[] {
-  return (parameters ?? '').split(',').map(value => value.trim()).filter(Boolean);
+  const key = parameters ?? '';
+  let declared = PARAMETER_DECLARATIONS.get(key);
+  if (!declared) {
+    declared = key.split(',').map(value => value.trim()).filter(Boolean);
+    PARAMETER_DECLARATIONS.set(key, declared);
+  }
+  return declared;
 }
 
 function generatedArgumentValue(value: unknown): unknown {
@@ -1149,7 +1253,7 @@ function generatedArgumentValue(value: unknown): unknown {
   return value;
 }
 
-function requiredHandler(machine: GeneratedMachine, key: string): GeneratedHandler {
+function requiredHandler(machine: BoardIr, key: string): GeneratedHandler {
   const handler = machine.handlers?.find(candidate =>
     `${candidate.ownerClass}.${candidate.method}` === key &&
     candidate.program &&

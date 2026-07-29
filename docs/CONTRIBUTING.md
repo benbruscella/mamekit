@@ -156,7 +156,7 @@ npm run audit:generated
 Inspect at least:
 
 ```text
-generated/machine.json
+generated/board.json
 generated/provenance.json
 runtime-report.md
 runtime-report.json

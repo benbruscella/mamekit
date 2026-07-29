@@ -45,18 +45,33 @@ assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length))
 // The palette has no color PROM: palette_device::set_format colors CPU-written
 // palette RAM, split across a base share and a high-byte "_ext" share.
 assert.equal(video.plan.palette, undefined);
-assert.deepEqual(video.plan.ramPalette, {
-  tag: 'palette',
-  extShare: 'palette_ext',
-  entries: 256,
-  bytesPerEntry: 2,
-  channels: [
-    { channel: 'r', bits: 4, shift: 12 },
-    { channel: 'g', bits: 4, shift: 8 },
-    { channel: 'b', bits: 4, shift: 4 },
-  ],
-  source: video.plan.ramPalette?.source ?? { file: '', line: 0 },
-});
+const ramPalette = video.plan.ramPalette;
+assert.ok(ramPalette);
+assert.equal(ramPalette.tag, 'palette');
+assert.equal(ramPalette.extShare, 'palette_ext');
+assert.equal(ramPalette.entries, 256);
+assert.equal(ramPalette.bytesPerEntry, 2);
+assert.deepEqual(ramPalette.channels, [
+  { channel: 'r', bits: 4, shift: 12 },
+  { channel: 'g', bits: 4, shift: 8 },
+  { channel: 'b', bits: 4, shift: 4 },
+]);
+
+// MAME fills the otherwise-random palette RAM during machine_reset so the
+// ROM's early checkerboard/stripe RAM tests remain visible.
+assert.equal(ramPalette.resetWrites?.length, 512);
+assert.deepEqual(ramPalette.resetWrites?.slice(0, 8), [
+  { offset: 0, data: 0x00 },
+  { offset: 0, data: 0x00, ext: true },
+  { offset: 1, data: 0x55 },
+  { offset: 1, data: 0x55, ext: true },
+  { offset: 2, data: 0xaa },
+  { offset: 2, data: 0xaa, ext: true },
+  { offset: 3, data: 0xff },
+  { offset: 3, data: 0xff, ext: true },
+]);
+assert.equal(ramPalette.resetSource?.file, 'src/mame/capcom/gng.cpp');
+assert.equal(ramPalette.resetSource?.line, 550);
 
 // The background tilemap splits into front and back halves by tile group.
 assert.deepEqual(
@@ -110,6 +125,16 @@ const opn = compileYm2203(mameSrc, {
 assert.equal(opn.sampleRateDivider, 12);
 assert.equal(opn.fmSamplesPerOutput, 6);
 assert.deepEqual(opn.ssgResample, [4, 3]);
+assert.deepEqual(opn.prescale.selectors, [
+  { address: 0x2d, prescale: 6 },
+  { address: 0x2e, prescale: 3, requiresPrescale: 6 },
+  { address: 0x2f, prescale: 2 },
+]);
+assert.deepEqual(opn.prescale.ratios, {
+  2: { fmSamplesPerOutput: 2, ssgResample: [1, 3] },
+  3: { fmSamplesPerOutput: 3, ssgResample: [2, 3] },
+  6: { fmSamplesPerOutput: 6, ssgResample: [4, 3] },
+});
 assert.equal(opn.fm.channels, 3);
 assert.equal(opn.fm.operators, 12);
 assert.equal(opn.fm.egClockDivider, 3);

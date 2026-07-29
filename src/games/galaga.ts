@@ -14,7 +14,7 @@ export const galaga: GameTestContract = {
   frames: 2600,
   // The generated 05xx hot loop is AOT-compiled from device IR.
   minimumFps: 45,
-  checkpoints: [1, 300, 720, 900, 1050, 1300, 1600, 2456, 2600],
+  checkpoints: [1, 300, 720, 760, 900, 1050, 1300, 1600, 2456, 2600],
   actions: [
     { atFrame: 950, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 1000, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
@@ -38,10 +38,14 @@ export const galaga: GameTestContract = {
       minimumNonzeroWrites: 100,
     },
   ],
+  // The checkpoint state hashes from frame 900 on record a maincpu cycle/PC
+  // shift of a few cycles, from fixing NMI delivery: releasing the Namco 06xx
+  // NMI used to fall through and clear maincpu's IRQ0 as well. Every video and
+  // audio hash is unchanged, so no frame or sample moved.
   golden: {
     regions: {
       '54xx:mcu': 'ee7357e0',
-      gfx1: '58b2f47c',
+      gfx1: '7cb09eec',
       gfx2: 'd11e0edf',
       maincpu: 'd249eb7d',
       namco: '55c1401a',
@@ -59,32 +63,36 @@ export const galaga: GameTestContract = {
         state: 'e4d52427',
       },
       '720': {
-        video: '7f7fea0b',
+        video: '972b5194',
         state: '8766b4c5',
+      },
+      '760': {
+        video: '21864713',
+        state: 'c2b08b5c',
       },
       '900': {
         video: 'd4ed5a0c',
-        state: 'b65c7a6a',
+        state: '89ec91f1',
       },
       '1050': {
         video: 'f0cb037c',
-        state: '6ca53089',
+        state: '32f3e31d',
       },
       '1300': {
         video: '9505b9bf',
-        state: 'd3e070c8',
+        state: '26e66a55',
       },
       '1600': {
         video: '83a2539e',
-        state: 'e6289a01',
+        state: '6db93f95',
       },
       '2456': {
         video: '492457b6',
-        state: '35455f7c',
+        state: '36ba2aaf',
       },
       '2600': {
         video: 'fd5bcec5',
-        state: 'af98e8f5',
+        state: '6c74795c',
       },
     },
     audio: {

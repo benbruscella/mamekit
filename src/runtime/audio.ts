@@ -11,13 +11,8 @@
  * first 0x100 bytes of the "namco" PROM region are the wavetable) and
  * `clock` (defaults to sampleRate — for the WSG they are the same, 96000).
  */
-import type { GeneratedAudioRoute } from './generated-machine.ts';
-import type {
-  GeneratedAuxiliaryAudioDevice,
-  GeneratedDacFilterPlan,
-  GeneratedDiscreteMixerPlan,
-  GeneratedSpeakerFilterPlan,
-} from './audio-protocol.ts';
+import type { GeneratedAudioRoute } from '../ir/board.ts';
+import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 
 export interface WorkletCoreConfig {
   readonly sampleRate: number;

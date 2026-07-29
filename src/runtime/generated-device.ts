@@ -3,7 +3,7 @@ import {
   type GeneratedCallArgument,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
-import type { GeneratedHandlerProgram } from './generated-machine.ts';
+import type { GeneratedHandlerProgram } from '../ir/board.ts';
 
 interface DeviceMember {
   name: string;

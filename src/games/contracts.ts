@@ -1,27 +1,29 @@
-import { pacman } from './pacman.ts';
-import { pooyan } from './pooyan.ts';
-import { timeplt } from './timeplt.ts';
-import { invaders } from './invaders.ts';
-import { galaxian } from './galaxian.ts';
-import { galaga } from './galaga.ts';
-import { digdug } from './digdug.ts';
-import { mpatrol } from './mpatrol.ts';
-import { rocnrope } from './rocnrope.ts';
-import { junofrst } from './junofrst.ts';
-import { gyruss } from './gyruss.ts';
-import { gng } from './gng.ts';
+// The accepted game set, discovered rather than listed.
+//
+// See discovery.ts: adding a game means adding src/games/<game>.ts and its
+// spec. Nothing here needs editing, which is the touch budget issue #38 asks
+// for.
 
-export const supportedGameContracts = [
-  pacman,
-  pooyan,
-  timeplt,
-  invaders,
-  galaxian,
-  galaga,
-  digdug,
-  mpatrol,
-  rocnrope,
-  junofrst,
-  gyruss,
-  gng,
-] as const;
+import type { GameTestContract } from './types.ts';
+import { discoverGameNames } from './discovery.ts';
+
+/** Load every discovered contract, in discovery order. */
+export async function loadGameContracts(): Promise<GameTestContract[]> {
+  const contracts: GameTestContract[] = [];
+  for (const name of discoverGameNames()) {
+    const module = await import(`./${name}.ts`) as Record<string, unknown>;
+    const contract = module[name] as GameTestContract | undefined;
+    if (!contract?.game) {
+      throw new Error(
+        `src/games/${name}.ts must export a GameTestContract named "${name}"`,
+      );
+    }
+    if (contract.game !== name) {
+      throw new Error(
+        `src/games/${name}.ts declares game "${contract.game}"; the module name must match`,
+      );
+    }
+    contracts.push(contract);
+  }
+  return contracts;
+}

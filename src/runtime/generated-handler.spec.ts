@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict';
+import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   executeGeneratedHandler,
+  executeGeneratedMachineHandler,
   executeGeneratedMachineProgram,
   generatedHandlerRegistry,
   wireGeneratedDevice,
 } from './generated-handler.ts';
-import type { GeneratedMachine } from './generated-machine.ts';
+import type { BoardIr } from '../ir/board.ts';
 
 const shares = { m_videoram: new Uint8Array(8) };
 const program = compileMameHandler(`
@@ -100,8 +102,9 @@ assert.equal(executeGeneratedHandler(tileFlags, {}, { attr: 0x40 }), 1);
 assert.equal(executeGeneratedHandler(tileFlags, {}, { attr: 0x20 }), 2);
 assert.equal(executeGeneratedHandler(tileFlags, {}, { attr: 0x60 }), 3);
 
-const machine: GeneratedMachine = {
-  schemaVersion: 2,
+const machine: BoardIr = {
+  schemaVersion: BOARD_IR_SCHEMA_VERSION,
+  connections: [],
   game: 'fixture',
   family: 'fixture',
   driverFile: 'fixture.cpp',
@@ -141,7 +144,7 @@ const device = {
     if (slot === 0) q0 = callback;
   },
 };
-wireGeneratedDevice(device, {
+const latchMachine: BoardIr = {
   ...machine,
   callbacks: [{
     id: 'callback:latch:0',
@@ -152,20 +155,38 @@ wireGeneratedDevice(device, {
     targetClass: 'fixture_state',
     targetMethod: 'irq_w',
   }],
+  connections: [{
+    callbackId: 'callback:latch:0',
+    effect: { kind: 'handler', handler: 'fixture_state.irq_w' },
+    transforms: [],
+  }],
   handlers: [{
     id: 'handler:fixture_state:irq_w',
     ownerClass: 'fixture_state',
     method: 'irq_w',
     program: compileMameHandler('m_irq_mask = state;'),
   }],
-}, 'latch', 'q_out_cb', {
-  setters: { m_irq_mask: value => { irqMask = value; } },
-});
+};
+const latchHandler = latchMachine.handlers![0]!;
+wireGeneratedDevice(device, latchMachine, 'latch', 'q_out_cb', new Map([
+  ['callback:latch:0', {
+    run: (state: number) => {
+      executeGeneratedMachineHandler(
+        latchMachine,
+        latchHandler,
+        { setters: { m_irq_mask: value => { irqMask = value; } } },
+        { state, data: state },
+      );
+    },
+    transforms: [],
+    reads: false,
+  }],
+]));
 q0?.(1);
 assert.equal(irqMask, 1);
 
 const filterCalls: number[][] = [];
-const filterMachine: GeneratedMachine = {
+const filterMachine: BoardIr = {
   ...machine,
   handlers: [{
     id: 'handler:audio:filter_w',

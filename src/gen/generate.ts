@@ -23,7 +23,8 @@ import {
   compileMameSpeakerFilter,
   compileNamco54Discrete,
 } from '../mame/audio-compiler.ts';
-import { mameDeviceRomSet } from '../mame/device-compiler.ts';
+import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.ts';
+import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 import {
   GAME_CATEGORIES,
   gameDataPath,
@@ -390,6 +391,14 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               worklet: String(discreteDevice.props.type).toLowerCase().replace(/_/g, '-'),
             }
           : { kind: 'none' };
+  // The post-mix level belongs to the sound family's capability package, so
+  // the shell reads it from the generated config instead of keeping a table
+  // that every new family would have to be added to.
+  const soundGain = devices
+    .map(device => capabilityForType(HARDWARE_CAPABILITIES, String(device.props.type)))
+    .find(capability => capability?.masterGain !== undefined)?.masterGain;
+  if (soundGain !== undefined) Object.assign(sound, { masterGain: soundGain });
+
   const discreteNetlist = devices
     .filter(device => device.props.type === 'DISCRETE')
     .flatMap(device => Array.isArray(device.props.config) ? device.props.config : [])
@@ -465,6 +474,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         crc,
         ...(alts.length ? { alt: alts } : {}),
         ...(rom.props.reloadOffsets ? { reloadOffsets: rom.props.reloadOffsets as number[] } : {}),
+        ...(rom.props.status ? { status: rom.props.status as 'nodump' | 'baddump' } : {}),
       };
     }),
   }));
@@ -486,15 +496,20 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         : undefined;
       const deviceRomSet = romSetName && full.node(`romset:${romSetName}`);
       if (!deviceRomSet) continue;
+      // MAME loads a device's ROMs from its own set, named by the device short
+      // name in DEFINE_DEVICE_TYPE — namco54.zip, not the parent game's zip.
+      const romSet = mameDeviceShortName(opts.mameSrc, sourceFile, className);
       for (const { node: region } of full.out(deviceRomSet.id, 'HAS_REGION')) {
         roms.push({
           region: `${host.props.tag}:${region.props.tag}`,
           size: Number(region.props.size),
+          ...(romSet ? { romSet } : {}),
           loads: full.out(region.id, 'LOADS').map(({ node: rom }) => ({
             file: String(rom.props.file),
             offset: Number(rom.props.offset),
             size: Number(rom.props.size),
             crc: String(rom.props.crc),
+            ...(rom.props.status ? { status: rom.props.status as 'nodump' | 'baddump' } : {}),
           })),
         });
       }
@@ -677,6 +692,15 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         return { region, offset: Number(offset), value: Number(value) };
       })
     : undefined;
+  const romTransforms = Array.isArray(game.props.romTransforms)
+    ? game.props.romTransforms.map(value => JSON.parse(String(value)) as {
+        kind: 'conditional-byte-swap';
+        region: string;
+        indexMask: number;
+        indexValue: number;
+        displacement: number;
+      })
+    : undefined;
 
   const config = {
     game: opts.game,
@@ -688,6 +712,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     sound,
     roms,
     ...(romPatches ? { romPatches } : {}),
+    ...(romTransforms ? { romTransforms } : {}),
     ...(cart ? { cart } : {}),
     bindings,
     dipDefaults,
@@ -944,6 +969,21 @@ export function buildApp(outRoot: string): boolean {
   cpSync(join(projectRoot, 'src/runtime'), join(srcDir, 'runtime/core'), {
     recursive: true,
     filter: source => !source.endsWith('.spec.ts'),
+  });
+  // The neutral IR ships alongside the runtime as dist/runtime/ir. Staging it
+  // one level above runtime/core keeps every `../ir/...` import resolving to
+  // the same place it does in src, so no path rewriting is needed.
+  cpSync(join(projectRoot, 'src/ir'), join(srcDir, 'runtime/ir'), {
+    recursive: true,
+    filter: source => !source.endsWith('.spec.ts'),
+  });
+  // Capability packages ship only their runtime-facing files. extract.ts pulls
+  // in the compiler and acceptance.ts drives dist from Node; neither belongs in
+  // the browser bundle, and excluding them here is what keeps that true.
+  cpSync(join(projectRoot, 'src/hardware'), join(srcDir, 'runtime/hardware'), {
+    recursive: true,
+    filter: source => !['.spec.ts', '/extract.ts', '/acceptance.ts', '/registry.ts',
+      '/acceptance-registry.ts'].some(name => source.endsWith(name)),
   });
   const hardwareImports: string[] = [];
   const cpuBindings: string[] = [];

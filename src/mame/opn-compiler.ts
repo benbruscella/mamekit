@@ -50,6 +50,18 @@ export interface GeneratedYm2203Plan {
   fmSamplesPerOutput: number;
   /** SSG resampler ratio as MAME configures it: [output samples, SSG samples]. */
   ssgResample: [number, number];
+  /** Runtime address-port selectors and rate ratios from ym2203::update_prescale. */
+  prescale: {
+    selectors: {
+      address: number;
+      prescale: number;
+      requiresPrescale?: number;
+    }[];
+    ratios: Record<string, {
+      fmSamplesPerOutput: number;
+      ssgResample: [number, number];
+    }>;
+  };
   fm: {
     channels: number;
     operators: number;
@@ -145,6 +157,17 @@ export function compileYm2203(
   const defaultPrescale = constant(opnHeader, 'DEFAULT_PRESCALE');
   const { fmSamplesPerOutput, ssgResample } =
     prescaleRatios(opnSource, fidelity, defaultPrescale);
+  const selectors = prescaleSelectors(opnSource);
+  const prescaleValues = [...new Set([
+    defaultPrescale,
+    ...selectors.map(selector => selector.prescale),
+  ])];
+  const ratios = Object.fromEntries(
+    prescaleValues.map(prescale => [
+      String(prescale),
+      prescaleRatios(opnSource, fidelity, prescale),
+    ]),
+  );
 
   const fields = Object.fromEntries(
     FM_FIELDS.map(name => [name, registerField(opnHeader, name)]),
@@ -163,6 +186,7 @@ export function compileYm2203(
     sampleRateDivider,
     fmSamplesPerOutput,
     ssgResample,
+    prescale: { selectors, ratios },
     fm: {
       channels,
       operators,
@@ -289,6 +313,21 @@ function prescaleRatios(
     fmSamplesPerOutput: Number(match[1]),
     ssgResample: [Number(match[2]), Number(match[3])],
   };
+}
+
+/** Address-port writes that select the YM2203's runtime clock prescaler. */
+function prescaleSelectors(source: string): GeneratedYm2203Plan['prescale']['selectors'] {
+  const body = /void\s+ym2203::write_address\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/.exec(source)?.[1];
+  if (!body) throw new Error('YM2203: ymfm write_address is missing');
+  const selectors = [...body.matchAll(
+    /(?:if|else\s+if)\s*\(\s*m_address\s*==\s*(0x[\da-f]+|\d+)(?:\s*&&\s*m_fm\.clock_prescale\(\)\s*==\s*(\d+))?\s*\)\s*update_prescale\s*\(\s*(\d+)\s*\)/gi,
+  )].map(match => ({
+    address: Number(match[1]),
+    prescale: Number(match[3]),
+    ...(match[2] ? { requiresPrescale: Number(match[2]) } : {}),
+  }));
+  if (!selectors.length) throw new Error('YM2203: ymfm prescale selectors are missing');
+  return selectors;
 }
 
 /**
@@ -626,6 +665,9 @@ export class GeneratedYm2203Chip {
   private readonly ssgLast = new Int32Array(SSG.channels);
 
   private sampleIndex = 0;
+  private prescale = FM.defaultPrescale;
+  private fmSamplesPerOutput = plan.fmSamplesPerOutput;
+  private ssgResample = plan.ssgResample;
 
   /** Reverse of operator_map: ymfm interleaves operators across channels. */
   private readonly operatorChannel = new Uint8Array(FM.operators);
@@ -670,8 +712,29 @@ export class GeneratedYm2203Chip {
 
   /** ym2203::write - offset 0 selects a register, offset 1 writes it. */
   write(offset: number, data: number): void {
-    if ((offset & 1) === 0) this.address = data & 0xff;
-    else this.writeData(data & 0xff);
+    if ((offset & 1) === 0) {
+      this.address = data & 0xff;
+      const selector = plan.prescale.selectors.find(
+        candidate => candidate.address === this.address &&
+          (candidate.requiresPrescale === undefined ||
+            candidate.requiresPrescale === this.prescale),
+      );
+      if (selector) this.updatePrescale(selector.prescale);
+    } else {
+      this.writeData(data & 0xff);
+    }
+  }
+
+  /** ym2203::update_prescale: switch both FM and SSG engine clock ratios. */
+  private updatePrescale(prescale: number): void {
+    const ratios = (plan.prescale.ratios as unknown as Record<string, {
+      fmSamplesPerOutput: number;
+      ssgResample: [number, number];
+    }>)[String(prescale)];
+    if (!ratios) return;
+    this.prescale = prescale;
+    this.fmSamplesPerOutput = ratios.fmSamplesPerOutput;
+    this.ssgResample = ratios.ssgResample;
   }
 
   private writeData(data: number): void {
@@ -1051,10 +1114,10 @@ export class GeneratedYm2203Chip {
    * outputs, which ymfm_ssg_device_base rotates to [SSG0, SSG1, SSG2, FM].
    */
   generate(output: Int32Array): void {
-    if (this.sampleIndex % plan.fmSamplesPerOutput === 0) this.clockFm();
+    if (this.sampleIndex % this.fmSamplesPerOutput === 0) this.clockFm();
     const fm = this.lastFm;
 
-    const [outSamples, srcSamples] = plan.ssgResample;
+    const [outSamples, srcSamples] = this.ssgResample;
     const sums = [0, 0, 0];
     if (outSamples === 4 && srcSamples === 3) {
       const step = bitfield(this.sampleIndex, 0, 2);

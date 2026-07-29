@@ -31,9 +31,9 @@ export const gng: GameTestContract = {
       tiles: '7fecac80',
     },
     checkpoints: {
-      1: { video: 'f7e6ac81', state: '97664026' },
+      1: { video: 'ed40d49a', state: '97664026' },
       60: { video: 'f7e6ac81', state: 'e42904d3' },
-      300: { video: 'f7e6ac81', state: 'a3eb4241' },
+      300: { video: 'a103a5e3', state: 'a3eb4241' },
       480: { video: '5b5e30a1', state: 'cfa6424a' },
       900: { video: '008a572c', state: '16a21cbf' },
       1200: { video: '9fc16ce3', state: '5410d118' },
@@ -45,8 +45,8 @@ export const gng: GameTestContract = {
       writes: 478542,
       nonzeroWrites: 250736,
       writeHash: '15db3517',
-      pcmHash: '41eb6206',
-      rms: 0.07416,
+      pcmHash: 'd287873d',
+      rms: 0.066986,
     },
   },
 };

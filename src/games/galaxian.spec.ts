@@ -82,6 +82,29 @@ assert.deepEqual(audio.controls, {
 assert.equal(audio.clockDivider, 2);
 assert.deepEqual(audio.lfsr, { bits: 17, reset: 0, tap0: 4, tap1: 16 });
 assert.deepEqual(audio.lfoResistors, [1_000_000, 470_000, 220_000, 100_000]);
+assert.deepEqual(audio.backgroundLfo, {
+  bitVoltage: 4,
+  biasVoltage: 4.4,
+  biasResistance: 15_000,
+  groundResistance: 330_000,
+  currentResistance: 100_000,
+  capacitance: 1e-6,
+  supplyVoltage: 5,
+  junctionVoltage: 0.7,
+  controlGain: 1.4255319148936172,
+  controlOffset: -1.0638297872340425,
+  controlMinimum: 0,
+  controlMaximum: 5,
+});
+assert.deepEqual(audio.background555, {
+  chargeResistors: [100_000, 100_000, 100_000],
+  dischargeResistors: [470_000, 330_000, 220_000],
+  capacitors: [1e-8, 1e-8, 1e-8],
+  supplyVoltage: 5,
+  outputHighVoltage: 4.5,
+  mixerResistances: [10_000, 10_000, 10_000],
+  filterCapacitance: 1e-7,
+});
 assert.deepEqual(audio.hitFilter, {
   resistance: 172_000,
   capacitance: 2.2e-6,
@@ -135,5 +158,37 @@ assert.ok(rms(burst) > 0.01, 'RCDISC5 hit circuit must produce an audible burst'
 assert.ok(rms(earlyTail) > rms(lateTail) * 2, 'RCDISC5 hit tail must decay after release');
 assert.ok(burst.every(sample => Number.isFinite(sample) && Math.abs(sample) <= 1));
 assert.ok(tail.every(sample => Number.isFinite(sample) && Math.abs(sample) <= 1));
+
+const fleetCore = new generated.GeneratedDiscreteAudioCore(48_000, 3_072_000);
+for (let bit = 0; bit < 4; bit++) {
+  fleetCore.write(audio.methodBases.lfo_freq_w + bit, 1);
+}
+fleetCore.write(audio.methodBases.sound_w + audio.controls.background[0]!, 1);
+const fleet = new Float32Array(48_000 * 4);
+fleetCore.render(fleet);
+const steadyFleet = fleet.slice(48_000);
+const crossingCounts: number[] = [];
+for (let start = 0; start < steadyFleet.length; start += 2_400) {
+  const block = steadyFleet.subarray(start, start + 2_400);
+  let crossings = 0;
+  for (let index = 1; index < block.length; index++) {
+    if (block[index - 1]! <= 0 && block[index]! > 0) crossings++;
+  }
+  crossingCounts.push(crossings);
+}
+const sweepWraps = crossingCounts.slice(1).filter(
+  (count, index) => count - crossingCounts[index]! >= 4,
+).length;
+const fleetValues = new Set(
+  steadyFleet.map(sample => Math.round(sample * 1_000_000)),
+);
+assert.ok(Math.min(...crossingCounts) <= 7 && Math.max(...crossingCounts) >= 12,
+  'background 555 frequency must follow the full control-voltage sweep');
+assert.ok(sweepWraps >= 1 && sweepWraps <= 3,
+  'background sweep must use the slow constant-current 555, not audio-rate modulation');
+assert.ok(fleetValues.size > 5_000,
+  'background output must include 555 energy timing and mixer filtering');
+assert.ok(rms(steadyFleet) > 0.03 && rms(steadyFleet) < 0.1);
+assert.ok(steadyFleet.every(sample => Number.isFinite(sample) && Math.abs(sample) <= 1));
 
 console.log('galaxian.spec: source-derived tilemap, starfield and discrete audio passed');

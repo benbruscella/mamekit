@@ -9,7 +9,7 @@ export const galaxian: GameTestContract = {
   screen: { width: 256, height: 224 },
   soundKind: 'discrete',
   frames: 900,
-  minimumFps: 45,
+  minimumFps: 60,
   checkpoints: [1, 60, 180, 300, 480, 500, 900],
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
@@ -58,8 +58,8 @@ export const galaxian: GameTestContract = {
       writes: 4002,
       nonzeroWrites: 2175,
       writeHash: 'dbbd04b8',
-      pcmHash: 'd04601f8',
-      rms: 0.104197,
+      pcmHash: '09a04eb2',
+      rms: 0.101243,
     },
   },
 };

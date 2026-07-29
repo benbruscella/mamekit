@@ -3,9 +3,11 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gameOutputDir } from '../gen/output-layout.ts';
+import { AUDIO_PROBES } from '../hardware/acceptance-registry.ts';
 import { KeyboardInput } from '../runtime/input.ts';
 import {
   assembleRegions,
+  applyRomTransforms,
   checkRomSet,
   type ShellConfig,
 } from '../runtime/shell.ts';
@@ -28,33 +30,10 @@ interface AudioProbe {
   finish(writes: SoundWrite[]): GameAcceptanceGolden['audio'];
 }
 
-interface AyMixer {
-  write(offset: number, data: number, method?: string): void;
-  sample(): number;
-}
-
-interface AyFrameRenderer {
-  render(writes: readonly SoundWrite[]): Float32Array;
-}
-
-interface WsgCore {
-  readonly sampleRate: number;
-}
-
-interface WsgFrameRenderer {
-  render(writes: readonly SoundWrite[]): Float32Array;
-}
-
-interface DiscreteAudioCore {
-  write(offset: number, data: number): void;
-  sample(): number;
-}
-
-interface DiscreteAudioFrameRenderer {
-  render(writes: readonly SoundWrite[]): Float32Array;
-}
-
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+
+/** Probe render rate; independent of any browser AudioContext. */
+const PROBE_OUTPUT_RATE = 48_000;
 
 export async function runGameAcceptance(
   contract: GameTestContract,
@@ -76,12 +55,29 @@ export async function runGameAcceptance(
   assert.equal(config.sound.kind, contract.soundKind);
 
   const files = await readZip(new Uint8Array(readFileSync(romPath)));
+  // MAME commonised device ROMs into their own sets, so a board's parts come
+  // from several zips: galaga.zip plus namco51.zip and namco54.zip. The set
+  // names are the MAME device short names carried in the generated manifest.
+  for (const romSet of new Set(config.roms.flatMap(spec => spec.romSet ? [spec.romSet] : []))) {
+    const devicePath = resolve(join(root, `roms/${contract.category}/${romSet}.zip`));
+    assert.ok(
+      existsSync(devicePath),
+      `${contract.game}: MAME device ROM set "${romSet}" is missing: ${devicePath}`,
+    );
+    for (const [name, bytes] of await readZip(new Uint8Array(readFileSync(devicePath)))) {
+      files.set(name, bytes);
+    }
+  }
+
   const critical = new Set(config.board.cpus.map(cpu => cpu.region));
   const romCheck = checkRomSet(config.roms, files, critical);
-  assert.deepEqual(romCheck.missingCritical, []);
+  // Every chip MAME says is dumped must be present. Zero-filling a missing
+  // ROM and carrying on produces goldens for hardware that does not exist;
+  // undumped chips (NO_DUMP in MAME) are excluded by checkRomSet itself.
   assert.deepEqual(
-    romCheck.missingOther.filter(file => !contract.optionalRomFiles?.includes(file)),
+    [...romCheck.missingCritical, ...romCheck.missingOther],
     [],
+    `${contract.game}: ROM set is incomplete`,
   );
   assert.deepEqual(romCheck.crcMismatch, []);
   const regions = assembleRegions(config.roms, files, () => {}, critical);
@@ -89,6 +85,7 @@ export async function runGameAcceptance(
     const region = regions[patch.region];
     if (region && patch.offset < region.length) region[patch.offset] = patch.value;
   }
+  applyRomTransforms(regions, config.romTransforms ?? []);
 
   const registry = await import(moduleUrl(join(outRoot, 'app/registry.js'))) as {
     registerGeneratedMachines(): void;
@@ -280,22 +277,26 @@ export async function runGameAcceptance(
       );
     }
   }
-  assert.ok(
-    emulatedFps >= contract.minimumFps,
-    `${contract.game}: ${emulatedFps.toFixed(1)} fps is below the ` +
-      `${contract.minimumFps} fps acceptance floor`,
-  );
   console.log(
     `${contract.game}: ${emulatedFps.toFixed(1)} emulated fps ` +
       `(minimum ${contract.minimumFps})`,
   );
 
+  // Behaviour is asserted before throughput. The fps floor depends on how busy
+  // the host is, so checking it first let a loaded machine abort the run before
+  // it ever compared hashes — hiding a real behavioural regression behind a
+  // performance failure.
   if (process.env.MAMEKIT_UPDATE_GOLDENS === '1') {
     console.log(`${contract.game}:\n${JSON.stringify(result, null, 2)}`);
   } else {
     assert.ok(contract.golden, `${contract.game}: no acceptance golden is recorded`);
     assert.deepEqual(result, contract.golden, `${contract.game}: generated behavior changed`);
   }
+  assert.ok(
+    emulatedFps >= contract.minimumFps,
+    `${contract.game}: ${emulatedFps.toFixed(1)} fps is below the ` +
+      `${contract.minimumFps} fps acceptance floor`,
+  );
   return result;
 }
 
@@ -326,164 +327,29 @@ async function createAudioProbe(
   outRoot: string,
 ): Promise<AudioProbe> {
   installWorkletGlobals();
-  if (config.sound.kind === 'ay8910') {
-    const generated = await import(
-      moduleUrl(join(outRoot, 'runtime/generated/audio/ay8910-worklet.js'))
-    ) as {
-      GeneratedAy8910Mixer: new (
-        clock: number,
-        chips: number,
-        outputRate: number,
-        routes?: NonNullable<ShellConfig['sound']['routes']>,
-        auxiliaryDevices?: NonNullable<ShellConfig['sound']['auxiliaryDevices']>,
-        discreteMixer?: NonNullable<ShellConfig['sound']['discreteMixer']>,
-      ) => AyMixer;
-      GeneratedAy8910FrameRenderer: new (
-        mixer: AyMixer,
-        outputRate: number,
-        refresh: number,
-      ) => AyFrameRenderer;
-    };
-    const outputRate = 48_000;
-    const mixer = new generated.GeneratedAy8910Mixer(
-      config.sound.clock ?? 1_789_772,
-      config.sound.chips ?? 1,
-      outputRate,
-      config.sound.routes,
-      config.sound.auxiliaryDevices,
-      config.sound.discreteMixer,
-    );
-    const renderer = new generated.GeneratedAy8910FrameRenderer(
-      mixer,
-      outputRate,
-      config.board.screen.refresh,
-    );
-    const chunks: Float32Array[] = [];
-    return {
-      render(writes, capture) {
-        const samples = renderer.render(writes);
-        if (capture) chunks.push(samples);
-      },
-      finish(writes) {
-        return audioResult(writes, chunks);
-      },
-    };
-  }
-  if (config.sound.kind === 'ym2203') {
-    const generated = await import(
-      moduleUrl(join(outRoot, 'runtime/generated/audio/ym2203-worklet.js'))
-    ) as {
-      GeneratedYm2203Mixer: new (
-        clock: number,
-        chips: number,
-        outputRate: number,
-        routes?: NonNullable<ShellConfig['sound']['routes']>,
-      ) => AyMixer;
-      GeneratedYm2203FrameRenderer: new (
-        mixer: AyMixer,
-        outputRate: number,
-        refresh: number,
-      ) => AyFrameRenderer;
-    };
-    const outputRate = 48_000;
-    const mixer = new generated.GeneratedYm2203Mixer(
-      config.sound.clock ?? 1_500_000,
-      config.sound.chips ?? 1,
-      outputRate,
-      config.sound.routes,
-    );
-    const renderer = new generated.GeneratedYm2203FrameRenderer(
-      mixer,
-      outputRate,
-      config.board.screen.refresh,
-    );
-    const chunks: Float32Array[] = [];
-    return {
-      render(writes, capture) {
-        const samples = renderer.render(writes);
-        if (capture) chunks.push(samples);
-      },
-      finish(writes) {
-        return audioResult(writes, chunks);
-      },
-    };
-  }
-  if (config.sound.kind === 'wsg') {
-    const generated = await import(
-      moduleUrl(join(outRoot, 'runtime/generated/audio/wsg-worklet.js'))
-    ) as {
-      GeneratedNamcoWsgCore: new (
-        waveRom: Uint8Array,
-        clock: number,
-        auxiliary?: ShellConfig['sound']['auxiliary'],
-      ) => WsgCore;
-      GeneratedNamcoWsgFrameRenderer: new (
-        core: WsgCore,
-        refresh: number,
-      ) => WsgFrameRenderer;
-    };
-    const waveRom = regions[config.sound.waveRegion ?? 'namco'];
-    assert.ok(waveRom, `${config.game}: WSG wave ROM is missing`);
-    const core = new generated.GeneratedNamcoWsgCore(
-      waveRom,
-      config.sound.clock ?? 96_000,
-      config.sound.auxiliary,
-    );
-    const chunks: Float32Array[] = [];
-    const renderer = new generated.GeneratedNamcoWsgFrameRenderer(
-      core,
-      config.board.screen.refresh,
-    );
-    return {
-      render(writes, capture) {
-        const samples = renderer.render(writes);
-        if (capture) chunks.push(samples);
-      },
-      finish(writes) {
-        return audioResult(writes, chunks);
-      },
-    };
-  }
-  if (config.sound.kind === 'discrete') {
-    assert.ok(config.sound.worklet, `${config.game}: discrete audio worklet is missing`);
-    const generated = await import(
-      moduleUrl(join(
-        outRoot,
-        `runtime/generated/audio/${config.sound.worklet}-worklet.js`,
-      ))
-    ) as {
-      GeneratedDiscreteAudioCore: new (
-        outputRate: number,
-        clock?: number,
-      ) => DiscreteAudioCore;
-      GeneratedDiscreteAudioFrameRenderer: new (
-        core: DiscreteAudioCore,
-        outputRate: number,
-        refresh: number,
-      ) => DiscreteAudioFrameRenderer;
-    };
-    const outputRate = 48_000;
-    const core = new generated.GeneratedDiscreteAudioCore(
-      outputRate,
-      config.sound.clock,
-    );
-    const renderer = new generated.GeneratedDiscreteAudioFrameRenderer(
-      core,
-      outputRate,
-      config.board.screen.refresh,
-    );
-    const chunks: Float32Array[] = [];
-    return {
-      render(writes, capture) {
-        const samples = renderer.render(writes);
-        if (capture) chunks.push(samples);
-      },
-      finish(writes) {
-        return audioResult(writes, chunks);
-      },
-    };
-  }
-  throw new Error(`${config.game}: unsupported acceptance sound kind ${config.sound.kind}`);
+  const factory = AUDIO_PROBES[config.sound.kind];
+  assert.ok(
+    factory,
+    `${config.game}: sound kind "${config.sound.kind}" has no acceptance probe — ` +
+    'a capability package must supply one so its audio contract is actually checked',
+  );
+  const renderer = await factory({
+    sound: config.sound,
+    regions,
+    refresh: config.board.screen.refresh,
+    outRoot,
+    outputRate: PROBE_OUTPUT_RATE,
+  });
+  const chunks: Float32Array[] = [];
+  return {
+    render(writes, capture) {
+      const samples = renderer.render(writes);
+      if (capture) chunks.push(samples);
+    },
+    finish(writes) {
+      return audioResult(writes, chunks);
+    },
+  };
 }
 
 function audioResult(

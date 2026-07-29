@@ -2,20 +2,24 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { KnowledgeGraph } from '../kg/types.ts';
 import type {
+  BoardIr,
+  BoardSourceRef,
   GeneratedAddressMap,
   GeneratedAudioRoute,
   GeneratedCallback,
   GeneratedDevice,
-  GeneratedExpression,
   GeneratedExecutionPlan,
+  GeneratedExpression,
   GeneratedHandler,
   GeneratedHandlerOperation,
-  GeneratedMachine,
-  GeneratedSourceRef,
   GeneratedVideoPlan,
-} from '../runtime/generated-machine.ts';
+} from '../ir/board.ts';
+import type { GeneratedAuxiliaryAudioDevice } from '../ir/audio-protocol.ts';
+import { BoardIrError } from '../ir/decode.ts';
+import { lowerConnections } from '../ir/lower-connections.ts';
+import { validateBoardIr } from '../ir/validate.ts';
+import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import type { BoardConfig } from '../runtime/types.ts';
-import type { GeneratedAuxiliaryAudioDevice } from '../runtime/audio-protocol.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 
@@ -25,7 +29,7 @@ export function lowerGeneratedMachine(
   family: string,
   board: BoardConfig,
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
-): GeneratedMachine {
+): BoardIr {
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
   const tagCounts = new Map<string, number>();
   for (const device of graph.nodes.filter(node => node.label === 'Device')) {
@@ -84,7 +88,7 @@ export function lowerGeneratedMachine(
       }
       return callback;
     });
-  const sourceRef = (props: Record<string, unknown>): GeneratedSourceRef | undefined =>
+  const sourceRef = (props: Record<string, unknown>): BoardSourceRef | undefined =>
     props.sourceFile && props.sourceLine
       ? {
           file: String(props.sourceFile),
@@ -307,12 +311,40 @@ export function lowerGeneratedMachine(
           };
         })()
       : undefined;
+  const lowered = lowerConnections(callbacks, {
+    cpuTags: new Set(execution.cpus.map(cpu => cpu.tag)),
+    deviceTags: new Set(devices.map(device => device.tag)),
+    handlerKeys: new Set(handlers.map(handler => `${handler.ownerClass}.${handler.method}`)),
+    ...(sound
+      ? {
+          soundTag: sound.deviceTag,
+          soundEnableMethods: new Set(sound.enableMethods),
+          soundControlOffset: sound.controlOffset,
+          auxiliaryAudio: new Map(
+            ('auxiliaryDevices' in sound ? sound.auxiliaryDevices ?? [] : []).map(
+              (device: GeneratedAuxiliaryAudioDevice) =>
+                [device.deviceTag, new Set(device.writeMethods)] as const,
+            ),
+          ),
+        }
+      : {}),
+  });
+  if (lowered.unresolved.length) {
+    throw new BoardIrError(game, lowered.unresolved.map(({ callback, reason }) => ({
+      path: `callbacks[${callbacks.indexOf(callback)}]`,
+      message:
+        `${callback.ownerTag}.${callback.signal} cannot be lowered to a board effect: ${reason}. ` +
+        'A recognised connection that reaches nothing must fail generation.',
+      ...(callback.source ? { source: callback.source } : {}),
+    })));
+  }
   return {
-    schemaVersion: 2,
+    schemaVersion: BOARD_IR_SCHEMA_VERSION,
     game,
     family,
     driverFile: graph.meta.driverFile,
     callbacks,
+    connections: lowered.connections,
     execution,
     devices,
     handlers,
@@ -363,8 +395,8 @@ export function inferredMemberIndexRank(
  */
 function lowerMemoryBanks(
   graph: KnowledgeGraph,
-  sourceRef: (props: Record<string, unknown>) => GeneratedSourceRef | undefined,
-): NonNullable<GeneratedMachine['execution']['banks']> {
+  sourceRef: (props: Record<string, unknown>) => BoardSourceRef | undefined,
+): NonNullable<BoardIr['execution']['banks']> {
   const windows = graph.nodes.filter(node => node.label === 'MemoryBank');
   const byTag = new Map<string, typeof windows>();
   for (const node of windows) {
@@ -676,15 +708,18 @@ function deviceCallbackHz(props: Record<string, unknown>): number | undefined {
   return divisor ? props.clock / Number(divisor) : undefined;
 }
 
-export function generatedBoardSource(machine: GeneratedMachine): string {
+export function generatedBoardSource(machine: BoardIr): string {
   const runtimeImport = '../../../../runtime/core';
+  const irImport = '../../../../runtime/ir';
   return `// GENERATED executable machine composition from ${machine.driverFile}; do not edit.
-import { defineMachine, type GeneratedMachine } from '${runtimeImport}/generated-machine.js';
+import { decodeBoardIr } from '${irImport}/decode.js';
 import type { BoardConfig, BoardSinks, InputPorts, Regions } from '${runtimeImport}/types.js';
 import { createGeneratedBoard } from '${runtimeImport}/generated-board.js';
-import machineData from './machine.json' with { type: 'json' };
+import boardData from './board.json' with { type: 'json' };
 
-const defined = defineMachine(machineData as unknown as GeneratedMachine);
+// Decoded, not asserted: a stale or hand-edited artifact fails here, naming the
+// field and its MAME source line, instead of crashing deep inside execution.
+const defined = decodeBoardIr(boardData, '${machine.game}');
 export default {
   machine: defined,
   createBoard: (
@@ -713,13 +748,17 @@ export function emitGeneratedMachine(
   outDir: string,
   board: BoardConfig,
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
-): GeneratedMachine {
+): BoardIr {
   const machine = lowerGeneratedMachine(graph, game, family, board, compiledVideo);
   const generatedDir = join(outDir, 'generated');
   rmSync(generatedDir, { recursive: true, force: true });
   mkdirSync(generatedDir, { recursive: true });
+  // Validate before emitting: a board that cannot be wired must fail while the
+  // compiler still knows which MAME line to blame.
+  const diagnostics = validateBoardIr(machine);
+  if (diagnostics.length) throw new BoardIrError(game, diagnostics);
   writeFileSync(join(generatedDir, 'board.ts'), generatedBoardSource(machine));
-  writeFileSync(join(generatedDir, 'machine.json'), JSON.stringify(machine, null, 2));
+  writeFileSync(join(generatedDir, 'board.json'), JSON.stringify(machine, null, 2));
   writeFileSync(
     join(generatedDir, 'provenance.json'),
     JSON.stringify(collectProvenance(machine), null, 2),
@@ -727,7 +766,7 @@ export function emitGeneratedMachine(
   return machine;
 }
 
-function collectProvenance(machine: GeneratedMachine): {
+function collectProvenance(machine: BoardIr): {
   generatedFrom: string;
   entries: { path: string; file: string; line: number; column?: number }[];
 } {

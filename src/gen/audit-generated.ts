@@ -1,7 +1,10 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import type { GeneratedMachine } from '../runtime/generated-machine.ts';
+import type { BoardIr } from '../ir/board.ts';
+import { decodeBoardIr } from '../ir/decode.ts';
+import { validateBoardIr } from '../ir/validate.ts';
+import { buildClosureFailures } from './build-manifest.ts';
 import { gameDataPath, generatedGameOutputs } from './output-layout.ts';
 
 export { REQUIRED_TARGETS } from './targets.ts';
@@ -31,6 +34,17 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
   if (!registry) failures.push('unified generated registry is missing');
   else if (!registry.includes('registerGeneratedBoard')) {
     failures.push('unified generated registry does not register board factories');
+  }
+
+  // A dist whose catalog, hardware closure and build manifest disagree is a
+  // mixed build: boards registered against a closure that was not built for
+  // them. Serving or auditing it as if it were coherent is the failure this
+  // check exists to prevent.
+  for (const failure of buildClosureFailures(
+    outRoot,
+    generatedTargets.map(target => target.game),
+  )) {
+    failures.push(failure);
   }
 
   const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -156,13 +170,13 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
       'runtime-report.json',
       'generated/board.ts',
       'generated/board.js',
-      'generated/machine.json',
+      'generated/board.json',
       'generated/provenance.json',
     ];
     for (const file of required) {
       if (!existsSync(join(dir, file))) failures.push(`${target}: missing ${file}`);
     }
-    if (!existsSync(join(dir, 'generated/machine.json'))) continue;
+    if (!existsSync(join(dir, 'generated/board.json'))) continue;
     const boardSource = readFileSync(join(dir, 'generated/board.ts'), 'utf8');
     if (!boardSource.includes('createBoard:')) {
       failures.push(`${target}: generated board module has no createBoard factory`);
@@ -171,8 +185,11 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     if (boardSource.includes('import BoardAdapter')) {
       failures.push(`${target}: generated board imports a handwritten adapter`);
     }
-    if (!boardSource.includes("from './machine.json' with { type: 'json' }")) {
-      failures.push(`${target}: generated board does not import machine JSON`);
+    if (!boardSource.includes("from './board.json' with { type: 'json' }")) {
+      failures.push(`${target}: generated board does not import board JSON`);
+    }
+    if (!boardSource.includes('decodeBoardIr(')) {
+      failures.push(`${target}: generated board asserts its IR instead of decoding it`);
     }
     if (boardSource.includes('JSON.parse')) {
       failures.push(`${target}: generated board embeds serialized machine data`);
@@ -217,11 +234,20 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
       }
     }
 
-    const machine = JSON.parse(
-      readFileSync(join(dir, 'generated/machine.json'), 'utf8'),
-    ) as GeneratedMachine;
+    let machine: BoardIr;
+    try {
+      machine = decodeBoardIr(
+        JSON.parse(readFileSync(join(dir, 'generated/board.json'), 'utf8')),
+        target,
+      );
+    } catch (error) {
+      failures.push(`${target}: ${(error as Error).message}`);
+      continue;
+    }
+    for (const diagnostic of validateBoardIr(machine)) {
+      failures.push(`${target}: ${diagnostic.path}: ${diagnostic.message}`);
+    }
     if (machine.game !== target) failures.push(`${target}: machine key is ${machine.game}`);
-    if (machine.schemaVersion !== 2) failures.push(`${target}: machine schema is not version 2`);
     if (!machine.callbacks.length) failures.push(`${target}: no generated callbacks`);
     if (!machine.execution?.cpus.length) failures.push(`${target}: no generated CPU execution plan`);
     if (!machine.execution?.screen.vtotal) failures.push(`${target}: no generated screen timing`);

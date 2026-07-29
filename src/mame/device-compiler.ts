@@ -1,10 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
 import { evalExpr } from '../kg/parse.ts';
-import type {
-  GeneratedHandlerProgram,
-  GeneratedSourceRef,
-} from '../runtime/generated-machine.ts';
+import type { BoardSourceRef, GeneratedHandlerProgram } from '../ir/board.ts';
 import {
   parseMameAst,
   splitMameArgs,
@@ -51,7 +48,7 @@ export interface GeneratedDeviceMethod {
   name: string;
   parameters: string;
   program: GeneratedHandlerProgram;
-  source: GeneratedSourceRef;
+  source: BoardSourceRef;
 }
 
 export interface GeneratedDeviceDefinition {
@@ -280,6 +277,28 @@ export function mameDeviceRomSet(
     `${className}::device_rom_region[\\s\\S]*?ROM_NAME\\s*\\(\\s*(\\w+)\\s*\\)`,
   ).exec(source);
   return fallback?.[1];
+}
+
+/**
+ * MAME's short name for a device, from
+ * `DEFINE_DEVICE_TYPE(NAMCO_54XX, namco_54xx_device, "namco54", "Namco 54xx")`.
+ *
+ * This is the name MAME searches the rompath for, so a device that owns ROMs
+ * loads them from `<shortname>.zip` — namco54.zip, not the parent game's set.
+ * MAME commonised these device ROMs precisely so one copy serves every board
+ * that uses the part, and MAMEKIT has to look in the same place.
+ */
+export function mameDeviceShortName(
+  mameSrc: string,
+  sourceFile: string,
+  className: string,
+): string | undefined {
+  const source = readFileSync(join(mameSrc, sourceFile), 'utf8');
+  const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = new RegExp(
+    `DEFINE_DEVICE_TYPE\\s*\\(\\s*\\w+\\s*,\\s*${escaped}\\s*,\\s*"([^"]+)"`,
+  ).exec(source);
+  return match?.[1];
 }
 
 function executionClockDivider(source: string): number | undefined {

@@ -9,12 +9,12 @@ import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
-} from '../runtime/generated-handler.ts';
+} from '../ir/execute.ts';
 import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
   parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
-  parseInitPatches, parseTextMacros, parseMemoryBanks, evalExpr,
+  parseInitPatches, parseInitRomTransforms, parseTextMacros, parseMemoryBanks, evalExpr,
   type InputPortsDef,
 } from './parse.ts';
 
@@ -106,6 +106,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   // --- games ---
   const games = parseGames(combined);
   const initPatches = parseInitPatches(combined, consts);
+  const initRomTransforms = parseInitRomTransforms(combined, consts);
   for (const gm of games) {
     const id = `game:${gm.name}`;
     const source = ast.findAnyMacro(
@@ -120,6 +121,9 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       // flow through as "region:offset:value" triples
       ...(initPatches[gm.init]
         ? { romPatches: initPatches[gm.init].map(p => `${p.region}:${p.offset}:${p.value}`) }
+        : {}),
+      ...(initRomTransforms[gm.init]
+        ? { romTransforms: initRomTransforms[gm.init].map(transform => JSON.stringify(transform)) }
         : {}),
       // compat (CONS/SYST/COMP arg 4) is a software-compatibility group, NOT
       // a clone relationship — famicom is compat with nes but its own machine
@@ -155,6 +159,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
           ...spanProps(ast.findMacro('ROM_LOAD', 0, load.file)?.span),
         };
         if (load.reloadOffsets.length) props.reloadOffsets = load.reloadOffsets;
+        if (load.status) props.status = load.status;
         g.node('Rom', romId, props);
         g.edge(regId, romId, 'LOADS');
       }

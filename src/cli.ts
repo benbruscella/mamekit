@@ -7,7 +7,7 @@
 //   --out <dir>         output root (default: <mamekit>/out)
 //   --targets <games>   comma-separated runtime closure targets
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildGraph, gameSubgraph } from './kg/build.ts';
@@ -25,6 +25,7 @@ const projectRoot = resolve(here, '..');
 function usage(): never {
   console.error('usage: mamekit [graph|from-graph] <game> [--mame-src <path>] [--out <dir>] [--serve [port]]');
   console.error('       mamekit <game> --from-graph [graph.json]');
+  console.error('       mamekit --all              generate every accepted target, then the app');
   console.error('       mamekit --build-runtime [--build-app] [--targets <game,...>]');
   console.error('       mamekit --serve            serve the unified app + all generated games');
   process.exit(2);
@@ -45,7 +46,9 @@ for (let i = 0; i < argv.length; i++) {
     opts[key] = next && /^\d+$/.test(next) ? argv[++i] : 'true';
   } else if (key === 'from-graph') {
     opts[key] = next && next.endsWith('.json') ? argv[++i] : 'true';
-  } else if (key === 'skip-app' || key === 'build-app' || key === 'build-runtime') {
+  } else if (
+    key === 'skip-app' || key === 'build-app' || key === 'build-runtime' || key === 'all'
+  ) {
     opts[key] = 'true';
   } else {
     opts[key] = next && !next.startsWith('--') ? argv[++i] : '';
@@ -63,7 +66,8 @@ const game = positional[0] === 'graph' || positional[0] === 'from-graph'
 const serveOnly = !game && ('serve' in opts || argv.includes('--serve'));
 const buildAppOnly = !game && 'build-app' in opts;
 const buildRuntimeOnly = !game && 'build-runtime' in opts;
-if (!game && !serveOnly && !buildAppOnly && !buildRuntimeOnly) usage();
+const generateAll = !game && 'all' in opts;
+if (!game && !serveOnly && !buildAppOnly && !buildRuntimeOnly && !generateAll) usage();
 
 const outRoot = resolve(opts.out ?? join(projectRoot, 'dist'));
 const explicitMameSrc = opts['mame-src'] ?? process.env.MAME_SRC;
@@ -125,14 +129,65 @@ function findDriverFile(game: string): string {
 
 // ---------------------------------------------------------------------------
 
-if (buildAppOnly || buildRuntimeOnly) {
+if (generateAll) {
+  // One pass over the accepted target set, then one hardware closure and app
+  // build across exactly those targets. The set comes from the acceptance
+  // contracts, so there is no list here to fall out of step with them.
+  //
+  // Everything is built in a staging tree and swapped in at the end, so a
+  // failure part-way leaves the previous distribution intact rather than a
+  // half-replaced one.
+  const { ACCEPTED_TARGETS } = await import('./gen/targets.ts');
+  const stagingRoot = `${outRoot}.staging`;
+  rmSync(stagingRoot, { recursive: true, force: true });
+  for (const target of ACCEPTED_TARGETS) {
+    console.log(`\nmamekit: generating ${target}`);
+    await pipeline(target, stagingRoot, true);
+  }
+  const { buildHardwareClosure, emitHardwareClosure } = await import('./mame/hardware.ts');
+  const targetGraphs = ACCEPTED_TARGETS.map(target => ({
+    game: target,
+    graph: JSON.parse(readFileSync(
+      join(
+        existingGameOutputDir(stagingRoot, target)
+          ?? gameOutputDir(stagingRoot, 'arcade', target),
+        'graph.json',
+      ),
+      'utf8',
+    )),
+  }));
+  console.log(`\nmamekit: resolving MAME hardware used by ${targetGraphs.length} targets`);
+  const closure = buildHardwareClosure(mameSrc, targetGraphs);
+  emitHardwareClosure(closure, stagingRoot);
+  const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
+  const refreshedReports = refreshRuntimeReports(stagingRoot);
+  console.log(
+    `generated hardware closure: ${closure.summary.sourceResolved}/${closure.summary.types} ` +
+    `types source-resolved, ${closure.summary.unresolved} unresolved; ` +
+    `${refreshedReports} generation reports refreshed`,
+  );
+  const { buildApp } = await import('./gen/generate.ts');
+  if (!buildApp(stagingRoot)) {
+    rmSync(stagingRoot, { recursive: true, force: true });
+    process.exitCode = 1;
+  } else {
+    const { gamesManifest } = await import('./serve.ts');
+    const { swapStagedBuild, writeBuildManifest } = await import('./gen/build-manifest.ts');
+    // The manifest is written before the swap so the staged tree is already
+    // self-describing; serving validates it against the catalog.
+    writeBuildManifest(stagingRoot, ACCEPTED_TARGETS, mameSrc, String(process.hrtime.bigint()));
+    writeFileSync(join(stagingRoot, 'games.json'),
+      await gamesManifest(stagingRoot, join(projectRoot, 'artwork')));
+    swapStagedBuild(stagingRoot, outRoot);
+    console.log(`\nmamekit: distribution replaced at ${outRoot}`);
+  }
+} else if (buildAppOnly || buildRuntimeOnly) {
   const { REQUIRED_TARGETS } = await import('./gen/targets.ts');
   const { buildHardwareClosure, emitHardwareClosure } = await import('./mame/hardware.ts');
   const targets = opts.targets
     ? opts.targets.split(',').map(target => target.trim()).filter(Boolean)
     : [...REQUIRED_TARGETS];
-  const unknownTargets = targets.filter(target =>
-    !REQUIRED_TARGETS.includes(target as (typeof REQUIRED_TARGETS)[number]));
+  const unknownTargets = targets.filter(target => !REQUIRED_TARGETS.includes(target));
   if (!targets.length || unknownTargets.length) {
     throw new Error(
       `invalid runtime closure targets: ${unknownTargets.length ? unknownTargets.join(', ') : '(none)'}`,
@@ -166,6 +221,10 @@ if (buildAppOnly || buildRuntimeOnly) {
   if (!buildApp(outRoot)) {
     process.exitCode = 1;
   } else {
+    const { writeBuildManifest } = await import('./gen/build-manifest.ts');
+    // gamesManifest validates the catalog against this manifest, so make the
+    // updated closure self-describing before asking it to build games.json.
+    writeBuildManifest(outRoot, targets, mameSrc, String(process.hrtime.bigint()));
     const { gamesManifest } = await import('./serve.ts');
     writeFileSync(join(outRoot, 'games.json'),
       await gamesManifest(outRoot, join(projectRoot, 'artwork')));
@@ -185,7 +244,12 @@ if (buildAppOnly || buildRuntimeOnly) {
   await pipeline(game!);
 }
 
-async function pipeline(game: string): Promise<void> {
+/**
+ * `staged` marks a target generated as part of a full --all build: the catalog
+ * and closure are written once at the end, so an intermediate manifest here
+ * would describe a tree that is deliberately still incomplete.
+ */
+async function pipeline(game: string, root = outRoot, staged = false): Promise<void> {
 console.log(`mamekit: searching MAME source at ${mameSrc}`);
 const driverFile = findDriverFile(game);
 console.log(`mamekit: driver for "${game}" -> ${driverFile.slice(mameSrc.length + 1)}`);
@@ -198,7 +262,7 @@ if (!sub.nodes.some(n => n.id === `game:${game}`)) {
 }
 
 const category = gameCategory(sub.nodes.find(node => node.id === `game:${game}`)?.props.kind);
-const outDir = gameOutputDir(outRoot, category, game);
+const outDir = gameOutputDir(root, category, game);
 mkdirSync(outDir, { recursive: true });
 writeFileSync(join(outDir, 'graph.full.json'), JSON.stringify(graph, null, 2));
 writeFileSync(join(outDir, 'graph.json'), JSON.stringify(sub, null, 2));
@@ -234,12 +298,15 @@ if (regions.length) {
 if (command === 'run') {
   const { generate, buildApp } = await import('./gen/generate.ts');
   await generate(sub, { mameSrc, outDir, game, fullGraph: graph });
-  if (!('skip-app' in opts) && !buildApp(outRoot)) process.exitCode = 1;
+  const skipApp = 'skip-app' in opts;
+  if (!skipApp && !buildApp(root)) process.exitCode = 1;
   // static manifest so the built tree is servable as plain files (github
   // pages); the dev server's live /games.json route shadows it locally
-  const { gamesManifest } = await import('./serve.ts');
-  writeFileSync(join(outRoot, 'games.json'),
-    await gamesManifest(outRoot, join(projectRoot, 'artwork')));
+  if (!staged && !skipApp) {
+    const { gamesManifest } = await import('./serve.ts');
+    writeFileSync(join(root, 'games.json'),
+      await gamesManifest(root, join(projectRoot, 'artwork')));
+  }
 }
 
 if ('serve' in opts || argv.includes('--serve')) {

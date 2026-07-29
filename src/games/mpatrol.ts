@@ -11,7 +11,6 @@ export const mpatrol: GameTestContract = {
   frames: 1800,
   minimumFps: 45,
   checkpoints: [1, 120, 300, 600, 900, 1200, 1500, 1800],
-  optionalRomFiles: ['mp_7621-5.7h'],
   actions: [
     { atFrame: 600, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 630, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
@@ -45,7 +44,7 @@ export const mpatrol: GameTestContract = {
       spr_pal: '26979b13',
       tx: 'b4bf3ba1',
       tx_pal: '07f99284',
-      unkprom: 'b2aa7578',
+      unkprom: 'cf1fd9d0',
     },
     checkpoints: {
       '1': { video: 'ea2d59d4', state: '79f6cfe3' },

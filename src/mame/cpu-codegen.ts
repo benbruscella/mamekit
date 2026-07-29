@@ -1,8 +1,4 @@
-import type {
-  GeneratedExpression,
-  GeneratedHandlerOperation,
-  GeneratedHandlerProgram,
-} from '../runtime/generated-machine.ts';
+import type { GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
 import type {
   GeneratedCpuAlias,
   GeneratedCpuDefinition,
