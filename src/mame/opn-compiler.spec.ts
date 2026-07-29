@@ -19,6 +19,16 @@ assert.equal(plan.sampleRateDivider, 12);
 assert.equal(plan.fmSamplesPerOutput, 6);
 assert.deepEqual(plan.ssgResample, [4, 3]);
 assert.equal(plan.fm.defaultPrescale, 6);
+assert.deepEqual(plan.prescale.selectors, [
+  { address: 0x2d, prescale: 6 },
+  { address: 0x2e, prescale: 3, requiresPrescale: 6 },
+  { address: 0x2f, prescale: 2 },
+]);
+assert.deepEqual(plan.prescale.ratios, {
+  2: { fmSamplesPerOutput: 2, ssgResample: [1, 3] },
+  3: { fmSamplesPerOutput: 3, ssgResample: [2, 3] },
+  6: { fmSamplesPerOutput: 6, ssgResample: [4, 3] },
+});
 
 // OPN geometry and envelope constants.
 assert.equal(plan.fm.channels, 3);
@@ -128,6 +138,8 @@ assert.match(source, /^\/\/ GENERATED from 3rdparty\/ymfm\/src\/ymfm_opn\.cpp:\d
 assert.match(source, /registerProcessor\('ym2203', GeneratedYm2203Processor\)/);
 assert.match(source, /export class GeneratedYm2203Mixer/);
 assert.match(source, /export class GeneratedYm2203FrameRenderer/);
+assert.match(source, /private updatePrescale\(prescale: number\): void/);
+assert.match(source, /candidate\.requiresPrescale === this\.prescale/);
 assert.ok(!/\bimport\b/.test(source), 'the worklet must not import anything');
 assert.ok(source.includes('"sinTable"'), 'the worklet must embed the lowered plan');
 

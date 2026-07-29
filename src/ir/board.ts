@@ -388,6 +388,18 @@ export interface GeneratedRamPalettePlan {
   }[];
   /** inverted_rgb_decoder complements the raw value before expansion. */
   inverted?: boolean;
+  /**
+   * Reset-time palette RAM writes made explicitly by the driver. Some boards
+   * power up with undefined palette RAM and MAME supplies a visible POST
+   * pattern in machine_reset().
+   */
+  resetWrites?: {
+    offset: number;
+    data: number;
+    ext?: boolean;
+  }[];
+  /** Driver reset method that supplied resetWrites. */
+  resetSource?: BoardSourceRef;
   source?: BoardSourceRef;
 }
 

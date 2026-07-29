@@ -178,7 +178,14 @@ export function compileMameVideo(
   // through the set_format converter named in the machine configuration.
   const ramPalette = palette || palettes.length
     ? undefined
-    : compileSetFormatRamPalette(graph, machineIds, mameSrc);
+    : compileSetFormatRamPalette(
+      graph,
+      machineIds,
+      mameSrc,
+      ast,
+      String(machine.props.cls),
+      constants,
+    );
   if (!palette && !ramPalette && palettes.length !== paletteMembers.length) {
     return fail(`palette callback did not lower`);
   }
@@ -789,6 +796,9 @@ function compileSetFormatRamPalette(
   graph: KnowledgeGraph,
   machineIds: Set<string>,
   mameSrc: string,
+  ast: MameAstIndex,
+  className: string,
+  constants: Record<string, number>,
 ): GeneratedRamPalettePlan | undefined {
   const fail = (reason: string): undefined => {
     if (process.env.MAMEKIT_DEBUG_VIDEO === '1') console.error(`ram palette: ${reason}`);
@@ -838,6 +848,14 @@ function compileSetFormatRamPalette(
     .map(node => String(node.props.share ?? '')));
   if (!shares.has(tag)) return fail(`no address-map share named "${tag}"`);
   const extShare = `${tag}_ext`;
+  const reset = compileRamPaletteReset(
+    ast,
+    className,
+    `m_${tag}`,
+    entries * (Number(decoder[1]) / (shares.has(extShare) ? 2 : 1)),
+    shares.has(extShare),
+    constants,
+  );
   return {
     tag,
     ...(shares.has(extShare) ? { extShare } : {}),
@@ -849,8 +867,74 @@ function compileSetFormatRamPalette(
       shift: template[index + 3]!,
     })),
     ...(inverted ? { inverted: true } : {}),
+    ...(reset?.writes.length ? {
+      resetWrites: reset.writes,
+      resetSource: reset.source,
+    } : {}),
     source: { file: sourceFile, line: lineOf(implementation, overload.index) },
   };
+}
+
+/**
+ * Lower direct palette basemem()/extmem() initialization performed by a
+ * driver's machine_reset(). These writes are semantically different from
+ * ordinary address-map writes: they establish the palette state that makes a
+ * board's power-on self-test visible before the game initializes palette RAM.
+ */
+function compileRamPaletteReset(
+  ast: MameAstIndex,
+  className: string,
+  member: string,
+  bytes: number,
+  hasExt: boolean,
+  constants: Record<string, number>,
+): {
+  writes: NonNullable<GeneratedRamPalettePlan['resetWrites']>;
+  source: BoardSourceRef;
+} | undefined {
+  const reset = ast.findFunctionInHierarchy(className, 'machine_reset');
+  if (!reset || !new RegExp(`\\b${member}->(?:base|ext)mem\\(\\)\\.write8`).test(reset.body)) {
+    return undefined;
+  }
+  const writes: NonNullable<GeneratedRamPalettePlan['resetWrites']> = [];
+  const loopPattern =
+    /for\s*\(\s*int\s+i\s*=\s*([^;]+)\s*;\s*i\s*<\s*([^;]+)\s*;\s*(?:i\s*\+=\s*([^)]+)|(?:i\+\+|\+\+i))\s*\)\s*\{/g;
+  let loop: RegExpExecArray | null;
+  while ((loop = loopPattern.exec(reset.body)) !== null) {
+    const open = reset.body.indexOf('{', loop.index + loop[0].length - 1);
+    const close = matchingPair(reset.body, open, '{', '}');
+    if (close < 0) continue;
+    const body = reset.body.slice(open + 1, close);
+    const calls = [...body.matchAll(new RegExp(
+      `\\b${member}->(basemem|extmem)\\(\\)\\.write8\\s*\\(([^;]+)\\)`,
+      'g',
+    ))].flatMap(call => {
+      const args = splitMameArgs(call[2]!);
+      return args.length >= 2
+        ? [{ ext: call[1] === 'extmem', offset: args[0]!, data: args[1]! }]
+        : [];
+    });
+    if (!calls.length) continue;
+    const start = expressionNumber(loop[1], constants);
+    const end = expressionNumber(loop[2], constants);
+    const step = loop[3] ? expressionNumber(loop[3], constants) : 1;
+    if (!Number.isInteger(step) || step <= 0 || end < start) continue;
+    for (let i = start; i < end; i += step) {
+      for (const call of calls) {
+        if (call.ext && !hasExt) continue;
+        const offset = expressionNumber(call.offset.replace(/\bi\b/g, String(i)), constants);
+        const data = expressionNumber(call.data.replace(/\bi\b/g, String(i)), constants);
+        if (!Number.isInteger(offset) || offset < 0 || offset >= bytes) continue;
+        writes.push({
+          offset,
+          data: data & 0xff,
+          ...(call.ext ? { ext: true } : {}),
+        });
+      }
+    }
+    loopPattern.lastIndex = close + 1;
+  }
+  return writes.length ? { writes, source: sourceRef(reset) } : undefined;
 }
 
 function lineOf(source: string, offset: number): number {

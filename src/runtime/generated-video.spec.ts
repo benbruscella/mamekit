@@ -356,4 +356,46 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
     'a scrolled opaque tilemap must repaint every visible pixel, not just the clip-derived tiles');
 }
 
-console.log('generated-video.spec: 20 passed');
+// machine_reset palette writes must be replayed both at construction and after
+// the generated board resets, including split palette_device ext RAM.
+{
+  const resetMachine: BoardIr = {
+    ...machine,
+    video: {
+      gfx: [],
+      tilemaps: [],
+      initialState: {},
+      ramPalette: {
+        tag: 'palette',
+        extShare: 'palette_ext',
+        entries: 1,
+        bytesPerEntry: 2,
+        channels: [
+          { channel: 'r', bits: 4, shift: 12 },
+          { channel: 'g', bits: 4, shift: 8 },
+          { channel: 'b', bits: 4, shift: 4 },
+        ],
+        resetWrites: [
+          { offset: 0, data: 0xf0 },
+          { offset: 0, data: 0xff, ext: true },
+        ],
+      },
+    },
+  };
+  const resetState: Record<string, unknown> = {};
+  const resetPrimitives = new GeneratedMameVideoPrimitives(
+    resetMachine,
+    {},
+    resetState,
+    {},
+  );
+  const resetPalette = resetState.m_palette as { colors: Uint32Array };
+  assert.equal(resetPalette.colors[0], 0xffffffff);
+  resetPrimitives.writePaletteRam(0, 0);
+  resetPrimitives.writePaletteRam(0, 0, true);
+  assert.equal(resetPalette.colors[0], 0xff000000);
+  resetPrimitives.reset();
+  assert.equal(resetPalette.colors[0], 0xffffffff);
+}
+
+console.log('generated-video.spec: 21 passed');

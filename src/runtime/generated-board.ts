@@ -451,6 +451,7 @@ class IrBoard implements Board {
   reset(): void {
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
+    this.videoPrimitives?.reset?.();
     for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
     this.frameRunner.reset();
     this.currentLine = 0;

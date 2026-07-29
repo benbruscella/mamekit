@@ -15,6 +15,8 @@ export interface GeneratedVideoPrimitives extends VideoRenderer {
   resolveScreenPens?(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void;
   /** Route a MAME palette_device RAM write when the plan declares one. */
   writePaletteRam?(offset: number, data: number, ext?: boolean): void;
+  /** Reapply driver-declared reset-time video state. */
+  reset?(): void;
 }
 
 /**
@@ -354,6 +356,17 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
     if (plan.extShare) this.ext = new Uint8Array(plan.entries * this.bytesPerEntry);
     this.colors = new Uint32Array(plan.entries);
     for (let pen = 0; pen < plan.entries; pen++) this.update(pen);
+    this.reset();
+  }
+
+  /** Replay palette basemem/extmem writes lowered from machine_reset(). */
+  reset(): void {
+    this.ram.fill(0);
+    this.ext?.fill(0);
+    for (let pen = 0; pen < this.plan.entries; pen++) this.update(pen);
+    for (const write of this.plan.resetWrites ?? []) {
+      this.write(write.offset, write.data, Boolean(write.ext));
+    }
   }
 
   /** palette_device::write8 / write8_ext, then update_for_write. */
@@ -1108,6 +1121,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   /** palette_device::write8 / write8_ext into source-derived palette RAM. */
   writePaletteRam(offset: number, data: number, ext = false): void {
     this.ramPalette?.write(offset, data, ext);
+  }
+
+  reset(): void {
+    this.ramPalette?.reset();
   }
 
   resolveScreenPens(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void {
