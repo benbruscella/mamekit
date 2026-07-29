@@ -44,6 +44,10 @@ assert.deepEqual(
 
 const video = compileMameVideo(graph, mameSrc, machine.id);
 assert.ok(video, 'Kung-Fu Master MAME video source must lower to executable video IR');
+assert.equal(
+  video.plan.regionBindings?.m_sprite_height_prom,
+  'spr_height_prom',
+);
 assert.deepEqual(video.plan.gfx.map(entry => entry.region), ['gfx2', 'gfx1']);
 assert.deepEqual(video.plan.palettes?.map(palette => ({
   member: palette.member,

@@ -61,6 +61,7 @@ export function compileMameVideo(
   const source = [...new Set(files)]
     .map(file => readFileSync(join(mameSrc, file), 'utf8'))
     .join('\n');
+  const regionBindings = sourceRegionBindings(source);
   // MAME's tilemap framework header is part of the vocabulary driver video code
   // uses: TILEMAP_DRAW_LAYERn, TILE_FLIPYX and kin are declared there, not in
   // the driver. Driver constants take precedence over framework ones.
@@ -87,6 +88,7 @@ export function compileMameVideo(
     return {
       plan: {
         gfx: [],
+        ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
         tilemaps: [],
         initialState: memberDefaults,
         bitmap,
@@ -201,6 +203,7 @@ export function compileMameVideo(
   return {
     plan: {
       gfx,
+      ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
       ...(palette ? { palette } : {}),
       ...(palettes.length ? { palettes } : {}),
       ...(ramPalette ? { ramPalette } : {}),
@@ -219,6 +222,26 @@ export function compileMameVideo(
     },
     handlers,
   };
+}
+
+/**
+ * Extract finder bindings whose C++ member name cannot safely be inferred
+ * from the ROM tag. Only region_ptr declarations are included; device and
+ * shared-memory finders have separate runtime binding paths.
+ */
+export function sourceRegionBindings(source: string): Record<string, string> {
+  const regionMembers = new Set(
+    [...source.matchAll(
+      /\b(?:required|optional)_region_ptr(?:_array)?\s*<[^;{}]+>\s+(m_\w+)\b/g,
+    )].map(match => match[1]!),
+  );
+  const bindings: Record<string, string> = {};
+  for (const match of source.matchAll(
+    /\b(m_\w+)\s*\(\s*\*this\s*,\s*"([^"]+)"\s*\)/g,
+  )) {
+    if (regionMembers.has(match[1]!)) bindings[match[1]!] = match[2]!;
+  }
+  return bindings;
 }
 
 function compilePackedPaletteBitmap(

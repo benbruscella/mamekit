@@ -476,6 +476,12 @@ export interface GeneratedBitmapPlan {
 
 export interface GeneratedVideoPlan {
   gfx: GeneratedGfxEntry[];
+  /**
+   * MAME required/optional_region_ptr member -> ROM region tag. The C++ member
+   * name is not always derivable from the tag (for example,
+   * m_sprite_height_prom binds "spr_height_prom").
+   */
+  regionBindings?: Record<string, string>;
   palette?: GeneratedPromPalettePlan;
   palettes?: {
     member: string;

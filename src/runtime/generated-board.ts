@@ -172,7 +172,12 @@ class IrBoard implements Board {
     this.bindings = { members: this.state, inputs, calls };
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
-      bindGeneratedRegionState(this.state, tag, bytes);
+      bindGeneratedRegionState(
+        this.state,
+        tag,
+        bytes,
+        machine.video?.regionBindings,
+      );
     }
     for (const input of machine.execution.inputMembers ?? []) {
       const ports = input.tags.map(tag => ({ read: () => inputs.read(tag) }));
@@ -879,9 +884,13 @@ export function bindGeneratedRegionState(
   state: Record<string, unknown>,
   tag: string,
   bytes: Uint8Array,
+  bindings: Readonly<Record<string, string>> = {},
 ): void {
   const leaf = tag.split(':').at(-1)!;
   state[`m_${leaf}`] ??= bytes;
+  for (const [member, finderTag] of Object.entries(bindings)) {
+    if (finderTag === tag || finderTag === leaf) state[member] ??= bytes;
+  }
 }
 
 function usedHandlers(
