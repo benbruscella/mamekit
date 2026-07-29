@@ -200,4 +200,11 @@ const comparison = compileMameHandler('if (a::b < c) m_x = 1;');
 assert.deepEqual(comparison.diagnostics, []);
 assert.equal(comparison.operations[0]?.op, 'if');
 
-console.log('handler-ir.spec: 34 passed');
+const conditionalSideEffect = compileMameHandler(
+  'Which ? m_fg_tilemap->mark_tile_dirty(offset) : ' +
+  'm_bg_tilemap->mark_tile_dirty(offset);',
+);
+assert.deepEqual(conditionalSideEffect.diagnostics, []);
+assert.equal(conditionalSideEffect.operations[0]?.op, 'if');
+
+console.log('handler-ir.spec: 35 passed');

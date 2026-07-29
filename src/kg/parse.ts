@@ -1257,13 +1257,26 @@ export function parseDeviceDefaultClocks(src: string): Record<string, number> {
 }
 
 export interface RomPatchDef { region: string; offset: number; value: number }
-export interface RomTransformDef {
-  kind: 'conditional-byte-swap';
-  region: string;
-  indexMask: number;
-  indexValue: number;
-  displacement: number;
-}
+export type RomTransformDef =
+  | {
+      kind: 'conditional-byte-swap';
+      region: string;
+      indexMask: number;
+      indexValue: number;
+      displacement: number;
+    }
+  | {
+      /**
+       * Driver-init opcode/data split: initialize a target region from the
+       * source, then substitute bytes in [start,end) through this table.
+       */
+      kind: 'byte-substitution';
+      sourceRegion: string;
+      targetRegion: string;
+      start: number;
+      end: number;
+      table: number[];
+    };
 
 /**
  * ROM patches from driver init functions:
@@ -1327,6 +1340,46 @@ export function parseInitRomTransforms(
           displacement,
         });
       }
+
+      // Commando-family encrypted opcodes use a separate AS_OPCODES share.
+      // Lower the source expression to a complete byte table rather than
+      // carrying C++ syntax into the runtime.
+      const loop = new RegExp(
+        String.raw`for\s*\(\s*int\s+(\w+)\s*=\s*([^;]+)\s*;\s*\1\s*<\s*([^;]+)\s*;` +
+        String.raw`\s*(?:\1\+\+|\+\+\1)\s*\)\s*\{([\s\S]*?)\}`,
+      ).exec(body);
+      if (!loop) continue;
+      const [indexName, startExpression, endExpression, loopBody] =
+        [loop[1]!, loop[2]!, loop[3]!, loop[4]!];
+      const escapedIndex = indexName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedAlias = alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const sourceByte = new RegExp(
+        String.raw`\b(?:uint8_t|u8)\s+(\w+)\s*=\s*${escapedAlias}\s*\[\s*${escapedIndex}\s*\]\s*;`,
+      ).exec(loopBody);
+      if (!sourceByte) continue;
+      const sourceName = sourceByte[1]!;
+      const escapedSource = sourceName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const assignment = new RegExp(
+        String.raw`\b(m_\w+)\s*\[\s*${escapedIndex}\s*\]\s*=\s*([^;]+)\s*;`,
+      ).exec(loopBody);
+      if (!assignment) continue;
+      const start = evalExpr(startExpression, consts);
+      const end = evalExpr(endExpression, consts);
+      if (start === null || end === null || start < 0 || end < start) continue;
+      const table = Array.from({ length: 256 }, (_unused, value) =>
+        evalExpr(
+          assignment[2]!.replace(new RegExp(`\\b${escapedSource}\\b`, 'g'), String(value)),
+          consts,
+        ));
+      if (table.some(value => value === null)) continue;
+      transforms.push({
+        kind: 'byte-substitution',
+        sourceRegion: region,
+        targetRegion: assignment[1]!.replace(/^m_/, ''),
+        start,
+        end,
+        table: table.map(value => value! & 0xff),
+      });
     }
     if (transforms.length) out[name] = transforms;
   }

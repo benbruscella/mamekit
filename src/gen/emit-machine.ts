@@ -78,6 +78,10 @@ export function lowerGeneratedMachine(
       if (props.periodHz !== undefined) callback.periodHz = Number(props.periodHz);
       if (props.periodExpr) callback.periodExpr = String(props.periodExpr);
       if (Array.isArray(props.scanlines)) callback.scanlines = props.scanlines.map(Number);
+      if (props.scanlineStart !== undefined) callback.scanlineStart = Number(props.scanlineStart);
+      if (props.scanlineIncrement !== undefined) {
+        callback.scanlineIncrement = Number(props.scanlineIncrement);
+      }
       if (Array.isArray(props.transforms)) callback.transforms = props.transforms.map(String);
       if (props.sourceFile && props.sourceLine) {
         callback.source = {
@@ -632,6 +636,31 @@ function lowerFrameEvents(
 ): GeneratedExecutionPlan['frameEvents'] {
   const events: GeneratedExecutionPlan['frameEvents'] = [];
   for (const callback of callbacks) {
+    if (
+      callback.signal === 'configure_scanline' &&
+      callback.scanlineStart !== undefined &&
+      callback.scanlineIncrement !== undefined &&
+      callback.scanlineIncrement > 0
+    ) {
+      for (
+        let line = callback.scanlineStart;
+        line < vtotal;
+        line += callback.scanlineIncrement
+      ) {
+        events.push({
+          callbackId: callback.id,
+          ownerTag: callback.ownerTag,
+          signal: callback.signal,
+          line,
+          // TIMER_DEVICE_CALLBACK_MEMBER receives the configured scanline as
+          // its param. Callback effects carry one numeric value, so state is
+          // the source parameter rather than a boolean for this signal.
+          state: line,
+          ...(callback.source ? { source: callback.source } : {}),
+        });
+      }
+      continue;
+    }
     if (callback.signal === 'vck_callback') {
       const frequency = devices.find(device => device.tag === callback.ownerTag)?.callbackHz;
       if (frequency) {

@@ -195,6 +195,22 @@ class IrBoard implements Board {
         registry,
         this.shares,
       );
+      if (specification.opcode) {
+        const opcodeRom = regions[specification.opcode.region];
+        if (!opcodeRom) {
+          throw new Error(
+            `${machine.game}: missing opcode region ${specification.opcode.region}`,
+          );
+        }
+        const opcodeBus = new Bus(
+          specification.opcode.ranges,
+          opcodeRom,
+          registry,
+          this.shares,
+        );
+        const opcodeMask = specification.opcode.globalMask ?? 0xffff;
+        bus.readOpcode = address => opcodeBus.read(address & opcodeMask);
+      }
       if (specification.io) {
         const ioBus = new Bus(specification.io.ranges, new Uint8Array(0), registry, this.shares);
         const mask = specification.io.globalMask ?? 0xffff;
@@ -204,6 +220,10 @@ class IrBoard implements Board {
       const mask = specification.mask ?? 0xffff;
       const cpu = createCpu(type, {
         read: address => bus.read(address & mask),
+        ...(bus.readOpcode ? {
+          // AS_OPCODES has its own global mask; do not inherit AS_PROGRAM's.
+          readOpcode: address => bus.readOpcode!(address),
+        } : {}),
         write: (address, data) => bus.write(address & mask, data),
         in: bus.in,
         out: bus.out,
@@ -249,6 +269,14 @@ class IrBoard implements Board {
           state === 2,
         );
       };
+      calls[`m_${specification.tag}.set_input_line_and_vector`] =
+        (line, state, vector) => {
+          if (line < 0) {
+            if (state !== 0) cpu.nmi();
+            return;
+          }
+          cpu.setIrqLine(state !== 0, vector & 0xff, state === 2);
+        };
       calls[`m_${specification.tag}.pulse_input_line`] = line => {
         if (line < 0) cpu.nmi();
         else {
@@ -263,7 +291,9 @@ class IrBoard implements Board {
       const member = machine.devices?.find(device =>
         device.tag === specification.tag)?.member;
       if (member) {
-        for (const name of ['set_input_line', 'pulse_input_line', 'total_cycles']) {
+        for (const name of [
+          'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
+        ]) {
           calls[`${member}.${name}`] = calls[`m_${specification.tag}.${name}`]!;
         }
       }
@@ -679,8 +709,15 @@ class IrBoard implements Board {
       candidate.program &&
       !candidate.program.diagnostics.length);
     if (!handler?.program) return undefined;
+    const firstParameter = /(\w+)\s*$/.exec(
+      (handler.parameters ?? '').split(',')[0]?.trim() ?? '',
+    )?.[1];
     return state => {
-      executeGeneratedMachineHandler(this.machine, handler, this.bindings, { state, data: state });
+      executeGeneratedMachineHandler(this.machine, handler, this.bindings, {
+        state,
+        data: state,
+        ...(firstParameter ? { [firstParameter]: state } : {}),
+      });
     };
   }
 

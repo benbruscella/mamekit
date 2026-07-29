@@ -643,8 +643,11 @@ function emitCall(
     return `(++this.cycles, this.writeMemory((${args[0] ?? '0'}) & 0xffff, ` +
       `(${args[1] ?? '0'}) & 0xff), 0)`;
   }
+  if (name === 'm_opcodes.read_byte') {
+    return `((this.bus.readOpcode?.((${args[0] ?? '0'}) & 0xffff) ?? ` +
+      `this.readMemory((${args[0] ?? '0'}) & 0xffff)) & 0xff)`;
+  }
   if (name === 'm_data.read_interruptible' ||
-      name === 'm_opcodes.read_byte' ||
       name === 'm_args.read_byte') {
     return `(this.readMemory((${args[0] ?? '0'}) & 0xffff) & 0xff)`;
   }

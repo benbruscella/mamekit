@@ -45,6 +45,9 @@ export interface GeneratedCallback {
   periodHz?: number;
   periodExpr?: string;
   scanlines?: number[];
+  /** TIMER.configure_scanline start and cadence, expanded against screen vtotal. */
+  scanlineStart?: number;
+  scanlineIncrement?: number;
   transforms?: string[];
   source?: BoardSourceRef;
 }
@@ -227,6 +230,12 @@ export interface GeneratedExecutionCpu {
   region: string;
   ranges?: RangeSpec[];
   mask?: number;
+  /** Optional AS_OPCODES map/region, distinct from program data reads. */
+  opcode?: {
+    ranges: RangeSpec[];
+    region: string;
+    globalMask?: number;
+  };
   io?: { ranges: RangeSpec[]; globalMask?: number };
   interruptVectorWriters?: string[];
   source?: BoardSourceRef;

@@ -34,6 +34,8 @@ export class Bus {
   private base = new Uint32Array(0x10000);  // range base addr per address (for offset calc)
   /** shared RAM blocks by tag, so the machine/video can alias them */
   shares: Record<string, Uint8Array>;
+  /** Optional board-provided AS_OPCODES read path. */
+  readOpcode?: (addr: number) => number;
 
   constructor(ranges: RangeSpec[], rom: Uint8Array, registry: HandlerRegistry, shares: Record<string, Uint8Array> = {}) {
     this.shares = shares;

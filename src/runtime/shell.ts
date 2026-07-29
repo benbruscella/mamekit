@@ -201,19 +201,28 @@ export interface ShellConfig {
   menuUrl?: string;
 }
 
-export type RomTransform = {
-  kind: 'conditional-byte-swap';
-  region: string;
-  indexMask: number;
-  indexValue: number;
-  displacement: number;
-};
+export type RomTransform =
+  | {
+      kind: 'conditional-byte-swap';
+      region: string;
+      indexMask: number;
+      indexValue: number;
+      displacement: number;
+    }
+  | {
+      kind: 'byte-substitution';
+      sourceRegion: string;
+      targetRegion: string;
+      start: number;
+      end: number;
+      table: number[];
+    };
 
 export function applyRomTransforms(regions: Regions, transforms: readonly RomTransform[]): void {
   for (const transform of transforms) {
-    const region = regions[transform.region];
-    if (!region) throw new Error(`ROM transform has no region "${transform.region}"`);
     if (transform.kind === 'conditional-byte-swap') {
+      const region = regions[transform.region];
+      if (!region) throw new Error(`ROM transform has no region "${transform.region}"`);
       for (let index = 0; index < region.length; index++) {
         if (((index & transform.indexMask) >>> 0) !== (transform.indexValue >>> 0)) continue;
         const other = index + transform.displacement;
@@ -226,7 +235,27 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
         region[index] = region[other]!;
         region[other] = value;
       }
+      continue;
     }
+    const source = regions[transform.sourceRegion];
+    if (!source) {
+      throw new Error(`ROM transform has no source region "${transform.sourceRegion}"`);
+    }
+    if (
+      transform.start < 0 ||
+      transform.end < transform.start ||
+      transform.end > source.length ||
+      transform.table.length !== 256
+    ) {
+      throw new Error(
+        `ROM byte substitution for "${transform.targetRegion}" has invalid bounds or table`,
+      );
+    }
+    const target = source.slice();
+    for (let index = transform.start; index < transform.end; index++) {
+      target[index] = transform.table[source[index]!]!;
+    }
+    regions[transform.targetRegion] = target;
   }
 }
 

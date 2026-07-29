@@ -173,7 +173,12 @@ export function compileMameVideo(
   const palettes = paletteMembers.length > 1
     ? compileNamedPalettes(graph, ast, source, constants, paletteMembers)
     : [];
-  const palette = palettes.length ? undefined : compilePalette(graph, machineIds, ast, constants);
+  const palette = palettes.length
+    ? undefined
+    : (
+      compilePalette(graph, machineIds, ast, constants) ??
+      compileBuiltinPromPalette(graph, machineIds, mameSrc, constants)
+    );
   // A palette_device with no init callback colors CPU-writable palette RAM
   // through the set_format converter named in the machine configuration.
   const ramPalette = palette || palettes.length
@@ -1088,6 +1093,105 @@ function compilePalette(
     banks,
     transparentIndirect: 0,
     source: sourceRef(fn),
+  };
+}
+
+/**
+ * Lower palette_device's source-defined RGB_444_PROMS constructor. Unlike
+ * driver palette callbacks, this initializer lives in emupal.cpp and is
+ * selected by an enum argument in PALETTE(...), so it is not represented by a
+ * FUNC callback in the driver's AST.
+ */
+function compileBuiltinPromPalette(
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+  mameSrc: string,
+  constants: Record<string, number>,
+): GeneratedPromPalettePlan | undefined {
+  const deviceIds = new Set(graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
+    .map(edge => edge.to));
+  const palette = graph.nodes.find(node =>
+    deviceIds.has(node.id) && node.label === 'Device' && node.props.type === 'PALETTE');
+  const raw = ((palette?.props.config as string[] | undefined) ?? []).join('\n');
+  const call = findCallArguments(raw, 'PALETTE');
+  if (!call) return undefined;
+  const args = splitMameArgs(call);
+  if (!/(?:palette_device::)?(?:RGB_444_PROMS|RRRRGGGGBBBB_PROMS)\b/.test(args[2] ?? '')) {
+    return undefined;
+  }
+  const region = /^"([^"]+)"$/.exec(args[3]?.trim() ?? '')?.[1];
+  const entries = expressionNumber(args[4], constants);
+  if (!region || entries <= 0) return undefined;
+
+  const file = 'src/emu/emupal.cpp';
+  const source = readFileSync(join(mameSrc, file), 'utf8');
+  const signature = source.indexOf('void palette_device::palette_init_rgb_444_proms');
+  const open = signature < 0 ? -1 : source.indexOf('{', signature);
+  const close = open < 0 ? -1 : matchingPair(source, open, '{', '}');
+  if (open < 0 || close < 0) return undefined;
+  const body = source.slice(open + 1, close);
+  if (!/palette\.set_pen_color\s*\(\s*i\s*,\s*rgb_t\s*\(\s*r\s*,\s*g\s*,\s*b\s*\)\s*\)/.test(body)) {
+    return undefined;
+  }
+
+  const channels: GeneratedPromPalettePlan['channels'] = [];
+  for (const [name, channel] of [
+    ['red', 'r'],
+    ['green', 'g'],
+    ['blue', 'b'],
+  ] as const) {
+    const component = new RegExp(
+      `//\\s*${name} component([\\s\\S]*?)int\\s+${channel}\\s*=\\s*([^;]+);`,
+    ).exec(body);
+    if (!component) return undefined;
+    const sources = new Map<string, { bit: number; offset: number }>();
+    for (const bit of component[1]!.matchAll(
+      /\b(bit\d+)\s*=\s*\(colors\[\s*([^\]]+)\s*\]\s*>>\s*(\d+)\)\s*&/g,
+    )) {
+      const offsetExpression = bit[2]!
+        .replace(/palette\.entries\(\)/g, String(entries))
+        .replace(/\bi\b/g, '0');
+      sources.set(bit[1]!, {
+        bit: Number(bit[3]),
+        offset: expressionNumber(offsetExpression, constants),
+      });
+    }
+    const terms = [...component[2]!.matchAll(
+      /(-?(?:0x[\da-f]+|\d+))\s*\*\s*(bit\d+)/gi,
+    )];
+    const termSources = terms.map(term => sources.get(term[2]!));
+    if (!terms.length || termSources.some(sourceBit => !sourceBit)) return undefined;
+    channels.push({
+      channel,
+      bits: termSources.map(sourceBit => sourceBit!.bit),
+      offsets: termSources.map(sourceBit => sourceBit!.offset),
+      weights: terms.map(term => expressionNumber(term[1])),
+      resistances: [],
+      pulldown: 0,
+      pullup: 0,
+    });
+  }
+
+  return {
+    region,
+    colorCount: entries,
+    min: 0,
+    max: 255,
+    scaler: 1,
+    channels,
+    lookupOffset: 0,
+    lookupCount: entries,
+    lookupMask: 0xff,
+    banks: [{
+      penOffset: 0,
+      colorOr: 0,
+      lookupOffset: 0,
+      lookupCount: entries,
+      direct: true,
+    }],
+    transparentIndirect: 0,
+    source: { file, line: lineOf(source, signature), column: 1 },
   };
 }
 
