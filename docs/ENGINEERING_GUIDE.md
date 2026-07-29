@@ -37,6 +37,8 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run test:unit` | strict type check plus every source/compiler/runtime spec |
 | `npm run test:current` | clean-generate and audit the currently supported games |
 | `npm run audit:generated` | audit the games currently present in `dist` |
+| `npm run audit:game-package -- <target>` | validate local artwork, history and dossier completeness |
+| `npm run audio:compare -- <target> --mame /path/to/mame` | compare MAMEKIT and MAME power-on WAVs |
 | `npm run test:generation` | clean-generate every required target and audit all output |
 | `npm run test:games` | deterministic real-ROM contracts for supported games |
 | `npm run test:games:record` | print candidate game baselines for review |
@@ -176,12 +178,26 @@ Acceptance tests import compiled modules from `dist`. They should not import a
 source-side emulation implementation because that bypasses the artifact being
 validated.
 
-### STEP 5: JOIN THE ACCEPTED SET
+### STEP 5: COMPLETE AND VERIFY THE GAME PACKAGE
 
-Add the game's contract to `src/games/contracts.ts` once its clean generation
-and browser acceptance pass. That single edit puts it in `gen:all`, in the
-required-target set and in the acceptance run — there is no separate list to
-update, and `src/gen/targets.spec.ts` fails if the sets ever disagree.
+The adjacent token/spec pair is auto-discovered, putting the game in
+`gen:all`, the required-target set and the acceptance run without a central
+list edit. Complete the local presentation assets and extracted history
+described in [CONTRIBUTING](CONTRIBUTING.md), then run:
+
+```sh
+npm run audit:game-package -- <target>
+```
+
+For a sound-capable game, compare the generated power-on sequence with a real
+MAME recording before accepting its audio golden:
+
+```sh
+npm run audio:compare -- <target> --mame /path/to/mame
+```
+
+The command runs MAME with `-wavwrite`, captures the actual emitted MAMEKIT
+worklet, and writes both WAVs plus their spectrogram under `.files/`.
 
 ## 5A. ADDING HARDWARE
 

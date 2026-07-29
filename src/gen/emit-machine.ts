@@ -449,12 +449,18 @@ export function lowerAudioRoutes(
       candidate.from === device.id && candidate.rel === 'HAS_AUDIO_ROUTE')) {
       const node = byId.get(edge.to);
       if (!node) continue;
-      const rawChannel = Number(node.props.output);
-      const channel = singleOutput && rawChannel === 0 ? -1 : rawChannel;
       const gain = Number(node.props.gain);
       const target = String(node.props.target);
       const targetInput = Number(node.props.input);
-      if (!Number.isInteger(channel) || channel < -1 || !Number.isFinite(gain)) continue;
+      const rawOutput = String(node.props.output);
+      const outputChannels = rawOutput === 'ALL_OUTPUTS'
+        ? sourceDevice?.props.type === 'YM2203'
+          ? [0, 1, 2, 3]
+          : singleOutput
+            ? [-1]
+            : [0, 1, 2]
+        : [singleOutput && Number(rawOutput) === 0 ? -1 : Number(rawOutput)];
+      if (!Number.isFinite(gain)) continue;
       const match = /^filter\.(\d+)\.(\d+)$/.exec(target);
       let filter: GeneratedAudioRoute['filter'];
       if (match) {
@@ -469,14 +475,17 @@ export function lowerAudioRoutes(
           channel: Number(match[2]),
         };
       }
-      routes.push({
-        chip,
-        channel,
-        gain,
-        target,
-        ...(Number.isInteger(targetInput) ? { targetInput } : {}),
-        ...(filter ? { filter } : {}),
-      });
+      for (const channel of outputChannels) {
+        if (!Number.isInteger(channel) || channel < -1) continue;
+        routes.push({
+          chip,
+          channel,
+          gain,
+          target,
+          ...(Number.isInteger(targetInput) ? { targetInput } : {}),
+          ...(filter ? { filter } : {}),
+        });
+      }
     }
   });
   return routes;

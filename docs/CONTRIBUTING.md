@@ -100,18 +100,19 @@ npm run clean
 node bin/mamekit.js <target> --skip-app  # generate only this machine
 node bin/mamekit.js --build-runtime --build-app --targets <target>
 npm run audit:generated
+npm run audit:game-package -- <target>  # after adding local presentation assets
 npm run serve                            # verify ROM, input, video and audio
 ```
 
-Do not add the target to `gen:all` while it is still being brought up. First
-fix graph, IR and generated-hardware gaps in isolation; add its adjacent game
-token and golden only after the generated machine is credible.
+Do not add the adjacent game token while the target is still being brought up.
+First fix graph, IR and generated-hardware gaps in isolation. The token is the
+registration: discovery adds it to `gen:all` only when both
+`src/games/<target>.ts` and its colocated spec exist.
 
-### STEP 1: IDENTIFY AND REGISTER THE TARGET
+### STEP 1: IDENTIFY THE TARGET
 
-Use the MAME short name. If it is a new required target, add it to
-`src/gen/targets.ts`. Do not add it to `package.json`'s `gen:all` list yet;
-that list is the currently accepted working set.
+Use the MAME short name. There is no central target array or package-script
+list to edit.
 
 Extract its graph:
 
@@ -226,9 +227,9 @@ It must not implement emulation behavior. The adjacent spec should assert the
 MAME source facts and generated lowering essential to this machine. Generic
 compiler behavior remains tested beside its compiler.
 
-Export the token from `src/games/contracts.ts` only when it is ready to join
-the real-ROM acceptance run. Extend `acceptance-harness.ts` only for a reusable
-machine capability, never for game logic.
+The token/spec pair is auto-discovered and joins `gen:all` and the real-ROM
+acceptance run. Extend `acceptance-harness.ts` only for a reusable machine
+capability, never for game logic.
 
 ### STEP 5: VERIFY WITH REAL ROMS
 
@@ -266,7 +267,47 @@ Passing hashes do not prove correctness. A deterministic test can faithfully
 preserve a deterministic bug. Compare questionable behavior with MAME or a
 trusted reference before accepting it.
 
-### STEP 6: RECORD AND REVIEW THE CONTRACT
+For an audio A/B, give the comparison command an actual MAME executable.
+MAMEKIT captures the emitted worklet from a clean power-on, MAME records its
+own run with `-wavwrite`, and the tool writes both WAVs plus a spectrogram:
+
+```sh
+npm run audio:compare -- <target> \
+  --mame /path/to/mame \
+  --seconds 30 \
+  --out .files/audio/<target>
+```
+
+This is optional when the machine has no audio. For a sound-capable new game,
+use it before deciding that a write hash or merely audible output is correct.
+
+### STEP 6: ADD THE PRESENTATION PACKAGE
+
+The ROM is only the executable machine payload. A supported arcade game also
+has a local, gitignored presentation package:
+
+```text
+artwork/<target>.zip                  MAME bezel and default.lay
+artwork/covers/<target>.png           promotional flyer
+artwork/media/cabinets/<target>.png   cabinet photograph
+artwork/media/marquees/<target>.png   marquee scan
+artwork/data/history/history.xml      shared Gaming History dataset
+```
+
+Generation extracts the target's story to `history.txt` and creates
+`DOSSIER.md` from MAME source, git history, ROM/input/hardware facts and the
+presentation paths. Artwork is intentionally not committed or included in CI;
+deployment includes it only with `--artwork`. Validate the complete local
+package after generation:
+
+```sh
+npm run audit:game-package -- <target>
+```
+
+The audit verifies real PNG data, the bezel layout and its referenced images,
+the generated dossier, and a successfully extracted history entry.
+
+### STEP 7: RECORD AND REVIEW THE CONTRACT
 
 Only after manual verification:
 
@@ -284,11 +325,11 @@ Do not update hashes merely to make a failing test pass. Explain whether each
 change came from ROM assembly, CPU/device state, video, audio writes, generated
 PCM, input timing, or an intentional source migration.
 
-### STEP 7: JOIN THE CURRENT WORKING SET
+### STEP 8: VERIFY THE CURRENT WORKING SET
 
-After clean generation, audit, real-ROM acceptance, and browser validation all
-pass, add the target to `gen:all`. Then regenerate every current machine from
-an empty `dist` and verify that existing contracts remain unchanged.
+After clean generation, audits, real-ROM acceptance, presentation validation,
+and browser validation all pass, regenerate every discovered machine from an
+empty `dist` and verify that existing contracts remain unchanged.
 
 ```sh
 npm test
@@ -302,12 +343,13 @@ expensive than the current-game CI gate.
 
 ### DEFINITION OF DONE
 
-A machine is ready for the current working set when clean generation and audit
-pass, its runtime report has no hidden blocker, its real-ROM contract and
-minimum fps pass, coin/start/gameplay/video/audio have been checked in the
-browser, existing game goldens remain unchanged, and every new compiler rule
-has a colocated reusable test. At that point the checked-in game-specific
-surface should still be only `src/games/<target>.ts` and its adjacent spec.
+A machine is ready for the current working set when clean generation and both
+audits pass, its runtime report has no hidden blocker, its real-ROM contract
+and minimum fps pass, coin/start/gameplay/video/audio have been checked against
+MAME and in the browser, its local artwork/history package is complete,
+existing game goldens remain unchanged, and every new compiler rule has a
+colocated reusable test. At that point the checked-in game-specific surface
+should still be only `src/games/<target>.ts` and its adjacent spec.
 
 ## 5. TEST AND REVIEW REQUIREMENTS
 

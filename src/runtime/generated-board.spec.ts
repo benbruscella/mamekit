@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import type { BoardIr } from '../ir/board.ts';
 import {
+  applyGeneratedCpuInputLine,
   bindGeneratedDriverState,
+  bindGeneratedRegionState,
   bindGeneratedShareState,
   createGeneratedBoard,
 } from './generated-board.ts';
@@ -18,6 +20,36 @@ assert.equal(state['m_spriteram[0]'], first);
 assert.equal(state['m_spriteram[1]'], second);
 assert.deepEqual(state.m_spriteram, [first, second]);
 assert.equal((first as Uint8Array & { bytes(): number }).bytes(), 0x100);
+
+const regionState: Record<string, unknown> = {};
+const irqProm = Uint8Array.of(2, 6, 1, 5);
+bindGeneratedRegionState(regionState, 'irqprom', irqProm);
+assert.equal(regionState.m_irqprom, irqProm);
+
+let resets = 0;
+let nmis = 0;
+let irqs = 0;
+let held = false;
+const lineCpu = {
+  reset() { resets++; },
+  step() { return 1; },
+  run(cycles: number) { return cycles; },
+  setIrqLine() { irqs++; },
+  nmi() { nmis++; },
+  get() { return 0; },
+  set() {},
+  invoke() { return 0; },
+};
+applyGeneratedCpuInputLine(lineCpu, -2, 1, state => { held = state; });
+assert.equal(resets, 1, 'INPUT_LINE_RESET must reset, not trigger NMI');
+assert.equal(nmis, 0);
+assert.equal(held, true);
+applyGeneratedCpuInputLine(lineCpu, -2, 0, state => { held = state; });
+assert.equal(held, false);
+applyGeneratedCpuInputLine(lineCpu, -1, 1, state => { held = state; });
+assert.equal(nmis, 1);
+applyGeneratedCpuInputLine(lineCpu, 0, 2, state => { held = state; });
+assert.equal(irqs, 1);
 
 const driverState: Record<string, unknown> = {};
 const driverCalls: Record<string, (...args: number[]) => number | void> = {};
@@ -105,4 +137,4 @@ opcodeBoard.frame(new Uint32Array(1));
 assert.equal(programRead, 0x11);
 assert.equal(opcodeRead, 0x22, 'the generated board must preserve the AS_OPCODES bus');
 
-console.log('generated-board.spec: shares, flip-screen state and opcode bus passed');
+console.log('generated-board.spec: shares, CPU lines, flip-screen state and opcode bus passed');

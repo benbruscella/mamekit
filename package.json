@@ -13,6 +13,7 @@
     "gen": "node bin/mamekit.js",
     "gen:all": "npm run clean && node bin/mamekit.js --all",
     "audit:generated": "node src/gen/audit-generated.ts",
+    "audit:game-package": "node tools/audit-game-package.ts",
     "deploy": "bash scripts/deploy-pages.sh --artwork",
     "deploy:noart": "bash scripts/deploy-pages.sh",
     "test": "npm run test:unit && npm run test:current",
@@ -20,7 +21,8 @@
     "test:current": "npm run gen:all && npm run audit:generated",
     "test:generation": "node src/gen/test-generation.ts",
     "test:games": "node src/games/acceptance.ts",
-    "test:games:record": "MAMEKIT_UPDATE_GOLDENS=1 node src/games/acceptance.ts"
+    "test:games:record": "MAMEKIT_UPDATE_GOLDENS=1 node src/games/acceptance.ts",
+    "audio:compare": "node tools/compare-game-audio.ts"
   },
   "engines": {
     "node": ">=23.6"
