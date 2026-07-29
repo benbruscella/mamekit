@@ -269,6 +269,20 @@ executeGeneratedHandler(requiredDeviceCall, {
 });
 assert.equal(requiredDeviceState, 1);
 
+let indexedDeviceData = 0;
+executeGeneratedHandler(
+  compileMameHandler('m_ay8910[0]->data_address_w(1, 0x2a);'),
+  {
+    calls: {
+      'm_ay8910[0].data_address_w': (_offset, data) => {
+        indexedDeviceData = Number(data);
+        return 0;
+      },
+    },
+  },
+);
+assert.equal(indexedDeviceData, 0x2a);
+
 // C and C++ library primitives MAME device sources rely on.
 const buffered = new Uint8Array(8);
 const live = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
@@ -300,4 +314,4 @@ executeGeneratedHandler(
 assert.ok(ArrayBuffer.isView(resized.m_buffered), 'resize must preserve the container');
 assert.equal((resized.m_buffered as Uint8Array).length, 4);
 
-console.log('generated-handler.spec: 20 passed');
+console.log('generated-handler.spec: 21 passed');

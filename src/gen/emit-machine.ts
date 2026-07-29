@@ -544,7 +544,7 @@ export function lowerAuxiliaryAudioDevices(
 
 function deviceMember(props: Record<string, unknown>): string | undefined {
   const config = Array.isArray(props.config) ? props.config.map(String).join('\n') : '';
-  return /\(\s*config\s*,\s*(m_\w+)/.exec(config)?.[1];
+  return /\(\s*config\s*,\s*(m_\w+(?:\[\d+\])?)/.exec(config)?.[1];
 }
 
 function inferInterruptVectorWriters(

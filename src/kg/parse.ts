@@ -663,7 +663,7 @@ export function parseMemoryBanks(
 ): MemoryBankDef[] {
   const banks: MemoryBankDef[] = [];
   const regionAliases = pointerRegionAliases(body);
-  const call = /\b(m_\w+)\s*->\s*configure_(entries|entry)\s*\(/g;
+  const call = /\b(m_\w+(?:\s*\[\s*\d+\s*\])?)\s*->\s*configure_(entries|entry)\s*\(/g;
   let match: RegExpExecArray | null;
   while ((match = call.exec(body)) !== null) {
     const open = body.indexOf('(', match.index + match[1]!.length);
@@ -677,7 +677,7 @@ export function parseMemoryBanks(
     const entries = plural ? evalExpr(args[1]!, consts) : 1;
     const stride = plural ? evalExpr(args[3]!, consts) : 0;
     if (!source || startEntry === null || entries === null || stride === null) continue;
-    const member = match[1]!;
+    const member = match[1]!.replace(/\s+/g, '');
     banks.push({
       member,
       tag: memberTags[member] ?? member.replace(/^m_/, ''),
@@ -759,12 +759,19 @@ export function parseMemberTags(src: string): Record<string, string> {
   return out;
 }
 
-/** Element count of each `*_array<Type, N> m_member;` declaration. */
+/**
+ * Element count of each finder-array declaration. Device arrays use
+ * `<Type, N>`, while memory-bank arrays use `<N>`.
+ */
 function arrayFinderCounts(src: string): Record<string, number> {
   const counts: Record<string, number> = {};
-  const re = /\b(?:required|optional)_\w*array\s*<[^<>]*?,\s*(\d+)\s*>\s+(m_\w+)\s*;/g;
+  const re = /\b(?:required|optional)_\w*array\s*<([^<>]*)>\s+(m_\w+)\s*;/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(src)) !== null) counts[m[2]] = Number(m[1]);
+  while ((m = re.exec(src)) !== null) {
+    const args = splitArgs(m[1]!);
+    const count = Number(args.at(-1)?.replace(/[uUlL]+$/g, ''));
+    if (Number.isFinite(count)) counts[m[2]!] = count;
+  }
   return counts;
 }
 
@@ -775,10 +782,10 @@ function formatFinderTag(format: string, start: string, index: number): string {
     if (conversion === 'c' || character) {
       const base = character
         ? character[1].charCodeAt(0)
-        : Number(start);
+        : Number(start.replace(/[uUlL]+$/g, ''));
       return String.fromCharCode(base + index);
     }
-    return String(Number(start) + index);
+    return String(Number(start.replace(/[uUlL]+$/g, '')) + index);
   });
 }
 

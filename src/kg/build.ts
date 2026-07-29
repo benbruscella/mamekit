@@ -201,8 +201,8 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (r.share) props.share = r.share;
       if (r.portRead) props.portRead = r.portRead;
       if (r.portWrite) props.portWrite = r.portWrite;
-      if (r.bankRead) props.bankRead = r.bankRead;
-      if (r.bankWrite) props.bankWrite = r.bankWrite;
+      if (r.bankRead) props.bankRead = memberTags[`m_${r.bankRead}`] ?? r.bankRead;
+      if (r.bankWrite) props.bankWrite = memberTags[`m_${r.bankWrite}`] ?? r.bankWrite;
       g.node('AddressRange', rangeId, props);
       g.edge(mapId, rangeId, 'HAS_RANGE');
       for (const dir of ['read', 'write'] as const) {

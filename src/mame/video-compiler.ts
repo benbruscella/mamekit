@@ -118,6 +118,7 @@ export function compileMameVideo(
     .filter((node): node is KGNode => Boolean(node))
     .reduce((scale, entry) => Math.max(scale, Number(entry.props.xscale ?? 1)), 1);
   const numericDefaults = numericState(memberDefaults);
+  const configState = machineConfigInitialState(ast, source, config, constants);
   const tilemaps = compileTilemaps(start, { ...constants, ...numericDefaults })
     .filter((tilemap, index, all) =>
       all.findIndex(candidate => candidate.member === tilemap.member) === index);
@@ -210,6 +211,7 @@ export function compileMameVideo(
       initialState: {
         ...arrayState(memberDefaults),
         ...(needsClassDefaults ? memberDefaults : {}),
+        ...configState,
         ...initialState(start.body, { ...constants, ...numericDefaults }),
       },
       ...(renderScale !== 1 ? { renderScale: { x: renderScale, y: 1 } } : {}),
@@ -1633,6 +1635,58 @@ function initialState(
     if (value != null && Number.isFinite(value)) state[match[1]!] = value;
   }
   return state;
+}
+
+/**
+ * Numeric driver setters called by a machine config are source-defined board
+ * facts. For example, Zig Zag calls set_num_spritegens(2), whose inline MAME
+ * body assigns m_numspritegens. Apply those simple assignments after class
+ * defaults and before video_start, matching MAME's construction order.
+ */
+function machineConfigInitialState(
+  ast: MameAstIndex,
+  source: string,
+  config: MameFunction,
+  constants: Record<string, number>,
+): Record<string, number> {
+  const state: Record<string, number> = {};
+  for (const match of config.body.matchAll(/\b(set_\w+)\s*\(([^;()]*)\)\s*;/g)) {
+    const method = ast.findFunctionInHierarchy(config.className, match[1]!)
+      ?? inlineSetter(source, match[1]!);
+    if (!method) continue;
+    const arguments_ = splitMameArgs(match[2]!).map(argument =>
+      evalExpr(substituteNumbers(argument, constants), constants));
+    if (arguments_.some(value => value === null)) continue;
+    const parameters = splitMameArgs(method.parameters)
+      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+      .filter((name): name is string => Boolean(name));
+    const values = {
+      ...constants,
+      ...Object.fromEntries(parameters.map((name, index) => [name, arguments_[index] ?? 0])),
+    };
+    Object.assign(state, initialState(method.body, { ...values, ...state }));
+  }
+  return state;
+}
+
+function inlineSetter(
+  source: string,
+  name: string,
+): { parameters: string; body: string } | undefined {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const declaration = new RegExp(
+    `\\b(?:void|int|unsigned|bool|u(?:8|16|32|64)|s(?:8|16|32|64))\\s+` +
+    `${escaped}\\s*\\(([^)]*)\\)\\s*\\{`,
+  ).exec(source);
+  if (!declaration) return undefined;
+  const open = source.indexOf('{', declaration.index + declaration[0].length - 1);
+  const close = matchingPair(source, open, '{', '}');
+  return close < 0
+    ? undefined
+    : {
+        parameters: declaration[1]!,
+        body: source.slice(open + 1, close),
+      };
 }
 
 function numericState(

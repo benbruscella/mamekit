@@ -64,6 +64,28 @@ eq('memory bank configure_entries', parseMemoryBanks(
   raw: 'm_mainbank->configure_entries(0, 16, memregion("maincpu")->base() + 0x10000, 0x1000)',
 }]);
 
+eq('indexed memory-bank array entries', parseMemoryBanks(
+  `
+  m_rombanks[0]->configure_entries(0, 2, memregion("maincpu")->base() + 0x2000, 0x1000);
+  m_rombanks[1]->configure_entries(0, 2, memregion("maincpu")->base() + 0x2000, 0x1000);
+  `,
+  {
+    'm_rombanks[0]': 'bank1',
+    'm_rombanks[1]': 'bank2',
+  },
+  {},
+).map(bank => ({
+  member: bank.member,
+  tag: bank.tag,
+  entryOffsets: Array.from(
+    { length: bank.entries },
+    (_unused, index) => bank.offset + index * bank.stride,
+  ),
+})), [
+  { member: 'm_rombanks[0]', tag: 'bank1', entryOffsets: [0x2000, 0x3000] },
+  { member: 'm_rombanks[1]', tag: 'bank2', entryOffsets: [0x2000, 0x3000] },
+]);
+
 // --- extended graphics layout offsets ---------------------------------------
 {
   const [layout] = parseGfxLayouts(`
@@ -225,6 +247,21 @@ eq('device array finder tags', parseMemberTags(`
   m_ym: 'ym%u',
   'm_ym[0]': 'ym1',
   'm_ym[1]': 'ym2',
+});
+
+eq('memory-bank array finder tags', parseMemberTags(`
+class board_state
+{
+  required_memory_bank_array<2> m_rombanks;
+};
+board_state::board_state()
+  : m_rombanks(*this, "bank%u", 1U)
+{
+}
+`), {
+  m_rombanks: 'bank%u',
+  'm_rombanks[0]': 'bank1',
+  'm_rombanks[1]': 'bank2',
 });
 
 // add_route on an array element must still lower, and a bank may be configured

@@ -42,9 +42,9 @@ export const gng: GameTestContract = {
       3000: { video: '4c7abb46', state: '994ff023' },
     },
     audio: {
-      writes: 478542,
+      writes: 478544,
       nonzeroWrites: 250736,
-      writeHash: '15db3517',
+      writeHash: 'bcd7e38a',
       pcmHash: 'd287873d',
       rms: 0.066986,
     },

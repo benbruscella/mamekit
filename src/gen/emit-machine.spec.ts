@@ -31,6 +31,14 @@ const graph: KnowledgeGraph = {
       sourceLine: 42,
     },
   }, {
+    id: 'device:ay0',
+    label: 'Device',
+    props: {
+      type: 'AY8910',
+      tag: 'ay.0',
+      config: ['AY8910(config, m_ay[0], 1000000)'],
+    },
+  }, {
     id: 'callback:vector',
     label: 'Callback',
     props: {
@@ -98,6 +106,9 @@ if (reset.callbackId !== machine.callbacks[0]?.id) {
 if (machine.execution.cpus[0]?.clock !== 1_000_000) throw new Error('execution plan missing CPU clock');
 if (machine.execution.cpus[0]?.interruptVectorWriters?.[0] !== 'test_state.vector_w') {
   throw new Error('interrupt-vector writer relation was not lowered from handler IR');
+}
+if (machine.devices?.find(device => device.tag === 'ay.0')?.member !== 'm_ay[0]') {
+  throw new Error('device-array members must retain their finder index');
 }
 const source = generatedBoardSource(machine);
 if (!source.includes('decodeBoardIr(')) {

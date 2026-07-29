@@ -803,6 +803,11 @@ function modulo(value: number, divisor: number): number {
 
 function indexValue(object: unknown, index: number): unknown {
   if (isGeneratedPointer(object)) return pointerValue(object, index);
+  // Finder arrays such as required_device_array and required_memory_bank_array
+  // are symbolic runtime references, not JavaScript arrays. Preserve the
+  // indexed C++ member name so a binding like "m_ay8910[0].data_w" or
+  // "m_rombanks[1].set_entry" can resolve it.
+  if (isReference(object)) return reference(`${object.reference}[${index}]`);
   if (ArrayBuffer.isView(object)) return (object as Uint8Array)[index] ?? 0;
   if (Array.isArray(object)) return object[index] ?? 0;
   return 0;
