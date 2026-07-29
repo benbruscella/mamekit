@@ -41,11 +41,11 @@ export const timeplt: GameTestContract = {
         state: '7f95cddf',
       },
       '720': {
-        video: 'bf127b3b',
+        video: '96e6f0a2',
         state: '289f4c90',
       },
       '1200': {
-        video: '80b74718',
+        video: '7069f4a5',
         state: 'af922604',
       },
     },
