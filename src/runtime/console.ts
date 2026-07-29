@@ -43,6 +43,9 @@ const SLOT_PCB: Record<string, string> = {
   nrom: 'NROM', uxrom: 'UxROM', cnrom: 'CNROM', sxrom: 'MMC1', txrom: 'MMC3',
   pxrom: 'MMC2', fxrom: 'MMC4', gxrom: 'GxROM', axrom: 'AxROM', bnrom: 'BNROM',
 };
+const MAPPER_SLOTS: Record<number, string> = {
+  0: 'nrom', 1: 'sxrom', 2: 'uxrom', 3: 'cnrom', 4: 'txrom',
+};
 
 type CartState = 'placeholder' | 'lit' | 'experimental' | 'unsupported';
 
@@ -94,14 +97,23 @@ export function wrapCartTitle(s: string, max = 17): string[] {
 // --- inline-SVG cartridge artwork ----------------------------------------------
 // The iconic NES grey cart: plastic body + grip ridges + black-framed label with
 // a colored top-stripe. State drives palette/marks; text is crisp <text>.
-function cartSvg(o: { title: string; sub: string; state: CartState }): string {
+function artHash(value: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) hash = Math.imul(hash ^ value.charCodeAt(i), 16777619);
+  return hash >>> 0;
+}
+
+function cartSvg(o: { title: string; sub: string; state: CartState; artKey?: string }): string {
+  const hash = artHash(o.artKey ?? o.title);
+  const hue = hash % 360;
+  const catalogStripe = `hsl(${hue} 62% 46%)`;
   const stripe = o.state === 'lit' ? STRIPE_TESTED
     : o.state === 'experimental' ? STRIPE_EXPERIMENTAL
       : o.state === 'unsupported' ? STRIPE_UNSUPPORTED
-        : STRIPE_PLACEHOLDER;
-  const dim = o.state === 'placeholder' || o.state === 'unsupported';
-  const dashed = o.state === 'placeholder';
-  const titleColor = dim ? '#8b8b86' : '#181818';
+        : o.artKey ? catalogStripe : STRIPE_PLACEHOLDER;
+  const dim = (o.state === 'placeholder' && !o.artKey) || o.state === 'unsupported';
+  const dashed = o.state === 'placeholder' && !o.artKey;
+  const titleColor = o.artKey ? '#fff' : dim ? '#8b8b86' : '#181818';
   const subColor = dim ? '#7a7a75' : '#6b6045';
   const lines = wrapCartTitle(o.title);
 
@@ -126,9 +138,21 @@ function cartSvg(o: { title: string; sub: string; state: CartState }): string {
   } else if (o.state === 'unsupported') {
     mark = `<text x="100" y="205" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="30" font-weight="900" fill="#e0504d" opacity=".85">✕</text>`;
   }
-  const chip = o.state === 'placeholder'
+  const chip = o.state === 'placeholder' && !o.artKey
     ? `<rect x="40" y="176" width="120" height="26" rx="13" fill="rgba(6,8,20,.55)" stroke="${STRIPE_PLACEHOLDER}" stroke-width="1.5" stroke-dasharray="4 3"/>`
       + `<text x="100" y="193" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10.5" font-weight="800" fill="#c6cdec" letter-spacing=".5">◍ INSERT DUMP</text>`
+    : '';
+  // Every catalog entry gets deterministic label art from its metadata. This
+  // keeps all 4,000+ carts visually distinct without bundling copyrighted box
+  // scans: color, sun position and horizon bars are stable for the softlist id.
+  const labelArt = o.artKey
+    ? `<rect x="25.5" y="85.5" width="149" height="63" fill="hsl(${hue} 38% 17%)"/>
+       <circle cx="${48 + (hash % 102)}" cy="${99 + ((hash >>> 8) % 28)}" r="${13 + ((hash >>> 16) % 15)}"
+         fill="hsl(${(hue + 42) % 360} 78% 58%)" opacity=".86"/>
+       <path d="M26 139 L${58 + (hash % 35)} 104 L${112 + ((hash >>> 5) % 42)} 139 Z"
+         fill="hsl(${(hue + 185) % 360} 48% 27%)"/>
+       <path d="M26 146 L${82 + ((hash >>> 10) % 30)} 119 L175 146 Z"
+         fill="hsl(${(hue + 215) % 360} 42% 36%)"/>`
     : '';
 
   return `<svg viewBox="0 0 ${CART_W} ${CART_H}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
@@ -144,6 +168,7 @@ function cartSvg(o: { title: string; sub: string; state: CartState }): string {
     <rect x="22" y="72" width="156" height="150" rx="5" fill="none" stroke="${CART_LABEL_FRAME}" stroke-width="3"${dashed ? ' stroke-dasharray="7 5"' : ''}/>
     <rect x="25.5" y="75.5" width="149" height="143" rx="3" fill="${CART_LABEL_BG}"/>
     <rect x="25.5" y="75.5" width="149" height="10" fill="${stripe}"/>
+    ${labelArt}
     ${titleSvg}
     <text x="34" y="154" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10.5" font-weight="600" fill="${subColor}">${esc(o.sub)}</text>
     <rect x="34" y="228" width="132" height="5" rx="2" fill="rgba(0,0,0,.4)"/>
@@ -205,7 +230,11 @@ async function fetchOwnEntry(cfg: ShellConfig): Promise<MenuEntry | null> {
 }
 
 /** parse + identify a stored record against this visit's catalog */
-function resolveRec(rec: CartRecord, catalog: SoftCatalog | null, support: { slots: string[]; games: string[] }): ResolvedCart | null {
+function resolveRec(
+  rec: CartRecord,
+  catalog: SoftCatalog | null,
+  support: { slots: string[]; games: string[]; mapperSlots?: Record<number, string> },
+): ResolvedCart | null {
   const ines = parseINes(new Uint8Array(rec.bytes));
   return ines ? identify(ines, catalog, support) : null;
 }
@@ -225,7 +254,11 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   // rebuild it, so a reload is the honest implementation
   addEventListener('popstate', () => location.reload());
 
-  const support = { slots: cfg.cart?.slots ?? [], games: cfg.cart?.games ?? [] };
+  const support = {
+    slots: cfg.cart?.slots ?? [],
+    games: cfg.cart?.games ?? [],
+    mapperSlots: MAPPER_SLOTS,
+  };
   const [store, catalog, entry] = await Promise.all([openCartStore(), fetchCatalog(cfg), fetchOwnEntry(cfg)]);
   // stale-bundle guard: generated before the board compiled -> shelve-only
   const coreSupported = entry?.supported !== false;
@@ -401,6 +434,56 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   placeholderRow.setAttribute('data-placeholder-shelf', '');
   board.appendChild(placeholderRow);
 
+  const libraryHead = rowHead('THE CARTRIDGE LIBRARY');
+  board.appendChild(libraryHead);
+  const libraryIntro = el('div', `display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:14px 16px;margin:8px 0 18px;border:1px solid #252d62;border-radius:12px;
+    background:linear-gradient(135deg,rgba(24,30,67,.96),rgba(9,12,29,.96));
+    box-shadow:inset 0 1px rgba(255,255,255,.05),0 12px 28px rgba(0,0,0,.28)`);
+  const search = document.createElement('input');
+  search.type = 'search';
+  search.placeholder = 'Search titles, publishers, years…';
+  search.setAttribute('data-cart-search', '');
+  search.style.cssText = `flex:1 1 300px;min-width:190px;padding:11px 14px;border-radius:8px;
+    border:2px solid #303a78;background:#080b1d;color:#f4f5ff;font:inherit;outline:none`;
+  const boardFilter = document.createElement('select');
+  boardFilter.setAttribute('data-cart-filter', '');
+  boardFilter.style.cssText = `padding:11px 14px;border-radius:8px;border:2px solid #303a78;
+    background:#111633;color:#d8dcff;font:inherit;cursor:pointer`;
+  for (const [value, label] of [
+    ['all', 'All cartridges'],
+    ['playable', 'Playable boards'],
+    ...support.slots.map(slot => [slot, SLOT_PCB[slot] ?? slot.toUpperCase()]),
+  ]) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    boardFilter.appendChild(option);
+  }
+  const libraryCount = el('div', 'color:#8f99d2;font:12px ui-monospace,monospace;white-space:nowrap');
+  libraryCount.setAttribute('data-library-count', '');
+  libraryIntro.append(search, boardFilter, libraryCount);
+  board.appendChild(libraryIntro);
+
+  const libraryStage = el('div', `position:relative;padding:22px 18px 32px;border-radius:14px;
+    background:linear-gradient(90deg,#080913,#101329 50%,#080913);
+    border:1px solid #202650;box-shadow:inset 0 12px 30px rgba(0,0,0,.65)`);
+  const libraryRow = el('div', `display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
+    align-items:end;gap:28px 18px;position:relative;z-index:1`);
+  libraryRow.setAttribute('data-library-shelf', '');
+  const shelfLip = el('div', `position:absolute;left:8px;right:8px;bottom:10px;height:18px;border-radius:4px;
+    background:linear-gradient(#575268,#211f2c 42%,#090a10 45%);
+    box-shadow:0 8px 18px rgba(0,0,0,.8)`);
+  libraryStage.append(libraryRow, shelfLip);
+  board.appendChild(libraryStage);
+  const moreLibrary = document.createElement('button');
+  moreLibrary.textContent = 'SHOW MORE CARTRIDGES';
+  moreLibrary.setAttribute('data-library-more', '');
+  moreLibrary.style.cssText = `display:block;margin:18px auto 0;padding:10px 22px;border-radius:9px;
+    border:2px solid #303a78;background:#111633;color:#cbd1ff;font:700 12px ui-monospace,monospace;
+    letter-spacing:1px;cursor:pointer`;
+  board.appendChild(moreLibrary);
+
   const otherHead = rowHead('YOUR OTHER CARTRIDGES');
   otherHead.style.display = 'none';
   board.appendChild(otherHead);
@@ -539,6 +622,84 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   }
   const others: Other[] = [];
 
+  const catalogTiles: Card[] = [];
+  let catalogLimit = 48;
+
+  function buildCatalogTile(catEntry: SoftEntry): Card {
+    const playableBoard = support.slots.includes(catEntry.slot);
+    const item = el('div', 'display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0');
+    item.setAttribute('data-catalog-cart', catEntry.name);
+    item.dataset.slot = catEntry.slot;
+    const cover = coverEl(cartSvg({
+      title: stripSet(catEntry.description),
+      sub: [catEntry.publisher, catEntry.year].filter(Boolean).join(' · '),
+      state: 'placeholder',
+      artKey: catEntry.name,
+    }), false, false);
+    cover.style.width = '160px';
+    cover.style.height = '200px';
+    cover.style.transform = 'perspective(700px) rotateY(-2deg)';
+    cover.addEventListener('mouseenter', () => {
+      cover.style.transform = 'perspective(700px) translateY(-8px) rotateY(0)';
+      cover.style.boxShadow = `0 0 28px hsla(${artHash(catEntry.name) % 360},80%,60%,.34),0 18px 28px rgba(0,0,0,.7)`;
+    });
+    cover.addEventListener('mouseleave', () => {
+      cover.style.transform = 'perspective(700px) rotateY(-2deg)';
+      cover.style.boxShadow = '0 12px 22px rgba(0,0,0,.45)';
+    });
+    const label = el('div', `max-width:164px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      color:${playableBoard ? '#e8b64c' : '#737ba7'};font:700 10px ui-monospace,monospace;
+      letter-spacing:.5px;text-align:center`);
+    label.textContent = playableBoard
+      ? `${SLOT_PCB[catEntry.slot] ?? catEntry.slot.toUpperCase()} · READY FOR DUMP`
+      : `${SLOT_PCB[catEntry.slot] ?? catEntry.slot.toUpperCase()} · DISPLAY ONLY`;
+    label.title = `${catEntry.description} — ${label.textContent}`;
+    item.append(cover, label);
+    const card: Card = {
+      item,
+      canPlay: () => false,
+      play: () => picker.click(),
+      info: () => openTargetModal(catEntry, catEntry.name),
+      eject: () => {},
+    };
+    cover.onclick = card.info;
+    return card;
+  }
+
+  function renderCatalog(reset = false): void {
+    if (reset) catalogLimit = 48;
+    const term = search.value.trim().toLocaleLowerCase();
+    const filter = boardFilter.value;
+    const matches = (catalog?.entries ?? []).filter(catEntry => {
+      if (filter === 'playable' && !support.slots.includes(catEntry.slot)) return false;
+      if (!['all', 'playable'].includes(filter) && catEntry.slot !== filter) return false;
+      if (!term) return true;
+      return `${catEntry.description} ${catEntry.publisher} ${catEntry.year} ${catEntry.name}`
+        .toLocaleLowerCase().includes(term);
+    });
+    libraryRow.textContent = '';
+    catalogTiles.splice(0);
+    for (const catEntry of matches.slice(0, catalogLimit)) {
+      const tile = buildCatalogTile(catEntry);
+      catalogTiles.push(tile);
+      libraryRow.appendChild(tile.item);
+    }
+    libraryCount.textContent = `${Math.min(catalogLimit, matches.length).toLocaleString()} / ${matches.length.toLocaleString()}`;
+    moreLibrary.style.display = matches.length > catalogLimit ? 'block' : 'none';
+    if (!matches.length) {
+      const empty = el('div', 'grid-column:1/-1;padding:38px;color:#7982b8;text-align:center');
+      empty.textContent = 'No cartridges match this shelf filter.';
+      libraryRow.appendChild(empty);
+    }
+    fixSelection();
+  }
+  search.addEventListener('input', () => renderCatalog(true));
+  boardFilter.addEventListener('change', () => renderCatalog(true));
+  moreLibrary.addEventListener('click', () => {
+    catalogLimit += 48;
+    renderCatalog();
+  });
+
   function buildOther(rec: CartRecord, resolved: ResolvedCart | null): Other {
     const state: CartState = resolved?.tier === 'experimental' ? 'experimental' : 'unsupported';
     const title = stripSet(resolved?.meta?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, ''));
@@ -594,7 +755,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   }
 
   // --- navigation ----------------------------------------------------------------
-  const cards = (): Card[] => [...slots, ...others];
+  const cards = (): Card[] => [...slots, ...catalogTiles, ...others];
   let selected = -1;
 
   const select = (i: number): void => {
@@ -746,17 +907,24 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
 
   // info for an EMPTY verified slot — describes the target dump to hunt for
   function openTargetModal(catEntry: SoftEntry | undefined, name: string): void {
+    const verified = support.games.includes(name) ||
+      (catEntry?.cloneof !== undefined && support.games.includes(catEntry.cloneof));
+    const playableBoard = catEntry !== undefined && support.slots.includes(catEntry.slot);
     openModal((scroller, footer, close) => {
       const inner = el('div', 'padding:22px 30px 20px');
       scroller.appendChild(inner);
       const h = el('div', `font-size:24px;font-weight:800;color:${GOLD};line-height:1.2;margin-bottom:2px`);
       h.textContent = stripSet(catEntry?.description ?? name.toUpperCase());
       const subh = el('div', 'font-size:12px;font-weight:700;letter-spacing:.8px;color:#8b93c4;margin-bottom:14px');
-      subh.textContent = '◍ VERIFIED SLOT — DROP THIS DUMP TO PLAY';
+      subh.textContent = verified
+        ? '◍ VERIFIED SLOT — DROP THIS DUMP TO PLAY'
+        : playableBoard
+          ? `◍ ${SLOT_PCB[catEntry.slot] ?? catEntry.slot.toUpperCase()} — PLAYABLE, NOT YET VERIFIED`
+          : `◍ ${catEntry ? SLOT_PCB[catEntry.slot] ?? catEntry.slot.toUpperCase() : 'UNKNOWN BOARD'} — DISPLAY ONLY`;
       inner.append(h, subh);
 
       if (catEntry) {
-        const cat = section(inner, 'The verified dump to drop in');
+        const cat = section(inner, verified ? 'The verified dump to drop in' : 'MAME software-list cartridge');
         row(cat, 'Title', catEntry.description);
         if (catEntry.year) row(cat, 'Year', catEntry.year);
         if (catEntry.publisher) row(cat, 'Publisher', catEntry.publisher);
@@ -766,7 +934,11 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
         row(cat, 'Softlist name', catEntry.name);
       }
       const note = el('div', 'color:#7f8ac9;font-size:13px;line-height:1.6');
-      note.textContent = 'Bring your own legally obtained ROM dump. Drop the .nes (or a .zip containing it) into the slot above and this cartridge lights up — verified and ready to play.';
+      note.textContent = verified
+        ? 'Bring your own legally obtained ROM dump. Drop the .nes (or a .zip containing it) into the slot above and this cartridge lights up — verified and ready to play.'
+        : playableBoard
+          ? 'Bring your own legally obtained ROM dump. This board is implemented, so a matching .nes file can be inserted and played as experimental until it is fully verified.'
+          : 'This cartridge is part of the complete MAME software-list shelf. Its board is not implemented yet, so it remains a display piece for now.';
       inner.appendChild(note);
 
       const pick = footerBtn('◍ Insert a dump…', true);
@@ -955,6 +1127,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     slots.push(s);
     placeholderRow.appendChild(s.item);
   }
+  renderCatalog(true);
   const recs = await store.list(cfg.game);
   for (const rec of recs) route(rec, resolveRec(rec, catalog, support), false);
   select(0);

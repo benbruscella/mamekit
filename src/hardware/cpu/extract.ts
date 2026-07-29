@@ -4,6 +4,7 @@ import {
   compileMameM6803,
   compileMameMc6809,
   compileMameMcs48,
+  compileMameRp2a03,
   compileMameZ80,
 } from '../../mame/cpu-compiler.ts';
 import { generatedCpuExecutableSource } from '../../mame/cpu-codegen.ts';
@@ -22,6 +23,8 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   M6803: compileMameM6803,
   KONAMI1: compileMameKonami1,
   MC6809: compileMameMc6809,
+  RP2A03: compileMameRp2a03,
+  RP2A03G: compileMameRp2a03,
 };
 
 export function extractCpus(input: CapabilityInput): CapabilityExtraction | undefined {

@@ -68,6 +68,8 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     type: string;
     status: string;
     executable?: boolean;
+    executableKind?: 'cpu' | 'device' | 'audio' | 'composition';
+    executableArtifact?: string;
     /** internal part satisfied by these executable host devices */
     hostedBy?: string[];
     uses?: { game: string }[];
@@ -93,8 +95,7 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     for (const hardware of manifest.hardware ?? []) {
       if (
         !hardware.executable ||
-        !hardware.executableArtifact ||
-        hardware.executableKind === 'composition'
+        !hardware.executableArtifact
       ) continue;
       const artifact = join(outRoot, 'runtime/generated', hardware.executableArtifact);
       if (!existsSync(artifact)) {
@@ -102,10 +103,10 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
       }
     }
     const z80 = manifest.hardware?.find(hardware => hardware.type === 'Z80');
-    if (!z80?.executable || !z80.executableArtifact) {
+    if (z80 && (!z80.executable || !z80.executableArtifact)) {
       failures.push('Z80 is not emitted as executable source-derived hardware');
-    } else {
-      const definitionPath = join(outRoot, 'runtime/generated', z80.executableArtifact);
+    } else if (z80) {
+      const definitionPath = join(outRoot, 'runtime/generated', z80.executableArtifact!);
       if (!existsSync(definitionPath)) {
         failures.push(`Z80 executable artifact is missing: ${z80.executableArtifact}`);
       } else {
@@ -140,12 +141,12 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
       }
     }
     const ls259 = manifest.hardware?.find(hardware => hardware.type === 'LS259');
-    if (!ls259?.executable ||
+    if (ls259 && (!ls259.executable ||
         ls259.executableKind !== 'device' ||
-        !ls259.executableArtifact) {
+        !ls259.executableArtifact)) {
       failures.push('LS259 is not emitted as an executable source-derived device');
-    } else {
-      const definitionPath = join(outRoot, 'runtime/generated', ls259.executableArtifact);
+    } else if (ls259) {
+      const definitionPath = join(outRoot, 'runtime/generated', ls259.executableArtifact!);
       if (!existsSync(definitionPath)) {
         failures.push(`LS259 executable artifact is missing: ${ls259.executableArtifact}`);
       } else {
@@ -262,7 +263,11 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     if (!machine.callbacks.length) failures.push(`${target}: no generated callbacks`);
     if (!machine.execution?.cpus.length) failures.push(`${target}: no generated CPU execution plan`);
     if (!machine.execution?.screen.vtotal) failures.push(`${target}: no generated screen timing`);
-    if (!machine.video) failures.push(`${target}: no generated video plan`);
+    const compositionVideo = hardwareEntries.some(entry =>
+      entry.executable &&
+      entry.executableKind === 'composition' &&
+      entry.uses?.some(use => use.game === target));
+    if (!machine.video && !compositionVideo) failures.push(`${target}: no generated video plan`);
     const callbackIds = new Set(machine.callbacks.map(callback => callback.id));
     if (callbackIds.size !== machine.callbacks.length) failures.push(`${target}: duplicate callback IDs`);
     callbacks += machine.callbacks.length;

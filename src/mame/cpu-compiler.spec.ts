@@ -4,6 +4,7 @@ import {
   compileMameKonami1,
   compileMameMc6809,
   compileMameM6803,
+  compileMameRp2a03,
   compileMameZ80,
 } from './cpu-compiler.ts';
 import { generatedCpuExecutableSource } from './cpu-codegen.ts';
@@ -54,6 +55,32 @@ opcodeCpu.step();
 assert.equal(opcodeCpu.get('PC'), 1);
 assert.equal(opcodeCpu.get('m_halt'), 0);
 assert.match(generatedCpuExecutableSource(definition), /bus\.readOpcode\?\./);
+
+const rp2a03Definition = compileMameRp2a03(process.env.MAME_SRC ?? '../mame');
+assert.equal(rp2a03Definition.summary.opcodes, 256);
+assert.equal(rp2a03Definition.summary.compiledOpcodes, 256);
+assert.equal(rp2a03Definition.summary.diagnostics, 0);
+assert.ok(rp2a03Definition.sourceFiles.includes('src/devices/cpu/m6502/drp2a03.lst'));
+
+clearGeneratedCpus();
+registerGeneratedCpu(rp2a03Definition);
+const rp2a03Memory = new Uint8Array(0x10000);
+rp2a03Memory.set([0xa9, 0x7f, 0x69, 0x01, 0x85, 0x10], 0x8000);
+rp2a03Memory[0xfffc] = 0x00;
+rp2a03Memory[0xfffd] = 0x80;
+const rp2a03 = createCpu('RP2A03', {
+  read: address => rp2a03Memory[address]!,
+  write: (address, data) => { rp2a03Memory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+assert.equal(rp2a03.step(), 2);
+assert.equal(rp2a03.get('m_A'), 0x7f);
+assert.equal(rp2a03.step(), 2);
+assert.equal(rp2a03.get('m_A'), 0x80);
+assert.equal(rp2a03.step(), 3);
+assert.equal(rp2a03Memory[0x10], 0x80);
+assert.ok(generatedCpuExecutableSource(rp2a03Definition).length > 100_000);
 
 const i8080Definition = compileMameI8080(process.env.MAME_SRC ?? '../mame');
 assert.match(

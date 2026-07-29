@@ -268,10 +268,14 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
 export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<void> {
   const ui = buildDom(cfg);
 
-  // cabinet bezel surround: play inside the real artwork's CRT window
-  void loadArtwork(cfg.game, 'bezel').then(art => {
-    if (art?.window) ui.setBezel(art.bmp, art.window, art.tints);
-  });
+  // Cabinet bezels are arcade presentation. Console carts boot into the clean
+  // television viewport from their room and must not probe for an arcade
+  // artwork zip that cannot exist.
+  if (cfg.kind !== 'console') {
+    void loadArtwork(cfg.game, 'bezel').then(art => {
+      if (art?.window) ui.setBezel(art.bmp, art.window, art.tints);
+    });
+  }
 
   // Esc: back to the boot menu (registered first + capture so a single press
   // always works, at any stage of loading)

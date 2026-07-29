@@ -589,9 +589,15 @@ function constructorInitialValues(
     pattern.lastIndex = brace + 1;
   }
   const result: Record<string, number> = {};
+  const activeConstructors = new Set<string>();
   const visit = (className: string, values: number[] = []): void => {
     const constructor = constructors.get(className);
-    if (!constructor) return;
+    // Constructor delegation can name the same class (most commonly through
+    // overloads). The lightweight parser keeps one constructor per class, so
+    // following that edge again would recurse forever without adding another
+    // initial value.
+    if (!constructor || activeConstructors.has(className)) return;
+    activeConstructors.add(className);
     const env = Object.fromEntries(
       constructor.parameters.map((parameter, index) => [parameter, values[index] ?? 0]),
     );
@@ -602,6 +608,7 @@ function constructorInitialValues(
         result[initializer.name] = args[0]!;
       }
     }
+    activeConstructors.delete(className);
   };
   visit(concreteClass);
   return result;

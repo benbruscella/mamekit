@@ -47,6 +47,27 @@ export type BoardFactory = (
 
 const GENERATED_BOARDS = new Map<string, BoardFactory>();
 
+export interface GeneratedComposition {
+  type: string;
+  matches(machine: BoardIr): boolean;
+  createBoard(
+    machine: BoardIr,
+    config: BoardConfig,
+    regions: Regions,
+    inputs: InputPorts,
+    sinks: BoardSinks,
+  ): Board;
+}
+
+const GENERATED_COMPOSITIONS: GeneratedComposition[] = [];
+
+/** Register a capability-emitted whole-machine composition backend. */
+export function registerGeneratedComposition(composition: GeneratedComposition): void {
+  if (!GENERATED_COMPOSITIONS.some(candidate => candidate.type === composition.type)) {
+    GENERATED_COMPOSITIONS.push(composition);
+  }
+}
+
 export function registerGeneratedBoard(game: string, factory: BoardFactory): void {
   GENERATED_BOARDS.set(game, factory);
 }
@@ -80,6 +101,10 @@ export function createGeneratedBoard(
   inputs: InputPorts,
   sinks: BoardSinks,
 ): Board {
+  const composition = GENERATED_COMPOSITIONS.find(candidate => candidate.matches(machine));
+  if (composition) {
+    return composition.createBoard(machine, config, regions, inputs, sinks);
+  }
   return new IrBoard(machine, config, regions, inputs, sinks);
 }
 
