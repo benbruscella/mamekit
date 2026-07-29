@@ -40,11 +40,12 @@ const PROBE_OUTPUT_RATE = 48_000;
 
 export interface GameAcceptanceOptions {
   /**
-   * Diagnostic mode for a clean power-on audio capture. It runs without
-   * inputs, records from frame zero, writes PCM to this path, and skips the
-   * normal gameplay golden assertions.
+   * Diagnostic mode for an audio capture. It records from frame zero, writes
+   * PCM to this path, and skips the normal gameplay golden assertions.
    */
   captureAudio?: string;
+  /** Replay the contract's input actions during a diagnostic audio capture. */
+  captureActions?: boolean;
   /** Optional register-write trace paired with a diagnostic audio capture. */
   captureAudioWrites?: string;
   /** Duration override used by diagnostic captures. */
@@ -172,7 +173,8 @@ export async function runGameAcceptance(
     }
   };
 
-  for (const action of diagnosticCapture ? [] : contract.actions) {
+  const captureActions = !diagnosticCapture || options.captureActions;
+  for (const action of captureActions ? contract.actions : []) {
     while (board.snapshot().frame < action.atFrame) runFrame();
     pulse(
       eventTarget,

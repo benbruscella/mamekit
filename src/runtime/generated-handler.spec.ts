@@ -42,6 +42,23 @@ executeGeneratedHandler(bankProgram, {
 }, { data: 7 });
 assert.equal(bank, 3);
 
+const adpcmWrites: Array<[string, number]> = [];
+const selectedDeviceProgram = compileMameHandler(`
+  msm5205_device *adpcm = (offset & 1) ? m_adpcm2.target() : m_adpcm1.target();
+  if (adpcm != nullptr)
+    adpcm->data_w(data);
+`);
+assert.deepEqual(selectedDeviceProgram.diagnostics, []);
+for (const offset of [0, 1]) {
+  executeGeneratedHandler(selectedDeviceProgram, {
+    calls: {
+      'm_adpcm1.data_w': data => { adpcmWrites.push(['msm1', data]); },
+      'm_adpcm2.data_w': data => { adpcmWrites.push(['msm2', data]); },
+    },
+  }, { offset, data: 0xa0 + offset });
+}
+assert.deepEqual(adpcmWrites, [['msm1', 0xa0], ['msm2', 0xa1]]);
+
 let enabled = 0;
 executeGeneratedHandler(compileMameHandler('m_irq_enabled = data & 1;'), {
   setters: { m_irq_enabled: value => { enabled = value; } },

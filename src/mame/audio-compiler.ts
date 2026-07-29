@@ -1854,7 +1854,11 @@ export class GeneratedMsm5205Core {
       this.playmode((this.mode() & ~1) | (data ? 1 : 0));
     } else if (method === 's2_w') {
       this.playmode((this.mode() & ~2) | (data ? 2 : 0));
-    } else if (method === 'vck' && data) {
+    // vck is the generated master-clock event. MAME wires a slave MSM5205
+    // through msm5205_device::vclk_w; in the generated frame schedule that
+    // callback arrives once per active clock edge, so both method names clock
+    // the same ADPCM decoder state.
+    } else if ((method === 'vck' || method === 'vclk_w') && data) {
       this.clock();
     }
   }

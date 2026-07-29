@@ -284,6 +284,29 @@ composite.write(0, 7, 'msm1.data_w');
 for (let index = 0; index < 16; index++) composite.write(0, 1, 'msm1.vck');
 assert.notEqual(composite.sample(), 0, 'routed MSM5205 stream must reach the AY mixer');
 
+const slaveMsm = new ayModule.GeneratedAy8910Mixer(
+  894_886.25,
+  2,
+  48_000,
+  [],
+  [{
+    type: 'MSM5205',
+    deviceTag: 'msm2',
+    clock: 384_000,
+    initialMode: 'SEX_4B',
+    gain: 1,
+    target: 'filtermix',
+    writeMethods: ['data_w', 'reset_w', 'playmode_w', 'vclk_w'],
+  }],
+);
+slaveMsm.write(0, 7, 'msm2.data_w');
+for (let index = 0; index < 16; index++) slaveMsm.write(0, 1, 'msm2.vclk_w');
+assert.notEqual(
+  slaveMsm.sample(),
+  0,
+  'slave MSM5205 vclk_w must advance its routed ADPCM stream',
+);
+
 const unfiltered = new ayModule.GeneratedAy8910Mixer(1_789_772, 1, 48_000);
 const filtered = new ayModule.GeneratedAy8910Mixer(1_789_772, 1, 48_000, [{
   chip: 0, channel: 0, gain: 1, target: 'filter.0.0',

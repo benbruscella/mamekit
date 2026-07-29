@@ -30,6 +30,16 @@ export const kungfum: GameTestContract = {
       fromFrame: 120,
       minimumNonzeroWrites: 100,
     },
+    {
+      method: 'msm1.data_w',
+      fromFrame: 600,
+      minimumNonzeroWrites: 1,
+    },
+    {
+      method: 'msm2.data_w',
+      fromFrame: 600,
+      minimumNonzeroWrites: 1,
+    },
   ],
   golden: {
     regions: {
@@ -53,11 +63,11 @@ export const kungfum: GameTestContract = {
       1800: { video: 'e7b72cef', state: '6f7a6b89' },
     },
     audio: {
-      writes: 764_438,
-      nonzeroWrites: 761_879,
-      writeHash: 'e7563886',
-      pcmHash: '2eea3047',
-      rms: 0.035452,
+      writes: 1_020_036,
+      nonzeroWrites: 1_012_119,
+      writeHash: '4cf37ba8',
+      pcmHash: '8aabf3b3',
+      rms: 0.064186,
     },
   },
 };
