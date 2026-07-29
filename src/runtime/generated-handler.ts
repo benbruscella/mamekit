@@ -181,10 +181,6 @@ function makeDirectObjectRamWrite(
     };
     let offset = initialOffset;
     let data = initialData;
-    // Identical object bytes cannot change any already-scanned pixel or
-    // scroll value, so avoid repeating MAME's native bookkeeping through the
-    // much heavier generated raster path.
-    if (spriteRam[offset] === data) return;
     screen.update_partial(screen.vpos());
     spriteRam[offset] = data;
     if (offset >= 0x40) return;
@@ -266,9 +262,6 @@ function makeDirectVideoRamWrite(
     };
     const ram = members[ramMember] as { [index: number]: number };
     const tilemap = members[tilemapMember] as Record<string, (index: number) => void>;
-    // Identical bytes cannot alter the visible result. Bulk clears and table
-    // refreshes commonly rewrite them, and need no partial render or dirtying.
-    if (ram[offset] === data) return;
     screen.update_partial(screen.vpos());
     ram[offset] = data;
     tilemap[dirtyMethod]!(offset);

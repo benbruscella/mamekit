@@ -183,7 +183,12 @@ assert.equal(registry.read['fixture_state.read']!(0, 0), 0xbf);
   assert.equal(directRam[3], 0xa5);
   assert.deepEqual(directCalls, ['partial:4', 'dirty:3']);
   directRegistry.write['fixture_state.videoram_w']!(3, 3, 0xa5);
-  assert.deepEqual(directCalls, ['partial:4', 'dirty:3']);
+  assert.deepEqual(directCalls, [
+    'partial:4',
+    'dirty:3',
+    'partial:4',
+    'dirty:3',
+  ]);
 }
 
 {
@@ -263,7 +268,12 @@ assert.equal(registry.read['fixture_state.read']!(0, 0), 0xbf);
   assert.equal(objectRam[2], 0x55);
   assert.deepEqual(objectCalls, ['partial:12', 'scrolly:1:85']);
   objectRegistry.write['galaxian_state.galaxian_objram_w']!(2, 2, 0x55);
-  assert.deepEqual(objectCalls, ['partial:12', 'scrolly:1:85']);
+  assert.deepEqual(objectCalls, [
+    'partial:12',
+    'scrolly:1:85',
+    'partial:12',
+    'scrolly:1:85',
+  ]);
 }
 
 let irqMask = 0;
