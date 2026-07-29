@@ -494,6 +494,13 @@ function emitOperation(
       `${pad}}`,
     ].filter(Boolean).join('\n');
   }
+  if (operation.op === 'do-while') {
+    return [
+      `${pad}do {`,
+      emitOperations(operation.body, context, indentation + 2),
+      `${pad}} while (${emitExpression(operation.condition, context)});`,
+    ].filter(Boolean).join('\n');
+  }
 
   const lines = [`${pad}switch (${emitExpression(operation.expression, context)}) {`];
   for (const entry of operation.cases) {
@@ -844,7 +851,7 @@ function collectLocals(
       collectLocals(operation.initialize, locals);
       collectLocals([operation.iterate], locals);
       collectLocals(operation.body, locals);
-    } else if (operation.op === 'while') {
+    } else if (operation.op === 'while' || operation.op === 'do-while') {
       collectLocals(operation.body, locals);
     } else if (operation.op === 'switch') {
       for (const entry of operation.cases) collectLocals(entry.body, locals);

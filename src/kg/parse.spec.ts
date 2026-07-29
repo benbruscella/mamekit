@@ -297,6 +297,45 @@ void board_state::derived(machine_config &config)
   }]);
 }
 
+{
+  const [cfg] = parseMachineConfigs(`
+void board_state::derived(machine_config &config)
+{
+  base(config);
+  m_maincpu->set_clock(18.432_MHz_XTAL / 6);
+  subdevice<screen_device>("screen")->set_raw(
+    18.432_MHz_XTAL / 3, 384, 128, 384, 284, 0, 256);
+  subdevice<screen_device>("screen")->set_screen_update(
+    FUNC(board_state::screen_update_derived));
+}
+`, { m_maincpu: 'maincpu' }, {
+    '18.432_MHz_XTAL': 18_432_000,
+  });
+  eq('inherited device setter patches', cfg?.devicePatches, [
+    {
+      tag: 'maincpu',
+      config: ['m_maincpu->set_clock(18.432_MHz_XTAL / 6)'],
+      clock: 3_072_000,
+    },
+    {
+      tag: 'screen',
+      config: [
+        'subdevice<screen_device>("screen")->set_raw(\n    18.432_MHz_XTAL / 3, 384, 128, 384, 284, 0, 256)',
+        'subdevice<screen_device>("screen")->set_screen_update(\n    FUNC(board_state::screen_update_derived))',
+      ],
+      screenRaw: {
+        pixclock: 6_144_000,
+        htotal: 384,
+        hbend: 128,
+        hbstart: 384,
+        vtotal: 284,
+        vbend: 0,
+        vbstart: 256,
+      },
+    },
+  ]);
+}
+
 // add_route on an array element must still lower, and a bank may be configured
 // by several calls through a local pointer alias to a region base.
 {

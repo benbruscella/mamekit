@@ -116,7 +116,7 @@ export function compileMameVideo(
     .reduce((scale, entry) => Math.max(scale, Number(entry.props.xscale ?? 1)), 1);
   const numericDefaults = numericState(memberDefaults);
   const configState = machineConfigInitialState(ast, source, config, constants);
-  const tilemaps = compileTilemaps(start, { ...constants, ...numericDefaults })
+  const tilemaps = compileTilemaps(start, { ...constants, ...numericDefaults }, ast)
     .filter((tilemap, index, all) =>
       all.findIndex(candidate => candidate.member === tilemap.member) === index);
   if (!tilemaps.length) return fail(`video_start emitted no tilemaps`);
@@ -346,9 +346,10 @@ function compileDirectBitmap(
   screen: MameFunction,
 ): NonNullable<GeneratedVideoPlan['bitmap']> | undefined {
   const body = screen.body;
-  const offset = /\b(?:offs_t|u\d+)\s+(?:const\s+)?\w+\s*=\s*\(\(offs_t\)(\w+)\s*<<\s*(\d+)\)\s*\|\s*\(\w+\s*>>\s*(\d+)\)/.exec(body);
+  const offset = /\b(?:offs_t|u\d+)\s+(?:const\s+)?\w+\s*=\s*(?:\(\(offs_t\)(\w+)\s*<<\s*(\d+)\)|\(\s*offs_t\(\s*(\w+)\s*\)\s*<<\s*(\d+)\s*\))\s*\|\s*\(\w+\s*>>\s*(\d+)\)/.exec(body);
+  const rowVariable = offset?.[1] ?? offset?.[3];
   const row = offset && new RegExp(
-    `\\b(?:u?int8_t|u8)\\s+${offset[1]}\\s*=\\s*(\\w+)\\s*;`,
+    `\\b(?:u?int8_t|u8)\\s+${rowVariable}\\s*=\\s*(\\w+)\\s*;`,
   ).exec(body);
   const member = /\b\w+\s*=\s*(m_\w+)\s*\[\s*\w+\s*\]\s*;/.exec(body)?.[1];
   const phase = /\(\s*\w+\s*&\s*(0x[\da-f]+|\d+)\s*\)\s*==\s*(0x[\da-f]+|\d+)/i.exec(body);
@@ -365,8 +366,8 @@ function compileDirectBitmap(
       .map(match => [match[1], Number(match[2])]),
   );
   const rowStart = constants[row[1]!] ?? Number(row[1]);
-  const rowShift = Number(offset[2]);
-  const pixelShift = Number(offset[3]);
+  const rowShift = Number(offset[2] ?? offset[4]);
+  const pixelShift = Number(offset[5]);
   const xOffset = Number(phase[2]);
   if (
     !Number.isInteger(rowStart) || rowStart < 0 || rowStart > 255 ||
@@ -380,6 +381,9 @@ function compileDirectBitmap(
     bytesPerRow: 1 << rowShift,
     xOffset,
     lsbFirst: true,
+    ...(/\bm_flip_screen\b/.test(body)
+      ? { flipXMember: 'm_flip_screen', flipYMember: 'm_flip_screen' }
+      : {}),
     black: 0xff000000,
     white: 0xffffffff,
     source: sourceRef(screen),
@@ -389,7 +393,12 @@ function compileDirectBitmap(
 function compileTilemaps(
   start: MameFunction,
   values: Record<string, number> = {},
+  ast?: MameAstIndex,
+  seen = new Set<string>(),
 ): GeneratedVideoPlan['tilemaps'] {
+  const key = `${start.className}.${start.name}`;
+  if (seen.has(key)) return [];
+  seen.add(key);
   const plans: GeneratedVideoPlan['tilemaps'] = [];
   const createRe = /\b(m_\w+)\s*=\s*&?[^;]*?\.create\s*\(/g;
   let match: RegExpExecArray | null;
@@ -453,6 +462,31 @@ function compileTilemaps(
       source: sourceRef(start),
     });
     createRe.lastIndex = close + 1;
+  }
+  if (!plans.length && ast) {
+    const callRe = /\b(\w+)\s*\(/g;
+    let call: RegExpExecArray | null;
+    while ((call = callRe.exec(start.body)) !== null) {
+      const helper = ast.findFunctionInHierarchy(start.className, call[1]!);
+      if (!helper || !helper.body.includes('.create(')) continue;
+      const open = start.body.indexOf('(', call.index + call[1]!.length);
+      const close = matchingPair(start.body, open, '(', ')');
+      if (close < 0) continue;
+      const args = splitMameArgs(start.body.slice(open + 1, close));
+      const parameters = splitMameArgs(helper.parameters)
+        .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+        .filter((name): name is string => Boolean(name));
+      let body = helper.body;
+      for (const [index, parameter] of parameters.entries()) {
+        if (args[index] === undefined) continue;
+        body = body.replace(
+          new RegExp(`\\b${parameter}\\b`, 'g'),
+          args[index]!,
+        );
+      }
+      plans.push(...compileTilemaps({ ...helper, body }, values, ast, seen));
+      callRe.lastIndex = close + 1;
+    }
   }
   return plans;
 }
@@ -554,8 +588,19 @@ function compileNamedPalettes(
   const functions = ast.ast.units.flatMap(unit => unit.functions);
   const scalars = compilePaletteScalars(source, constants);
   return members.flatMap(member => {
-    const fn = functions.find(candidate =>
+    let fn = functions.find(candidate =>
       new RegExp(`\\b${member}->set_(?:pen|indirect)`).test(candidate.body));
+    if (!fn) {
+      const device = graph.nodes.find(node =>
+        node.label === 'Device' &&
+        Array.isArray(node.props.config) &&
+        node.props.config.some(raw => new RegExp(
+          `\\bPALETTE\\s*\\(\\s*config\\s*,\\s*${member}\\s*,`,
+        ).test(String(raw))));
+      const raw = ((device?.props.config as string[] | undefined) ?? []).join('\n');
+      const callback = /FUNC\(\s*(\w+)::(\w+)\s*\)/.exec(raw);
+      if (callback) fn = ast.findFunction(callback[1]!, callback[2]!);
+    }
     if (!fn) return [];
     const plan = compileNamedPalette(
       graph,
@@ -564,8 +609,98 @@ function compileNamedPalettes(
       member,
       { ...constants, ...scalars },
     );
-    return plan ? [{ member, plan }] : [];
+    const resNetPlan = plan ?? compileResNetAllPalette(graph, source, fn, constants);
+    return resNetPlan ? [{ member, plan: resNetPlan }] : [];
   });
+}
+
+/**
+ * Lower MAME's shared compute_res_net_all palette helper. Drivers using this
+ * form describe the PROM bit slices in res_net_decode_info and the electrical
+ * channel in res_net_info instead of spelling out set_pen_color loops.
+ */
+function compileResNetAllPalette(
+  graph: KnowledgeGraph,
+  source: string,
+  fn: MameFunction,
+  constants: Record<string, number>,
+): GeneratedPromPalettePlan | undefined {
+  const call = /compute_res_net_all\s*\(\s*\w+\s*,\s*(m_\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*\)/
+    .exec(fn.body);
+  if (!call) return undefined;
+  const [, regionMember, decodeName, netName] = call;
+  const region = new RegExp(
+    `\\b${regionMember}\\s*\\(\\s*\\*this\\s*,\\s*"([^"]+)"\\s*\\)`,
+  ).exec(source)?.[1];
+  if (!region || !graph.nodes.some(node =>
+    node.label === 'RomRegion' && node.props.tag === region)) return undefined;
+
+  const initializer = (type: string, name: string): string | undefined => {
+    const match = new RegExp(`\\b${type}\\s+${name}\\s*=\\s*\\{`).exec(source);
+    if (!match) return undefined;
+    const open = source.indexOf('{', match.index);
+    const close = matchingPair(source, open, '{', '}');
+    return close < 0 ? undefined : source.slice(open + 1, close);
+  };
+  const decode = initializer('res_net_decode_info', decodeName!);
+  const net = initializer('res_net_info', netName!);
+  if (!decode || !net) return undefined;
+  const decodeText = decode.replace(/\/\*[\s\S]*?\*\//g, '');
+  const scalarPrefix = /^\s*([^,]+),\s*([^,]+),\s*([^,]+),/.exec(decodeText);
+  const arrays = [...decodeText.matchAll(/\{([^{}]+)\}/g)]
+    .map(match => splitMameArgs(match[1]!).map(value => expressionNumber(value, constants)));
+  if (!scalarPrefix || arrays.length < 3) return undefined;
+  const start = expressionNumber(scalarPrefix[2], constants);
+  const end = expressionNumber(scalarPrefix[3], constants);
+  const [offsets, shifts, masks] = arrays.slice(-3);
+  if (
+    !Number.isInteger(start) ||
+    !Number.isInteger(end) ||
+    !offsets || !shifts || !masks ||
+    offsets.length < 3 || shifts.length < 3 || masks.length < 3
+  ) return undefined;
+
+  const channelRows = [...net.matchAll(
+    /\{\s*RES_NET_AMP_\w+\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*(\d+)\s*,\s*\{([^{}]+)\}\s*\}/g,
+  )];
+  if (channelRows.length < 3) return undefined;
+  const channels = (['r', 'g', 'b'] as const).map((channel, index) => {
+    const mask = masks[index]!;
+    const bitCount = Math.max(1, 32 - Math.clz32(mask));
+    const row = channelRows[index]!;
+    const count = Number(row[3]);
+    return {
+      channel,
+      bits: Array.from({ length: bitCount }, (_, bit) => bit + shifts[index]!),
+      offsets: Array.from({ length: bitCount }, () => offsets[index]!),
+      resistances: splitMameArgs(row[4]!)
+        .slice(0, count)
+        .map(value => expressionNumber(value, constants)),
+      pulldown: expressionNumber(row[2], constants),
+      pullup: expressionNumber(row[1], constants),
+    };
+  });
+  const count = Math.max(0, end - start + 1);
+  return {
+    region,
+    colorCount: count,
+    min: 0,
+    max: 255,
+    scaler: -1,
+    channels,
+    lookupOffset: start,
+    lookupCount: count,
+    lookupMask: count - 1,
+    banks: [{
+      penOffset: 0,
+      colorOr: 0,
+      lookupOffset: start,
+      lookupCount: count,
+      direct: true,
+    }],
+    transparentIndirect: 0,
+    source: sourceRef(fn),
+  };
 }
 
 function compileNamedPalette(

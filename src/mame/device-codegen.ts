@@ -127,7 +127,11 @@ function maximumLoopDepth(
 ): number {
   let maximum = depth;
   for (const operation of operations) {
-    if (operation.op === 'for' || operation.op === 'while') {
+    if (
+      operation.op === 'for' ||
+      operation.op === 'while' ||
+      operation.op === 'do-while'
+    ) {
       maximum = Math.max(maximum, maximumLoopDepth(operation.body, depth + 1));
     } else if (operation.op === 'if') {
       maximum = Math.max(
@@ -263,6 +267,13 @@ function emitOperation(
       `${pad}while (${emitExpression(operation.condition, context)}) {`,
       emitOperations(operation.body, context, indentation + 2),
       `${pad}}`,
+    ].filter(Boolean).join('\n');
+  }
+  if (operation.op === 'do-while') {
+    return [
+      `${pad}do {`,
+      emitOperations(operation.body, context, indentation + 2),
+      `${pad}} while (${emitExpression(operation.condition, context)});`,
     ].filter(Boolean).join('\n');
   }
   const lines = [`${pad}switch (${emitExpression(operation.expression, context)}) {`];
@@ -466,7 +477,11 @@ function visitOperations(
     if (operation.op === 'if') {
       visitOperations(operation.then, visit);
       visitOperations(operation.else ?? [], visit);
-    } else if (operation.op === 'for' || operation.op === 'while') {
+    } else if (
+      operation.op === 'for' ||
+      operation.op === 'while' ||
+      operation.op === 'do-while'
+    ) {
       if (operation.op === 'for') visitOperations(operation.initialize, visit);
       visitOperations(operation.body, visit);
       if (operation.op === 'for') visitOperations([operation.iterate], visit);
@@ -486,7 +501,11 @@ function visitOperationExpressions(
     visitExpression(operation.value, visit);
   } else if (operation.op === 'call') visitExpression(operation.expression, visit);
   else if (operation.op === 'return' && operation.value) visitExpression(operation.value, visit);
-  else if (operation.op === 'if' || operation.op === 'while') {
+  else if (
+    operation.op === 'if' ||
+    operation.op === 'while' ||
+    operation.op === 'do-while'
+  ) {
     visitExpression(operation.condition, visit);
   } else if (operation.op === 'for') {
     visitExpression(operation.condition, visit);

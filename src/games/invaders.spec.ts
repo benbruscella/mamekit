@@ -57,11 +57,13 @@ assert.deepEqual(video.plan.bitmap, {
   bytesPerRow: 32,
   xOffset: 4,
   lsbFirst: true,
+  flipXMember: 'm_flip_screen',
+  flipYMember: 'm_flip_screen',
   black: 0xff000000,
   white: 0xffffffff,
   source: {
     file: 'src/mame/midw8080/mw8080bw_v.cpp',
-    line: 14,
+    line: 356,
     column: 1,
   },
 });

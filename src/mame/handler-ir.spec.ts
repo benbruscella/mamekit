@@ -62,6 +62,16 @@ const bitmap = compileMameHandler(`
 assert.deepEqual(bitmap.diagnostics, []);
 assert.equal(bitmap.operations[1]?.op, 'while');
 
+const doWhile = compileMameHandler(`
+  int i = 3;
+  do {
+    m_values[i] = data;
+    i--;
+  } while (i >= 0);
+`);
+assert.deepEqual(doWhile.diagnostics, []);
+assert.equal(doWhile.operations[1]?.op, 'do-while');
+
 const bitmapPointers = compileMameHandler(`
   uint32_t *const dst = &bitmap.pix(y);
   auto color = m_palette->pen_color(*m_scroll);

@@ -189,6 +189,11 @@ export type GeneratedHandlerOperation =
       body: GeneratedHandlerOperation[];
     }
   | {
+      op: 'do-while';
+      condition: GeneratedExpression;
+      body: GeneratedHandlerOperation[];
+    }
+  | {
       op: 'switch';
       expression: GeneratedExpression;
       cases: {

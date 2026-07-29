@@ -353,6 +353,14 @@ function executeOperations(
         if (result.control === 'return') return result;
         if (result.control === 'break') break;
       }
+    } else if (operation.op === 'do-while') {
+      let iterations = 0;
+      do {
+        if (++iterations > 65_536) throw new Error('generated handler loop exceeded 65536 iterations');
+        const result = executeOperations(operation.body, context);
+        if (result.control === 'return') return result;
+        if (result.control === 'break') break;
+      } while (truthy(evaluate(operation.condition, context)));
     } else if (operation.op === 'switch') {
       const value = toNumber(evaluate(operation.expression, context));
       let index = operation.cases.findIndex(candidate =>

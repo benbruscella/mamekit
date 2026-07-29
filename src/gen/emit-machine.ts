@@ -627,7 +627,7 @@ function visitOperations(
       visitOperations(operation.initialize, visit);
       visitOperations([operation.iterate], visit);
       visitOperations(operation.body, visit);
-    } else if (operation.op === 'while') {
+    } else if (operation.op === 'while' || operation.op === 'do-while') {
       visitOperations(operation.body, visit);
     } else if (operation.op === 'switch') {
       for (const entry of operation.cases) visitOperations(entry.body, visit);

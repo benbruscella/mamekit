@@ -660,6 +660,18 @@ export interface MachineConfigDef {
    * graph-build time
    */
   patches: { tag: string; addrMaps: Record<string, string>; raw: string }[];
+  /**
+   * Configuration applied to a device instantiated by a called base config.
+   * Kept separate from address-map and gfx-decode patches because these
+   * setters change the effective device itself (clock, screen timing and
+   * callbacks).
+   */
+  devicePatches: {
+    tag: string;
+    config: string[];
+    clock?: number;
+    screenRaw?: DeviceDef['screenRaw'];
+  }[];
   /** set_info(...) changes to a GFXDECODE device instantiated by a called config. */
   gfxDecodePatches: { tag: string; name: string; raw: string }[];
   raw: string;
@@ -834,6 +846,7 @@ export function parseMachineConfigs(
       softwareLists: [],
       calls: [],
       patches: [],
+      devicePatches: [],
       gfxDecodePatches: [],
       raw: body.trim(),
     };
@@ -923,7 +936,11 @@ export function parseMachineConfigs(
       // member/local/tag method calls: m_x->..., var.set_raw(...), subdevice
       // Device-array elements are referenced with a subscript, as in
       // m_ym[0]->add_route(...); the byRef lookup below rejects non-devices.
-      const mc = /^([\w."<>[\]]+?)\s*(?:->|\.)\s*(\w+)(<\d+>)?\s*\(/.exec(s);
+      const subdeviceCall =
+        /^subdevice<[^>]+>\(\s*"([^"]+)"\s*\)\s*->\s*(\w+)(<\d+>)?\s*\(/.exec(s);
+      const mc = subdeviceCall
+        ? [subdeviceCall[0], `"${subdeviceCall[1]}"`, subdeviceCall[2], subdeviceCall[3]]
+        : /^([\w."<>[\]]+?)\s*(?:->|\.)\s*(\w+)(<\d+>)?\s*\(/.exec(s);
       if (mc) {
         const [, refRaw, method] = mc;
         const dev = byRef.get(refRaw) ?? byRef.get(resolveTag(refRaw));
@@ -946,6 +963,36 @@ export function parseMachineConfigs(
               name: decodeName!.trim(),
               raw: s,
             });
+          }
+          continue;
+        }
+        if (!dev && (refRaw.startsWith('m_') || refRaw.startsWith('"'))) {
+          const tag = resolveTag(refRaw);
+          let patch = cfg.devicePatches.find(candidate => candidate.tag === tag);
+          if (!patch) {
+            patch = { tag, config: [] };
+            cfg.devicePatches.push(patch);
+          }
+          patch.config.push(s);
+          const open = s.indexOf('(', s.indexOf(method));
+          const close = matchParen(s, open);
+          const args = splitArgs(s.slice(open + 1, close));
+          if (method === 'set_clock') {
+            const clock = evalExpr(args[0] ?? '', consts);
+            if (clock !== null) patch.clock = clock;
+          } else if (method === 'set_raw') {
+            const values = args.map(value => evalExpr(value, consts));
+            if (values.length >= 7 && values.every(value => value !== null)) {
+              patch.screenRaw = {
+                pixclock: values[0]!,
+                htotal: values[1]!,
+                hbend: values[2]!,
+                hbstart: values[3]!,
+                vtotal: values[4]!,
+                vbend: values[5]!,
+                vbstart: values[6]!,
+              };
+            }
           }
           continue;
         }
