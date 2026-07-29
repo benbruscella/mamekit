@@ -219,13 +219,30 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     // program-space global_mask (the Irem sound 6803 masks to 0x7fff so its
     // reset vector at $FFFE reads ROM $7FFE)
     const mask = programMap.props.globalMask !== undefined ? Number(programMap.props.globalMask) : undefined;
+    const opcodeMap = forSpace('AS_OPCODES');
+    let opcode: Record<string, unknown> | undefined;
+    if (opcodeMap) {
+      const opcodeRanges = collectRanges(opcodeMap.id).map(rangeSpec);
+      opcode = {
+        ranges: opcodeRanges,
+        region: opcodeRanges.find(range => range.share)?.share ?? String(dev.props.tag),
+      };
+      if (opcodeMap.props.globalMask !== undefined) {
+        opcode.globalMask = Number(opcodeMap.props.globalMask);
+      }
+    }
     const ioMap = forSpace('AS_IO');
     let io: Record<string, unknown> | undefined;
     if (ioMap) {
       io = { ranges: collectRanges(ioMap.id).map(rangeSpec) };
       if (ioMap.props.globalMask !== undefined) io.globalMask = Number(ioMap.props.globalMask);
     }
-    return { ranges, ...(mask !== undefined ? { mask } : {}), io };
+    return {
+      ranges,
+      ...(mask !== undefined ? { mask } : {}),
+      ...(opcode ? { opcode } : {}),
+      io,
+    };
   };
 
   const cpus = cpuDevs.map(d => ({
@@ -693,13 +710,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       })
     : undefined;
   const romTransforms = Array.isArray(game.props.romTransforms)
-    ? game.props.romTransforms.map(value => JSON.parse(String(value)) as {
-        kind: 'conditional-byte-swap';
-        region: string;
-        indexMask: number;
-        indexValue: number;
-        displacement: number;
-      })
+    ? game.props.romTransforms.map(value =>
+        JSON.parse(String(value)) as Record<string, unknown>)
     : undefined;
 
   const config = {

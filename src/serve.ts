@@ -107,8 +107,13 @@ export function serve(rootDirs: Record<string, string>, port: number): Promise<n
       let path = normalize(decodeURIComponent(url.pathname)).replace(/^\/+/, '');
       if (path.includes('..')) { res.writeHead(403).end(); return; }
       if (path === 'games.json') {
+        // Build the manifest before committing the response. Manifest
+        // validation can fail closed for a mixed/stale distribution; writing
+        // the 200 headers first made the catch path attempt a second
+        // writeHead(), crashing the development server.
+        const manifest = await gamesManifest(rootDirs[''], rootDirs['artwork'] ?? '');
         res.writeHead(200, { 'content-type': MIME['.json'], 'cache-control': 'no-store' });
-        res.end(await gamesManifest(rootDirs[''], rootDirs['artwork'] ?? ''));
+        res.end(manifest);
         return;
       }
       if (path.startsWith('romsearch/')) {
@@ -142,6 +147,10 @@ export function serve(rootDirs: Record<string, string>, port: number): Promise<n
       });
       res.end(body);
     } catch {
+      if (res.headersSent) {
+        if (!res.writableEnded) res.end();
+        return;
+      }
       res.writeHead(404, { 'content-type': 'text/plain' }).end('not found');
     }
   });

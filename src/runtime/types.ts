@@ -50,6 +50,8 @@ export interface CpuSpec {
   ranges?: RangeSpec[];
   /** program-space global address mask (map.global_mask) */
   mask?: number;
+  /** separately mapped opcode-fetch bytes (encrypted CPU boards). */
+  opcode?: { ranges: RangeSpec[]; region: string; globalMask?: number };
   /** this CPU's io space (AS_IO) when the driver maps one */
   io?: { ranges: RangeSpec[]; globalMask?: number };
 }

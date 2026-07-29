@@ -284,5 +284,38 @@ void galaga_state::init_galaga()
   }],
 });
 
+const opcodeTransforms = parseInitRomTransforms(`
+void commando_state::init_commando()
+{
+  uint8_t *rom = memregion("maincpu")->base();
+  m_decrypted_opcodes[0] = rom[0];
+  for (int A = 1; A < 0xc000; A++)
+  {
+    uint8_t src = rom[A];
+    m_decrypted_opcodes[A] =
+      (src & 0x11) | ((src & 0xe0) >> 4) | ((src & 0x0e) << 4);
+  }
+}
+`);
+const opcodeTransform = opcodeTransforms.init_commando?.[0];
+eq('driver-init opcode substitution shape', opcodeTransform && {
+  ...opcodeTransform,
+  table: undefined,
+}, {
+  kind: 'byte-substitution',
+  sourceRegion: 'maincpu',
+  targetRegion: 'decrypted_opcodes',
+  start: 1,
+  end: 0xc000,
+  table: undefined,
+});
+eq(
+  'driver-init opcode substitution table',
+  opcodeTransform?.kind === 'byte-substitution'
+    ? [opcodeTransform.table[0x00], opcodeTransform.table[0x02], opcodeTransform.table[0x80]]
+    : undefined,
+  [0x00, 0x20, 0x08],
+);
+
 console.log(`\nparse.spec: ${totalPass} passed, ${totalFail} failed`);
 if (totalFail > 0) process.exitCode = 1;

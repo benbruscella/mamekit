@@ -699,7 +699,7 @@ const CALLBACK_OPERATIONS = new Set([
   'set', 'append', 'set_ioport', 'set_inputline', 'append_inputline', 'set_nop',
   'set_screen_update', 'set_vblank_int', 'set_periodic_int',
   'set_irq_acknowledge_callback',
-  'set_maincpu',
+  'set_maincpu', 'configure_scanline',
 ]);
 
 function emitCallbacks(
@@ -753,14 +753,23 @@ function emitCallbacks(
       if (hz !== null) props.periodHz = hz;
       if (period) props.periodExpr = period;
     }
+    if (operation.name === 'configure_scanline') {
+      props.signal = 'configure_scanline';
+      const start = evalExpr(operation.args[2] ?? '', constants);
+      const increment = evalExpr(operation.args[3] ?? '', constants);
+      if (start !== null) props.scanlineStart = start;
+      if (increment !== null) props.scanlineIncrement = increment;
+    }
 
     const funcArg = operation.args.find(arg => arg.includes('FUNC('));
     const func = funcArg
       ? /FUNC\(\s*(?:(\w+)::)?(\w+(?:<\d+>)?)\s*\)/.exec(funcArg)
       : null;
-    const quotedTarget = operation.args
-      .map(arg => /^"([^"]+)"$/.exec(arg.trim())?.[1])
-      .find((value): value is string => value !== undefined);
+    const quotedTarget = operation.name === 'configure_scanline'
+      ? undefined
+      : operation.args
+        .map(arg => /^"([^"]+)"$/.exec(arg.trim())?.[1])
+        .find((value): value is string => value !== undefined);
     if (quotedTarget) props.targetTag = quotedTarget;
     if (operation.name === 'set_ioport' && quotedTarget) props.targetPort = quotedTarget;
     if (operation.name.includes('inputline')) {
@@ -834,7 +843,17 @@ function handlerProps(
     }
   }
   const identifiers = new Set(body?.match(/\b[A-Za-z_]\w*\b/g) ?? []);
-  const sourceConstants = Object.entries(constants)
+  const specializedConstants: Record<string, number> = {};
+  const specialization = /_(-?\d+)$/.exec(method);
+  if (fn && specialization) {
+    const unit = ast.ast.units.find(candidate => candidate.file === fn.span.file);
+    const prefix = unit?.source.slice(Math.max(0, fn.span.start - 256), fn.span.start) ?? '';
+    const template = /template\s*<\s*(?:[\w:]+\s+)+(\w+)(?:\s*=\s*[^>]+)?\s*>\s*$/.exec(prefix);
+    if (template && identifiers.has(template[1]!)) {
+      specializedConstants[template[1]!] = Number(specialization[1]);
+    }
+  }
+  const sourceConstants = Object.entries({ ...constants, ...specializedConstants })
     .filter(([name]) => identifiers.has(name))
     .map(([name, value]) => `${name}=${value}`);
   return {

@@ -1,6 +1,7 @@
 import {
   generatedBoardSource,
   inferredMemberIndexRank,
+  lowerAudioRoutes,
   lowerGeneratedMachine,
 } from './emit-machine.ts';
 import type { KnowledgeGraph } from '../kg/types.ts';
@@ -107,6 +108,30 @@ if (!source.includes("from './board.json' with { type: 'json' }")) {
   throw new Error('generated board does not import board JSON');
 }
 if (source.includes('JSON.parse')) throw new Error('generated board embeds machine JSON');
+
+const allYmOutputsGraph: KnowledgeGraph = {
+  meta: graph.meta,
+  nodes: [{
+    id: 'device:ym1',
+    label: 'Device',
+    props: { type: 'YM2203', tag: 'ym1', config: [] },
+  }, {
+    id: 'route:ym1/all',
+    label: 'AudioRoute',
+    props: { output: 'ALL_OUTPUTS', target: 'mono', gain: 0.15 },
+  }],
+  edges: [{ from: 'device:ym1', to: 'route:ym1/all', rel: 'HAS_AUDIO_ROUTE' }],
+};
+const allYmOutputs = lowerAudioRoutes(
+  allYmOutputsGraph,
+  [{ id: 'device:ym1', tag: 'ym1' }],
+);
+if (
+  allYmOutputs.length !== 4 ||
+  allYmOutputs.some((route, channel) => route.channel !== channel || route.gain !== 0.15)
+) {
+  throw new Error('YM2203 ALL_OUTPUTS did not expand to all four routed streams');
+}
 
 const filterHandlers = [
   {

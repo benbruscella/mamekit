@@ -147,6 +147,9 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
     reader.string(callback.signal, `${path}.signal`, source);
     reader.string(callback.operation, `${path}.operation`, source);
     reader.optionalNumber(callback.slot, `${path}.slot`, source);
+    for (const field of ['periodHz', 'scanlineStart', 'scanlineIncrement']) {
+      reader.optionalNumber(callback[field], `${path}.${field}`, source);
+    }
     for (const field of ['targetTag', 'targetClass', 'targetMethod', 'targetPort', 'inputLine']) {
       reader.optionalString(callback[field], `${path}.${field}`, source);
     }
@@ -154,6 +157,12 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
       for (const [position, transform] of reader.array(
         callback.transforms, `${path}.transforms`, source).entries()) {
         reader.string(transform, `${path}.transforms[${position}]`, source);
+      }
+    }
+    if (callback.scanlines !== undefined) {
+      for (const [position, scanline] of reader.array(
+        callback.scanlines, `${path}.scanlines`, source).entries()) {
+        reader.number(scanline, `${path}.scanlines[${position}]`, source);
       }
     }
   }
@@ -313,6 +322,12 @@ function decodeExecution(reader: Reader, value: unknown): void {
     reader.number(cpu.clock, `${path}.clock`, source);
     reader.string(cpu.region, `${path}.region`, source);
     if (cpu.ranges !== undefined) decodeRanges(reader, cpu.ranges, `${path}.ranges`, source);
+    if (cpu.opcode !== undefined) {
+      const opcode = reader.object(cpu.opcode, `${path}.opcode`, source);
+      reader.string(opcode.region, `${path}.opcode.region`, source);
+      decodeRanges(reader, opcode.ranges, `${path}.opcode.ranges`, source);
+      reader.optionalNumber(opcode.globalMask, `${path}.opcode.globalMask`, source);
+    }
     if (cpu.io !== undefined) {
       const io = reader.object(cpu.io, `${path}.io`, source);
       decodeRanges(reader, io.ranges, `${path}.io.ranges`, source);

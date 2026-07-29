@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { applyRomTransforms, assembleRegions } from './shell.ts';
+import type { Regions } from './types.ts';
 
 const regions = assembleRegions(
   [
@@ -26,5 +27,19 @@ assert.deepEqual(
   [8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7,
     24, 25, 26, 27, 28, 29, 30, 31, 16, 17, 18, 19, 20, 21, 22, 23],
 );
+
+const splitOpcodes: Regions = { maincpu: Uint8Array.from([0x80, 0x02, 0x11]) };
+const substitution = Array.from({ length: 256 }, (_unused, value) =>
+  (value & 0x11) | ((value & 0xe0) >> 4) | ((value & 0x0e) << 4));
+applyRomTransforms(splitOpcodes, [{
+  kind: 'byte-substitution',
+  sourceRegion: 'maincpu',
+  targetRegion: 'decrypted_opcodes',
+  start: 1,
+  end: 3,
+  table: substitution,
+}]);
+assert.deepEqual([...splitOpcodes.maincpu], [0x80, 0x02, 0x11]);
+assert.deepEqual([...splitOpcodes.decrypted_opcodes!], [0x80, 0x20, 0x11]);
 
 console.log('shell.spec: MAME ROM region fill and driver-init transform semantics passed');

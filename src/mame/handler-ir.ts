@@ -155,11 +155,41 @@ class HandlerParser {
       this.unsupportedStatement(`unsupported expression statement at byte ${start.offset}`);
       return undefined;
     }
-    if (expression.kind !== 'call') {
+    const operation = this.expressionStatement(expression);
+    if (!operation) {
       this.diagnostics.push(`discarded non-call expression at byte ${start.offset}`);
       return undefined;
     }
-    return { op: 'call', expression };
+    return operation;
+  }
+
+  /**
+   * Preserve side effects in expression statements. MAME commonly uses a
+   * conditional expression to choose which tilemap receives a dirty mark:
+   * `Which ? foreground() : background();`.
+   */
+  private expressionStatement(
+    expression: GeneratedExpression,
+  ): GeneratedHandlerOperation | undefined {
+    if (expression.kind === 'call') return { op: 'call', expression };
+    if (expression.kind === 'assignment') {
+      return {
+        op: 'assign',
+        target: expression.target,
+        operator: expression.operator,
+        value: expression.value,
+      };
+    }
+    if (expression.kind !== 'conditional') return undefined;
+    const whenTrue = this.expressionStatement(expression.whenTrue);
+    const whenFalse = this.expressionStatement(expression.whenFalse);
+    if (!whenTrue || !whenFalse) return undefined;
+    return {
+      op: 'if',
+      condition: expression.condition,
+      then: [whenTrue],
+      else: [whenFalse],
+    };
   }
 
   private parseIf(): GeneratedHandlerOperation | undefined {

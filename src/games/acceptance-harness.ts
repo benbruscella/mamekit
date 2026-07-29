@@ -27,7 +27,10 @@ interface SoundWrite {
 
 interface AudioProbe {
   render(writes: readonly SoundWrite[], capture: boolean): void;
-  finish(writes: SoundWrite[]): GameAcceptanceGolden['audio'];
+  finish(
+    writes: SoundWrite[],
+    wavPath?: string,
+  ): GameAcceptanceGolden['audio'];
 }
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -35,10 +38,26 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 /** Probe render rate; independent of any browser AudioContext. */
 const PROBE_OUTPUT_RATE = 48_000;
 
+export interface GameAcceptanceOptions {
+  /**
+   * Diagnostic mode for a clean power-on audio capture. It runs without
+   * inputs, records from frame zero, writes PCM to this path, and skips the
+   * normal gameplay golden assertions.
+   */
+  captureAudio?: string;
+  /** Optional register-write trace paired with a diagnostic audio capture. */
+  captureAudioWrites?: string;
+  /** Duration override used by diagnostic captures. */
+  frames?: number;
+}
+
 export async function runGameAcceptance(
   contract: GameTestContract,
   root = projectRoot,
+  options: GameAcceptanceOptions = {},
 ): Promise<GameAcceptanceGolden> {
+  const diagnosticCapture = options.captureAudio !== undefined;
+  const framesToRun = options.frames ?? contract.frames;
   const outRoot = join(root, 'dist');
   const gameDir = gameOutputDir(outRoot, contract.category, contract.game);
   const romPath = resolve(
@@ -128,7 +147,7 @@ export async function runGameAcceptance(
   const audio = await createAudioProbe(config, regions, outRoot);
   const framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);
   const checkpoints: GameAcceptanceGolden['checkpoints'] = {};
-  const checkpointFrames = new Set(contract.checkpoints);
+  const checkpointFrames = new Set(diagnosticCapture ? [] : contract.checkpoints);
   const startedAt = performance.now();
   const runFrame = (): void => {
     pendingWrites.length = 0;
@@ -144,7 +163,7 @@ export async function runGameAcceptance(
         (requiredAudioCounts.get(index) ?? 0) + count,
       );
     }
-    audio.render(pendingWrites, snapshot.frame >= 120);
+    audio.render(pendingWrites, diagnosticCapture || snapshot.frame >= 120);
     if (checkpointFrames.has(snapshot.frame)) {
       checkpoints[String(snapshot.frame)] = {
         video: hash(new Uint8Array(framebuffer.buffer)),
@@ -153,7 +172,7 @@ export async function runGameAcceptance(
     }
   };
 
-  for (const action of contract.actions) {
+  for (const action of diagnosticCapture ? [] : contract.actions) {
     while (board.snapshot().frame < action.atFrame) runFrame();
     pulse(
       eventTarget,
@@ -163,7 +182,7 @@ export async function runGameAcceptance(
       action.releasedFrames,
     );
   }
-  while (board.snapshot().frame < contract.frames) runFrame();
+  while (board.snapshot().frame < framesToRun) runFrame();
   const finalSnapshot = board.snapshot();
   if (process.env.MAMEKIT_CAPTURE_FRAME) {
     writeFramePpm(
@@ -174,7 +193,7 @@ export async function runGameAcceptance(
     );
   }
   const elapsedSeconds = (performance.now() - startedAt) / 1000;
-  const emulatedFps = contract.frames / elapsedSeconds;
+  const emulatedFps = framesToRun / elapsedSeconds;
 
   const result: GameAcceptanceGolden = {
     regions: Object.fromEntries(
@@ -183,8 +202,18 @@ export async function runGameAcceptance(
         .map(([name, bytes]) => [name, hash(bytes)]),
     ),
     checkpoints,
-    audio: audio.finish(allWrites),
+    audio: audio.finish(allWrites, options.captureAudio),
   };
+  if (diagnosticCapture) {
+    if (options.captureAudioWrites) {
+      writeFileSync(options.captureAudioWrites, `${JSON.stringify(allWrites, null, 2)}\n`);
+    }
+    console.log(
+      `${contract.game}: wrote ${options.captureAudio} ` +
+      `(${framesToRun} frames, ${emulatedFps.toFixed(1)} emulated fps)`,
+    );
+    return result;
+  }
   assert.equal(Object.keys(checkpoints).length, contract.checkpoints.length);
   const debugBoard = board as unknown as {
     shares?: Record<string, Uint8Array>;
@@ -346,16 +375,67 @@ async function createAudioProbe(
       const samples = renderer.render(writes);
       if (capture) chunks.push(samples);
     },
-    finish(writes) {
-      return audioResult(writes, chunks);
+    finish(writes, wavPath) {
+      const { result, pcm } = audioResult(writes, chunks);
+      if (wavPath) {
+        writePcm16Wav(
+          wavPath,
+          applyBrowserOutputStage(pcm, config.sound, PROBE_OUTPUT_RATE),
+          PROBE_OUTPUT_RATE,
+        );
+      }
+      return result;
     },
   };
+}
+
+/**
+ * Diagnostic WAVs represent what reaches the browser destination, including
+ * the output gain/filter that lives after the AudioWorklet.
+ */
+function applyBrowserOutputStage(
+  input: Float32Array,
+  sound: ShellConfig['sound'],
+  sampleRate: number,
+): Float32Array {
+  const output = Float32Array.from(input);
+  const filter = sound.speakerFilter;
+  if (filter?.type === 'highpass') {
+    // RBJ high-pass coefficients, matching the Web Audio biquad topology.
+    const omega = 2 * Math.PI * filter.frequency / sampleRate;
+    const cosine = Math.cos(omega);
+    const alpha = Math.sin(omega) / (2 * filter.q);
+    const a0 = 1 + alpha;
+    const b0 = (1 + cosine) / 2 / a0;
+    const b1 = -(1 + cosine) / a0;
+    const b2 = b0;
+    const a1 = -2 * cosine / a0;
+    const a2 = (1 - alpha) / a0;
+    let x1 = 0;
+    let x2 = 0;
+    let y1 = 0;
+    let y2 = 0;
+    for (let index = 0; index < output.length; index++) {
+      const x0 = output[index]!;
+      const y0 = b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+      output[index] = y0;
+      x2 = x1;
+      x1 = x0;
+      y2 = y1;
+      y1 = y0;
+    }
+  }
+  const gain = sound.masterGain ?? 1;
+  if (gain !== 1) {
+    for (let index = 0; index < output.length; index++) output[index] = output[index]! * gain;
+  }
+  return output;
 }
 
 function audioResult(
   writes: SoundWrite[],
   chunks: Float32Array[],
-): GameAcceptanceGolden['audio'] {
+): { result: GameAcceptanceGolden['audio']; pcm: Float32Array } {
   const sampleCount = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
   const pcm = new Float32Array(sampleCount);
   let offset = 0;
@@ -366,12 +446,36 @@ function audioResult(
     for (const sample of chunk) squares += sample * sample;
   }
   return {
-    writes: writes.length,
-    nonzeroWrites: writes.filter(write => write.offset >= 0 && write.data !== 0).length,
-    writeHash: hash(new TextEncoder().encode(JSON.stringify(writes))),
-    pcmHash: hash(new Uint8Array(pcm.buffer)),
-    rms: Math.round(Math.sqrt(squares / Math.max(1, sampleCount)) * 1_000_000) / 1_000_000,
+    pcm,
+    result: {
+      writes: writes.length,
+      nonzeroWrites: writes.filter(write => write.offset >= 0 && write.data !== 0).length,
+      writeHash: hash(new TextEncoder().encode(JSON.stringify(writes))),
+      pcmHash: hash(new Uint8Array(pcm.buffer)),
+      rms: Math.round(Math.sqrt(squares / Math.max(1, sampleCount)) * 1_000_000) / 1_000_000,
+    },
   };
+}
+
+function writePcm16Wav(path: string, pcm: Float32Array, sampleRate: number): void {
+  const bytes = Buffer.alloc(44 + pcm.length * 2);
+  bytes.write('RIFF', 0);
+  bytes.writeUInt32LE(36 + pcm.length * 2, 4);
+  bytes.write('WAVEfmt ', 8);
+  bytes.writeUInt32LE(16, 16);
+  bytes.writeUInt16LE(1, 20);
+  bytes.writeUInt16LE(1, 22);
+  bytes.writeUInt32LE(sampleRate, 24);
+  bytes.writeUInt32LE(sampleRate * 2, 28);
+  bytes.writeUInt16LE(2, 32);
+  bytes.writeUInt16LE(16, 34);
+  bytes.write('data', 36);
+  bytes.writeUInt32LE(pcm.length * 2, 40);
+  for (let index = 0; index < pcm.length; index++) {
+    const sample = Math.max(-1, Math.min(1, pcm[index]!));
+    bytes.writeInt16LE(Math.round(sample * 32767), 44 + index * 2);
+  }
+  writeFileSync(path, bytes);
 }
 
 function stateHash(snapshot: BoardSnapshot): string {

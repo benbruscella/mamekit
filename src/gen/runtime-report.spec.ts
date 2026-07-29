@@ -19,6 +19,10 @@ const graph: KnowledgeGraph = {
       ownerTag: 'latch', signal: 'q_out_cb', slot: '0',
       targetClass: 'test_state', targetMethod: 'irq_w',
     } },
+    { id: 'callback:scanline', label: 'Callback', props: {
+      ownerTag: 'scantimer', signal: 'configure_scanline',
+      targetClass: 'test_state', targetMethod: 'scanline',
+    } },
     { id: 'handler:test_state:read', label: 'Handler', props: {
       ownerClass: 'test_state',
       method: 'read',
@@ -83,7 +87,10 @@ if (report.handlerCompiler.usedCompiledHandlers !== 1) {
   throw new Error('compiled address-map handlers should be counted');
 }
 if (report.parserGaps[0]?.construct !== 'lw8') throw new Error('lw8 parser gap should be reported');
-if (report.requirements.callbacks.length !== 1) throw new Error('callback wiring should be reported');
+if (report.requirements.callbacks.length !== 2) throw new Error('callback wiring should be reported');
+if (report.executionCompiler.frameCallbacks !== 1) {
+  throw new Error('scanline timer should count as a generated frame callback');
+}
 if (report.boardMode !== 'generated') {
   throw new Error('board composition should be generated');
 }

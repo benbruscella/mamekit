@@ -263,12 +263,17 @@ changes point toward generated synthesis or resampling.
 1. Add `src/games/<game>.ts` using an existing token as the schema example.
 2. Add `src/games/<game>.spec.ts` for source facts and lowering rules that are
    essential to that machine.
-3. Export the token from `src/games/contracts.ts`.
-4. Keep the token free of emulation behavior.
-5. Generate only the new game while bringing it up.
-6. Verify ROM loading, coin/start, video and audio manually.
-7. Run `test:games:record`, review the candidate baseline, and add it.
-8. Add the game to `gen:all` only after its real-ROM contract passes.
+3. Keep the token free of emulation behavior; the token/spec pair is
+   auto-discovered, so no central registry or `gen:all` list needs editing.
+4. Generate only the new game while bringing it up.
+5. Verify ROM loading, coin/start, gameplay, video and audio manually.
+6. For sound-capable games, optionally run `npm run audio:compare -- <game>
+   --mame /path/to/mame` to compare clean power-on WAVs from the generated
+   worklet and MAME's `-wavwrite`.
+7. Add the local bezel, flyer, cabinet, marquee and Gaming History data
+   described in [CONTRIBUTING](CONTRIBUTING.md), then run
+   `npm run audit:game-package -- <game>`.
+8. Run `test:games:record`, review the candidate baseline, and add it.
 9. Run `npm test`, `npm run test:games`, and the relevant browser checks.
 
 If a new title requires changes to `acceptance-harness.ts`, first decide

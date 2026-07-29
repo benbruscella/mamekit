@@ -264,7 +264,12 @@ export function buildRuntimeReport(
   const screenProgram = screenUpdate ? sourceHandlerByKey.get(screenUpdate)?.program : undefined;
   const frameCallbacks = graph.nodes.filter(node =>
     node.label === 'Callback' &&
-    ['screen_vblank', 'set_vblank_int', 'set_periodic_int'].includes(String(node.props.signal)),
+    [
+      'screen_vblank',
+      'set_vblank_int',
+      'set_periodic_int',
+      'configure_scanline',
+    ].includes(String(node.props.signal)),
   ).length;
 
   const every = [...cpus, ...devices, ...handlers, ...callbacks, ...composition];

@@ -82,6 +82,7 @@ const DECLARATIVE_HOST_TYPES = new Set([
   'PALETTE',
   'SCREEN',
   'SPEAKER',
+  'TIMER',
   'WATCHDOG_TIMER',
 ]);
 

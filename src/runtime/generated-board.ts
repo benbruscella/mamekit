@@ -83,6 +83,36 @@ export function createGeneratedBoard(
   return new IrBoard(machine, config, regions, inputs, sinks);
 }
 
+const INPUT_LINE_NMI = -1;
+const INPUT_LINE_RESET = -2;
+
+/**
+ * Apply MAME's special CPU input lines without confusing RESET with NMI.
+ *
+ * Generated driver handlers call set_input_line directly, so these lines do
+ * not necessarily arrive through the typed connection/effect path below.
+ */
+export function applyGeneratedCpuInputLine(
+  cpu: Cpu,
+  line: number,
+  state: number,
+  setHeld: (held: boolean) => void,
+  dataBus: number | (() => number) = 0xff,
+): void {
+  if (line === INPUT_LINE_RESET) {
+    const active = state !== 0;
+    setHeld(active);
+    if (active) cpu.reset();
+    return;
+  }
+  if (line === INPUT_LINE_NMI) {
+    if (state !== 0) cpu.nmi();
+    return;
+  }
+  if (line < 0) return;
+  cpu.setIrqLine(state !== 0, dataBus, state === 2);
+}
+
 class IrBoard implements Board {
   readonly fbWidth: number;
   readonly fbHeight: number;
@@ -141,6 +171,9 @@ class IrBoard implements Board {
     const calls: NonNullable<GeneratedHandlerBindings['calls']> = {};
     this.bindings = { members: this.state, inputs, calls };
     bindGeneratedDriverState(this.state, calls);
+    for (const [tag, bytes] of Object.entries(regions)) {
+      bindGeneratedRegionState(this.state, tag, bytes);
+    }
     for (const input of machine.execution.inputMembers ?? []) {
       const ports = input.tags.map(tag => ({ read: () => inputs.read(tag) }));
       this.state[input.member] = ports.length === 1 ? ports[0] : ports;
@@ -195,6 +228,22 @@ class IrBoard implements Board {
         registry,
         this.shares,
       );
+      if (specification.opcode) {
+        const opcodeRom = regions[specification.opcode.region];
+        if (!opcodeRom) {
+          throw new Error(
+            `${machine.game}: missing opcode region ${specification.opcode.region}`,
+          );
+        }
+        const opcodeBus = new Bus(
+          specification.opcode.ranges,
+          opcodeRom,
+          registry,
+          this.shares,
+        );
+        const opcodeMask = specification.opcode.globalMask ?? 0xffff;
+        bus.readOpcode = address => opcodeBus.read(address & opcodeMask);
+      }
       if (specification.io) {
         const ioBus = new Bus(specification.io.ranges, new Uint8Array(0), registry, this.shares);
         const mask = specification.io.globalMask ?? 0xffff;
@@ -204,6 +253,10 @@ class IrBoard implements Board {
       const mask = specification.mask ?? 0xffff;
       const cpu = createCpu(type, {
         read: address => bus.read(address & mask),
+        ...(bus.readOpcode ? {
+          // AS_OPCODES has its own global mask; do not inherit AS_PROGRAM's.
+          readOpcode: address => bus.readOpcode!(address),
+        } : {}),
         write: (address, data) => bus.write(address & mask, data),
         in: bus.in,
         out: bus.out,
@@ -239,18 +292,30 @@ class IrBoard implements Board {
             ) ?? 0xff
           : 0xff;
       calls[`m_${specification.tag}.set_input_line`] = (line, state) => {
-        if (line < 0) {
-          if (state !== 0) cpu.nmi();
-          return;
-        }
-        cpu.setIrqLine(
-          state !== 0,
+        applyGeneratedCpuInputLine(
+          cpu,
+          line,
+          state,
+          held => this.cpuHeld.set(specification.tag, held),
           state !== 0 ? interruptVector : 0xff,
-          state === 2,
         );
       };
+      calls[`m_${specification.tag}.set_input_line_and_vector`] =
+        (line, state, vector) => {
+          applyGeneratedCpuInputLine(
+            cpu,
+            line,
+            state,
+            held => this.cpuHeld.set(specification.tag, held),
+            vector & 0xff,
+          );
+        };
       calls[`m_${specification.tag}.pulse_input_line`] = line => {
-        if (line < 0) cpu.nmi();
+        if (line === INPUT_LINE_NMI) cpu.nmi();
+        else if (line === INPUT_LINE_RESET) {
+          cpu.reset();
+          this.cpuHeld.set(specification.tag, false);
+        }
         else {
           cpu.setIrqLine(true);
           cpu.setIrqLine(false);
@@ -263,7 +328,9 @@ class IrBoard implements Board {
       const member = machine.devices?.find(device =>
         device.tag === specification.tag)?.member;
       if (member) {
-        for (const name of ['set_input_line', 'pulse_input_line', 'total_cycles']) {
+        for (const name of [
+          'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
+        ]) {
           calls[`${member}.${name}`] = calls[`m_${specification.tag}.${name}`]!;
         }
       }
@@ -679,8 +746,15 @@ class IrBoard implements Board {
       candidate.program &&
       !candidate.program.diagnostics.length);
     if (!handler?.program) return undefined;
+    const firstParameter = /(\w+)\s*$/.exec(
+      (handler.parameters ?? '').split(',')[0]?.trim() ?? '',
+    )?.[1];
     return state => {
-      executeGeneratedMachineHandler(this.machine, handler, this.bindings, { state, data: state });
+      executeGeneratedMachineHandler(this.machine, handler, this.bindings, {
+        state,
+        data: state,
+        ...(firstParameter ? { [firstParameter]: state } : {}),
+      });
     };
   }
 
@@ -794,6 +868,20 @@ export function bindGeneratedShareState(
   const values = Array.isArray(state[member]) ? state[member] as unknown[] : [];
   values[Number(indexed[2])] = bytes;
   state[member] = values;
+}
+
+/**
+ * MAME required_region_ptr members use their finder tag by convention
+ * (`m_irqprom(*this, "irqprom")`). Bind every assembled ROM region so
+ * generated handlers can index those source-declared pointers.
+ */
+export function bindGeneratedRegionState(
+  state: Record<string, unknown>,
+  tag: string,
+  bytes: Uint8Array,
+): void {
+  const leaf = tag.split(':').at(-1)!;
+  state[`m_${leaf}`] ??= bytes;
 }
 
 function usedHandlers(

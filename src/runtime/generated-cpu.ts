@@ -8,6 +8,8 @@ import type { GeneratedHandlerProgram } from '../ir/board.ts';
 
 export interface CpuBus {
   read(address: number): number;
+  /** AS_OPCODES fetch when the board maps encrypted opcodes separately. */
+  readOpcode?(address: number): number;
   write(address: number, data: number): void;
   in(port: number): number;
   out(port: number, data: number): void;
@@ -316,7 +318,8 @@ class IrCpu implements Cpu {
       'm_data.write_interruptible': (address, value) => {
         this.bus.write(address & 0xffff, value & 0xff);
       },
-      'm_opcodes.read_byte': address => this.bus.read(address & 0xffff) & 0xff,
+      'm_opcodes.read_byte': address =>
+        (this.bus.readOpcode?.(address & 0xffff) ?? this.bus.read(address & 0xffff)) & 0xff,
       'm_args.read_byte': address => this.bus.read(address & 0xffff) & 0xff,
       'm_program.read_byte': address => this.readMemory(address),
       'm_cprogram.read_byte': address => this.readMemory(address),

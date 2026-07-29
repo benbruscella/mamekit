@@ -40,6 +40,21 @@ assert.equal(cpu.invoke('get_f'), 0x94);
 assert.equal(cpu.step(), 8);
 assert.equal(cpu.get('A'), 0x01);
 
+// Boards with an AS_OPCODES map fetch instructions from the separate bus
+// while instruction arguments and ordinary data reads stay on program space.
+const encrypted = Uint8Array.from([0x76]); // HALT as data, NOP after decryption.
+const opcodeCpu = createCpu('Z80', {
+  read: address => encrypted[address] ?? 0,
+  readOpcode: () => 0x00,
+  write: () => {},
+  in: () => 0xff,
+  out: () => {},
+});
+opcodeCpu.step();
+assert.equal(opcodeCpu.get('PC'), 1);
+assert.equal(opcodeCpu.get('m_halt'), 0);
+assert.match(generatedCpuExecutableSource(definition), /bus\.readOpcode\?\./);
+
 const i8080Definition = compileMameI8080(process.env.MAME_SRC ?? '../mame');
 assert.match(
   generatedCpuExecutableSource(i8080Definition),
