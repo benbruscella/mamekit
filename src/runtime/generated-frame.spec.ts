@@ -89,7 +89,7 @@ new GeneratedFrameRunner({
   },
 }).frame(new Uint32Array(1));
 assert.deepEqual(scanlines, [0, 1, 2]);
-assert.deepEqual(scanlineTimeline, ['cpu', 'line:0', 'cpu', 'line:1', 'cpu', 'line:2']);
+assert.deepEqual(scanlineTimeline, ['line:0', 'cpu', 'line:1', 'cpu', 'line:2', 'cpu']);
 
 runner.reset();
 assert.equal(runner.frameCount, 0);
