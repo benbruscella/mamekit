@@ -49,6 +49,24 @@ ROM_END
   ['tiles.bin'],
 ]);
 
+{
+  const regions = parseRomSets(`
+ROM_START( splitgfx )
+  ROM_REGION( 0x0800, "gfx1", 0 )
+  ROM_LOAD( "graphics.bin", 0x0000, 0x0800, CRC(11111111) )
+  ROM_IGNORE( 0x0800 )
+  ROM_REGION( 0x0800, "gfx2", 0 )
+  ROM_LOAD( "graphics.bin", 0x0000, 0x0800, CRC(11111111) )
+  ROM_CONTINUE(               0x0000, 0x0800 )
+ROM_END
+`)[0]!.regions;
+  eq('ROM_IGNORE leaves the first half in the first region',
+    regions[0]!.loads[0]!.continueSegments, []);
+  eq('ROM_CONTINUE reads the next file half into the second region',
+    regions[1]!.loads[0]!.continueSegments,
+    [{ offset: 0, size: 0x800, fileOffset: 0x800 }]);
+}
+
 eq('memory bank configure_entries', parseMemoryBanks(
   'm_mainbank->configure_entries(0, 16, memregion("maincpu")->base() + 0x10000, 0x1000);',
   { m_mainbank: 'mainbank' },
@@ -63,6 +81,28 @@ eq('memory bank configure_entries', parseMemoryBanks(
   stride: 0x1000,
   raw: 'm_mainbank->configure_entries(0, 16, memregion("maincpu")->base() + 0x10000, 0x1000)',
 }]);
+
+eq('indexed memory-bank array entries', parseMemoryBanks(
+  `
+  m_rombanks[0]->configure_entries(0, 2, memregion("maincpu")->base() + 0x2000, 0x1000);
+  m_rombanks[1]->configure_entries(0, 2, memregion("maincpu")->base() + 0x2000, 0x1000);
+  `,
+  {
+    'm_rombanks[0]': 'bank1',
+    'm_rombanks[1]': 'bank2',
+  },
+  {},
+).map(bank => ({
+  member: bank.member,
+  tag: bank.tag,
+  entryOffsets: Array.from(
+    { length: bank.entries },
+    (_unused, index) => bank.offset + index * bank.stride,
+  ),
+})), [
+  { member: 'm_rombanks[0]', tag: 'bank1', entryOffsets: [0x2000, 0x3000] },
+  { member: 'm_rombanks[1]', tag: 'bank2', entryOffsets: [0x2000, 0x3000] },
+]);
 
 // --- extended graphics layout offsets ---------------------------------------
 {
@@ -226,6 +266,36 @@ eq('device array finder tags', parseMemberTags(`
   'm_ym[0]': 'ym1',
   'm_ym[1]': 'ym2',
 });
+
+eq('memory-bank array finder tags', parseMemberTags(`
+class board_state
+{
+  required_memory_bank_array<2> m_rombanks;
+};
+board_state::board_state()
+  : m_rombanks(*this, "bank%u", 1U)
+{
+}
+`), {
+  m_rombanks: 'bank%u',
+  'm_rombanks[0]': 'bank1',
+  'm_rombanks[1]': 'bank2',
+});
+
+{
+  const [cfg] = parseMachineConfigs(`
+void board_state::derived(machine_config &config)
+{
+  base(config);
+  m_gfxdecode->set_info(gfx_separate);
+}
+`, { m_gfxdecode: 'gfxdecode' }, {});
+  eq('inherited GFX decode set_info patch', cfg?.gfxDecodePatches, [{
+    tag: 'gfxdecode',
+    name: 'gfx_separate',
+    raw: 'm_gfxdecode->set_info(gfx_separate)',
+  }]);
+}
 
 // add_route on an array element must still lower, and a bank may be configured
 // by several calls through a local pointer alias to a region base.

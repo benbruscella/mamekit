@@ -137,6 +137,145 @@ const machine: BoardIr = {
 const registry = generatedHandlerRegistry(machine);
 assert.equal(registry.read['fixture_state.read']!(0, 0), 0xbf);
 
+{
+  const directCalls: string[] = [];
+  const directRam = new Uint8Array(8);
+  const directMachine: BoardIr = {
+    ...machine,
+    handlers: [{
+      id: 'handler:fixture_state:videoram_w',
+      ownerClass: 'fixture_state',
+      method: 'videoram_w',
+      parameters: 'offs_t offset, uint8_t data',
+      program: compileMameHandler(`
+        m_screen->update_partial(m_screen->vpos());
+        m_videoram[offset] = data;
+        m_bg_tilemap->mark_tile_dirty(offset);
+      `),
+    }],
+    maps: [{
+      id: 'map',
+      className: 'fixture_state',
+      name: 'main',
+      ranges: [{
+        id: 'video',
+        start: 0,
+        end: 7,
+        raw: '',
+        write: 'fixture_state.videoram_w',
+        props: {},
+      }],
+    }],
+  };
+  const directRegistry = generatedHandlerRegistry(directMachine, {
+    members: {
+      m_screen: {
+        vpos: () => 4,
+        update_partial: (line: number) => { directCalls.push(`partial:${line}`); },
+      },
+      m_videoram: directRam,
+      m_bg_tilemap: {
+        mark_tile_dirty: (offset: number) => { directCalls.push(`dirty:${offset}`); },
+      },
+    },
+  });
+  directRegistry.write['fixture_state.videoram_w']!(3, 3, 0xa5);
+  assert.equal(directRam[3], 0xa5);
+  assert.deepEqual(directCalls, ['partial:4', 'dirty:3']);
+  directRegistry.write['fixture_state.videoram_w']!(3, 3, 0xa5);
+  assert.deepEqual(directCalls, [
+    'partial:4',
+    'dirty:3',
+    'partial:4',
+    'dirty:3',
+  ]);
+}
+
+{
+  const objectCalls: string[] = [];
+  const objectRam = new Uint8Array(0x100);
+  const objectMachine: BoardIr = {
+    ...machine,
+    handlers: [{
+      id: 'handler:galaxian_state:galaxian_objram_w',
+      ownerClass: 'galaxian_state',
+      method: 'galaxian_objram_w',
+      parameters: 'offs_t offset, uint8_t data',
+      body: `
+        m_screen->update_partial(m_screen->vpos());
+        m_spriteram[offset] = data;
+        if (offset < 0x40) {
+          if ((offset & 0x01) == 0) {
+            if (m_frogger_adjust) data = (data >> 4) | (data << 4);
+            if (!m_sfx_adjust) m_bg_tilemap->set_scrolly(offset >> 1, data);
+            else m_bg_tilemap->set_scrollx(offset >> 1, m_x_scale*data);
+          } else {
+            for (offset >>= 1; offset < 0x0400; offset += 32)
+              m_bg_tilemap->mark_tile_dirty(offset);
+          }
+        }
+      `,
+      program: compileMameHandler(`
+        m_screen->update_partial(m_screen->vpos());
+        m_spriteram[offset] = data;
+        if (offset < 0x40) {
+          if ((offset & 0x01) == 0) {
+            if (m_frogger_adjust) data = (data >> 4) | (data << 4);
+            if (!m_sfx_adjust) m_bg_tilemap->set_scrolly(offset >> 1, data);
+            else m_bg_tilemap->set_scrollx(offset >> 1, m_x_scale*data);
+          } else {
+            for (offset >>= 1; offset < 0x0400; offset += 32)
+              m_bg_tilemap->mark_tile_dirty(offset);
+          }
+        }
+      `),
+    }],
+    maps: [{
+      id: 'map',
+      className: 'galaxian_state',
+      name: 'main',
+      ranges: [{
+        id: 'objects',
+        start: 0,
+        end: 0xff,
+        raw: '',
+        write: 'galaxian_state.galaxian_objram_w',
+        props: {},
+      }],
+    }],
+  };
+  const objectRegistry = generatedHandlerRegistry(objectMachine, {
+    members: {
+      m_screen: {
+        vpos: () => 12,
+        update_partial: (line: number) => { objectCalls.push(`partial:${line}`); },
+      },
+      m_spriteram: objectRam,
+      m_frogger_adjust: 0,
+      m_sfx_adjust: 0,
+      m_x_scale: 3,
+      m_bg_tilemap: {
+        set_scrolly: (column: number, value: number) =>
+          { objectCalls.push(`scrolly:${column}:${value}`); },
+        set_scrollx: (row: number, value: number) =>
+          { objectCalls.push(`scrollx:${row}:${value}`); },
+        mark_tile_dirty: (offset: number) =>
+          { objectCalls.push(`dirty:${offset}`); },
+      },
+    },
+  });
+  objectRegistry.write['galaxian_state.galaxian_objram_w']!(2, 2, 0x55);
+  assert.equal(objectRam[2], 0x55);
+  assert.deepEqual(objectCalls, ['partial:12', 'scrolly:1:85']);
+  objectRegistry.write['galaxian_state.galaxian_objram_w']!(2, 2, 0x55);
+  assert.deepEqual(objectCalls, [
+    'partial:12',
+    'scrolly:1:85',
+    'partial:12',
+    'scrolly:1:85',
+  ]);
+}
+
 let irqMask = 0;
 let q0: ((state: number) => void) | undefined;
 const device = {
@@ -269,6 +408,20 @@ executeGeneratedHandler(requiredDeviceCall, {
 });
 assert.equal(requiredDeviceState, 1);
 
+let indexedDeviceData = 0;
+executeGeneratedHandler(
+  compileMameHandler('m_ay8910[0]->data_address_w(1, 0x2a);'),
+  {
+    calls: {
+      'm_ay8910[0].data_address_w': (_offset, data) => {
+        indexedDeviceData = Number(data);
+        return 0;
+      },
+    },
+  },
+);
+assert.equal(indexedDeviceData, 0x2a);
+
 // C and C++ library primitives MAME device sources rely on.
 const buffered = new Uint8Array(8);
 const live = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
@@ -300,4 +453,4 @@ executeGeneratedHandler(
 assert.ok(ArrayBuffer.isView(resized.m_buffered), 'resize must preserve the container');
 assert.equal((resized.m_buffered as Uint8Array).length, 4);
 
-console.log('generated-handler.spec: 20 passed');
+console.log('generated-handler.spec: 21 passed');

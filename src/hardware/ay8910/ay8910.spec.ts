@@ -89,6 +89,22 @@ check('generated handlers reach the chip by every device alias', () => {
   }
 });
 
+check('data-address wiring selects data at offset 0 and address at offset 1', () => {
+  const ctx = context(base);
+  installAy8910Runtime(ctx);
+  ctx.calls['m_ay.data_address_w']!(1, 6);
+  ctx.calls['m_ay.data_address_w']!(0, 0x2a);
+  assert.deepEqual(ctx.writes, [[6, 0x2a, undefined]]);
+});
+
+check('address-data wiring selects address at offset 0 and data at offset 1', () => {
+  const ctx = context(base);
+  installAy8910Runtime(ctx);
+  ctx.registry.write['ay.address_data_w']!(0, 0, 4);
+  ctx.registry.write['ay.address_data_w']!(0, 1, 0x19);
+  assert.deepEqual(ctx.writes, [[4, 0x19, undefined]]);
+});
+
 // MAME reconfigures filter_rc_device stages at run time; the member the
 // handlers write to has to exist with the layout the driver's IR expects.
 check('a flat filter member is bound and forwards control writes', () => {

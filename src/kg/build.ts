@@ -159,6 +159,13 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
           ...spanProps(ast.findMacro('ROM_LOAD', 0, load.file)?.span),
         };
         if (load.reloadOffsets.length) props.reloadOffsets = load.reloadOffsets;
+        if (load.continueSegments.length) {
+          props.continueSegments = load.continueSegments.flatMap(segment => [
+            segment.offset,
+            segment.size,
+            segment.fileOffset,
+          ]);
+        }
         if (load.status) props.status = load.status;
         g.node('Rom', romId, props);
         g.edge(regId, romId, 'LOADS');
@@ -201,8 +208,8 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (r.share) props.share = r.share;
       if (r.portRead) props.portRead = r.portRead;
       if (r.portWrite) props.portWrite = r.portWrite;
-      if (r.bankRead) props.bankRead = r.bankRead;
-      if (r.bankWrite) props.bankWrite = r.bankWrite;
+      if (r.bankRead) props.bankRead = memberTags[`m_${r.bankRead}`] ?? r.bankRead;
+      if (r.bankWrite) props.bankWrite = memberTags[`m_${r.bankWrite}`] ?? r.bankWrite;
       g.node('AddressRange', rangeId, props);
       g.edge(mapId, rangeId, 'HAS_RANGE');
       for (const dir of ['read', 'write'] as const) {
@@ -312,6 +319,12 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         g.edge(cfgId, `map:${target.cls}.${target.name}`, 'PATCHES_MAP', { space, deviceTag: patch.tag });
       }
     }
+    for (const patch of cfg.gfxDecodePatches) {
+      g.edge(cfgId, `gfxdecode:${patch.name}`, 'DECODES', {
+        deviceTag: patch.tag,
+        override: true,
+      });
+    }
     for (const dev of cfg.devices) {
       // namespaced by class AND config name: every device-board class has a
       // config called device_add_mconfig, and different classes reuse tags
@@ -375,7 +388,9 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         const target = resolveMap(cfg.cls, mapName);
         g.edge(devId, target ? `map:${target.cls}.${target.name}` : `map:${cfg.cls}.${mapName}`, 'HAS_MAP', { space });
       }
-      if (dev.gfxDecodeName) g.edge(cfgId, `gfxdecode:${dev.gfxDecodeName}`, 'DECODES');
+      if (dev.gfxDecodeName) {
+        g.edge(cfgId, `gfxdecode:${dev.gfxDecodeName}`, 'DECODES', { deviceTag: dev.tag });
+      }
     }
   }
 

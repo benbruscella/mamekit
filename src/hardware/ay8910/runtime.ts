@@ -53,13 +53,31 @@ export function installAy8910Runtime(context: SoundRuntimeContext): void {
       }
       return registers.get(tag)![register] ?? 0xff;
     };
+    // MAME exposes helpers for boards that wire the AY's BC1 control line
+    // directly (or inverted) to an address bit. Generated driver handlers call
+    // these methods with (offset, data), while address-map bindings receive the
+    // usual (address, offset, data) tuple.
+    const dataAddressWrite = (offset: number, data: number): void => {
+      if (offset & 1) addressWrite(data);
+      else dataWrite(data);
+    };
+    const addressDataWrite = (offset: number, data: number): void => {
+      if (offset & 1) dataWrite(data);
+      else addressWrite(data);
+    };
 
     registry.write[`${tag}.address_w`] = (_address, _offset, data) => addressWrite(data);
     registry.write[`${tag}.data_w`] = (_address, _offset, data) => dataWrite(data);
+    registry.write[`${tag}.data_address_w`] = (_address, offset, data) =>
+      dataAddressWrite(offset, data);
+    registry.write[`${tag}.address_data_w`] = (_address, offset, data) =>
+      addressDataWrite(offset, data);
     registry.read[`${tag}.data_r`] = dataRead;
     for (const alias of deviceAliases(board, tag)) {
       calls[`${alias}.address_w`] = addressWrite;
       calls[`${alias}.data_w`] = dataWrite;
+      calls[`${alias}.data_address_w`] = dataAddressWrite;
+      calls[`${alias}.address_data_w`] = addressDataWrite;
       calls[`${alias}.data_r`] = dataRead;
     }
   });

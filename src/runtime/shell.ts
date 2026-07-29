@@ -16,6 +16,8 @@ export interface RomLoad {
   /** same-slot chips from sibling sets (other revisions of the same game) */
   alt?: { file: string; crc: string }[];
   reloadOffsets?: number[];
+  /** Extra slices from later in this same file (MAME ROM_CONTINUE semantics). */
+  continueSegments?: { offset: number; size: number; fileOffset: number }[];
   /**
    * MAME's dump status for the chip. `nodump` means no copy exists anywhere,
    * so no ROM set can supply it and MAME leaves those bytes erased; it is not
@@ -437,6 +439,12 @@ export function assembleRegions(
         console.warn(`CRC mismatch for ${load.file} (got ${crc32(f).toString(16)}, want ${load.crc}) — continuing`);
       }
       bytes.set(f.subarray(0, load.size), load.offset);
+      for (const segment of load.continueSegments ?? []) {
+        bytes.set(
+          f.subarray(segment.fileOffset, segment.fileOffset + segment.size),
+          segment.offset,
+        );
+      }
       for (const ro of load.reloadOffsets ?? []) bytes.set(f.subarray(0, load.size), ro);
     }
     regions[spec.region] = bytes;

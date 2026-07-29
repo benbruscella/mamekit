@@ -27,8 +27,14 @@ for (const type of ['MC6809', 'Z80', 'LS259', 'BUFFERED_SPRITERAM8', 'YM2203']) 
 assert.deepEqual(
   graph.nodes
     .filter(node => node.label === 'Device' && node.props.type === 'YM2203')
-    .map(node => String(node.props.tag)),
-  ['ym1', 'ym2'],
+    .map(node => ({
+      tag: String(node.props.tag),
+      config: (node.props.config as string[])[0],
+    })),
+  [
+    { tag: 'ym1', config: "YM2203(config, m_ym[0], XTAL(12'000'000) / 8)" },
+    { tag: 'ym2', config: "YM2203(config, m_ym[1], XTAL(12'000'000) / 8)" },
+  ],
 );
 
 // add_route on an array element must still lower its gains: MAME rotates the

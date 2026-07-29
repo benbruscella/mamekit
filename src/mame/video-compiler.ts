@@ -105,10 +105,7 @@ export function compileMameVideo(
     : ast.findFunctionInHierarchy(String(machine.props.cls), 'video_start');
   if (!start) return fail(`missing video_start for ${String(machine.props.cls)}`);
 
-  const decodes = graph.edges
-    .filter(edge => machineIds.has(edge.from) && edge.rel === 'DECODES')
-    .map(edge => graph.nodes.find(node => node.id === edge.to))
-    .filter((node): node is KGNode => Boolean(node));
+  const decodes = effectiveGfxDecodes(graph, machineId);
   if (!decodes.length) return fail(`missing gfx decode in machine composition`);
   const decodeBindings = compileDecodeBindings(graph, machineIds);
   const renderScale = decodes
@@ -118,6 +115,7 @@ export function compileMameVideo(
     .filter((node): node is KGNode => Boolean(node))
     .reduce((scale, entry) => Math.max(scale, Number(entry.props.xscale ?? 1)), 1);
   const numericDefaults = numericState(memberDefaults);
+  const configState = machineConfigInitialState(ast, source, config, constants);
   const tilemaps = compileTilemaps(start, { ...constants, ...numericDefaults })
     .filter((tilemap, index, all) =>
       all.findIndex(candidate => candidate.member === tilemap.member) === index);
@@ -132,7 +130,7 @@ export function compileMameVideo(
   const roots = [
     ...tilemaps.flatMap(tilemap => [tilemap.mapper, tilemap.tileInfo]),
     ...(screen ? [`${screen.className}.${screen.name}`] : []),
-    ...Object.values(delegates),
+    ...Object.values(delegates).filter((target): target is string => target !== null),
   ];
   addHandlerClosure(handlers, ast, roots, constants);
   const gfx = decodes.flatMap(decode => {
@@ -210,6 +208,7 @@ export function compileMameVideo(
       initialState: {
         ...arrayState(memberDefaults),
         ...(needsClassDefaults ? memberDefaults : {}),
+        ...configState,
         ...initialState(start.body, { ...constants, ...numericDefaults }),
       },
       ...(renderScale !== 1 ? { renderScale: { x: renderScale, y: 1 } } : {}),
@@ -508,6 +507,7 @@ function compileDecodeBindings(
     .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
     .map(edge => edge.to));
   const bindings = new Map<string, { decodeMember: string; paletteMember: string }>();
+  const bindingsByTag = new Map<string, { decodeMember: string; paletteMember: string }>();
   for (const device of graph.nodes.filter(node =>
     deviceIds.has(node.id) &&
     node.label === 'Device' &&
@@ -515,10 +515,22 @@ function compileDecodeBindings(
     const raw = ((device.props.config as string[] | undefined) ?? []).join('\n');
     const args = /GFXDECODE(?:_SCALE)?\s*\(\s*config\s*,\s*(m_\w+)\s*,\s*(m_\w+)\s*,\s*(\w+)/.exec(raw);
     if (!args) continue;
-    bindings.set(args[3]!, {
+    const binding = {
       decodeMember: args[1]!,
       paletteMember: args[2]!,
-    });
+    };
+    bindings.set(args[3]!, binding);
+    bindingsByTag.set(String(device.props.tag), binding);
+  }
+  // A derived machine can replace the layout table of a GFXDECODE device
+  // instantiated by its base config (`m_gfxdecode->set_info(gfx_pacmanbl)`).
+  // Carry the original device's member/palette binding onto the replacement.
+  for (const edge of graph.edges.filter(edge =>
+    machineIds.has(edge.from) && edge.rel === 'DECODES')) {
+    const deviceTag = String(edge.props?.deviceTag ?? '');
+    const binding = bindingsByTag.get(deviceTag);
+    const decode = graph.nodes.find(node => node.id === edge.to);
+    if (binding && decode) bindings.set(String(decode.props.name), binding);
   }
   return bindings;
 }
@@ -1460,6 +1472,31 @@ function machineConfigClosure(graph: KnowledgeGraph, machineId: string): Set<str
   return result;
 }
 
+/**
+ * Resolve the active graphics table for each GFXDECODE device. Machine config
+ * calls are ordered most-derived to base, so the first DECODES edge for a
+ * device tag is MAME's effective set_info value.
+ */
+export function effectiveGfxDecodes(
+  graph: KnowledgeGraph,
+  machineId: string,
+): KGNode[] {
+  const result: KGNode[] = [];
+  const seenDevices = new Set<string>();
+  for (const id of machineConfigClosure(graph, machineId)) {
+    for (const edge of graph.edges.filter(edge =>
+      edge.from === id && edge.rel === 'DECODES')) {
+      const deviceTag = String(edge.props?.deviceTag ?? edge.to);
+      if (seenDevices.has(deviceTag)) continue;
+      const decode = graph.nodes.find(node => node.id === edge.to);
+      if (!decode) continue;
+      seenDevices.add(deviceTag);
+      result.push(decode);
+    }
+  }
+  return result;
+}
+
 function sourceNumericConstants(source: string): Record<string, number> {
   const expressions = new Map<string, string>();
   for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^/\r\n]+)/gm)) {
@@ -1533,9 +1570,10 @@ function compileInitDelegates(
   ast: MameAstIndex,
   ownerClass: string,
   initName: string,
-): Record<string, string> {
+): Record<string, string | null> {
   const init = initName && ast.findFunctionInHierarchy(ownerClass, initName);
   if (!init) return {};
+  const delegates: Record<string, string | null> = {};
   for (const call of calledSourceMethods(init.body)) {
     const helper = ast.findFunctionInHierarchy(ownerClass, call);
     const rawArgs = findCallArguments(init.body, call);
@@ -1544,7 +1582,6 @@ function compileInitDelegates(
     const parameters = helper.parameters.split(',').map(parameter =>
       /(\w+)\s*$/.exec(parameter.trim())?.[1] ?? '');
     const byParameter = Object.fromEntries(parameters.map((name, index) => [name, args[index] ?? '']));
-    const delegates: Record<string, string> = {};
     const assignment = /\b(m_\w+)\s*=\s*\w+_delegate\(\s*(\w+)\s*\?\s*\2\s*:\s*&([A-Za-z_]\w*)::(\w+)/g;
     for (const match of helper.body.matchAll(assignment)) {
       const selected = /&([A-Za-z_]\w*)::(\w+)/.exec(byParameter[match[2]!] ?? '');
@@ -1552,9 +1589,19 @@ function compileInitDelegates(
         ? `${selected[1]}.${selected[2]}`
         : `${match[3]}.${match[4]}`;
     }
-    if (Object.keys(delegates).length) return delegates;
   }
-  return {};
+
+  // Driver init can deliberately clear a delegate after a shared helper has
+  // supplied its family default. Zig Zag does this for Galaxian's bullet
+  // renderer: common_init() installs galaxian_draw_bullet, then
+  // `m_draw_bullet_ptr = draw_bullet_delegate()` disables it. Preserve that
+  // source ordering instead of retaining the helper's earlier assignment.
+  for (const match of init.body.matchAll(
+    /\b(m_\w+)\s*=\s*\w+_delegate\(\s*\)\s*;/g,
+  )) {
+    delegates[match[1]!] = null;
+  }
+  return delegates;
 }
 
 function compileVideoColorTables(
@@ -1633,6 +1680,58 @@ function initialState(
     if (value != null && Number.isFinite(value)) state[match[1]!] = value;
   }
   return state;
+}
+
+/**
+ * Numeric driver setters called by a machine config are source-defined board
+ * facts. For example, Zig Zag calls set_num_spritegens(2), whose inline MAME
+ * body assigns m_numspritegens. Apply those simple assignments after class
+ * defaults and before video_start, matching MAME's construction order.
+ */
+function machineConfigInitialState(
+  ast: MameAstIndex,
+  source: string,
+  config: MameFunction,
+  constants: Record<string, number>,
+): Record<string, number> {
+  const state: Record<string, number> = {};
+  for (const match of config.body.matchAll(/\b(set_\w+)\s*\(([^;()]*)\)\s*;/g)) {
+    const method = ast.findFunctionInHierarchy(config.className, match[1]!)
+      ?? inlineSetter(source, match[1]!);
+    if (!method) continue;
+    const arguments_ = splitMameArgs(match[2]!).map(argument =>
+      evalExpr(substituteNumbers(argument, constants), constants));
+    if (arguments_.some(value => value === null)) continue;
+    const parameters = splitMameArgs(method.parameters)
+      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+      .filter((name): name is string => Boolean(name));
+    const values = {
+      ...constants,
+      ...Object.fromEntries(parameters.map((name, index) => [name, arguments_[index] ?? 0])),
+    };
+    Object.assign(state, initialState(method.body, { ...values, ...state }));
+  }
+  return state;
+}
+
+function inlineSetter(
+  source: string,
+  name: string,
+): { parameters: string; body: string } | undefined {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const declaration = new RegExp(
+    `\\b(?:void|int|unsigned|bool|u(?:8|16|32|64)|s(?:8|16|32|64))\\s+` +
+    `${escaped}\\s*\\(([^)]*)\\)\\s*\\{`,
+  ).exec(source);
+  if (!declaration) return undefined;
+  const open = source.indexOf('{', declaration.index + declaration[0].length - 1);
+  const close = matchingPair(source, open, '{', '}');
+  return close < 0
+    ? undefined
+    : {
+        parameters: declaration[1]!,
+        body: source.slice(open + 1, close),
+      };
 }
 
 function numericState(

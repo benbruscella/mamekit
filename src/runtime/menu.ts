@@ -16,6 +16,11 @@
 import { readZip, crc32 } from './zip.ts';
 import { decodeGfx, type GfxLayout } from './gfx.ts';
 import { loadArtwork } from './artwork.ts';
+import {
+  findDarkCoverCrop,
+  fitCoverCropAspect,
+  type CoverCrop,
+} from './cover-crop.ts';
 import { createBoard } from './generated-board.ts';
 import { openCartStore } from './cartstore.ts';
 
@@ -42,6 +47,7 @@ interface GameEntry {
   copyrightHolders?: string;
   gitHistory?: { firstCommit: string; lastCommit: string; commits: number; contributors: number; topAuthors: string[] };
   hasHistory?: boolean;
+  historyCredit?: string;
 }
 
 export function matchesMenuEntry(
@@ -470,7 +476,8 @@ export async function runMenu(): Promise<void> {
           story.appendChild(chap);
         }
         const attr = el('div', 'color:#4b5384;font-size:11px;margin-top:8px');
-        attr.textContent = 'Story courtesy of Gaming History (arcade-history.com)';
+        attr.textContent = entry.historyCredit ??
+          'Story courtesy of Gaming History (arcade-history.com)';
         story.appendChild(attr);
       });
     }
@@ -526,9 +533,20 @@ export async function runMenu(): Promise<void> {
     //    user-supplied) — real box art beats anything synthesized
     const flyer = await imageFrom(`../artwork/covers/${encodeURIComponent(entry.game)}.png`);
     if (flyer) {
-      const s = Math.max(canvas.width / flyer.width, canvas.height / flyer.height);
-      const w = flyer.width * s, h = flyer.height * s;
-      ctx.drawImage(flyer, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+      const source = darkCoverCrop(flyer);
+      const s = Math.max(canvas.width / source.width, canvas.height / source.height);
+      const w = source.width * s, h = source.height * s;
+      ctx.drawImage(
+        flyer,
+        source.x,
+        source.y,
+        source.width,
+        source.height,
+        (canvas.width - w) / 2,
+        (canvas.height - h) / 2,
+        w,
+        h,
+      );
       return;
     }
     // consoles: no cabinet/screenshot ladder — a stylized front-loader
@@ -653,6 +671,36 @@ export async function runMenu(): Promise<void> {
       img.onerror = () => res(null);
       img.src = url;
     });
+  }
+
+  /** Zoom past a scanner/page matte while retaining the archival source file. */
+  function darkCoverCrop(image: HTMLImageElement): CoverCrop {
+    const scale = Math.min(1, 512 / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    try {
+      const probe = document.createElement('canvas');
+      probe.width = width;
+      probe.height = height;
+      const context = probe.getContext('2d', { willReadFrequently: true })!;
+      context.drawImage(image, 0, 0, width, height);
+      const crop = findDarkCoverCrop(
+        context.getImageData(0, 0, width, height).data,
+        width,
+        height,
+      );
+      if (crop) {
+        return fitCoverCropAspect({
+          x: crop.x / scale,
+          y: crop.y / scale,
+          width: crop.width / scale,
+          height: crop.height / scale,
+        }, image.naturalWidth, image.naturalHeight, 600 / 800);
+      }
+    } catch {
+      // Cross-origin/tainted artwork cannot be sampled; retain normal cover fit.
+    }
+    return { x: 0, y: 0, width: image.naturalWidth, height: image.naturalHeight };
   }
 
   interface ShellCfg {

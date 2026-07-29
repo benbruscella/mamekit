@@ -17,7 +17,7 @@ import {
   lowerAuxiliaryAudioDevices,
 } from './emit-machine.ts';
 import type { BoardConfig } from '../runtime/types.ts';
-import { compileMameVideo } from '../mame/video-compiler.ts';
+import { compileMameVideo, effectiveGfxDecodes } from '../mame/video-compiler.ts';
 import {
   compileDiscreteMixer,
   compileMameSpeakerFilter,
@@ -97,6 +97,14 @@ class Graph {
       .filter(x => x.node);
   }
   byLabel(label: string): KGNode[] { return this.g.nodes.filter(n => n.label === label); }
+}
+
+function chunkTriples(values: number[]): [number, number, number][] {
+  const triples: [number, number, number][] = [];
+  for (let index = 0; index + 2 < values.length; index += 3) {
+    triples.push([values[index]!, values[index + 1]!, values[index + 2]!]);
+  }
+  return triples;
 }
 
 export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Promise<void> {
@@ -282,19 +290,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // xscale 3, h params scaled to match); divide back to native pixels
   let xscale = 1;
   {
-    const machineIds = new Set<string>();
-    const q = [machine.id];
-    while (q.length) {
-      const id = q.shift()!;
-      if (machineIds.has(id)) continue;
-      machineIds.add(id);
-      q.push(...g.out(id, 'CALLS').map(c => c.node.id));
-    }
-    for (const id of machineIds) {
-      for (const { node: dec } of g.out(id, 'DECODES')) {
-        for (const { node: e } of g.out(dec.id, 'HAS_ENTRY')) {
-          xscale = Math.max(xscale, Number(e.props.xscale ?? 1));
-        }
+    for (const dec of effectiveGfxDecodes(graph, machine.id)) {
+      for (const { node: e } of g.out(dec.id, 'HAS_ENTRY')) {
+        xscale = Math.max(xscale, Number(e.props.xscale ?? 1));
       }
     }
     if (xscale === 1) {
@@ -491,6 +489,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         crc,
         ...(alts.length ? { alt: alts } : {}),
         ...(rom.props.reloadOffsets ? { reloadOffsets: rom.props.reloadOffsets as number[] } : {}),
+        ...(rom.props.continueSegments ? {
+          continueSegments: chunkTriples(rom.props.continueSegments as number[]).map(
+            ([offset, size, fileOffset]) => ({ offset, size, fileOffset }),
+          ),
+        } : {}),
         ...(rom.props.status ? { status: rom.props.status as 'nodump' | 'baddump' } : {}),
       };
     }),
@@ -760,12 +763,31 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     }
   } catch { /* no git history available */ }
 
-  // Gaming History write-up (user-supplied arcade-history.com history.xml in
-  // artwork/data/, gitignored like the artwork; attribution shown in the app)
+  // Prefer a local curated story when preservation research has more detail
+  // than the shared Gaming History entry. Both live with the gitignored
+  // presentation package; attribution is carried into the generated app.
   let hasHistory = false;
   let historyText = '';
+  let historyCredit = '';
+  const curatedHistoryPath = join(
+    projectRoot,
+    'artwork/data/history',
+    `${opts.game}.txt`,
+  );
   const historyXmlPath = join(projectRoot, 'artwork/data/history/history.xml');
-  if (existsSync(historyXmlPath)) {
+  if (existsSync(curatedHistoryPath)) {
+    try {
+      historyText = readFileSync(curatedHistoryPath, 'utf8')
+        .replace(/\r\n/g, '\n')
+        .trim();
+      if (historyText) {
+        historyCredit = 'Curated from the preservation sources cited in the story';
+        writeFileSync(join(opts.outDir, 'history.txt'), `${historyText}\n`);
+        hasHistory = true;
+      }
+    } catch { /* unreadable local story — fall back to Gaming History */ }
+  }
+  if (!hasHistory && existsSync(historyXmlPath)) {
     try {
       const xml = readFileSync(historyXmlPath, 'utf8');
       const at = xml.indexOf(`<system name="${opts.game}"`);
@@ -781,6 +803,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             .trim();
           writeFileSync(join(opts.outDir, 'history.txt'),
             historyText + '\n\n— Gaming History (arcade-history.com)\n');
+          historyCredit = 'Story courtesy of Gaming History (arcade-history.com)';
           hasHistory = true;
         }
       }
@@ -800,6 +823,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     ...(graph.meta.copyrightHolders ? { copyrightHolders: graph.meta.copyrightHolders } : {}),
     ...(gitHistory ? { gitHistory } : {}),
     ...(hasHistory ? { hasHistory: true } : {}),
+    ...(historyCredit ? { historyCredit } : {}),
   }, null, 2));
 
   // the game itself is pure knowledge-graph data — the unified app at
@@ -827,6 +851,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     license: graph.meta.license as string | undefined,
     copyrightHolders: graph.meta.copyrightHolders as string | undefined,
     cpus, sound, screen, roms, bindings, dipDefaults, gitHistory, historyText,
+    historyCredit,
     ...(cart ? {
       cart: { list: String(cart.list), entries: cartEntries, slots: cart.slots as string[] },
     } : {}),
@@ -846,7 +871,7 @@ export function handlerOwnsSharedRam(sourceBody: string, share: string): boolean
 /**
  * Render the per-game dossier: the same knowledge-graph facts the app shows,
  * as one standalone markdown document. Nothing here is hand-written — every
- * fact flows from the graph (or MAME git / Gaming History side-channels).
+ * fact flows from the graph (or MAME git / presentation-package side-channels).
  */
 function machineDossierMarkdown(d: {
   game: string; title: string; fullname: string; year: string; company: string;
@@ -856,7 +881,7 @@ function machineDossierMarkdown(d: {
   screen: { width: number; height: number; refresh: number; rotate?: number };
   roms: { region: string; size: number; loads: { file: string; offset: number; size: number; crc: string }[] }[];
   bindings: unknown[]; dipDefaults: unknown[];
-  gitHistory?: Record<string, unknown>; historyText: string;
+  gitHistory?: Record<string, unknown>; historyText: string; historyCredit: string;
   cart?: { list: string; entries: number; slots: string[] };
 }): string {
   const hex = (n: number) => '0x' + n.toString(16);
@@ -870,7 +895,7 @@ function machineDossierMarkdown(d: {
   md.push('');
   md.push(`![marquee](/artwork/media/marquees/${d.game}.png)`);
   md.push('');
-  md.push(`| Flyer | Cabinet |`);
+  md.push(`| Cover | Cabinet |`);
   md.push(`| --- | --- |`);
   md.push(`| ![flyer](/artwork/covers/${d.game}.png) | ![cabinet](/artwork/media/cabinets/${d.game}.png) |`);
   md.push('');
@@ -954,7 +979,7 @@ function machineDossierMarkdown(d: {
     md.push(d.historyText.replace(/^- ([A-Z][A-Z0-9 .&'/-]{2,}) -\s*$/gm,
       (_, name: string) => `### ${name.charAt(0) + name.slice(1).toLowerCase()}`));
     md.push('');
-    md.push('*Story courtesy of [Gaming History](https://www.arcade-history.com/) (arcade-history.com).*');
+    md.push(`*${d.historyCredit || 'Story from the local presentation package'}.*`);
     md.push('');
   }
 

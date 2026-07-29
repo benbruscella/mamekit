@@ -97,6 +97,11 @@ export class GeneratedFrameRunner {
     for (let line = 0; line < screen.vtotal; line++) {
       this.onLine?.(line, 'before-processors', framebuffer);
       if (this.eventPhase === 'before-processors') this.dispatchLine(line);
+      // MAME's VIDEO_UPDATE_SCANLINE timer calls update_partial at the start
+      // of the scanline, before CPUs execute the interval leading to the next
+      // line. Drawing afterwards can combine sprite RAM from two states across
+      // one frame; on a rotated screen that appears as vertical sprite tears.
+      if (screen.updateMode === 'scanline') this.video?.renderLine?.(framebuffer, line);
 
       for (const scheduled of this.processors) {
         if (scheduled.processor.enabled && !scheduled.processor.enabled()) continue;
@@ -107,7 +112,6 @@ export class GeneratedFrameRunner {
 
       this.onLine?.(line, 'after-processors', framebuffer);
       if (this.eventPhase === 'after-processors') this.dispatchLine(line);
-      if (screen.updateMode === 'scanline') this.video?.renderLine?.(framebuffer, line);
     }
     this.frames++;
     if (screen.updateMode !== 'scanline') this.video?.render(framebuffer);
