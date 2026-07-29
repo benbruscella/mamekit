@@ -4,6 +4,7 @@ import {
   createDevice,
   hasGeneratedDevice,
   type Device,
+  type GeneratedMemoryBank,
 } from './generated-device.ts';
 import { GeneratedFrameRunner } from './generated-frame.ts';
 import {
@@ -28,6 +29,7 @@ import {
 } from './generated-effects.ts';
 import { portHandlers } from './input.ts';
 import { installSoundRuntime } from '../hardware/sound-runtime-registry.ts';
+import type { SoundRuntimeHooks } from '../hardware/sound-runtime.ts';
 import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE } from '../ir/audio-protocol.ts';
 import type {
   Board,
@@ -46,27 +48,6 @@ export type BoardFactory = (
 ) => Board;
 
 const GENERATED_BOARDS = new Map<string, BoardFactory>();
-
-export interface GeneratedComposition {
-  type: string;
-  matches(machine: BoardIr): boolean;
-  createBoard(
-    machine: BoardIr,
-    config: BoardConfig,
-    regions: Regions,
-    inputs: InputPorts,
-    sinks: BoardSinks,
-  ): Board;
-}
-
-const GENERATED_COMPOSITIONS: GeneratedComposition[] = [];
-
-/** Register a capability-emitted whole-machine composition backend. */
-export function registerGeneratedComposition(composition: GeneratedComposition): void {
-  if (!GENERATED_COMPOSITIONS.some(candidate => candidate.type === composition.type)) {
-    GENERATED_COMPOSITIONS.push(composition);
-  }
-}
 
 export function registerGeneratedBoard(game: string, factory: BoardFactory): void {
   GENERATED_BOARDS.set(game, factory);
@@ -101,10 +82,6 @@ export function createGeneratedBoard(
   inputs: InputPorts,
   sinks: BoardSinks,
 ): Board {
-  const composition = GENERATED_COMPOSITIONS.find(candidate => candidate.matches(machine));
-  if (composition) {
-    return composition.createBoard(machine, config, regions, inputs, sinks);
-  }
   return new IrBoard(machine, config, regions, inputs, sinks);
 }
 
@@ -144,9 +121,13 @@ class IrBoard implements Board {
 
   private readonly machine: BoardIr;
   private readonly cpus = new Map<string, Cpu>();
+  private readonly cpuBuses = new Map<string, Bus>();
   private readonly cpuCycles = new Map<string, number>();
+  private readonly cpuStalls = new Map<string, number>();
   private readonly cpuHeld = new Map<string, boolean>();
   private readonly devices = new Map<string, Device>();
+  private readonly generatedBanks: Record<string, GeneratedMemoryBank> = {};
+  private readonly generatedResources: Record<string, unknown> = {};
   private readonly state: Record<string, unknown> = {};
   private readonly shares: Record<string, Uint8Array> = {};
   private videoPrimitives?: GeneratedMameVideoPrimitives;
@@ -155,6 +136,7 @@ class IrBoard implements Board {
   private readonly frameRunner: GeneratedFrameRunner;
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
+  private soundRuntime?: SoundRuntimeHooks;
 
   constructor(
     machine: BoardIr,
@@ -177,10 +159,70 @@ class IrBoard implements Board {
     }
     for (const specification of machine.devices ?? []) {
       if (hasGeneratedDevice(specification.type)) {
+        const screenHost = {
+          time_until_pos: (position: number) => {
+            const vtotal = Math.max(1, machine.execution.screen.vtotal);
+            const target = ((Math.floor(position) % vtotal) + vtotal) % vtotal;
+            let lines = target - this.currentLine;
+            if (lines <= 0) lines += vtotal;
+            return lines / (machine.execution.screen.refresh * vtotal);
+          },
+          vpos: () => this.currentLine,
+          hpos: () => 0,
+        };
         const device = createDevice(specification.type, {
           clock: specification.clock,
           tag: specification.tag,
           shares: this.shares,
+          inputs,
+          ...(specification.slotDefault ? { slot: specification.slotDefault } : {}),
+          selectors: {
+            'cart.mapper': config.cart?.mapper,
+          },
+          finder: rawTag => {
+            const tag = rawTag.replace(/^[\^:]+/, '') ||
+              machine.execution.cpus[0]?.tag ||
+              '';
+            if (tag === 'screen') return screenHost;
+            const cpuSpec = machine.execution.cpus.find(candidate => candidate.tag === tag) ??
+              machine.execution.cpus[0];
+            if (!cpuSpec) return 0;
+            return {
+              cycles_to_attotime: (cycles: number) =>
+                cycles / Math.max(1, cpuSpec.cycleClock ?? cpuSpec.clock),
+              reset: () => this.cpus.get(cpuSpec.tag)?.reset(),
+              set_input_line: (line: number, state: number) => {
+                const cpu = this.cpus.get(cpuSpec.tag);
+                if (cpu) {
+                  applyGeneratedCpuInputLine(
+                    cpu,
+                    line,
+                    state,
+                    held => this.cpuHeld.set(cpuSpec.tag, held),
+                  );
+                }
+              },
+            };
+          },
+          calls: {
+            screen: () => screenHost,
+            exists: () => 1,
+            machine: () => ({
+              root_device: () => ({
+                membank: (name: string) => this.generatedBanks[name],
+              }),
+              save: () => ({
+                register_postload: () => 0,
+              }),
+            }),
+            device: () => ({
+              save_item: () => 0,
+            }),
+          },
+          regions,
+          configuration: config,
+          banks: this.generatedBanks,
+          resourceCache: this.generatedResources,
         });
         // Machine-config chained setup calls (m_starfield->set_starfield_config(...))
         // lowered from the driver's constant arguments.
@@ -190,6 +232,41 @@ class IrBoard implements Board {
           }
         }
         this.devices.set(specification.tag, device);
+      }
+    }
+    for (const source of this.devices.values()) {
+      const callHosts = new Map<string, Record<string, (...args: any[]) => unknown>>();
+      for (const link of source.links()) {
+        const target = [...this.devices.values()].find(device =>
+          device.role() === link.targetRole);
+        if (!target) {
+          throw new Error(
+            `${machine.game}: generated device link "${link.call}" has no role "${link.targetRole}"`,
+          );
+        }
+        if (link.method) {
+          source.bindCall(link.call, (...args) =>
+            target.invokeSlot(link.method!, ...args));
+          continue;
+        }
+        const dispatch = (address: number, value = 0) => {
+          const normalized = address & 0x3fff;
+          const range = link.ranges?.find(candidate =>
+            normalized >= candidate.start && normalized <= candidate.end);
+          if (!range) return 0xff;
+          const endpoint = range.target === 'self' ? source : target;
+          return range.target === 'slot'
+            ? endpoint.invokeSlot(range.method, normalized, value)
+            : endpoint.invoke(range.method, normalized, value);
+        };
+        source.bindCall(link.call, dispatch);
+        const chained = /^(\w+)\(\)\.(\w+)$/.exec(link.call);
+        if (chained) {
+          const host = callHosts.get(chained[1]!) ?? {};
+          host[chained[2]!] = dispatch;
+          callHosts.set(chained[1]!, host);
+          source.bindCall(chained[1]!, () => host);
+        }
       }
     }
 
@@ -232,7 +309,8 @@ class IrBoard implements Board {
       write: { ...sourceHandlers.write },
     };
     this.installDeviceHandlers(machine, registry);
-    this.installGeneratedSoundHandlers(machine, sinks, registry);
+    this.installGeneratedDeviceBuses(machine, registry);
+    this.soundRuntime = this.installGeneratedSoundHandlers(machine, sinks, registry);
     this.installMemoryBanks(machine, regions, registry);
     this.installDeclarativeHandlers(machine, config, inputs, registry);
     this.installInterruptVectorWriters(machine, registry);
@@ -248,16 +326,24 @@ class IrBoard implements Board {
           `${machine.game}: CPU ${specification.tag}:${type} has no generated executable definition`,
         );
       }
-      const rom = regions[specification.region] ??
+      const suppliedRom = regions[specification.region] ??
         regions[Object.keys(regions).find(name =>
           name.endsWith(`:${specification.region}`)) ?? ''];
-      if (!rom) throw new Error(`${machine.game}: missing ROM region ${specification.region}`);
+      const hasFixedRom = (specification.ranges ?? []).some(range => range.kind === 'rom');
+      if (!suppliedRom && hasFixedRom) {
+        throw new Error(`${machine.game}: missing ROM region ${specification.region}`);
+      }
+      // Cartridge and other slot-backed machines can have a CPU address space
+      // made entirely from RAM, handlers and generated banks. Bus still takes
+      // a byte array, but such a board has no fixed CPU ROM region to supply.
+      const rom = suppliedRom ?? new Uint8Array(0);
       const bus = new Bus(
         specification.ranges ?? [],
         rom,
         registry,
         this.shares,
       );
+      this.cpuBuses.set(specification.tag, bus);
       if (specification.opcode) {
         const opcodeRom = regions[specification.opcode.region];
         if (!opcodeRom) {
@@ -309,6 +395,7 @@ class IrBoard implements Board {
       });
       this.cpus.set(specification.tag, cpu);
       this.cpuCycles.set(specification.tag, 0);
+      this.cpuStalls.set(specification.tag, 0);
       this.cpuHeld.set(specification.tag, false);
       const acknowledge = machine.callbacks.find(callback =>
         callback.ownerTag === specification.tag &&
@@ -436,7 +523,13 @@ class IrBoard implements Board {
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
         run: (cycles: number) => {
-          const executed = this.cpus.get(specification.tag)!.run(cycles);
+          const pendingStall = this.cpuStalls.get(specification.tag) ?? 0;
+          const stalled = Math.min(cycles, pendingStall);
+          this.cpuStalls.set(specification.tag, pendingStall - stalled);
+          const executed = stalled + (cycles > stalled
+            ? this.cpus.get(specification.tag)!.run(cycles - stalled)
+            : 0);
+          this.soundRuntime?.tickCpu?.(specification.tag, executed);
           this.cpuCycles.set(
             specification.tag,
             (this.cpuCycles.get(specification.tag) ?? 0) + executed,
@@ -550,7 +643,9 @@ class IrBoard implements Board {
     for (const cpu of this.cpus.values()) cpu.reset();
     this.videoPrimitives?.reset?.();
     for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
+    for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
     this.frameRunner.reset();
+    this.soundRuntime?.reset?.();
     this.currentLine = 0;
   }
 
@@ -561,8 +656,8 @@ class IrBoard implements Board {
         const cpu = this.cpus.get(specification.tag)!;
         return {
           tag: specification.tag,
-          pc: cpu.get('PC') || cpu.get('m_pc'),
-          sp: cpu.get('SP') || cpu.get('m_s') || cpu.get('m_SP'),
+          pc: cpu.get('PC') || cpu.get('m_PC') || cpu.get('m_pc'),
+          sp: cpu.get('SP') || cpu.get('m_SP') || cpu.get('m_s'),
           halted: Boolean(cpu.get('m_halt')),
           cycles: this.cpuCycles.get(specification.tag) ?? 0,
         };
@@ -592,11 +687,95 @@ class IrBoard implements Board {
               device.arity(method) ? device.call(method, offset) : device.call(method);
           } else {
             registry.write[key] = (_address, offset, data) => {
-              if (device.arity(method) <= 1) device.call(method, data);
-              else device.call(method, offset, data);
+              const parameters = device.parameters(method);
+              if (parameters[0]?.includes('address_space')) {
+                const cpuTag = machine.execution.cpus.find(cpu =>
+                  cpu.ranges?.some(candidate =>
+                    candidate.start === range.start &&
+                    candidate.end === range.end &&
+                    candidate.write === key))?.tag ??
+                  machine.execution.cpus[0]?.tag;
+                const bus = cpuTag ? this.cpuBuses.get(cpuTag) : undefined;
+                const space = {
+                  read_byte: (address: number) => bus?.read(address) ?? 0xff,
+                  write_byte: (address: number, value: number) =>
+                    bus?.write(address, value),
+                  device: () => ({
+                    execute: () => ({
+                      adjust_icount: (delta: number) => {
+                        if (!cpuTag || delta >= 0) return;
+                        this.cpuStalls.set(
+                          cpuTag,
+                          (this.cpuStalls.get(cpuTag) ?? 0) - delta,
+                        );
+                      },
+                    }),
+                  }),
+                };
+                device.invoke(method, space, data);
+              } else if (device.arity(method) <= 1) {
+                device.call(method, data);
+              } else {
+                device.call(method, offset, data);
+              }
             };
           }
         }
+      }
+    }
+  }
+
+  /**
+   * Install ranges that MAME adds dynamically from machine_start (cartridge
+   * slots are the canonical case). The capability emits the ranges beside the
+   * generated device; the host only composes method and bank endpoints.
+   */
+  private installGeneratedDeviceBuses(
+    machine: BoardIr,
+    registry: HandlerRegistry,
+  ): void {
+    for (const [tag, device] of this.devices) {
+      const bus = device.bus();
+      if (!bus) continue;
+      const cpu = machine.execution.cpus.find(candidate => candidate.tag === bus.cpu) ??
+        machine.execution.cpus[0];
+      if (!cpu) continue;
+      const ranges = cpu.ranges ??= [];
+      const methodBases = new Map<string, number>();
+      for (const range of bus.ranges) {
+        for (const method of [range.read, range.write]) {
+          if (method) {
+            methodBases.set(method, Math.min(methodBases.get(method) ?? range.start, range.start));
+          }
+        }
+      }
+      for (let index = 0; index < bus.ranges.length; index++) {
+        const range = bus.ranges[index]!;
+        const readKey = range.bank
+          ? `generated-bank:${tag}:${range.bank}`
+          : range.read ? `generated-device:${tag}:read:${range.read}` : undefined;
+        const writeKey = range.write
+          ? `generated-device:${tag}:write:${range.write}`
+          : undefined;
+        if (range.bank && readKey) {
+          registry.read[readKey] = (_address, offset) =>
+            this.generatedBanks[range.bank!]?.read(offset) ?? 0xff;
+        } else if (range.read && readKey) {
+          registry.read[readKey] = address =>
+            device.call(range.read!, address - methodBases.get(range.read!)!);
+        }
+        if (range.write && writeKey) {
+          registry.write[writeKey] = (address, _offset, data) => {
+            device.call(range.write!, address - methodBases.get(range.write!)!, data);
+          };
+        }
+        ranges.push({
+          start: range.start,
+          end: range.end,
+          kind: 'handler',
+          ...(readKey ? { read: readKey } : {}),
+          ...(writeKey ? { write: writeKey } : {}),
+        });
       }
     }
   }
@@ -738,9 +917,9 @@ class IrBoard implements Board {
     machine: BoardIr,
     sinks: BoardSinks,
     registry: HandlerRegistry,
-  ): void {
-    if (!machine.sound) return;
-    installSoundRuntime({
+  ): SoundRuntimeHooks | undefined {
+    if (!machine.sound) return undefined;
+    return installSoundRuntime({
       board: machine,
       sound: machine.sound,
       registry,
@@ -748,6 +927,7 @@ class IrBoard implements Board {
       state: this.state,
       soundWrite: (offset, data, frac, method) =>
         sinks.soundWrite(offset, data, frac, method),
+      soundData: (id, bytes) => sinks.soundData?.(id, bytes),
       fraction: () => this.soundFraction(),
       callDevice: (tag, method) => {
         const device = this.devices.get(tag);
@@ -757,6 +937,14 @@ class IrBoard implements Board {
         executeGeneratedCallbackHandler(machine, callbackId, this.bindings),
       dispatch: (ownerTag, signal, value) =>
         void dispatchGeneratedCallbacks(machine, ownerTag, signal, value, this.effects),
+      readProgram: (cpuTag, address) => this.cpuBuses.get(cpuTag)?.read(address) ?? 0xff,
+      stallCpu: (cpuTag, cycles) => {
+        this.cpuStalls.set(cpuTag, (this.cpuStalls.get(cpuTag) ?? 0) + cycles);
+      },
+      setCpuInputLine: (cpuTag, line, state) => {
+        const cpu = this.cpus.get(cpuTag);
+        if (cpu) cpu.setInputLine(line, state);
+      },
     });
   }
 

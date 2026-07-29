@@ -1,7 +1,13 @@
 // Self-test for iNES header parsing + softlist-catalog identification.
 // Run with: node src/runtime/nes-ines.spec.ts
 
-import { parseINes, identify, type SoftCatalog, type SoftEntry } from './nes-ines.ts';
+import {
+  parseINes,
+  identify,
+  mountedINesPrg,
+  type SoftCatalog,
+  type SoftEntry,
+} from './nes-ines.ts';
 import { crc32 } from './zip.ts';
 
 let totalPass = 0;
@@ -80,6 +86,21 @@ function makeINes(opts: {
   const p = parseINes(withTrainer)!;
   eq('trainer skipped', p.prg[0], 0xab);
   eq('trainer flag', p.trainer, true);
+}
+{
+  const p = parseINes(makeINes({
+    prgBanks: 1,
+    chrBanks: 0,
+    prgFill: index => index === 0x3fff ? 0x34 : index === 0 ? 0x12 : 0,
+  }))!;
+  const mounted = mountedINesPrg(p);
+  eq('16K PRG is mounted twice like MAME call_load_ines', [
+    mounted.length,
+    mounted[0],
+    mounted[0x3fff],
+    mounted[0x4000],
+    mounted[0x7fff],
+  ], [0x8000, 0x12, 0x34, 0x12, 0x34]);
 }
 {
   eq('wrong magic -> null', parseINes(new Uint8Array(32).fill(0x4e)), null);

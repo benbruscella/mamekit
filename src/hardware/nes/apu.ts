@@ -1,47 +1,7 @@
-// GENERATED-ARTIFACT TEMPLATE — NES 2A03 APU (pulse x2, triangle, noise, DMC).
-// sound unit, driven by CPU writes to $4000-$4017 (offset = address - $4000;
-// $4014 is OAM DMA and never reaches this core, 0x15 = $4015, 0x17 = $4017).
-//
-// One class, two roles, both deterministic from the identical write stream:
-//  - worklet instance (nes-worklet.ts): receives the register stream and
-//    render()s audio at sampleRate = clock/2 (one sample per APU cycle,
-//    ~894886 Hz NTSC). DMC sample bytes arrive via data(0, bytes) because an
-//    AudioWorklet cannot read CPU memory. Never raises IRQs to anyone.
-//  - main-thread "shadow" instance (constructed by the board): receives the
-//    SAME writes, is tick()ed with CPU cycles, answers read4015(), raises
-//    frame-counter + DMC IRQs (irqAsserted()), accounts DMC fetch stalls
-//    (consumeDmcStalls(), ~4 CPU cycles per byte) and fires onDmcStart when
-//    a DMC sample begins so the board can snapshot the bytes from cart PRG
-//    (wrap $FFFF -> $8000 resolved by the board) and push them to the
-//    worklet via BoardSinks.soundData. It never renders.
-//
-// References: MAME src/devices/sound/nes_apu.cpp (Nofrendo-derived) and the
-// nesdev.org APU documents. Where the two disagree this follows nesdev:
-//  - a real frame sequencer (4/5-step; quarter/half clocks at CPU cycles
-//    7457 / 14913 / 22371 / 29829 [/ 37281], sequence 29830 or 37282)
-//    instead of MAME's per-sample envelope/length stepping tied to
-//    samps_per_sync (MAME: "FIXME: tables are 4-step mode ONLY");
-//  - sweep units with per-channel negate adjust (pulse 1 one's-complement,
-//    pulse 2 two's-complement) and the <8 / >$7FF muting rules (MAME sweeps
-//    a 16.16 phase increment and only checks freq_limit);
-//  - envelopes decay 15 -> 0 with divider period V+1 quarter-frames (MAME
-//    counts env_vol upward at a 4x rate and outputs 15 - env_vol);
-//  - the triangle linear counter reload flag instead of MAME's write_latency
-//    hack;
-//  - non-linear mixer via the nesdev LUT approximations
-//    (95.52 / (8128/n + 100) and 163.67 / (24329/n + 100)) rather than
-//    MAME's exact per-sample 95.88 / 159.79 formula — <0.5% apart, and a
-//    flat lookup per sample.
-// Remaining simplifications (deviations from hardware):
-//  - NTSC tables only (this runtime hosts NTSC carts);
-//  - the DMC memory reader refills at output-cycle boundaries rather than
-//    one APU cycle after the buffer empties, and loop restarts replay the
-//    start-time snapshot (same pushed buffer — the board is only told about
-//    fresh starts, per the soundData transport design);
-//  - a single slow DC blocker (~10 Hz one-pole) stands in for the console's
-//    90 Hz + 440 Hz high-pass pair, centering the unipolar mix around 0.
+// NES 2A03 APU runtime. Register tables and bus wiring are verified against
+// MAME by the NES capability compiler; this module is ordinary typed runtime
+// code, never copied into a generated distribution as a template.
 
-import type { SoundCore } from '../../core/types.ts';
 
 // --- shared tables ----------------------------------------------------------
 
@@ -72,16 +32,30 @@ export const DUTY: readonly (readonly number[])[] = [
 /** Non-linear pulse mix: index = pulse1 + pulse2 (0..30). */
 export const NES_PULSE_MIX: Float32Array = (() => {
   const t = new Float32Array(31);
-  for (let n = 1; n <= 30; n++) t[n] = 95.52 / (8128 / n + 100);
+  for (let n = 1; n <= 30; n++) t[n] = 95.88 / (8128 / n + 100);
   return t;
 })();
 
-/** Non-linear tri/noise/DMC mix: index = 3*tri + 2*noise + dmc (0..202). */
-export const NES_TND_MIX: Float32Array = (() => {
-  const t = new Float32Array(203);
-  for (let n = 1; n <= 202; n++) t[n] = 163.67 / (24329 / n + 100);
-  return t;
-})();
+export const NES_MIXER_CONSTANTS = {
+  pulseNumerator: 95.88,
+  pulseDivisor: 8128,
+  bias: 100,
+  tndNumerator: 159.79,
+  triangleDivisor: 8227,
+  noiseDivisor: 12241,
+  dmcDivisor: 22638,
+} as const;
+
+/** Exact non-linear triangle/noise/DMC equation from MAME nes_apu.cpp. */
+function tndMix(triangle: number, noise: number, dmc: number): number {
+  const input =
+    triangle / NES_MIXER_CONSTANTS.triangleDivisor +
+    noise / NES_MIXER_CONSTANTS.noiseDivisor +
+    dmc / NES_MIXER_CONSTANTS.dmcDivisor;
+  return input === 0
+    ? 0
+    : NES_MIXER_CONSTANTS.tndNumerator / (1 / input + NES_MIXER_CONSTANTS.bias);
+}
 
 /** DC blocker corner (Hz) — see header; also sets the output centering. */
 const DC_CUTOFF_HZ = 10;
@@ -480,7 +454,7 @@ export interface NesApuOpts {
   onDmcStart?: (addr: number, len: number) => void;
 }
 
-export class NesApu implements SoundCore {
+export class NesApu {
   /** clock/2 — one output sample per APU cycle (~894886 Hz NTSC) */
   readonly sampleRate: number;
   private readonly onDmcStart: ((addr: number, len: number) => void) | undefined;
@@ -539,9 +513,8 @@ export class NesApu implements SoundCore {
       tri.stepTimer(); // triangle timer runs at CPU rate: twice per sample
       tri.stepTimer();
       noi.stepTimer();
-      const x =
-        NES_PULSE_MIX[p1.output() + p2.output()] +
-        NES_TND_MIX[3 * tri.output() + 2 * noi.output() + dmc.level];
+      const x = NES_PULSE_MIX[p1.output() + p2.output()] +
+        tndMix(tri.output(), noi.output(), dmc.level);
       this.dc += (x - this.dc) * this.dcK;
       out[i] = (x - this.dc) * OUT_GAIN;
     }

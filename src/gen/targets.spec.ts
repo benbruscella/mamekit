@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { loadGameContracts } from '../games/contracts.ts';
 import { readBuildManifest } from './build-manifest.ts';
 import { generatedGameOutputs } from './output-layout.ts';
-import { ACCEPTED_TARGETS, REQUIRED_TARGETS } from './targets.ts';
+import { ACCEPTED_TARGETS, GENERATION_TARGETS, REQUIRED_TARGETS } from './targets.ts';
 
 // The issue's contract: target discovery, the generated catalog and the
 // acceptance contracts must name the same set. They used to be three hand-kept
@@ -38,6 +38,11 @@ check('required targets are unique', () => {
   assert.equal(new Set(REQUIRED_TARGETS).size, REQUIRED_TARGETS.length);
 });
 
+check('gen:all builds every required target', () => {
+  assert.deepEqual([...GENERATION_TARGETS], [...REQUIRED_TARGETS]);
+  assert.ok(GENERATION_TARGETS.includes('nes'));
+});
+
 // gen:all must not restate the target set; it asks the CLI for it.
 check('gen:all names no targets of its own', () => {
   const scripts = JSON.parse(
@@ -56,11 +61,11 @@ check('gen:all names no targets of its own', () => {
 // should not fail on whatever happens to be in dist.
 const outRoot = join(projectRoot, 'dist');
 const manifest = readBuildManifest(outRoot);
-if (manifest && [...manifest.targets].sort().join(',') === [...ACCEPTED_TARGETS].sort().join(',')) {
-  check('the generated catalog matches the accepted set', () => {
+if (manifest && [...manifest.targets].sort().join(',') === [...GENERATION_TARGETS].sort().join(',')) {
+  check('the generated catalog matches the complete generation set', () => {
     assert.deepEqual(
       generatedGameOutputs(outRoot).map(entry => entry.game).sort(),
-      [...ACCEPTED_TARGETS].sort(),
+      [...GENERATION_TARGETS].sort(),
     );
   });
 }

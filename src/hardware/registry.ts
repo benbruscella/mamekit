@@ -48,6 +48,7 @@ import { extractYm2203 } from './ym2203/extract.ts';
 import {
   NES_ID,
   NES_MAME_TYPES,
+  NES_MASTER_GAIN,
   NES_PORTS,
 } from './nes/definition.ts';
 import { extractNes } from './nes/extract.ts';
@@ -72,7 +73,7 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: NES_MAME_TYPES,
     ports: NES_PORTS,
     extract: extractNes,
-    masterGain: 0.82,
+    masterGain: NES_MASTER_GAIN,
   },
   // Audio
   {

@@ -31,7 +31,15 @@ export function generatedDeviceMethodsSource(
   definition: GeneratedDeviceDefinition,
   typescript = false,
 ): { source: string; methods: string[] } {
+  const methodCounts = new Map<string, number>();
+  for (const method of definition.methods) {
+    methodCounts.set(method.name, (methodCounts.get(method.name) ?? 0) + 1);
+  }
+  const overloaded = new Set(
+    [...methodCounts].filter(([, count]) => count > 1).map(([name]) => name),
+  );
   const roots = definition.methods.filter(method =>
+    !overloaded.has(method.name) &&
     method.program.diagnostics.length === 0 &&
     (
       maximumLoopDepth(method.program.operations) >= 2 ||
@@ -40,7 +48,7 @@ export function generatedDeviceMethodsSource(
         containsSwitch(method.program.operations)
       )
     ));
-  const selected = methodClosure(definition, roots);
+  const selected = methodClosure(definition, roots, overloaded);
   const compiled = new Set(selected.map(method => method.name));
   const supported = selected.filter(method => supportsMethod(method, definition, compiled));
   const supportedNames = new Set(supported.map(method => method.name));
@@ -94,6 +102,7 @@ export default device;
 function methodClosure(
   definition: GeneratedDeviceDefinition,
   roots: GeneratedDeviceMethod[],
+  overloaded: ReadonlySet<string>,
 ): GeneratedDeviceMethod[] {
   const byName = new Map(definition.methods.map(method => [method.name, method]));
   const selected = new Map<string, GeneratedDeviceMethod>();
@@ -101,6 +110,7 @@ function methodClosure(
     if (selected.has(method.name)) return;
     selected.set(method.name, method);
     for (const name of calledIdentifiers(method.program.operations)) {
+      if (overloaded.has(name)) continue;
       const dependency = byName.get(name);
       if (dependency && dependency.program.diagnostics.length === 0) visit(dependency);
     }
@@ -237,6 +247,7 @@ function emitOperation(
     return `${pad}return${operation.value ? ` ${emitExpression(operation.value, context)}` : ''};`;
   }
   if (operation.op === 'break') return `${pad}break;`;
+  if (operation.op === 'continue') return `${pad}continue;`;
   if (operation.op === 'if') {
     const lines = [
       `${pad}if (${emitExpression(operation.condition, context)}) {`,

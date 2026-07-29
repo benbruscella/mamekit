@@ -17,6 +17,10 @@ interface DeviceMember {
     elementBytes: number;
     share?: 'self' | string;
   };
+  finder?: {
+    kind: 'input' | 'device';
+    tag: string;
+  };
 }
 
 interface DeviceCallback {
@@ -37,6 +41,17 @@ interface DeviceMethod {
   program: GeneratedHandlerProgram;
 }
 
+type DeviceResource =
+  | { kind: 'number'; value: number }
+  | { kind: 'region'; name: string }
+  | { kind: 'region-length'; name: string }
+  | { kind: 'region-pages'; name: string; bytes: number }
+  | { kind: 'region-page-mask'; name: string; bytes: number }
+  | { kind: 'memory'; name: string; bytes: number; onlyWhenRegionMissing?: string }
+  | { kind: 'missing-region-number'; name: string; missing: number; present: number }
+  | { kind: 'config-map'; path: string; values: Record<string, number>; fallback?: number }
+  | { kind: 'bank-array'; name: string; count: number };
+
 export interface GeneratedDeviceExecutionContext {
   readonly members: Record<string, unknown>;
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
@@ -56,6 +71,22 @@ export interface GeneratedDeviceDefinition {
   callbacks: DeviceCallback[];
   timers?: DeviceTimer[];
   methods: DeviceMethod[];
+  slot?: {
+    member: string;
+    default?: string;
+    selector?: string;
+    options: Record<string, GeneratedDeviceDefinition>;
+  };
+  resources?: {
+    members?: Record<string, DeviceResource>;
+    initialize?: { method: string; args?: DeviceResource[] }[];
+  };
+  bus?: {
+    cpu?: string;
+    ranges: GeneratedDeviceBusRange[];
+  };
+  role?: string;
+  links?: GeneratedDeviceLink[];
   clockDivider?: number;
   dataAddressBits?: number;
   compiledMethods?: GeneratedDeviceMethodMap;
@@ -78,11 +109,40 @@ export interface Device {
   set(name: string, value: number): void;
   methodNames(): readonly string[];
   arity(name: string): number;
+  parameters(name: string): readonly string[];
   signalNames(): readonly string[];
   on(signal: string, listener: DeviceCallbackListener, slot?: number): Device;
-  bindCall(name: string, listener: (...args: number[]) => unknown): Device;
+  bindCall(
+    name: string,
+    listener: (...args: any[]) => unknown,
+  ): Device;
   cycleClock(): number;
   dataAddressBits(): number | undefined;
+  bus(): GeneratedDeviceDefinition['bus'];
+  role(): string | undefined;
+  links(): readonly GeneratedDeviceLink[];
+  invokeSlot(name: string, ...args: GeneratedCallArgument[]): unknown;
+}
+
+export interface GeneratedDeviceBusRange {
+  start: number;
+  end: number;
+  read?: string;
+  write?: string;
+  bank?: string;
+}
+
+export interface GeneratedDeviceLink {
+  call: string;
+  targetRole: string;
+  /** Direct source-installed delegate target (PPU scanline/hblank/latch). */
+  method?: string;
+  ranges?: {
+    start: number;
+    end: number;
+    target: 'self' | 'slot';
+    method: string;
+  }[];
 }
 
 const DEFINITIONS = new Map<string, GeneratedDeviceDefinition>();
@@ -110,6 +170,28 @@ export interface GeneratedDeviceOptions {
   tag?: string;
   /** Board memory shares available to required/optional_shared_ptr members. */
   shares?: Record<string, Uint8Array>;
+  /** Instance member resources resolved by generated composition metadata. */
+  members?: Record<string, unknown>;
+  /** Host primitives available before device_start executes. */
+  calls?: Record<string, (...args: number[]) => unknown>;
+  /** Active-low/raw input ports used by required_ioport finders. */
+  inputs?: { read(tag: string): number };
+  /** Selected card option for a generated slot definition. */
+  slot?: string | number;
+  selectors?: Record<string, string | number | undefined>;
+  /** Resolve required/optional device finders to host/device proxies. */
+  finder?: (tag: string) => unknown;
+  regions?: Record<string, Uint8Array>;
+  configuration?: unknown;
+  banks?: Record<string, GeneratedMemoryBank>;
+  resourceCache?: Record<string, unknown>;
+}
+
+export interface GeneratedMemoryBank {
+  configure_entries(start: number, count: number, source: unknown, stride: number): void;
+  set_entry(entry: number): void;
+  read(offset: number): number;
+  write(offset: number, value: number): void;
 }
 
 export function createDevice(type: string, options: GeneratedDeviceOptions = {}): Device {
@@ -150,16 +232,17 @@ class IrDevice implements Device {
   private readonly members: Record<string, unknown> = {};
   private readonly memberBits = new Map<string, 1 | 8 | 16 | 32>();
   private readonly memberSigned = new Set<string>();
-  private readonly methods: Map<string, DeviceMethod>;
+  private readonly methods = new Map<string, DeviceMethod[]>();
   /** Parameter names resolved once per method (the regex is a hot-path cost). */
-  private readonly methodParams = new Map<string, string[]>();
+  private readonly methodParams = new Map<DeviceMethod, string[]>();
   /** C++ default argument values, applied when a caller omits a parameter. */
-  private readonly methodDefaults = new Map<string, (number | undefined)[]>();
+  private readonly methodDefaults = new Map<DeviceMethod, (number | undefined)[]>();
   private readonly listeners = new Map<string, DeviceCallbackListener[][]>();
   private readonly bindings: GeneratedHandlerBindings;
   private readonly executionContext: GeneratedDeviceExecutionContext;
   private readonly timers = new Map<string, { timer: IrTimer; callback: string }>();
   private readonly clock: number;
+  private slotChild?: IrDevice;
 
   constructor(
     definition: GeneratedDeviceDefinition,
@@ -168,14 +251,40 @@ class IrDevice implements Device {
   ) {
     this.definition = definition;
     this.clock = clock;
-    this.methods = new Map(definition.methods.map(method => [method.name, method]));
+    const resourceCache = options.resourceCache ?? {};
+    const resourceOptions = { ...options, resourceCache };
+    const resourceMembers = definition.resources?.members ?? {};
+    for (const method of definition.methods) {
+      const overloads = this.methods.get(method.name) ?? [];
+      overloads.push(method);
+      this.methods.set(method.name, overloads);
+    }
     for (const member of definition.members) {
-      this.members[member.name] = member.memory
+      const inputTag = member.finder?.kind === 'input'
+        ? [options.tag, member.finder.tag].filter(Boolean).join(':')
+        : undefined;
+      this.members[member.name] = options.members?.[member.name] ??
+        (resourceMembers[member.name]
+          ? resolveDeviceResource(resourceMembers[member.name]!, resourceOptions)
+          :
+        (inputTag
+          ? { read: () => options.inputs?.read(inputTag) ?? 0xff }
+          : member.finder?.kind === 'device'
+            ? options.finder?.(member.finder.tag) ?? 0
+          : member.valueType === 'bitmap_rgb32'
+            ? new GeneratedBitmapRgb32()
+        : member.memory
         ? memoryMember(member, options)
-        : member.values ? [...member.values] : member.initial ?? 0;
+        : member.values ? [...member.values] : member.initial ?? 0));
       if (member.bits) this.memberBits.set(member.name, member.bits);
       if (member.signed) this.memberSigned.add(member.name);
     }
+    for (const [name, resource] of Object.entries(resourceMembers)) {
+      if (!Object.hasOwn(this.members, name)) {
+        this.members[name] = resolveDeviceResource(resource, resourceOptions);
+      }
+    }
+    Object.assign(this.members, options.members);
     for (const callback of definition.callbacks) {
       const slots = Array.from({ length: callback.slots }, () => [] as DeviceCallbackListener[]);
       this.listeners.set(callback.signal, slots);
@@ -206,6 +315,7 @@ class IrDevice implements Device {
     }
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {};
     const callParameters: NonNullable<GeneratedHandlerBindings['callParameters']> = {};
+    const palette: number[] = [];
     this.bindings = {
       members: this.members,
       getters,
@@ -213,8 +323,30 @@ class IrDevice implements Device {
       constants: definition.constants,
       calls: {
         save_item: () => 0,
+        save_pointer: () => 0,
         logerror: () => 0,
         clock: () => clock,
+        set_pen_color: (entry, color) => {
+          palette[entry] = color >>> 0;
+          return 0;
+        },
+        pen_color: entry => palette[entry] ?? 0xff000000,
+        floor: value => Math.floor(value),
+        cos: value => Math.cos(value),
+        sin: value => Math.sin(value),
+        DEGREE_TO_RADIAN: value => value * Math.PI / 180,
+        'std::clamp': (value, minimum, maximum) =>
+          Math.min(maximum, Math.max(minimum, value)),
+        rgb_t: (red, green, blue) =>
+          (0xff000000 |
+            (blue & 0xff) << 16 |
+            (green & 0xff) << 8 |
+            (red & 0xff)) >>> 0,
+        copybitmap: (destination, source) => {
+          copyGeneratedBitmap(destination, source);
+          return 0;
+        },
+        ...options.calls,
       },
       referenceCalls,
       callParameters,
@@ -222,8 +354,8 @@ class IrDevice implements Device {
     this.executionContext = {
       members: this.members,
       invoke: (name, ...args) => {
-        const method = this.methods.get(name);
-        if (method) return this.executeMethod(method, this.methodParams.get(name)!, args);
+        const method = this.selectMethod(name, args);
+        if (method) return this.executeMethod(method, this.methodParams.get(method)!, args);
         const binding = this.bindings.calls?.[name];
         if (binding) return binding(...args.map(Number));
         const member = this.members[name];
@@ -237,12 +369,50 @@ class IrDevice implements Device {
       const parameters = splitParameters(method.parameters);
       const names = parameters.map(parameterName);
       callParameters[method.name] = parameters;
-      this.methodParams.set(method.name, names);
-      this.methodDefaults.set(method.name, parameters.map(parameterDefault));
-      referenceCalls[method.name] = (...args) => this.executeMethod(method, names, args);
+      this.methodParams.set(method, names);
+      this.methodDefaults.set(method, parameters.map(parameterDefault));
+      referenceCalls[method.name] = (...args) => {
+        const selected = this.selectMethod(method.name, args);
+        return selected
+          ? this.executeMethod(selected, this.methodParams.get(selected)!, args)
+          : 0;
+      };
+    }
+
+    if (definition.slot) {
+      const selected = definition.slot.selector
+        ? options.selectors?.[definition.slot.selector]
+        : options.slot;
+      const option = String(selected ?? definition.slot.default ?? '');
+      const childDefinition = definition.slot.options[option];
+      if (childDefinition) {
+        const child = this.slotChild = new IrDevice(childDefinition, clock, {
+          ...resourceOptions,
+          // A child card may itself be a slot in a future bus; do not pass
+          // the parent's selected option through accidentally.
+          slot: undefined,
+        });
+        const proxy = Object.fromEntries(child.methodNames().map(name => [
+          name,
+          (...args: GeneratedCallArgument[]) => child.invoke(name, ...args),
+        ]));
+        this.members[definition.slot.member] = proxy;
+        this.bindings.calls!.get_card_device = () => proxy;
+      } else {
+        this.members[definition.slot.member] = 0;
+        this.bindings.calls!.get_card_device = () => 0;
+      }
     }
 
     if (definition.start) this.call(definition.start);
+    for (const initialize of definition.resources?.initialize ?? []) {
+      if (!this.methodNames().includes(initialize.method)) continue;
+      this.invoke(
+        initialize.method,
+        ...(initialize.args ?? []).map(resource =>
+          resolveDeviceResource(resource, resourceOptions)),
+      );
+    }
     this.reset();
   }
 
@@ -261,9 +431,9 @@ class IrDevice implements Device {
   }
 
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown {
-    const method = this.methods.get(name);
+    const method = this.selectMethod(name, args);
     if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
-    return this.executeMethod(method, this.methodParams.get(name)!, args);
+    return this.executeMethod(method, this.methodParams.get(method)!, args);
   }
 
   get(name: string): number {
@@ -283,7 +453,15 @@ class IrDevice implements Device {
   }
 
   arity(name: string): number {
-    return splitParameters(this.methods.get(name)?.parameters ?? '').length;
+    const overloads = this.methods.get(name) ?? [];
+    return overloads.length
+      ? Math.max(...overloads.map(method => splitParameters(method.parameters).length))
+      : 0;
+  }
+
+  parameters(name: string): readonly string[] {
+    const overloads = this.methods.get(name) ?? [];
+    return splitParameters(overloads.at(-1)?.parameters ?? '');
   }
 
   signalNames(): readonly string[] {
@@ -301,7 +479,10 @@ class IrDevice implements Device {
     return this;
   }
 
-  bindCall(name: string, listener: (...args: number[]) => unknown): Device {
+  bindCall(
+    name: string,
+    listener: (...args: any[]) => unknown,
+  ): Device {
     this.bindings.calls![name] = listener;
     return this;
   }
@@ -314,6 +495,23 @@ class IrDevice implements Device {
     return this.definition.dataAddressBits;
   }
 
+  bus(): GeneratedDeviceDefinition['bus'] {
+    return this.definition.bus;
+  }
+
+  role(): string | undefined {
+    return this.definition.role;
+  }
+
+  links(): readonly GeneratedDeviceLink[] {
+    return this.definition.links ?? [];
+  }
+
+  invokeSlot(name: string, ...args: GeneratedCallArgument[]): unknown {
+    if (!this.slotChild) throw new Error(`${this.definition.type} has no selected slot card`);
+    return this.slotChild.invoke(name, ...args);
+  }
+
   private executeMethod(
     method: DeviceMethod,
     parameterNames: string[],
@@ -322,11 +520,168 @@ class IrDevice implements Device {
     const compiled = this.definition.compiledMethods?.[method.name];
     if (compiled) return compiled(this.executionContext, ...args);
     const locals: Record<string, unknown> = {};
-    const defaults = this.methodDefaults.get(method.name);
+    const defaults = this.methodDefaults.get(method);
     for (let index = 0; index < parameterNames.length; index++) {
       locals[parameterNames[index]!] = args[index] ?? defaults?.[index] ?? 0;
     }
     return executeGeneratedProgram(method.program, this.bindings, locals).value;
+  }
+
+  private selectMethod(
+    name: string,
+    args: GeneratedCallArgument[],
+  ): DeviceMethod | undefined {
+    const overloads = this.methods.get(name);
+    if (!overloads?.length) return undefined;
+    const exact = overloads.filter(method =>
+      (this.methodParams.get(method) ?? splitParameters(method.parameters)).length === args.length);
+    if (exact.length) return exact.at(-1);
+    return overloads
+      .filter(method => {
+        const parameters = this.methodParams.get(method) ?? splitParameters(method.parameters);
+        const defaults = this.methodDefaults.get(method) ??
+          parameters.map(parameterDefault);
+        return parameters.length >= args.length &&
+          defaults.slice(args.length).every(value => value !== undefined);
+      })
+      .sort((left, right) =>
+        splitParameters(left.parameters).length - splitParameters(right.parameters).length)
+      .at(0) ?? overloads.at(-1);
+  }
+}
+
+class IrMemoryBank implements GeneratedMemoryBank {
+  private source: ArrayLike<number> = new Uint8Array(0);
+  private stride = 1;
+  private entry = 0;
+
+  configure_entries(_start: number, _count: number, source: unknown, stride: number): void {
+    if (ArrayBuffer.isView(source) || Array.isArray(source)) {
+      this.source = source as ArrayLike<number>;
+    }
+    this.stride = Math.max(1, stride | 0);
+  }
+
+  set_entry(entry: number): void {
+    this.entry = Math.max(0, entry | 0);
+  }
+
+  read(offset: number): number {
+    return this.source[this.entry * this.stride + offset] ?? 0xff;
+  }
+
+  write(offset: number, value: number): void {
+    const target = this.source as { [index: number]: number };
+    const index = this.entry * this.stride + offset;
+    if (index >= 0 && index < this.source.length) target[index] = value & 0xff;
+  }
+}
+
+function resolveDeviceResource(
+  resource: DeviceResource,
+  options: GeneratedDeviceOptions,
+): unknown {
+  if (resource.kind === 'number') return resource.value;
+  const regions = options.regions ?? {};
+  if (resource.kind === 'region') return regions[resource.name] ?? new Uint8Array(0);
+  if (resource.kind === 'region-length') return regions[resource.name]?.length ?? 0;
+  if (resource.kind === 'region-pages') {
+    return Math.floor((regions[resource.name]?.length ?? 0) / Math.max(1, resource.bytes));
+  }
+  if (resource.kind === 'region-page-mask') {
+    const pages = Math.floor((regions[resource.name]?.length ?? 0) / Math.max(1, resource.bytes));
+    return Math.max(0, pages - 1);
+  }
+  if (resource.kind === 'missing-region-number') {
+    return regions[resource.name]?.length ? resource.present : resource.missing;
+  }
+  if (resource.kind === 'config-map') {
+    const value = resource.path.split('.').reduce<unknown>(
+      (current, key) => current && typeof current === 'object'
+        ? (current as Record<string, unknown>)[key]
+        : undefined,
+      options.configuration,
+    );
+    return resource.values[String(value)] ?? resource.fallback ?? 0;
+  }
+  if (resource.kind === 'memory') {
+    const bytes = resource.onlyWhenRegionMissing && regions[resource.onlyWhenRegionMissing]?.length
+      ? 0
+      : resource.bytes;
+    const key = `memory:${resource.name}:${bytes}`;
+    return (options.resourceCache ??= {})[key] ??=
+      new Uint8Array(Math.max(0, bytes));
+  }
+  const banks = options.banks ??= {};
+  const result = Array.from({ length: resource.count }, (_unused, index) => {
+    const key = `${resource.name}${index}`;
+    return banks[key] ??= new IrMemoryBank();
+  });
+  return result;
+}
+
+/** Minimal MAME bitmap_rgb32 value used by generated device methods. */
+class GeneratedBitmapRgb32 {
+  pixels = new Uint32Array(0);
+  private bitmapWidth = 0;
+  private bitmapHeight = 0;
+
+  allocate(width: number, height: number): void {
+    this.bitmapWidth = Math.max(0, width | 0);
+    this.bitmapHeight = Math.max(0, height | 0);
+    this.pixels = new Uint32Array(this.bitmapWidth * this.bitmapHeight);
+  }
+
+  width(): number {
+    return this.bitmapWidth;
+  }
+
+  height(): number {
+    return this.bitmapHeight;
+  }
+
+  pix(y: number, x = 0): number {
+    return this.pixels[y * this.bitmapWidth + x] ?? 0;
+  }
+
+  'pix='(y: number, x: number, value: number): void {
+    const index = y * this.bitmapWidth + x;
+    if (index >= 0 && index < this.pixels.length) this.pixels[index] = value >>> 0;
+  }
+
+  'pix&'(y: number, x = 0): {
+    generatedPointer: true;
+    source: Uint32Array;
+    offset: number;
+  } {
+    return {
+      generatedPointer: true,
+      source: this.pixels,
+      offset: y * this.bitmapWidth + x,
+    };
+  }
+}
+
+function copyGeneratedBitmap(destination: unknown, source: unknown): void {
+  const pixels = source && typeof source === 'object' &&
+    ArrayBuffer.isView((source as { pixels?: unknown }).pixels)
+    ? (source as { pixels: Uint32Array }).pixels
+    : undefined;
+  if (!pixels || !destination || typeof destination !== 'object') return;
+  const direct = (destination as { direct?: { pixels?: Uint32Array } }).direct?.pixels;
+  if (direct) {
+    direct.set(pixels.subarray(0, direct.length));
+    return;
+  }
+  const setPixel = (destination as Record<string, unknown>)['pix='];
+  if (typeof setPixel !== 'function') return;
+  const width = Math.max(1, Math.floor(Math.sqrt(pixels.length)));
+  for (let index = 0; index < pixels.length; index++) {
+    (setPixel as (y: number, x: number, value: number) => void)(
+      Math.floor(index / width),
+      index % width,
+      pixels[index]!,
+    );
   }
 }
 

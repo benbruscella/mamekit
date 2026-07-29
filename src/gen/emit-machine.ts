@@ -15,6 +15,7 @@ import type {
   GeneratedVideoPlan,
 } from '../ir/board.ts';
 import type { GeneratedAuxiliaryAudioDevice } from '../ir/audio-protocol.ts';
+import type { GeneratedNesApuPlan } from '../ir/audio-protocol.ts';
 import { BoardIrError } from '../ir/decode.ts';
 import { lowerConnections } from '../ir/lower-connections.ts';
 import { validateBoardIr } from '../ir/validate.ts';
@@ -29,6 +30,7 @@ export function lowerGeneratedMachine(
   family: string,
   board: BoardConfig,
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
+  nesApu?: GeneratedNesApuPlan,
 ): BoardIr {
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
   const tagCounts = new Map<string, number>();
@@ -119,6 +121,12 @@ export function lowerGeneratedMachine(
           }] : [];
         }),
       } : {}),
+      ...(typeof node.props.slotOptions === 'string'
+        ? { slotOptions: node.props.slotOptions }
+        : {}),
+      ...(typeof node.props.slotDefault === 'string'
+        ? { slotDefault: node.props.slotDefault }
+        : {}),
       ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
     }));
   const handlers: GeneratedHandler[] = graph.nodes
@@ -205,6 +213,9 @@ export function lowerGeneratedMachine(
       );
       return {
         ...cpu,
+        ...(nesApu && cpu.type?.toLowerCase() === 'rp2a03'
+          ? { ranges: mergeInternalRanges(cpu.ranges ?? [], nesApu) }
+          : {}),
         cycleClock: cpu.type === 'mc6809'
           ? cpu.clock / 4
           : cpu.type === 'i8039'
@@ -243,6 +254,8 @@ export function lowerGeneratedMachine(
     } : {}),
   };
   const soundDevice = devices.find(device => device.type === 'NAMCO_WSG');
+  const nesCpu = nesApu && devices.find(device =>
+    device.type === 'RP2A03' || device.type === 'RP2A03G');
   const ayDevices = devices.filter(device => device.type === 'AY8910');
   const ymDevices = devices.filter(device => device.type === 'YM2203');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
@@ -256,7 +269,17 @@ export function lowerGeneratedMachine(
   const audioRoutes = lowerAudioRoutes(graph, ayDevices);
   const filterRank = inferredMemberIndexRank(handlers, 'm_filter');
   const auxiliaryDevices = lowerAuxiliaryAudioDevices(graph, devices);
-  const sound = soundDevice
+  const sound = nesCpu
+    ? {
+        kind: 'nes',
+        deviceTag: 'nesapu',
+        deviceType: nesApu.type,
+        writeMethods: [nesApu.writeMethod],
+        enableMethods: [],
+        controlOffset: -1,
+        nesApu,
+      }
+    : soundDevice
     ? {
         kind: 'wsg',
         deviceTag: soundDevice.tag,
@@ -786,8 +809,9 @@ export function emitGeneratedMachine(
   outDir: string,
   board: BoardConfig,
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
+  nesApu?: GeneratedNesApuPlan,
 ): BoardIr {
-  const machine = lowerGeneratedMachine(graph, game, family, board, compiledVideo);
+  const machine = lowerGeneratedMachine(graph, game, family, board, compiledVideo, nesApu);
   const generatedDir = join(outDir, 'generated');
   rmSync(generatedDir, { recursive: true, force: true });
   mkdirSync(generatedDir, { recursive: true });
@@ -802,6 +826,31 @@ export function emitGeneratedMachine(
     JSON.stringify(collectProvenance(machine), null, 2),
   );
   return machine;
+}
+
+function mergeInternalRanges(
+  ranges: NonNullable<BoardConfig['cpus'][number]['ranges']>,
+  plan: GeneratedNesApuPlan,
+): NonNullable<BoardConfig['cpus'][number]['ranges']> {
+  const merged = ranges.map(range => ({ ...range }));
+  for (const internal of plan.internalMap.ranges) {
+    const existing = merged.find(range =>
+      range.start === internal.start && range.end === internal.end);
+    if (existing) {
+      if (internal.read) existing.read = internal.read;
+      if (internal.write) existing.write = internal.write;
+      existing.kind = 'handler';
+      continue;
+    }
+    merged.push({
+      start: internal.start,
+      end: internal.end,
+      kind: 'handler',
+      ...(internal.read ? { read: internal.read } : {}),
+      ...(internal.write ? { write: internal.write } : {}),
+    });
+  }
+  return merged.sort((left, right) => left.start - right.start || left.end - right.end);
 }
 
 function collectProvenance(machine: BoardIr): {

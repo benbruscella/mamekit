@@ -145,6 +145,10 @@ ${step}
     this.generatedInput(0, active ? 1 : 0);
   }
 
+  setInputLine(inputnum: number, state: number): void {
+    this.generatedInput(inputnum, state);
+  }
+
   nmi(): void {
     this.generatedInput(-1, 1);
     this.generatedInput(-1, 0);
@@ -459,6 +463,7 @@ function emitOperation(
     return `${pad}return ${operation.value ? emitExpression(operation.value, context) : '0'};`;
   }
   if (operation.op === 'break') return `${pad}break;`;
+  if (operation.op === 'continue') return `${pad}continue;`;
   if (operation.op === 'if') {
     const thenBody = emitOperations(operation.then, context, indentation + 2);
     const lines = [

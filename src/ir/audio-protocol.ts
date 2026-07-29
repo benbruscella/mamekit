@@ -78,3 +78,38 @@ export interface GeneratedAuxiliaryAudioDevice {
   targetInput?: number;
   writeMethods: string[];
 }
+/** Source-derived RP2A03 APU configuration carried by generated board IR. */
+export interface GeneratedNesApuPlan {
+  schemaVersion: 1;
+  type: 'NES_APU';
+  className: 'nesapu_device';
+  internalMap: {
+    ranges: {
+      start: number;
+      end: number;
+      read?: string;
+      write?: string;
+      source: { file: string; line: number };
+    }[];
+  };
+  lengthTable: number[];
+  noisePeriods: { ntsc: number[]; pal: number[] };
+  dmcPeriods: { ntsc: number[]; pal: number[] };
+  dutyPatterns: number[];
+  clocks: { ntsc: number; pal: number; streamDivider: number };
+  frameClocks: { ntsc: number; pal: number };
+  mixer: {
+    pulse: { numerator: number; divisor: number; bias: number };
+    tnd: {
+      numerator: number;
+      triangleDivisor: number;
+      noiseDivisor: number;
+      dmcDivisor: number;
+      bias: number;
+    };
+  };
+  writeMethod: string;
+  statusMethod: string;
+  sourceFiles: string[];
+  source: { file: string; line: number };
+}

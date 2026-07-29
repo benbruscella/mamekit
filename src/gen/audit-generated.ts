@@ -68,8 +68,6 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     type: string;
     status: string;
     executable?: boolean;
-    executableKind?: 'cpu' | 'device' | 'audio' | 'composition';
-    executableArtifact?: string;
     /** internal part satisfied by these executable host devices */
     hostedBy?: string[];
     uses?: { game: string }[];
@@ -95,7 +93,8 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     for (const hardware of manifest.hardware ?? []) {
       if (
         !hardware.executable ||
-        !hardware.executableArtifact
+        !hardware.executableArtifact ||
+        hardware.executableKind === 'composition'
       ) continue;
       const artifact = join(outRoot, 'runtime/generated', hardware.executableArtifact);
       if (!existsSync(artifact)) {
@@ -263,11 +262,7 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     if (!machine.callbacks.length) failures.push(`${target}: no generated callbacks`);
     if (!machine.execution?.cpus.length) failures.push(`${target}: no generated CPU execution plan`);
     if (!machine.execution?.screen.vtotal) failures.push(`${target}: no generated screen timing`);
-    const compositionVideo = hardwareEntries.some(entry =>
-      entry.executable &&
-      entry.executableKind === 'composition' &&
-      entry.uses?.some(use => use.game === target));
-    if (!machine.video && !compositionVideo) failures.push(`${target}: no generated video plan`);
+    if (!machine.video) failures.push(`${target}: no generated video plan`);
     const callbackIds = new Set(machine.callbacks.map(callback => callback.id));
     if (callbackIds.size !== machine.callbacks.length) failures.push(`${target}: duplicate callback IDs`);
     callbacks += machine.callbacks.length;

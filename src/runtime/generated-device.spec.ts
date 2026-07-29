@@ -128,5 +128,71 @@ assert.throws(
   /memory share "missing" is not available/,
 );
 
+// Generated slots instantiate a source-selected child definition and expose it
+// through the card member used by the parent's compiled MAME methods.
+registerGeneratedDevice({
+  type: 'SLOT_TEST',
+  constants: {},
+  members: [],
+  callbacks: [],
+  methods: [
+    method('device_start', '', 'm_card = get_card_device();'),
+    method('read', '', 'return m_card.read();'),
+  ],
+  slot: {
+    member: 'm_card',
+    selector: 'fixture.option',
+    options: {
+      card: {
+        type: 'CARD_TEST',
+        constants: {},
+        members: [{
+          name: 'm_input',
+          valueType: 'required_ioport',
+          finder: { kind: 'input', tag: 'BUTTONS' },
+        }],
+        callbacks: [],
+        methods: [method('read', '', 'return m_input.read();')],
+        summary: { diagnostics: 0 },
+      },
+    },
+  },
+  start: 'device_start',
+  summary: { diagnostics: 0 },
+});
+const slotDevice = createDevice('SLOT_TEST', {
+  tag: 'port1',
+  selectors: { 'fixture.option': 'card' },
+  inputs: { read: tag => tag === 'port1:BUTTONS' ? 0x5a : 0 },
+});
+assert.equal(slotDevice.call('read'), 0x5a);
+
+registerGeneratedDevice({
+  type: 'OVERLOAD_TEST',
+  constants: {},
+  members: [{ name: 'm_ready', valueType: 'uint8_t', bits: 8, initial: 1 }],
+  callbacks: [],
+  methods: [
+    method('select', 'int left, int right', 'return left + right;'),
+    method('select', '', 'return 7;'),
+    method('override_me', 'int value', 'return value + 1;'),
+    method('override_me', 'int value', 'return value + 2;'),
+    method('resync', 'int param', 'm_ready = 1;'),
+    method(
+      'write',
+      '',
+      'm_ready = 0; ' +
+      'machine().scheduler().synchronize(timer_expired_delegate(FUNC(fixture::resync), this));',
+    ),
+  ],
+  summary: { diagnostics: 0 },
+});
+const overloaded = createDevice('OVERLOAD_TEST');
+assert.equal(overloaded.call('select'), 7);
+assert.equal(overloaded.call('select', 3, 4), 7);
+assert.equal(overloaded.call('override_me', 3), 5, 'the most-derived exact signature wins');
+overloaded.call('write');
+assert.equal(overloaded.get('m_ready'), 1, 'scheduler synchronization invokes its generated delegate');
+
 clearGeneratedDevices();
-console.log('generated-device.spec: registration, IR, callbacks, timers, memory shares and compiled methods passed');
+console.log('generated-device.spec: registration, IR, slots, overloads, callbacks, timers, memory shares and compiled methods passed');

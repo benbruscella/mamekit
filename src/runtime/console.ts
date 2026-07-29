@@ -18,7 +18,14 @@
 
 import { runShell, type ShellConfig } from './shell.ts';
 import { openCartStore, type CartRecord } from './cartstore.ts';
-import { parseINes, identify, type ResolvedCart, type SoftCatalog, type SoftEntry } from './nes-ines.ts';
+import {
+  parseINes,
+  identify,
+  mountedINesPrg,
+  type ResolvedCart,
+  type SoftCatalog,
+  type SoftEntry,
+} from './nes-ines.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions } from './types.ts';
 
@@ -271,7 +278,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   const boot = (rec: CartRecord, resolved: ResolvedCart): void => {
     inRoom = false;
     document.body.textContent = '';
-    const regions: Regions = { prg: resolved.ines.prg };
+    const regions: Regions = { prg: mountedINesPrg(resolved.ines) };
     if (resolved.ines.chr) regions.chr = resolved.ines.chr; // omitted => CHR-RAM cart
     const cfg2: ShellConfig = {
       ...cfg,

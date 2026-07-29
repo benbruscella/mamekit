@@ -25,6 +25,19 @@ export interface INesInfo {
   chr: Uint8Array | null;
 }
 
+/**
+ * MAME's iNES loader expands NROM-128's single 16 KiB PRG chip to the 32 KiB
+ * CPU window before the cartridge interface configures its four 8 KiB banks.
+ * Keep `ines.prg` untouched for CRC identification, but mount this image.
+ */
+export function mountedINesPrg(ines: INesInfo): Uint8Array {
+  if (ines.prg.length !== 0x4000) return ines.prg;
+  const mounted = new Uint8Array(0x8000);
+  mounted.set(ines.prg, 0);
+  mounted.set(ines.prg, 0x4000);
+  return mounted;
+}
+
 /** Parse a 16-byte-header iNES / NES 2.0 file. Returns null when it isn't one. */
 export function parseINes(bytes: Uint8Array): INesInfo | null {
   if (bytes.length < 16) return null;

@@ -44,6 +44,7 @@ const lineCpu = {
   step() { return 1; },
   run(cycles: number) { return cycles; },
   setIrqLine() { irqs++; },
+  setInputLine() {},
   nmi() { nmis++; },
   get() { return 0; },
   set() {},
@@ -88,6 +89,7 @@ registerGeneratedCpu({
         return cycles;
       },
       setIrqLine() {},
+      setInputLine() {},
       nmi() {},
       get() { return 0; },
       set() {},
@@ -146,4 +148,53 @@ opcodeBoard.frame(new Uint32Array(1));
 assert.equal(programRead, 0x11);
 assert.equal(opcodeRead, 0x22, 'the generated board must preserve the AS_OPCODES bus');
 
-console.log('generated-board.spec: shares, CPU lines, flip-screen state and opcode bus passed');
+let slotBackedRan = false;
+registerGeneratedCpu({
+  type: 'SLOT_BACKED_FIXTURE',
+  summary: { diagnostics: 0 },
+  create() {
+    return {
+      reset() {},
+      step() { return 1; },
+      run(cycles) { slotBackedRan = true; return cycles; },
+      setIrqLine() {},
+      setInputLine() {},
+      nmi() {},
+      get() { return 0; },
+      set() {},
+      invoke() { return 0; },
+    };
+  },
+});
+const slotBackedMachine: BoardIr = {
+  ...opcodeMachine,
+  game: 'slot-backed-fixture',
+  execution: {
+    ...opcodeMachine.execution,
+    cpus: [{
+      tag: 'maincpu',
+      type: 'SLOT_BACKED_FIXTURE',
+      clock: 60,
+      region: 'maincpu',
+      ranges: [{ start: 0, end: 0xff, kind: 'ram' }],
+    }],
+  },
+};
+const slotBackedBoard = createGeneratedBoard(
+  slotBackedMachine,
+  {
+    game: slotBackedMachine.game,
+    family: 'fixture',
+    cpus: [],
+    ranges: [],
+    screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 1, rotate: 0 },
+    clocks: { namco06: 0, wsg: 0 },
+  },
+  {},
+  { read: () => 0xff },
+  { soundWrite: () => {} },
+);
+slotBackedBoard.frame(new Uint32Array(1));
+assert.equal(slotBackedRan, true, 'slot-backed CPUs must not require a fake fixed ROM region');
+
+console.log('generated-board.spec: shares, CPU lines, flip-screen state and CPU buses passed');

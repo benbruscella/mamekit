@@ -9,7 +9,7 @@ interface Token {
 
 const TYPE_WORDS = new Set([
   'auto', 'bool', 'char', 'const', 'constexpr', 'double', 'int', 'offs_t', 'pen_t',
-  'rectangle', 'tilemap_memory_index',
+  'rectangle', 'rgb_t', 'tilemap_memory_index',
   's8', 's16', 's32', 'u8', 'u16', 'u32',
   'int8_t', 'int16_t', 'int32_t', 'uint8_t', 'uint16_t', 'uint32_t', 'unsigned',
 ]);
@@ -86,6 +86,11 @@ class HandlerParser {
       this.take();
       if (!this.consume(';')) this.unsupportedStatement('break without semicolon');
       return { op: 'break' };
+    }
+    if (this.atText('continue')) {
+      this.take();
+      if (!this.consume(';')) this.unsupportedStatement('continue without semicolon');
+      return { op: 'continue' };
     }
     if (this.atText('using')) {
       while (!this.at('eof') && !this.consume(';')) this.take();
@@ -408,7 +413,18 @@ class HandlerParser {
       }
       this.take();
       let value: GeneratedExpression | undefined;
-      if (this.consume('=')) value = this.parseExpression();
+      if (this.consume('[')) {
+        const length = this.parseExpression();
+        if (!length || !this.consume(']')) {
+          this.unsupportedStatement(`invalid array declaration of "${name.text}"`);
+          return declarations;
+        }
+        value = {
+          kind: 'call',
+          callee: { kind: 'identifier', name: 'ALLOC' },
+          args: [length],
+        };
+      } else if (this.consume('=')) value = this.parseExpression();
       else if (this.consume('(')) {
         const args = this.parseArguments();
         if (!args) {

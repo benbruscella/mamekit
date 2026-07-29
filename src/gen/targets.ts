@@ -15,7 +15,15 @@ export const REQUIRED_TARGETS: readonly string[] = [
 ];
 
 /**
- * The set `gen:all` builds: the targets with acceptance contracts. Consoles
- * are excluded until they carry one.
+ * The set a clean `gen:all` distribution builds.
+ *
+ * This is deliberately the required set, not just the real-ROM acceptance
+ * set: consoles can use synthetic acceptance until redistributable test ROMs
+ * exist, but they must still ship in the complete generated application.
+ */
+export const GENERATION_TARGETS: readonly string[] = REQUIRED_TARGETS;
+
+/**
+ * Targets with real-ROM acceptance contracts.
  */
 export const ACCEPTED_TARGETS: readonly string[] = discoverGameNames();
