@@ -171,7 +171,7 @@ export async function runMenu(): Promise<void> {
   root.appendChild(wall);
 
   const empty = el('div', 'text-align:center;color:#7f8ac9;padding:60px;display:none;width:100%');
-  empty.textContent = 'Nothing on the shelf matches — try another search.';
+  empty.textContent = 'Console support coming soon!';
   wall.appendChild(empty);
 
   const hint = el('div', 'text-align:center;color:#4b5384;padding:28px 28px 8px;font-size:12px');
