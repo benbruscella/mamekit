@@ -133,6 +133,10 @@ function makeWriteHandler(
   handler: GeneratedHandler,
   bindings: GeneratedHandlerBindings,
 ): WriteHandler {
+  const directVideoRamWrite = makeDirectVideoRamWrite(handler, bindings);
+  if (directVideoRamWrite) return directVideoRamWrite;
+  const directObjectRamWrite = makeDirectObjectRamWrite(handler, bindings);
+  if (directObjectRamWrite) return directObjectRamWrite;
   return (addr, offset, data) => {
     executeGeneratedMachineHandler(
       machine,
@@ -140,5 +144,133 @@ function makeWriteHandler(
       bindings,
       { addr, offset, data, state: data },
     );
+  };
+}
+
+/**
+ * Direct form of the Galaxian-family object-RAM update shape. This is matched
+ * from the complete source body before specializing; boards with a different
+ * handler continue through the general interpreter.
+ */
+function makeDirectObjectRamWrite(
+  handler: GeneratedHandler,
+  bindings: GeneratedHandlerBindings,
+): WriteHandler | undefined {
+  const body = handler.body ?? '';
+  if (
+    !body.includes('m_screen->update_partial(m_screen->vpos())') ||
+    !body.includes('m_spriteram[offset] = data') ||
+    !body.includes('if (offset < 0x40)') ||
+    !body.includes('m_frogger_adjust') ||
+    !body.includes('m_bg_tilemap->set_scrolly(offset >> 1, data)') ||
+    !body.includes('m_bg_tilemap->set_scrollx(offset >> 1, m_x_scale*data)') ||
+    !body.includes('m_bg_tilemap->mark_tile_dirty(offset)')
+  ) return undefined;
+
+  return (_address, initialOffset, initialData) => {
+    const members = bindings.members ?? {};
+    const screen = members.m_screen as {
+      vpos(): number;
+      update_partial(line: number): void;
+    };
+    const spriteRam = members.m_spriteram as { [index: number]: number };
+    const tilemap = members.m_bg_tilemap as {
+      set_scrolly(column: number, value: number): void;
+      set_scrollx(row: number, value: number): void;
+      mark_tile_dirty(offset: number): void;
+    };
+    let offset = initialOffset;
+    let data = initialData;
+    // Identical object bytes cannot change any already-scanned pixel or
+    // scroll value, so avoid repeating MAME's native bookkeeping through the
+    // much heavier generated raster path.
+    if (spriteRam[offset] === data) return;
+    screen.update_partial(screen.vpos());
+    spriteRam[offset] = data;
+    if (offset >= 0x40) return;
+    if ((offset & 1) === 0) {
+      if (members.m_frogger_adjust) data = ((data >> 4) | (data << 4)) & 0xff;
+      if (!members.m_sfx_adjust) tilemap.set_scrolly(offset >> 1, data);
+      else tilemap.set_scrollx(offset >> 1, Number(members.m_x_scale) * data);
+      return;
+    }
+    for (offset >>= 1; offset < 0x400; offset += 32) {
+      tilemap.mark_tile_dirty(offset);
+    }
+  };
+}
+
+/**
+ * Compile MAME's common hot video-RAM handler shape to direct calls:
+ *
+ *   screen->update_partial(screen->vpos());
+ *   ram[offset] = data;
+ *   tilemap->mark_tile_dirty(offset);
+ *
+ * Clearing a tilemap can issue hundreds of these writes per frame. Running
+ * the three already-lowered operations through the general IR interpreter
+ * made Zig Zag fall from 61 fps to the mid-30s after inserting a coin.
+ * Matching the operation structure keeps this source-derived and reusable.
+ */
+function makeDirectVideoRamWrite(
+  handler: GeneratedHandler,
+  bindings: GeneratedHandlerBindings,
+): WriteHandler | undefined {
+  const operations = handler.program?.operations;
+  if (!operations || operations.length !== 3) return undefined;
+  const [update, store, dirty] = operations;
+  if (
+    update?.op !== 'call' ||
+    store?.op !== 'assign' ||
+    dirty?.op !== 'call' ||
+    store.operator !== '='
+  ) return undefined;
+
+  const updateCallee = update.expression.callee;
+  const updateArg = update.expression.args[0];
+  const dirtyCallee = dirty.expression.callee;
+  const dirtyArg = dirty.expression.args[0];
+  if (
+    updateCallee.kind !== 'member' ||
+    updateCallee.object.kind !== 'identifier' ||
+    updateCallee.property !== 'update_partial' ||
+    update.expression.args.length !== 1 ||
+    updateArg?.kind !== 'call' ||
+    updateArg.callee.kind !== 'member' ||
+    updateArg.callee.object.kind !== 'identifier' ||
+    updateArg.callee.object.name !== updateCallee.object.name ||
+    updateArg.callee.property !== 'vpos' ||
+    updateArg.args.length !== 0 ||
+    store.target.kind !== 'index' ||
+    store.target.object.kind !== 'identifier' ||
+    store.target.index.kind !== 'identifier' ||
+    store.target.index.name !== 'offset' ||
+    store.value.kind !== 'identifier' ||
+    store.value.name !== 'data' ||
+    dirtyCallee.kind !== 'member' ||
+    dirtyCallee.object.kind !== 'identifier' ||
+    dirty.expression.args.length !== 1 ||
+    dirtyArg?.kind !== 'identifier' ||
+    dirtyArg.name !== 'offset'
+  ) return undefined;
+
+  const screenMember = updateCallee.object.name;
+  const ramMember = store.target.object.name;
+  const tilemapMember = dirtyCallee.object.name;
+  const dirtyMethod = dirtyCallee.property;
+  return (_address, offset, data) => {
+    const members = bindings.members ?? {};
+    const screen = members[screenMember] as {
+      vpos(): number;
+      update_partial(line: number): void;
+    };
+    const ram = members[ramMember] as { [index: number]: number };
+    const tilemap = members[tilemapMember] as Record<string, (index: number) => void>;
+    // Identical bytes cannot alter the visible result. Bulk clears and table
+    // refreshes commonly rewrite them, and need no partial render or dirtying.
+    if (ram[offset] === data) return;
+    screen.update_partial(screen.vpos());
+    ram[offset] = data;
+    tilemap[dirtyMethod]!(offset);
   };
 }

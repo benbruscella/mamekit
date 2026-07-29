@@ -1055,6 +1055,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       ...bindings.callParameters,
     };
     for (const [member, target] of Object.entries(machine.video?.delegates ?? {})) {
+      if (target === null) {
+        state[member] = { isnull: () => 1 };
+        continue;
+      }
       const handler = requiredHandler(machine, target);
       if (handler.program!.operations.length === 0) {
         referenceCalls[member] = () => 0;

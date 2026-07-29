@@ -42,6 +42,7 @@ interface GameEntry {
   copyrightHolders?: string;
   gitHistory?: { firstCommit: string; lastCommit: string; commits: number; contributors: number; topAuthors: string[] };
   hasHistory?: boolean;
+  historyCredit?: string;
 }
 
 export function matchesMenuEntry(
@@ -470,7 +471,8 @@ export async function runMenu(): Promise<void> {
           story.appendChild(chap);
         }
         const attr = el('div', 'color:#4b5384;font-size:11px;margin-top:8px');
-        attr.textContent = 'Story courtesy of Gaming History (arcade-history.com)';
+        attr.textContent = entry.historyCredit ??
+          'Story courtesy of Gaming History (arcade-history.com)';
         story.appendChild(attr);
       });
     }

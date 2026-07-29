@@ -22,7 +22,7 @@ export const zigzagb: GameTestContract = {
   golden: {
     regions: {
       gfx1: '31fa6061',
-      gfx2: '31fa6061',
+      gfx2: '43b64cd9',
       maincpu: 'ed94ef43',
       proms: 'aa486dd0',
     },
@@ -30,10 +30,10 @@ export const zigzagb: GameTestContract = {
       1: { video: '4ce372b8', state: 'fd9cb13c' },
       60: { video: '7b64b913', state: '50fa2292' },
       180: { video: '8609f0f0', state: '22333330' },
-      300: { video: '374429c9', state: '02a40739' },
-      480: { video: '568d0566', state: '63753296' },
-      600: { video: '8f0dda5e', state: 'bcb2f692' },
-      900: { video: 'e9c0c029', state: '082133ef' },
+      300: { video: '305d32b3', state: '02a40739' },
+      480: { video: 'b25ac089', state: '63753296' },
+      600: { video: 'bbd7e192', state: 'bcb2f692' },
+      900: { video: 'c5f19a71', state: '082133ef' },
     },
     audio: {
       writes: 6121,

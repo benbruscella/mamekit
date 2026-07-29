@@ -307,6 +307,13 @@ function unquote(s: string): string {
 export interface RomLoad {
   file: string; offset: number; size: number; crc: string; sha1: string; reloadOffsets: number[];
   /**
+   * Additional destination slices read from later in the same physical ROM.
+   * MAME advances the file cursor through ROM_CONTINUE and ROM_IGNORE; Zig
+   * Zag uses that to put the first half of each chip in gfx1 and the second
+   * half in gfx2.
+   */
+  continueSegments: { offset: number; size: number; fileOffset: number }[];
+  /**
    * MAME's own dump status for this chip. `nodump` means no copy of the part
    * exists anywhere (rocnrope's h100.6g PAL: "Schematics obfuscated"), so no
    * ROM set can supply it and MAME leaves the region erased. `baddump` means
@@ -347,10 +354,11 @@ export function parseRomSets(src: string): RomSetDef[] {
   while ((m = re.exec(src)) !== null) {
     const set: RomSetDef = { name: m[1], regions: [] };
     const body = maskDisabledIfZero(m[2]);
-    const stmtRe = /(ROM_REGION|ROM_LOAD|ROM_RELOAD|ROM_CONTINUE|ROM_FILL)\s*\(/g;
+    const stmtRe = /(ROM_REGION|ROM_LOAD|ROM_RELOAD|ROM_CONTINUE|ROM_IGNORE|ROM_FILL)\s*\(/g;
     let sm: RegExpExecArray | null;
     let region: RomRegionDef | null = null;
     let lastLoad: RomLoad | null = null;
+    let fileOffset = 0;
     while ((sm = stmtRe.exec(body)) !== null) {
       const open = body.indexOf('(', sm.index + sm[1].length - 1);
       const close = matchParen(body, open);
@@ -365,6 +373,8 @@ export function parseRomSets(src: string): RomSetDef[] {
             loads: [],
           };
           set.regions.push(region);
+          lastLoad = null;
+          fileOffset = 0;
           break;
         }
         case 'ROM_LOAD': {
@@ -379,6 +389,7 @@ export function parseRomSets(src: string): RomSetDef[] {
             crc: crc ? crc[1] : '',
             sha1: sha1 ? sha1[1] : '',
             reloadOffsets: [],
+            continueSegments: [],
             ...(/\bNO_DUMP\b/.test(flags)
               ? { status: 'nodump' as const }
               : /\bBAD_DUMP\b/.test(flags)
@@ -386,14 +397,30 @@ export function parseRomSets(src: string): RomSetDef[] {
                 : {}),
           };
           region.loads.push(lastLoad);
+          fileOffset = lastLoad.size;
           break;
         }
         case 'ROM_RELOAD': {
           if (lastLoad) lastLoad.reloadOffsets.push(evalExpr(args[0]) ?? 0);
           break;
         }
+        case 'ROM_CONTINUE': {
+          if (!lastLoad) break;
+          const size = evalExpr(args[1]) ?? 0;
+          lastLoad.continueSegments.push({
+            offset: evalExpr(args[0]) ?? 0,
+            size,
+            fileOffset,
+          });
+          fileOffset += size;
+          break;
+        }
+        case 'ROM_IGNORE': {
+          fileOffset += evalExpr(args[0]) ?? 0;
+          break;
+        }
         default:
-          break; // ROM_CONTINUE / ROM_FILL not needed for the galaga family yet
+          break; // ROM_FILL is not needed by a generated target yet
       }
     }
     out.push(set);
@@ -633,6 +660,8 @@ export interface MachineConfigDef {
    * graph-build time
    */
   patches: { tag: string; addrMaps: Record<string, string>; raw: string }[];
+  /** set_info(...) changes to a GFXDECODE device instantiated by a called config. */
+  gfxDecodePatches: { tag: string; name: string; raw: string }[];
   raw: string;
 }
 
@@ -798,7 +827,16 @@ export function parseMachineConfigs(
 ): MachineConfigDef[] {
   const fns = extractFunctionBody(src, /void\s+(\w+)::(\w+)\(machine_config\s*&\s*config\)/g);
   return fns.map(({ cls, name, body }) => {
-    const cfg: MachineConfigDef = { cls, name, devices: [], softwareLists: [], calls: [], patches: [], raw: body.trim() };
+    const cfg: MachineConfigDef = {
+      cls,
+      name,
+      devices: [],
+      softwareLists: [],
+      calls: [],
+      patches: [],
+      gfxDecodePatches: [],
+      raw: body.trim(),
+    };
     const byRef = new Map<string, DeviceDef>(); // m_member, "tag", or localVar -> device
     const resolveTag = (ref: string): string => {
       const r = ref.trim();
@@ -896,6 +934,19 @@ export function parseMachineConfigs(
           const [space, mapRef] = splitArgs(s.slice(open + 1, close));
           const mm = /&\s*\w+::(\w+)/.exec(mapRef ?? '');
           if (mm) cfg.patches.push({ tag: resolveTag(refRaw), addrMaps: { [space.trim()]: mm[1] }, raw: s });
+          continue;
+        }
+        if (!dev && method === 'set_info' && refRaw.startsWith('m_')) {
+          const open = s.indexOf('(', s.indexOf(method));
+          const close = matchParen(s, open);
+          const [decodeName] = splitArgs(s.slice(open + 1, close));
+          if (/^\w+$/.test(decodeName?.trim() ?? '')) {
+            cfg.gfxDecodePatches.push({
+              tag: resolveTag(refRaw),
+              name: decodeName!.trim(),
+              raw: s,
+            });
+          }
           continue;
         }
         if (dev) {

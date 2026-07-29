@@ -77,12 +77,17 @@ for (const method of ['bankswap_w', 'ay8910_w']) {
 const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video, 'Zig Zag MAME video source must lower to executable video IR');
 assert.equal(video.plan.initialState.m_numspritegens, 2);
+assert.deepEqual(
+  video.plan.gfx.map(entry => entry.region),
+  ['gfx1', 'gfx2'],
+  'zigzag set_info must replace the base Galaxian sprite decode with gfx_pacmanbl',
+);
 assert.deepEqual(video.plan.delegates, {
-  m_draw_bullet_ptr: 'galaxian_state.galaxian_draw_bullet',
+  m_draw_bullet_ptr: null,
   m_draw_background_ptr: 'galaxian_state.galaxian_draw_background',
   m_extend_tile_info_ptr: 'galaxian_state.empty_extend_tile_info',
   m_extend_sprite_info_ptr: 'galaxian_state.empty_extend_sprite_info',
-});
+}, 'init_zigzag must retain its explicit empty bullet delegate');
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
 
 console.log('zigzagb.spec: indexed ROM banks, AY latch and Galaxian video passed');

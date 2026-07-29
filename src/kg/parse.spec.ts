@@ -49,6 +49,24 @@ ROM_END
   ['tiles.bin'],
 ]);
 
+{
+  const regions = parseRomSets(`
+ROM_START( splitgfx )
+  ROM_REGION( 0x0800, "gfx1", 0 )
+  ROM_LOAD( "graphics.bin", 0x0000, 0x0800, CRC(11111111) )
+  ROM_IGNORE( 0x0800 )
+  ROM_REGION( 0x0800, "gfx2", 0 )
+  ROM_LOAD( "graphics.bin", 0x0000, 0x0800, CRC(11111111) )
+  ROM_CONTINUE(               0x0000, 0x0800 )
+ROM_END
+`)[0]!.regions;
+  eq('ROM_IGNORE leaves the first half in the first region',
+    regions[0]!.loads[0]!.continueSegments, []);
+  eq('ROM_CONTINUE reads the next file half into the second region',
+    regions[1]!.loads[0]!.continueSegments,
+    [{ offset: 0, size: 0x800, fileOffset: 0x800 }]);
+}
+
 eq('memory bank configure_entries', parseMemoryBanks(
   'm_mainbank->configure_entries(0, 16, memregion("maincpu")->base() + 0x10000, 0x1000);',
   { m_mainbank: 'mainbank' },
@@ -263,6 +281,21 @@ board_state::board_state()
   'm_rombanks[0]': 'bank1',
   'm_rombanks[1]': 'bank2',
 });
+
+{
+  const [cfg] = parseMachineConfigs(`
+void board_state::derived(machine_config &config)
+{
+  base(config);
+  m_gfxdecode->set_info(gfx_separate);
+}
+`, { m_gfxdecode: 'gfxdecode' }, {});
+  eq('inherited GFX decode set_info patch', cfg?.gfxDecodePatches, [{
+    tag: 'gfxdecode',
+    name: 'gfx_separate',
+    raw: 'm_gfxdecode->set_info(gfx_separate)',
+  }]);
+}
 
 // add_route on an array element must still lower, and a bank may be configured
 // by several calls through a local pointer alias to a region base.

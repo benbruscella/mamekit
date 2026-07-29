@@ -292,9 +292,21 @@ artwork/covers/<target>.png           promotional flyer
 artwork/media/cabinets/<target>.png   cabinet photograph
 artwork/media/marquees/<target>.png   marquee scan
 artwork/data/history/history.xml      shared Gaming History dataset
+artwork/data/history/<target>.txt     optional curated story override
 ```
 
-Generation extracts the target's story to `history.txt` and creates
+Good first-stop catalogs are
+[progetto-SNAPS](https://www.progettosnaps.net/) for MAME-named cabinets,
+flyers, marquees, control panels, PCB photographs, snapshots and artwork packs,
+and [Gaming History](https://www.arcade-history.com/) for stories. Record the
+source of every asset. Catalog images can aggregate earlier collections, and a
+surviving conversion cabinet is not evidence that a factory-standard cabinet
+existed. progetto-SNAPS describes its cabinet images as free to use under fair
+use; preserve its attribution and any named original contributor.
+
+Generation prefers the optional curated `<target>.txt` when it exists,
+otherwise extracts the target's story from Gaming History. It writes
+`history.txt` and creates
 `DOSSIER.md` from MAME source, git history, ROM/input/hardware facts and the
 presentation paths. Artwork is intentionally not committed or included in CI;
 deployment includes it only with `--artwork`. Validate the complete local

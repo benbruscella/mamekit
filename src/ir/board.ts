@@ -482,8 +482,8 @@ export interface GeneratedVideoPlan {
   initialState: Record<string, number | number[]>;
   /** MAME may render at a hardware sub-pixel scale (Galaxian uses 3x horizontally). */
   renderScale?: { x: number; y: number };
-  /** Driver-init delegate member -> selected MAME method. */
-  delegates?: Record<string, string>;
+  /** Driver-init delegate member -> selected MAME method, or null when explicitly cleared. */
+  delegates?: Record<string, string | null>;
   /** Small source-derived color arrays used by generated video handlers. */
   colorTables?: Record<string, number[]>;
   /** Source-derived LFSR table initialized once and consumed by generated handlers. */

@@ -14,6 +14,24 @@ const regions = assembleRegions(
 assert.deepEqual([...regions.eraseff!], [0xff, 0xff, 0xff, 0xff]);
 assert.deepEqual([...regions.erase00!], [0x00, 0x00, 0x00, 0x00]);
 
+const splitFile = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+const splitRegions = assembleRegions(
+  [{
+    region: 'gfx2',
+    size: 4,
+    loads: [{
+      file: 'graphics.bin',
+      offset: 0,
+      size: 4,
+      crc: '3fca88c5',
+      continueSegments: [{ offset: 0, size: 4, fileOffset: 4 }],
+    }],
+  }],
+  new Map([['graphics.bin', splitFile]]),
+  () => {},
+);
+assert.deepEqual([...splitRegions.gfx2!], [5, 6, 7, 8]);
+
 const transformed = { gfx1: Uint8Array.from({ length: 32 }, (_, index) => index) };
 applyRomTransforms(transformed, [{
   kind: 'conditional-byte-swap',

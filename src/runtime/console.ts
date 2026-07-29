@@ -55,6 +55,7 @@ interface MenuEntry {
   manufacturer: string;
   supported?: boolean;
   hasHistory?: boolean;
+  historyCredit?: string;
   driverFile?: string;
   license?: string;
   copyrightHolders?: string;
@@ -835,7 +836,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
             story.appendChild(chap);
           }
           const attr = el('div', 'color:#4b5384;font-size:11px;margin-top:8px');
-          attr.textContent = 'Story courtesy of Gaming History (arcade-history.com)';
+          attr.textContent = entry.historyCredit ??
+            'Story courtesy of Gaming History (arcade-history.com)';
           story.appendChild(attr);
         });
       }
