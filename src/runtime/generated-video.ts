@@ -11,6 +11,13 @@ import { decodeGfx, type GfxSet } from './gfx.ts';
 export interface GeneratedVideoPrimitives extends VideoRenderer {
   generatedVideoBindings(frame: Uint32Array): GeneratedHandlerBindings;
   generatedVideoArgs?(frame: Uint32Array): Record<string, unknown>;
+  /** Execute a source-matched hot screen-update shape without IR tree walking. */
+  directScreenUpdate?(
+    handler: string,
+    screen: { visible_area(): GeneratedRectangle },
+    bitmap: BitmapTarget,
+    cliprect: GeneratedRectangle,
+  ): boolean;
   /** Resolve composed pen indices from the pen buffer into the RGBA frame. */
   resolveScreenPens?(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void;
   /** Route a MAME palette_device RAM write when the plan declares one. */
@@ -110,17 +117,12 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     const yOffset = this.machine.execution.screen.yOffset ?? 0;
     const xScale = this.machine.video?.renderScale?.x ?? 1;
     const yScale = this.machine.video?.renderScale?.y ?? 1;
-    const cliprect = {
-      min_x: xOffset * xScale,
-      max_x: (xOffset + this.width) * xScale - 1,
-      min_y: minY * yScale,
-      max_y: (maxY + 1) * yScale - 1,
-      contains(x: number, y: number): number {
-        return x >= this.min_x && x <= this.max_x && y >= this.min_y && y <= this.max_y
-          ? 1
-          : 0;
-      },
-    };
+    const cliprect = new GeneratedRectangle(
+      xOffset * xScale,
+      (xOffset + this.width) * xScale - 1,
+      minY * yScale,
+      (maxY + 1) * yScale - 1,
+    );
     const target = this.penBuffer ?? frame;
     const scaledXOffset = xOffset * xScale;
     const scaledYOffset = yOffset * yScale;
@@ -223,20 +225,29 @@ export class GeneratedVideoRenderer implements VideoRenderer {
         (yOffset + this.height) * yScale - 1,
       ),
     };
-    const result = executeGeneratedCallbackHandler(
-      this.machine,
-      this.screenUpdate,
-      this.primitives.generatedVideoBindings(frame),
-      {
-        screen,
-        bitmap,
-        cliprect,
-        ...this.primitives.generatedVideoArgs?.(frame),
-      },
-    );
+    const handlerKey =
+      `${this.screenUpdate.targetClass}.${this.screenUpdate.targetMethod}`;
+    const direct = this.primitives.directScreenUpdate?.(
+      handlerKey,
+      screen,
+      bitmap,
+      cliprect,
+    ) ?? false;
+    const result = direct
+      ? 0
+      : executeGeneratedCallbackHandler(
+          this.machine,
+          this.screenUpdate,
+          this.primitives.generatedVideoBindings(frame),
+          {
+            screen,
+            bitmap,
+            cliprect,
+            ...this.primitives.generatedVideoArgs?.(frame),
+          },
+        );
     if (result === undefined) {
-      const key = `${this.screenUpdate.targetClass}.${this.screenUpdate.targetMethod}`;
-      throw new Error(`generated screen-update handler "${key}" is not executable`);
+      throw new Error(`generated screen-update handler "${handlerKey}" is not executable`);
     }
     if (this.penBuffer) {
       const start = Math.max(0, minY - yOffset) * this.width;
@@ -662,8 +673,10 @@ class GeneratedTilemap {
   private readonly gfx: GeneratedGfxElement[];
   private readonly tiles: Array<TileInfo | undefined> = [];
   private readonly dirty: number[] = [];
+  private readonly dirtyIndices = new Set<number>();
   private readonly scrollX: number[];
   private readonly scrollY: number[];
+  private standardCacheComplete = false;
   private flip = 0;
 
   constructor(
@@ -685,12 +698,17 @@ class GeneratedTilemap {
   }
 
   mark_tile_dirty(index: number): void {
-    if (Number.isInteger(index) && index >= 0) this.dirty[index] = 1;
+    if (Number.isInteger(index) && index >= 0) {
+      this.dirty[index] = 1;
+      this.dirtyIndices.add(index);
+    }
   }
 
   mark_all_dirty(): void {
     this.tiles.length = 0;
     this.dirty.length = 0;
+    this.dirtyIndices.clear();
+    this.standardCacheComplete = false;
   }
 
   set_flip(flags: number): void {
@@ -715,6 +733,74 @@ class GeneratedTilemap {
     this.scrollX[modulo(row, this.scrollX.length)] = value;
   }
 
+  private tileAt(tileIndex: number): TileInfo {
+    let tile = this.tiles[tileIndex];
+    const needsUpdate = !tile || this.dirty[tileIndex] === 1;
+    if (!tile) {
+      tile = { gfx: 0, code: 0, color: 0, flags: 0, category: 0, group: 0 };
+      this.tiles[tileIndex] = tile;
+    }
+    if (needsUpdate) {
+      Object.assign(tile, { gfx: 0, code: 0, color: 0, flags: 0, category: 0, group: 0 });
+      const tileinfo = createGeneratedTileInfoTarget(tile);
+      executeGeneratedMachineProgram(
+        this.machine,
+        this.tileInfo,
+        this.bindings(),
+        { tilemap: this, tileinfo, tile_index: tileIndex },
+      );
+      this.dirty[tileIndex] = 0;
+      this.dirtyIndices.delete(tileIndex);
+    }
+    return tile;
+  }
+
+  /**
+   * Refresh standard row/column tile caches once, in MAME traversal order,
+   * before pruning a narrow partial clip. Galaxian-family writes call
+   * update_partial before dirtying one tile, so the next scanline can refresh
+   * that entry directly instead of rediscovering it among all 1,024 tiles.
+   */
+  private refreshStandardCache(flipX: boolean, flipY: boolean): void {
+    if (this.mapper) return;
+    const count = this.plan.columns * this.plan.rows;
+    if (!this.standardCacheComplete) {
+      for (let outputRow = 0; outputRow < this.plan.rows; outputRow++) {
+        const row = flipY ? this.plan.rows - 1 - outputRow : outputRow;
+        for (let outputColumn = 0; outputColumn < this.plan.columns; outputColumn++) {
+          const column = flipX
+            ? this.plan.columns - 1 - outputColumn
+            : outputColumn;
+          this.tileAt(mapStandardTile(
+            this.plan.mapper,
+            column,
+            row,
+            this.plan.columns,
+            this.plan.rows,
+          ));
+        }
+      }
+      this.standardCacheComplete = true;
+      return;
+    }
+    if (!this.dirtyIndices.size) return;
+    const outputOrder = (tileIndex: number): number => {
+      const row = this.plan.mapper === 'TILEMAP_SCAN_COLS'
+        ? tileIndex % this.plan.rows
+        : Math.floor(tileIndex / this.plan.columns);
+      const column = this.plan.mapper === 'TILEMAP_SCAN_COLS'
+        ? Math.floor(tileIndex / this.plan.rows)
+        : tileIndex % this.plan.columns;
+      const outputRow = flipY ? this.plan.rows - 1 - row : row;
+      const outputColumn = flipX ? this.plan.columns - 1 - column : column;
+      return outputRow * this.plan.columns + outputColumn;
+    };
+    const pending = [...this.dirtyIndices]
+      .filter(index => index < count)
+      .sort((left, right) => outputOrder(left) - outputOrder(right));
+    for (const tileIndex of pending) this.tileAt(tileIndex);
+  }
+
   draw(
     _screen: unknown,
     bitmap: BitmapTarget,
@@ -727,6 +813,8 @@ class GeneratedTilemap {
     const mapFlip = this.flip | globalFlip;
     const flipX = Boolean(mapFlip & 1);
     const flipY = Boolean(mapFlip & 2);
+    this.refreshStandardCache(flipX, flipY);
+    const standardCacheReady = !this.mapper;
     // A scrolled tilemap paints each tile at an offset, so a tile range derived
     // from the clip alone stops covering the visible area: with scrollx 140 the
     // clip-derived columns paint x -140..115 while the screen needs 0..255, and
@@ -767,6 +855,29 @@ class GeneratedTilemap {
         outputColumn++
       ) {
         const column = flipX ? this.plan.columns - 1 - outputColumn : outputColumn;
+        const scrollColumn = generatedScrollBand(
+          outputColumn,
+          this.plan.columns,
+          this.scrollY.length,
+        );
+        const yScroll = this.scrollY[scrollColumn] ?? 0;
+        const y = outputRow * this.plan.tileHeight - yScroll + yDelta;
+        const firstWrappedY = modulo(y, mapHeight) - mapHeight;
+        let intersectsVerticalClip = false;
+        for (
+          let wrappedY = firstWrappedY;
+          wrappedY <= firstWrappedY + mapHeight * 2;
+          wrappedY += mapHeight
+        ) {
+          if (
+            wrappedY <= clip.max_y &&
+            wrappedY + this.plan.tileHeight > clip.min_y
+          ) {
+            intersectsVerticalClip = true;
+            break;
+          }
+        }
+        if (!intersectsVerticalClip && standardCacheReady) continue;
         const mapped = this.mapper
           ? executeGeneratedMachineProgram(
               this.machine,
@@ -781,36 +892,18 @@ class GeneratedTilemap {
             ).value
           : mapStandardTile(this.plan.mapper, column, row, this.plan.columns, this.plan.rows);
         const tileIndex = generatedTileMemoryIndex(mapped);
-        let tile = this.tiles[tileIndex];
-        const needsUpdate = !tile || this.dirty[tileIndex] === 1;
-        if (!tile) {
-          tile = { gfx: 0, code: 0, color: 0, flags: 0, category: 0, group: 0 };
-          this.tiles[tileIndex] = tile;
-        }
-        if (needsUpdate) {
-          Object.assign(tile, { gfx: 0, code: 0, color: 0, flags: 0, category: 0, group: 0 });
-          const tileinfo = createGeneratedTileInfoTarget(tile);
-          executeGeneratedMachineProgram(
-            this.machine,
-            this.tileInfo,
-            this.bindings(),
-            { tilemap: this, tileinfo, tile_index: tileIndex },
-          );
-          this.dirty[tileIndex] = 0;
-        }
+        const tile = this.tileAt(tileIndex);
+        // Preserve tile-cache update timing even when a tile is outside this
+        // partial clip; callbacks can depend on live video attributes. The
+        // expensive category, mask and graphics work is unnecessary once the
+        // cache matches the source renderer's state.
+        if (!intersectsVerticalClip) continue;
         if (tile.category !== (_flags & 0x0f)) continue;
         const gfx = this.gfx[tile.gfx];
         if (!gfx) continue;
         const tileFlipX = Boolean(tile.flags & 1) !== flipX;
         const tileFlipY = Boolean(tile.flags & 2) !== flipY;
-        const scrollColumn = generatedScrollBand(
-          outputColumn,
-          this.plan.columns,
-          this.scrollY.length,
-        );
-        const yScroll = this.scrollY[scrollColumn] ?? 0;
         const x = outputColumn * this.plan.tileWidth - xScroll + xDelta;
-        const y = outputRow * this.plan.tileHeight - yScroll + yDelta;
         let transparentMask = 0;
         if (!(_flags & 0x80)) {
           const groupMask = generatedTileGroupTransparentMask(
@@ -827,7 +920,6 @@ class GeneratedTilemap {
           }
         }
         const firstWrappedX = modulo(x, mapWidth) - mapWidth;
-        const firstWrappedY = modulo(y, mapHeight) - mapHeight;
         for (
           let wrappedX = firstWrappedX;
           wrappedX <= firstWrappedX + mapWidth * 2;
@@ -902,6 +994,62 @@ export function generatedScrollBand(
   return Math.min(bands - 1, Math.floor(tile * bands / tileCount));
 }
 
+type GeneratedDirectScreenShape = 'galaxian-no-bullets' | 'timeplt';
+
+/**
+ * Select direct executors by the generated MAME routine structure. Keeping the
+ * check source-shaped means another driver only inherits a fast path when it
+ * has the same semantics; no game name or handwritten package flag is needed.
+ */
+export function generatedDirectScreenShape(
+  machine: BoardIr,
+): GeneratedDirectScreenShape | undefined {
+  const screenKey = machine.execution.screenUpdate?.handler;
+  const screen = machine.handlers?.find(handler =>
+    `${handler.ownerClass}.${handler.method}` === screenKey);
+  const body = screen?.body ?? '';
+  if (
+    body.includes('m_draw_background_ptr(bitmap, cliprect)') &&
+    body.includes('m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
+    body.includes('for (int i = 0; i < m_numspritegens; i++)') &&
+    body.includes('sprites_draw(screen, bitmap, cliprect,') &&
+    body.includes('if (!m_draw_bullet_ptr.isnull())') &&
+    machine.video?.delegates?.m_draw_bullet_ptr === null
+  ) {
+    const sprites = machine.handlers?.find(handler =>
+      handler.method === 'sprites_draw' &&
+      handler.body?.includes('for (int sprnum = 7; sprnum >= 0; sprnum--)') &&
+      handler.body.includes('m_extend_sprite_info_ptr(base, &sx, &sy, &flipx, &flipy, &code, &color)') &&
+      handler.body.includes('m_gfxdecode->gfx(1)->transpen(bitmap,clip,'));
+    const extensionKey = machine.video?.delegates?.m_extend_sprite_info_ptr;
+    const extension = typeof extensionKey === 'string'
+      ? machine.handlers?.find(handler =>
+          `${handler.ownerClass}.${handler.method}` === extensionKey)
+      : undefined;
+    if (
+      sprites?.program?.diagnostics.length === 0 &&
+      extension?.program?.diagnostics.length === 0 &&
+      extension.program.operations.length === 0
+    ) {
+      return 'galaxian-no-bullets';
+    }
+  }
+  if (
+    body.includes('if (m_video_enable)') &&
+    body.includes('m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
+    body.includes('draw_sprites(bitmap, cliprect)') &&
+    body.includes('m_bg_tilemap->draw(screen, bitmap, cliprect, 1, 0)')
+  ) {
+    const sprites = machine.handlers?.find(handler =>
+      handler.method === 'draw_sprites' &&
+      handler.body?.includes('for (int offs = 0x3e; offs >= 0x10; offs -= 2)') &&
+      handler.body.includes('int const sy = 241 - m_spriteram[1][offs + 1]') &&
+      handler.body.includes('m_gfxdecode->gfx(1)->transpen(bitmap, cliprect,'));
+    if (sprites?.program?.diagnostics.length === 0) return 'timeplt';
+  }
+  return undefined;
+}
+
 /**
  * Hardware-neutral MAME video services. All layouts, palette wiring,
  * tile callbacks, sprite loops and initial state come from generated IR.
@@ -917,6 +1065,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private readonly ramPalette?: GeneratedRamPalette;
   private readonly gfxByDecode = new Map<string, GeneratedGfxElement[]>();
   private readonly bindings: GeneratedHandlerBindings;
+  private readonly directScreenShape?: GeneratedDirectScreenShape;
 
   constructor(
     machine: BoardIr,
@@ -1116,10 +1265,136 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
           : this.gfx,
       );
     }
+    this.directScreenShape = generatedDirectScreenShape(machine);
   }
 
   generatedVideoBindings(_frame: Uint32Array): GeneratedHandlerBindings {
     return this.bindings;
+  }
+
+  directScreenUpdate(
+    handler: string,
+    screen: { visible_area(): GeneratedRectangle },
+    bitmap: BitmapTarget,
+    cliprect: GeneratedRectangle,
+  ): boolean {
+    if (handler !== this.machine.execution.screenUpdate?.handler) return false;
+    if (this.directScreenShape === 'galaxian-no-bullets') {
+      const background = this.bindings.referenceCalls?.m_draw_background_ptr;
+      if (!background) return false;
+      background(bitmap, cliprect);
+      const tilemap = this.state.m_bg_tilemap as GeneratedTilemap | undefined;
+      const spriteram = this.state.m_spriteram;
+      const gfx = this.gfx[1];
+      if (!tilemap || !ArrayBuffer.isView(spriteram) || !gfx) return false;
+      tilemap.draw(screen, bitmap, cliprect, 0, 0);
+      const bytes = spriteram as Uint8Array;
+      const generators = Number(this.state.m_numspritegens ?? 1);
+      const spritesBase = Number(this.state.m_sprites_base ?? 0);
+      for (let generator = 0; generator < generators; generator++) {
+        this.drawGalaxianSprites(
+          screen,
+          bitmap,
+          cliprect,
+          bytes,
+          spritesBase + generator * 0x20,
+          gfx,
+        );
+      }
+      return true;
+    }
+    if (this.directScreenShape === 'timeplt') {
+      if (!Number(this.state.m_video_enable ?? 0)) return true;
+      const tilemap = this.state.m_bg_tilemap as GeneratedTilemap | undefined;
+      const spriteBanks = this.state.m_spriteram;
+      const gfx = this.gfx[1];
+      if (
+        !tilemap ||
+        !Array.isArray(spriteBanks) ||
+        !ArrayBuffer.isView(spriteBanks[0]) ||
+        !ArrayBuffer.isView(spriteBanks[1]) ||
+        !gfx
+      ) {
+        return false;
+      }
+      tilemap.draw(screen, bitmap, cliprect, 0, 0);
+      const attributes = spriteBanks[1] as Uint8Array;
+      const positions = spriteBanks[0] as Uint8Array;
+      for (let offset = 0x3e; offset >= 0x10; offset -= 2) {
+        const sx = positions[offset] ?? 0;
+        const sy = 241 - (attributes[offset + 1] ?? 0);
+        const code = positions[offset + 1] ?? 0;
+        const color = (attributes[offset] ?? 0) & 0x3f;
+        const flipX = ~(attributes[offset] ?? 0) & 0x40;
+        const flipY = (attributes[offset] ?? 0) & 0x80;
+        gfx.transpen(bitmap, cliprect, code, color, flipX, flipY, sx, sy, 0);
+      }
+      tilemap.draw(screen, bitmap, cliprect, 1, 0);
+      return true;
+    }
+    return false;
+  }
+
+  private drawGalaxianSprites(
+    screen: { visible_area(): GeneratedRectangle },
+    bitmap: BitmapTarget,
+    cliprect: GeneratedRectangle,
+    spriteram: Uint8Array,
+    spriteBase: number,
+    gfx: GeneratedGfxElement,
+  ): void {
+    const clip = new GeneratedRectangle(
+      cliprect.min_x,
+      cliprect.max_x,
+      cliprect.min_y,
+      cliprect.max_y,
+    );
+    const xScale = Number(this.state.m_x_scale ?? 1);
+    if (Number(this.state.m_flipscreen_x ?? 0)) {
+      clip.max_x = (256 - 17) * xScale - 1;
+    } else {
+      clip.min_x = 17 * xScale;
+    }
+    clip.intersect(screen.visible_area());
+    const froggerAdjust = Boolean(this.state.m_frogger_adjust);
+    const sfxAdjust = Boolean(this.state.m_sfx_adjust);
+    const flipScreenX = Boolean(this.state.m_flipscreen_x);
+    const flipScreenY = Boolean(this.state.m_flipscreen_y);
+    const h0Start = Number(this.state.m_h0_start ?? 0);
+    for (let sprite = 7; sprite >= 0; sprite--) {
+      const base = spriteBase + sprite * 4;
+      const rawY = spriteram[base] ?? 0;
+      const base0 = froggerAdjust
+        ? ((rawY >>> 4) | (rawY << 4)) & 0xff
+        : rawY;
+      const yAdjust = Number(sfxAdjust ? sprite >= 3 : sprite < 3);
+      let sy = (240 - (base0 - yAdjust)) & 0xff;
+      const attributes = spriteram[base + 1] ?? 0;
+      const code = attributes & 0x3f;
+      let flipX = attributes & 0x40;
+      let flipY = attributes & 0x80;
+      const color = (spriteram[base + 2] ?? 0) & 7;
+      let sx = ((spriteram[base + 3] ?? 0) + 1) & 0xff;
+      if (flipScreenX) {
+        sx = (240 - sx) & 0xff;
+        flipX = Number(!flipX);
+      }
+      if (flipScreenY) {
+        sy = (240 - sy) & 0xff;
+        flipY = Number(!flipY);
+      }
+      gfx.transpen(
+        bitmap,
+        clip,
+        code,
+        color,
+        flipX,
+        flipY,
+        h0Start + xScale * sx,
+        sy,
+        0,
+      );
+    }
   }
 
   /** palette_device::write8 / write8_ext into source-derived palette RAM. */
