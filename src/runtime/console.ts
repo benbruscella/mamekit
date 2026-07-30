@@ -27,6 +27,12 @@ import {
   type SoftEntry,
 } from './nes-ines.ts';
 import { readZip, crc32 } from './zip.ts';
+import {
+  cartAvailability,
+  fetchRomBytes,
+  fetchRomJson,
+  type CartAvailability,
+} from './rom-source.ts';
 import type { Regions } from './types.ts';
 
 const GOLD = '#f2c200';
@@ -266,7 +272,31 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     games: cfg.cart?.games ?? [],
     mapperSlots: MAPPER_SLOTS,
   };
-  const [store, catalog, entry] = await Promise.all([openCartStore(), fetchCatalog(cfg), fetchOwnEntry(cfg)]);
+  // The bucket key for this console's set mirrors .data/roms: games/consoles/nes
+  // -> consoles/nes. Availability is best-effort: with no manifest reachable the
+  // room behaves exactly as before and asks for a drop.
+  const setKey = cfg.dataPath.replace(/^games\//, '');
+  // Availability comes from the generated index beside this machine when
+  // generation found a local dump audit — same origin, already reduced, so it
+  // lands almost immediately. Failing that we ask the mirror for the raw audit
+  // manifest. Either way the fetch does NOT block the room: the shelf is fully
+  // usable without it and merges it in when it lands (mergeAvailability).
+  const cartsUrl = cfg.cart?.cartsUrl;
+  const availabilityPromise = cartsUrl
+    ? fetch(`../${cfg.dataPath}/${cartsUrl}`)
+      .then(r => r.ok ? r.json() as unknown : null)
+      .catch(() => null)
+      .then(index => index ?? fetchRomJson<unknown>(`${setKey}/_manifest.json`))
+    : fetchRomJson<unknown>(`${setKey}/_manifest.json`);
+  const [store, catalog, entry] = await Promise.all([
+    openCartStore(),
+    fetchCatalog(cfg),
+    fetchOwnEntry(cfg),
+  ]);
+  /** verified dumps, keyed by the softlist short name their tile already uses */
+  const availByName = new Map<string, CartAvailability>();
+  /** dumps with no softlist identity of their own (hacks, pirates, VS boards) */
+  const bucketExtras: CartAvailability[] = [];
   // stale-bundle guard: generated before the board compiled -> shelve-only
   const coreSupported = entry?.supported !== false;
   let inRoom = true; // gates every window-level listener once a cart boots
@@ -435,12 +465,6 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     return h;
   };
 
-  const verifiedHead = rowHead('VERIFIED CARTRIDGE SLOTS');
-  board.appendChild(verifiedHead);
-  const placeholderRow = el('div', 'display:flex;flex-wrap:wrap;gap:30px 26px;justify-content:center;padding:8px 0 0');
-  placeholderRow.setAttribute('data-placeholder-shelf', '');
-  board.appendChild(placeholderRow);
-
   const libraryHead = rowHead('THE CARTRIDGE LIBRARY');
   board.appendChild(libraryHead);
   const libraryIntro = el('div', `display:flex;align-items:center;gap:12px;flex-wrap:wrap;
@@ -491,12 +515,15 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     letter-spacing:1px;cursor:pointer`;
   board.appendChild(moreLibrary);
 
-  const otherHead = rowHead('YOUR OTHER CARTRIDGES');
+  // The visitor's own cartridges sit ABOVE the library: once they have carts,
+  // those are what they came back for. Hidden entirely until the first one
+  // arrives, so a first visit still opens on the library.
+  const otherHead = rowHead('YOUR CARTRIDGES');
   otherHead.style.display = 'none';
-  board.appendChild(otherHead);
   const otherRow = el('div', 'display:flex;flex-wrap:wrap;gap:30px 26px;justify-content:center;padding:8px 0 0');
   otherRow.setAttribute('data-cart-shelf', '');
-  board.appendChild(otherRow);
+  board.insertBefore(otherHead, libraryHead);
+  board.insertBefore(otherRow, libraryHead);
 
   const hint = el('div', 'text-align:center;color:#4b5384;padding:34px 28px 8px;font-size:12px');
   hint.textContent = '↑↓←→ browse · Enter: play · i: info · E: eject · Esc: all systems · in-game: Esc returns here';
@@ -544,84 +571,6 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     return c;
   };
 
-  // --- placeholder slots (one per verified title) --------------------------------
-  interface Slot extends Card {
-    name: string;
-    litRec: CartRecord | null;
-    litResolved: ResolvedCart | null;
-    light: (rec: CartRecord, resolved: ResolvedCart) => void;
-    darken: () => void;
-  }
-  const slots: Slot[] = [];
-
-  function buildSlot(name: string): Slot {
-    const catEntry = catalog?.entries.find(e => e.name === name);
-    const targetTitle = stripSet(catEntry?.description ?? name.toUpperCase());
-    const targetSub = catEntry ? [catEntry.publisher, catEntry.year].filter(Boolean).join(' · ') : '';
-
-    const item = el('div', `display:flex;flex-direction:column;align-items:center;gap:7px;width:${CART_W}px`);
-    item.setAttribute('data-placeholder', name);
-    const coverHost = el('div', '');
-    const status = el('div', `font-size:10px;font-weight:700;letter-spacing:.8px;text-align:center;min-height:13px;
-      max-width:${CART_W}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`);
-    status.setAttribute('data-status', '');
-    const buttons = el('div', 'display:flex;gap:8px;align-items:center;justify-content:center;min-height:30px');
-    item.append(coverHost, status, buttons);
-
-    const slot: Slot = {
-      name, item, litRec: null, litResolved: null,
-      canPlay: () => slot.litResolved !== null && playable(slot.litResolved),
-      play: () => { if (slot.litRec) bootCart(slot.litRec, slot.litResolved); },
-      info: () => { if (slot.litRec) openInfoModal(slot.litRec, slot.litResolved, ejectSlotFn(slot)); else openTargetModal(catEntry, name); },
-      eject: () => { if (slot.litRec) armEject(buttons, render, () => void ejectSlot(slot)); },
-      light: (rec, resolved) => { slot.litRec = rec; slot.litResolved = resolved; render(); },
-      darken: () => { slot.litRec = null; slot.litResolved = null; render(); },
-    };
-
-    function render(): void {
-      const lit = slot.litRec !== null;
-      const dumpTitle = lit ? stripSet(slot.litResolved?.meta?.description ?? slot.litRec!.name.replace(/\.[a-z0-9]+$/i, '')) : targetTitle;
-      const dumpSub = lit
-        ? (slot.litResolved?.meta ? [slot.litResolved.meta.publisher, slot.litResolved.meta.year].filter(Boolean).join(' · ') : `${(slot.litRec!.size / 1024).toFixed(0)} KB`)
-        : targetSub;
-      item.dataset.state = lit ? 'lit' : 'empty';
-      coverHost.innerHTML = '';
-      coverHost.appendChild(coverEl(cartSvg({ title: dumpTitle, sub: dumpSub, state: lit ? 'lit' : 'placeholder' }), lit, !lit));
-      const cover = coverHost.firstElementChild as HTMLElement;
-      cover.onclick = lit ? () => slot.info() : () => picker.click();
-
-      status.style.color = lit ? '#5ecf7a' : '#8b93c4';
-      status.textContent = lit ? '✓ VERIFIED' : '◍ DROP DUMP TO PLAY';
-      status.title = lit ? `Verified — ${dumpTitle}` : `Drop the ${targetTitle} ROM dump to light this slot`;
-
-      buttons.textContent = '';
-      delete buttons.dataset.confirm;
-      if (lit) {
-        const p = mkBtn('▶ Play', 'data-play', true, slot.canPlay());
-        p.addEventListener('click', ev => { ev.stopPropagation(); slot.play(); });
-        const i = mkBtn('i', 'data-info', false, true);
-        i.addEventListener('click', ev => { ev.stopPropagation(); slot.info(); });
-        const e = mkBtn('⏏', 'data-eject', false, true);
-        e.addEventListener('click', ev => { ev.stopPropagation(); slot.eject(); });
-        buttons.append(p, i, e);
-      } else {
-        const i = mkBtn('i', 'data-info', false, true);
-        i.addEventListener('click', ev => { ev.stopPropagation(); slot.info(); });
-        buttons.append(i);
-      }
-    }
-
-    const ejectSlotFn = (s: Slot) => () => void ejectSlot(s);
-    async function ejectSlot(s: Slot): Promise<void> {
-      if (s.litRec) { try { await store.remove(s.litRec.id); } catch { /* in-memory / gone */ } }
-      s.darken();
-      fixSelection();
-    }
-
-    render();
-    return slot;
-  }
-
   // --- "other" tiles (experimental / unsupported / unreadable dumps) --------------
   interface Other extends Card {
     rec: CartRecord;
@@ -632,62 +581,140 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   const catalogTiles: Card[] = [];
   let catalogLimit = 48;
 
-  function buildCatalogTile(catEntry: SoftEntry): Card {
-    const playableBoard = support.slots.includes(catEntry.slot);
+  /**
+   * One row of the library grid: a catalogued softlist title, or a dump the
+   * bucket holds that has no softlist identity of its own (hacks, pirates, VS
+   * boards). `avail` is set when the bucket can supply the dump on demand.
+   */
+  interface LibraryRow {
+    key: string;
+    title: string;
+    sub: string;
+    /** mapper slot family, '' when the dump was never identified */
+    slot: string;
+    entry?: SoftEntry;
+    avail?: CartAvailability;
+    tier: 'catalog' | 'verified' | 'experimental';
+    haystack: string;
+  }
+
+  function libraryRows(): LibraryRow[] {
+    const rows: LibraryRow[] = [];
+    for (const catEntry of catalog?.entries ?? []) {
+      const avail = availByName.get(catEntry.name);
+      rows.push({
+        key: catEntry.name,
+        title: stripSet(catEntry.description),
+        sub: [catEntry.publisher, catEntry.year].filter(Boolean).join(' · '),
+        slot: catEntry.slot,
+        entry: catEntry,
+        avail,
+        tier: avail ? 'verified' : 'catalog',
+        haystack: `${catEntry.description} ${catEntry.publisher} ${catEntry.year} ${catEntry.name}`
+          .toLocaleLowerCase(),
+      });
+    }
+    for (const avail of bucketExtras) {
+      const base = (avail.file.split('/').pop() ?? avail.file).replace(/\.zip$/i, '');
+      rows.push({
+        key: avail.file,
+        title: stripSet(base),
+        sub: 'unverified dump',
+        slot: '',
+        avail,
+        tier: 'experimental',
+        haystack: base.toLocaleLowerCase(),
+      });
+    }
+    return rows;
+  }
+
+  function buildCatalogTile(row: LibraryRow): Card {
+    // A dump the bucket can supply is offered for fetch; whether it then PLAYS
+    // still depends on the mapper, which only the fetched header can settle for
+    // an unidentified dump.
+    const playableBoard = row.slot !== '' && support.slots.includes(row.slot);
     const item = el('div', 'display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0');
-    item.setAttribute('data-catalog-cart', catEntry.name);
-    item.dataset.slot = catEntry.slot;
+    item.setAttribute('data-catalog-cart', row.key);
+    item.dataset.slot = row.slot;
+    if (row.avail) item.dataset.bucket = row.tier;
     const cover = coverEl(cartSvg({
-      title: stripSet(catEntry.description),
-      sub: [catEntry.publisher, catEntry.year].filter(Boolean).join(' · '),
-      state: 'placeholder',
-      artKey: catEntry.name,
-    }), false, false);
+      title: row.title,
+      sub: row.sub,
+      state: row.tier === 'experimental' ? 'experimental' : 'placeholder',
+      artKey: row.key,
+    }), false, !row.avail);
     cover.style.width = '160px';
     cover.style.height = '200px';
     cover.style.transform = 'perspective(700px) rotateY(-2deg)';
     cover.addEventListener('mouseenter', () => {
       cover.style.transform = 'perspective(700px) translateY(-8px) rotateY(0)';
-      cover.style.boxShadow = `0 0 28px hsla(${artHash(catEntry.name) % 360},80%,60%,.34),0 18px 28px rgba(0,0,0,.7)`;
+      cover.style.boxShadow = `0 0 28px hsla(${artHash(row.key) % 360},80%,60%,.34),0 18px 28px rgba(0,0,0,.7)`;
     });
     cover.addEventListener('mouseleave', () => {
       cover.style.transform = 'perspective(700px) rotateY(-2deg)';
       cover.style.boxShadow = '0 12px 22px rgba(0,0,0,.45)';
     });
+    const pcb = row.slot === '' ? 'UNKNOWN BOARD' : (SLOT_PCB[row.slot] ?? row.slot.toUpperCase());
     const label = el('div', `max-width:164px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-      color:${playableBoard ? '#e8b64c' : '#737ba7'};font:700 10px ui-monospace,monospace;
-      letter-spacing:.5px;text-align:center`);
-    label.textContent = playableBoard
-      ? `${SLOT_PCB[catEntry.slot] ?? catEntry.slot.toUpperCase()} · READY FOR DUMP`
-      : `${SLOT_PCB[catEntry.slot] ?? catEntry.slot.toUpperCase()} · DISPLAY ONLY`;
-    label.title = `${catEntry.description} — ${label.textContent}`;
+      font:700 10px ui-monospace,monospace;letter-spacing:.5px;text-align:center;
+      color:${row.tier === 'verified' ? '#5ecf7a' : row.avail ? '#e6a02a' : playableBoard ? '#e8b64c' : '#737ba7'}`);
+    label.textContent = row.tier === 'verified' ? `${pcb} · ⤓ VERIFIED DUMP`
+      : row.tier === 'experimental' ? `${pcb} · ⤓ EXPERIMENTAL`
+        : playableBoard ? `${pcb} · READY FOR DUMP`
+          : `${pcb} · DISPLAY ONLY`;
+    label.title = row.avail
+      ? `${row.title} — ${row.tier === 'verified'
+        ? 'verified against nes.xml' : 'unverified dump'}; click to fetch it from the mirror`
+      : `${row.title} — ${label.textContent}`;
     item.append(cover, label);
+
+    const startFetch = (): void => {
+      if (!row.avail) { picker.click(); return; }
+      void fetchCart(row.avail, row.title, beginCartFetch(cover, label));
+    };
     const card: Card = {
       item,
-      canPlay: () => false,
-      play: () => picker.click(),
-      info: () => openTargetModal(catEntry, catEntry.name),
+      canPlay: () => row.avail !== undefined && coreSupported,
+      play: startFetch,
+      info: () => openTargetModal(row.entry, row.key),
       eject: () => {},
     };
-    cover.onclick = card.info;
+    if (row.avail) {
+      const buttons = el('div', 'display:flex;gap:8px;align-items:center;justify-content:center;min-height:26px');
+      const f = mkBtn('⤓ Fetch', 'data-fetch', true, coreSupported);
+      f.addEventListener('click', ev => { ev.stopPropagation(); card.play(); });
+      const i = mkBtn('i', 'data-info', false, true);
+      i.addEventListener('click', ev => { ev.stopPropagation(); card.info(); });
+      buttons.append(f, i);
+      item.appendChild(buttons);
+      cover.onclick = card.play;
+    } else {
+      cover.onclick = card.info;
+    }
     return card;
   }
+
+  let rows = libraryRows();
+  let filterTouched = false;
 
   function renderCatalog(reset = false): void {
     if (reset) catalogLimit = 48;
     const term = search.value.trim().toLocaleLowerCase();
     const filter = boardFilter.value;
-    const matches = (catalog?.entries ?? []).filter(catEntry => {
-      if (filter === 'playable' && !support.slots.includes(catEntry.slot)) return false;
-      if (!['all', 'playable'].includes(filter) && catEntry.slot !== filter) return false;
-      if (!term) return true;
-      return `${catEntry.description} ${catEntry.publisher} ${catEntry.year} ${catEntry.name}`
-        .toLocaleLowerCase().includes(term);
+    const matches = rows.filter(row => {
+      if (filter === 'bucket' && !row.avail) return false;
+      if (filter === 'verified' && row.tier !== 'verified') return false;
+      if (filter === 'experimental' && row.tier !== 'experimental') return false;
+      if (filter === 'playable' && !(row.slot !== '' && support.slots.includes(row.slot))) return false;
+      if (!['all', 'playable', 'bucket', 'verified', 'experimental'].includes(filter)
+        && row.slot !== filter) return false;
+      return !term || row.haystack.includes(term);
     });
     libraryRow.textContent = '';
     catalogTiles.splice(0);
-    for (const catEntry of matches.slice(0, catalogLimit)) {
-      const tile = buildCatalogTile(catEntry);
+    for (const row of matches.slice(0, catalogLimit)) {
+      const tile = buildCatalogTile(row);
       catalogTiles.push(tile);
       libraryRow.appendChild(tile.item);
     }
@@ -701,7 +728,36 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     fixSelection();
   }
   search.addEventListener('input', () => renderCatalog(true));
-  boardFilter.addEventListener('change', () => renderCatalog(true));
+  boardFilter.addEventListener('change', () => { filterTouched = true; renderCatalog(true); });
+
+  /**
+   * Fold the mirror's availability index into the library once it arrives.
+   * Bucket-backed filters only exist from this point on, and the default snaps
+   * to them unless the visitor has already chosen a filter themselves.
+   */
+  function mergeAvailability(manifest: unknown): void {
+    for (const cart of cartAvailability(manifest)) {
+      if (cart.tier === 'verified' && cart.name) availByName.set(cart.name, cart);
+      else bucketExtras.push(cart);
+    }
+    const total = availByName.size + bucketExtras.length;
+    if (!total) return;
+    for (const [value, label] of [
+      // A wall of cartridges that play on click beats a catalogue of display
+      // pieces, so these lead the list and become the default.
+      ['bucket', `In the mirror (${total.toLocaleString()})`],
+      ['verified', `Verified dumps (${availByName.size.toLocaleString()})`],
+      ['experimental', `Experimental (${bucketExtras.length.toLocaleString()})`],
+    ]) {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label;
+      boardFilter.insertBefore(option, boardFilter.firstChild);
+    }
+    boardFilter.value = filterTouched ? boardFilter.value : 'bucket';
+    rows = libraryRows();
+    renderCatalog(true);
+  }
   moreLibrary.addEventListener('click', () => {
     catalogLimit += 48;
     renderCatalog();
@@ -739,7 +795,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     function rebuild(): void {
       buttons.textContent = '';
       delete buttons.dataset.confirm;
-      const p = mkBtn(state === 'experimental' ? '▶ Play (experimental)' : '▶ Play', 'data-play', true, canPlay);
+      const p = mkBtn('▶ Play', 'data-play', true, canPlay);
       p.addEventListener('click', ev => { ev.stopPropagation(); other.play(); });
       const i = mkBtn('i', 'data-info', false, true);
       i.addEventListener('click', ev => { ev.stopPropagation(); other.info(); });
@@ -762,7 +818,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   }
 
   // --- navigation ----------------------------------------------------------------
-  const cards = (): Card[] => [...slots, ...catalogTiles, ...others];
+  // selection order mirrors the DOM: your own cartridges, then the library
+  const cards = (): Card[] => [...others, ...catalogTiles];
   let selected = -1;
 
   const select = (i: number): void => {
@@ -790,16 +847,10 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   };
 
   // --- routing a resolved cart to the right shelf --------------------------------
+  // Every dump the visitor holds — fetched or dropped, verified or not — lands
+  // on their own shelf. The library above is the browse surface; there is no
+  // separate placeholder row to light up.
   function route(rec: CartRecord, resolved: ResolvedCart | null, announce: boolean): void {
-    if (resolved?.tier === 'tested') {
-      const s = slots.find(sl => resolved.meta && (resolved.meta.name === sl.name || resolved.meta.cloneof === sl.name));
-      if (s) {
-        if (s.litRec && s.litRec.id !== rec.id) { if (announce) flash(s.item); return; } // slot already lit by another dump
-        s.light(rec, resolved);
-        if (announce) flash(s.item);
-        return;
-      }
-    }
     const o = buildOther(rec, resolved);
     others.push(o);
     otherRow.appendChild(o.item);
@@ -899,7 +950,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       row(tech, 'Battery', rec.ines.battery ? 'yes' : 'no');
       if (resolved?.reason) row(tech, 'Status', resolved.reason);
 
-      const p = footerBtn(resolved?.tier === 'experimental' ? '▶ Play (experimental)' : '▶ Play', true, playable(resolved));
+      const p = footerBtn('▶ Play', true, playable(resolved));
       p.setAttribute('data-play', '');
       p.addEventListener('click', () => { close(); bootCart(rec, resolved); });
       const e = footerBtn('⏏ Eject', false);
@@ -1034,9 +1085,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     if (!ines) return; // callers pre-check; belt and braces
     const resolved = identify(ines, catalog, support);
     const id = `${cfg.game}:${hex8(crc32(bytes))}`;
-    // dedupe against a lit slot or an existing "other" tile
-    const litSlot = slots.find(s => s.litRec?.id === id);
-    if (litSlot) { flash(litSlot.item); return; }
+    // dedupe against a cartridge already on the shelf
     const existing = others.find(o => o.rec.id === id);
     if (existing) { flash(existing.item); return; }
     const rec: CartRecord = {
@@ -1060,6 +1109,30 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     if (selected < 0) select(0);
   }
 
+  /**
+   * Shelve one .nes or .zip payload, whoever produced it: the drop zone, the
+   * file picker or a cartridge fetched from the mirror bucket. Returns false
+   * when nothing on the shelf changed, so callers can explain why.
+   */
+  async function ingest(name: string, bytes: Uint8Array): Promise<boolean> {
+    if (bytes.length > MAX_CART) { toast(`${name}: bigger than 8 MiB — not a cartridge`); return false; }
+    if (name.toLowerCase().endsWith('.zip') || (bytes[0] === 0x50 && bytes[1] === 0x4b)) {
+      let zentries: Map<string, Uint8Array>;
+      try { zentries = await readZip(bytes); }
+      catch { toast(`${name} isn't a readable zip`); return false; }
+      let shelved = 0;
+      for (const [zname, data] of zentries) {
+        if (data.length > MAX_CART) continue;
+        if (parseINes(data)) { await shelve(zname.split('/').pop() ?? zname, data); shelved++; }
+      }
+      if (!shelved) toast(`${name}: no iNES cartridges inside`);
+      return shelved > 0;
+    }
+    if (parseINes(bytes)) { await shelve(name, bytes); return true; }
+    toast(`${name} isn't an iNES cartridge (.nes)`);
+    return false;
+  }
+
   async function handleFiles(files: File[]): Promise<void> {
     for (const f of files) {
       if (f.size > MAX_CART) { toast(`${f.name}: bigger than 8 MiB — not a cartridge`); continue; }
@@ -1067,23 +1140,114 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       let bytes: Uint8Array;
       try { bytes = new Uint8Array(await f.arrayBuffer()); }
       catch { toast(`${f.name}: could not read the file`); continue; }
-      if (f.name.toLowerCase().endsWith('.zip') || (bytes[0] === 0x50 && bytes[1] === 0x4b)) {
-        let zentries: Map<string, Uint8Array>;
-        try { zentries = await readZip(bytes); }
-        catch { toast(`${f.name} isn't a readable zip`); continue; }
-        let shelved = 0;
-        for (const [zname, data] of zentries) {
-          if (data.length > MAX_CART) continue;
-          if (parseINes(data)) { await shelve(zname.split('/').pop() ?? zname, data); shelved++; }
-        }
-        if (!shelved) toast(`${f.name}: no iNES cartridges inside`);
-      } else if (parseINes(bytes)) {
-        await shelve(f.name, bytes);
-      } else {
-        toast(`${f.name} isn't an iNES cartridge (.nes)`);
-      }
+      await ingest(f.name, bytes);
     }
     slotIdle();
+  }
+
+
+  // --- fetch feedback ---------------------------------------------------------------
+  // A fetch is a network round trip against a mirror, so the tile has to say so
+  // for itself: the cartridge lifts out of the shelf and a scan line sweeps it.
+  // On success a ghost of the cart flies up to YOUR CARTRIDGES, which is where
+  // it actually landed. All of it is skipped for prefers-reduced-motion.
+  const stillMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  interface CartFetchAnim { done: (target: HTMLElement | null) => void; fail: () => void }
+
+  function beginCartFetch(cover: HTMLElement, label: HTMLElement): CartFetchAnim {
+    const restoreLabel = label.textContent;
+    const restoreColor = label.style.color;
+    const restoreShadow = cover.style.boxShadow;
+    label.textContent = '⤓ FETCHING FROM MIRROR…';
+    label.style.color = GOLD;
+    cover.style.transition = 'transform .28s ease, box-shadow .28s ease';
+    if (!stillMotion) {
+      cover.style.transform = 'perspective(700px) translateY(-16px) rotateY(0)';
+      cover.style.boxShadow = `0 0 34px ${GOLD}66, 0 22px 30px rgba(0,0,0,.75)`;
+    }
+    // sweeping scan line over the cartridge art
+    const scan = el('div', `position:absolute;left:0;right:0;top:0;height:34%;pointer-events:none;
+      border-radius:12px;background:linear-gradient(180deg,transparent,${GOLD}2e,transparent)`);
+    if (!stillMotion) {
+      cover.style.position = cover.style.position || 'relative';
+      cover.appendChild(scan);
+      scan.animate(
+        [{ transform: 'translateY(-40%)' }, { transform: 'translateY(300%)' }],
+        { duration: 900, iterations: Infinity, easing: 'ease-in-out' },
+      );
+    }
+
+    const settle = (): void => {
+      scan.remove();
+      label.textContent = restoreLabel;
+      label.style.color = restoreColor;
+      cover.style.transform = 'perspective(700px) rotateY(-2deg)';
+      cover.style.boxShadow = restoreShadow;
+    };
+
+    return {
+      done: target => {
+        scan.remove();
+        if (target && !stillMotion) flyToShelf(cover, target);
+        settle();
+      },
+      fail: () => {
+        settle();
+        cover.style.boxShadow = '0 0 26px rgba(255,90,90,.5)';
+        setTimeout(() => { cover.style.boxShadow = restoreShadow; }, 900);
+      },
+    };
+  }
+
+  /** FLIP-style ghost: the cartridge visibly travels to where it landed. */
+  function flyToShelf(from: HTMLElement, to: HTMLElement): void {
+    const a = from.getBoundingClientRect();
+    const b = to.getBoundingClientRect();
+    if (!a.width || !b.width) return;
+    const ghost = from.cloneNode(true) as HTMLElement;
+    ghost.style.cssText += `;position:fixed;left:${a.left}px;top:${a.top}px;width:${a.width}px;
+      height:${a.height}px;margin:0;z-index:90;pointer-events:none;opacity:.95;
+      transition:transform .6s cubic-bezier(.2,.75,.2,1),opacity .6s ease`;
+    document.body.appendChild(ghost);
+    requestAnimationFrame(() => {
+      ghost.style.transform =
+        `translate(${b.left - a.left}px,${b.top - a.top}px) scale(${Math.min(1, b.width / a.width)})`;
+      ghost.style.opacity = '.15';
+    });
+    setTimeout(() => ghost.remove(), 700);
+  }
+
+  /**
+   * Pull a cartridge the bucket already holds instead of asking for a drop.
+   * The dump lands in the visitor's own store exactly as a dropped file would,
+   * so the fetch happens once per cartridge rather than once per visit.
+   */
+  const fetching = new Set<string>();
+  async function fetchCart(
+    cart: CartAvailability,
+    title: string,
+    anim?: CartFetchAnim,
+  ): Promise<void> {
+    if (fetching.has(cart.file)) { anim?.fail(); return; }
+    fetching.add(cart.file);
+    slotBusy(title);
+    try {
+      const bytes = await fetchRomBytes(`${setKey}/${cart.file}`);
+      if (!bytes) {
+        anim?.fail();
+        toast(`${title}: no web source had it — drop your own dump instead`);
+        return;
+      }
+      const before = others.length;
+      const shelved = await ingest(cart.file.split('/').pop() ?? cart.file, bytes);
+      if (!shelved) { anim?.fail(); return; }
+      // the cart flies to the tile it actually became
+      anim?.done(others[before]?.item ?? others.at(-1)?.item ?? null);
+    } finally {
+      fetching.delete(cart.file);
+      slotIdle();
+    }
   }
 
   const picker = document.createElement('input');
@@ -1128,14 +1292,12 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     }
   });
 
-  // --- build the verified placeholder row, then load the store --------------------------
-  for (const name of support.games) {
-    const s = buildSlot(name);
-    slots.push(s);
-    placeholderRow.appendChild(s.item);
-  }
+  // --- render the library, then load the visitor's own cartridges ---------------------
   renderCatalog(true);
   const recs = await store.list(cfg.game);
   for (const rec of recs) route(rec, resolveRec(rec, catalog, support), false);
   select(0);
+  // The room is interactive at this point; the mirror index lands whenever it
+  // lands, and a failed fetch simply leaves the library as the catalogue.
+  void availabilityPromise.then(mergeAvailability, () => {});
 }

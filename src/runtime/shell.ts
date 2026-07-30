@@ -10,6 +10,7 @@ import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig } from './types.ts';
 import type { GeneratedAudioRoute } from '../ir/board.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import { fetchRomBytes } from './rom-source.ts';
 
 export interface RomLoad {
   file: string; offset: number; size: number; crc: string;
@@ -95,22 +96,14 @@ export interface DropZone {
   };
 }
 
-/** public mirror bucket probed by the drop screen's "Try web search" */
-const ROM_SEARCH_BASE = 'https://mamekit.s3.us-east-005.dream.io/roms/arcade';
-
 /**
- * Look for the romset on the web: the mirror bucket directly, then the dev
- * server's same-origin /romsearch/ proxy (the bucket sends no CORS headers,
- * so a cross-origin fetch is blocked unless the bucket ever allows it).
+ * Look for the romset on the web. Sources and their order live in
+ * rom-source.ts, shared with the console room's cartridge fetch.
  */
 async function fetchRomSet(game: string): Promise<Uint8Array> {
-  for (const url of [`${ROM_SEARCH_BASE}/${game}.zip`, `/romsearch/${game}.zip`]) {
-    try {
-      const res = await fetch(url);
-      if (res.ok) return new Uint8Array(await res.arrayBuffer());
-    } catch { /* CORS or network — try the next source */ }
-  }
-  throw new Error(`no web source had ${game}.zip`);
+  const bytes = await fetchRomBytes(`arcade/${game}.zip`);
+  if (!bytes) throw new Error(`no web source had ${game}.zip`);
+  return bytes;
 }
 
 /** result of checking an uploaded zip against the knowledge-graph manifest */
@@ -196,7 +189,11 @@ export interface ShellConfig {
   dipDefaults: DipDefault[];
   ports: PortSpec[];
   /** console cart facts from the generator (catalog url, capability lists) */
-  cart?: { interface: string; list: string; catalogUrl: string; slots: string[]; games: string[] };
+  cart?: {
+    interface: string; list: string; catalogUrl: string; slots: string[]; games: string[];
+    /** generated cartridge availability index, when a local dump audit existed */
+    cartsUrl?: string;
+  };
   /** base url of the compiled runtime dir (for worklet modules) */
   runtimeUrl: string;
   /** where Esc returns to (the boot menu) */

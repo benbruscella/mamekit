@@ -680,13 +680,18 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         // compact on purpose: ~4.5k entries; indented it triples in size
         writeFileSync(catalogPath, JSON.stringify(catalog));
       }
+      const set = `${category}/${opts.game}`;
+      const shelved = writeCartShelfIndex(
+        join(romsDir(projectRoot), category, opts.game), opts.outDir, set);
       cart = {
         interface: catalog.interface,
         list: listName,
         catalogUrl: 'softlist.json',
+        ...(shelved ? { cartsUrl: 'carts.json' } : {}),
         slots: CART_SLOT_SUPPORT[family] ?? [],
         games: CART_GAME_SUPPORT[family] ?? [],
       };
+      if (shelved) console.log(`cart shelf index: ${shelved} dumps available for ${set}`);
       cartEntries = catalog.entries.length;
       console.log(`softlist "${listName}": ${catalog.entries.length} cartridges catalogued`);
       break;
@@ -1228,4 +1233,44 @@ if (game) {
   rmSync(buildDir, { recursive: true, force: true });
   console.log(`app ready: ${join(appDir, 'index.html')}`);
   return true;
+}
+
+/**
+ * Slim cartridge availability index for the console room.
+ *
+ * The local dump audit writes _manifest.json beside the set's zips, recording
+ * which cartridges are bit-exact matches for their nes.xml entry (verified) and
+ * which are not (experimental). That file carries every per-cart hash and runs
+ * close to a megabyte; the shelf needs only the bucket key, the softlist short
+ * name to join on, and the tier. Emitting the reduction beside the generated
+ * machine keeps the room's first paint same-origin and instant instead of
+ * pulling the whole manifest from the mirror on every visit.
+ *
+ * Returns the entry count, or 0 when there is no local audit to reduce.
+ */
+function writeCartShelfIndex(setDir: string, outDir: string, set: string): number {
+  const manifestPath = join(setDir, '_manifest.json');
+  if (!existsSync(manifestPath)) return 0;
+  let manifest: { carts?: unknown[] };
+  try {
+    manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { carts?: unknown[] };
+  } catch {
+    console.warn(`  ! ${manifestPath} is not readable JSON — cart shelf index skipped`);
+    return 0;
+  }
+  const carts: { file: string; name?: string; tier: 'verified' | 'experimental' }[] = [];
+  for (const raw of manifest.carts ?? []) {
+    const cart = raw as { file?: string; target?: string; status?: string; match?: { name?: string } };
+    const file = cart.target ?? cart.file;
+    if (typeof file !== 'string' || !file.toLowerCase().endsWith('.zip')) continue;
+    if (cart.status === 'verified' && cart.match?.name) {
+      carts.push({ file, name: cart.match.name, tier: 'verified' });
+    } else {
+      carts.push({ file, tier: 'experimental' });
+    }
+  }
+  if (!carts.length) return 0;
+  // compact on purpose: one line per thousand carts is still ~60 KB
+  writeFileSync(join(outDir, 'carts.json'), JSON.stringify({ set, carts }));
+  return carts.length;
 }

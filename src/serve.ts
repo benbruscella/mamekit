@@ -5,6 +5,7 @@ import { createServer } from 'node:http';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
 import { buildClosureFailures } from './gen/build-manifest.ts';
+import { ROM_BUCKET_BASE, encodeRomKey } from './runtime/rom-source.ts';
 import {
   GAME_CATEGORIES,
   gameDataPath,
@@ -12,12 +13,10 @@ import {
   generatedGameOutputs,
 } from './gen/output-layout.ts';
 
-// Public ROM mirror bucket behind the drop screen's "Try web search". The
-// bucket sends no CORS headers, so the browser can't fetch it cross-origin —
-// /romsearch/<game>.zip proxies it same-origin (dev serve only; a static
-// deploy needs CORS enabled on the bucket instead). Keep in sync with
-// ROM_SEARCH_BASE in runtime/shell.ts.
-const ROM_SEARCH_BASE = 'https://mamekit.s3.us-east-005.dream.io/roms/arcade';
+// The bucket sends no CORS headers, so the browser can't fetch it
+// cross-origin — /romsearch/<key> proxies it same-origin (dev serve only; a
+// static deploy needs CORS enabled on the bucket instead). The bucket base and
+// key encoding come from runtime/rom-source.ts so there is one definition.
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -117,11 +116,31 @@ export function serve(rootDirs: Record<string, string>, port: number): Promise<n
         return;
       }
       if (path.startsWith('romsearch/')) {
-        const name = path.slice('romsearch/'.length);
-        if (!/^[a-z0-9_-]+\.zip$/i.test(name)) { res.writeHead(400).end(); return; }
-        const upstream = await fetch(`${ROM_SEARCH_BASE}/${name}`).catch(() => null);
+        // Keys are the .data/roms layout: "pacman.zip" (legacy arcade form),
+        // "consoles/nes/10yard.zip", or a console dump under new/ whose name
+        // carries spaces, brackets and parentheses. path is already decoded and
+        // ".." rejected above; each segment is re-encoded for the upstream GET.
+        const key = path.slice('romsearch/'.length);
+        const segments = key.split('/');
+        const ok = segments.length >= 1 && segments.length <= 4
+          && segments.every(segment => segment.length > 0 && segment.length <= 128
+            && !/[\\<>"'`?#]/.test(segment))
+          && /\.(zip|json)$/i.test(key);
+        if (!ok) { res.writeHead(400).end(); return; }
+        // A bare "<set>.zip" keeps working for the arcade drop screen.
+        const bucketKey = segments.length === 1 ? `arcade/${key}` : key;
+        const upstream = await fetch(`${ROM_BUCKET_BASE}/${encodeRomKey(bucketKey)}`)
+          .catch(() => null);
         if (!upstream?.ok) { res.writeHead(upstream?.status === 404 ? 404 : 502).end(); return; }
-        res.writeHead(200, { 'content-type': MIME['.zip'], 'cache-control': 'no-store' });
+        // Dumps are pulled once and stored by the client, so they stay
+        // no-store; the availability index is re-read on every visit and only
+        // changes when the bucket is re-synced, so a short cache removes a
+        // ~1 MB round trip from each reload.
+        const json = /\.json$/i.test(key);
+        res.writeHead(200, {
+          'content-type': json ? MIME['.json'] : MIME['.zip'],
+          'cache-control': json ? 'max-age=300' : 'no-store',
+        });
         res.end(Buffer.from(await upstream.arrayBuffer()));
         return;
       }
