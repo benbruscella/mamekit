@@ -315,20 +315,20 @@ dump zip carries, so `mame nes mario1` and `mario1.jpg` agree:
 | `mario1.jpg` | replaces the drawn shell entirely — a real cart on the shelf |
 | `mario1.sticker.jpg` | sits inside the drawn shell's label, keeping the moulded plastic |
 
-When both exist the whole-cartridge photo wins. Crop the sticker tight to the
+When both exist the **sticker** wins: it composites into the drawn shell, so a shelf of mixed art still reads as one set of cartridges. Crop the sticker tight to the
 label edges; it is placed into the label rect and will stretch to fill it.
 
-The available files are resolved **at generation time** into `config.json`, so
-adding art means regenerating that target:
+Which files exist is resolved two ways, so development never needs a rebuild:
 
-```sh
-node bin/mamekit.js <target> --skip-app
-```
+- `npm run serve` exposes `/cart-art/<list>.json`, read from disk per request —
+  drop a file in, reload, it is there;
+- generation bakes the same index into `config.json`, which is what a deployed
+  static site uses. `npm run gen -- <target>` reports how many cartridges it
+  found art for.
 
-That indirection is deliberate: a shelf shows thousands of cartridges, and
+The generated snapshot exists because a shelf shows thousands of cartridges:
 letting the browser probe for art it does not have would mean thousands of 404s
-on every visit. `npm run gen -- <target>` reports how many cartridges it found
-art for.
+per visit. The live route wins whenever it answers.
 
 These are photographs of copyrighted labels: like every other artwork path they
 are gitignored, and the deploy includes them only with `--artwork`.

@@ -187,7 +187,16 @@ function labelArtFor(hash: number, hue: number): string {
   }
 }
 
-function cartSvg(o: { title: string; sub: string; state: CartState; artKey?: string }): string {
+/** Real labels print their part code bottom-right; the set name goes there. */
+function clampCode(code: string, max = 26): string {
+  return code.length <= max ? code : `…${code.slice(-(max - 1))}`;
+}
+
+function cartSvg(o: {
+  title: string; sub: string; state: CartState; artKey?: string;
+  /** the zip this cartridge is, or would be: "mario1.zip" */
+  code?: string;
+}): string {
   const hash = artHash(o.artKey ?? o.title);
   const hue = hash % 360;
   const catalogStripe = `hsl(${hue} 62% 46%)`;
@@ -259,6 +268,9 @@ function cartSvg(o: { title: string; sub: string; state: CartState; artKey?: str
     <g clip-path="url(#clabel)">${labelArt}</g>
     ${titleSvg}
     <text x="60" y="${112 + lines.length * 19 + 4}" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="${subColor}">${esc(clampSub(o.sub))}</text>
+    ${o.code ? `<text x="180" y="161.5" text-anchor="end" font-family="ui-monospace,monospace"
+      font-size="8.5" font-weight="700" letter-spacing=".2" fill="${dim ? '#8b8b86' : '#8a8172'}"
+      >${esc(clampCode(o.code))}</text>` : ''}
     <!-- moulded insertion arrow and the base recess -->
     <path d="M92 208 H108 L100 222 Z" fill="rgba(0,0,0,.26)"/>
     <rect x="68" y="228" width="64" height="9" rx="3" fill="rgba(0,0,0,.13)"/>
@@ -660,21 +672,40 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
    * The sticker rect matches the label drawn by cartSvg: x 53.5..186.5,
    * y 15.5..166.5 of a 200x250 viewBox.
    */
-  const cartArt = cfg.cart?.cartArt ?? {};
+  // config.json carries the art index resolved at generation time, which a
+  // deployed site needs. A dev server also offers /cart-art/<list>.json, read
+  // from disk per request, so art added or removed after generation is picked up
+  // on reload; when that route is absent the generated snapshot stands.
+  let cartArt: Record<string, { cart?: string; sticker?: string }> = cfg.cart?.cartArt ?? {};
+  if (cfg.cart?.list) {
+    void fetch(`/cart-art/${encodeURIComponent(cfg.cart.list)}.json`)
+      .then(r => r.ok ? r.json() as Promise<typeof cartArt> : null)
+      .then(live => {
+        if (!live || typeof live !== 'object') return;
+        cartArt = live;
+        renderCatalog();          // library tiles pick the art up
+        for (const other of others) other.refreshArt();
+      })
+      .catch(() => { /* no dev server route — the generated snapshot stands */ });
+  }
   function applyCartArt(cover: HTMLElement, name: string): void {
     const list = cfg.cart?.list;
     const art = name ? cartArt[name] : undefined;
     if (!list || !art) return;
-    const file = art.cart ?? art.sticker;
+    // Sticker first: it composites into the drawn shell, so a shelf of mixed
+    // art still reads as one set of cartridges. A whole-cartridge photo stands
+    // in for the drawing when that is all there is.
+    const sticker = art.sticker !== undefined;
+    const file = art.sticker ?? art.cart;
     if (!file) return;
     const img = document.createElement('img');
     img.alt = '';
-    img.style.cssText = art.cart
+    img.style.cssText = sticker
+      ? `position:absolute;left:26.75%;top:6.2%;width:66.5%;height:60.4%;
+         object-fit:cover;opacity:0;transition:opacity .2s ease;pointer-events:none;border-radius:2px`
       // a photo of the whole cartridge stands in for the drawing entirely
-      ? `position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
-         opacity:0;transition:opacity .2s ease;pointer-events:none`
-      : `position:absolute;left:26.75%;top:6.2%;width:66.5%;height:60.4%;
-         object-fit:cover;opacity:0;transition:opacity .2s ease;pointer-events:none;border-radius:2px`;
+      : `position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+         opacity:0;transition:opacity .2s ease;pointer-events:none`;
     img.addEventListener('load', () => { img.style.opacity = '1'; });
     img.addEventListener('error', () => img.remove());
     img.src = `../artwork/carts/${encodeURIComponent(list)}/${encodeURIComponent(file)}`;
@@ -685,6 +716,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   interface Other extends Card {
     rec: CartRecord;
     resolved: ResolvedCart | null;
+    /** re-apply local cartridge art, e.g. after the live index lands */
+    refreshArt: () => void;
   }
   const others: Other[] = [];
 
@@ -740,6 +773,9 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   }
 
   function buildCatalogTile(row: LibraryRow): Card {
+    const zipName = row.avail
+      ? (row.avail.file.split('/').pop() ?? row.avail.file)
+      : `${row.key}.zip`;
     // A dump the bucket can supply is offered for fetch; whether it then PLAYS
     // still depends on the mapper, which only the fetched header can settle for
     // an unidentified dump.
@@ -753,6 +789,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       sub: row.sub,
       state: row.tier === 'experimental' ? 'experimental' : 'placeholder',
       artKey: row.key,
+      code: zipName,
     }), false, !row.avail);
     cover.style.width = '160px';
     cover.style.height = '200px';
@@ -778,7 +815,13 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       ? `${row.title} — ${row.tier === 'verified'
         ? 'verified against nes.xml' : 'unverified dump'}; search the web for this dump`
       : `${row.title} — ${label.textContent}`;
-    item.append(cover, label);
+    // The set name is what you type at MAME or look for on disk, so it gets a
+    // line of its own rather than only the 8px print on the label.
+    const file = el('div', `max-width:164px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      color:#6f78ab;font:600 10px ui-monospace,monospace;text-align:center`);
+    file.textContent = zipName;
+    file.title = zipName;
+    item.append(cover, label, file);
 
     const startFetch = (): void => {
       if (!row.avail) { picker.click(); return; }
@@ -866,6 +909,9 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   });
 
   function buildOther(rec: CartRecord, resolved: ResolvedCart | null): Other {
+    // Identified carts name their softlist set; an unrecognised dump can only
+    // name the file the visitor handed us.
+    const ownZipName = resolved?.meta ? `${resolved.meta.name}.zip` : rec.name;
     const state: CartState = resolved?.tier === 'tested' ? 'lit'
       : resolved?.tier === 'experimental' ? 'experimental'
         : 'unsupported';
@@ -877,7 +923,10 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     item.setAttribute('data-cart-tile', rec.id);
     item.dataset.tier = resolved ? resolved.tier : 'unreadable';
 
-    const cover = coverEl(cartSvg({ title, sub: dumpSub, state }), state === 'lit', state === 'unsupported');
+    const cover = coverEl(cartSvg({
+      title, sub: dumpSub, state,
+      code: ownZipName,
+    }), state === 'lit', state === 'unsupported');
     applyCartArt(cover, resolved?.meta?.name ?? '');
     cover.onclick = () => other.info();
 
@@ -890,9 +939,18 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     else { status.style.color = '#8b93c4'; status.textContent = (resolved.reason ?? 'MAPPER NOT SUPPORTED').toUpperCase(); }
     status.title = status.textContent;
 
+    const fileLine = el('div', `max-width:${CART_W}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      color:#6f78ab;font:600 10px ui-monospace,monospace;text-align:center`);
+    fileLine.textContent = ownZipName;
+    fileLine.title = ownZipName;
+
     const buttons = el('div', 'display:flex;gap:8px;align-items:center;justify-content:center;min-height:30px');
     const other: Other = {
       rec, resolved, item,
+      refreshArt: () => {
+        for (const img of [...cover.querySelectorAll('img')]) img.remove();
+        applyCartArt(cover, resolved?.meta?.name ?? '');
+      },
       canPlay: () => canPlay,
       play: () => bootCart(rec, resolved),
       info: () => openInfoModal(rec, resolved, () => void removeOther(other)),
@@ -910,7 +968,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       buttons.append(p, i, e);
     }
     rebuild();
-    item.append(cover, status, buttons);
+    item.append(cover, status, fileLine, buttons);
     return other;
   }
 

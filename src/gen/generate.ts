@@ -27,6 +27,7 @@ import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.t
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 import { artworkDir, romsDir } from '../paths.ts';
+import { cartArtIndex, type CartArt } from './cart-art.ts';
 import {
   GAME_CATEGORIES,
   gameDataPath,
@@ -1254,32 +1255,16 @@ if (game) {
  */
 /**
  * Real cartridge photography for the console room, kept local and gitignored
- * (same copyright treatment as arcade flyers). Two kinds per cartridge, keyed by
- * softlist short name:
+ * (same copyright treatment as arcade flyers). The naming convention and the
+ * scan itself live in gen/cart-art.ts, shared with the dev server so a running
+ * server sees art added after generation.
  *
- *   <name>.<ext>          the whole cartridge, front on   -> replaces the drawn shell
- *   <name>.sticker.<ext>  just the label sticker          -> overlaid on the drawn shell
- *
- * The list is resolved at generation time and written into config.json rather
- * than probed at runtime: the shelf shows thousands of cartridges, and letting
- * it guess would mean thousands of 404s per visit. Adding art therefore means
- * re-running generation for the target.
+ * The index is baked into config.json because a shelf shows thousands of
+ * cartridges: letting the browser probe for art it does not have would mean
+ * thousands of 404s per visit on a deployed site.
  */
-const CART_ART_EXT = /\.(png|jpe?g|webp)$/i;
-
-function localCartArt(list: string): Record<string, { cart?: string; sticker?: string }> {
-  const dir = join(artworkDir(projectRoot), 'carts', list);
-  if (!existsSync(dir)) return {};
-  const art: Record<string, { cart?: string; sticker?: string }> = {};
-  for (const file of readdirSync(dir).sort()) {
-    if (!CART_ART_EXT.test(file)) continue;
-    const stem = file.replace(CART_ART_EXT, '');
-    const sticker = stem.toLowerCase().endsWith('.sticker');
-    const name = sticker ? stem.slice(0, -'.sticker'.length) : stem;
-    if (!name) continue;
-    (art[name] ??= {})[sticker ? 'sticker' : 'cart'] = file;
-  }
-  return art;
+function localCartArt(list: string): Record<string, CartArt> {
+  return cartArtIndex(join(artworkDir(projectRoot), 'carts', list));
 }
 
 function writeCartShelfIndex(setDir: string, outDir: string, set: string): number {

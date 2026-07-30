@@ -6,6 +6,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
 import { buildClosureFailures } from './gen/build-manifest.ts';
 import { ROM_BUCKET_BASE, encodeRomKey } from './runtime/rom-source.ts';
+import { cartArtIndex } from './gen/cart-art.ts';
 import {
   GAME_CATEGORIES,
   gameDataPath,
@@ -113,6 +114,20 @@ export function serve(rootDirs: Record<string, string>, port: number): Promise<n
         const manifest = await gamesManifest(rootDirs[''], rootDirs['artwork'] ?? '');
         res.writeHead(200, { 'content-type': MIME['.json'], 'cache-control': 'no-store' });
         res.end(manifest);
+        return;
+      }
+      // Live cartridge-art index. config.json carries a generation-time
+      // snapshot for deployed sites; locally this route reads the directory per
+      // request, so dropping a file in shows up on reload with no regeneration.
+      if (path.startsWith('cart-art/') && path.endsWith('.json')) {
+        const list = path.slice('cart-art/'.length, -'.json'.length);
+        if (!/^[a-z0-9_-]+$/i.test(list) || !rootDirs['artwork']) {
+          res.writeHead(404).end();
+          return;
+        }
+        const index = cartArtIndex(join(rootDirs['artwork'], 'carts', list));
+        res.writeHead(200, { 'content-type': MIME['.json'], 'cache-control': 'no-store' });
+        res.end(JSON.stringify(index));
         return;
       }
       if (path.startsWith('romsearch/')) {
