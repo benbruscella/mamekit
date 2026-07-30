@@ -47,6 +47,26 @@ const CART_BODY_TOP = '#9a9a94';   // NES grey plastic, lit from above
 const CART_BODY_BOT = '#77776f';   // same plastic in shadow at the base
 const CART_LABEL_BG = '#f4f1e7';   // classic off-white label
 const CART_LABEL_FRAME = '#141414'; // black-bordered NES label frame
+
+// The drawn label, as one set of numbers so the SVG and the photo overlay in
+// applyCartArt cannot drift apart.
+//
+// A cartridge showing real box photography gets a taller label: box scans are
+// about 0.70 wide-to-tall while the moulded label is 0.88, so the standard rect
+// crops roughly a fifth of the image away. The shell has room down to the base
+// step at y=195, which is what LABEL_H_ART spends.
+const LABEL_X = 53.5;
+const LABEL_Y = 15.5;
+const LABEL_W = 133;
+const LABEL_H = 151;
+const LABEL_H_ART = 168;
+/** the drawn label's centre line, which the photo label keeps as it narrows */
+const LABEL_CX = LABEL_X + LABEL_W / 2;
+/** the black frame sits this far outside the label on every side */
+const LABEL_FRAME_PAD = 3.5;
+
+/** viewBox units as a percentage, for overlaying HTML on the drawn cartridge */
+const pct = (v: number, total: number) => `${(v / total * 100).toFixed(3)}%`;
 const STRIPE_TESTED = '#2f6bd8';       // blue label stripe — verified
 const STRIPE_EXPERIMENTAL = '#e6a02a'; // amber label stripe — experimental
 const STRIPE_UNSUPPORTED = '#8f8f8f';  // grey label stripe — can't run
@@ -196,6 +216,12 @@ function cartSvg(o: {
   title: string; sub: string; state: CartState; artKey?: string;
   /** the zip this cartridge is, or would be: "mario1.zip" */
   code?: string;
+  /**
+   * A real label photo is about to be composited over this drawing. The label
+   * grows to fit it, and the drawn stand-ins for a label — generated art, title,
+   * publisher, zip name — are left out rather than peeking around the photo.
+   */
+  sticker?: boolean;
 }): string {
   const hash = artHash(o.artKey ?? o.title);
   const hue = hash % 360;
@@ -211,6 +237,7 @@ function cartSvg(o: {
   // The label is narrower than the cart, so titles wrap sooner than the
   // exported default: a real NES label is ~70% of the shell width.
   const lines = wrapCartTitle(o.title, 15);
+  const labelH = o.sticker ? LABEL_H_ART : LABEL_H;
 
   // Left fifth of the shell is the ribbed grip: ~20 fine horizontal grooves.
   let ridges = '';
@@ -262,15 +289,15 @@ function cartSvg(o: {
     <rect x="6" y="197" width="188" height="1.2" fill="rgba(255,255,255,.18)"/>
     ${ridges}
     <!-- the label: right ~70% of the shell, black-framed, top-aligned -->
-    <rect x="50" y="12" width="140" height="158" rx="3" fill="none" stroke="${CART_LABEL_FRAME}" stroke-width="3"${dashed ? ' stroke-dasharray="7 5"' : ''}/>
-    <rect x="53.5" y="15.5" width="133" height="151" rx="2" fill="${CART_LABEL_BG}"/>
-    <rect x="53.5" y="15.5" width="133" height="10" fill="${stripe}"/>
+    <rect data-label-frame x="${LABEL_X - LABEL_FRAME_PAD}" y="${LABEL_Y - LABEL_FRAME_PAD}" width="${LABEL_W + LABEL_FRAME_PAD * 2}" height="${labelH + LABEL_FRAME_PAD * 2}" rx="3" fill="none" stroke="${CART_LABEL_FRAME}" stroke-width="3"${dashed ? ' stroke-dasharray="7 5"' : ''}/>
+    <rect data-label-bg x="${LABEL_X}" y="${LABEL_Y}" width="${LABEL_W}" height="${labelH}" rx="2" fill="${CART_LABEL_BG}"/>
+    ${o.sticker ? '' : `<rect x="${LABEL_X}" y="${LABEL_Y}" width="${LABEL_W}" height="10" fill="${stripe}"/>
     <g clip-path="url(#clabel)">${labelArt}</g>
     ${titleSvg}
     <text x="60" y="${112 + lines.length * 19 + 4}" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="${subColor}">${esc(clampSub(o.sub))}</text>
     ${o.code ? `<text x="180" y="161.5" text-anchor="end" font-family="ui-monospace,monospace"
       font-size="8.5" font-weight="700" letter-spacing=".2" fill="${dim ? '#8b8b86' : '#8a8172'}"
-      >${esc(clampCode(o.code))}</text>` : ''}
+      >${esc(clampCode(o.code))}</text>` : ''}`}
     <!-- moulded insertion arrow and the base recess -->
     <path d="M92 208 H108 L100 222 Z" fill="rgba(0,0,0,.26)"/>
     <rect x="68" y="228" width="64" height="9" rx="3" fill="rgba(0,0,0,.13)"/>
@@ -688,6 +715,33 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       })
       .catch(() => { /* no dev server route — the generated snapshot stands */ });
   }
+  /** does this cart have a label photo about to be composited over the drawing? */
+  function hasSticker(name: string): boolean {
+    return Boolean(name && cartArt[name]?.sticker);
+  }
+
+  /**
+   * Narrow the drawn label to the loaded scan's aspect, keeping its centre line
+   * and its top edge. Height is fixed at LABEL_H_ART, so a row of cartridges
+   * still lines up; only the width moves, and never wider than the moulded
+   * label. A scan that is squarer than the label leaves the label as drawn.
+   */
+  function fitLabelToArt(cover: HTMLElement, img: HTMLImageElement): void {
+    const { naturalWidth: w, naturalHeight: h } = img;
+    if (!w || !h) return;
+    const width = Math.min(LABEL_W, LABEL_H_ART * (w / h));
+    const x = LABEL_CX - width / 2;
+    const bg = cover.querySelector('[data-label-bg]');
+    const frame = cover.querySelector('[data-label-frame]');
+    bg?.setAttribute('x', String(x));
+    bg?.setAttribute('width', String(width));
+    frame?.setAttribute('x', String(x - LABEL_FRAME_PAD));
+    frame?.setAttribute('width', String(width + LABEL_FRAME_PAD * 2));
+    img.style.left = pct(x, CART_W);
+    img.style.width = pct(width, CART_W);
+    // the label now matches the scan, so filling it crops nothing
+    img.style.objectFit = 'cover';
+  }
   function applyCartArt(cover: HTMLElement, name: string): void {
     const list = cfg.cart?.list;
     const art = name ? cartArt[name] : undefined;
@@ -700,13 +754,24 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     if (!file) return;
     const img = document.createElement('img');
     img.alt = '';
+    // contain, not cover: the label is already sized for box-scan proportions,
+    // so fitting shows the whole scan. Any leftover is label bg at the sides,
+    // which reads as the printed border rather than as a crop.
     img.style.cssText = sticker
-      ? `position:absolute;left:26.75%;top:6.2%;width:66.5%;height:60.4%;
-         object-fit:cover;opacity:0;transition:opacity .2s ease;pointer-events:none;border-radius:2px`
+      ? `position:absolute;left:${pct(LABEL_X, CART_W)};top:${pct(LABEL_Y, CART_H)};
+         width:${pct(LABEL_W, CART_W)};height:${pct(LABEL_H_ART, CART_H)};
+         object-fit:contain;opacity:0;transition:opacity .2s ease;pointer-events:none;border-radius:2px`
       // a photo of the whole cartridge stands in for the drawing entirely
       : `position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
          opacity:0;transition:opacity .2s ease;pointer-events:none`;
-    img.addEventListener('load', () => { img.style.opacity = '1'; });
+    img.addEventListener('load', () => {
+      // Fit the drawn label to the scan rather than the scan to the label:
+      // box scans vary (313x506, 350x499, ...), so a fixed rect either crops or
+      // leaves gutters. Narrowing the label to the image's own aspect keeps the
+      // photo edge-to-edge inside its frame, at the label's centre line.
+      if (sticker) fitLabelToArt(cover, img);
+      img.style.opacity = '1';
+    });
     img.addEventListener('error', () => img.remove());
     img.src = `../artwork/carts/${encodeURIComponent(list)}/${encodeURIComponent(file)}`;
     cover.appendChild(img);
@@ -784,17 +849,19 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     item.setAttribute('data-catalog-cart', row.key);
     item.dataset.slot = row.slot;
     if (row.avail) item.dataset.bucket = row.tier;
+    const artName = row.entry?.name ?? row.avail?.name ?? '';
     const cover = coverEl(cartSvg({
       title: row.title,
       sub: row.sub,
       state: row.tier === 'experimental' ? 'experimental' : 'placeholder',
       artKey: row.key,
       code: zipName,
+      sticker: hasSticker(artName),
     }), false, !row.avail);
     cover.style.width = '160px';
     cover.style.height = '200px';
     cover.style.transform = 'perspective(700px) rotateY(-2deg)';
-    applyCartArt(cover, row.entry?.name ?? row.avail?.name ?? '');
+    applyCartArt(cover, artName);
     cover.addEventListener('mouseenter', () => {
       cover.style.transform = 'perspective(700px) translateY(-8px) rotateY(0)';
       cover.style.boxShadow = `0 0 28px hsla(${artHash(row.key) % 360},80%,60%,.34),0 18px 28px rgba(0,0,0,.7)`;
@@ -923,11 +990,13 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     item.setAttribute('data-cart-tile', rec.id);
     item.dataset.tier = resolved ? resolved.tier : 'unreadable';
 
+    const artName = resolved?.meta?.name ?? '';
     const cover = coverEl(cartSvg({
       title, sub: dumpSub, state,
       code: ownZipName,
+      sticker: hasSticker(artName),
     }), state === 'lit', state === 'unsupported');
-    applyCartArt(cover, resolved?.meta?.name ?? '');
+    applyCartArt(cover, artName);
     cover.onclick = () => other.info();
 
     const status = el('div', `font-size:10px;font-weight:700;letter-spacing:.8px;text-align:center;min-height:13px;
@@ -948,8 +1017,15 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     const other: Other = {
       rec, resolved, item,
       refreshArt: () => {
-        for (const img of [...cover.querySelectorAll('img')]) img.remove();
-        applyCartArt(cover, resolved?.meta?.name ?? '');
+        // Redraw rather than only swapping the image: the label is drawn taller
+        // for a cart that has a photo, so art appearing after first paint (the
+        // dev server's live /cart-art route) has to re-run the drawing too.
+        cover.innerHTML = cartSvg({
+          title, sub: dumpSub, state,
+          code: ownZipName,
+          sticker: hasSticker(artName),
+        });
+        applyCartArt(cover, artName);
       },
       canPlay: () => canPlay,
       play: () => bootCart(rec, resolved),
