@@ -262,7 +262,9 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     if (!machine.callbacks.length) failures.push(`${target}: no generated callbacks`);
     if (!machine.execution?.cpus.length) failures.push(`${target}: no generated CPU execution plan`);
     if (!machine.execution?.screen.vtotal) failures.push(`${target}: no generated screen timing`);
-    if (!machine.video) failures.push(`${target}: no generated video plan`);
+    if (!machine.video && !machine.execution.screenUpdate) {
+      failures.push(`${target}: no generated video or screen-update plan`);
+    }
     const callbackIds = new Set(machine.callbacks.map(callback => callback.id));
     if (callbackIds.size !== machine.callbacks.length) failures.push(`${target}: duplicate callback IDs`);
     callbacks += machine.callbacks.length;

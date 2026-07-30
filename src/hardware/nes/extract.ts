@@ -80,6 +80,13 @@ export function extractNes(input: CapabilityInput): CapabilityExtraction | undef
       device.summary.compiledMethods = device.methods.length;
       device.summary.diagnostics = 0;
       const options = cartridgeOptions(input.mameSource, definitions);
+      const hotMethods = nesBusMethods(machineWiring);
+      device.hotMethods = hotMethods.filter(name =>
+        device.methods.some(method => method.name === name));
+      for (const child of Object.values(options)) {
+        child.hotMethods = hotMethods.filter(name =>
+          child.methods.some(method => method.name === name));
+      }
       device.slot = {
         member: slotCardMember(input.mameSource, definition, 'm_cart'),
         selector: 'cart.mapper',
@@ -140,6 +147,21 @@ export function extractNes(input: CapabilityInput): CapabilityExtraction | undef
     entryMethods,
     entrySourceFiles,
   };
+}
+
+function nesBusMethods(
+  wiring: ReturnType<typeof nesMachineWiring>,
+): string[] {
+  const methods = new Set<string>();
+  for (const range of wiring.cartBus.ranges) {
+    if (range.read) methods.add(range.read);
+    if (range.write) methods.add(range.write);
+  }
+  for (const link of wiring.ppuLinks) {
+    if (link.method) methods.add(link.method);
+    for (const range of link.ranges ?? []) methods.add(range.method);
+  }
+  return [...methods];
 }
 
 function compileRequired(

@@ -52,8 +52,28 @@ type DeviceResource =
   | { kind: 'config-map'; path: string; values: Record<string, number>; fallback?: number }
   | { kind: 'bank-array'; name: string; count: number };
 
+interface GeneratedPointer {
+  generatedPointer: true;
+  source: ArrayLike<number> & { [index: number]: number };
+  offset: number;
+}
+
+function isGeneratedPointer(value: unknown): value is GeneratedPointer {
+  return Boolean(
+    value &&
+    typeof value === 'object' &&
+    (value as { generatedPointer?: unknown }).generatedPointer,
+  );
+}
+
 export interface GeneratedDeviceExecutionContext {
   readonly members: Record<string, unknown>;
+  /** Late-bound host calls, exposed directly to generated hot paths. */
+  readonly calls: Record<string, (...args: any[]) => unknown>;
+  readonly palette: number[];
+  readIndex(value: unknown, index: number): unknown;
+  writeIndex(value: unknown, index: number, next: unknown): unknown;
+  addressOf(value: unknown, index: number): GeneratedPointer;
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
 }
 
@@ -71,6 +91,8 @@ export interface GeneratedDeviceDefinition {
   callbacks: DeviceCallback[];
   timers?: DeviceTimer[];
   methods: DeviceMethod[];
+  /** Source-derived runtime entry points selected for direct generated code. */
+  hotMethods?: string[];
   slot?: {
     member: string;
     default?: string;
@@ -201,28 +223,47 @@ export function createDevice(type: string, options: GeneratedDeviceOptions = {})
 }
 
 class IrTimer {
-  private remaining = Infinity;
+  private remainingSeconds = Infinity;
   private period = Infinity;
   private parameter = 0;
+  private adjustmentGeneration = 0;
 
   adjust(delay: number, parameter = 0, period = Infinity): void {
-    this.remaining = Number.isFinite(delay) && delay >= 0 ? delay : Infinity;
+    this.remainingSeconds = Number.isFinite(delay) && delay >= 0 ? delay : Infinity;
     this.period = Number.isFinite(period) && period > 0 ? period : Infinity;
     this.parameter = parameter;
+    this.adjustmentGeneration++;
+  }
+
+  remaining(): number {
+    return this.remainingSeconds;
   }
 
   tick(seconds: number, callback: (parameter: number) => void): void {
-    if (!Number.isFinite(this.remaining)) return;
-    this.remaining -= seconds;
+    if (!Number.isFinite(this.remainingSeconds)) return;
+    this.remainingSeconds -= seconds;
     let firings = 0;
-    while (this.remaining <= 0) {
+    while (this.remainingSeconds <= 0) {
       if (++firings > 65_536) throw new Error('generated device timer exceeded 65536 firings');
+      const overshoot = -this.remainingSeconds;
+      const firedPeriod = this.period;
+      const generation = this.adjustmentGeneration;
       callback(this.parameter);
-      if (!Number.isFinite(this.period)) {
-        this.remaining = Infinity;
+
+      // MAME callbacks commonly re-arm their own one-shot timer. Honour that
+      // new schedule instead of disabling it based on the timer state that
+      // caused the callback (for example, the NES PPU scanline timer).
+      if (this.adjustmentGeneration !== generation) {
+        if (!Number.isFinite(this.remainingSeconds)) break;
+        this.remainingSeconds -= overshoot;
+        continue;
+      }
+
+      if (!Number.isFinite(firedPeriod)) {
+        this.remainingSeconds = Infinity;
         break;
       }
-      this.remaining += this.period;
+      this.remainingSeconds += firedPeriod;
     }
   }
 }
@@ -353,6 +394,33 @@ class IrDevice implements Device {
     };
     this.executionContext = {
       members: this.members,
+      calls: this.bindings.calls!,
+      palette,
+      readIndex: (value, index) => {
+        if (isGeneratedPointer(value)) {
+          return value.source[value.offset + index] ?? 0;
+        }
+        return (value as ArrayLike<unknown> | undefined)?.[index] ?? 0;
+      },
+      writeIndex: (value, index, next) => {
+        if (isGeneratedPointer(value)) {
+          value.source[value.offset + index] = Number(next);
+        } else if (value && typeof value === 'object') {
+          (value as Record<number, unknown>)[index] = next;
+        }
+        return next;
+      },
+      addressOf: (value, index) => isGeneratedPointer(value)
+        ? {
+          generatedPointer: true,
+          source: value.source,
+          offset: value.offset + index,
+        }
+        : {
+          generatedPointer: true,
+          source: value as ArrayLike<number> & { [index: number]: number },
+          offset: index,
+        },
       invoke: (name, ...args) => {
         const method = this.selectMethod(name, args);
         if (method) return this.executeMethod(method, this.methodParams.get(method)!, args);
@@ -517,14 +585,19 @@ class IrDevice implements Device {
     parameterNames: string[],
     args: GeneratedCallArgument[],
   ): unknown {
-    const compiled = this.definition.compiledMethods?.[method.name];
-    if (compiled) return compiled(this.executionContext, ...args);
-    const locals: Record<string, unknown> = {};
-    const defaults = this.methodDefaults.get(method);
-    for (let index = 0; index < parameterNames.length; index++) {
-      locals[parameterNames[index]!] = args[index] ?? defaults?.[index] ?? 0;
+    try {
+      const compiled = this.definition.compiledMethods?.[method.name];
+      if (compiled) return compiled(this.executionContext, ...args);
+      const locals: Record<string, unknown> = {};
+      const defaults = this.methodDefaults.get(method);
+      for (let index = 0; index < parameterNames.length; index++) {
+        locals[parameterNames[index]!] = args[index] ?? defaults?.[index] ?? 0;
+      }
+      return executeGeneratedProgram(method.program, this.bindings, locals).value;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`${this.definition.type}.${method.name}: ${message}`);
     }
-    return executeGeneratedProgram(method.program, this.bindings, locals).value;
   }
 
   private selectMethod(

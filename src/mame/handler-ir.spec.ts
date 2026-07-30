@@ -79,6 +79,33 @@ const bitmapPointers = compileMameHandler(`
   dbase[0] = color;
 `);
 assert.deepEqual(bitmapPointers.diagnostics, []);
+assert.equal(bitmapPointers.operations[0]?.op, 'declare');
+assert.equal(
+  bitmapPointers.operations[0]?.op === 'declare'
+    ? bitmapPointers.operations[0].valueType
+    : undefined,
+  'uint32_t*',
+  'local pointer declarators must retain pointer type semantics',
+);
+assert.equal(
+  bitmapPointers.operations[2]?.op === 'declare'
+    ? bitmapPointers.operations[2].valueType
+    : undefined,
+  'u32*',
+);
+const pointerIncrement = compileMameHandler(`
+  u32 values[2];
+  u32 *dest = &values[0];
+  dest += 1;
+  *dest = 7;
+  return values[1];
+`);
+assert.deepEqual(pointerIncrement.diagnostics, []);
+assert.equal(
+  executeGeneratedHandler(pointerIncrement, {}),
+  7,
+  'compound pointer arithmetic must retain and advance the generated pointer',
+);
 
 const staticTable = compileMameHandler(normalizeMameExecutionSource(`
   static const int timer[4] = { 0x00, 0x10, 0x20, 0x30 };

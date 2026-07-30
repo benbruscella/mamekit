@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { indexMameHardware } from './hardware.ts';
-import { compileMameDevice } from './device-compiler.ts';
+import { compileMameDevice, constructorInitialValues } from './device-compiler.ts';
 import {
   clearGeneratedDevices,
   createDevice,
@@ -9,6 +9,23 @@ import {
 
 const mameSrc = process.env.MAME_SRC ?? '../mame';
 const hardware = indexMameHardware(mameSrc);
+assert.deepEqual(
+  constructorInitialValues('derived_device', `
+    base_device::base_device() :
+      m_first(1), // source note
+      m_second(2),
+      m_third(3), /* another note */
+      m_four(4)
+    {
+    }
+    derived_device::derived_device() :
+      base_device()
+    {
+    }
+  `),
+  { m_first: 1, m_second: 2, m_third: 3, m_four: 4 },
+  'comments between constructor initializers must not hide following member defaults',
+);
 const definition = hardware.get('LS259');
 assert.ok(definition, 'MAME hardware index should resolve LS259');
 
@@ -90,6 +107,15 @@ assert.equal(
   generatedNamco54.callbacks.find(callback => callback.signal === 'reset')?.member,
   'm_reset',
   'MAME INPUT_LINE_RESET callbacks must remain distinct from IRQ callbacks',
+);
+
+const cnromDefinition = hardware.get('NES_CNROM');
+assert.ok(cnromDefinition, 'MAME hardware index should resolve NES_CNROM');
+const generatedCnrom = compileMameDevice(mameSrc, cnromDefinition);
+assert.ok(
+  generatedCnrom.methods.some(method =>
+    method.name === 'device_nes_cart_interface::chr_r'),
+  'an overridden source method must retain its qualified base implementation',
 );
 
 console.log('device-compiler.spec: source-derived latch, ER2055 and MB8844 devices passed');

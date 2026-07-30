@@ -67,6 +67,8 @@ export interface GeneratedDeviceDefinition {
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
   methods: GeneratedDeviceMethod[];
+  /** Source-derived runtime entry points that must use direct generated code. */
+  hotMethods?: string[];
   /** A source-declared card slot with generated child-device definitions. */
   slot?: {
     member: string;
@@ -223,6 +225,7 @@ export function compileMameDevice(
     'nvram_write',
   ]);
   const methods: GeneratedDeviceMethod[] = [];
+  const methodOwners = new Map<string, string>();
   const replaceOrAppend = (method: MameFunction): void => {
     const specialized = specializeMethod(method, specialize);
     if (ignoredMethods.has(specialized.name) || specialized.parameters.includes('...')) return;
@@ -232,8 +235,22 @@ export function compileMameDevice(
     const compiled = compileMethod(specialized, interruptCallbacks, sourceTables);
     // hierarchy is base-first: a derived virtual with the same signature
     // replaces its base implementation, while genuine overloads remain.
-    if (existing >= 0) methods[existing] = compiled;
-    else methods.push(compiled);
+    // Keep a qualified alias for an overridden base because derived MAME
+    // methods can explicitly call `base_class::method(...)`.
+    if (existing >= 0) {
+      const previous = methods[existing]!;
+      const owner = methodOwners.get(signature);
+      if (owner) {
+        const qualified = `${owner}::${previous.name}`;
+        if (!methods.some(candidate => candidate.name === qualified)) {
+          methods.push({ ...previous, name: qualified });
+        }
+      }
+      methods[existing] = compiled;
+    } else {
+      methods.push(compiled);
+    }
+    methodOwners.set(signature, specialized.className);
   };
 
   const sourceMethods = ast.units.flatMap(unit => unit.functions);
@@ -718,7 +735,7 @@ interface Constructor {
   body: string;
 }
 
-function constructorInitialValues(
+export function constructorInitialValues(
   concreteClass: string,
   source: string,
   constants: Record<string, number> = {},
@@ -735,7 +752,8 @@ function constructorInitialValues(
     const braceEnd = matchingBrace(source, brace);
     if (braceEnd < 0) continue;
     const between = source.slice(close + 1, brace).trim();
-    const initializerSource = between.startsWith(':') ? between.slice(1) : '';
+    const initializerSource = (between.startsWith(':') ? between.slice(1) : '')
+      .replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '');
     const constructor: Constructor = {
       className: match[1]!,
       parameters: splitMameArgs(source.slice(open + 1, close)).map(parameterName),

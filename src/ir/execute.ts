@@ -726,7 +726,10 @@ function assign(
   if (target.kind === 'unary' && target.operator === '*') {
     const pointer = evaluate(target.operand, context);
     if (!isGeneratedPointer(pointer)) {
-      throw new Error('generated dereference assignment has no pointer');
+      const received = pointer && typeof pointer === 'object'
+        ? `object with keys ${Object.keys(pointer).join(', ') || '(none)'}`
+        : `${typeof pointer} ${String(pointer)}`;
+      throw new Error(`generated dereference assignment has no pointer (received ${received})`);
     }
     const current = pointerValue(pointer, 0);
     setPointerValue(pointer, 0, assignmentValue(operator, current, value));
@@ -781,6 +784,12 @@ function assignCallResult(
 
 function assignmentValue(operator: string, current: unknown, value: unknown): unknown {
   if (operator === '=') return value;
+  if (operator === '+=' && isGeneratedPointer(current)) {
+    return offsetPointer(current, toNumber(value));
+  }
+  if (operator === '-=' && isGeneratedPointer(current)) {
+    return offsetPointer(current, -toNumber(value));
+  }
   if (
     operator === '&=' &&
     current &&

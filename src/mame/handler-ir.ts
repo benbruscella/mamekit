@@ -397,15 +397,17 @@ class HandlerParser {
     while (this.peek().kind === 'identifier' && TYPE_WORDS.has(this.peek().text)) {
       typeWords.push(this.take().text);
     }
-    while (this.consume('*') || this.consume('&')) {
-      // pointer/reference syntax does not affect the generated value model.
-    }
-    while (this.consume('const')) {
-      // MAME commonly places const after a pointer declarator.
-    }
     const valueType = typeWords.find(word => word !== 'const' && word !== 'constexpr');
     const declarations: GeneratedHandlerOperation[] = [];
     while (!this.at('eof')) {
+      let declarator = '';
+      while (this.atText('*') || this.atText('&')) declarator += this.take().text;
+      while (this.consume('const')) {
+        // MAME commonly places const after a pointer declarator.
+      }
+      const declarationType = valueType
+        ? `${valueType}${declarator}`
+        : undefined;
       const name = this.peek();
       if (name.kind !== 'identifier') {
         this.unsupportedStatement(`invalid declaration at byte ${name.offset}`);
@@ -446,7 +448,7 @@ class HandlerParser {
       declarations.push({
         op: 'declare',
         name: name.text,
-        ...(valueType ? { valueType } : {}),
+        ...(declarationType ? { valueType: declarationType } : {}),
         ...(value ? { value } : {}),
       });
       if (this.consume(';')) return declarations;
