@@ -1,0 +1,144 @@
+{
+  "type": "KONAMI1",
+  "uses": [
+    {
+      "game": "gyruss",
+      "tags": [
+        "sub"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "KONAMI1",
+    "className": "konami1_device",
+    "shortName": "konami1",
+    "description": "KONAMI-1",
+    "sourceFile": "src/mame/konami/konami1.cpp",
+    "sourceLine": 12,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(KONAMI1, konami1_device, \"konami1\", \"KONAMI-1\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/konami1.cpp",
+      "sourceLine": 20,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_mintf"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::make_unique"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_boundary"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m6809_base_device::device_start"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "create_disassembler",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/konami1.cpp",
+      "sourceLine": 45,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::make_unique"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_boundary"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_encryption_boundary",
+      "parameters": "uint16_t adr",
+      "sourceFile": "src/mame/konami/konami1.cpp",
+      "sourceLine": 50,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_boundary"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "adr"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_mintf"
+            },
+            "then": []
+          }
+        ],
+        "diagnostics": [
+          "could not parse statement at byte 35"
+        ]
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/konami/konami1.cpp",
+    "src/mame/konami/konami1.h"
+  ]
+}

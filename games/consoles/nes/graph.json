@@ -1,0 +1,1122 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/nintendo/nes.cpp",
+    "generatedAt": "2026-07-30T09:34:47.648Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Brad Oliver,Fabio Priuli"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/nintendo/nes.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/nintendo/nes.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/nes/disksys.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/nes/disksys.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/nes/nes_slot.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/nes/nes_slot.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/nes/nes_carts.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/nes/nes_carts.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bus/nes_ctrl/ctrl.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bus/nes_ctrl/ctrl.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6502/rp2a03.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6502/rp2a03.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/ppu2c0x.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/ppu2c0x.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:softlist_dev.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "softlist_dev.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:nes",
+      "label": "Game",
+      "props": {
+        "name": "nes",
+        "year": "1985",
+        "company": "Nintendo",
+        "fullname": "Nintendo Entertainment System / Famicom (NTSC)",
+        "monitor": "ROT0",
+        "cls": "nes_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE",
+        "kind": "console",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 775,
+        "sourceColumn": 1,
+        "sourceEndLine": 775
+      }
+    },
+    {
+      "id": "romset:nes",
+      "label": "RomSet",
+      "props": {
+        "name": "nes",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 683,
+        "sourceColumn": 1,
+        "sourceEndLine": 683
+      }
+    },
+    {
+      "id": "region:nes/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 684,
+        "sourceColumn": 2,
+        "sourceEndLine": 684
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "nes_state",
+        "name": "nes_map",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 384,
+        "sourceColumn": 1,
+        "sourceEndLine": 394
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 2047,
+        "raw": "map(0x0000, 0x07ff).ram().mirror(0x1800).share(\"mainram\")",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 386,
+        "sourceColumn": 2,
+        "sourceEndLine": 386,
+        "mirror": 6144,
+        "ram": true,
+        "share": "mainram"
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 16383,
+        "raw": "map(0x2000, 0x3fff).rw(m_ppu, FUNC(ppu2c0x_device::read), FUNC(ppu2c0x_device::write))",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 387,
+        "sourceColumn": 2,
+        "sourceEndLine": 387
+      }
+    },
+    {
+      "id": "handler:ppu2c0x_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ppu2c0x_device",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 387,
+        "sourceColumn": 2,
+        "sourceEndLine": 387
+      }
+    },
+    {
+      "id": "handler:ppu2c0x_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ppu2c0x_device",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 387,
+        "sourceColumn": 2,
+        "sourceEndLine": 387
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 16404,
+        "end": 16404,
+        "raw": "map(0x4014, 0x4014).w(m_ppu, FUNC(ppu2c0x_device::spriteram_dma))",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 388,
+        "sourceColumn": 2,
+        "sourceEndLine": 388
+      }
+    },
+    {
+      "id": "handler:ppu2c0x_device.spriteram_dma",
+      "label": "Handler",
+      "props": {
+        "method": "spriteram_dma",
+        "ownerClass": "ppu2c0x_device",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 388,
+        "sourceColumn": 2,
+        "sourceEndLine": 388
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 16406,
+        "end": 16406,
+        "raw": "map(0x4016, 0x4016).rw(FUNC(nes_state::nes_in0_r), FUNC(nes_state::nes_in0_w))",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 389,
+        "sourceColumn": 2,
+        "sourceEndLine": 389
+      }
+    },
+    {
+      "id": "handler:nes_state.nes_in0_r",
+      "label": "Handler",
+      "props": {
+        "method": "nes_in0_r",
+        "ownerClass": "nes_state",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 270,
+        "sourceColumn": 1,
+        "sourceEndLine": 276,
+        "sourceParameters": "",
+        "sourceBody": "uint8_t ret = 0x40;\n\tret |= m_ctrl1->read_bit0();\n\tret |= m_ctrl1->read_bit34();\n\treturn ret;"
+      }
+    },
+    {
+      "id": "handler:nes_state.nes_in0_w",
+      "label": "Handler",
+      "props": {
+        "method": "nes_in0_w",
+        "ownerClass": "nes_state",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 286,
+        "sourceColumn": 1,
+        "sourceEndLine": 290,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_ctrl1->write(data);\n\tm_ctrl2->write(data);"
+      }
+    },
+    {
+      "id": "map:nes_state.nes_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 16407,
+        "end": 16407,
+        "raw": "map(0x4017, 0x4017).r(FUNC(nes_state::nes_in1_r))",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 390,
+        "sourceColumn": 2,
+        "sourceEndLine": 390
+      }
+    },
+    {
+      "id": "handler:nes_state.nes_in1_r",
+      "label": "Handler",
+      "props": {
+        "method": "nes_in1_r",
+        "ownerClass": "nes_state",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 278,
+        "sourceColumn": 1,
+        "sourceEndLine": 284,
+        "sourceParameters": "",
+        "sourceBody": "uint8_t ret = 0x40;\n\tret |= m_ctrl2->read_bit0();\n\tret |= m_ctrl2->read_bit34();\n\treturn ret;"
+      }
+    },
+    {
+      "id": "machine:nes_state.nes",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "nes_state",
+        "name": "nes",
+        "calls": [],
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 407,
+        "sourceColumn": 1,
+        "sourceEndLine": 445
+      }
+    },
+    {
+      "id": "softlist:nes",
+      "label": "SoftwareList",
+      "props": {
+        "name": "nes",
+        "tag": "cart_list",
+        "status": "original",
+        "filter": "!EXP"
+      }
+    },
+    {
+      "id": "softlist:nes_ade",
+      "label": "SoftwareList",
+      "props": {
+        "name": "nes_ade",
+        "tag": "ade_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:nes_ntbrom",
+      "label": "SoftwareList",
+      "props": {
+        "name": "nes_ntbrom",
+        "tag": "ntb_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:nes_kstudio",
+      "label": "SoftwareList",
+      "props": {
+        "name": "nes_kstudio",
+        "tag": "kstudio_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:nes_datach",
+      "label": "SoftwareList",
+      "props": {
+        "name": "nes_datach",
+        "tag": "datach_list",
+        "status": "original"
+      }
+    },
+    {
+      "id": "softlist:famibox",
+      "label": "SoftwareList",
+      "props": {
+        "name": "famibox",
+        "tag": "famibox_list",
+        "status": "compatible"
+      }
+    },
+    {
+      "id": "device:nes_state.nes/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "RP2A03G",
+        "tag": "maincpu",
+        "clock": 1789772.6666666667,
+        "config": [
+          "rp2a03_device &maincpu(RP2A03G(config, m_maincpu, NTSC_APU_CLOCK))",
+          "maincpu.set_addrmap(AS_PROGRAM, &nes_state::nes_map)",
+          "maincpu.add_route(ALL_OUTPUTS, \"mono\", 0.90)"
+        ],
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 410,
+        "sourceColumn": 2,
+        "sourceEndLine": 410
+      }
+    },
+    {
+      "id": "audioroute:device:nes_state.nes/maincpu/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 0.9,
+        "raw": "maincpu.add_route(ALL_OUTPUTS, \"mono\", 0.90)",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 432,
+        "sourceColumn": 2,
+        "sourceEndLine": 432
+      }
+    },
+    {
+      "id": "device:nes_state.nes/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_refresh_hz(60.0988)",
+          "m_screen->set_vblank_time(ATTOSECONDS_IN_USEC((113.66/(NTSC_APU_CLOCK.dvalue()/1000000)) *\n\t\t\t\t\t\t\t (ppu2c0x_device::VBLANK_LAST_SCANLINE_NTSC-ppu2c0x_device::VBLANK_FIRST_SCANLINE+1+2)))",
+          "m_screen->set_size(32*8, 262)",
+          "m_screen->set_visarea(0*8, 32*8-1, 0*8, 30*8-1)",
+          "m_screen->set_screen_update(FUNC(nes_state::screen_update_nes))",
+          "m_screen->screen_vblank().set(FUNC(nes_state::screen_vblank_nes))"
+        ],
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 413,
+        "sourceColumn": 2,
+        "sourceEndLine": 413,
+        "configCalls": [
+          "set_refresh_hz(60.0988)",
+          "set_size(256,262)",
+          "set_visarea(0,255,0,239)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRefreshHz": 60.0988,
+        "screenSize": [
+          256,
+          262
+        ],
+        "screenVisarea": [
+          0,
+          255,
+          0,
+          239
+        ]
+      }
+    },
+    {
+      "id": "device:nes_state.nes/screen/callback0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(nes_state::screen_update_nes))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 423,
+        "sourceColumn": 2,
+        "sourceEndLine": 423,
+        "targetClass": "nes_state",
+        "targetMethod": "screen_update_nes"
+      }
+    },
+    {
+      "id": "handler:nes_state.screen_update_nes",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update_nes",
+        "ownerClass": "nes_state",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 348,
+        "sourceColumn": 1,
+        "sourceEndLine": 353,
+        "sourceParameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+        "sourceBody": "// render the ppu\n\tm_ppu->render(bitmap, 0, 0, 0, 0, cliprect);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "device:nes_state.nes/screen/callback1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set",
+        "raw": "m_screen->screen_vblank().set(FUNC(nes_state::screen_vblank_nes))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 424,
+        "sourceColumn": 2,
+        "sourceEndLine": 424,
+        "targetClass": "nes_state",
+        "targetMethod": "screen_vblank_nes"
+      }
+    },
+    {
+      "id": "handler:nes_state.screen_vblank_nes",
+      "label": "Handler",
+      "props": {
+        "method": "screen_vblank_nes",
+        "ownerClass": "nes_state",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 355,
+        "sourceColumn": 1,
+        "sourceEndLine": 381,
+        "sourceParameters": "int state",
+        "sourceBody": "// on rising edge\n\tif (!state)\n\t{\n\t\t// if this is a disk system game, check for the flip-disk key\n\t\tif ((m_cartslot && m_cartslot->exists() && (m_cartslot->get_pcb_id() == STD_DISKSYS))   // first scenario = disksys in m_cartslot (= famicom)\n\t\t\t\t|| m_disk)  // second scenario = disk via fixed internal disk option (fds & famitwin)\n\t\t{\n\t\t\tif (m_io_disksel)\n\t\t\t{\n\t\t\t\t// latch this input so it doesn't go at warp speed\n\t\t\t\tif ((m_io_disksel->read() & 0x01) && (!m_last_frame_flip))\n\t\t\t\t{\n\t\t\t\t\tif (m_disk)\n\t\t\t\t\t\tm_disk->disk_flip_side();\n\t\t\t\t\telse\n\t\t\t\t\t\tm_cartslot->disk_flip_side();\n\t\t\t\t\tm_last_frame_flip = 1;\n\t\t\t\t}\n\n\t\t\t\tif (!(m_io_disksel->read() & 0x01))\n\t\t\t\t\tm_last_frame_flip = 0;\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "device:nes_state.nes/ppu",
+      "label": "Device",
+      "props": {
+        "type": "PPU_2C02",
+        "tag": "ppu",
+        "clock": null,
+        "config": [
+          "PPU_2C02(config, m_ppu)",
+          "m_ppu->set_cpu_tag(m_maincpu)",
+          "m_ppu->int_callback().set_inputline(m_maincpu, INPUT_LINE_NMI)"
+        ],
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 426,
+        "sourceColumn": 2,
+        "sourceEndLine": 426
+      }
+    },
+    {
+      "id": "device:nes_state.nes/ppu/callback0",
+      "label": "Callback",
+      "props": {
+        "signal": "int_callback",
+        "operation": "set_inputline",
+        "raw": "m_ppu->int_callback().set_inputline(m_maincpu, INPUT_LINE_NMI)",
+        "ownerTag": "ppu",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 428,
+        "sourceColumn": 2,
+        "sourceEndLine": 428,
+        "inputLine": "INPUT_LINE_NMI",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:nes_state.nes/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 431,
+        "sourceColumn": 2,
+        "sourceEndLine": 431
+      }
+    },
+    {
+      "id": "device:nes_state.nes/ctrl1",
+      "label": "Device",
+      "props": {
+        "type": "NES_CONTROL_PORT",
+        "tag": "ctrl1",
+        "clock": null,
+        "config": [
+          "NES_CONTROL_PORT(config, m_ctrl1, nes_control_port1_devices, \"joypad\").set_screen_tag(m_screen)"
+        ],
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 434,
+        "sourceColumn": 2,
+        "sourceEndLine": 434,
+        "slotOptions": "nes_control_port1_devices",
+        "slotDefault": "joypad"
+      }
+    },
+    {
+      "id": "device:nes_state.nes/ctrl2",
+      "label": "Device",
+      "props": {
+        "type": "NES_CONTROL_PORT",
+        "tag": "ctrl2",
+        "clock": null,
+        "config": [
+          "NES_CONTROL_PORT(config, m_ctrl2, nes_control_port2_devices, \"joypad\").set_screen_tag(m_screen)"
+        ],
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 435,
+        "sourceColumn": 2,
+        "sourceEndLine": 435,
+        "slotOptions": "nes_control_port2_devices",
+        "slotDefault": "joypad"
+      }
+    },
+    {
+      "id": "device:nes_state.nes/special",
+      "label": "Device",
+      "props": {
+        "type": "NES_CONTROL_PORT",
+        "tag": "special",
+        "clock": null,
+        "config": [
+          "NES_CONTROL_PORT(config, m_special, nes_control_special_devices, nullptr).set_screen_tag(m_screen)"
+        ],
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 436,
+        "sourceColumn": 2,
+        "sourceEndLine": 436,
+        "clockExpr": "nes_control_special_devices, nullptr"
+      }
+    },
+    {
+      "id": "device:nes_state.nes/nes_slot",
+      "label": "Device",
+      "props": {
+        "type": "NES_CART_SLOT",
+        "tag": "nes_slot",
+        "clock": null,
+        "config": [
+          "NES_CART_SLOT(config, m_cartslot, NTSC_APU_CLOCK, nes_cart, nullptr).set_must_be_loaded(true)"
+        ],
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 438,
+        "sourceColumn": 2,
+        "sourceEndLine": 438,
+        "clockExpr": "NTSC_APU_CLOCK, nes_cart, nullptr"
+      }
+    },
+    {
+      "id": "inputs:nes",
+      "label": "InputPorts",
+      "props": {
+        "name": "nes",
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 396,
+        "sourceColumn": 8,
+        "sourceEndLine": 396
+      }
+    },
+    {
+      "id": "file:src/devices/bus/nes_ctrl/joypad.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/devices/bus/nes_ctrl/joypad.cpp"
+      }
+    },
+    {
+      "id": "inputs:nes_joypad",
+      "label": "InputPorts",
+      "props": {
+        "name": "nes_joypad"
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD",
+      "label": "Port",
+      "props": {
+        "tag": "JOYPAD",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_NAME(\"%p A\")"
+        ]
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_NAME(\"%p B\")"
+        ]
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_SELECT"
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_START"
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:nes_joypad/JOYPAD/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:nes",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 775,
+        "sourceColumn": 1,
+        "sourceEndLine": 775
+      }
+    },
+    {
+      "from": "game:nes",
+      "to": "machine:nes_state.nes",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:nes",
+      "to": "inputs:nes",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:nes",
+      "to": "romset:nes",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:bus/nes/disksys.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:bus/nes/nes_slot.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:bus/nes/nes_carts.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:bus/nes_ctrl/ctrl.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:cpu/m6502/rp2a03.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:video/ppu2c0x.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:softlist_dev.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/nintendo/nes.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 407,
+        "sourceColumn": 1,
+        "sourceEndLine": 445
+      }
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:nes",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:nes_ade",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:nes_ntbrom",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:nes_kstudio",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:nes_datach",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "softlist:famibox",
+      "rel": "HAS_SOFTLIST"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/ppu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/ctrl1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/ctrl2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/special",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:nes_state.nes",
+      "to": "device:nes_state.nes/nes_slot",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:nes",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 396,
+        "sourceColumn": 8,
+        "sourceEndLine": 396
+      }
+    },
+    {
+      "from": "romset:nes",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 683,
+        "sourceColumn": 1,
+        "sourceEndLine": 683
+      }
+    },
+    {
+      "from": "romset:nes",
+      "to": "region:nes/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "device:nes_state.nes/maincpu",
+      "to": "audioroute:device:nes_state.nes/maincpu/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:nes_state.nes/maincpu",
+      "to": "map:nes_state.nes_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:nes_state.nes/screen",
+      "to": "device:nes_state.nes/screen/callback0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:nes_state.nes/screen",
+      "to": "device:nes_state.nes/screen/callback1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:nes_state.nes/ppu",
+      "to": "device:nes_state.nes/ppu/callback0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:nes_state.nes/ctrl1",
+      "to": "inputs:nes_joypad",
+      "rel": "USES_INPUTS",
+      "props": {
+        "option": "joypad"
+      }
+    },
+    {
+      "from": "device:nes_state.nes/ctrl2",
+      "to": "inputs:nes_joypad",
+      "rel": "USES_INPUTS",
+      "props": {
+        "option": "joypad"
+      }
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "file:src/mame/nintendo/nes.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/nintendo/nes.cpp",
+        "sourceLine": 384,
+        "sourceColumn": 1,
+        "sourceEndLine": 394
+      }
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "map:nes_state.nes_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "map:nes_state.nes_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "map:nes_state.nes_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "map:nes_state.nes_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:nes_state.nes_map",
+      "to": "map:nes_state.nes_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:nes_state.nes/screen/callback0",
+      "to": "handler:nes_state.screen_update_nes",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:nes_state.nes/screen/callback1",
+      "to": "handler:nes_state.screen_vblank_nes",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:nes_state.nes/ppu/callback0",
+      "to": "device:nes_state.nes/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "inputs:nes_joypad",
+      "to": "file:src/devices/bus/nes_ctrl/joypad.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "inputs:nes_joypad",
+      "to": "inputs:nes_joypad/JOYPAD",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "map:nes_state.nes_map/range1",
+      "to": "handler:ppu2c0x_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:nes_state.nes_map/range1",
+      "to": "handler:ppu2c0x_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:nes_state.nes_map/range2",
+      "to": "handler:ppu2c0x_device.spriteram_dma",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppu"
+      }
+    },
+    {
+      "from": "map:nes_state.nes_map/range3",
+      "to": "handler:nes_state.nes_in0_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:nes_state.nes_map/range3",
+      "to": "handler:nes_state.nes_in0_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:nes_state.nes_map/range4",
+      "to": "handler:nes_state.nes_in1_r",
+      "rel": "READS"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:nes_joypad/JOYPAD",
+      "to": "inputs:nes_joypad/JOYPAD/f7",
+      "rel": "HAS_FIELD"
+    }
+  ]
+}

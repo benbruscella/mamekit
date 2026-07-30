@@ -1,0 +1,551 @@
+{
+  "generatedFrom": "src/mame/konami/timeplt.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 747,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 748,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 749,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 750,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 751,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 752,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 753,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 754,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 764,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 766,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/10/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 201,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/11/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 202,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 747,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 748,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 749,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 750,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 751,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 752,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 753,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 754,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 764,
+      "column": 2
+    },
+    {
+      "path": "/connections/9/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 766,
+      "column": 2
+    },
+    {
+      "path": "/connections/10/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 201,
+      "column": 2
+    },
+    {
+      "path": "/connections/11/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 202,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 743,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 192,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 759,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 766,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 766,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 376,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 743,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 746,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 756,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 759,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 768,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 769,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 772,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 192,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 196,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 198,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 200,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 207,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 323,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 316,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 335,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 127,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 459,
+      "column": 2
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 461,
+      "column": 2
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 178,
+      "column": 2
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 178,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 179,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 109,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 96,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 401,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 748,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 133,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 145,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 330,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 417,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 417,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 376,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 394,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 201,
+      "column": 2
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 78,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 255,
+      "column": 1
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 348,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 452,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 453,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 454,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 455,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 456,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 457,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 458,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 459,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 460,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 461,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 462,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 463,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 464,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 449,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 161,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 162,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 163,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 164,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 165,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 166,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 167,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 159,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 203,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 285,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/konami/timeplt.cpp",
+      "line": 285,
+      "column": 1
+    }
+  ]
+}

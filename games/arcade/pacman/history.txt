@@ -1,0 +1,155 @@
+Arcade Video game published 46 years ago:
+
+Pac-Man (c) 1980 Midway Mfg. Co.
+
+Export release by Bally/Midway for North America. Game developed by Namco and originally known as Puckman in Japan. For more information about the game itself, please see the original Japanese release entry, "Puckman [Upright model]".
+
+- TECHNICAL -
+
+Upright model
+Game No. 932
+
+- TRIVIA -
+
+Pac-Man was released by Midway Manufacturing, under license from Namco, in the USA on October 10, 1980 (Friday). 96,000 units were produced in America. 
+
+Reportedly, when Bally/Midway obtained the rights to Pac-Man, Namco was offering four different games, which ended up being licensed to Game Plan and Bally/Midway. Game Plan's Ken Anderson reports that he and Bally's Dave Marofske flipped a coin to see who would get first crack at the games. Game Plan won and chose a tank game (which they released as "Tank Battalion") over Pac-Man. The other game they got was released as "King & Balloon". Bally/Midway, meanwhile, took Pac-Man and "Rally-X".
+
+Midway made the following changes to the game (from the original Namco version):
+- The game's name (and likewise its main character) has been changed to Pac-Man. Refer to the Namco Upright version entry, Trivia section, for details behind this name change. 
+- The name/nickname combinations for the ghosts in this version are:
+Shadow - "Blinky" (red ghost)
+Speedy - "Pinky" (pink ghost)
+Bashful - "Inky" (cyan ghost)
+Pokey - "Clyde" (orange ghost)
+- Notice that the pink ghost's nickname remains unchanged from the Japanese version.
+- Unlike the Japanese version, the American version has no DIP switch for alternate ghost names.  
+
+The game's cult status in the early 80's was such that it inspired a hit single by 'Buckner and Garcia' called 'Pac-Man Fever'. Initially released as a single in December, 1981, it eventually reached #9 on the pop charts.  It was so popular the label encouraged them to record an entire album with video game themed songs.  The album 'Pac-Man Fever' was quickly released in January of 1982 featuring 8 songs based on Donkey Kong, Frogger, Asteroids, Centipede, and other popular games.
+
+The game also spawned a virtual cottage industry of best-selling how-to books strategy guides on how to beat the game by using patterns with names like the "Bazo's Breaker", the "Donut Dazzler" and the "GET pattern" (named after the first initials of the members of a team of players from Davis, California: George Huang, Ed Bazo, and Tom Fertado). 
+
+A Pac-Man unit appears in the movie 'Getting There', in the 1982 movie 'Jekyll & Hyde - Together Again', in the 1982 movie 'Fast Times at Ridgemont High', in the 1983 movie 'WarGames', in the 1983 movie 'Joysticks', in the 1983 movie 'Koyaanisqatsi - Life out of Balance', in the 1985 movie 'The Heavenly Kid', in the 1985 movie 'Better Off Dead', and in the 1986 movie 'The Color of Money'. 
+
+A Pac-Man unit appears in the pilot of Season One of 'The A-Team'. It is where Amy (Melinda Culea) meets Murdock (Dwight Schultz) for the first time. 
+
+MB (Milton Bradley) released a board game based on this video game in 1982 (Pac-Man Game, 'As Much Fun as the Action Packed Arcade Game of the Same Name'). In this board game, the dots in the maze are represented by white marbles. There are also yellow marbles representing the power pills in the maze. There are also two ghosts pawns of the same color in the game. The object is to roll the dice and move your Pac-Man playing piece around the maze gobbling up as many marbles as you can using the count on one die, and move either ghost pawn using the count on the other die. There are yellow dots imprinted on the game board to lay out the path each character must take; these dots do not count as spaces. Use the ghosts to try to catch your opponents. When this happens, that opponent is sent back home and surrenders two marbles to the player who moved the ghost. If a Pac-Man gobbles up a yellow marble, that player earns the right to gobble a ghost. When this happens, the gobbled ghost is returned to the ghost pen, the player takes two marbles away from any opponent, and the player's yellow marble is returned to the game board. Once the maze is cleared of white marbles, the game is over and the player with the most white marbles (yellow marbles do not count) is the winner. 
+
+'Pac-Man' is also the nickname of the Filipino boxing champion Manny Pacquiao. The two-time world champion earned the distinction as the only boxer who has knocked down both future Mexican 'Hall of Famer' Marco Antonio 'Baby Face Assassin' Barrera (knocked out in 11th round) and Erik 'El Terrible' Morales (knocked out in 10th round). Pacquiao has been on the top 10 list of the best 'pound-for-pound' fighters in the world. 
+
+In the multi-racial country of Malaysia, 'Pac-Man' is a slang term coined to describe men who only date ladies of other races. 
+
+The name 'Pac-Man' has been given to a nebula, cataloged as NGC 281. The Pac-Man Nebula is an H II region in the constellation of Cassiopeia. It includes or is near the open cluster IC 1590, the double star HD 5005, and several Bok globules. The shape of the nebula resembles the famous video game icon, Pac-Man. It is visible in amateur telescopes from dark sky locations. 
+
+The Cassini Robotic spacecraft (Cassini-Huygens) were captured images during a close pass to the moon of Saturn named 'Mimas', and collected by the composite infrared spectrometer (CIRS). The images show the fluctuating temperatures experienced by Mimas. The combined map with this images form a shape of this character Pac-Man. 
+
+On May 21, 2010, to celebrate Pac-Man's 30th Anniversary, Google, the famous internet search engine, has created the first ever interactive Doodle! This doodle allowed people to play Pac-Man on the home page (at the place of the original logo).
+
+- UPDATES -
+
+Midway's new revision program for Pac-Man was released in December 1981; the new program increases the difficulty of the game and adds a new challenge to players already familiar with the original.
+
+- PORTS -
+
+NOTE: Only ports released in North America [US] are listed here. For ports released in other regions, please see the original Namco (Japanese version) upright entry. 
+
+* CONSOLES: 
+Bally Astrocade "Muncher" 
+Emerson Arcadia "Gobbler" 
+Atari 2600 (1981) "Pac-Man [Model CX2646]" 
+Atari 5200 (1982) "Pac-Man [Model CX5208]" 
+Mattel Intellivision (1983) "Pac-Man [Model 70251]" 
+Nintendo NES (1987) by Tengen 
+Nintendo NES (nov.1993) "Pac-Man [Model NES-P7]" 
+Sony PlayStation (jul.31, 1996) "Namco Museum Vol.1 [Model SLUS-00215]" 
+Nintendo 64 (oct.31, 1999) "Namco Museum 64 [Model NUS-NNME-USA]" 
+Sega Dreamcast (june.25, 2000) "Namco Museum [Model T-1403N]" 
+Sony PlayStation 2 (dec.4, 2001) "Namco Museum [Model SLUS-20273]" 
+Microsoft XBOX (oct.9, 2002) "Namco Museum" 
+Nintendo GameCube (oct.9, 2002) "Namco Museum [Model DOL-GNME-USA]" 
+Sony PlayStation 2 (aug.30, 2005) "Namco Museum - 50th Anniversary [Model SLUS-21164]" 
+Microsoft XBOX (aug.30, 2005) "Namco Museum - 50th Anniversary [Model NMO-2201A-NM]" 
+Nintendo GameCube (aug.30, 2005) "Namco Museum - 50th Anniversary [Model DOL-G5NE-USA]" 
+Microsoft XBOX 360 [XBLA] (aug.9, 2006) 
+Microsoft XBOX 360 [XBLA] (nov.4, 2008) "Namco Museum - Virtual Arcade [Model 21022]" 
+Sony PlayStation 3 (jul.16, 2009) "Namco Museum Essentials [Model NPUB-30086]" 
+Nintendo Wii (nov.16, 2010) "Namco Museum Megamix" 
+Sony PlayStation 3 [PSN] (feb.25, 2014) "Pac-Man Museum [Model NPUB-31383]" 
+Microsoft XBOX 360 [XBLA] (feb.26, 2014) "Pac-Man Museum"
+Microsoft XBOX One [XBOX Store] (apr.20, 2016) "Arcade Game Series - Pac-Man"
+Sony PlayStation 4 [PSN] (apr.20, 2016) "Arcade Game Series - Pac-Man [Model CUSA-03955]" 
+
+* HANDHELDS: 
+Sega Game Gear (1991) "Pac-Man [Model T-14018]" 
+Nintendo Game Boy (apr.1991) "Pac-Man [Model DMG-PC-USA]"  
+SNK Neo-Geo Pocket Color (jul.31, 1999) "Pac-Man [Model NEOP00551]" 
+Nintendo Game Boy Color (aug.1999) "Pac-Man - Special Color Edition [Model DMG-AACE-USA]" 
+Nintendo Game Boy Advance (jul.12, 2001) "Pac-Man Collection [Model AGB-APCE-USA]" 
+Sony PSP (aug.23, 2005) "Namco Museum Battle Collection [Model ULUS-10035]" 
+Nintendo DS (sept.18, 2007) "Namco Museum DS [Model NTR-YNME-USA]" 
+Nintendo 3DS (jul.26, 2011) "Pac-Man & Galaga Dimensions [Model CTR-APGE-USA]" 
+
+* COMPUTERS: 
+Tandy Color Computer (1981) "Pac-Tac" 
+Atari 400 (1982) 
+Atari 800 (1982) "Pac-Man [Model CXL4022]" 
+Commodore VIC-20 (1982) 
+PC [Booter] (1982) "PC-Man" 
+Tandy Color Computer (1982) "Ghost Gobbler" 
+Tandy Color Computer (1982) "Pack Maze" 
+Apple II (1983) 
+Commodore C64 (1983) by Thunder Mountain 
+Commodore C64 (1983) "Pac-Man [Model RX8502]" 
+PC [Booter] (1983) 
+PC [Booter] (1983) "Ascii Man" : Part of the "Friendlyware PC Arcade" suite 
+PC [MS-DOS] (1983) 
+Tandy Color Computer (1983) "Pac Jaws" 
+Tandy Color Computer (1983) "Pac-Tac II" 
+Texas Instruments TI-99/4A (1983) "Pac-Man [Model RX8500]"
+Tandy Color Computer (1990) "Pac-Dude"
+Apple II GS (1992) "Pac Man GS"
+NEC PC-9801 (1992) Pac Man
+Apple Macintosh (1992) "Mac-Man"
+PC [MS Windows 95, CD-ROM] (1995) "Mac-Man" : Part of "Windows Arcade Pack" 
+PC [MS Windows 95, 3.5"] (mar.31, 1996) "Microsoft Return of Arcade" 
+Tandy Color Computer 3 (1997) 
+PC [MS-DOS] (1997) "Champ Pac-Em" by CHAMProgramming 
+PC [MS Windows, CD-ROM] (2000) "Microsoft Return of Arcade Anniversary Edition" 
+PC [MS Windows, CD-ROM] (oct.25, 2005) "Namco Museum - 50th Anniversary" 
+PC [MS Windows, Online] (2009) "Namco All Stars: Pac-Man and Dig Dug" by WildTangent Games 
+Apple iPhone/iPad (mar.31, 2010) "Pac-Man for iPad [Model 363297482]"  
+PC [MS Windows, Online] (aug.4, 2010) "Namco All-Stars: PAC-MAN" by WildTangent Games 
+Steam (feb.25, 2014) "Pac-Man Museum [Model 236470]" 
+Steam (apr.19, 2016) "Arcade Game Series - Pac-Man [Model 394160]" 
+
+* OTHERS: 
+VFD handheld game (1981) by Coleco. 
+LCD handheld game (1992) by Micro Games of America 
+Arcade (1996) "Namco Classics Collection Vol.2" 
+LCD handheld color game (1999) by Micro Games of America 
+Arcade (2000) "Ms. Pac-Man/Galaga - 20th Anniversary Class of 1981 Reunion" : as a hidden game. 
+Namco Classics TV game (2003) by Jakks Pacific 
+Mobile Phones (june.13, 2003) 
+Arcade (2005) "Pac-Man - 25th Anniversary Edition" 
+Super Pac-Man TV game (2006) by Jakks Pacific 
+Arcade Gold featuring Pac-Man (2007) by Jakks Pacific 
+Retro Arcade featuring Pac-Man (2008) by Jakks Pacific 
+Apple iPhone/iPod (jul.9, 2008) "Pac-Man [Model 281656475]" 
+Android Market (sept.23, 2008)
+BlackBerry (june.30, 2009) "Pac-Man [Model 967]" 
+Android (jan.11, 2010) 
+Windows Mobile (mar.15, 2010)
+Apple iPhone/iPod (mar.31, 2010) "Pac-Man for iPad [Model 363297482]" 
+Arcade (2010) "Pac-Man's Arcade Party" 
+Android Market (2011) 
+Pac-Man Connect and Play (2012) by Bandai 
+Apple iPhone/iPod (mar.13, 2012) "Namco Arcade [Model 465606050]" 
+Android Market (apr.6, 2012) by Namco Networks America 
+Android (mar.22, 2013) "Pac-Man + Tournaments"
+Arcade (2018) "Pac-Man's Pixel Bash"
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/1914/?o=2
+
+— Gaming History (arcade-history.com)

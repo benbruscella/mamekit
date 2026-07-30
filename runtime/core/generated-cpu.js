@@ -1,0 +1,465 @@
+import { executeGeneratedProgram, } from "./generated-handler.js";
+const DEFINITIONS = new Map();
+export function registerGeneratedCpu(definition) {
+    if (definition.summary.diagnostics) {
+        throw new Error(`cannot register ${definition.type}: ${definition.summary.diagnostics} compiler diagnostics`);
+    }
+    DEFINITIONS.set(definition.type.toUpperCase(), definition);
+}
+export function clearGeneratedCpus() {
+    DEFINITIONS.clear();
+}
+export function hasGeneratedCpu(type) {
+    return DEFINITIONS.has(type.toUpperCase());
+}
+export function createCpu(type, bus) {
+    const definition = DEFINITIONS.get(type.toUpperCase());
+    if (!definition)
+        throw new Error(`generated CPU "${type}" was not registered`);
+    if ('create' in definition)
+        return definition.create(bus);
+    return new IrCpu(definition, bus);
+}
+class IrCpu {
+    definition;
+    bus;
+    members = {};
+    memberBits = new Map();
+    opcodes;
+    methods;
+    bindings;
+    irqData = 0xff;
+    irqHold = false;
+    internalRam = new Map();
+    portData;
+    portDirection;
+    constructor(definition, bus) {
+        this.definition = definition;
+        this.bus = bus;
+        this.portData = new Array(definition.internal?.ports.length ?? 0).fill(0);
+        this.portDirection = new Array(definition.internal?.ports.length ?? 0).fill(0);
+        this.opcodes = new Map(definition.opcodes.map(opcode => [opcode.key, opcode]));
+        this.methods = new Map(definition.methods.map(method => [method.name, method]));
+        for (const member of definition.members) {
+            if (member.values) {
+                this.members[member.name] = member.bits === 8
+                    ? Uint8Array.from(member.values)
+                    : [...member.values];
+            }
+            else if (member.fields) {
+                this.members[member.name] = typedObject(member.fields);
+            }
+            else if (member.pair) {
+                this.members[member.name] = new Pair16(member.initial ?? 0);
+            }
+            else {
+                this.members[member.name] = member.initial ?? 0;
+                if (member.bits)
+                    this.memberBits.set(member.name, member.bits);
+            }
+        }
+        const getters = {};
+        const setters = {};
+        for (const member of definition.members) {
+            getters[member.name] = () => this.readPath(member.name);
+            setters[member.name] = value => this.writePath(member.name, value, member.bits);
+        }
+        for (const [name, alias] of Object.entries(definition.aliases)) {
+            getters[name] = () => this.readAlias(alias);
+            setters[name] = value => this.writeAlias(alias, value);
+        }
+        const referenceCalls = {};
+        const callParameters = {};
+        this.bindings = {
+            members: this.members,
+            getters,
+            setters,
+            constants: definition.constants,
+            calls: this.externalCalls(),
+            referenceCalls,
+            callParameters,
+        };
+        for (const method of definition.methods) {
+            const parameters = splitParameters(method.parameters);
+            callParameters[method.name] = parameters;
+            referenceCalls[method.name] = (...args) => this.executeMethod(method, parameters, args);
+        }
+        callParameters.swap = ['auto &left', 'auto &right'];
+        referenceCalls.swap = (left, right) => {
+            if (!isLValue(left) || !isLValue(right))
+                return 0;
+            const value = Number(left.get()) || 0;
+            const other = Number(right.get()) || 0;
+            left.set(other);
+            right.set(value);
+            return 0;
+        };
+        for (const [name, delta] of [['POSTINC', 1], ['POSTDEC', -1]]) {
+            callParameters[name] = ['auto &value'];
+            referenceCalls[name] = value => {
+                if (!isLValue(value))
+                    return 0;
+                const previous = Number(value.get()) || 0;
+                value.set(previous + delta);
+                return previous;
+            };
+        }
+        this.execute(definition.start);
+        this.reset();
+    }
+    reset() {
+        this.execute(this.definition.reset);
+    }
+    step() {
+        if (this.definition.step) {
+            return Number(this.execute(this.definition.step)) || 0;
+        }
+        this.set('cycles', 0);
+        this.set('m_icount', 1);
+        this.execute(this.definition.service);
+        if (this.get('cycles') > 0)
+            return this.get('cycles');
+        this.execute(this.definition.fetch);
+        let dispatches = 0;
+        while (true) {
+            if (++dispatches > 8)
+                throw new Error(`${this.definition.type} dispatch loop exceeded 8`);
+            const opcode = this.opcodes.get(this.refKey());
+            if (!opcode)
+                throw new Error(`${this.definition.type} has no opcode ${this.refKey()}`);
+            this.execute(opcode.program);
+            if (!opcode.dispatch)
+                break;
+        }
+        return this.get('cycles');
+    }
+    run(target) {
+        let total = 0;
+        while (total < target)
+            total += this.step();
+        return total;
+    }
+    setIrqLine(active, dataBus = 0xff, hold = false) {
+        if (active)
+            this.irqData = dataBus;
+        this.irqHold = active && hold;
+        this.setInputLine(this.constant('INPUT_LINE_IRQ0', 0), active ? this.constant('ASSERT_LINE', 1) : this.constant('CLEAR_LINE', 0));
+    }
+    setInputLine(inputnum, state) {
+        this.execute(this.definition.input, { inputnum, state });
+    }
+    nmi() {
+        const inputnum = this.constant('INPUT_LINE_NMI', -1);
+        this.execute(this.definition.input, { inputnum, state: this.constant('ASSERT_LINE', 1) });
+        this.execute(this.definition.input, { inputnum, state: this.constant('CLEAR_LINE', 0) });
+    }
+    get(name) {
+        const alias = this.definition.aliases[name];
+        const value = alias ? this.readAlias(alias) : this.readPath(name);
+        return Number(value) || 0;
+    }
+    set(name, value) {
+        const alias = this.definition.aliases[name];
+        if (alias)
+            this.writeAlias(alias, value);
+        else
+            this.writePath(name, value, this.memberBits.get(name));
+    }
+    invoke(name, ...args) {
+        const method = this.methods.get(name);
+        if (!method)
+            throw new Error(`${this.definition.type} has no generated method "${name}"`);
+        const parameters = splitParameters(method.parameters);
+        return Number(this.executeMethod(method, parameters, args)) || 0;
+    }
+    execute(program, args = {}) {
+        return executeGeneratedProgram(program, this.bindings, args).value;
+    }
+    executeMethod(method, parameters, args) {
+        const names = parameters.map(parameterName);
+        return this.execute(method.program, Object.fromEntries(names.map((name, index) => [name, args[index] ?? 0])));
+    }
+    externalCalls() {
+        return {
+            READ: address => {
+                this.set('cycles', this.get('cycles') + 1);
+                return this.readMemory(address);
+            },
+            READ_VECTOR: ordinal => {
+                this.set('cycles', this.get('cycles') + 1);
+                return this.readMemory(this.get('m_ea.w') + ordinal);
+            },
+            ARG: address => {
+                this.set('cycles', this.get('cycles') + 1);
+                return this.readMemory(address);
+            },
+            OPCODE: address => {
+                this.set('cycles', this.get('cycles') + 1);
+                return this.readOpcode(address);
+            },
+            WRITE: (address, value) => {
+                this.set('cycles', this.get('cycles') + 1);
+                this.writeMemory(address, value);
+                return 0;
+            },
+            'm_data.read_interruptible': address => this.bus.read(address & 0xffff) & 0xff,
+            'm_data.write_interruptible': (address, value) => {
+                this.bus.write(address & 0xffff, value & 0xff);
+            },
+            'm_opcodes.read_byte': address => (this.bus.readOpcode?.(address & 0xffff) ?? this.bus.read(address & 0xffff)) & 0xff,
+            'm_args.read_byte': address => this.bus.read(address & 0xffff) & 0xff,
+            'm_program.read_byte': address => this.readMemory(address),
+            'm_cprogram.read_byte': address => this.readMemory(address),
+            'm_copcodes.read_byte': address => this.readMemory(address),
+            'm_program.write_byte': (address, value) => {
+                this.writeMemory(address, value);
+            },
+            'm_io.read_interruptible': port => this.bus.in(port & 0xffff) & 0xff,
+            'm_io.write_interruptible': (port, value) => {
+                this.bus.out(port & 0xffff, value & 0xff);
+            },
+            program_r: address => this.readMemory(address & 0x0fff),
+            ram_r: address => {
+                const ram = this.members.m_dataptr;
+                return ram?.[address & 0x7f] ?? 0;
+            },
+            ram_w: (address, value) => {
+                const ram = this.members.m_dataptr;
+                if (ram)
+                    ram[address & 0x7f] = value & 0xff;
+                return 0;
+            },
+            ext_r: address => this.bus.in(address & 0xff) & 0xff,
+            ext_w: (address, value) => {
+                this.bus.out(address & 0xff, value & 0xff);
+                return 0;
+            },
+            port_r: port => Number(this.bus.signal?.(`p${port}_in_cb`, 0) ?? 0xff),
+            port_w: (port, value) => Number(this.bus.signal?.(`p${port}_out_cb`, value & 0xff) ?? 0),
+            test_r: port => Number(this.bus.signal?.(`t${port}_in_cb`, 0) ?? 0),
+            bus_r: () => Number(this.bus.signal?.('bus_in_cb', 0) ?? 0xff),
+            bus_w: value => Number(this.bus.signal?.('bus_out_cb', value & 0xff) ?? 0),
+            prog_w: value => Number(this.bus.signal?.('prog_out_cb', value & 1) ?? 0),
+            m_out_inte_func: state => this.bus.signal?.('out_inte_func', state) ?? 0,
+            m_out_sod_func: state => this.bus.signal?.('out_sod_func', state) ?? 0,
+            standard_irq_callback: () => this.acknowledgeIrq(),
+            daisy_get_irq_device: () => 0,
+            daisy_chain_present: () => 0,
+            daisy_update_irq_state: () => 0,
+            access_to_be_redone: () => 0,
+            debugger_enabled: () => 0,
+            debugger_instruction_hook: () => 0,
+            debugger_wait_hook: () => 0,
+            total_cycles: () => 1,
+            LOGMASKED: () => 0,
+            logerror: () => 0,
+            tag: () => 0,
+        };
+    }
+    readMemory(address) {
+        const location = address & 0xffff;
+        const ports = this.definition.internal?.ports ?? [];
+        for (let index = 0; index < ports.length; index++) {
+            const port = ports[index];
+            if (location === port.directionAddress)
+                return 0xff;
+            if (location !== port.dataAddress)
+                continue;
+            const direction = this.portDirection[index];
+            const input = Number(this.bus.signal?.(port.inputSignal, 0) ?? 0xff) & 0xff;
+            return direction === 0xff
+                ? this.portData[index]
+                : (input & ~direction) | (this.portData[index] & direction);
+        }
+        if (this.isInternalRam(location))
+            return this.internalRam.get(location) ?? 0;
+        return this.bus.read(location) & 0xff;
+    }
+    readOpcode(address) {
+        const location = address & 0xffff;
+        const value = this.readMemory(location);
+        const decrypt = this.definition.opcodeDecrypt;
+        if (!decrypt || location < decrypt.boundary)
+            return value;
+        return value ^ (decrypt.xorByAddress[String(location & decrypt.addressMask)] ?? 0);
+    }
+    writeMemory(address, value) {
+        const location = address & 0xffff;
+        const data = value & 0xff;
+        const ports = this.definition.internal?.ports ?? [];
+        for (let index = 0; index < ports.length; index++) {
+            const port = ports[index];
+            if (location === port.directionAddress) {
+                this.portDirection[index] = data;
+                this.emitPort(index);
+                return;
+            }
+            if (location === port.dataAddress) {
+                this.portData[index] = data;
+                this.emitPort(index);
+                return;
+            }
+        }
+        if (this.isInternalRam(location)) {
+            this.internalRam.set(location, data);
+            return;
+        }
+        this.bus.write(location, data);
+    }
+    emitPort(index) {
+        const port = this.definition.internal?.ports[index];
+        if (!port)
+            return;
+        const direction = this.portDirection[index];
+        const data = direction
+            ? (this.portData[index] & direction) | (direction ^ 0xff)
+            : this.portData[index];
+        this.bus.signal?.(port.outputSignal, data & port.outputMask);
+    }
+    isInternalRam(address) {
+        return (this.definition.internal?.ram ?? [])
+            .some(range => address >= range.start && address <= range.end);
+    }
+    refKey() {
+        const ref = this.get('m_ref') >>> 0;
+        return `${hex((ref >>> 16) & 0xff)}${hex((ref >>> 8) & 0xff)}`;
+    }
+    acknowledgeIrq() {
+        const source = this.irqData;
+        const data = typeof source === 'function' ? source() : source;
+        if (this.irqHold) {
+            this.irqHold = false;
+            this.setIrqLine(false);
+        }
+        return data;
+    }
+    constant(name, fallback) {
+        return this.definition.constants[name] ?? fallback;
+    }
+    readAlias(alias) {
+        const value = Number(this.readPath(alias.member)) || 0;
+        if (alias.part === 'high')
+            return (value >>> 8) & 0xff;
+        if (alias.part === 'low')
+            return value & 0xff;
+        return value;
+    }
+    writeAlias(alias, value) {
+        if (alias.part === 'high' || alias.part === 'low') {
+            const pair = Number(this.readPath(alias.member)) || 0;
+            const next = alias.part === 'high'
+                ? ((pair & 0x00ff) | ((value & 0xff) << 8))
+                : ((pair & 0xff00) | (value & 0xff));
+            this.writePath(alias.member, next, 16);
+            return;
+        }
+        this.writePath(alias.member, value, alias.bits);
+    }
+    readPath(path) {
+        const parts = path.split('.');
+        let value = this.members[parts.shift()];
+        for (const part of parts) {
+            if (!value || typeof value !== 'object')
+                return 0;
+            value = value[part];
+        }
+        return value ?? 0;
+    }
+    writePath(path, value, bits) {
+        const parts = path.split('.');
+        const wrapped = wrap(value, bits);
+        if (parts.length === 1) {
+            const current = this.members[path];
+            if (current instanceof Pair16) {
+                current.w = value;
+                return;
+            }
+            this.members[path] = wrapped;
+            return;
+        }
+        const property = parts.pop();
+        let object = this.members[parts.shift()];
+        for (const part of parts) {
+            if (!object || typeof object !== 'object')
+                return;
+            object = object[part];
+        }
+        if (object && typeof object === 'object') {
+            object[property] = wrapped;
+        }
+    }
+}
+function splitParameters(parameters) {
+    return parameters.split(',').map(parameter => parameter.trim()).filter(Boolean);
+}
+function parameterName(parameter) {
+    return /(\w+)\s*$/.exec(parameter.replace(/\.\.\./g, '').trim())?.[1] ?? parameter;
+}
+function isLValue(value) {
+    return Boolean(value &&
+        typeof value === 'object' &&
+        'get' in value &&
+        'set' in value);
+}
+function wrap(value, bits) {
+    if (bits === 1)
+        return value ? 1 : 0;
+    if (bits === 8)
+        return value & 0xff;
+    if (bits === 16)
+        return value & 0xffff;
+    if (bits === 32)
+        return value >>> 0;
+    return value;
+}
+function hex(value) {
+    return value.toString(16).padStart(2, '0');
+}
+function typedObject(fields) {
+    const values = {};
+    const object = {};
+    for (const [name, bits] of Object.entries(fields)) {
+        values[name] = 0;
+        Object.defineProperty(object, name, {
+            enumerable: true,
+            get: () => values[name],
+            set: (value) => {
+                values[name] = wrap(value, bits);
+            },
+        });
+    }
+    return object;
+}
+class Pair16 {
+    value = 0;
+    b;
+    constructor(value) {
+        this.value = value & 0xffff;
+        const pair = this;
+        this.b = Object.defineProperties({}, {
+            h: {
+                enumerable: true,
+                get: () => (pair.value >>> 8) & 0xff,
+                set: (next) => {
+                    pair.value = ((pair.value & 0x00ff) | ((next & 0xff) << 8)) & 0xffff;
+                },
+            },
+            l: {
+                enumerable: true,
+                get: () => pair.value & 0xff,
+                set: (next) => {
+                    pair.value = ((pair.value & 0xff00) | (next & 0xff)) & 0xffff;
+                },
+            },
+        });
+    }
+    get w() {
+        return this.value;
+    }
+    set w(value) {
+        this.value = value & 0xffff;
+    }
+    valueOf() {
+        return this.value;
+    }
+}

@@ -1,0 +1,3385 @@
+{
+    "schemaVersion": 3,
+    "game": "invaders",
+    "family": "mw8080bw",
+    "driverFile": "src/mame/midw8080/mw8080bw.cpp",
+    "callbacks": [
+        {
+            "id": "callback:timer/mw8080bw_state.interrupt_trigger",
+            "ownerTag": "interrupt_timer",
+            "signal": "timer",
+            "operation": "adjust",
+            "targetClass": "mw8080bw_state",
+            "targetMethod": "interrupt_trigger",
+            "scanlines": [
+                96,
+                224
+            ],
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 217,
+                "column": 1
+            }
+        },
+        {
+            "id": "device:mw8080bw_state.mw8080bw_root/maincpu/callback0",
+            "ownerTag": "maincpu",
+            "signal": "set_irq_acknowledge_callback",
+            "operation": "set_irq_acknowledge_callback",
+            "targetClass": "mw8080bw_state",
+            "targetMethod": "interrupt_vector",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 334,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mw8080bw_state.mw8080bw_root/maincpu/callback1",
+            "ownerTag": "maincpu",
+            "signal": "out_inte_func",
+            "operation": "set",
+            "targetClass": "mw8080bw_state",
+            "targetMethod": "int_enable_w",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 335,
+                "column": 2
+            }
+        },
+        {
+            "id": "machine:invaders_state.invaders/callback0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "invaders_state",
+            "targetMethod": "screen_update_invaders",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2693,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "callback:timer/mw8080bw_state.interrupt_trigger",
+            "effect": {
+                "kind": "handler",
+                "handler": "mw8080bw_state.interrupt_trigger"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 217,
+                "column": 1
+            }
+        },
+        {
+            "callbackId": "device:mw8080bw_state.mw8080bw_root/maincpu/callback0",
+            "effect": {
+                "kind": "handler",
+                "handler": "mw8080bw_state.interrupt_vector"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 334,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:mw8080bw_state.mw8080bw_root/maincpu/callback1",
+            "effect": {
+                "kind": "handler",
+                "handler": "mw8080bw_state.int_enable_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 335,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "machine:invaders_state.invaders/callback0",
+            "effect": {
+                "kind": "handler",
+                "handler": "invaders_state.screen_update_invaders"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2693,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "i8080",
+                "clock": 1996800,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 8191,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 8192,
+                        "end": 16383,
+                        "kind": "ram",
+                        "mirror": 16384,
+                        "share": "main_ram"
+                    },
+                    {
+                        "start": 16384,
+                        "end": 24575,
+                        "kind": "rom"
+                    }
+                ],
+                "mask": 32767,
+                "io": {
+                    "ranges": [
+                        {
+                            "start": 0,
+                            "end": 0,
+                            "kind": "handler",
+                            "mirror": 4,
+                            "read": "port.IN0"
+                        },
+                        {
+                            "start": 1,
+                            "end": 1,
+                            "kind": "handler",
+                            "mirror": 4,
+                            "read": "port.IN1"
+                        },
+                        {
+                            "start": 2,
+                            "end": 2,
+                            "kind": "handler",
+                            "mirror": 4,
+                            "read": "port.IN2"
+                        },
+                        {
+                            "start": 2,
+                            "end": 2,
+                            "kind": "nop"
+                        },
+                        {
+                            "start": 3,
+                            "end": 3,
+                            "kind": "handler",
+                            "write": "soundboard.p1_w"
+                        },
+                        {
+                            "start": 5,
+                            "end": 5,
+                            "kind": "handler",
+                            "write": "soundboard.p2_w"
+                        },
+                        {
+                            "start": 6,
+                            "end": 6,
+                            "kind": "handler",
+                            "write": "watchdog.reset_w"
+                        },
+                        {
+                            "start": 3,
+                            "end": 3,
+                            "kind": "handler",
+                            "mirror": 4,
+                            "read": "mb14241.shift_result_r"
+                        },
+                        {
+                            "start": 2,
+                            "end": 2,
+                            "kind": "handler",
+                            "write": "mb14241.shift_count_w"
+                        },
+                        {
+                            "start": 4,
+                            "end": 4,
+                            "kind": "handler",
+                            "write": "mb14241.shift_data_w"
+                        }
+                    ]
+                },
+                "cycleClock": 1996800,
+                "source": {
+                    "file": "src/mame/midw8080/mw8080bw.cpp",
+                    "line": 332,
+                    "column": 2
+                }
+            }
+        ],
+        "screen": {
+            "width": 260,
+            "height": 224,
+            "xOffset": 0,
+            "yOffset": 0,
+            "refresh": 59.541984732824424,
+            "vtotal": 262,
+            "vbstart": 224,
+            "vbend": 0,
+            "updateMode": "frame",
+            "rotate": 270,
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 338,
+                "column": 2
+            }
+        },
+        "customs": [
+            {
+                "port": "IN0",
+                "mask": 6,
+                "member": "invaders_sw6_sw7_r",
+                "handler": "invaders_state.invaders_sw6_sw7_r"
+            },
+            {
+                "port": "IN0",
+                "mask": 112,
+                "member": "invaders_in0_control_r",
+                "handler": "invaders_state.invaders_in0_control_r"
+            },
+            {
+                "port": "IN0",
+                "mask": 128,
+                "member": "invaders_sw5_r",
+                "handler": "invaders_state.invaders_sw5_r"
+            },
+            {
+                "port": "IN1",
+                "mask": 112,
+                "member": "invaders_in1_control_r",
+                "handler": "invaders_state.invaders_in1_control_r"
+            },
+            {
+                "port": "IN2",
+                "mask": 112,
+                "member": "invaders_in2_control_r",
+                "handler": "invaders_state.invaders_in2_control_r"
+            }
+        ],
+        "inputMembers": [
+            {
+                "member": "m_player_controls",
+                "tags": [
+                    "CONTP1",
+                    "CONTP2"
+                ]
+            },
+            {
+                "member": "m_cabinet_type",
+                "tags": [
+                    "CAB"
+                ]
+            }
+        ],
+        "frameEvents": [
+            {
+                "callbackId": "callback:timer/mw8080bw_state.interrupt_trigger",
+                "ownerTag": "interrupt_timer",
+                "signal": "timer",
+                "line": 96,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/midw8080/mw8080bw.cpp",
+                    "line": 217,
+                    "column": 1
+                }
+            },
+            {
+                "callbackId": "callback:timer/mw8080bw_state.interrupt_trigger",
+                "ownerTag": "interrupt_timer",
+                "signal": "timer",
+                "line": 224,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/midw8080/mw8080bw.cpp",
+                    "line": 217,
+                    "column": 1
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "invaders_state.screen_update_invaders",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw_v.cpp",
+                "line": 356,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:mw8080bw_state.mw8080bw_root/maincpu",
+            "tag": "maincpu",
+            "type": "I8080",
+            "member": "m_maincpu",
+            "clock": 1996800,
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 332,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:mw8080bw_state.mw8080bw_root/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "member": "m_screen",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        4992000,
+                        320,
+                        0,
+                        260,
+                        262,
+                        0,
+                        224
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 338,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:invaders_state.invaders/watchdog",
+            "tag": "watchdog",
+            "type": "WATCHDOG_TIMER",
+            "member": "m_watchdog",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2690,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:invaders_state.invaders/mb14241",
+            "tag": "mb14241",
+            "type": "MB14241",
+            "member": "m_mb14241",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2696,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:invaders_state.invaders/soundboard",
+            "tag": "soundboard",
+            "type": "INVADERS_AUDIO"
+        },
+        {
+            "id": "device:invaders_audio_device.device_add_mconfig/mono",
+            "tag": "mono",
+            "type": "SPEAKER",
+            "hostTag": "soundboard",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw_a.cpp",
+                "line": 3281,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:invaders_audio_device.device_add_mconfig/sn%u",
+            "tag": "sn%u",
+            "type": "SN76477",
+            "hostTag": "soundboard",
+            "member": "m_sn",
+            "configuration": [
+                {
+                    "method": "set_noise_params",
+                    "args": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "method": "set_decay_res",
+                    "args": [
+                        0
+                    ]
+                },
+                {
+                    "method": "set_pitch_voltage",
+                    "args": [
+                        5
+                    ]
+                },
+                {
+                    "method": "set_oneshot_params",
+                    "args": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "method": "set_vco_mode",
+                    "args": [
+                        1
+                    ]
+                },
+                {
+                    "method": "set_mixer_params",
+                    "args": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "method": "set_envelope_params",
+                    "args": [
+                        1,
+                        0
+                    ]
+                },
+                {
+                    "method": "set_enable",
+                    "args": [
+                        1
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw_a.cpp",
+                "line": 3283,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:invaders_audio_device.device_add_mconfig/discrete",
+            "tag": "discrete",
+            "type": "DISCRETE",
+            "hostTag": "soundboard",
+            "member": "m_discrete",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw_a.cpp",
+                "line": 3299,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:mw8080bw_state.interrupt_trigger",
+            "ownerClass": "mw8080bw_state",
+            "method": "interrupt_trigger",
+            "parameters": "int param",
+            "body": "int const vpos = m_screen->vpos();\n\tuint8_t const counter = vpos_to_vysnc_chain_counter(vpos);\n\n\tif (m_int_enable)\n\t{\n\t\tm_maincpu->set_input_line(0, ASSERT_LINE);\n\t\tm_interrupt_time = machine().time();\n\t}\n\telse\n\t\tm_maincpu->set_input_line(0, CLEAR_LINE);\n\n\t// set up for next interrupt\n\tuint8_t next_counter;\n\tint next_vblank;\n\tif (counter == MW8080BW_INT_TRIGGER_COUNT_1)\n\t{\n\t\tnext_counter = MW8080BW_INT_TRIGGER_COUNT_2;\n\t\tnext_vblank = MW8080BW_INT_TRIGGER_VBLANK_2;\n\t}\n\telse\n\t{\n\t\tnext_counter = MW8080BW_INT_TRIGGER_COUNT_1;\n\t\tnext_vblank = MW8080BW_INT_TRIGGER_VBLANK_1;\n\t}\n\n\tint const next_vpos = vysnc_chain_counter_to_vpos(next_counter, next_vblank);\n\tm_interrupt_timer->adjust(m_screen->time_until_pos(next_vpos));",
+            "constants": {
+                "MW8080BW_INT_TRIGGER_COUNT_1": 128,
+                "MW8080BW_INT_TRIGGER_VBLANK_1": 0,
+                "MW8080BW_INT_TRIGGER_COUNT_2": 218,
+                "MW8080BW_INT_TRIGGER_VBLANK_2": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "vpos",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_screen"
+                                },
+                                "property": "vpos"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "counter",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "vpos_to_vysnc_chain_counter"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "vpos"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_int_enable"
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ASSERT_LINE"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_interrupt_time"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "time"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "CLEAR_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "declare",
+                        "name": "next_counter",
+                        "valueType": "uint8_t"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "next_vblank",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "counter"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "MW8080BW_INT_TRIGGER_COUNT_1"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "next_counter"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "MW8080BW_INT_TRIGGER_COUNT_2"
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "next_vblank"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "MW8080BW_INT_TRIGGER_VBLANK_2"
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "next_counter"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "MW8080BW_INT_TRIGGER_COUNT_1"
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "next_vblank"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "MW8080BW_INT_TRIGGER_VBLANK_1"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "declare",
+                        "name": "next_vpos",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "vysnc_chain_counter_to_vpos"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "next_counter"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "next_vblank"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_interrupt_timer"
+                                },
+                                "property": "adjust"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "time_until_pos"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "next_vpos"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 217,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mw8080bw_state.vpos_to_vysnc_chain_counter",
+            "ownerClass": "mw8080bw_state",
+            "method": "vpos_to_vysnc_chain_counter",
+            "parameters": "int vpos",
+            "body": "// convert from a vertical position to the actual values on the vertical sync counters\n\tuint8_t counter;\n\tint vblank = (vpos >= MW8080BW_VBSTART);\n\n\tif (vblank)\n\t\tcounter = vpos - MW8080BW_VBSTART + MW8080BW_VCOUNTER_START_VBLANK;\n\telse\n\t\tcounter = vpos + MW8080BW_VCOUNTER_START_NO_VBLANK;\n\n\treturn counter;",
+            "constants": {
+                "MW8080BW_VBSTART": 224,
+                "MW8080BW_VCOUNTER_START_NO_VBLANK": 32,
+                "MW8080BW_VCOUNTER_START_VBLANK": 218
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "counter",
+                        "valueType": "uint8_t"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "vblank",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": ">=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "vpos"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "MW8080BW_VBSTART"
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "vblank"
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "counter"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "-",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "vpos"
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "MW8080BW_VBSTART"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "MW8080BW_VCOUNTER_START_VBLANK"
+                                    }
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "counter"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "vpos"
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "counter"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 188,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mb14241_device.shift_result_r",
+            "ownerClass": "mb14241_device",
+            "method": "shift_result_r",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2819,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mb14241_device.shift_data_w",
+            "ownerClass": "mb14241_device",
+            "method": "shift_data_w",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2824,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:mb14241_device.shift_count_w",
+            "ownerClass": "mb14241_device",
+            "method": "shift_count_w",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2822,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:watchdog_timer_device.reset_w",
+            "ownerClass": "watchdog_timer_device",
+            "method": "reset_w",
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2826,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:invaders_audio_device.p1_w",
+            "ownerClass": "invaders_audio_device",
+            "method": "p1_w",
+            "parameters": "u8 data",
+            "body": "m_sn->enable_w(BIT(~data, 0));    // saucer sound\n\n\tm_discrete->write(INVADERS_NODE(INVADERS_MISSILE_EN, 1), data & 0x02);\n\tm_discrete->write(INVADERS_NODE(INVADERS_EXPLOSION_EN, 1), data & 0x04);\n\tm_discrete->write(INVADERS_NODE(INVADERS_INVADER_HIT_EN, 1), data & 0x08);\n\tm_discrete->write(INVADERS_NODE(INVADERS_BONUS_MISSLE_BASE_EN, 1), data & 0x10);\n\n\tmachine().sound().system_mute(!BIT(data, 5));\n\n\t// D6 and D7 are not connected",
+            "constants": {
+                "INVADERS_BONUS_MISSLE_BASE_EN": 3,
+                "INVADERS_INVADER_HIT_EN": 4,
+                "INVADERS_EXPLOSION_EN": 5,
+                "INVADERS_MISSILE_EN": 6
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_sn"
+                                },
+                                "property": "enable_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            }
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "INVADERS_NODE"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INVADERS_MISSILE_EN"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "INVADERS_NODE"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INVADERS_EXPLOSION_EN"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "INVADERS_NODE"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INVADERS_INVADER_HIT_EN"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 8
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "INVADERS_NODE"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INVADERS_BONUS_MISSLE_BASE_EN"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 16
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "sound"
+                                    },
+                                    "args": []
+                                },
+                                "property": "system_mute"
+                            },
+                            "args": [
+                                {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "BIT"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            {
+                                                "kind": "number",
+                                                "value": 5
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw_a.cpp",
+                "line": 3251,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:invaders_audio_device.p2_w",
+            "ownerClass": "invaders_audio_device",
+            "method": "p2_w",
+            "parameters": "u8 data",
+            "body": "u8 const changed(data ^ m_p2);\n\tm_p2 = data;\n\n\tm_discrete->write(INVADERS_NODE(INVADERS_FLEET_DATA, 1), data & 0x0f);\n\tm_discrete->write(INVADERS_NODE(INVADERS_SAUCER_HIT_EN, 1), data & 0x10);\n\n\tif (BIT(changed, 5)) m_flip_screen_out(BIT(data, 5));\n\n\t// D6 and D7 are not connected",
+            "constants": {
+                "INVADERS_SAUCER_HIT_EN": 1,
+                "INVADERS_FLEET_DATA": 2
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "changed",
+                        "valueType": "u8",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "u8"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "^",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "m_p2"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_p2"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "INVADERS_NODE"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INVADERS_FLEET_DATA"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "INVADERS_NODE"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INVADERS_SAUCER_HIT_EN"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 16
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "changed"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 5
+                                }
+                            ]
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "m_flip_screen_out"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "BIT"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 5
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw_a.cpp",
+                "line": 3266,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mw8080bw_state.interrupt_vector",
+            "ownerClass": "mw8080bw_state",
+            "method": "interrupt_vector",
+            "parameters": "int irqline",
+            "body": "int vpos = m_screen->vpos();\n\t// MAME scheduling quirks cause this to happen more often than you might think, in fact far too often\n\tif (machine().time() < m_interrupt_time)\n\t\tvpos++;\n\tuint8_t counter = vpos_to_vysnc_chain_counter(vpos);\n\tuint8_t vector = 0xc7 | ((counter & 0x40) >> 2) | ((~counter & 0x40) >> 3);\n\n\tm_maincpu->set_input_line(0, CLEAR_LINE);\n\treturn vector;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "vpos",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_screen"
+                                },
+                                "property": "vpos"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "machine"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "time"
+                                },
+                                "args": []
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "m_interrupt_time"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "vpos"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "declare",
+                        "name": "counter",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "vpos_to_vysnc_chain_counter"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "vpos"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "vector",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "|",
+                                "left": {
+                                    "kind": "number",
+                                    "value": 199
+                                },
+                                "right": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "counter"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 64
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "unary",
+                                        "operator": "~",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "counter"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 64
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_maincpu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "CLEAR_LINE"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "vector"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 255,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mw8080bw_state.int_enable_w",
+            "ownerClass": "mw8080bw_state",
+            "method": "int_enable_w",
+            "parameters": "int state",
+            "body": "m_int_enable = state;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_int_enable"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "state"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 249,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:mw8080bw_state.screen_update_mw8080bw",
+            "ownerClass": "mw8080bw_state",
+            "method": "screen_update_mw8080bw",
+            "parameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+            "body": "uint8_t x = 0;\n\tuint8_t y = MW8080BW_VCOUNTER_START_NO_VBLANK;\n\tuint8_t video_data = 0;\n\n\twhile (1)\n\t{\n\t\t// plot the current pixel\n\t\tpen_t pen = (video_data & 0x01) ? rgb_t::white() : rgb_t::black();\n\t\tbitmap.pix(y - MW8080BW_VCOUNTER_START_NO_VBLANK, x) = pen;\n\n\t\t// next pixel\n\t\tvideo_data = video_data >> 1;\n\t\tx = x + 1;\n\n\t\t/* end of line? */\n\t\tif (x == 0)\n\t\t{\n\t\t\t// yes, flush out the shift register\n\t\t\tfor (int i = 0; i < 4; i++)\n\t\t\t{\n\t\t\t\tpen = (video_data & 0x01) ? rgb_t::white() : rgb_t::black();\n\t\t\t\tbitmap.pix(y - MW8080BW_VCOUNTER_START_NO_VBLANK, 256 + i) = pen;\n\n\t\t\t\tvideo_data = video_data >> 1;\n\t\t\t}\n\n\t\t\t// next row, video_data is now 0, so the next line will start with 4 blank pixels\n\t\t\ty = y + 1;\n\n\t\t\t// end of screen?\n\t\t\tif (y == 0)\n\t\t\t\tbreak;\n\t\t}\n\t\t/* the video RAM is read at every 8 pixels starting with pixel 4 */\n\t\telse if ((x & 0x07) == 0x04)\n\t\t{\n\t\t\toffs_t const offs = ((offs_t)y << 5) | (x >> 3);\n\t\t\tvideo_data = m_main_ram[offs];\n\t\t}\n\t}\n\n\treturn 0;",
+            "constants": {
+                "MW8080BW_VCOUNTER_START_NO_VBLANK": 32
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "x",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "y",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "video_data",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "while",
+                        "condition": {
+                            "kind": "number",
+                            "value": 1
+                        },
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "pen",
+                                "valueType": "pen_t",
+                                "value": {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "video_data"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    },
+                                    "whenTrue": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "rgb_t::white"
+                                        },
+                                        "args": []
+                                    },
+                                    "whenFalse": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "rgb_t::black"
+                                        },
+                                        "args": []
+                                    }
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        "property": "pix"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "y"
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                                            }
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "x"
+                                        }
+                                    ]
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "pen"
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "video_data"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "video_data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "x"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "for",
+                                        "initialize": [
+                                            {
+                                                "op": "declare",
+                                                "name": "i",
+                                                "valueType": "int",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            }
+                                        ],
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "<",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        },
+                                        "iterate": {
+                                            "op": "assign",
+                                            "target": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "operator": "+=",
+                                            "value": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        "body": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "pen"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "conditional",
+                                                    "condition": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "video_data"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    },
+                                                    "whenTrue": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "identifier",
+                                                            "name": "rgb_t::white"
+                                                        },
+                                                        "args": []
+                                                    },
+                                                    "whenFalse": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "identifier",
+                                                            "name": "rgb_t::black"
+                                                        },
+                                                        "args": []
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "bitmap"
+                                                        },
+                                                        "property": "pix"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "binary",
+                                                            "operator": "-",
+                                                            "left": {
+                                                                "kind": "identifier",
+                                                                "name": "y"
+                                                            },
+                                                            "right": {
+                                                                "kind": "identifier",
+                                                                "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                                                            }
+                                                        },
+                                                        {
+                                                            "kind": "binary",
+                                                            "operator": "+",
+                                                            "left": {
+                                                                "kind": "number",
+                                                                "value": 256
+                                                            },
+                                                            "right": {
+                                                                "kind": "identifier",
+                                                                "name": "i"
+                                                            }
+                                                        }
+                                                    ]
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "identifier",
+                                                    "name": "pen"
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "video_data"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "binary",
+                                                    "operator": ">>",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "video_data"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "y"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "==",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "y"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "else": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "==",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "x"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 7
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "declare",
+                                                "name": "offs",
+                                                "valueType": "offs_t",
+                                                "value": {
+                                                    "kind": "binary",
+                                                    "operator": "|",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "<<",
+                                                        "left": {
+                                                            "kind": "cast",
+                                                            "valueType": "offs_t",
+                                                            "operand": {
+                                                                "kind": "identifier",
+                                                                "name": "y"
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 5
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "binary",
+                                                        "operator": ">>",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "x"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 3
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "video_data"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_main_ram"
+                                                    },
+                                                    "index": {
+                                                        "kind": "identifier",
+                                                        "name": "offs"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw_v.cpp",
+                "line": 14,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:invaders_state.screen_update_invaders",
+            "ownerClass": "invaders_state",
+            "method": "screen_update_invaders",
+            "parameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+            "body": "uint8_t x = 0;\n\tuint8_t y = MW8080BW_VCOUNTER_START_NO_VBLANK;\n\tuint8_t video_data = 0;\n\n\twhile (1)\n\t{\n\t\t// plot the current pixel\n\t\tpen_t pen = (video_data & 0x01) ? rgb_t::white() : rgb_t::black();\n\n\t\tif (m_flip_screen)\n\t\t\tbitmap.pix(MW8080BW_VBSTART - 1 - (y - MW8080BW_VCOUNTER_START_NO_VBLANK), MW8080BW_HPIXCOUNT - 1 - x) = pen;\n\t\telse\n\t\t\tbitmap.pix(y - MW8080BW_VCOUNTER_START_NO_VBLANK, x) = pen;\n\n\t\t// next pixel\n\t\tvideo_data = video_data >> 1;\n\t\tx = x + 1;\n\n\t\t// end of line?\n\t\tif (x == 0)\n\t\t{\n\t\t\t// yes, flush out the shift register\n\t\t\tfor (int i = 0; i < 4; i++)\n\t\t\t{\n\t\t\t\tpen = (video_data & 0x01) ? rgb_t::white() : rgb_t::black();\n\n\t\t\t\tif (m_flip_screen)\n\t\t\t\t\tbitmap.pix(MW8080BW_VBSTART - 1 - (y - MW8080BW_VCOUNTER_START_NO_VBLANK), MW8080BW_HPIXCOUNT - 1 - (256 + i)) = pen;\n\t\t\t\telse\n\t\t\t\t\tbitmap.pix(y - MW8080BW_VCOUNTER_START_NO_VBLANK, 256 + i) = pen;\n\n\t\t\t\tvideo_data = video_data >> 1;\n\t\t\t}\n\n\t\t\t// next row, video_data is now 0, so the next line will start with 4 blank pixels\n\t\t\ty = y + 1;\n\n\t\t\t// end of screen?\n\t\t\tif (y == 0)\n\t\t\t\tbreak;\n\t\t}\n\t\telse if ((x & 0x07) == 0x04) // the video RAM is read at every 8 pixels starting with pixel 4\n\t\t{\n\t\t\toffs_t const offs = (offs_t(y) << 5) | (x >> 3);\n\t\t\tvideo_data = m_main_ram[offs];\n\t\t}\n\t}\n\n\treturn 0;",
+            "constants": {
+                "MW8080BW_VBSTART": 224,
+                "MW8080BW_VCOUNTER_START_NO_VBLANK": 32,
+                "MW8080BW_HPIXCOUNT": 260
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "x",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "y",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "video_data",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "while",
+                        "condition": {
+                            "kind": "number",
+                            "value": 1
+                        },
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "pen",
+                                "valueType": "pen_t",
+                                "value": {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "video_data"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    },
+                                    "whenTrue": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "rgb_t::white"
+                                        },
+                                        "args": []
+                                    },
+                                    "whenFalse": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "rgb_t::black"
+                                        },
+                                        "args": []
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "identifier",
+                                    "name": "m_flip_screen"
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "bitmap"
+                                                },
+                                                "property": "pix"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "-",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "-",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "MW8080BW_VBSTART"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "binary",
+                                                        "operator": "-",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "y"
+                                                        },
+                                                        "right": {
+                                                            "kind": "identifier",
+                                                            "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                                                        }
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "-",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "-",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "MW8080BW_HPIXCOUNT"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "identifier",
+                                                        "name": "x"
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "identifier",
+                                            "name": "pen"
+                                        }
+                                    }
+                                ],
+                                "else": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "bitmap"
+                                                },
+                                                "property": "pix"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "-",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "y"
+                                                    },
+                                                    "right": {
+                                                        "kind": "identifier",
+                                                        "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "x"
+                                                }
+                                            ]
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "identifier",
+                                            "name": "pen"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "video_data"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "video_data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "x"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "for",
+                                        "initialize": [
+                                            {
+                                                "op": "declare",
+                                                "name": "i",
+                                                "valueType": "int",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            }
+                                        ],
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "<",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        },
+                                        "iterate": {
+                                            "op": "assign",
+                                            "target": {
+                                                "kind": "identifier",
+                                                "name": "i"
+                                            },
+                                            "operator": "+=",
+                                            "value": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        "body": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "pen"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "conditional",
+                                                    "condition": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "video_data"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    },
+                                                    "whenTrue": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "identifier",
+                                                            "name": "rgb_t::white"
+                                                        },
+                                                        "args": []
+                                                    },
+                                                    "whenFalse": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "identifier",
+                                                            "name": "rgb_t::black"
+                                                        },
+                                                        "args": []
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "m_flip_screen"
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "bitmap"
+                                                                },
+                                                                "property": "pix"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "binary",
+                                                                    "operator": "-",
+                                                                    "left": {
+                                                                        "kind": "binary",
+                                                                        "operator": "-",
+                                                                        "left": {
+                                                                            "kind": "identifier",
+                                                                            "name": "MW8080BW_VBSTART"
+                                                                        },
+                                                                        "right": {
+                                                                            "kind": "number",
+                                                                            "value": 1
+                                                                        }
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "binary",
+                                                                        "operator": "-",
+                                                                        "left": {
+                                                                            "kind": "identifier",
+                                                                            "name": "y"
+                                                                        },
+                                                                        "right": {
+                                                                            "kind": "identifier",
+                                                                            "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "kind": "binary",
+                                                                    "operator": "-",
+                                                                    "left": {
+                                                                        "kind": "binary",
+                                                                        "operator": "-",
+                                                                        "left": {
+                                                                            "kind": "identifier",
+                                                                            "name": "MW8080BW_HPIXCOUNT"
+                                                                        },
+                                                                        "right": {
+                                                                            "kind": "number",
+                                                                            "value": 1
+                                                                        }
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "binary",
+                                                                        "operator": "+",
+                                                                        "left": {
+                                                                            "kind": "number",
+                                                                            "value": 256
+                                                                        },
+                                                                        "right": {
+                                                                            "kind": "identifier",
+                                                                            "name": "i"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                            "kind": "identifier",
+                                                            "name": "pen"
+                                                        }
+                                                    }
+                                                ],
+                                                "else": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "member",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "bitmap"
+                                                                },
+                                                                "property": "pix"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "binary",
+                                                                    "operator": "-",
+                                                                    "left": {
+                                                                        "kind": "identifier",
+                                                                        "name": "y"
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "identifier",
+                                                                        "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "kind": "binary",
+                                                                    "operator": "+",
+                                                                    "left": {
+                                                                        "kind": "number",
+                                                                        "value": 256
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "identifier",
+                                                                        "name": "i"
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                            "kind": "identifier",
+                                                            "name": "pen"
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "video_data"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "binary",
+                                                    "operator": ">>",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "video_data"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "y"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "==",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "y"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "else": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "==",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "x"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 7
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "declare",
+                                                "name": "offs",
+                                                "valueType": "offs_t",
+                                                "value": {
+                                                    "kind": "binary",
+                                                    "operator": "|",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "<<",
+                                                        "left": {
+                                                            "kind": "call",
+                                                            "callee": {
+                                                                "kind": "identifier",
+                                                                "name": "offs_t"
+                                                            },
+                                                            "args": [
+                                                                {
+                                                                    "kind": "identifier",
+                                                                    "name": "y"
+                                                                }
+                                                            ]
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 5
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "binary",
+                                                        "operator": ">>",
+                                                        "left": {
+                                                            "kind": "identifier",
+                                                            "name": "x"
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 3
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "video_data"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_main_ram"
+                                                    },
+                                                    "index": {
+                                                        "kind": "identifier",
+                                                        "name": "offs"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw_v.cpp",
+                "line": 356,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:invaders_state.invaders_sw6_sw7_r",
+            "ownerClass": "invaders_state",
+            "method": "invaders_sw6_sw7_r",
+            "body": "// upright PCB : switches visible\n\t// cocktail PCB: HI\n\n\tif (is_cabinet_cocktail())\n\t\treturn 0x03;\n\telse\n\t\treturn ioport(\"SW6SW7\")->read();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "is_cabinet_cocktail"
+                            },
+                            "args": []
+                        },
+                        "then": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 3
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "ioport"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "string",
+                                                    "value": "SW6SW7"
+                                                }
+                                            ]
+                                        },
+                                        "property": "read"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2544,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:invaders_state.invaders_in0_control_r",
+            "ownerClass": "invaders_state",
+            "method": "invaders_in0_control_r",
+            "body": "// upright PCB : P1 controls\n\t// cocktail PCB: HI\n\n\tif (is_cabinet_cocktail())\n\t\treturn 0x07;\n\telse\n\t\treturn m_player_controls[0]->read();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "is_cabinet_cocktail"
+                            },
+                            "args": []
+                        },
+                        "then": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 7
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_player_controls"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        },
+                                        "property": "read"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2568,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:invaders_state.invaders_sw5_r",
+            "ownerClass": "invaders_state",
+            "method": "invaders_sw5_r",
+            "body": "// upright PCB : switch visible\n\t// cocktail PCB: HI\n\n\tif (is_cabinet_cocktail())\n\t\treturn 0x01;\n\telse\n\t\treturn ioport(\"SW5\")->read();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "is_cabinet_cocktail"
+                            },
+                            "args": []
+                        },
+                        "then": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "ioport"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "string",
+                                                    "value": "SW5"
+                                                }
+                                            ]
+                                        },
+                                        "property": "read"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2556,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:invaders_state.invaders_in1_control_r",
+            "ownerClass": "invaders_state",
+            "method": "invaders_in1_control_r",
+            "body": "return m_player_controls[0]->read();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_player_controls"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "property": "read"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2580,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:invaders_state.invaders_in2_control_r",
+            "ownerClass": "invaders_state",
+            "method": "invaders_in2_control_r",
+            "body": "// upright PCB : P1 controls\n\t// cocktail PCB: P2 controls\n\n\treturn m_player_controls[is_cabinet_cocktail() ? 1 : 0]->read();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_player_controls"
+                                    },
+                                    "index": {
+                                        "kind": "conditional",
+                                        "condition": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "is_cabinet_cocktail"
+                                            },
+                                            "args": []
+                                        },
+                                        "whenTrue": {
+                                            "kind": "number",
+                                            "value": 1
+                                        },
+                                        "whenFalse": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    }
+                                },
+                                "property": "read"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2586,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:invaders_state.is_cabinet_cocktail",
+            "ownerClass": "invaders_state",
+            "method": "is_cabinet_cocktail",
+            "body": "return BIT(m_cabinet_type->read(), 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_cabinet_type"
+                                        },
+                                        "property": "read"
+                                    },
+                                    "args": []
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2595,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:mw8080bw_state.main_map",
+            "className": "mw8080bw_state",
+            "name": "main_map",
+            "ranges": [
+                {
+                    "id": "map:mw8080bw_state.main_map/range0",
+                    "start": 0,
+                    "end": 8191,
+                    "raw": "map(0x0000, 0x1fff).rom().nopw()",
+                    "props": {
+                        "start": 0,
+                        "end": 8191,
+                        "raw": "map(0x0000, 0x1fff).rom().nopw()",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 316,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 316,
+                        "rom": true,
+                        "nopw": true
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 316,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mw8080bw_state.main_map/range1",
+                    "start": 8192,
+                    "end": 16383,
+                    "raw": "map(0x2000, 0x3fff).mirror(0x4000).ram().share(\"main_ram\")",
+                    "props": {
+                        "start": 8192,
+                        "end": 16383,
+                        "raw": "map(0x2000, 0x3fff).mirror(0x4000).ram().share(\"main_ram\")",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 317,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 317,
+                        "mirror": 16384,
+                        "ram": true,
+                        "share": "main_ram"
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 317,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:mw8080bw_state.main_map/range2",
+                    "start": 16384,
+                    "end": 24575,
+                    "raw": "map(0x4000, 0x5fff).rom().nopw()",
+                    "props": {
+                        "start": 16384,
+                        "end": 24575,
+                        "raw": "map(0x4000, 0x5fff).rom().nopw()",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 318,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 318,
+                        "rom": true,
+                        "nopw": true
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 318,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 313,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:invaders_state.io_map_noshift",
+            "className": "invaders_state",
+            "name": "io_map_noshift",
+            "ranges": [
+                {
+                    "id": "map:invaders_state.io_map_noshift/range0",
+                    "start": 0,
+                    "end": 0,
+                    "raw": "map(0x00, 0x00).mirror(0x04).portr(\"IN0\")",
+                    "props": {
+                        "start": 0,
+                        "end": 0,
+                        "raw": "map(0x00, 0x00).mirror(0x04).portr(\"IN0\")",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 2604,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2604,
+                        "mirror": 4,
+                        "portRead": "IN0"
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 2604,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:invaders_state.io_map_noshift/range1",
+                    "start": 1,
+                    "end": 1,
+                    "raw": "map(0x01, 0x01).mirror(0x04).portr(\"IN1\")",
+                    "props": {
+                        "start": 1,
+                        "end": 1,
+                        "raw": "map(0x01, 0x01).mirror(0x04).portr(\"IN1\")",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 2605,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2605,
+                        "mirror": 4,
+                        "portRead": "IN1"
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 2605,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:invaders_state.io_map_noshift/range2",
+                    "start": 2,
+                    "end": 2,
+                    "raw": "map(0x02, 0x02).mirror(0x04).portr(\"IN2\")",
+                    "props": {
+                        "start": 2,
+                        "end": 2,
+                        "raw": "map(0x02, 0x02).mirror(0x04).portr(\"IN2\")",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 2606,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2606,
+                        "mirror": 4,
+                        "portRead": "IN2"
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 2606,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:invaders_state.io_map_noshift/range3",
+                    "start": 2,
+                    "end": 2,
+                    "raw": "map(0x02, 0x02).nopw()",
+                    "props": {
+                        "start": 2,
+                        "end": 2,
+                        "raw": "map(0x02, 0x02).nopw()",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 2608,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2608,
+                        "nopw": true
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 2608,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:invaders_state.io_map_noshift/range4",
+                    "start": 3,
+                    "end": 3,
+                    "raw": "map(0x03, 0x03).w(\"soundboard\", FUNC(invaders_audio_device::p1_w))",
+                    "write": "soundboard.p1_w",
+                    "props": {
+                        "start": 3,
+                        "end": 3,
+                        "raw": "map(0x03, 0x03).w(\"soundboard\", FUNC(invaders_audio_device::p1_w))",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 2609,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2609
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 2609,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:invaders_state.io_map_noshift/range5",
+                    "start": 5,
+                    "end": 5,
+                    "raw": "map(0x05, 0x05).w(\"soundboard\", FUNC(invaders_audio_device::p2_w))",
+                    "write": "soundboard.p2_w",
+                    "props": {
+                        "start": 5,
+                        "end": 5,
+                        "raw": "map(0x05, 0x05).w(\"soundboard\", FUNC(invaders_audio_device::p2_w))",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 2610,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2610
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 2610,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:invaders_state.io_map_noshift/range6",
+                    "start": 6,
+                    "end": 6,
+                    "raw": "map(0x06, 0x06).w(m_watchdog, FUNC(watchdog_timer_device::reset_w))",
+                    "write": "watchdog.reset_w",
+                    "props": {
+                        "start": 6,
+                        "end": 6,
+                        "raw": "map(0x06, 0x06).w(m_watchdog, FUNC(watchdog_timer_device::reset_w))",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 2611,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2611
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 2611,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2601,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:invaders_state.io_map",
+            "className": "invaders_state",
+            "name": "io_map",
+            "ranges": [
+                {
+                    "id": "map:invaders_state.io_map/range0",
+                    "start": 3,
+                    "end": 3,
+                    "raw": "map(0x03, 0x03).mirror(0x04).r(m_mb14241, FUNC(mb14241_device::shift_result_r))",
+                    "read": "mb14241.shift_result_r",
+                    "props": {
+                        "start": 3,
+                        "end": 3,
+                        "raw": "map(0x03, 0x03).mirror(0x04).r(m_mb14241, FUNC(mb14241_device::shift_result_r))",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 2618,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2618,
+                        "mirror": 4
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 2618,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:invaders_state.io_map/range1",
+                    "start": 2,
+                    "end": 2,
+                    "raw": "map(0x02, 0x02).w(m_mb14241, FUNC(mb14241_device::shift_count_w))",
+                    "write": "mb14241.shift_count_w",
+                    "props": {
+                        "start": 2,
+                        "end": 2,
+                        "raw": "map(0x02, 0x02).w(m_mb14241, FUNC(mb14241_device::shift_count_w))",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 2620,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2620
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 2620,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:invaders_state.io_map/range2",
+                    "start": 4,
+                    "end": 4,
+                    "raw": "map(0x04, 0x04).w(m_mb14241, FUNC(mb14241_device::shift_data_w))",
+                    "write": "mb14241.shift_data_w",
+                    "props": {
+                        "start": 4,
+                        "end": 4,
+                        "raw": "map(0x04, 0x04).w(m_mb14241, FUNC(mb14241_device::shift_data_w))",
+                        "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+                        "sourceLine": 2621,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2621
+                    },
+                    "source": {
+                        "file": "src/mame/midw8080/mw8080bw.cpp",
+                        "line": 2621,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw.cpp",
+                "line": 2614,
+                "column": 1
+            }
+        }
+    ],
+    "video": {
+        "gfx": [],
+        "tilemaps": [],
+        "initialState": {
+            "m_phantom2_cloud_counter": 0,
+            "m_maze_tone_timing_state": 0,
+            "m_rev_shift_res": 0,
+            "m_controller_select": 0,
+            "m_trench_width": 0,
+            "m_trench_center": 0,
+            "m_bright_control": 0,
+            "m_brightness": 0,
+            "m_flip_screen": 0
+        },
+        "bitmap": {
+            "member": "m_main_ram",
+            "rowStart": 32,
+            "rows": 224,
+            "bytesPerRow": 32,
+            "xOffset": 4,
+            "lsbFirst": true,
+            "flipXMember": "m_flip_screen",
+            "flipYMember": "m_flip_screen",
+            "black": 4278190080,
+            "white": 4294967295,
+            "source": {
+                "file": "src/mame/midw8080/mw8080bw_v.cpp",
+                "line": 356,
+                "column": 1
+            }
+        },
+        "source": {
+            "file": "src/mame/midw8080/mw8080bw_v.cpp",
+            "line": 356,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "invaders",
+        "deviceTag": "soundboard",
+        "deviceType": "INVADERS_AUDIO",
+        "writeMethods": [
+            "p1_w",
+            "p2_w"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1
+    }
+}

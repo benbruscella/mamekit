@@ -1,0 +1,105 @@
+{
+  "type": "SCREEN",
+  "uses": [
+    {
+      "game": "commando",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "invaders",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "nes",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "pacman",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "zigzagb",
+      "tags": [
+        "screen"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

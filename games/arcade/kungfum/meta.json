@@ -1,0 +1,26 @@
+{
+  "game": "kungfum",
+  "title": "Kung-Fu Master (World) (Irem, 1984)",
+  "fullname": "Kung-Fu Master (World)",
+  "year": "1984",
+  "manufacturer": "Irem",
+  "family": "m62",
+  "driverFile": "src/mame/irem/m62.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "smf, David Haywood",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 124,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Olivier Galibert",
+      "Ivan Vangelista"
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

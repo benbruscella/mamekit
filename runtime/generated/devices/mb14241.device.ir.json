@@ -1,0 +1,283 @@
+{
+    "schemaVersion": 1,
+    "type": "MB14241",
+    "className": "mb14241_device",
+    "hierarchy": [
+        "mb14241_device"
+    ],
+    "sourceFiles": [
+        "src/devices/machine/mb14241.cpp",
+        "src/devices/machine/mb14241.h"
+    ],
+    "constants": {},
+    "members": [
+        {
+            "name": "m_shift_data",
+            "valueType": "u16",
+            "bits": 16,
+            "initial": 0
+        },
+        {
+            "name": "m_shift_count",
+            "valueType": "u8",
+            "bits": 8,
+            "initial": 0
+        }
+    ],
+    "callbacks": [],
+    "timers": [],
+    "methods": [
+        {
+            "name": "device_start",
+            "parameters": "",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_shift_data"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_shift_count"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/devices/machine/mb14241.cpp",
+                "line": 29,
+                "column": 1
+            }
+        },
+        {
+            "name": "device_reset",
+            "parameters": "",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_shift_data"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_shift_count"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/devices/machine/mb14241.cpp",
+                "line": 39,
+                "column": 1
+            }
+        },
+        {
+            "name": "shift_count_w",
+            "parameters": "u8 data",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_shift_count"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 7
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/devices/machine/mb14241.cpp",
+                "line": 50,
+                "column": 1
+            }
+        },
+        {
+            "name": "shift_data_w",
+            "parameters": "u8 data",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_shift_data"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_shift_data"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 8
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "u16"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    ]
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 7
+                                }
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/devices/machine/mb14241.cpp",
+                "line": 55,
+                "column": 1
+            }
+        },
+        {
+            "name": "shift_result_r",
+            "parameters": "",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "u8"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "m_shift_data"
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "m_shift_count"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 255
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/devices/machine/mb14241.cpp",
+                "line": 60,
+                "column": 1
+            }
+        }
+    ],
+    "start": "device_start",
+    "reset": "device_reset",
+    "summary": {
+        "methods": 5,
+        "compiledMethods": 5,
+        "diagnostics": 0
+    }
+}

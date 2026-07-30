@@ -1,0 +1,502 @@
+{
+  "generatedFrom": "src/mame/capcom/gng.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 577,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 581,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 584,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 585,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 586,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 595,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 577,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 581,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 584,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 585,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 586,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 595,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 575,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 579,
+      "column": 2
+    },
+    {
+      "path": "/execution/banks/0/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 540,
+      "column": 1
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 593,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 581,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 581,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 581,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/3/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 581,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/4/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 577,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 224,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 575,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 579,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 583,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 591,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 593,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 598,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 600,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 603,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 605,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 607,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 613,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 162,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 168,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 291,
+      "column": 2
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 292,
+      "column": 2
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 293,
+      "column": 2
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 175,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 181,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 296,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 273,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 234,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 312,
+      "column": 2
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 314,
+      "column": 2
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 581,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 584,
+      "column": 2
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 242,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 224,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 195,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 118,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 127,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 258,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 259,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 260,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 261,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 262,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 263,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 264,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 265,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 266,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 267,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 268,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 269,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 270,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 271,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 272,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/15/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 273,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/16/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 274,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/17/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 275,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/18/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 276,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 256,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 310,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 311,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 312,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 313,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 314,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 308,
+      "column": 1
+    },
+    {
+      "path": "/video/ramPalette/resetSource",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 550,
+      "column": 1
+    },
+    {
+      "path": "/video/ramPalette/source",
+      "file": "src/emu/emupal.cpp",
+      "line": 211
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 145,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/1/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 145,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/capcom/gng.cpp",
+      "line": 145,
+      "column": 1
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "type": "DISCRETE",
+  "uses": [
+    {
+      "game": "galaga",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "invaders",
+      "tags": [
+        "discrete"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "filtermix"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "DISCRETE",
+    "className": "discrete_sound_device",
+    "shortName": "discrete",
+    "description": "Discrete Sound",
+    "sourceFile": "src/devices/sound/discrete.cpp",
+    "sourceLine": 50,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(DISCRETE, discrete_sound_device, \"discrete\", \"Discrete Sound\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

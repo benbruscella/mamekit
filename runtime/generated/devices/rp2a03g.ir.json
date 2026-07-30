@@ -1,0 +1,197 @@
+{
+  "type": "RP2A03G",
+  "uses": [
+    {
+      "game": "nes",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "RP2A03G",
+    "className": "rp2a03g_device",
+    "shortName": "rp2a03g",
+    "description": "Ricoh RP2A03G",
+    "sourceFile": "src/devices/cpu/m6502/rp2a03.cpp",
+    "sourceLine": 17,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(RP2A03G,     rp2a03g_device,     \"rp2a03g\",     \"Ricoh RP2A03G\")"
+  },
+  "methods": [
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/devices/cpu/m6502/rp2a03.cpp",
+      "sourceLine": 90,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NES_APU"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_apu"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "DERIVED_CLOCK"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_apu"
+                    },
+                    "property": "irq"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "rp2a03g_device::apu_irq"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_apu"
+                    },
+                    "property": "mem_read"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "rp2a03g_device::apu_read_mem"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_apu"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ALL_OUTPUTS"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "this"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [
+    "src/devices/cpu/m6502/dm6502.lst",
+    "src/devices/cpu/m6502/drp2a03.lst",
+    "src/devices/cpu/m6502/om6502.lst",
+    "src/devices/cpu/m6502/orp2a03.lst"
+  ],
+  "sourceFiles": [
+    "src/devices/cpu/m6502/dm6502.lst",
+    "src/devices/cpu/m6502/drp2a03.lst",
+    "src/devices/cpu/m6502/om6502.lst",
+    "src/devices/cpu/m6502/orp2a03.lst",
+    "src/devices/cpu/m6502/rp2a03.cpp",
+    "src/devices/cpu/m6502/rp2a03.h",
+    "src/devices/cpu/m6502/rp2a03d.h"
+  ]
+}

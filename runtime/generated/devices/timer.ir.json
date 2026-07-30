@@ -1,0 +1,25 @@
+{
+  "type": "TIMER",
+  "uses": [
+    {
+      "game": "commando",
+      "tags": [
+        "scantimer"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "TIMER",
+    "className": "timer_device",
+    "shortName": "timer",
+    "description": "Timer",
+    "sourceFile": "src/devices/machine/timer.cpp",
+    "sourceLine": 30,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TIMER, timer_device, \"timer\", \"Timer\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

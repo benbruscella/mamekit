@@ -1,0 +1,585 @@
+{
+    "schemaVersion": 1,
+    "type": "NAMCO_54XX",
+    "className": "namco_54xx_device",
+    "hierarchy": [
+        "namco_54xx_device"
+    ],
+    "sourceFiles": [
+        "src/mame/namco/namco54.cpp",
+        "src/mame/namco/namco54.h"
+    ],
+    "constants": {},
+    "members": [
+        {
+            "name": "m_basenode",
+            "valueType": "int",
+            "bits": 32,
+            "signed": true,
+            "initial": 0
+        },
+        {
+            "name": "m_latched_cmd",
+            "valueType": "uint8_t",
+            "bits": 8,
+            "initial": 0
+        },
+        {
+            "name": "m_cpu",
+            "valueType": "required_device<mb88_cpu_device>",
+            "finder": {
+                "kind": "device",
+                "tag": "mcu"
+            }
+        },
+        {
+            "name": "m_discrete",
+            "valueType": "required_device<discrete_device>",
+            "finder": {
+                "kind": "device",
+                "tag": ""
+            }
+        }
+    ],
+    "callbacks": [
+        {
+            "signal": "reset",
+            "member": "m_reset",
+            "slots": 1,
+            "initial": 0
+        }
+    ],
+    "timers": [],
+    "methods": [
+        {
+            "name": "reset",
+            "parameters": "int state",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "m_reset"
+                            },
+                            "args": [
+                                {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "identifier",
+                                        "name": "state"
+                                    },
+                                    "whenTrue": {
+                                        "kind": "identifier",
+                                        "name": "CLEAR_LINE"
+                                    },
+                                    "whenFalse": {
+                                        "kind": "identifier",
+                                        "name": "ASSERT_LINE"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/namco/namco54.cpp",
+                "line": 56,
+                "column": 1
+            }
+        },
+        {
+            "name": "K_r",
+            "parameters": "",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_latched_cmd"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 4
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/namco/namco54.cpp",
+                "line": 62,
+                "column": 1
+            }
+        },
+        {
+            "name": "R0_r",
+            "parameters": "",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_latched_cmd"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 15
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/namco/namco54.cpp",
+                "line": 67,
+                "column": 1
+            }
+        },
+        {
+            "name": "O_w",
+            "parameters": "offs_t offset, uint8_t data, uint8_t mem_mask",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "mem_mask"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 15
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_discrete"
+                                        },
+                                        "property": "write"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "NAMCO_54XX_0_DATA"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "m_basenode"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 15
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_discrete"
+                                        },
+                                        "property": "write"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "NAMCO_54XX_1_DATA"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "m_basenode"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/namco/namco54.cpp",
+                "line": 72,
+                "column": 1
+            }
+        },
+        {
+            "name": "R1_w",
+            "parameters": "uint8_t data",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAMCO_54XX_2_DATA"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_basenode"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/namco/namco54.cpp",
+                "line": 80,
+                "column": 1
+            }
+        },
+        {
+            "name": "write",
+            "parameters": "uint8_t data",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "scheduler"
+                                    },
+                                    "args": []
+                                },
+                                "property": "synchronize"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "timer_expired_delegate"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "FUNC"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "namco_54xx_device::write_sync"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "this"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/namco/namco54.cpp",
+                "line": 86,
+                "column": 1
+            }
+        },
+        {
+            "name": "chip_select",
+            "parameters": "int state",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_cpu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "MB88XX_IRQ_LINE"
+                                },
+                                {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "identifier",
+                                        "name": "state"
+                                    },
+                                    "whenTrue": {
+                                        "kind": "identifier",
+                                        "name": "ASSERT_LINE"
+                                    },
+                                    "whenFalse": {
+                                        "kind": "identifier",
+                                        "name": "CLEAR_LINE"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/namco/namco54.cpp",
+                "line": 97,
+                "column": 1
+            }
+        },
+        {
+            "name": "device_start",
+            "parameters": "",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_latched_cmd"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/namco/namco54.cpp",
+                "line": 127,
+                "column": 1
+            }
+        },
+        {
+            "name": "write_sync",
+            "parameters": "int param",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_latched_cmd"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "param"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/namco/namco54.cpp",
+                "line": 91,
+                "column": 1
+            }
+        },
+        {
+            "name": "set_discrete",
+            "parameters": "T &&tag",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "set_tag"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "std::forward"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "tag"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/namco/namco54.h",
+                "line": 13,
+                "column": 1
+            }
+        },
+        {
+            "name": "set_basenote",
+            "parameters": "int node",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_basenode"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "node"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/namco/namco54.h",
+                "line": 15,
+                "column": 1
+            }
+        }
+    ],
+    "start": "device_start",
+    "summary": {
+        "methods": 11,
+        "compiledMethods": 11,
+        "diagnostics": 0
+    }
+}

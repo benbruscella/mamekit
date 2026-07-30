@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>galaxian — knowledge graph — mamekit knowledge graph</title>
+<style>
+  :root {
+    --surface: #fcfcfb; --panel: #f4f4f2; --border: #dddcd8;
+    --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #8a897f;
+    --edge: rgba(82,81,78,.28); --edge-hi: rgba(11,11,11,.75);
+    --halo: rgba(252,252,251,.85); --accent: #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #1a1a19; --panel: #232322; --border: #3a3a38;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #86857b;
+      --edge: rgba(195,194,183,.22); --edge-hi: rgba(255,255,255,.8);
+      --halo: rgba(26,26,25,.85); --accent: #3987e5;
+    }
+  }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--surface); color: var(--ink);
+         font: 13px/1.45 ui-sans-serif, system-ui, sans-serif; display: flex; flex-direction: column; }
+  header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+           padding: 8px 14px; border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 14px; font-weight: 600; margin-right: 6px; }
+  header input[type=search] { background: var(--panel); color: var(--ink); border: 1px solid var(--border);
+           border-radius: 6px; padding: 4px 10px; width: 210px; outline: none; }
+  header input[type=search]:focus { border-color: var(--accent); }
+  header button { background: var(--panel); color: var(--ink); border: 1px solid var(--border);
+                  border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  header button:hover { border-color: var(--accent); }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; }
+  .legend label { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-2);
+                  cursor: pointer; user-select: none; }
+  .legend .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .legend input { accent-color: var(--accent); margin: 0; }
+  main { flex: 1; display: flex; min-height: 0; }
+  #canvas { flex: 1; cursor: grab; touch-action: none; }
+  #canvas.dragging { cursor: grabbing; }
+  aside { width: min(380px, 46vw); border-left: 1px solid var(--border); background: var(--panel);
+          overflow-y: auto; padding: 14px; display: none; }
+  aside.open { display: block; }
+  aside h2 { font-size: 13px; word-break: break-all; }
+  aside .lbl { color: var(--ink-3); font-size: 11px; text-transform: uppercase;
+               letter-spacing: .04em; margin: 12px 0 4px; }
+  aside table { width: 100%; border-collapse: collapse; }
+  aside td { padding: 3px 6px 3px 0; vertical-align: top; border-bottom: 1px solid var(--border);
+             color: var(--ink-2); word-break: break-all; }
+  aside td:first-child { color: var(--ink-3); white-space: nowrap; }
+  aside pre { white-space: pre-wrap; word-break: break-all; background: var(--surface);
+              border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px;
+              font-size: 11px; color: var(--ink-2); }
+  aside a { color: var(--accent); cursor: pointer; text-decoration: none; display: block;
+            padding: 2px 0; word-break: break-all; }
+  aside a:hover { text-decoration: underline; }
+  aside .rel { color: var(--ink-3); font-size: 11px; }
+  aside .metric { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0;
+                  border-bottom: 1px solid var(--border); }
+  aside .metric strong { font-variant-numeric: tabular-nums; }
+  aside .warn { color: #b85b00; }
+  @media (prefers-color-scheme: dark) { aside .warn { color: #eda100; } }
+  #tip { position: fixed; pointer-events: none; background: var(--panel); color: var(--ink);
+         border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px;
+         font-size: 12px; display: none; max-width: 340px; word-break: break-all;
+         box-shadow: 0 2px 10px rgba(0,0,0,.18); z-index: 10; }
+  #stats { color: var(--ink-3); margin-left: auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>galaxian — knowledge graph</h1>
+  <button id="overview" type="button">Overview</button>
+  <input id="search" type="search" placeholder="search nodes…">
+  <div class="legend" id="legend"></div>
+  <span id="stats"></span>
+</header>
+<main>
+  <canvas id="canvas"></canvas>
+  <aside id="panel" class="open"></aside>
+</main>
+<div id="tip"></div>
+<script type="application/json" id="graph-data">{"nodes":[{"id":"file:src/mame/galaxian/galaxian.cpp","label":"SourceFile","props":{"path":"src/mame/galaxian/galaxian.cpp"}},{"id":"file:emu.h","label":"SourceFile","props":{"path":"emu.h","external":true}},{"id":"file:galaxian.h","label":"SourceFile","props":{"path":"galaxian.h","external":true}},{"id":"file:galaxian_a.h","label":"SourceFile","props":{"path":"galaxian_a.h","external":true}},{"id":"file:cclimber_a.h","label":"SourceFile","props":{"path":"cclimber_a.h","external":true}},{"id":"file:cpu/m6502/m6502.h","label":"SourceFile","props":{"path":"cpu/m6502/m6502.h","external":true}},{"id":"file:cpu/s2650/s2650.h","label":"SourceFile","props":{"path":"cpu/s2650/s2650.h","external":true}},{"id":"file:cpu/z80/z80.h","label":"SourceFile","props":{"path":"cpu/z80/z80.h","external":true}},{"id":"file:machine/nvram.h","label":"SourceFile","props":{"path":"machine/nvram.h","external":true}},{"id":"file:machine/watchdog.h","label":"SourceFile","props":{"path":"machine/watchdog.h","external":true}},{"id":"file:screen.h","label":"SourceFile","props":{"path":"screen.h","external":true}},{"id":"file:speaker.h","label":"SourceFile","props":{"path":"speaker.h","external":true}},{"id":"file:nl_konami.h","label":"SourceFile","props":{"path":"nl_konami.h","external":true}},{"id":"file:src/mame/galaxian/galaxian_a.cpp","label":"SourceFile","props":{"path":"src/mame/galaxian/galaxian_a.cpp"}},{"id":"game:galaxian","label":"Game","props":{"name":"galaxian","year":"1979","company":"Namco","fullname":"Galaxian (Namco set 1)","monitor":"ROT90","cls":"galaxian_state","init":"init_galaxian","flags":"MACHINE_SUPPORTS_SAVE","kind":"arcade","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":16824,"sourceColumn":1,"sourceEndLine":16824}},{"id":"romset:galaxian","label":"RomSet","props":{"name":"galaxian","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9749,"sourceColumn":1,"sourceEndLine":9749}},{"id":"region:galaxian/maincpu","label":"RomRegion","props":{"tag":"maincpu","size":16384,"flags":"0","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9750,"sourceColumn":2,"sourceEndLine":9750}},{"id":"rom:galaxian/maincpu/galmidw.u","label":"Rom","props":{"file":"galmidw.u","offset":0,"size":2048,"crc":"745e2d61","sha1":"e65f74e35b1bfaccd407e168ea55678ae9b68edf","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9751,"sourceColumn":2,"sourceEndLine":9751}},{"id":"rom:galaxian/maincpu/galmidw.v","label":"Rom","props":{"file":"galmidw.v","offset":2048,"size":2048,"crc":"9c999a40","sha1":"02fdcd95d8511e64c0d2b007b874112d53e41045","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9752,"sourceColumn":2,"sourceEndLine":9752}},{"id":"rom:galaxian/maincpu/galmidw.w","label":"Rom","props":{"file":"galmidw.w","offset":4096,"size":2048,"crc":"b5894925","sha1":"0046b9ed697a34d088de1aead8bd7cbe526a2396","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9753,"sourceColumn":2,"sourceEndLine":9753}},{"id":"rom:galaxian/maincpu/galmidw.y","label":"Rom","props":{"file":"galmidw.y","offset":6144,"size":2048,"crc":"6b3ca10b","sha1":"18d8714e5ef52f63ba8888ecc5a25b17b3bf17d1","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9754,"sourceColumn":2,"sourceEndLine":9754}},{"id":"rom:galaxian/maincpu/7l","label":"Rom","props":{"file":"7l","offset":8192,"size":2048,"crc":"1b933207","sha1":"8b44b0f74420871454e27894d0f004859f9e59a9","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9755,"sourceColumn":2,"sourceEndLine":9755}},{"id":"region:galaxian/gfx1","label":"RomRegion","props":{"tag":"gfx1","size":4096,"flags":"0","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9757,"sourceColumn":2,"sourceEndLine":9757}},{"id":"rom:galaxian/gfx1/1h.bin","label":"Rom","props":{"file":"1h.bin","offset":0,"size":2048,"crc":"39fb43a4","sha1":"4755609bd974976f04855d51e08ec0d62ab4bc07","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9758,"sourceColumn":2,"sourceEndLine":9758}},{"id":"rom:galaxian/gfx1/1k.bin","label":"Rom","props":{"file":"1k.bin","offset":2048,"size":2048,"crc":"7e3f56a2","sha1":"a9795d8b7388f404f3b0e2c6ce15d713a4c5bafa","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9759,"sourceColumn":2,"sourceEndLine":9759}},{"id":"region:galaxian/proms","label":"RomRegion","props":{"tag":"proms","size":32,"flags":"0","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9761,"sourceColumn":2,"sourceEndLine":9761}},{"id":"rom:galaxian/proms/6l.bpr","label":"Rom","props":{"file":"6l.bpr","offset":0,"size":32,"crc":"c3ac9467","sha1":"f382ad5a34d282056c78a5ec00c30ec43772bae2","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9762,"sourceColumn":2,"sourceEndLine":9762}},{"id":"map:galaxian_state.galaxian_map_discrete","label":"AddressMap","props":{"cls":"galaxian_state","name":"galaxian_map_discrete","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1739,"sourceColumn":1,"sourceEndLine":1744}},{"id":"map:galaxian_state.galaxian_map_discrete/range0","label":"AddressRange","props":{"start":24580,"end":24583,"raw":"map(0x6004, 0x6007).mirror(0x07f8).w(\"cust\", FUNC(galaxian_sound_device::lfo_freq_w))","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1741,"sourceColumn":2,"sourceEndLine":1741,"mirror":2040}},{"id":"handler:galaxian_sound_device.lfo_freq_w","label":"Handler","props":{"method":"lfo_freq_w","ownerClass":"galaxian_sound_device","sourceFile":"src/mame/galaxian/galaxian_a.cpp","sourceLine":702,"sourceColumn":1,"sourceEndLine":711,"sourceParameters":"offs_t offset, uint8_t data","sourceBody":"uint8_t lfo_val_new = (m_lfo_val & ~(1\u003c\u003coffset)) | ((data & 0x01) \u003c\u003c offset);\n\n\tif (m_lfo_val != lfo_val_new)\n\t{\n\t\tm_lfo_val = lfo_val_new;\n\t\tm_discrete->write(GAL_INP_BG_DAC, m_lfo_val);\n\t}"}},{"id":"map:galaxian_state.galaxian_map_discrete/range1","label":"AddressRange","props":{"start":26624,"end":26631,"raw":"map(0x6800, 0x6807).mirror(0x07f8).w(\"cust\", FUNC(galaxian_sound_device::sound_w))","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1742,"sourceColumn":2,"sourceEndLine":1742,"mirror":2040}},{"id":"handler:galaxian_sound_device.sound_w","label":"Handler","props":{"method":"sound_w","ownerClass":"galaxian_sound_device","sourceFile":"src/mame/galaxian/galaxian_a.cpp","sourceLine":734,"sourceColumn":1,"sourceEndLine":761,"sourceParameters":"offs_t offset, uint8_t data","sourceBody":"data &= 0x01;\n\tswitch (offset & 7)\n\t{\n\t\tcase 0:     /* FS1 (controls 555 timer at 8R) */\n\t\tcase 1:     /* FS2 (controls 555 timer at 8S) */\n\t\tcase 2:     /* FS3 (controls 555 timer at 8T) */\n\t\t\tbackground_enable_w(offset, data);\n\t\t\tbreak;\n\n\t\tcase 3:     /* HIT */\n\t\t\tnoise_enable_w(data);\n\t\t\tbreak;\n\n\t\tcase 4:     /* n/c */\n\t\t\tbreak;\n\n\t\tcase 5:     /* FIRE */\n\t\t\tfire_enable_w(data);\n\t\t\tbreak;\n\n\t\tcase 6:     /* VOL1 */\n\t\tcase 7:     /* VOL2 */\n\t\t\tvol_w(offset & 1, data);\n\t\t\tbreak;\n\t}"}},{"id":"map:galaxian_state.galaxian_map_discrete/range2","label":"AddressRange","props":{"start":30720,"end":30720,"raw":"map(0x7800, 0x7800).mirror(0x07ff).w(\"cust\", FUNC(galaxian_sound_device::pitch_w))","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1743,"sourceColumn":2,"sourceEndLine":1743,"mirror":2047}},{"id":"handler:galaxian_sound_device.pitch_w","label":"Handler","props":{"method":"pitch_w","ownerClass":"galaxian_sound_device","sourceFile":"src/mame/galaxian/galaxian_a.cpp","sourceLine":697,"sourceColumn":1,"sourceEndLine":700,"sourceParameters":"uint8_t data","sourceBody":"m_discrete->write(GAL_INP_PITCH, data);"}},{"id":"map:galaxian_state.galaxian_map_base","label":"AddressMap","props":{"cls":"galaxian_state","name":"galaxian_map_base","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1746,"sourceColumn":1,"sourceEndLine":1767,"unmapHigh":true}},{"id":"map:galaxian_state.galaxian_map_base/range0","label":"AddressRange","props":{"start":0,"end":16383,"raw":"map(0x0000, 0x3fff).rom()","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1749,"sourceColumn":2,"sourceEndLine":1749,"rom":true}},{"id":"map:galaxian_state.galaxian_map_base/range1","label":"AddressRange","props":{"start":16384,"end":17407,"raw":"map(0x4000, 0x43ff).mirror(0x0400).ram()","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1750,"sourceColumn":2,"sourceEndLine":1750,"mirror":1024,"ram":true}},{"id":"map:galaxian_state.galaxian_map_base/range2","label":"AddressRange","props":{"start":20480,"end":21503,"raw":"map(0x5000, 0x53ff).mirror(0x0400).ram().w(FUNC(galaxian_state::galaxian_videoram_w)).share(\"videoram\")","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1751,"sourceColumn":2,"sourceEndLine":1751,"mirror":1024,"ram":true,"share":"videoram"}},{"id":"handler:galaxian_state.galaxian_videoram_w","label":"Handler","props":{"method":"galaxian_videoram_w","ownerClass":"galaxian_state","sourceFile":"src/mame/galaxian/galaxian_v.cpp","sourceLine":503,"sourceColumn":1,"sourceEndLine":511,"sourceParameters":"offs_t offset, uint8_t data","sourceBody":"// update any video up to the current scanline\n\tm_screen->update_partial(m_screen->vpos());\n\n\t// store the data and mark the corresponding tile dirty\n\tm_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"}},{"id":"map:galaxian_state.galaxian_map_base/range3","label":"AddressRange","props":{"start":22528,"end":22783,"raw":"map(0x5800, 0x58ff).mirror(0x0700).ram().w(FUNC(galaxian_state::galaxian_objram_w)).share(\"spriteram\")","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1752,"sourceColumn":2,"sourceEndLine":1752,"mirror":1792,"ram":true,"share":"spriteram"}},{"id":"handler:galaxian_state.galaxian_objram_w","label":"Handler","props":{"method":"galaxian_objram_w","ownerClass":"galaxian_state","sourceFile":"src/mame/galaxian/galaxian_v.cpp","sourceLine":514,"sourceColumn":1,"sourceEndLine":544,"sourceParameters":"offs_t offset, uint8_t data","sourceBody":"// update any video up to the current scanline\n\tm_screen->update_partial(m_screen->vpos());\n\n\t// store the data\n\tm_spriteram[offset] = data;\n\n\t// the first $40 bytes affect the tilemap\n\tif (offset \u003c 0x40)\n\t{\n\t\t// even entries control the scroll position\n\t\tif ((offset & 0x01) == 0)\n\t\t{\n\t\t\t// Frogger: top and bottom 4 bits swapped entering the adder\n\t\t\tif (m_frogger_adjust)\n\t\t\t\tdata = (data >> 4) | (data \u003c\u003c 4);\n\t\t\tif (!m_sfx_adjust)\n\t\t\t\tm_bg_tilemap->set_scrolly(offset >> 1, data);\n\t\t\telse\n\t\t\t\tm_bg_tilemap->set_scrollx(offset >> 1, m_x_scale*data);\n\t\t}\n\n\t\t// odd entries control the color base for the row\n\t\telse\n\t\t{\n\t\t\tfor (offset >>= 1; offset \u003c 0x0400; offset += 32)\n\t\t\t\tm_bg_tilemap->mark_tile_dirty(offset);\n\t\t}\n\t}"}},{"id":"map:galaxian_state.galaxian_map_base/range4","label":"AddressRange","props":{"start":24576,"end":24576,"raw":"map(0x6000, 0x6000).mirror(0x07ff).portr(\"IN0\")","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1753,"sourceColumn":2,"sourceEndLine":1753,"mirror":2047,"portRead":"IN0"}},{"id":"map:galaxian_state.galaxian_map_base/range5","label":"AddressRange","props":{"start":24576,"end":24577,"raw":"map(0x6000, 0x6001).mirror(0x07f8).w(FUNC(galaxian_state::start_lamp_w))","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1754,"sourceColumn":2,"sourceEndLine":1754,"mirror":2040}},{"id":"handler:galaxian_state.start_lamp_w","label":"Handler","props":{"method":"start_lamp_w","ownerClass":"galaxian_state","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":795,"sourceColumn":1,"sourceEndLine":800,"sourceParameters":"offs_t offset, uint8_t data","sourceBody":"// offset 0 = 1P START LAMP\n\t// offset 1 = 2P START LAMP\n\tm_lamps[offset] = BIT(data, 0);"}},{"id":"map:galaxian_state.galaxian_map_base/range6","label":"AddressRange","props":{"start":24578,"end":24578,"raw":"map(0x6002, 0x6002).mirror(0x07f8).w(FUNC(galaxian_state::coin_lock_w))","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1755,"sourceColumn":2,"sourceEndLine":1755,"mirror":2040}},{"id":"handler:galaxian_state.coin_lock_w","label":"Handler","props":{"method":"coin_lock_w","ownerClass":"galaxian_state","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":803,"sourceColumn":1,"sourceEndLine":807,"sourceParameters":"uint8_t data","sourceBody":"// many variants and bootlegs don't have this\n\tmachine().bookkeeping().coin_lockout_global_w(~data & 1);"}},{"id":"map:galaxian_state.galaxian_map_base/range7","label":"AddressRange","props":{"start":24579,"end":24579,"raw":"map(0x6003, 0x6003).mirror(0x07f8).w(FUNC(galaxian_state::coin_count_0_w))","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1756,"sourceColumn":2,"sourceEndLine":1756,"mirror":2040}},{"id":"handler:galaxian_state.coin_count_0_w","label":"Handler","props":{"method":"coin_count_0_w","ownerClass":"galaxian_state","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":810,"sourceColumn":1,"sourceEndLine":813,"sourceParameters":"uint8_t data","sourceBody":"machine().bookkeeping().coin_counter_w(0, data & 1);"}},{"id":"map:galaxian_state.galaxian_map_base/range8","label":"AddressRange","props":{"start":26624,"end":26624,"raw":"map(0x6800, 0x6800).mirror(0x07ff).portr(\"IN1\")","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1758,"sourceColumn":2,"sourceEndLine":1758,"mirror":2047,"portRead":"IN1"}},{"id":"map:galaxian_state.galaxian_map_base/range9","label":"AddressRange","props":{"start":28672,"end":28672,"raw":"map(0x7000, 0x7000).mirror(0x07ff).portr(\"IN2\")","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1760,"sourceColumn":2,"sourceEndLine":1760,"mirror":2047,"portRead":"IN2"}},{"id":"map:galaxian_state.galaxian_map_base/range10","label":"AddressRange","props":{"start":28673,"end":28673,"raw":"map(0x7001, 0x7001).mirror(0x07f8).w(FUNC(galaxian_state::irq_enable_w))","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1761,"sourceColumn":2,"sourceEndLine":1761,"mirror":2040}},{"id":"handler:galaxian_state.irq_enable_w","label":"Handler","props":{"method":"irq_enable_w","ownerClass":"galaxian_state","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":779,"sourceColumn":1,"sourceEndLine":787,"sourceParameters":"uint8_t data","sourceBody":"// the latched D0 bit here goes to the CLEAR line on the interrupt flip-flop\n\tm_irq_enabled = data & 1;\n\n\t// if CLEAR is held low, we must make sure the interrupt signal is clear\n\tif (!m_irq_enabled)\n\t\tm_maincpu->set_input_line(m_irq_line, CLEAR_LINE);"}},{"id":"map:galaxian_state.galaxian_map_base/range11","label":"AddressRange","props":{"start":28676,"end":28676,"raw":"map(0x7004, 0x7004).mirror(0x07f8).w(FUNC(galaxian_state::galaxian_stars_enable_w))","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1762,"sourceColumn":2,"sourceEndLine":1762,"mirror":2040}},{"id":"handler:galaxian_state.galaxian_stars_enable_w","label":"Handler","props":{"method":"galaxian_stars_enable_w","ownerClass":"galaxian_state","sourceFile":"src/mame/galaxian/galaxian_v.cpp","sourceLine":711,"sourceColumn":1,"sourceEndLine":725,"sourceConstants":["STAR_RNG_PERIOD=131071"],"sourceParameters":"uint8_t data","sourceBody":"if ((m_stars_enabled ^ data) & 0x01)\n\t\tm_screen->update_partial(m_screen->vpos());\n\n\tif (!m_stars_enabled && (data & 0x01))\n\t{\n\t\t/* on the rising edge of this, the CLR on the shift registers is released */\n\t\t/* this resets the \"origin\" of this frame to 0 minus the number of clocks */\n\t\t/* we have counted so far */\n\t\tm_star_rng_origin = STAR_RNG_PERIOD - (m_screen->vpos() * 512 + m_screen->hpos());\n\t\tm_star_rng_origin_frame = m_screen->frame_number();\n\t}\n\tm_stars_enabled = data & 0x01;"}},{"id":"map:galaxian_state.galaxian_map_base/range12","label":"AddressRange","props":{"start":28678,"end":28678,"raw":"map(0x7006, 0x7006).mirror(0x07f8).w(FUNC(galaxian_state::galaxian_flip_screen_x_w))","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1763,"sourceColumn":2,"sourceEndLine":1763,"mirror":2040}},{"id":"handler:galaxian_state.galaxian_flip_screen_x_w","label":"Handler","props":{"method":"galaxian_flip_screen_x_w","ownerClass":"galaxian_state","sourceFile":"src/mame/galaxian/galaxian_v.cpp","sourceLine":670,"sourceColumn":1,"sourceEndLine":684,"sourceParameters":"uint8_t data","sourceBody":"if (m_flipscreen_x != (data & 0x01))\n\t{\n\t\tm_screen->update_partial(m_screen->vpos());\n\n\t\t/* when the direction changes, we count a different number of clocks */\n\t\t/* per frame, so we need to reset the origin of the stars to the current */\n\t\t/* frame before we flip */\n\t\tstars_update_origin();\n\n\t\tm_flipscreen_x = data & 0x01;\n\t\tm_bg_tilemap->set_flip((m_flipscreen_x ? TILEMAP_FLIPX : 0) | (m_flipscreen_y ? TILEMAP_FLIPY : 0));\n\t}"}},{"id":"map:galaxian_state.galaxian_map_base/range13","label":"AddressRange","props":{"start":28679,"end":28679,"raw":"map(0x7007, 0x7007).mirror(0x07f8).w(FUNC(galaxian_state::galaxian_flip_screen_y_w))","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1764,"sourceColumn":2,"sourceEndLine":1764,"mirror":2040}},{"id":"handler:galaxian_state.galaxian_flip_screen_y_w","label":"Handler","props":{"method":"galaxian_flip_screen_y_w","ownerClass":"galaxian_state","sourceFile":"src/mame/galaxian/galaxian_v.cpp","sourceLine":686,"sourceColumn":1,"sourceEndLine":695,"sourceParameters":"uint8_t data","sourceBody":"if (m_flipscreen_y != (data & 0x01))\n\t{\n\t\tm_screen->update_partial(m_screen->vpos());\n\n\t\tm_flipscreen_y = data & 0x01;\n\t\tm_bg_tilemap->set_flip((m_flipscreen_x ? TILEMAP_FLIPX : 0) | (m_flipscreen_y ? TILEMAP_FLIPY : 0));\n\t}"}},{"id":"map:galaxian_state.galaxian_map_base/range14","label":"AddressRange","props":{"start":30720,"end":30720,"raw":"map(0x7800, 0x7800).mirror(0x07ff).r(\"watchdog\", FUNC(watchdog_timer_device::reset_r))","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1766,"sourceColumn":2,"sourceEndLine":1766,"mirror":2047}},{"id":"handler:watchdog_timer_device.reset_r","label":"Handler","props":{"method":"reset_r","ownerClass":"watchdog_timer_device","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":2865,"sourceColumn":2,"sourceEndLine":2865}},{"id":"map:galaxian_state.galaxian_map","label":"AddressMap","props":{"cls":"galaxian_state","name":"galaxian_map","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1769,"sourceColumn":1,"sourceEndLine":1773,"calls":["galaxian_map_base","galaxian_map_discrete"]}},{"id":"machine:galaxian_state.galaxian_base","label":"MachineConfig","props":{"cls":"galaxian_state","name":"galaxian_base","calls":[],"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7486,"sourceColumn":1,"sourceEndLine":7505}},{"id":"device:galaxian_state.galaxian_base/maincpu","label":"Device","props":{"type":"Z80","tag":"maincpu","clock":3072000,"config":["Z80(config, m_maincpu, GALAXIAN_PIXEL_CLOCK/3/2)","m_maincpu->set_addrmap(AS_PROGRAM, &galaxian_state::galaxian_map)"],"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7489,"sourceColumn":2,"sourceEndLine":7489}},{"id":"device:galaxian_state.galaxian_base/watchdog","label":"Device","props":{"type":"WATCHDOG_TIMER","tag":"watchdog","clock":null,"config":["WATCHDOG_TIMER(config, \"watchdog\").set_vblank_count(\"screen\", 8)"],"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7492,"sourceColumn":2,"sourceEndLine":7492}},{"id":"device:galaxian_state.galaxian_base/gfxdecode","label":"Device","props":{"type":"GFXDECODE","tag":"gfxdecode","clock":null,"config":["GFXDECODE(config, m_gfxdecode, m_palette, gfx_galaxian)"],"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7495,"sourceColumn":2,"sourceEndLine":7495,"clockExpr":"m_palette, gfx_galaxian"}},{"id":"device:galaxian_state.galaxian_base/palette","label":"Device","props":{"type":"PALETTE","tag":"palette","clock":null,"config":["PALETTE(config, m_palette, FUNC(galaxian_state::galaxian_palette), 32)"],"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7496,"sourceColumn":2,"sourceEndLine":7496,"clockExpr":"FUNC(galaxian_state::galaxian_palette), 32"}},{"id":"device:galaxian_state.galaxian_base/screen","label":"Device","props":{"type":"SCREEN","tag":"screen","clock":null,"config":["SCREEN(config, m_screen, SCREEN_TYPE_RASTER)","m_screen->set_raw(GALAXIAN_PIXEL_CLOCK, GALAXIAN_HTOTAL, GALAXIAN_HBEND, GALAXIAN_HBSTART, GALAXIAN_VTOTAL, GALAXIAN_VBEND, GALAXIAN_VBSTART)","m_screen->set_screen_update(FUNC(galaxian_state::screen_update_galaxian))","m_screen->screen_vblank().set(FUNC(galaxian_state::vblank_interrupt_w))"],"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7498,"sourceColumn":2,"sourceEndLine":7498,"configCalls":["set_raw(18432000,1152,0,768,264,16,240)"],"clockExpr":"SCREEN_TYPE_RASTER","screenRaw":[18432000,1152,0,768,264,16,240]}},{"id":"device:galaxian_state.galaxian_base/screen/callback0","label":"Callback","props":{"signal":"set_screen_update","operation":"set_screen_update","raw":"m_screen->set_screen_update(FUNC(galaxian_state::screen_update_galaxian))","ownerTag":"screen","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7500,"sourceColumn":2,"sourceEndLine":7500,"targetClass":"galaxian_state","targetMethod":"screen_update_galaxian"}},{"id":"handler:galaxian_state.screen_update_galaxian","label":"Handler","props":{"method":"screen_update_galaxian","ownerClass":"galaxian_state","sourceFile":"src/mame/galaxian/galaxian_v.cpp","sourceLine":460,"sourceColumn":1,"sourceEndLine":477,"sourceParameters":"screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect","sourceBody":"/* draw the background layer (including stars) */\n\tm_draw_background_ptr(bitmap, cliprect);\n\n\t/* draw the tilemap characters over top */\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\n\t/* render the sprites next. Some custom pcbs (eg. zigzag, fantastc) have more than one sprite generator (ideally, this should be rendered in parallel) */\n\tfor (int i = 0; i \u003c m_numspritegens; i++)\n\t\tsprites_draw(screen, bitmap, cliprect, &m_spriteram[m_sprites_base + i * 0x20]);\n\n\t/* if we have bullets to draw, render them following */\n\tif (!m_draw_bullet_ptr.isnull())\n\t\tbullets_draw(screen, bitmap, cliprect, &m_spriteram[m_bullets_base]);\n\n\treturn 0;"}},{"id":"device:galaxian_state.galaxian_base/screen/callback1","label":"Callback","props":{"signal":"screen_vblank","operation":"set","raw":"m_screen->screen_vblank().set(FUNC(galaxian_state::vblank_interrupt_w))","ownerTag":"screen","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7501,"sourceColumn":2,"sourceEndLine":7501,"targetClass":"galaxian_state","targetMethod":"vblank_interrupt_w"}},{"id":"handler:galaxian_state.vblank_interrupt_w","label":"Handler","props":{"method":"vblank_interrupt_w","ownerClass":"galaxian_state","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":761,"sourceColumn":1,"sourceEndLine":767,"sourceParameters":"int state","sourceBody":"// interrupt line is clocked at VBLANK\n\t// a flip-flop at 6F is held in the preset state based on the NMI ON signal\n\tif (state && m_irq_enabled)\n\t\tm_maincpu->set_input_line(m_irq_line, ASSERT_LINE);"}},{"id":"device:galaxian_state.galaxian_base/speaker","label":"Device","props":{"type":"SPEAKER","tag":"speaker","clock":null,"config":["SPEAKER(config, \"speaker\").front_center()"],"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7504,"sourceColumn":2,"sourceEndLine":7504}},{"id":"machine:galaxian_state.galaxian","label":"MachineConfig","props":{"cls":"galaxian_state","name":"galaxian","calls":["galaxian_base"],"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7657,"sourceColumn":1,"sourceEndLine":7662}},{"id":"device:galaxian_state.galaxian/cust","label":"Device","props":{"type":"GALAXIAN_SOUND","tag":"cust","clock":0,"config":["GALAXIAN_SOUND(config, \"cust\")"],"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7661,"sourceColumn":2,"sourceEndLine":7661}},{"id":"machine:galaxian_sound_device.device_add_mconfig","label":"MachineConfig","props":{"cls":"galaxian_sound_device","name":"device_add_mconfig","calls":[],"sourceFile":"src/mame/galaxian/galaxian_a.cpp","sourceLine":665,"sourceColumn":1,"sourceEndLine":669}},{"id":"device:galaxian_sound_device.device_add_mconfig/discrete","label":"Device","props":{"type":"DISCRETE","tag":"discrete","clock":null,"config":["DISCRETE(config, m_discrete).add_route(ALL_OUTPUTS, \":speaker\", 1.0)","m_discrete->set_intf(galaxian_discrete)"],"sourceFile":"src/mame/galaxian/galaxian_a.cpp","sourceLine":667,"sourceColumn":2,"sourceEndLine":667}},{"id":"audioroute:device:galaxian_sound_device.device_add_mconfig/discrete/0","label":"AudioRoute","props":{"output":"ALL_OUTPUTS","target":":speaker","gain":1,"raw":"DISCRETE(config, m_discrete).add_route(ALL_OUTPUTS, \":speaker\", 1.0)","sourceFile":"src/mame/galaxian/galaxian_a.cpp","sourceLine":667,"sourceColumn":2,"sourceEndLine":667}},{"id":"inputs:galaxian","label":"InputPorts","props":{"name":"galaxian","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":3069,"sourceColumn":8,"sourceEndLine":3069}},{"id":"inputs:galaxian/IN0","label":"Port","props":{"tag":"IN0","modify":false}},{"id":"inputs:galaxian/IN0/f0","label":"PortField","props":{"kind":"bit","mask":1,"activeLow":false,"type":"IPT_COIN1"}},{"id":"inputs:galaxian/IN0/f1","label":"PortField","props":{"kind":"bit","mask":2,"activeLow":false,"type":"IPT_COIN2"}},{"id":"inputs:galaxian/IN0/f2","label":"PortField","props":{"kind":"bit","mask":4,"activeLow":false,"type":"IPT_JOYSTICK_LEFT","modifiers":["PORT_2WAY"]}},{"id":"inputs:galaxian/IN0/f3","label":"PortField","props":{"kind":"bit","mask":8,"activeLow":false,"type":"IPT_JOYSTICK_RIGHT","modifiers":["PORT_2WAY"]}},{"id":"inputs:galaxian/IN0/f4","label":"PortField","props":{"kind":"bit","mask":16,"activeLow":false,"type":"IPT_BUTTON1"}},{"id":"inputs:galaxian/IN0/f5","label":"PortField","props":{"kind":"dip","mask":32,"name":"Cabinet","defaultValue":0,"settings":["0=Upright","32=Cocktail"]}},{"id":"inputs:galaxian/IN0/f6","label":"PortField","props":{"kind":"service","mask":64,"activeLow":false}},{"id":"inputs:galaxian/IN0/f7","label":"PortField","props":{"kind":"bit","mask":128,"activeLow":false,"type":"IPT_SERVICE1"}},{"id":"inputs:galaxian/IN1","label":"Port","props":{"tag":"IN1","modify":false}},{"id":"inputs:galaxian/IN1/f0","label":"PortField","props":{"kind":"bit","mask":1,"activeLow":false,"type":"IPT_START1"}},{"id":"inputs:galaxian/IN1/f1","label":"PortField","props":{"kind":"bit","mask":2,"activeLow":false,"type":"IPT_START2"}},{"id":"inputs:galaxian/IN1/f2","label":"PortField","props":{"kind":"bit","mask":4,"activeLow":false,"type":"IPT_JOYSTICK_LEFT","modifiers":["PORT_2WAY","PORT_COCKTAIL"]}},{"id":"inputs:galaxian/IN1/f3","label":"PortField","props":{"kind":"bit","mask":8,"activeLow":false,"type":"IPT_JOYSTICK_RIGHT","modifiers":["PORT_2WAY","PORT_COCKTAIL"]}},{"id":"inputs:galaxian/IN1/f4","label":"PortField","props":{"kind":"bit","mask":16,"activeLow":false,"type":"IPT_BUTTON1","modifiers":["PORT_COCKTAIL"]}},{"id":"inputs:galaxian/IN1/f5","label":"PortField","props":{"kind":"bit","mask":32,"activeLow":false,"type":"IPT_UNUSED"}},{"id":"inputs:galaxian/IN1/f6","label":"PortField","props":{"kind":"dip","mask":192,"name":"Coinage","defaultValue":0,"settings":["64=2C 1C","0=1C 1C","128=1C 2C","192=Free Play"]}},{"id":"inputs:galaxian/IN2","label":"Port","props":{"tag":"IN2","modify":false}},{"id":"inputs:galaxian/IN2/f0","label":"PortField","props":{"kind":"dip","mask":3,"name":"Bonus Life","defaultValue":0,"settings":["0=7000","1=10000","2=12000","3=20000"]}},{"id":"inputs:galaxian/IN2/f1","label":"PortField","props":{"kind":"dip","mask":4,"name":"Lives","defaultValue":4,"settings":["0=2","4=3"]}},{"id":"inputs:galaxian/IN2/f2","label":"PortField","props":{"kind":"bit","mask":240,"activeLow":false,"type":"IPT_UNUSED"}},{"id":"gfxlayout:galaxian_charlayout","label":"GfxLayout","props":{"name":"galaxian_charlayout","width":8,"height":8,"total":"RGN_FRAC(1,2)","planes":2,"planeOffsets":["RGN_FRAC(0,2)","RGN_FRAC(1,2)"],"xOffsets":[0,1,2,3,4,5,6,7],"yOffsets":[0,8,16,24,32,40,48,56],"charIncrement":64}},{"id":"gfxlayout:galaxian_spritelayout","label":"GfxLayout","props":{"name":"galaxian_spritelayout","width":16,"height":16,"total":"RGN_FRAC(1,2)","planes":2,"planeOffsets":["RGN_FRAC(0,2)","RGN_FRAC(1,2)"],"xOffsets":[0,1,2,3,4,5,6,7,64,65,66,67,68,69,70,71],"yOffsets":[0,8,16,24,32,40,48,56,128,136,144,152,160,168,176,184],"charIncrement":256}},{"id":"gfxdecode:gfx_galaxian","label":"GfxDecode","props":{"name":"gfx_galaxian","sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7441,"sourceColumn":8,"sourceEndLine":7441}},{"id":"gfxdecode:gfx_galaxian/e0","label":"GfxDecodeEntry","props":{"region":"gfx1","offset":0,"layout":"galaxian_charlayout","colorBase":0,"colorCount":8,"xscale":3,"yscale":1}},{"id":"gfxdecode:gfx_galaxian/e1","label":"GfxDecodeEntry","props":{"region":"gfx1","offset":0,"layout":"galaxian_spritelayout","colorBase":0,"colorCount":8,"xscale":3,"yscale":1}}],"edges":[{"from":"game:galaxian","to":"file:src/mame/galaxian/galaxian.cpp","rel":"DEFINED_IN","props":{"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":16824,"sourceColumn":1,"sourceEndLine":16824}},{"from":"game:galaxian","to":"machine:galaxian_state.galaxian","rel":"USES_MACHINE","props":null},{"from":"game:galaxian","to":"inputs:galaxian","rel":"USES_INPUTS","props":null},{"from":"game:galaxian","to":"romset:galaxian","rel":"USES_ROMSET","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:emu.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:galaxian.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:galaxian_a.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:cclimber_a.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:cpu/m6502/m6502.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:cpu/s2650/s2650.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:cpu/z80/z80.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:machine/nvram.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:machine/watchdog.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:screen.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:speaker.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian.cpp","to":"file:nl_konami.h","rel":"INCLUDES","props":null},{"from":"machine:galaxian_state.galaxian","to":"file:src/mame/galaxian/galaxian.cpp","rel":"DEFINED_IN","props":{"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7657,"sourceColumn":1,"sourceEndLine":7662}},{"from":"machine:galaxian_state.galaxian","to":"machine:galaxian_state.galaxian_base","rel":"CALLS","props":null},{"from":"machine:galaxian_state.galaxian","to":"device:galaxian_state.galaxian/cust","rel":"HAS_DEVICE","props":null},{"from":"inputs:galaxian","to":"file:src/mame/galaxian/galaxian.cpp","rel":"DEFINED_IN","props":{"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":3069,"sourceColumn":8,"sourceEndLine":3069}},{"from":"inputs:galaxian","to":"inputs:galaxian/IN0","rel":"HAS_PORT","props":null},{"from":"inputs:galaxian","to":"inputs:galaxian/IN1","rel":"HAS_PORT","props":null},{"from":"inputs:galaxian","to":"inputs:galaxian/IN2","rel":"HAS_PORT","props":null},{"from":"romset:galaxian","to":"file:src/mame/galaxian/galaxian.cpp","rel":"DEFINED_IN","props":{"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":9749,"sourceColumn":1,"sourceEndLine":9749}},{"from":"romset:galaxian","to":"region:galaxian/maincpu","rel":"HAS_REGION","props":null},{"from":"romset:galaxian","to":"region:galaxian/gfx1","rel":"HAS_REGION","props":null},{"from":"romset:galaxian","to":"region:galaxian/proms","rel":"HAS_REGION","props":null},{"from":"machine:galaxian_state.galaxian_base","to":"file:src/mame/galaxian/galaxian.cpp","rel":"DEFINED_IN","props":{"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7486,"sourceColumn":1,"sourceEndLine":7505}},{"from":"machine:galaxian_state.galaxian_base","to":"device:galaxian_state.galaxian_base/maincpu","rel":"HAS_DEVICE","props":null},{"from":"machine:galaxian_state.galaxian_base","to":"device:galaxian_state.galaxian_base/watchdog","rel":"HAS_DEVICE","props":null},{"from":"machine:galaxian_state.galaxian_base","to":"device:galaxian_state.galaxian_base/gfxdecode","rel":"HAS_DEVICE","props":null},{"from":"machine:galaxian_state.galaxian_base","to":"gfxdecode:gfx_galaxian","rel":"DECODES","props":{"deviceTag":"gfxdecode"}},{"from":"machine:galaxian_state.galaxian_base","to":"device:galaxian_state.galaxian_base/palette","rel":"HAS_DEVICE","props":null},{"from":"machine:galaxian_state.galaxian_base","to":"device:galaxian_state.galaxian_base/screen","rel":"HAS_DEVICE","props":null},{"from":"machine:galaxian_state.galaxian_base","to":"device:galaxian_state.galaxian_base/speaker","rel":"HAS_DEVICE","props":null},{"from":"device:galaxian_state.galaxian/cust","to":"machine:galaxian_sound_device.device_add_mconfig","rel":"CALLS","props":null},{"from":"inputs:galaxian/IN0","to":"inputs:galaxian/IN0/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN0","to":"inputs:galaxian/IN0/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN0","to":"inputs:galaxian/IN0/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN0","to":"inputs:galaxian/IN0/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN0","to":"inputs:galaxian/IN0/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN0","to":"inputs:galaxian/IN0/f5","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN0","to":"inputs:galaxian/IN0/f6","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN0","to":"inputs:galaxian/IN0/f7","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN1","to":"inputs:galaxian/IN1/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN1","to":"inputs:galaxian/IN1/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN1","to":"inputs:galaxian/IN1/f2","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN1","to":"inputs:galaxian/IN1/f3","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN1","to":"inputs:galaxian/IN1/f4","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN1","to":"inputs:galaxian/IN1/f5","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN1","to":"inputs:galaxian/IN1/f6","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN2","to":"inputs:galaxian/IN2/f0","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN2","to":"inputs:galaxian/IN2/f1","rel":"HAS_FIELD","props":null},{"from":"inputs:galaxian/IN2","to":"inputs:galaxian/IN2/f2","rel":"HAS_FIELD","props":null},{"from":"region:galaxian/maincpu","to":"rom:galaxian/maincpu/galmidw.u","rel":"LOADS","props":null},{"from":"region:galaxian/maincpu","to":"rom:galaxian/maincpu/galmidw.v","rel":"LOADS","props":null},{"from":"region:galaxian/maincpu","to":"rom:galaxian/maincpu/galmidw.w","rel":"LOADS","props":null},{"from":"region:galaxian/maincpu","to":"rom:galaxian/maincpu/galmidw.y","rel":"LOADS","props":null},{"from":"region:galaxian/maincpu","to":"rom:galaxian/maincpu/7l","rel":"LOADS","props":null},{"from":"region:galaxian/gfx1","to":"rom:galaxian/gfx1/1h.bin","rel":"LOADS","props":null},{"from":"region:galaxian/gfx1","to":"rom:galaxian/gfx1/1k.bin","rel":"LOADS","props":null},{"from":"region:galaxian/proms","to":"rom:galaxian/proms/6l.bpr","rel":"LOADS","props":null},{"from":"device:galaxian_state.galaxian_base/maincpu","to":"map:galaxian_state.galaxian_map","rel":"HAS_MAP","props":{"space":"AS_PROGRAM"}},{"from":"gfxdecode:gfx_galaxian","to":"file:src/mame/galaxian/galaxian.cpp","rel":"DEFINED_IN","props":{"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":7441,"sourceColumn":8,"sourceEndLine":7441}},{"from":"gfxdecode:gfx_galaxian","to":"gfxdecode:gfx_galaxian/e0","rel":"HAS_ENTRY","props":null},{"from":"gfxdecode:gfx_galaxian","to":"gfxdecode:gfx_galaxian/e1","rel":"HAS_ENTRY","props":null},{"from":"device:galaxian_state.galaxian_base/screen","to":"device:galaxian_state.galaxian_base/screen/callback0","rel":"HAS_CALLBACK","props":null},{"from":"device:galaxian_state.galaxian_base/screen","to":"device:galaxian_state.galaxian_base/screen/callback1","rel":"HAS_CALLBACK","props":null},{"from":"machine:galaxian_sound_device.device_add_mconfig","to":"file:src/mame/galaxian/galaxian_a.cpp","rel":"DEFINED_IN","props":{"sourceFile":"src/mame/galaxian/galaxian_a.cpp","sourceLine":665,"sourceColumn":1,"sourceEndLine":669}},{"from":"machine:galaxian_sound_device.device_add_mconfig","to":"device:galaxian_sound_device.device_add_mconfig/discrete","rel":"HAS_DEVICE","props":null},{"from":"map:galaxian_state.galaxian_map","to":"file:src/mame/galaxian/galaxian.cpp","rel":"DEFINED_IN","props":{"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1769,"sourceColumn":1,"sourceEndLine":1773}},{"from":"map:galaxian_state.galaxian_map","to":"map:galaxian_state.galaxian_map_base","rel":"INCLUDES_MAP","props":null},{"from":"map:galaxian_state.galaxian_map","to":"map:galaxian_state.galaxian_map_discrete","rel":"INCLUDES_MAP","props":null},{"from":"gfxdecode:gfx_galaxian/e0","to":"gfxlayout:galaxian_charlayout","rel":"USES_LAYOUT","props":null},{"from":"gfxdecode:gfx_galaxian/e1","to":"gfxlayout:galaxian_spritelayout","rel":"USES_LAYOUT","props":null},{"from":"device:galaxian_state.galaxian_base/screen/callback0","to":"handler:galaxian_state.screen_update_galaxian","rel":"CALLS_HANDLER","props":null},{"from":"device:galaxian_state.galaxian_base/screen/callback1","to":"handler:galaxian_state.vblank_interrupt_w","rel":"CALLS_HANDLER","props":null},{"from":"file:src/mame/galaxian/galaxian_a.cpp","to":"file:emu.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian_a.cpp","to":"file:galaxian_a.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian_a.cpp","to":"file:galaxian.h","rel":"INCLUDES","props":null},{"from":"file:src/mame/galaxian/galaxian_a.cpp","to":"file:speaker.h","rel":"INCLUDES","props":null},{"from":"device:galaxian_sound_device.device_add_mconfig/discrete","to":"audioroute:device:galaxian_sound_device.device_add_mconfig/discrete/0","rel":"HAS_AUDIO_ROUTE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"file:src/mame/galaxian/galaxian.cpp","rel":"DEFINED_IN","props":{"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1746,"sourceColumn":1,"sourceEndLine":1767}},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range0","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range1","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range2","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range3","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range4","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range5","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range6","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range7","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range8","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range9","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range10","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range11","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range12","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range13","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_base","to":"map:galaxian_state.galaxian_map_base/range14","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_discrete","to":"file:src/mame/galaxian/galaxian.cpp","rel":"DEFINED_IN","props":{"sourceFile":"src/mame/galaxian/galaxian.cpp","sourceLine":1739,"sourceColumn":1,"sourceEndLine":1744}},{"from":"map:galaxian_state.galaxian_map_discrete","to":"map:galaxian_state.galaxian_map_discrete/range0","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_discrete","to":"map:galaxian_state.galaxian_map_discrete/range1","rel":"HAS_RANGE","props":null},{"from":"map:galaxian_state.galaxian_map_discrete","to":"map:galaxian_state.galaxian_map_discrete/range2","rel":"HAS_RANGE","props":null},{"from":"gfxlayout:galaxian_charlayout","to":"file:src/mame/galaxian/galaxian.cpp","rel":"DEFINED_IN","props":null},{"from":"gfxlayout:galaxian_spritelayout","to":"file:src/mame/galaxian/galaxian.cpp","rel":"DEFINED_IN","props":null},{"from":"map:galaxian_state.galaxian_map_base/range2","to":"handler:galaxian_state.galaxian_videoram_w","rel":"WRITES","props":null},{"from":"map:galaxian_state.galaxian_map_base/range3","to":"handler:galaxian_state.galaxian_objram_w","rel":"WRITES","props":null},{"from":"map:galaxian_state.galaxian_map_base/range5","to":"handler:galaxian_state.start_lamp_w","rel":"WRITES","props":null},{"from":"map:galaxian_state.galaxian_map_base/range6","to":"handler:galaxian_state.coin_lock_w","rel":"WRITES","props":null},{"from":"map:galaxian_state.galaxian_map_base/range7","to":"handler:galaxian_state.coin_count_0_w","rel":"WRITES","props":null},{"from":"map:galaxian_state.galaxian_map_base/range10","to":"handler:galaxian_state.irq_enable_w","rel":"WRITES","props":null},{"from":"map:galaxian_state.galaxian_map_base/range11","to":"handler:galaxian_state.galaxian_stars_enable_w","rel":"WRITES","props":null},{"from":"map:galaxian_state.galaxian_map_base/range12","to":"handler:galaxian_state.galaxian_flip_screen_x_w","rel":"WRITES","props":null},{"from":"map:galaxian_state.galaxian_map_base/range13","to":"handler:galaxian_state.galaxian_flip_screen_y_w","rel":"WRITES","props":null},{"from":"map:galaxian_state.galaxian_map_base/range14","to":"handler:watchdog_timer_device.reset_r","rel":"READS","props":{"deviceTag":"watchdog"}},{"from":"map:galaxian_state.galaxian_map_discrete/range0","to":"handler:galaxian_sound_device.lfo_freq_w","rel":"WRITES","props":{"deviceTag":"cust"}},{"from":"map:galaxian_state.galaxian_map_discrete/range1","to":"handler:galaxian_sound_device.sound_w","rel":"WRITES","props":{"deviceTag":"cust"}},{"from":"map:galaxian_state.galaxian_map_discrete/range2","to":"handler:galaxian_sound_device.pitch_w","rel":"WRITES","props":{"deviceTag":"cust"}}]}</script>
+<script>
+'use strict';
+const GRAPH = JSON.parse(document.getElementById('graph-data').textContent);
+const FAMILY = {"Game":0,"MachineConfig":1,"Device":1,"Callback":1,"AddressMap":2,"AddressRange":2,"Handler":2,"RomSet":3,"RomRegion":3,"Rom":3,"InputPorts":4,"Port":4,"PortField":4,"GfxDecode":5,"GfxDecodeEntry":5,"GfxLayout":5,"SourceFile":6};
+const FAMILY_NAMES = ["Game","Machine","Memory map","ROMs","Inputs","Graphics","Source files"];
+const LIGHT = ["#2a78d6","#1baf7a","#eda100","#008300","#4a3aa7","#e34948","#e87ba4"], DARK = ["#3987e5","#199e70","#c98500","#008300","#9085e9","#e66767","#d55181"];
+const darkMq = matchMedia('(prefers-color-scheme: dark)');
+const palette = () => darkMq.matches ? DARK : LIGHT;
+const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+// --- graph model -----------------------------------------------------------
+const nodes = GRAPH.nodes.map(n => ({
+  ...n, fam: FAMILY[n.label] ?? 6,
+  x: 0, y: 0, vx: 0, vy: 0, deg: 0, r: 5, fixed: false,
+}));
+const byId = new Map(nodes.map(n => [n.id, n]));
+const edges = GRAPH.edges.filter(e => byId.has(e.from) && byId.has(e.to))
+  .map(e => ({ ...e, a: byId.get(e.from), b: byId.get(e.to) }));
+for (const e of edges) { e.a.deg++; e.b.deg++; }
+for (const n of nodes) n.r = 4 + Math.min(10, Math.sqrt(n.deg) * 2.1);
+const adj = new Map(nodes.map(n => [n, []]));
+for (const e of edges) { adj.get(e.a).push(e); adj.get(e.b).push(e); }
+
+// deterministic initial placement: ring per family
+nodes.forEach((n, i) => {
+  const golden = i * 2.39996 + n.fam;
+  const rad = 120 + 240 * ((i * 0.618) % 1);
+  n.x = Math.cos(golden) * rad; n.y = Math.sin(golden) * rad;
+});
+
+// --- state -----------------------------------------------------------------
+const hidden = new Set();           // hidden families
+let selected = null, hovered = null;
+let searchTerm = '';
+let scale = 1, ox = 0, oy = 0;      // view transform
+let alpha = 1;                       // simulation heat
+
+// --- canvas setup ----------------------------------------------------------
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+function resize() {
+  const dpr = devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+new ResizeObserver(() => { resize(); draw(); }).observe(canvas);
+
+const visible = n => !hidden.has(n.fam);
+
+// --- physics (O(n^2) fine at this scale) ------------------------------------
+function tick() {
+  const vs = nodes.filter(visible);
+  for (let i = 0; i < vs.length; i++) {
+    const a = vs[i];
+    for (let j = i + 1; j < vs.length; j++) {
+      const b = vs[j];
+      let dx = a.x - b.x, dy = a.y - b.y;
+      let d2 = dx * dx + dy * dy;
+      if (d2 < 1) { dx = (Math.random ? ((i * 7 + j) % 13) / 13 - .5 : .1); dy = ((i * 5 + j) % 11) / 11 - .5; d2 = dx*dx+dy*dy+.01; }
+      const f = Math.min(12, 1400 / d2) * alpha;
+      const d = Math.sqrt(d2);
+      a.vx += dx / d * f; a.vy += dy / d * f;
+      b.vx -= dx / d * f; b.vy -= dy / d * f;
+    }
+  }
+  for (const e of edges) {
+    if (!visible(e.a) || !visible(e.b)) continue;
+    const dx = e.b.x - e.a.x, dy = e.b.y - e.a.y;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const want = 46 + (e.a.r + e.b.r);
+    const f = (d - want) * 0.02 * alpha;
+    e.a.vx += dx / d * f; e.a.vy += dy / d * f;
+    e.b.vx -= dx / d * f; e.b.vy -= dy / d * f;
+  }
+  for (const n of vs) {
+    n.vx -= n.x * 0.0016 * alpha; n.vy -= n.y * 0.0016 * alpha; // gravity
+    if (!n.fixed) { n.x += n.vx; n.y += n.vy; }
+    n.vx *= 0.6; n.vy *= 0.6;
+  }
+  alpha = Math.max(0.02, alpha * 0.995);
+}
+
+// --- rendering ---------------------------------------------------------------
+function draw() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  ctx.translate(w / 2 + ox, h / 2 + oy);
+  ctx.scale(scale, scale);
+  const pal = palette();
+  const focus = hovered || selected;
+  const inFocus = new Set();
+  if (focus) {
+    inFocus.add(focus);
+    for (const e of adj.get(focus)) { inFocus.add(e.a); inFocus.add(e.b); }
+  }
+  const match = n => searchTerm && (n.id.toLowerCase().includes(searchTerm) || String(n.props.name ?? '').toLowerCase().includes(searchTerm));
+
+  ctx.lineWidth = 1 / scale;
+  for (const e of edges) {
+    if (!visible(e.a) || !visible(e.b)) continue;
+    const hi = focus && (e.a === focus || e.b === focus);
+    ctx.strokeStyle = hi ? cssVar('--edge-hi') : cssVar('--edge');
+    ctx.globalAlpha = focus && !hi ? 0.25 : 1;
+    ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const dim = (focus && !inFocus.has(n)) || (searchTerm && !match(n));
+    ctx.globalAlpha = dim ? 0.22 : 1;
+    ctx.fillStyle = pal[n.fam];
+    ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, 7); ctx.fill();
+    if (n === selected) {
+      ctx.strokeStyle = cssVar('--ink'); ctx.lineWidth = 2 / scale;
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 2 / scale, 0, 7); ctx.stroke();
+    }
+  }
+  // direct labels: hubs always, everything when zoomed, neighborhood on focus
+  ctx.font = `${11 / scale}px ui-sans-serif, system-ui`;
+  ctx.textBaseline = 'middle';
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const show = scale > 1.6 || n.deg >= 6 || inFocus.has(n) || match(n);
+    if (!show) continue;
+    const dim = focus && !inFocus.has(n);
+    const text = shortName(n);
+    const x = n.x + n.r + 4 / scale;
+    ctx.globalAlpha = dim ? 0.3 : 1;
+    ctx.lineWidth = 3 / scale;
+    ctx.strokeStyle = cssVar('--halo');
+    ctx.strokeText(text, x, n.y);
+    ctx.fillStyle = cssVar('--ink-2');
+    ctx.fillText(text, x, n.y);
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+function shortName(n) {
+  const p = n.props;
+  return String(p.name ?? p.tag ?? p.file ?? p.path ?? p.method ?? n.id.split(':').pop());
+}
+
+function loop() { tick(); draw(); requestAnimationFrame(loop); }
+
+// --- interaction -------------------------------------------------------------
+const tip = document.getElementById('tip');
+function pick(mx, my) {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const gx = (mx - w / 2 - ox) / scale, gy = (my - h / 2 - oy) / scale;
+  let best = null, bestD = 1e9;
+  for (const n of nodes) {
+    if (!visible(n)) continue;
+    const d = Math.hypot(n.x - gx, n.y - gy);
+    if (d < n.r + 4 / scale && d < bestD) { best = n; bestD = d; }
+  }
+  return best;
+}
+let drag = null; // {node} | {pan:true}
+canvas.addEventListener('pointerdown', ev => {
+  const n = pick(ev.offsetX, ev.offsetY);
+  drag = n ? { node: n } : { pan: true, sx: ev.clientX, sy: ev.clientY, ox, oy };
+  if (n) { n.fixed = true; alpha = Math.max(alpha, 0.3); }
+  canvas.classList.add('dragging');
+  canvas.setPointerCapture(ev.pointerId);
+});
+canvas.addEventListener('pointermove', ev => {
+  if (drag?.node) {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    drag.node.x = (ev.offsetX - w / 2 - ox) / scale;
+    drag.node.y = (ev.offsetY - h / 2 - oy) / scale;
+    drag.moved = true;
+  } else if (drag?.pan) {
+    ox = drag.ox + ev.clientX - drag.sx; oy = drag.oy + ev.clientY - drag.sy;
+    drag.moved = true;
+  } else {
+    hovered = pick(ev.offsetX, ev.offsetY);
+    if (hovered) {
+      tip.style.display = 'block';
+      tip.style.left = Math.min(innerWidth - 360, ev.clientX + 14) + 'px';
+      tip.style.top = (ev.clientY + 12) + 'px';
+      tip.textContent = hovered.label + ' · ' + hovered.id;
+    } else tip.style.display = 'none';
+  }
+});
+canvas.addEventListener('pointerup', ev => {
+  if (drag?.node && !drag.moved) select(drag.node);
+  else if (drag?.pan && !drag.moved) select(null);
+  if (drag?.node) drag.node.fixed = false;
+  drag = null;
+  canvas.classList.remove('dragging');
+});
+canvas.addEventListener('wheel', ev => {
+  ev.preventDefault();
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const f = Math.exp(-ev.deltaY * 0.0015);
+  const nx = ev.offsetX - w / 2, ny = ev.offsetY - h / 2;
+  ox = nx - (nx - ox) * f; oy = ny - (ny - oy) * f;
+  scale = Math.min(8, Math.max(0.15, scale * f));
+}, { passive: false });
+
+// --- panel -------------------------------------------------------------------
+const panel = document.getElementById('panel');
+function select(n) {
+  selected = n;
+  panel.classList.add('open');
+  if (!n) { showOverview(); return; }
+  const rows = Object.entries(n.props).map(([k, v]) =>
+    `<tr><td>${esc(k)}</td><td>${fmtProp(n, k, v)}</td></tr>`).join('');
+  const links = dir => adj.get(n)
+    .filter(e => (dir === 'out' ? e.a : e.b) === n)
+    .map(e => {
+      const other = dir === 'out' ? e.b : e.a;
+      return `<a data-id="${esc(other.id)}"><span class="rel">${dir === 'out' ? '→' : '←'} ${e.rel}</span> ${esc(shortName(other))}</a>`;
+    }).join('') || '<span class="rel">none</span>';
+  panel.innerHTML = `
+    <h2>${esc(n.id)}</h2>
+    <div class="lbl">${esc(n.label)} · ${FAMILY_NAMES[n.fam]}</div>
+    <div class="lbl">properties</div><table>${rows || '<tr><td colspan=2>none</td></tr>'}</table>
+    <div class="lbl">outgoing</div>${links('out')}
+    <div class="lbl">incoming</div>${links('in')}`;
+  panel.querySelectorAll('a[data-id]').forEach(a =>
+    a.addEventListener('click', () => { const t = byId.get(a.dataset.id); if (t) { select(t); alpha = Math.max(alpha, .15); } }));
+}
+function showOverview() {
+  selected = null;
+  const game = nodes.find(n => n.label === 'Game');
+  const devices = nodes.filter(n => n.label === 'Device');
+  const maps = nodes.filter(n => n.label === 'AddressMap');
+  const ranges = nodes.filter(n => n.label === 'AddressRange');
+  const callbacks = nodes.filter(n => n.label === 'Callback');
+  const handlers = nodes.filter(n => n.label === 'Handler');
+  const roms = nodes.filter(n => n.label === 'Rom');
+  const romBytes = roms.reduce((sum, n) => sum + Number(n.props.size || 0), 0);
+  const sourceable = nodes.filter(n => n.label !== 'SourceFile');
+  const covered = sourceable.filter(n => n.props.sourceFile).length;
+  const driverHandlers = handlers.filter(n =>
+    String(n.props.ownerClass || '').endsWith('_state') || n.props.ownerClass === 'driver');
+  const gaps = ranges.filter(n => {
+    if (!/\.(?:l[wr]+8|select|umask\w*)\s*\(/.test(String(n.props.raw || ''))) return false;
+    return !edges.some(e => e.a === n && (e.rel === 'READS' || e.rel === 'WRITES'));
+  });
+  const gameSource = game?.props.sourceFile
+    ? sourceAnchor(game.props.sourceFile, game.props.sourceLine, 'Open MAME definition')
+    : '';
+  panel.innerHTML = `
+    <h2>${esc(game?.props.fullname || game?.props.name || 'Machine overview')}</h2>
+    <div class="lbl">MAME compiler overview</div>
+    <div class="metric"><span>Devices</span><strong>${devices.length}</strong></div>
+    <div class="metric"><span>Address ranges</span><strong>${ranges.length}</strong></div>
+    <div class="metric"><span>ROM chips / bytes</span><strong>${roms.length} / ${romBytes.toLocaleString()}</strong></div>
+    <div class="metric"><span>Callback wires extracted</span><strong>${callbacks.length}</strong></div>
+    <div class="metric"><span>Source provenance</span><strong>${covered}/${sourceable.length}</strong></div>
+    <div class="metric"><span>MAME driver source handlers</span><strong>${driverHandlers.length}</strong></div>
+    <div class="metric"><span>Detected parser gaps</span><strong class="${gaps.length ? 'warn' : ''}">${gaps.length}</strong></div>
+    <div class="lbl">Compiler outputs</div>
+    ${gameSource}
+    <a href="runtime-report.md" target="_blank">Open runtime transpilation report</a>
+    <div class="lbl">Machine maps</div>
+    ${maps.map(n => `<a data-id="${esc(n.id)}">${esc(shortName(n))} <span class="rel">${adj.get(n).length} links</span></a>`).join('') || '<span class="rel">none</span>'}
+    <div class="lbl">Extracted callback wiring</div>
+    ${callbacks.slice(0, 16).map(n => `<a data-id="${esc(n.id)}">${esc(shortName(n))} <span class="rel">→ ${esc(n.props.targetTag || n.props.targetMethod || n.props.operation)}</span></a>`).join('') || '<span class="rel">none</span>'}
+    ${callbacks.length > 16 ? `<span class="rel">+${callbacks.length - 16} more in the graph</span>` : ''}
+    ${gaps.length ? `<div class="lbl warn">Parser gaps</div>${gaps.map(n => `<a data-id="${esc(n.id)}">${esc(n.props.raw)}</a>`).join('')}` : ''}
+  `;
+  bindPanelLinks();
+}
+function bindPanelLinks() {
+  panel.querySelectorAll('a[data-id]').forEach(a =>
+    a.addEventListener('click', () => {
+      const target = byId.get(a.dataset.id);
+      if (target) { select(target); alpha = Math.max(alpha, .15); }
+    }));
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function fmt(v) {
+  if (Array.isArray(v)) return '<pre>' + v.map(esc).join('\n') + '</pre>';
+  if (typeof v === 'number' && v > 255 && Number.isInteger(v)) return esc(v) + ' <span class="rel">(0x' + v.toString(16) + ')</span>';
+  return esc(v);
+}
+function fmtProp(n, key, value) {
+  if (key === 'sourceFile') return sourceAnchor(value, n.props.sourceLine, value);
+  return fmt(value);
+}
+function sourceAnchor(file, line, label) {
+  const href = 'https://github.com/mamedev/mame/blob/master/' + encodeURI(String(file)) +
+    (line ? '#L' + Number(line) : '');
+  return `<a href="${esc(href)}" target="_blank" rel="noreferrer">${esc(label)}${line ? ':' + Number(line) : ''}</a>`;
+}
+
+// --- legend + search + stats ---------------------------------------------------
+const legend = document.getElementById('legend');
+const famCounts = FAMILY_NAMES.map((_, i) => nodes.filter(n => n.fam === i).length);
+FAMILY_NAMES.forEach((name, i) => {
+  if (!famCounts[i]) return;
+  const label = document.createElement('label');
+  label.innerHTML = `<input type="checkbox" checked><span class="sw"></span>${name} <span style="color:var(--ink-3)">${famCounts[i]}</span>`;
+  label.querySelector('.sw').style.background = palette()[i];
+  label.querySelector('input').addEventListener('change', ev => {
+    ev.target.checked ? hidden.delete(i) : hidden.add(i);
+    alpha = Math.max(alpha, 0.3);
+  });
+  legend.appendChild(label);
+});
+darkMq.addEventListener('change', () => {
+  legend.querySelectorAll('.sw').forEach((sw, idx) => {
+    const fams = FAMILY_NAMES.map((_, i) => i).filter(i => famCounts[i]);
+    sw.style.background = palette()[fams[idx]];
+  });
+});
+document.getElementById('search').addEventListener('input', ev => {
+  searchTerm = ev.target.value.trim().toLowerCase();
+});
+document.getElementById('overview').addEventListener('click', showOverview);
+document.getElementById('stats').textContent = `${nodes.length} nodes · ${edges.length} edges`;
+
+resize();
+showOverview();
+loop();
+</script>
+</body>
+</html>

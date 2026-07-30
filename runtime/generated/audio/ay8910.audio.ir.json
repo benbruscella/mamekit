@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "type": "AY8910",
+  "className": "ay8910_device",
+  "channels": 3,
+  "registerCount": 16,
+  "clockDivider": 8,
+  "envelopeMask": 15,
+  "envelopeStep": 2,
+  "noiseTaps": [
+    0,
+    3
+  ],
+  "readMasks": [
+    255,
+    15,
+    255,
+    15,
+    255,
+    15,
+    31,
+    255,
+    31,
+    31,
+    31,
+    255,
+    255,
+    15,
+    255,
+    255
+  ],
+  "volumeTable": [
+    -0.125,
+    -0.12026177663616097,
+    -0.11820400758277991,
+    -0.11549443909450804,
+    -0.11129970211696952,
+    -0.10519286850718829,
+    -0.09770806310558056,
+    -0.07928820271191775,
+    -0.06811478063806223,
+    -0.030491504874337425,
+    0.006626453377211516,
+    0.05049148850685958,
+    0.11017411587355805,
+    0.1734976877367712,
+    0.27081105112451004,
+    0.375
+  ],
+  "filterTypes": {
+    "lowpass3r": 0,
+    "lowpass": 2,
+    "highpass": 3,
+    "ac": 4
+  },
+  "sourceFiles": [
+    "src/devices/sound/ay8910.cpp",
+    "src/devices/sound/ay8910.h",
+    "src/devices/sound/flt_rc.cpp",
+    "src/devices/sound/flt_rc.h"
+  ],
+  "source": {
+    "file": "src/devices/sound/ay8910.cpp",
+    "line": 1058
+  }
+}

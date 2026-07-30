@@ -1,0 +1,469 @@
+{
+  "type": "BUFFERED_SPRITERAM8",
+  "uses": [
+    {
+      "game": "commando",
+      "tags": [
+        "spriteram"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "spriteram"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "BUFFERED_SPRITERAM8",
+    "className": "buffered_spriteram8_device",
+    "shortName": "buffered_spriteram8",
+    "description": "Buffered 8-bit Sprite RAM",
+    "sourceFile": "src/devices/video/bufsprite.cpp",
+    "sourceLine": 20,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(BUFFERED_SPRITERAM8,  buffered_spriteram8_device,  \"buffered_spriteram8\",  \"Buffered 8-bit Sprite RAM\")"
+  },
+  "methods": [
+    {
+      "name": "buffered_spriteram_device",
+      "parameters": "\n\t\tconst machine_config &mconfig,\n\t\tdevice_type type,\n\t\tconst char *tag,\n\t\tdevice_t *owner,\n\t\tuint32_t clock",
+      "sourceFile": "src/devices/video/bufsprite.cpp",
+      "sourceLine": 27,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/video/bufsprite.cpp",
+      "sourceLine": 40,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_spriteram"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_buffered"
+                    },
+                    "property": "resize"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "length"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_buffered"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "live",
+      "parameters": "",
+      "sourceFile": "src/devices/video/bufsprite.h",
+      "sourceLine": 39,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_spriteram"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "buffer",
+      "parameters": "",
+      "sourceFile": "src/devices/video/bufsprite.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_buffered"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bytes",
+      "parameters": "",
+      "sourceFile": "src/devices/video/bufsprite.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_spriteram"
+                },
+                "property": "bytes"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "length",
+      "parameters": "",
+      "sourceFile": "src/devices/video/bufsprite.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "bytes"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "sizeof"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "uint8_t"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "copy",
+      "parameters": "uint32_t srcoffset = 0, uint32_t srclength = 0x7fffffff",
+      "sourceFile": "src/devices/video/bufsprite.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_spriteram"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_spriteram"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "memcpy"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_buffered"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_spriteram"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "srcoffset"
+                      }
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "std::min"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "srclength"
+                          },
+                          {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "length"
+                              },
+                              "args": []
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "srcoffset"
+                            }
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "sizeof"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "uint8_t"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_buffered"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "address_space &space, offs_t offset, uint8_t data, uint8_t mem_mask = ~uint8_t(0)",
+      "sourceFile": "src/devices/video/bufsprite.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "copy"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vblank_copy_rising",
+      "parameters": "int state",
+      "sourceFile": "src/devices/video/bufsprite.h",
+      "sourceLine": 57,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "state"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "copy"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vblank_copy_falling",
+      "parameters": "int state",
+      "sourceFile": "src/devices/video/bufsprite.h",
+      "sourceLine": 60,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "copy"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/video/bufsprite.cpp",
+    "src/devices/video/bufsprite.h"
+  ]
+}

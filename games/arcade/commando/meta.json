@@ -1,0 +1,26 @@
+{
+  "game": "commando",
+  "title": "Commando (World) (Capcom, 1985)",
+  "fullname": "Commando (World)",
+  "year": "1985",
+  "manufacturer": "Capcom",
+  "family": "commando",
+  "driverFile": "src/mame/capcom/commando.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-02-02",
+    "commits": 142,
+    "contributors": 26,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Olivier Galibert"
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

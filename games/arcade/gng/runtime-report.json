@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 2,
+  "game": "gng",
+  "family": "gng",
+  "boardMode": "generated",
+  "playable": true,
+  "generationGaps": [],
+  "sourceCoverage": {
+    "covered": 102,
+    "total": 144,
+    "percent": 70.8
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:MC6809",
+        "status": "executable",
+        "source": "src/devices/cpu/m6809/m6809.cpp:136"
+      },
+      {
+        "name": "audiocpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "mainlatch:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "spriteram:BUFFERED_SPRITERAM8",
+        "status": "executable",
+        "source": "src/devices/video/bufsprite.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ym1:YM2203",
+        "status": "executable",
+        "source": "src/devices/sound/ymopn.cpp:12"
+      },
+      {
+        "name": "ym2:YM2203",
+        "status": "executable",
+        "source": "src/devices/sound/ymopn.cpp:12"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.mainbank",
+        "status": "generated"
+      },
+      {
+        "name": "gng_state.bankswitch_w",
+        "status": "generated",
+        "source": "src/mame/capcom/gng.cpp:234"
+      },
+      {
+        "name": "gng_state.bgscrollx_w",
+        "status": "generated",
+        "source": "src/mame/capcom/gng.cpp:175"
+      },
+      {
+        "name": "gng_state.bgscrolly_w",
+        "status": "generated",
+        "source": "src/mame/capcom/gng.cpp:181"
+      },
+      {
+        "name": "gng_state.bgvideoram_w",
+        "status": "generated",
+        "source": "src/mame/capcom/gng.cpp:168"
+      },
+      {
+        "name": "gng_state.fgvideoram_w",
+        "status": "generated",
+        "source": "src/mame/capcom/gng.cpp:162"
+      },
+      {
+        "name": "mainlatch.write_d0",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "palette.write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette.write8_ext",
+        "status": "declarative-host"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW2",
+        "status": "generated"
+      },
+      {
+        "name": "port.P1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P2",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYSTEM",
+        "status": "generated"
+      },
+      {
+        "name": "soundlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "spriteram.write",
+        "status": "executable",
+        "source": "src/devices/video/bufsprite.cpp:20"
+      },
+      {
+        "name": "ym1.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopn.cpp:12"
+      },
+      {
+        "name": "ym2.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopn.cpp:12"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.set_vblank_int -> screen.irq0_line_hold",
+        "status": "generated",
+        "source": "src/mame/capcom/gng.cpp:577"
+      },
+      {
+        "name": "audiocpu.set_periodic_int -> gng_state.irq0_line_hold",
+        "status": "generated",
+        "source": "src/mame/capcom/gng.cpp:581"
+      },
+      {
+        "name": "mainlatch.q_out_cb<0> -> gng_state.flip_screen_set",
+        "status": "generated",
+        "source": "src/mame/capcom/gng.cpp:584"
+      },
+      {
+        "name": "mainlatch.q_out_cb<1> -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/capcom/gng.cpp:585"
+      },
+      {
+        "name": "mainlatch.q_out_cb<1> -> gng_state.ym_reset_w",
+        "status": "generated",
+        "source": "src/mame/capcom/gng.cpp:586"
+      },
+      {
+        "name": "screen.set_screen_update -> gng_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/capcom/gng.cpp:595"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/gng/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 8,
+    "compiledMethods": 8,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 5,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 2,
+    "screenUpdate": "gng_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 13,
+    "generated": 18,
+    "declarative-host": 6,
+    "blocked": 0,
+    "missing": 0
+  }
+}

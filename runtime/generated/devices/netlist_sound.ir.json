@@ -1,0 +1,28 @@
+{
+  "type": "NETLIST_SOUND",
+  "uses": [
+    {
+      "game": "kungfum",
+      "tags": [
+        "snd_nl"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "NETLIST_SOUND",
+    "className": "netlist_mame_sound_device",
+    "shortName": "netlist_sound",
+    "description": "Netlist Sound Device",
+    "sourceFile": "src/devices/machine/netlist.cpp",
+    "sourceLine": 48,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NETLIST_SOUND, netlist_mame_sound_device, \"netlist_sound\", \"Netlist Sound Device\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [],
+  "declaredBy": [
+    "m62_audio_device"
+  ]
+}

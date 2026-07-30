@@ -1,0 +1,96 @@
+{
+  "type": "PALETTE",
+  "uses": [
+    {
+      "game": "commando",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "chr_palette",
+        "spr_palette"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "bg_palette",
+        "sp_palette",
+        "tx_palette"
+      ]
+    },
+    {
+      "game": "pacman",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "zigzagb",
+      "tags": [
+        "palette"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

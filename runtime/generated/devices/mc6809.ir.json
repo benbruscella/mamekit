@@ -1,0 +1,33 @@
+{
+  "type": "MC6809",
+  "uses": [
+    {
+      "game": "gng",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "MC6809",
+    "className": "mc6809_device",
+    "shortName": "mc6809",
+    "description": "Motorola MC6809",
+    "sourceFile": "src/devices/cpu/m6809/m6809.cpp",
+    "sourceLine": 136,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(MC6809, mc6809_device, \"mc6809\", \"Motorola MC6809\")"
+  },
+  "methods": [],
+  "dslFiles": [
+    "src/devices/cpu/m6809/m6809.lst"
+  ],
+  "sourceFiles": [
+    "src/devices/cpu/m6809/6x09dasm.h",
+    "src/devices/cpu/m6809/m6809.cpp",
+    "src/devices/cpu/m6809/m6809.h",
+    "src/devices/cpu/m6809/m6809.lst",
+    "src/devices/cpu/m6809/m6809inl.h"
+  ]
+}

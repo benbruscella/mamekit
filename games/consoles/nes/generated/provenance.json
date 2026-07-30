@@ -1,0 +1,223 @@
+{
+  "generatedFrom": "src/mame/nintendo/nes.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 423,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 424,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 428,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 423,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 424,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 428,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 410,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 413,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 424,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 424,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 348,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 410,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 413,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 426,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 431,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 434,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 435,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 436,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 438,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 387,
+      "column": 2
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 387,
+      "column": 2
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 388,
+      "column": 2
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 270,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 286,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 278,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 348,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 355,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 386,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 387,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 388,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 389,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 390,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/nintendo/nes.cpp",
+      "line": 384,
+      "column": 1
+    },
+    {
+      "path": "/sound/nesApu/internalMap/ranges/0/source",
+      "file": "src/devices/cpu/m6502/rp2a03.cpp",
+      "line": 22
+    },
+    {
+      "path": "/sound/nesApu/internalMap/ranges/1/source",
+      "file": "src/devices/cpu/m6502/rp2a03.cpp",
+      "line": 25
+    },
+    {
+      "path": "/sound/nesApu/internalMap/ranges/2/source",
+      "file": "src/devices/cpu/m6502/rp2a03.cpp",
+      "line": 24
+    },
+    {
+      "path": "/sound/nesApu/source",
+      "file": "src/devices/sound/nes_apu.cpp",
+      "line": 508
+    }
+  ]
+}

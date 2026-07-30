@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "type": "NES_APU",
+  "className": "nesapu_device",
+  "internalMap": {
+    "ranges": [
+      {
+        "start": 16384,
+        "end": 16403,
+        "source": {
+          "file": "src/devices/cpu/m6502/rp2a03.cpp",
+          "line": 22
+        },
+        "write": "nesapu.write"
+      },
+      {
+        "start": 16405,
+        "end": 16405,
+        "source": {
+          "file": "src/devices/cpu/m6502/rp2a03.cpp",
+          "line": 25
+        },
+        "read": "nesapu.status_r",
+        "write": "nesapu.write"
+      },
+      {
+        "start": 16407,
+        "end": 16407,
+        "source": {
+          "file": "src/devices/cpu/m6502/rp2a03.cpp",
+          "line": 24
+        },
+        "write": "nesapu.write"
+      }
+    ]
+  },
+  "lengthTable": [
+    10,
+    254,
+    20,
+    2,
+    40,
+    4,
+    80,
+    6,
+    160,
+    8,
+    60,
+    10,
+    14,
+    12,
+    26,
+    14,
+    12,
+    16,
+    24,
+    18,
+    48,
+    20,
+    96,
+    22,
+    192,
+    24,
+    72,
+    26,
+    16,
+    28,
+    32,
+    30
+  ],
+  "noisePeriods": {
+    "ntsc": [
+      4,
+      8,
+      16,
+      32,
+      64,
+      96,
+      128,
+      160,
+      202,
+      254,
+      380,
+      508,
+      762,
+      1016,
+      2034,
+      4068
+    ],
+    "pal": [
+      4,
+      8,
+      14,
+      30,
+      60,
+      88,
+      118,
+      148,
+      188,
+      236,
+      354,
+      472,
+      708,
+      944,
+      1890,
+      3778
+    ]
+  },
+  "dmcPeriods": {
+    "ntsc": [
+      428,
+      380,
+      340,
+      320,
+      286,
+      254,
+      226,
+      214,
+      190,
+      160,
+      142,
+      128,
+      106,
+      84,
+      72,
+      54
+    ],
+    "pal": [
+      398,
+      354,
+      316,
+      298,
+      276,
+      236,
+      210,
+      198,
+      176,
+      148,
+      132,
+      118,
+      98,
+      78,
+      66,
+      50
+    ]
+  },
+  "dutyPatterns": [
+    64,
+    96,
+    120,
+    159
+  ],
+  "clocks": {
+    "ntsc": 1789772,
+    "pal": 1662607,
+    "streamDivider": 4
+  },
+  "frameClocks": {
+    "ntsc": 29830,
+    "pal": 33254
+  },
+  "mixer": {
+    "pulse": {
+      "numerator": 95.88,
+      "divisor": 8128,
+      "bias": 100
+    },
+    "tnd": {
+      "numerator": 159.79,
+      "triangleDivisor": 8227,
+      "noiseDivisor": 12241,
+      "dmcDivisor": 22638,
+      "bias": 100
+    }
+  },
+  "writeMethod": "write",
+  "statusMethod": "status_r",
+  "sourceFiles": [
+    "src/devices/cpu/m6502/rp2a03.cpp",
+    "src/devices/sound/nes_apu.cpp",
+    "src/devices/sound/nes_apu.h",
+    "src/devices/sound/nes_defs.h"
+  ],
+  "source": {
+    "file": "src/devices/sound/nes_apu.cpp",
+    "line": 508
+  }
+}

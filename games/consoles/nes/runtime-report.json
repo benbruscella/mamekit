@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 2,
+  "game": "nes",
+  "family": "nes",
+  "boardMode": "generated",
+  "playable": true,
+  "generationGaps": [],
+  "sourceCoverage": {
+    "covered": 31,
+    "total": 47,
+    "percent": 66
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:RP2A03G",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/rp2a03.cpp:17"
+      }
+    ],
+    "devices": [
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "ppu:PPU_2C02",
+        "status": "executable",
+        "source": "src/devices/video/ppu2c0x.cpp:40"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "ctrl1:NES_CONTROL_PORT",
+        "status": "executable",
+        "source": "src/devices/bus/nes_ctrl/ctrl.cpp:75"
+      },
+      {
+        "name": "ctrl2:NES_CONTROL_PORT",
+        "status": "executable",
+        "source": "src/devices/bus/nes_ctrl/ctrl.cpp:75"
+      },
+      {
+        "name": "special:NES_CONTROL_PORT",
+        "status": "executable",
+        "source": "src/devices/bus/nes_ctrl/ctrl.cpp:75"
+      },
+      {
+        "name": "nes_slot:NES_CART_SLOT",
+        "status": "executable",
+        "source": "src/devices/bus/nes/nes_slot.cpp:98"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "nes_state.nes_in0_r",
+        "status": "generated",
+        "source": "src/mame/nintendo/nes.cpp:270"
+      },
+      {
+        "name": "nes_state.nes_in0_w",
+        "status": "generated",
+        "source": "src/mame/nintendo/nes.cpp:286"
+      },
+      {
+        "name": "nes_state.nes_in1_r",
+        "status": "generated",
+        "source": "src/mame/nintendo/nes.cpp:278"
+      },
+      {
+        "name": "ppu.read",
+        "status": "executable",
+        "source": "src/devices/video/ppu2c0x.cpp:40"
+      },
+      {
+        "name": "ppu.spriteram_dma",
+        "status": "executable",
+        "source": "src/devices/video/ppu2c0x.cpp:40"
+      },
+      {
+        "name": "ppu.write",
+        "status": "executable",
+        "source": "src/devices/video/ppu2c0x.cpp:40"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "screen.set_screen_update -> nes_state.screen_update_nes",
+        "status": "generated",
+        "source": "src/mame/nintendo/nes.cpp:423"
+      },
+      {
+        "name": "screen.screen_vblank -> nes_state.screen_vblank_nes",
+        "status": "generated",
+        "source": "src/mame/nintendo/nes.cpp:424"
+      },
+      {
+        "name": "ppu.int_callback -> maincpu",
+        "status": "generated",
+        "source": "src/mame/nintendo/nes.cpp:428"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/consoles/nes/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 5,
+    "compiledMethods": 5,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 3,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 1,
+    "screenUpdate": "nes_state.screen_update_nes",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 9,
+    "generated": 7,
+    "declarative-host": 2,
+    "blocked": 0,
+    "missing": 0
+  }
+}

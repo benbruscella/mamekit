@@ -1,0 +1,26 @@
+{
+  "game": "zigzagb",
+  "title": "Zig Zag (bootleg Dig Dug conversion on Galaxian hardware, set 1) (bootleg (LAX), 1982)",
+  "fullname": "Zig Zag (bootleg Dig Dug conversion on Galaxian hardware, set 1)",
+  "year": "1982",
+  "manufacturer": "bootleg (LAX)",
+  "family": "galaxian",
+  "driverFile": "src/mame/galaxian/galaxian.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles, Couriersud, Stephane Humbert, Robbbert",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-11",
+    "commits": 659,
+    "contributors": 49,
+    "topAuthors": [
+      "Aaron Giles",
+      "Ivan Vangelista",
+      "Miodrag Milanovic",
+      "ClawGrip",
+      "David Haywood"
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Curated from the preservation sources cited in the story"
+}

@@ -1,0 +1,35 @@
+{
+  "type": "IREM_M52_SOUNDC_AUDIO",
+  "uses": [
+    {
+      "game": "mpatrol",
+      "tags": [
+        "irem_audio"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "IREM_M52_SOUNDC_AUDIO",
+    "className": "m52_soundc_audio_device",
+    "shortName": "m52_soundc_audio",
+    "description": "Irem M52 SoundC Audio",
+    "sourceFile": "src/mame/irem/irem.cpp",
+    "sourceLine": 18,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(IREM_M52_SOUNDC_AUDIO, m52_soundc_audio_device, \"m52_soundc_audio\", \"Irem M52 SoundC Audio\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/irem/irem.cpp",
+    "src/mame/irem/irem.h"
+  ],
+  "composedOf": [
+    "AY8910",
+    "DISCRETE",
+    "M6803",
+    "MSM5205",
+    "SPEAKER"
+  ]
+}

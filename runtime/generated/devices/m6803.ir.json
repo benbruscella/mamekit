@@ -1,0 +1,67 @@
+{
+  "type": "M6803",
+  "uses": [
+    {
+      "game": "kungfum",
+      "tags": [
+        "iremsound"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "iremsound"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "M6803",
+    "className": "m6803_cpu_device",
+    "shortName": "m6803",
+    "description": "Motorola MC6803",
+    "sourceFile": "src/devices/cpu/m6800/m6801.cpp",
+    "sourceLine": 409,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(M6803, m6803_cpu_device, \"m6803\", \"Motorola MC6803\")"
+  },
+  "methods": [
+    {
+      "name": "create_disassembler",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/m6800/m6801.cpp",
+      "sourceLine": 2580,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::make_unique"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 6803
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/m6800/6800dasm.h",
+    "src/devices/cpu/m6800/m6801.cpp",
+    "src/devices/cpu/m6800/m6801.h"
+  ],
+  "declaredBy": [
+    "m52_soundc_audio_device",
+    "m62_audio_device"
+  ]
+}

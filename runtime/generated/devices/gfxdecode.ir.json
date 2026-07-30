@@ -1,0 +1,90 @@
+{
+  "type": "GFXDECODE",
+  "uses": [
+    {
+      "game": "commando",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "chr_decode",
+        "spr_decode"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "bg_gfxdecode",
+        "sp_gfxdecode",
+        "tx_gfxdecode"
+      ]
+    },
+    {
+      "game": "pacman",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "gfxdecode"
+      ]
+    },
+    {
+      "game": "zigzagb",
+      "tags": [
+        "gfxdecode"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

@@ -1,0 +1,247 @@
+{
+  "type": "I8080",
+  "uses": [
+    {
+      "game": "invaders",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "I8080",
+    "className": "i8080_cpu_device",
+    "shortName": "i8080",
+    "description": "Intel 8080",
+    "sourceFile": "src/devices/cpu/i8085/i8085.cpp",
+    "sourceLine": 208,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(I8080,  i8080_cpu_device,  \"i8080\",  \"Intel 8080\")"
+  },
+  "methods": [
+    {
+      "name": "state_string_export",
+      "parameters": "const device_state_entry &entry, std::string &str",
+      "sourceFile": "src/devices/cpu/i8085/i8085.cpp",
+      "sourceLine": 461,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "entry"
+                },
+                "property": "index"
+              },
+              "args": []
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "STATE_GENFLAGS"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "str"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "string_format"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "%c%c.%c.%c.%c"
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_AF"
+                                },
+                                "property": "b"
+                              },
+                              "property": "l"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 128
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "string",
+                            "value": "S"
+                          },
+                          "whenFalse": {
+                            "kind": "string",
+                            "value": "."
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_AF"
+                                },
+                                "property": "b"
+                              },
+                              "property": "l"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 64
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "string",
+                            "value": "Z"
+                          },
+                          "whenFalse": {
+                            "kind": "string",
+                            "value": "."
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_AF"
+                                },
+                                "property": "b"
+                              },
+                              "property": "l"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 16
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "string",
+                            "value": "H"
+                          },
+                          "whenFalse": {
+                            "kind": "string",
+                            "value": "."
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_AF"
+                                },
+                                "property": "b"
+                              },
+                              "property": "l"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "string",
+                            "value": "P"
+                          },
+                          "whenFalse": {
+                            "kind": "string",
+                            "value": "."
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_AF"
+                                },
+                                "property": "b"
+                              },
+                              "property": "l"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "string",
+                            "value": "C"
+                          },
+                          "whenFalse": {
+                            "kind": "string",
+                            "value": "."
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/i8085/8085dasm.h",
+    "src/devices/cpu/i8085/i8085.cpp",
+    "src/devices/cpu/i8085/i8085.h"
+  ]
+}

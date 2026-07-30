@@ -1,0 +1,276 @@
+{
+  "type": "NAMCO_53XX",
+  "uses": [
+    {
+      "game": "digdug",
+      "tags": [
+        "53xx"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NAMCO_53XX",
+    "className": "namco_53xx_device",
+    "shortName": "namco53",
+    "description": "Namco 53xx",
+    "sourceFile": "src/mame/namco/namco53.cpp",
+    "sourceLine": 110,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NAMCO_53XX, namco_53xx_device, \"namco53\", \"Namco 53xx\")"
+  },
+  "methods": [
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/machine/namcoio.c@adffaf795b6^",
+      "sourceLine": 879,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_in_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset",
+      "parameters": "int state",
+      "sourceFile": "src/mame/machine/namcoio.c@adffaf795b6^",
+      "sourceLine": 879,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "device_reset"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "chip_select",
+      "parameters": "int state",
+      "sourceFile": "src/mame/machine/namcoio.c@adffaf795b6^",
+      "sourceLine": 879,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "",
+      "sourceFile": "src/mame/machine/namcoio.c@adffaf795b6^",
+      "sourceLine": 879,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "phase",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "%",
+              "left": {
+                "kind": "assignment",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_in_count"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "postfix": true
+              },
+              "right": {
+                "kind": "number",
+                "value": 2
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "phase"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_input_callback"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 15
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_input_callback"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 15
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_input_callback"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 15
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_input_callback"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 4
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/machine/namcoio.c@adffaf795b6^",
+    "src/mame/namco/namco53.cpp"
+  ],
+  "composedOf": [
+    "MB8843"
+  ]
+}

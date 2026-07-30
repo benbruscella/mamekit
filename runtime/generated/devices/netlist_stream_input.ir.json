@@ -1,0 +1,35 @@
+{
+  "type": "NETLIST_STREAM_INPUT",
+  "uses": [
+    {
+      "game": "kungfum",
+      "tags": [
+        "snd_nl:cin0",
+        "snd_nl:cin1",
+        "snd_nl:cin2",
+        "snd_nl:cin3",
+        "snd_nl:cin4",
+        "snd_nl:cin5",
+        "snd_nl:cin6",
+        "snd_nl:cin7"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "NETLIST_STREAM_INPUT",
+    "className": "netlist_mame_stream_input_device",
+    "shortName": "nl_stream_in",
+    "description": "Netlist Stream Input",
+    "sourceFile": "src/devices/machine/netlist.cpp",
+    "sourceLine": 56,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NETLIST_STREAM_INPUT,  netlist_mame_stream_input_device,  \"nl_stream_in\",  \"Netlist Stream Input\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [],
+  "declaredBy": [
+    "m62_audio_device"
+  ]
+}

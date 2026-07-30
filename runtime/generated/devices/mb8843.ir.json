@@ -1,0 +1,39 @@
+{
+  "type": "MB8843",
+  "uses": [
+    {
+      "game": "digdug",
+      "tags": [
+        "mcu"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "mcu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "MB8843",
+    "className": "mb8843_cpu_device",
+    "shortName": "mb8843",
+    "description": "Fujitsu MB8843",
+    "sourceFile": "src/devices/cpu/mb88xx/mb88xx.cpp",
+    "sourceLine": 26,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(MB8843,  mb8843_cpu_device,  \"mb8843\",  \"Fujitsu MB8843\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/mb88xx/mb88dasm.h",
+    "src/devices/cpu/mb88xx/mb88xx.cpp",
+    "src/devices/cpu/mb88xx/mb88xx.h"
+  ],
+  "declaredBy": [
+    "namco_51xx_device",
+    "namco_53xx_device"
+  ]
+}

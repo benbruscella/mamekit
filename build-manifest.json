@@ -1,0 +1,35 @@
+{
+  "targets": [
+    "commando",
+    "digdug",
+    "galaga",
+    "galaxian",
+    "gng",
+    "gyruss",
+    "invaders",
+    "junofrst",
+    "kungfum",
+    "mpatrol",
+    "nes",
+    "pacman",
+    "pooyan",
+    "rocnrope",
+    "timeplt",
+    "zigzagb"
+  ],
+  "capabilities": [
+    "ay8910",
+    "cpu",
+    "device",
+    "discrete-counter-lfsr",
+    "discrete-sn76477",
+    "namco-wsg",
+    "nes",
+    "ym2203"
+  ],
+  "boardIrSchemaVersion": 3,
+  "graphSchemaVersion": 1,
+  "compilerVersion": "0.1.0",
+  "mameRevision": "bd4827c13123cafc6010f74d406902a6bbc6b49e",
+  "buildId": "2781812052855250"
+}

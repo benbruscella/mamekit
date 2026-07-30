@@ -1,0 +1,99 @@
+{
+  "type": "SPEAKER",
+  "uses": [
+    {
+      "game": "commando",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "invaders",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "speaker"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "nes",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "mono"
+      ]
+    },
+    {
+      "game": "zigzagb",
+      "tags": [
+        "speaker"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

@@ -1,0 +1,2168 @@
+{
+    "schemaVersion": 1,
+    "type": "NAMCO_51XX",
+    "className": "namco_51xx_device",
+    "hierarchy": [
+        "namco_51xx_device"
+    ],
+    "sourceFiles": [
+        "src/mame/machine/namcoio.c@adffaf795b6^",
+        "src/mame/namco/namco51.cpp"
+    ],
+    "constants": {},
+    "members": [
+        {
+            "name": "m_mode",
+            "valueType": "int",
+            "bits": 32
+        },
+        {
+            "name": "m_coincred_mode",
+            "valueType": "int",
+            "bits": 32
+        },
+        {
+            "name": "m_remap_joy",
+            "valueType": "int",
+            "bits": 32
+        },
+        {
+            "name": "m_credits",
+            "valueType": "int",
+            "bits": 32
+        },
+        {
+            "name": "m_in_count",
+            "valueType": "int",
+            "bits": 32
+        },
+        {
+            "name": "m_lastcoins",
+            "valueType": "int",
+            "bits": 32
+        },
+        {
+            "name": "m_lastbuttons",
+            "valueType": "int",
+            "bits": 32
+        },
+        {
+            "name": "m_coins",
+            "valueType": "int[2]",
+            "bits": 32,
+            "values": [
+                0,
+                0
+            ]
+        },
+        {
+            "name": "m_coins_per_cred",
+            "valueType": "int[2]",
+            "bits": 32,
+            "values": [
+                1,
+                1
+            ]
+        },
+        {
+            "name": "m_creds_per_coin",
+            "valueType": "int[2]",
+            "bits": 32,
+            "values": [
+                1,
+                1
+            ]
+        },
+        {
+            "name": "m_joy_map",
+            "valueType": "const int[16]",
+            "bits": 32,
+            "values": [
+                15,
+                14,
+                13,
+                5,
+                12,
+                9,
+                7,
+                6,
+                11,
+                3,
+                10,
+                4,
+                1,
+                2,
+                0,
+                8
+            ]
+        }
+    ],
+    "callbacks": [
+        {
+            "signal": "input_callback",
+            "member": "m_input_callback",
+            "slots": 4,
+            "initial": 15
+        },
+        {
+            "signal": "output_callback",
+            "member": "m_output_callback",
+            "slots": 1,
+            "initial": 0
+        },
+        {
+            "signal": "lockout_callback",
+            "member": "m_lockout_callback",
+            "slots": 1,
+            "initial": 0
+        }
+    ],
+    "timers": [],
+    "methods": [
+        {
+            "name": "device_reset",
+            "parameters": "",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_mode"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_coincred_mode"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_remap_joy"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_credits"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_coins"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_coins"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_coins_per_cred"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_coins_per_cred"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_creds_per_coin"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_creds_per_coin"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_in_count"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_lastcoins"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_lastbuttons"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/machine/namcoio.c@adffaf795b6^",
+                "line": 187
+            }
+        },
+        {
+            "name": "reset",
+            "parameters": "int state",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "identifier",
+                                "name": "state"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "device_reset"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/machine/namcoio.c@adffaf795b6^",
+                "line": 187
+            }
+        },
+        {
+            "name": "vblank",
+            "parameters": "int state",
+            "program": {
+                "operations": [],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/machine/namcoio.c@adffaf795b6^",
+                "line": 187
+            }
+        },
+        {
+            "name": "rw",
+            "parameters": "int state",
+            "program": {
+                "operations": [],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/machine/namcoio.c@adffaf795b6^",
+                "line": 187
+            }
+        },
+        {
+            "name": "chip_select",
+            "parameters": "int state",
+            "program": {
+                "operations": [],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/machine/namcoio.c@adffaf795b6^",
+                "line": 187
+            }
+        },
+        {
+            "name": "write",
+            "parameters": "uint8_t data",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "data"
+                        },
+                        "operator": "&=",
+                        "value": {
+                            "kind": "number",
+                            "value": 7
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_coincred_mode"
+                        },
+                        "then": [
+                            {
+                                "op": "switch",
+                                "expression": {
+                                    "kind": "assignment",
+                                    "target": {
+                                        "kind": "identifier",
+                                        "name": "m_coincred_mode"
+                                    },
+                                    "operator": "-=",
+                                    "value": {
+                                        "kind": "number",
+                                        "value": 1
+                                    },
+                                    "postfix": true
+                                },
+                                "cases": [
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_coins_per_cred"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 0
+                                                    }
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                }
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 3
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_creds_per_coin"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 0
+                                                    }
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                }
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_coins_per_cred"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                }
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_creds_per_coin"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                }
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "switch",
+                                "expression": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "cases": [
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "m_coincred_mode"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 4
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "m_credits"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "m_mode"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "m_in_count"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 3
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "m_remap_joy"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "m_remap_joy"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "values": [
+                                            {
+                                                "kind": "number",
+                                                "value": 5
+                                            }
+                                        ],
+                                        "body": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "m_mode"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "m_in_count"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            },
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "body": [
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/machine/namcoio.c@adffaf795b6^",
+                "line": 187
+            }
+        },
+        {
+            "name": "switches",
+            "parameters": "",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_input_callback"
+                                        },
+                                        "index": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    },
+                                    "args": []
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_input_callback"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 3
+                                            }
+                                        },
+                                        "args": []
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/machine/namcoio.c@adffaf795b6^",
+                "line": 187
+            }
+        },
+        {
+            "name": "credit",
+            "parameters": "",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "in",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "switches"
+                                    },
+                                    "args": []
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 255
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "toggle",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "^",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "in"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "m_lastcoins"
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_lastcoins"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "in"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": ">",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_coins_per_cred"
+                                },
+                                "index": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": ">=",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "m_credits"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 99
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "m_lockout_callback"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ],
+                                "else": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "m_lockout_callback"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "toggle"
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "in"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 16
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_coins"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 0
+                                                    }
+                                                },
+                                                "operator": "+=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            },
+                                            {
+                                                "op": "call",
+                                                "expression": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "m_output_callback"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 4
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "op": "call",
+                                                "expression": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "m_output_callback"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 12
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "binary",
+                                                    "operator": ">=",
+                                                    "left": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_coins"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_coins_per_cred"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        }
+                                                    }
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "identifier",
+                                                            "name": "m_credits"
+                                                        },
+                                                        "operator": "+=",
+                                                        "value": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_creds_per_coin"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 0
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_coins"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 0
+                                                            }
+                                                        },
+                                                        "operator": "-=",
+                                                        "value": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_coins_per_cred"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 0
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "toggle"
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "in"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 32
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_coins"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                },
+                                                "operator": "+=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            },
+                                            {
+                                                "op": "call",
+                                                "expression": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "m_output_callback"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 8
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "op": "call",
+                                                "expression": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "m_output_callback"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 12
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "binary",
+                                                    "operator": ">=",
+                                                    "left": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_coins"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_coins_per_cred"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    }
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "identifier",
+                                                            "name": "m_credits"
+                                                        },
+                                                        "operator": "+=",
+                                                        "value": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_creds_per_coin"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 1
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_coins"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 1
+                                                            }
+                                                        },
+                                                        "operator": "-=",
+                                                        "value": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_coins_per_cred"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 1
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "toggle"
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "in"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 64
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "m_credits"
+                                                },
+                                                "operator": "+=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_credits"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 100
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_mode"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "toggle"
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "in"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": ">=",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "m_credits"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "m_credits"
+                                                },
+                                                "operator": "-=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "m_mode"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 2
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "else": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "toggle"
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "in"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 8
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "if",
+                                                "condition": {
+                                                    "kind": "binary",
+                                                    "operator": ">=",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "m_credits"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 2
+                                                    }
+                                                },
+                                                "then": [
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "identifier",
+                                                            "name": "m_credits"
+                                                        },
+                                                        "operator": "-=",
+                                                        "value": {
+                                                            "kind": "number",
+                                                            "value": 2
+                                                        }
+                                                    },
+                                                    {
+                                                        "op": "assign",
+                                                        "target": {
+                                                            "kind": "identifier",
+                                                            "name": "m_mode"
+                                                        },
+                                                        "operator": "=",
+                                                        "value": {
+                                                            "kind": "number",
+                                                            "value": 2
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "in"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 128
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 187
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "/",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "m_credits"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 10
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 16
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "%",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_credits"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 10
+                                }
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/machine/namcoio.c@adffaf795b6^",
+                "line": 187
+            }
+        },
+        {
+            "name": "player",
+            "parameters": "int player",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "joy",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_input_callback"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "player"
+                                    }
+                                },
+                                "args": []
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 15
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "in",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "switches"
+                                    },
+                                    "args": []
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 255
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "button",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "conditional",
+                            "condition": {
+                                "kind": "binary",
+                                "operator": "==",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "player"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            "whenTrue": {
+                                "kind": "number",
+                                "value": 1
+                            },
+                            "whenFalse": {
+                                "kind": "number",
+                                "value": 2
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "toggle",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "^",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "in"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "m_lastbuttons"
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_lastbuttons"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_lastbuttons"
+                                },
+                                "right": {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "button"
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "in"
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "button"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_remap_joy"
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "joy"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_joy_map"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "joy"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "player"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "joy"
+                                },
+                                "operator": "|=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "<<",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "^",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "toggle"
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "in"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "joy"
+                                },
+                                "operator": "|=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "<<",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "^",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "in"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 5
+                                    }
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "joy"
+                                },
+                                "operator": "|=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "<<",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "^",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "toggle"
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "in"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "joy"
+                                },
+                                "operator": "|=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "<<",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "^",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "in"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "joy"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/machine/namcoio.c@adffaf795b6^",
+                "line": 187
+            }
+        },
+        {
+            "name": "read",
+            "parameters": "",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "phase",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "%",
+                            "left": {
+                                "kind": "assignment",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_in_count"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                "postfix": true
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 3
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_mode"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "phase"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "return",
+                                        "value": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "switches"
+                                            },
+                                            "args": []
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "phase"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "return",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "|",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_input_callback"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        }
+                                                    },
+                                                    "args": []
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 15
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "<<",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_input_callback"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 1
+                                                            }
+                                                        },
+                                                        "args": []
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 15
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 4
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "phase"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "credit"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "phase"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "player"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "player"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/machine/namcoio.c@adffaf795b6^",
+                "line": 187
+            }
+        }
+    ],
+    "reset": "device_reset",
+    "summary": {
+        "methods": 10,
+        "compiledMethods": 10,
+        "diagnostics": 0
+    }
+}

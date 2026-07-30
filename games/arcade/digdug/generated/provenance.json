@@ -1,0 +1,1193 @@
+{
+  "generatedFrom": "src/mame/namco/galaga.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 786,
+      "column": 1
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1888,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1889,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1890,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1891,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1892,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1893,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1894,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1898,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1899,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/10/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1900,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/11/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1901,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/12/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1902,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/13/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1903,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/14/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1906,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/15/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1907,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/16/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1908,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/17/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1910,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/18/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1911,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/19/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1912,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/20/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1913,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/21/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1916,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/22/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1917,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/23/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1918,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/24/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1919,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/25/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1920,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/26/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1921,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/27/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1922,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/28/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1925,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/29/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1926,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/30/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1927,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/31/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1928,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/32/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1939,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/33/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1941,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/34/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1942,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/35/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 171,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/36/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 172,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/37/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 173,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/38/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 174,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/39/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 175,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/40/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 176,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/41/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 177,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/42/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 137,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/43/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 138,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/44/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 139,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/45/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 140,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/46/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 141,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/47/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 142,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/48/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 143,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 786,
+      "column": 1
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1888,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1889,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1890,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1891,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1892,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1893,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1894,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1898,
+      "column": 2
+    },
+    {
+      "path": "/connections/9/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1899,
+      "column": 2
+    },
+    {
+      "path": "/connections/10/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1900,
+      "column": 2
+    },
+    {
+      "path": "/connections/11/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1901,
+      "column": 2
+    },
+    {
+      "path": "/connections/12/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1902,
+      "column": 2
+    },
+    {
+      "path": "/connections/13/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1903,
+      "column": 2
+    },
+    {
+      "path": "/connections/14/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1906,
+      "column": 2
+    },
+    {
+      "path": "/connections/15/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1907,
+      "column": 2
+    },
+    {
+      "path": "/connections/16/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1908,
+      "column": 2
+    },
+    {
+      "path": "/connections/17/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1910,
+      "column": 2
+    },
+    {
+      "path": "/connections/18/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1911,
+      "column": 2
+    },
+    {
+      "path": "/connections/19/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1912,
+      "column": 2
+    },
+    {
+      "path": "/connections/20/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1913,
+      "column": 2
+    },
+    {
+      "path": "/connections/21/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1916,
+      "column": 2
+    },
+    {
+      "path": "/connections/22/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1917,
+      "column": 2
+    },
+    {
+      "path": "/connections/23/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1918,
+      "column": 2
+    },
+    {
+      "path": "/connections/24/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1919,
+      "column": 2
+    },
+    {
+      "path": "/connections/25/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1920,
+      "column": 2
+    },
+    {
+      "path": "/connections/26/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1921,
+      "column": 2
+    },
+    {
+      "path": "/connections/27/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1922,
+      "column": 2
+    },
+    {
+      "path": "/connections/28/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1925,
+      "column": 2
+    },
+    {
+      "path": "/connections/29/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1926,
+      "column": 2
+    },
+    {
+      "path": "/connections/30/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1927,
+      "column": 2
+    },
+    {
+      "path": "/connections/31/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1928,
+      "column": 2
+    },
+    {
+      "path": "/connections/32/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1939,
+      "column": 2
+    },
+    {
+      "path": "/connections/33/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1941,
+      "column": 2
+    },
+    {
+      "path": "/connections/34/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1942,
+      "column": 2
+    },
+    {
+      "path": "/connections/35/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 171,
+      "column": 2
+    },
+    {
+      "path": "/connections/36/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 172,
+      "column": 2
+    },
+    {
+      "path": "/connections/37/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 173,
+      "column": 2
+    },
+    {
+      "path": "/connections/38/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 174,
+      "column": 2
+    },
+    {
+      "path": "/connections/39/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 175,
+      "column": 2
+    },
+    {
+      "path": "/connections/40/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 176,
+      "column": 2
+    },
+    {
+      "path": "/connections/41/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 177,
+      "column": 2
+    },
+    {
+      "path": "/connections/42/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 137,
+      "column": 2
+    },
+    {
+      "path": "/connections/43/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 138,
+      "column": 2
+    },
+    {
+      "path": "/connections/44/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 139,
+      "column": 2
+    },
+    {
+      "path": "/connections/45/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 140,
+      "column": 2
+    },
+    {
+      "path": "/connections/46/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 141,
+      "column": 2
+    },
+    {
+      "path": "/connections/47/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 142,
+      "column": 2
+    },
+    {
+      "path": "/connections/48/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 143,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1878,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1881,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/2/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1884,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1937,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1941,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1942,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 786,
+      "column": 1
+    },
+    {
+      "path": "/execution/frameEvents/3/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 786,
+      "column": 1
+    },
+    {
+      "path": "/execution/frameEvents/4/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1941,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/5/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1942,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 287,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1878,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1881,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1884,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1887,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1897,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1905,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1915,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1924,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1930,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1932,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1937,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1944,
+      "column": 2
+    },
+    {
+      "path": "/devices/12/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1945,
+      "column": 2
+    },
+    {
+      "path": "/devices/13/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1948,
+      "column": 2
+    },
+    {
+      "path": "/devices/14/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1950,
+      "column": 2
+    },
+    {
+      "path": "/devices/15/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 170,
+      "column": 2
+    },
+    {
+      "path": "/devices/16/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 136,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 786,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 924,
+      "column": 2
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 934,
+      "column": 2
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 926,
+      "column": 2
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/namco/namco06.cpp",
+      "line": 135,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/namco/namco06.cpp",
+      "line": 154,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/namco/namco06.cpp",
+      "line": 174,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/namco/namco06.cpp",
+      "line": 179,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 180,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 802,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 807,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 813,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 733,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 740,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 747,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 64,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 752,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 760,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 86,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 76,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 91,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 96,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1541,
+      "column": 1
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 70,
+      "column": 1
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 63,
+      "column": 1
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1906,
+      "column": 2
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1907,
+      "column": 2
+    },
+    {
+      "path": "/handlers/27/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1908,
+      "column": 2
+    },
+    {
+      "path": "/handlers/28/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 90,
+      "column": 1
+    },
+    {
+      "path": "/handlers/29/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 95,
+      "column": 1
+    },
+    {
+      "path": "/handlers/30/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 186,
+      "column": 1
+    },
+    {
+      "path": "/handlers/31/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 203,
+      "column": 1
+    },
+    {
+      "path": "/handlers/32/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 210,
+      "column": 1
+    },
+    {
+      "path": "/handlers/33/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 1928,
+      "column": 2
+    },
+    {
+      "path": "/handlers/34/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 287,
+      "column": 1
+    },
+    {
+      "path": "/handlers/35/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 225,
+      "column": 1
+    },
+    {
+      "path": "/handlers/36/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 106,
+      "column": 1
+    },
+    {
+      "path": "/handlers/37/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 112,
+      "column": 1
+    },
+    {
+      "path": "/handlers/38/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 112,
+      "column": 1
+    },
+    {
+      "path": "/handlers/39/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 112,
+      "column": 1
+    },
+    {
+      "path": "/handlers/40/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 112,
+      "column": 1
+    },
+    {
+      "path": "/handlers/41/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 117,
+      "column": 1
+    },
+    {
+      "path": "/handlers/42/source",
+      "file": "src/mame/namco/namco51.cpp",
+      "line": 127,
+      "column": 1
+    },
+    {
+      "path": "/handlers/43/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 69,
+      "column": 1
+    },
+    {
+      "path": "/handlers/44/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 80,
+      "column": 1
+    },
+    {
+      "path": "/handlers/45/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 85,
+      "column": 1
+    },
+    {
+      "path": "/handlers/46/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 75,
+      "column": 1
+    },
+    {
+      "path": "/handlers/47/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 75,
+      "column": 1
+    },
+    {
+      "path": "/handlers/48/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 75,
+      "column": 1
+    },
+    {
+      "path": "/handlers/49/source",
+      "file": "src/mame/namco/namco53.cpp",
+      "line": 75,
+      "column": 1
+    },
+    {
+      "path": "/handlers/50/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 92,
+      "column": 1
+    },
+    {
+      "path": "/handlers/51/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 103,
+      "column": 1
+    },
+    {
+      "path": "/handlers/52/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 120,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 923,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 924,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 925,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 926,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 927,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 928,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 929,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 930,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 931,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 932,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 933,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 934,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 935,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 936,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/namco/galaga.cpp",
+      "line": 921,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 29,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 154,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/1/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 154,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/namco/digdug.cpp",
+      "line": 154,
+      "column": 1
+    }
+  ]
+}
