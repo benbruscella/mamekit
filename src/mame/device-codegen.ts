@@ -407,6 +407,17 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
   if (expression.kind === 'binary') {
     const left = emitExpression(expression.left, context);
     const right = emitExpression(expression.right, context);
+    const leftType = expressionValueType(expression.left, context);
+    const rightType = expressionValueType(expression.right, context);
+    if (expression.operator === '+' && leftType?.includes('*')) {
+      return `runtime.addressOf(${left}, ${right})`;
+    }
+    if (expression.operator === '+' && rightType?.includes('*')) {
+      return `runtime.addressOf(${right}, ${left})`;
+    }
+    if (expression.operator === '-' && leftType?.includes('*')) {
+      return `runtime.addressOf(${left}, -(${right}))`;
+    }
     if (expression.operator === '&&' || expression.operator === '||') {
       return `(((${left}) ${expression.operator} (${right})) ? 1 : 0)`;
     }
@@ -445,6 +456,26 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       : `${object}[${index}]`;
   }
   return emitCall(expression, context);
+}
+
+function expressionValueType(
+  expression: GeneratedExpression,
+  context: EmitContext,
+): string | undefined {
+  if (expression.kind === 'identifier') {
+    if (context.locals.has(expression.name)) return context.locals.get(expression.name);
+    return context.definition.members.find(member => member.name === expression.name)?.valueType;
+  }
+  if (expression.kind === 'cast') return expression.valueType;
+  if (expression.kind === 'unary' && expression.operator === '&') {
+    return `${expressionValueType(expression.operand, context) ?? ''}*`;
+  }
+  if (expression.kind === 'binary' && ['+', '-'].includes(expression.operator)) {
+    const left = expressionValueType(expression.left, context);
+    const right = expressionValueType(expression.right, context);
+    return left?.includes('*') ? left : right?.includes('*') ? right : undefined;
+  }
+  return undefined;
 }
 
 function emitCall(

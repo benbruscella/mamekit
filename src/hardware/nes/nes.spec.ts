@@ -106,6 +106,14 @@ const slot = extraction.artifacts.find(artifact =>
   artifact.path.endsWith('nes_cart_slot.device.ir.json'));
 assert.ok(slot);
 const slotDefinition = JSON.parse(slot.contents);
+const slotExecutable = extraction.artifacts.find(artifact =>
+  artifact.path.endsWith('nes_cart_slot.ts'));
+assert.ok(slotExecutable);
+assert.match(
+  slotExecutable.contents,
+  /runtime\.addressOf\(base_ptr, runtime\.readIndex\(members\.m_nt_orig,/,
+  'runtime MMC3 mirroring changes must retain offset nametable pointers',
+);
 assert.equal(slotDefinition.role, 'cartridge');
 assert.deepEqual(slotDefinition.bus.ranges, [
   { start: 0x4100, end: 0x5fff, read: 'read_l', write: 'write_l' },

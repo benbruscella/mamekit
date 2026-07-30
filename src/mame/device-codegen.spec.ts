@@ -234,4 +234,56 @@ assert.deepEqual(
   'compiled pointer references must preserve dereference and pointer arithmetic',
 );
 
+const pointerAdditionDefinition: GeneratedDeviceDefinition = {
+  ...definition,
+  hotMethods: ['read_remapped'],
+  members: [
+    ...definition.members,
+    { name: 'm_bytes', valueType: 'std::array<uint8_t, 4>', values: [3, 5, 7, 9] },
+  ],
+  methods: [{
+    name: 'read_remapped',
+    parameters: '',
+    source: { file: 'src/devices/test.cpp', line: 9 },
+    program: compileMameHandler(`
+      uint8_t *base_ptr = &m_bytes[0];
+      uint8_t *page_ptr = base_ptr + 2;
+      return page_ptr[0];
+    `),
+  }],
+};
+const pointerAdditionEmitted = generatedDeviceMethodsSource(pointerAdditionDefinition);
+assert.match(
+  pointerAdditionEmitted.source,
+  /runtime\.addressOf\(base_ptr, 2\)/,
+  'compiled C++ pointer addition must create an offset memory view',
+);
+const pointerAdditionMethods = Function(
+  `return ${pointerAdditionEmitted.source}`,
+)() as Record<string, (runtime: {
+  members: Record<string, unknown>;
+  addressOf(value: unknown, index: number): unknown;
+  readIndex(value: unknown, index: number): unknown;
+}) => unknown>;
+const pointerAdditionRuntime = {
+  members: { m_total: 0, m_budget: 0, m_bytes: [3, 5, 7, 9] },
+  addressOf(value: unknown, index: number) {
+    const pointer = value as { generatedPointer?: boolean; source?: number[]; offset?: number };
+    return pointer.generatedPointer
+      ? { generatedPointer: true, source: pointer.source!, offset: pointer.offset! + index }
+      : { generatedPointer: true, source: value as number[], offset: index };
+  },
+  readIndex(value: unknown, index: number) {
+    const pointer = value as { generatedPointer?: boolean; source?: number[]; offset?: number };
+    return pointer.generatedPointer
+      ? pointer.source![pointer.offset! + index]
+      : (value as number[])[index];
+  },
+};
+assert.equal(
+  pointerAdditionMethods.read_remapped!(pointerAdditionRuntime),
+  7,
+  'compiled pointer addition must retain the original memory and offset',
+);
+
 console.log('device-codegen.spec: IR selection, dependency closure and execution passed');
