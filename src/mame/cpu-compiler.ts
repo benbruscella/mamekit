@@ -233,6 +233,311 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
   };
 }
 
+interface M6502OpcodeBlock {
+  name: string;
+  body: string;
+  line: number;
+  file: string;
+}
+
+/**
+ * Compile MAME's NMOS 6502 operation lists with the Ricoh RP2A03 dispatch
+ * selected. MAME's m6502make.py treats each read/write line in the list as one
+ * interruptible bus cycle; the generated CPU runtime does the same through its
+ * READ/WRITE primitives.
+ *
+ * The RP2A03 list is deliberately a delta over the common NMOS list: it
+ * replaces decimal ADC/SBC/ARR variants while retaining the rest of the 6502
+ * instruction definitions. Keeping that composition visible here mirrors
+ * MAME's own build instead of introducing a second opcode table.
+ */
+export function compileMameRp2a03(mameSrc: string): GeneratedCpuDefinition {
+  const cppFile = 'src/devices/cpu/m6502/m6502.cpp';
+  const headerFile = 'src/devices/cpu/m6502/m6502.h';
+  const variantFile = 'src/devices/cpu/m6502/rp2a03.cpp';
+  const variantHeaderFile = 'src/devices/cpu/m6502/rp2a03.h';
+  const operationsFile = 'src/devices/cpu/m6502/om6502.lst';
+  const variantOperationsFile = 'src/devices/cpu/m6502/orp2a03.lst';
+  const dispatchFile = 'src/devices/cpu/m6502/drp2a03.lst';
+  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
+  const header = readFileSync(join(mameSrc, headerFile), 'utf8');
+  const operationsSource = readFileSync(join(mameSrc, operationsFile), 'utf8');
+  const variantOperationsSource = readFileSync(
+    join(mameSrc, variantOperationsFile),
+    'utf8',
+  );
+  const dispatchSource = readFileSync(join(mameSrc, dispatchFile), 'utf8');
+  const unit = parseMameSource(cppFile, cpp);
+  const sourceMethods = unit.functions.filter(fn => fn.className === 'm6502_device');
+
+  const normalize = (source: string): string => normalizeMameExecutionSource(source)
+    .replace(/\bprefetch(?:_noirq)?\s*\(\s*\)\s*;/g, '')
+    .replace(/\bprefetch_(?:start|end|end_noirq)\s*\(\s*\)\s*;/g, '')
+    .replace(/\bm_sync_w\s*\([^;]*\)\s*;/g, '')
+    .replace(/\bm_inst_state\s*=\s*-1\s*;/g, '')
+    .replace(/\bread_pc\s*\(\s*\)/g, 'ARG(m_PC)')
+    .replace(/\bread_sync\s*\(/g, 'OPCODE(')
+    .replace(/\bread_arg\s*\(/g, 'ARG(')
+    .replace(/\bread_9\s*\(/g, 'READ(')
+    .replace(/\bread\s*\(/g, 'READ(')
+    .replace(/\bwrite_9\s*\(/g, 'WRITE(')
+    .replace(/\bwrite\s*\(/g, 'WRITE(');
+
+  const commonBlocks = parseM6502OpcodeBlocks(operationsFile, operationsSource);
+  const variantBlocks = parseM6502OpcodeBlocks(
+    variantOperationsFile,
+    variantOperationsSource,
+  );
+  const blocks = new Map(
+    [...commonBlocks, ...variantBlocks].map(block => [block.name, block]),
+  );
+  const dispatch = dispatchSource
+    .split(/\r?\n/)
+    .filter(line => !line.trim().startsWith('#'))
+    .flatMap(line => line.trim().split(/\s+/).filter(Boolean));
+  if (dispatch.length !== 257) {
+    throw new Error(
+      `MAME RP2A03 dispatch contains ${dispatch.length} states, expected 257`,
+    );
+  }
+  const opcodeNames = dispatch.slice(0, 256);
+  const resetName = dispatch[256]!;
+  for (const name of new Set([...opcodeNames, resetName])) {
+    if (!blocks.has(name)) {
+      throw new Error(`MAME RP2A03 operation list is missing ${name}`);
+    }
+  }
+
+  const helperNames = [
+    'do_adc_nd',
+    'do_arr_nd',
+    'do_cmp',
+    'do_sbc_nd',
+    'do_bit',
+    'do_asl',
+    'do_lsr',
+    'do_ror',
+    'do_rol',
+    'do_asr',
+    'set_nz',
+  ];
+  const methodByName = new Map(sourceMethods.map(method => [method.name, method]));
+  const methods: GeneratedCpuMethod[] = helperNames.map(name => {
+    const method = methodByName.get(name);
+    if (!method) throw new Error(`MAME RP2A03 source is missing ${name}()`);
+    return {
+      name,
+      parameters: method.parameters,
+      program: compileMameHandler(normalize(method.body)),
+      source: sourceRef(method.span.file, method.span.line),
+    };
+  });
+  for (const method of [
+    {
+      name: 'set_l',
+      parameters: 'uint16_t base, uint8_t val',
+      body: 'return (base & 0xff00) | val;',
+    },
+    {
+      name: 'set_h',
+      parameters: 'uint16_t base, uint8_t val',
+      body: 'return (base & 0x00ff) | (val << 8);',
+    },
+    {
+      name: 'page_changing',
+      parameters: 'uint16_t base, int delta',
+      body: 'return ((base + delta) ^ base) & 0xff00;',
+    },
+    {
+      name: 'dec_SP',
+      parameters: '',
+      body: 'm_SP = set_l(m_SP, m_SP - 1);',
+    },
+    {
+      name: 'inc_SP',
+      parameters: '',
+      body: 'm_SP = set_l(m_SP, m_SP + 1);',
+    },
+  ]) {
+    methods.push({
+      ...method,
+      program: compileMameHandler(method.body),
+      source: sourceRef(headerFile, lineAt(header, header.indexOf(`${method.name}(`))),
+    });
+  }
+
+  const opcodes = opcodeNames.map((name, opcode) => {
+    const block = blocks.get(name)!;
+    const body = name === 'kil_non'
+      // MAME marks KIL as an endless stream of bus reads. A browser host cannot
+      // busy-loop forever; one source-declared read per scheduler step keeps
+      // the CPU halted without freezing the page.
+      ? 'READ(0xffff); m_PC = m_PC;'
+      : normalize(block.body);
+    return {
+      key: `${opcode.toString(16).padStart(2, '0')}00`,
+      description: name,
+      dispatch: false,
+      program: compileMameHandler(body),
+      source: sourceRef(block.file, block.line),
+    };
+  });
+  const resetBlock = blocks.get(resetName)!;
+  const reset = compileMameHandler(
+    normalize(resetBlock.body)
+      .replace(/\bm_inst_state\s*=\s*[^;]+;/g, '')
+      .replace(/\bm_PC\s*=\s*ARG\(0xfffc\)\s*;/, 'm_PC = READ(0xfffc);')
+      .replace(/\bm_PC\s*=\s*set_h\(m_PC,\s*ARG\(0xfffd\)\)\s*;/,
+        'm_PC = set_h(m_PC, READ(0xfffd));'),
+  );
+  const input = compileMameHandler(`
+    if (inputnum == IRQ_LINE) {
+      m_irq_state = state == ASSERT_LINE;
+    } else if (inputnum == APU_IRQ_LINE) {
+      m_apu_irq_state = state == ASSERT_LINE;
+    } else if (inputnum == NMI_LINE) {
+      if (!m_nmi_state && state == ASSERT_LINE)
+        m_nmi_pending = true;
+      m_nmi_state = state == ASSERT_LINE;
+    } else if (inputnum == V_LINE) {
+      if (!m_v_state && state == ASSERT_LINE)
+        m_P |= F_V;
+      m_v_state = state == ASSERT_LINE;
+    }
+  `);
+  const service = compileMameHandler('');
+  const fetch = compileMameHandler(`
+    m_NPC = m_PC;
+    if (m_nmi_pending || ((m_irq_state || m_apu_irq_state) && !(m_P & F_I))) {
+      m_irq_taken = true;
+      m_IR = 0;
+    } else {
+      m_irq_taken = false;
+      m_IR = OPCODE(m_PC);
+      m_PC++;
+    }
+    m_ref = m_IR << 16;
+  `);
+  const members: GeneratedCpuMember[] = [
+    ...['m_PPC', 'm_NPC', 'm_PC', 'm_SP', 'm_TMP']
+      .map(name => ({ name, bits: 16 as const })),
+    ...['m_TMP2', 'm_A', 'm_X', 'm_Y', 'm_P', 'm_IR']
+      .map(name => ({ name, bits: 8 as const })),
+    { name: 'm_inst_state_base' },
+    { name: 'm_nmi_state', bits: 1 },
+    { name: 'm_irq_state', bits: 1 },
+    { name: 'm_apu_irq_state', bits: 1 },
+    { name: 'm_v_state', bits: 1 },
+    { name: 'm_nmi_pending', bits: 1 },
+    { name: 'm_irq_taken', bits: 1 },
+    { name: 'm_inhibit_interrupts', bits: 1 },
+    { name: 'm_ref', bits: 32 },
+    { name: 'cycles' },
+    { name: 'm_icount' },
+  ];
+  const start = compileMameHandler(`
+    m_PPC = 0;
+    m_NPC = 0;
+    m_PC = 0;
+    m_SP = 0x0100;
+    m_A = 0;
+    m_X = 0x80;
+    m_Y = 0;
+    m_P = 0x36;
+    m_TMP = 0;
+    m_TMP2 = 0;
+    m_IR = 0;
+    m_nmi_state = false;
+    m_irq_state = false;
+    m_apu_irq_state = false;
+    m_v_state = false;
+    m_nmi_pending = false;
+    m_irq_taken = false;
+    m_inhibit_interrupts = false;
+  `);
+  const constants = {
+    IRQ_LINE: 0,
+    APU_IRQ_LINE: 1,
+    NMI_LINE: -1,
+    V_LINE: 16,
+    INPUT_LINE_IRQ0: 0,
+    INPUT_LINE_NMI: -1,
+    CLEAR_LINE: 0,
+    ASSERT_LINE: 1,
+    F_N: 0x80,
+    F_V: 0x40,
+    F_E: 0x20,
+    F_B: 0x10,
+    F_D: 0x08,
+    F_I: 0x04,
+    F_Z: 0x02,
+    F_C: 0x01,
+  };
+  const programs = [
+    start,
+    reset,
+    input,
+    service,
+    fetch,
+    ...methods.map(method => method.program),
+    ...opcodes.map(opcode => opcode.program),
+  ];
+  return {
+    schemaVersion: 1,
+    type: 'RP2A03',
+    dialect: 'mame-m6502-operation-list',
+    sourceFiles: [
+      cppFile,
+      headerFile,
+      variantFile,
+      variantHeaderFile,
+      operationsFile,
+      variantOperationsFile,
+      dispatchFile,
+    ],
+    constants,
+    aliases: {},
+    members,
+    methods,
+    start,
+    reset,
+    input,
+    service,
+    fetch,
+    opcodes,
+    summary: {
+      opcodes: opcodes.length,
+      compiledOpcodes: opcodes.filter(opcode =>
+        !opcode.program.diagnostics.length).length,
+      methods: methods.length,
+      compiledMethods: methods.filter(method =>
+        !method.program.diagnostics.length).length,
+      diagnostics: programs.reduce(
+        (count, program) => count + program.diagnostics.length,
+        0,
+      ),
+    },
+  };
+}
+
+function parseM6502OpcodeBlocks(file: string, source: string): M6502OpcodeBlock[] {
+  const blocks: M6502OpcodeBlock[] = [];
+  let current: M6502OpcodeBlock | undefined;
+  const lines = source.split(/\r?\n/);
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index]!;
+    if (!line.trim() || line.trimStart().startsWith('#')) continue;
+    if (!/^\s/.test(line)) {
+      current = { name: line.trim(), body: '', line: index + 1, file };
+      blocks.push(current);
+      continue;
+    }
+    if (!current) throw new Error(`${file}:${index + 1}: operation without name`);
+    current.body += `${line.trimStart()}\n`;
+  }
+  return blocks;
+}
+
 /**
  * Compile Intel MCS-48 execution directly from MAME's opcode-handler table.
  *
@@ -1465,9 +1770,11 @@ function compileOpcodeOperations(
 
 export function normalizeMameExecutionSource(source: string): string {
   let normalized = stripInactivePreprocessorBranches(source)
+    .replace(/^[ \t]*#if\s+0[^\r\n]*\r?\n[\s\S]*?^[ \t]*#endif[^\r\n]*(?:\r?\n|$)/gm, '')
     .replaceAll('[[fallthrough]];', '')
     .replace(/\bstatic_assert\s*\([^;]*\)\s*;/g, '')
     .replace(/\bbitswap\s*<\s*\d+\s*>\s*\(/g, 'BITSWAP(')
+    .replace(/\bDEGREE_TO_RADIAN\s*<[^>]+>\s*\(/g, 'DEGREE_TO_RADIAN(')
     .replace(
       /\bdo\s*\{([^{}]*)\}\s*while\s*\(\s*--(\w+)\s*\)\s*;/g,
       (_entry, body: string, counter: string) =>
@@ -1484,31 +1791,41 @@ export function normalizeMameExecutionSource(source: string): string {
     .replace(
       /\b(?:[\w:<>]+\s+)+\*\s*(\w+)\s*=/g,
       'auto $1 =',
-    );
+    )
+    .replace(/\bmake_unique_clear\s*<[^>]*\[\]>\s*\(/g, 'ALLOC(');
   for (const match of normalized.matchAll(
-    /\bstatic\s+const\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{\s*((?:\{[^{}]*\}\s*,?\s*)+)\}\s*;/g,
+    /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/g,
   )) {
     const name = match[1]!;
     const columns = Number(match[3]);
     const values = [...match[4]!.matchAll(/\{([^{}]*)\}/g)]
-      .flatMap(row => row[1]!.split(',').map(value => value.trim()).filter(Boolean));
+      .flatMap(row => row[1]!
+        .replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '')
+        .split(',')
+        .map(value => value.trim())
+        .filter(Boolean));
+    if (values.length !== Number(match[2]) * columns) continue;
     normalized = normalized
       .replace(match[0], '')
       .replace(
-        new RegExp(`\\b${name}\\s*\\[([^\\]]+)\\]\\s*\\[([^\\]]+)\\]`, 'g'),
+        new RegExp(
+          `\\b${name}\\s*\\[((?:[^\\[\\]]|\\[[^\\]]*\\])*)\\]` +
+          `\\s*\\[((?:[^\\[\\]]|\\[[^\\]]*\\])*)\\]`,
+          'g',
+        ),
         (_entry, row: string, column: string) =>
           `TABLE((${row}) * ${columns} + (${column}), ${values.join(', ')})`,
       );
   }
   for (const match of normalized.matchAll(
-    /\bstatic\s+const\s+\w+\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]+)\}\s*;/g,
+    /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]+)\}\s*;/g,
   )) {
     const name = match[1]!;
     const values = match[2]!.split(',').map(value => value.trim()).filter(Boolean);
     normalized = normalized
       .replace(match[0], '')
       .replace(
-        new RegExp(`\\b${name}\\s*\\[([^\\]]+)\\]`, 'g'),
+        new RegExp(`\\b${name}\\s*\\[((?:[^\\[\\]]|\\[[^\\]]*\\])*)\\]`, 'g'),
         (_entry, index: string) => `TABLE(${index}, ${values.join(', ')})`,
       );
   }

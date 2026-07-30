@@ -45,6 +45,13 @@ import {
   YM2203_PORTS,
 } from './ym2203/definition.ts';
 import { extractYm2203 } from './ym2203/extract.ts';
+import {
+  NES_ID,
+  NES_MAME_TYPES,
+  NES_MASTER_GAIN,
+  NES_PORTS,
+} from './nes/definition.ts';
+import { extractNes } from './nes/extract.ts';
 
 export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
   // CPUs — one capability over every generated core.
@@ -60,6 +67,13 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: DEVICE_MAME_TYPES,
     ports: DEVICE_PORTS,
     extract: extractDevices,
+  },
+  {
+    id: NES_ID,
+    mameTypes: NES_MAME_TYPES,
+    ports: NES_PORTS,
+    extract: extractNes,
+    masterGain: NES_MASTER_GAIN,
   },
   // Audio
   {

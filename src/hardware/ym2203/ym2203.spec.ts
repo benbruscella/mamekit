@@ -43,10 +43,14 @@ function context(): SoundRuntimeContext & { writes: [number, number, string | un
     calls: {},
     state: {},
     soundWrite: (offset, data, _frac, method) => writes.push([offset, data, method]),
+    soundData: () => {},
     fraction: () => 0,
     callDevice: () => undefined,
     runCallbackHandler: () => undefined,
     dispatch: () => {},
+    readProgram: () => 0xff,
+    stallCpu: () => {},
+    setCpuInputLine: () => {},
   };
 }
 

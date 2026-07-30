@@ -12,6 +12,7 @@ export const CPU_ID = 'cpu';
 /** MAME device types with a generated core, in emit order. */
 export const CPU_MAME_TYPES = [
   'Z80', 'I8080', 'I8039', 'M6803', 'KONAMI1', 'MC6809',
+  'RP2A03', 'RP2A03G',
 ] as const;
 
 export const CPU_PORTS: readonly PortDeclaration[] = [

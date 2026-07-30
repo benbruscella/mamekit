@@ -20,21 +20,39 @@ const definition: GeneratedDeviceDefinition = {
     { name: 'm_byte', valueType: 'uint8_t', bits: 8, initial: 0 },
     { name: 'm_signed', valueType: 'int8_t', bits: 8, signed: true, initial: 0 },
     { name: 'm_count', valueType: 'int', bits: 32, initial: 0 },
+    { name: 'm_reschedule_count', valueType: 'int', bits: 32, initial: 0 },
   ],
   callbacks: [{ signal: 'q_out_cb', member: 'm_q', slots: 2, initial: 9 }],
-  timers: [{ member: 'm_timer', callback: 'timer_tick' }],
+  timers: [
+    { member: 'm_timer', callback: 'timer_tick' },
+    { member: 'm_reschedule_timer', callback: 'reschedule_tick' },
+  ],
   methods: [
-    method('device_start', '', 'm_timer = timer_alloc(); m_timer.adjust(0.1, 3, 0.1);'),
+    method(
+      'device_start',
+      '',
+      'm_timer = timer_alloc(); m_timer.adjust(0.1, 3, 0.1);' +
+      'm_reschedule_timer = timer_alloc(); m_reschedule_timer.adjust(0.05);',
+    ),
     method('device_reset', '', 'm_byte = 7;'),
     method('write', 'uint8_t data', 'm_byte = data; m_q[1](data); return external(data);'),
     method('timer_tick', 'int param', 'm_count += param;'),
+    method(
+      'reschedule_tick',
+      'int param',
+      'm_reschedule_count += 1;' +
+      'if (m_reschedule_count < 3) m_reschedule_timer.adjust(0.05);',
+    ),
     method('fast', 'uint8_t data', 'return 0;'),
+    method('timer_remaining', '', 'return 0;'),
   ],
   compiledMethods: {
     fast: (runtime, data) => {
       runtime.members.m_byte = Number(data);
       return runtime.invoke('external', Number(data) + 1);
     },
+    timer_remaining: runtime =>
+      Number((runtime.members.m_timer as { remaining(): number }).remaining()),
   },
   start: 'device_start',
   reset: 'device_reset',
@@ -74,8 +92,18 @@ assert.equal(device.get('m_byte'), 4);
 
 device.tick(0.09);
 assert.equal(device.get('m_count'), 0);
+assert.equal(device.get('m_reschedule_count'), 1);
+assert.ok(
+  device.call('timer_remaining') > 0 &&
+  device.call('timer_remaining') < 0.011,
+  'generated timer remaining() must expose the live source-compatible delay',
+);
 device.tick(0.02);
 assert.equal(device.get('m_count'), 3);
+assert.equal(device.get('m_reschedule_count'), 2);
+device.tick(0.041);
+assert.equal(device.get('m_reschedule_count'), 3,
+  'a one-shot timer re-armed by its callback must keep its new schedule');
 device.tick(0.2);
 assert.equal(device.get('m_count'), 9);
 
@@ -128,5 +156,71 @@ assert.throws(
   /memory share "missing" is not available/,
 );
 
+// Generated slots instantiate a source-selected child definition and expose it
+// through the card member used by the parent's compiled MAME methods.
+registerGeneratedDevice({
+  type: 'SLOT_TEST',
+  constants: {},
+  members: [],
+  callbacks: [],
+  methods: [
+    method('device_start', '', 'm_card = get_card_device();'),
+    method('read', '', 'return m_card.read();'),
+  ],
+  slot: {
+    member: 'm_card',
+    selector: 'fixture.option',
+    options: {
+      card: {
+        type: 'CARD_TEST',
+        constants: {},
+        members: [{
+          name: 'm_input',
+          valueType: 'required_ioport',
+          finder: { kind: 'input', tag: 'BUTTONS' },
+        }],
+        callbacks: [],
+        methods: [method('read', '', 'return m_input.read();')],
+        summary: { diagnostics: 0 },
+      },
+    },
+  },
+  start: 'device_start',
+  summary: { diagnostics: 0 },
+});
+const slotDevice = createDevice('SLOT_TEST', {
+  tag: 'port1',
+  selectors: { 'fixture.option': 'card' },
+  inputs: { read: tag => tag === 'port1:BUTTONS' ? 0x5a : 0 },
+});
+assert.equal(slotDevice.call('read'), 0x5a);
+
+registerGeneratedDevice({
+  type: 'OVERLOAD_TEST',
+  constants: {},
+  members: [{ name: 'm_ready', valueType: 'uint8_t', bits: 8, initial: 1 }],
+  callbacks: [],
+  methods: [
+    method('select', 'int left, int right', 'return left + right;'),
+    method('select', '', 'return 7;'),
+    method('override_me', 'int value', 'return value + 1;'),
+    method('override_me', 'int value', 'return value + 2;'),
+    method('resync', 'int param', 'm_ready = 1;'),
+    method(
+      'write',
+      '',
+      'm_ready = 0; ' +
+      'machine().scheduler().synchronize(timer_expired_delegate(FUNC(fixture::resync), this));',
+    ),
+  ],
+  summary: { diagnostics: 0 },
+});
+const overloaded = createDevice('OVERLOAD_TEST');
+assert.equal(overloaded.call('select'), 7);
+assert.equal(overloaded.call('select', 3, 4), 7);
+assert.equal(overloaded.call('override_me', 3), 5, 'the most-derived exact signature wins');
+overloaded.call('write');
+assert.equal(overloaded.get('m_ready'), 1, 'scheduler synchronization invokes its generated delegate');
+
 clearGeneratedDevices();
-console.log('generated-device.spec: registration, IR, callbacks, timers, memory shares and compiled methods passed');
+console.log('generated-device.spec: registration, IR, slots, overloads, callbacks, timers, memory shares and compiled methods passed');

@@ -189,20 +189,20 @@ npm run test:current
 npm run test:games
 ```
 
-The default ROM locations are:
+The default ROM locations, under the gitignored `.data/` tree, are:
 
 ```text
-roms/arcade/pacman.zip
-roms/arcade/pooyan.zip
-roms/arcade/timeplt.zip
-roms/arcade/invaders.zip
-roms/arcade/galaxian.zip
-roms/arcade/galaga.zip
-roms/arcade/digdug.zip
-roms/arcade/mpatrol.zip
-roms/arcade/rocnrope.zip
-roms/arcade/junofrst.zip
-roms/arcade/gyruss.zip
+.data/roms/arcade/pacman.zip
+.data/roms/arcade/pooyan.zip
+.data/roms/arcade/timeplt.zip
+.data/roms/arcade/invaders.zip
+.data/roms/arcade/galaxian.zip
+.data/roms/arcade/galaga.zip
+.data/roms/arcade/digdug.zip
+.data/roms/arcade/mpatrol.zip
+.data/roms/arcade/rocnrope.zip
+.data/roms/arcade/junofrst.zip
+.data/roms/arcade/gyruss.zip
 ```
 
 Override them without moving files:

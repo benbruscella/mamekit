@@ -284,16 +284,54 @@ use it before deciding that a write hash or merely audible output is correct.
 ### STEP 6: ADD THE PRESENTATION PACKAGE
 
 The ROM is only the executable machine payload. A supported arcade game also
-has a local, gitignored presentation package:
+has a local, gitignored presentation package under `.data/`:
 
 ```text
-artwork/<target>.zip                  MAME bezel and default.lay
-artwork/covers/<target>.png           promotional flyer
-artwork/media/cabinets/<target>.png   cabinet photograph
-artwork/media/marquees/<target>.png   marquee scan
-artwork/data/history/history.xml      shared Gaming History dataset
-artwork/data/history/<target>.txt     optional curated story override
+.data/artwork/<target>.zip                  MAME bezel and default.lay
+.data/artwork/covers/<target>.png           promotional flyer
+.data/artwork/media/cabinets/<target>.png   cabinet photograph
+.data/artwork/media/marquees/<target>.png   marquee scan
+.data/artwork/data/history/history.xml      shared Gaming History dataset
+.data/artwork/data/history/<target>.txt     optional curated story override
 ```
+
+### CONSOLE CARTRIDGE PHOTOGRAPHY
+
+A console room draws every catalogued cartridge itself, and uses real
+photography wherever the machine's owner has it. Files live under the software
+list name and are keyed by **softlist short name** — the same name the verified
+dump zip carries, so `mame nes mario1` and `mario1.jpg` agree:
+
+```text
+.data/artwork/carts/<list>/<name>.<ext>           the whole cartridge, front on
+.data/artwork/carts/<list>/<name>.sticker.<ext>   the label sticker only
+```
+
+`<list>` is the software list (`nes`), `<ext>` is `png`, `jpg`, `jpeg` or
+`webp`. The two kinds are used differently, so both are worth having:
+
+| file | used as |
+|---|---|
+| `mario1.jpg` | replaces the drawn shell entirely — a real cart on the shelf |
+| `mario1.sticker.jpg` | sits inside the drawn shell's label, keeping the moulded plastic |
+
+When both exist the **sticker** wins: it composites into the drawn shell, so a shelf of mixed art still reads as one set of cartridges. Crop the sticker tight to the
+label edges; it is placed into the label rect and will stretch to fill it.
+
+Which files exist is resolved two ways, so development never needs a rebuild:
+
+- `npm run serve` exposes `/cart-art/<list>.json`, read from disk per request —
+  drop a file in, reload, it is there;
+- generation bakes the same index into `config.json`, which is what a deployed
+  static site uses. `npm run gen -- <target>` reports how many cartridges it
+  found art for.
+
+The generated snapshot exists because a shelf shows thousands of cartridges:
+letting the browser probe for art it does not have would mean thousands of 404s
+per visit. The live route wins whenever it answers.
+
+These are photographs of copyrighted labels: like every other artwork path they
+are gitignored, and the deploy includes them only with `--artwork`.
 
 Good first-stop catalogs are
 [progetto-SNAPS](https://www.progettosnaps.net/) for MAME-named cabinets,

@@ -8,7 +8,10 @@
 // Values here are serialized verbatim into each target's generated board.json.
 
 import { BOARD_IR_SCHEMA_VERSION } from './version.ts';
-import type { GeneratedAuxiliaryAudioDevice } from './audio-protocol.ts';
+import type {
+  GeneratedAuxiliaryAudioDevice,
+  GeneratedNesApuPlan,
+} from './audio-protocol.ts';
 
 export interface BoardSourceRef {
   file: string;
@@ -131,6 +134,9 @@ export interface GeneratedDevice {
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
   callbackHz?: number;
   configuration?: { method: string; args: number[] }[];
+  /** Source-declared slot option table/default from the machine config. */
+  slotOptions?: string;
+  slotDefault?: string;
   source?: BoardSourceRef;
 }
 
@@ -170,6 +176,7 @@ export type GeneratedHandlerOperation =
   | { op: 'call'; expression: Extract<GeneratedExpression, { kind: 'call' }> }
   | { op: 'return'; value?: GeneratedExpression }
   | { op: 'break' }
+  | { op: 'continue' }
   | {
       op: 'if';
       condition: GeneratedExpression;
@@ -530,6 +537,8 @@ export interface GeneratedSoundBinding {
   /** Index rank inferred from MAME handler IR for the routed filter member. */
   filterLayout?: 'flat' | 'matrix';
   auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
+  /** RP2A03 internal APU plan, present only for the NES sound capability. */
+  nesApu?: GeneratedNesApuPlan;
 }
 
 export interface GeneratedAudioRoute {

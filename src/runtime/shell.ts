@@ -10,6 +10,7 @@ import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig } from './types.ts';
 import type { GeneratedAudioRoute } from '../ir/board.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import { fetchRomBytes } from './rom-source.ts';
 
 export interface RomLoad {
   file: string; offset: number; size: number; crc: string;
@@ -95,22 +96,14 @@ export interface DropZone {
   };
 }
 
-/** public mirror bucket probed by the drop screen's "Try web search" */
-const ROM_SEARCH_BASE = 'https://mamehistory.s3.us-east-005.dream.io/roms/arcade';
-
 /**
- * Look for the romset on the web: the mirror bucket directly, then the dev
- * server's same-origin /romsearch/ proxy (the bucket sends no CORS headers,
- * so a cross-origin fetch is blocked unless the bucket ever allows it).
+ * Look for the romset on the web. Sources and their order live in
+ * rom-source.ts, shared with the console room's cartridge fetch.
  */
 async function fetchRomSet(game: string): Promise<Uint8Array> {
-  for (const url of [`${ROM_SEARCH_BASE}/${game}.zip`, `/romsearch/${game}.zip`]) {
-    try {
-      const res = await fetch(url);
-      if (res.ok) return new Uint8Array(await res.arrayBuffer());
-    } catch { /* CORS or network — try the next source */ }
-  }
-  throw new Error(`no web source had ${game}.zip`);
+  const bytes = await fetchRomBytes(`arcade/${game}.zip`);
+  if (!bytes) throw new Error(`no web source had ${game}.zip`);
+  return bytes;
 }
 
 /** result of checking an uploaded zip against the knowledge-graph manifest */
@@ -196,7 +189,16 @@ export interface ShellConfig {
   dipDefaults: DipDefault[];
   ports: PortSpec[];
   /** console cart facts from the generator (catalog url, capability lists) */
-  cart?: { interface: string; list: string; catalogUrl: string; slots: string[]; games: string[] };
+  cart?: {
+    interface: string; list: string; catalogUrl: string; slots: string[]; games: string[];
+    /** generated cartridge availability index, when a local dump audit existed */
+    cartsUrl?: string;
+    /**
+     * Local cartridge photography under /artwork/carts/<list>, keyed by softlist
+     * short name: `cart` is the whole shell, `sticker` is the label only.
+     */
+    cartArt?: Record<string, { cart?: string; sticker?: string }>;
+  };
   /** base url of the compiled runtime dir (for worklet modules) */
   runtimeUrl: string;
   /** where Esc returns to (the boot menu) */
@@ -268,10 +270,14 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
 export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<void> {
   const ui = buildDom(cfg);
 
-  // cabinet bezel surround: play inside the real artwork's CRT window
-  void loadArtwork(cfg.game, 'bezel').then(art => {
-    if (art?.window) ui.setBezel(art.bmp, art.window, art.tints);
-  });
+  // Cabinet bezels are arcade presentation. Console carts boot into the clean
+  // television viewport from their room and must not probe for an arcade
+  // artwork zip that cannot exist.
+  if (cfg.kind !== 'console') {
+    void loadArtwork(cfg.game, 'bezel').then(art => {
+      if (art?.window) ui.setBezel(art.bmp, art.window, art.tints);
+    });
+  }
 
   // Esc: back to the boot menu (registered first + capture so a single press
   // always works, at any stage of loading)

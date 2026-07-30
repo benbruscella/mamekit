@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { discoverGameNames } from '../src/games/discovery.ts';
 import { readZip } from '../src/runtime/zip.ts';
+import { DATA_DIR } from '../src/paths.ts';
 
 const root = resolve(import.meta.dirname, '..');
 const requested = process.argv.slice(2);
@@ -27,21 +28,21 @@ async function auditGame(game: string): Promise<void> {
   assert.equal(
     meta.hasHistory,
     true,
-    `${game}: no Gaming History entry was extracted from artwork/data/history/history.xml`,
+    `${game}: no Gaming History entry was extracted from ${DATA_DIR}/artwork/data/history/history.xml`,
   );
   for (const file of ['config.json', 'DOSSIER.md', 'history.txt']) {
     requireFile(`${dataPath}/${file}`);
   }
 
   for (const path of [
-    `artwork/covers/${game}.png`,
-    `artwork/media/cabinets/${game}.png`,
-    `artwork/media/marquees/${game}.png`,
+    `${DATA_DIR}/artwork/covers/${game}.png`,
+    `${DATA_DIR}/artwork/media/cabinets/${game}.png`,
+    `${DATA_DIR}/artwork/media/marquees/${game}.png`,
   ]) {
     requirePng(path);
   }
 
-  const zipPath = `artwork/${game}.zip`;
+  const zipPath = `${DATA_DIR}/artwork/${game}.zip`;
   requireFile(zipPath);
   const entries = await readZip(new Uint8Array(readFileSync(join(root, zipPath))));
   const layout = entries.get('default.lay');

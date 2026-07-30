@@ -8,6 +8,10 @@ interface EmitContext {
   definition: GeneratedDeviceDefinition;
   compiled: Set<string>;
   locals: Map<string, string | undefined>;
+  wrappedReferences: Set<string>;
+  returnedReference?: string;
+  pointerSafeIndex: boolean;
+  typescript: boolean;
 }
 
 interface Target {
@@ -31,19 +35,54 @@ export function generatedDeviceMethodsSource(
   definition: GeneratedDeviceDefinition,
   typescript = false,
 ): { source: string; methods: string[] } {
+  const methodCounts = new Map<string, number>();
+  for (const method of definition.methods) {
+    methodCounts.set(method.name, (methodCounts.get(method.name) ?? 0) + 1);
+  }
+  const overloaded = new Set(
+    [...methodCounts].filter(([, count]) => count > 1).map(([name]) => name),
+  );
+  const methodsByName = new Map(definition.methods.map(method => [method.name, method]));
   const roots = definition.methods.filter(method =>
+    !overloaded.has(method.name) &&
     method.program.diagnostics.length === 0 &&
     (
+      definition.hotMethods?.includes(method.name) ||
+      definition.timers.some(timer => timer.callback === method.name) ||
       maximumLoopDepth(method.program.operations) >= 2 ||
       (
         maximumLoopDepth(method.program.operations) >= 1 &&
         containsSwitch(method.program.operations)
+      ) ||
+      (
+        maximumLoopDepth(method.program.operations) >= 1 &&
+        [...calledIdentifiers(method.program.operations)].some(name => {
+          const dependency = methodsByName.get(name);
+          return dependency && maximumLoopDepth(dependency.program.operations) >= 1;
+        })
       )
     ));
-  const selected = methodClosure(definition, roots);
+  const selected = methodClosure(definition, roots, overloaded);
   const compiled = new Set(selected.map(method => method.name));
-  const supported = selected.filter(method => supportsMethod(method, definition, compiled));
-  const supportedNames = new Set(supported.map(method => method.name));
+  const supportedNames = new Set(
+    selected
+      .filter(method => supportsMethod(method, definition, compiled))
+      .map(method => method.name),
+  );
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const method of selected) {
+      if (!supportedNames.has(method.name)) continue;
+      const hasUnsupportedDependency = [...calledIdentifiers(method.program.operations)]
+        .some(name => compiled.has(name) && !supportedNames.has(name));
+      if (hasUnsupportedDependency) {
+        supportedNames.delete(method.name);
+        changed = true;
+      }
+    }
+  }
+  const supported = selected.filter(method => supportedNames.has(method.name));
 
   // A root may only call another compiled method directly when that dependency
   // also passed validation. Other calls retain the interpreter fallback.
@@ -72,10 +111,7 @@ export function generatedDeviceExecutableSource(
   definition: GeneratedDeviceDefinition,
   dataFile: string,
 ): string {
-  const emitted = generatedDeviceMethodsSource(definition, true);
-  const compiled = emitted.methods.length
-    ? `${emitted.source} as GeneratedDeviceMethodMap`
-    : '{} as GeneratedDeviceMethodMap';
+  const assignments = generatedDeviceAssignments(definition, 'definition').join('\n');
   return `// GENERATED from MAME device source; do not edit.
 import type {
   GeneratedDeviceDefinition,
@@ -84,16 +120,35 @@ import type {
 import deviceData from './${dataFile}' with { type: 'json' };
 
 const definition = deviceData as unknown as GeneratedDeviceDefinition;
-definition.compiledMethods = ${compiled};
+${assignments}
 
 export const device = definition;
 export default device;
 `;
 }
 
+function generatedDeviceAssignments(
+  definition: GeneratedDeviceDefinition,
+  target: string,
+): string[] {
+  const emitted = generatedDeviceMethodsSource(definition, true);
+  const compiled = emitted.methods.length
+    ? `${emitted.source} as GeneratedDeviceMethodMap`
+    : '{} as GeneratedDeviceMethodMap';
+  const assignments = [`${target}.compiledMethods = ${compiled};`];
+  for (const [option, child] of Object.entries(definition.slot?.options ?? {})) {
+    assignments.push(...generatedDeviceAssignments(
+      child,
+      `${target}.slot!.options[${JSON.stringify(option)}]!`,
+    ));
+  }
+  return assignments;
+}
+
 function methodClosure(
   definition: GeneratedDeviceDefinition,
   roots: GeneratedDeviceMethod[],
+  overloaded: ReadonlySet<string>,
 ): GeneratedDeviceMethod[] {
   const byName = new Map(definition.methods.map(method => [method.name, method]));
   const selected = new Map<string, GeneratedDeviceMethod>();
@@ -101,6 +156,7 @@ function methodClosure(
     if (selected.has(method.name)) return;
     selected.set(method.name, method);
     for (const name of calledIdentifiers(method.program.operations)) {
+      if (overloaded.has(name)) continue;
       const dependency = byName.get(name);
       if (dependency && dependency.program.diagnostics.length === 0) visit(dependency);
     }
@@ -153,7 +209,8 @@ function supportsMethod(
   definition: GeneratedDeviceDefinition,
   compiled: Set<string>,
 ): boolean {
-  const locals = new Set(parseParameters(method.parameters).map(parameter => parameter.name));
+  const parameters = parseParameters(method.parameters);
+  const locals = new Set(parameters.map(parameter => parameter.name));
   collectLocalNames(method.program.operations, locals);
   const members = new Set([
     ...definition.members.map(member => member.name),
@@ -169,9 +226,16 @@ function supportsMethod(
         supported = locals.has(expression.name) ||
           members.has(expression.name) ||
           constants.has(expression.name) ||
-          ['true', 'false', 'nullptr'].includes(expression.name);
+          ['true', 'false', 'nullptr', 'g_profiler',
+            'attotime::zero', 'attotime::never'].includes(expression.name) ||
+          expression.name.startsWith('PROFILER_');
       } else if (expression.kind === 'unary') {
-        supported = !['&', '*'].includes(expression.operator);
+        supported = expression.operator !== '&' ||
+          expression.operand.kind === 'index' ||
+          (
+            expression.operand.kind === 'call' &&
+            expression.operand.callee.kind === 'member'
+          );
       } else if (expression.kind === 'binary') {
         supported = SAFE_BINARY_OPERATORS.has(expression.operator);
       } else if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
@@ -193,17 +257,30 @@ function emitMethod(
   typescript: boolean,
 ): string {
   const parameters = parseParameters(method.parameters);
+  const returnedReference = singleReturnedReference(method);
   const context: EmitContext = {
     definition,
     compiled,
     locals: new Map(parameters.map(parameter => [parameter.name, parameter.valueType])),
+    wrappedReferences: new Set(
+      parameters
+        .filter(parameter =>
+          isMutableReference(parameter.valueType) &&
+          parameter.name !== returnedReference &&
+          assignsIdentifier(method.program.operations, parameter.name))
+        .map(parameter => parameter.name),
+    ),
+    returnedReference,
+    pointerSafeIndex: Boolean(definition.hotMethods?.length),
+    typescript,
   };
   collectLocals(method.program.operations, context.locals);
   const annotation = typescript ? ': any' : '';
   const args = parameters.map(parameter => `${parameter.name}${annotation}`).join(', ');
+  const returned = returnedReference ? `\n    return ${returnedReference};` : '';
   return `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''}) {
     const members = runtime.members;
-${emitOperations(method.program.operations, context, 4)}
+${emitOperations(method.program.operations, context, 4)}${returned}
   }`;
 }
 
@@ -225,7 +302,13 @@ function emitOperation(
   const pad = ' '.repeat(indentation);
   if (operation.op === 'declare') {
     const value = operation.value ? emitExpression(operation.value, context) : '0';
-    return `${pad}let ${operation.name} = ${wrapType(value, operation.valueType)};`;
+    const annotation = context.typescript ? ': any' : '';
+    const allocated = operation.value?.kind === 'call' &&
+      operation.value.callee.kind === 'identifier' &&
+      ['ALLOC', 'make_unique_clear'].includes(operation.value.callee.name);
+    return `${pad}let ${operation.name}${annotation} = ${
+      allocated ? value : wrapType(value, operation.valueType)
+    };`;
   }
   if (operation.op === 'assign') {
     return `${pad}${emitAssignment(operation.target, operation.operator, operation.value, context)};`;
@@ -237,6 +320,7 @@ function emitOperation(
     return `${pad}return${operation.value ? ` ${emitExpression(operation.value, context)}` : ''};`;
   }
   if (operation.op === 'break') return `${pad}break;`;
+  if (operation.op === 'continue') return `${pad}continue;`;
   if (operation.op === 'if') {
     const lines = [
       `${pad}if (${emitExpression(operation.condition, context)}) {`,
@@ -295,15 +379,26 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
   if (expression.kind === 'number') return String(expression.value);
   if (expression.kind === 'string') return JSON.stringify(expression.value);
   if (expression.kind === 'identifier') {
-    if (context.locals.has(expression.name)) return expression.name;
+    if (context.locals.has(expression.name)) {
+      return context.wrappedReferences.has(expression.name)
+        ? `${expression.name}.get()`
+        : expression.name;
+    }
     if (expression.name === 'true') return '1';
     if (expression.name === 'false' || expression.name === 'nullptr') return '0';
+    if (expression.name === 'attotime::zero') return '0';
+    if (expression.name === 'attotime::never') return 'Infinity';
+    if (expression.name.startsWith('PROFILER_')) return '0';
     const constant = context.definition.constants[expression.name];
     if (constant !== undefined) return String(constant);
     return `members.${expression.name}`;
   }
   if (expression.kind === 'unary') {
+    if (expression.operator === '&') return emitAddressOf(expression.operand, context);
     const operand = emitExpression(expression.operand, context);
+    if (expression.operator === '*') {
+      return `(${operand}).source[(${operand}).offset]`;
+    }
     return expression.operator === '!' ? `((${operand}) ? 0 : 1)` : `(${expression.operator}${operand})`;
   }
   if (expression.kind === 'cast') {
@@ -312,6 +407,17 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
   if (expression.kind === 'binary') {
     const left = emitExpression(expression.left, context);
     const right = emitExpression(expression.right, context);
+    const leftType = expressionValueType(expression.left, context);
+    const rightType = expressionValueType(expression.right, context);
+    if (expression.operator === '+' && leftType?.includes('*')) {
+      return `runtime.addressOf(${left}, ${right})`;
+    }
+    if (expression.operator === '+' && rightType?.includes('*')) {
+      return `runtime.addressOf(${right}, ${left})`;
+    }
+    if (expression.operator === '-' && leftType?.includes('*')) {
+      return `runtime.addressOf(${left}, -(${right}))`;
+    }
     if (expression.operator === '&&' || expression.operator === '||') {
       return `(((${left}) ${expression.operator} (${right})) ? 1 : 0)`;
     }
@@ -343,21 +449,60 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     return `${emitExpression(expression.object, context)}.${expression.property}`;
   }
   if (expression.kind === 'index') {
-    return `${emitExpression(expression.object, context)}[${emitExpression(expression.index, context)}]`;
+    const object = emitExpression(expression.object, context);
+    const index = emitExpression(expression.index, context);
+    return context.pointerSafeIndex
+      ? `runtime.readIndex(${object}, ${index})`
+      : `${object}[${index}]`;
   }
   return emitCall(expression, context);
+}
+
+function expressionValueType(
+  expression: GeneratedExpression,
+  context: EmitContext,
+): string | undefined {
+  if (expression.kind === 'identifier') {
+    if (context.locals.has(expression.name)) return context.locals.get(expression.name);
+    return context.definition.members.find(member => member.name === expression.name)?.valueType;
+  }
+  if (expression.kind === 'cast') return expression.valueType;
+  if (expression.kind === 'unary' && expression.operator === '&') {
+    return `${expressionValueType(expression.operand, context) ?? ''}*`;
+  }
+  if (expression.kind === 'binary' && ['+', '-'].includes(expression.operator)) {
+    const left = expressionValueType(expression.left, context);
+    const right = expressionValueType(expression.right, context);
+    return left?.includes('*') ? left : right?.includes('*') ? right : undefined;
+  }
+  return undefined;
 }
 
 function emitCall(
   expression: Extract<GeneratedExpression, { kind: 'call' }>,
   context: EmitContext,
 ): string {
-  const args = expression.args.map(argument => emitExpression(argument, context));
   if (expression.callee.kind === 'identifier') {
     const name = expression.callee.name;
     if (context.compiled.has(name)) {
-      return `method_${safeName(name)}(runtime${args.length ? `, ${args.join(', ')}` : ''})`;
+      const target = context.definition.methods.find(method => method.name === name);
+      const parameters = parseParameters(target?.parameters ?? '');
+      const returnedReference = target ? singleReturnedReference(target) : undefined;
+      const args = expression.args.map((argument, index) =>
+        parameters[index] &&
+        isMutableReference(parameters[index].valueType) &&
+        parameters[index].name !== returnedReference &&
+        assignsIdentifier(target?.program.operations ?? [], parameters[index].name)
+          ? emitReferenceArgument(argument, context)
+          : emitExpression(argument, context));
+      const call = `method_${safeName(name)}(runtime${args.length ? `, ${args.join(', ')}` : ''})`;
+      if (returnedReference) {
+        const index = parameters.findIndex(parameter => parameter.name === returnedReference);
+        return emitReturnedReferenceAssignment(expression.args[index]!, call, context);
+      }
+      return call;
     }
+    const args = expression.args.map(argument => emitExpression(argument, context));
     if (name === 'BIT') {
       const mask = args[2] ? `((1 << (${args[2]})) - 1)` : '1';
       return `(((${args[0] ?? '0'}) >>> (${args[1] ?? '0'})) & ${mask})`;
@@ -375,18 +520,78 @@ function emitCall(
         `${values.length}] ?? 0)`;
     }
     if (name === 'bool') return `((${args[0] ?? '0'}) ? 1 : 0)`;
+    if (name === 'ALLOC' || name === 'make_unique_clear') {
+      return `new Uint8Array(Math.max(0, Number(${args[0] ?? '0'})))`;
+    }
+    if (name === 'memset') {
+      const target = args[0] ?? '0';
+      return `((${target}).fill(${args[1] ?? '0'}, 0, ${args[2] ?? '0'}), ${target})`;
+    }
+    if (name === 'pen_color') {
+      return `(runtime.palette[${args[0] ?? '0'}] ?? 0xff000000)`;
+    }
+    if (name === 'set_pen_color') {
+      return `(runtime.palette[${args[0] ?? '0'}] = ${args[1] ?? '0'})`;
+    }
     if (['u8', 'uint8_t', 's8', 'int8_t', 'u16', 'uint16_t',
       's16', 'int16_t', 'u32', 'uint32_t', 's32', 'int32_t'].includes(name)) {
       return wrapType(args[0] ?? '0', name);
     }
-    return `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''})`;
+    if (context.definition.methods.some(method => method.name === name)) {
+      return `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''})`;
+    }
+    return `(runtime.calls[${JSON.stringify(name)}]?.(${args.join(', ')}) ?? 0)`;
   }
   if (expression.callee.kind === 'member') {
+    if (
+      expression.callee.object.kind === 'identifier' &&
+      expression.callee.object.name === 'g_profiler' &&
+      expression.callee.property === 'start'
+    ) {
+      return '0';
+    }
+    if (expression.callee.property === 'isnull') {
+      const name = `${expressionName(expression.callee.object)}.isnull`;
+      return `(runtime.calls[${JSON.stringify(name)}]?.() ?? 0)`;
+    }
+    const args = expression.args.map(argument => emitExpression(argument, context));
     const object = emitExpression(expression.callee.object, context);
+    if (expression.callee.property === 'empty' && !args.length) {
+      return `((${object}).length === 0 ? 1 : 0)`;
+    }
+    if (
+      ['bytes', 'size', 'length'].includes(expression.callee.property) &&
+      !args.length
+    ) {
+      return `(${object}).length`;
+    }
+    const directName = linkedMemberCallName(expression);
+    if (
+      directName &&
+      context.definition.links?.some(link => link.call === directName)
+    ) {
+      return `(runtime.calls[${JSON.stringify(directName)}]?.(${args.join(', ')}) ?? 0)`;
+    }
     return `${object}.${expression.callee.property}(${args.join(', ')})`;
   }
+  const args = expression.args.map(argument => emitExpression(argument, context));
   const callable = emitExpression(expression.callee, context);
   return `${callable}(${args.join(', ')})`;
+}
+
+function linkedMemberCallName(
+  expression: Extract<GeneratedExpression, { kind: 'call' }>,
+): string | undefined {
+  if (expression.callee.kind !== 'member') return undefined;
+  const object = expression.callee.object;
+  if (
+    object.kind !== 'call' ||
+    object.args.length ||
+    object.callee.kind !== 'identifier'
+  ) {
+    return undefined;
+  }
+  return `${object.callee.name}().${expression.callee.property}`;
 }
 
 function emitAssignment(
@@ -405,11 +610,168 @@ function emitAssignment(
     return `${object}[${JSON.stringify(`${expression.callee.property}=`)}](` +
       `${[...args, right].join(', ')})`;
   }
+  if (
+    expression.kind === 'identifier' &&
+    context.wrappedReferences.has(expression.name)
+  ) {
+    const valueType = context.locals.get(expression.name);
+    const current = `${expression.name}.get()`;
+    const next = pointerAssignment(current, operator, right, valueType);
+    return `${expression.name}.set(${wrapType(next, valueType)})`;
+  }
+  if (expression.kind === 'index' && context.pointerSafeIndex) {
+    const object = emitExpression(expression.object, context);
+    const index = emitExpression(expression.index, context);
+    const current = `runtime.readIndex(${object}, ${index})`;
+    const next = operator === '='
+      ? right
+      : `((${current}) ${operator.slice(0, -1)} (${right}))`;
+    return `runtime.writeIndex(${object}, ${index}, ${next})`;
+  }
   const target = targetInfo(expression, context);
-  const next = operator === '='
-    ? right
-    : `((${target.code}) ${operator.slice(0, -1)} (${right}))`;
+  if (
+    expression.kind === 'identifier' &&
+    expression.name === context.returnedReference &&
+    target.valueType?.includes('*') &&
+    (operator === '+=' || operator === '-=')
+  ) {
+    return `${target.code}.offset ${operator} ${right}`;
+  }
+  const next = pointerAssignment(target.code, operator, right, target.valueType);
+  if (expression.kind === 'unary' && expression.operator === '*') {
+    return `${target.code} = ${next}`;
+  }
   return `${target.code} = ${wrapTarget(next, target)}`;
+}
+
+function pointerAssignment(
+  current: string,
+  operator: string,
+  right: string,
+  valueType?: string,
+): string {
+  if (
+    valueType?.includes('*') &&
+    (operator === '+=' || operator === '-=')
+  ) {
+    const sign = operator === '+=' ? '+' : '-';
+    return `({ ...(${current}), offset: ((${current}).offset ${sign} (${right})) })`;
+  }
+  return operator === '='
+    ? right
+    : `((${current}) ${operator.slice(0, -1)} (${right}))`;
+}
+
+function emitAddressOf(
+  expression: GeneratedExpression,
+  context: EmitContext,
+): string {
+  if (expression.kind === 'index') {
+    const object = emitExpression(expression.object, context);
+    const index = emitExpression(expression.index, context);
+    return context.pointerSafeIndex
+      ? `runtime.addressOf(${object}, ${index})`
+      : `({ generatedPointer: true, source: ${object}, offset: ${index} })`;
+  }
+  if (expression.kind === 'call' && expression.callee.kind === 'member') {
+    const object = emitExpression(expression.callee.object, context);
+    const args = expression.args.map(argument => emitExpression(argument, context));
+    return `${object}[${JSON.stringify(`${expression.callee.property}&`)}](${args.join(', ')})`;
+  }
+  throw new Error(`device codegen has unsupported address-of operand "${expression.kind}"`);
+}
+
+function emitReferenceArgument(
+  expression: GeneratedExpression,
+  context: EmitContext,
+): string {
+  if (
+    expression.kind === 'identifier' &&
+    context.wrappedReferences.has(expression.name)
+  ) {
+    return expression.name;
+  }
+  const target = targetInfo(expression, context);
+  const annotation = context.typescript ? ': any' : '';
+  return `({ get: () => ${emitExpression(expression, context)}, ` +
+    `set: (value${annotation}) => { ${target.code} = ${wrapTarget('value', target)}; } })`;
+}
+
+/**
+ * A compiled method with one mutated C++ reference can use a return-value ABI.
+ * This avoids allocating a get/set closure object at every hot-path call.
+ */
+function singleReturnedReference(
+  method: GeneratedDeviceMethod,
+): string | undefined {
+  if (containsReturn(method.program.operations)) return undefined;
+  const assigned = parseParameters(method.parameters).filter(parameter =>
+    isMutableReference(parameter.valueType) &&
+    assignsIdentifier(method.program.operations, parameter.name));
+  return assigned.length === 1 ? assigned[0]!.name : undefined;
+}
+
+function containsReturn(operations: GeneratedHandlerOperation[]): boolean {
+  let returned = false;
+  visitOperations(operations, operation => {
+    if (operation.op === 'return') returned = true;
+  });
+  return returned;
+}
+
+function emitReturnedReferenceAssignment(
+  expression: GeneratedExpression,
+  call: string,
+  context: EmitContext,
+): string {
+  if (
+    expression.kind === 'identifier' &&
+    context.wrappedReferences.has(expression.name)
+  ) {
+    const valueType = context.locals.get(expression.name);
+    return `(${expression.name}.set(${wrapType(call, valueType)}), ${expression.name}.get())`;
+  }
+  const target = targetInfo(expression, context);
+  return `(${target.code} = ${wrapTarget(call, target)})`;
+}
+
+function expressionName(expression: GeneratedExpression): string {
+  if (expression.kind === 'identifier') return expression.name;
+  if (expression.kind === 'member') {
+    return `${expressionName(expression.object)}.${expression.property}`;
+  }
+  return '<expression>';
+}
+
+function isMutableReference(valueType: string | undefined): boolean {
+  return Boolean(valueType?.includes('&') && !/\bconst\b/.test(valueType));
+}
+
+function assignsIdentifier(
+  operations: GeneratedHandlerOperation[],
+  name: string,
+): boolean {
+  let assigned = false;
+  visitOperations(operations, operation => {
+    if (
+      operation.op === 'assign' &&
+      operation.target.kind === 'identifier' &&
+      operation.target.name === name
+    ) {
+      assigned = true;
+      return;
+    }
+    visitOperationExpressions(operation, expression => {
+      if (
+        expression.kind === 'assignment' &&
+        expression.target.kind === 'identifier' &&
+        expression.target.name === name
+      ) {
+        assigned = true;
+      }
+    });
+  });
+  return assigned;
 }
 
 function targetInfo(expression: GeneratedExpression, context: EmitContext): Target {
@@ -434,6 +796,12 @@ function targetInfo(expression: GeneratedExpression, context: EmitContext): Targ
   if (expression.kind === 'member') {
     return {
       code: `${emitExpression(expression.object, context)}.${expression.property}`,
+    };
+  }
+  if (expression.kind === 'unary' && expression.operator === '*') {
+    const pointer = emitExpression(expression.operand, context);
+    return {
+      code: `(${pointer}).source[(${pointer}).offset]`,
     };
   }
   throw new Error(`device codegen has unsupported assignment target "${expression.kind}"`);
@@ -563,6 +931,7 @@ function wrapBits(value: string, bits?: 1 | 8 | 16 | 32, signed = false): string
 }
 
 function wrapType(value: string, valueType?: string): string {
+  if (valueType?.includes('*')) return value;
   const normalized = valueType?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
   if (normalized === 'bool') return `((${value}) ? 1 : 0)`;
   if (normalized === 'u8' || normalized === 'uint8_t') return `((${value}) & 0xff)`;

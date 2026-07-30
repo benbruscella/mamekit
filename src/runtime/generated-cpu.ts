@@ -90,6 +90,8 @@ export interface Cpu {
   step(): number;
   run(cycles: number): number;
   setIrqLine(active: boolean, dataBus?: number | (() => number), hold?: boolean): void;
+  /** Drive a generated CPU's numbered input line (RP2A03 keeps APU IRQ separate). */
+  setInputLine(inputnum: number, state: number): void;
   nmi(): void;
   get(name: string): number;
   set(name: string, value: number): void;
@@ -244,10 +246,14 @@ class IrCpu implements Cpu {
   setIrqLine(active: boolean, dataBus: number | (() => number) = 0xff, hold = false): void {
     if (active) this.irqData = dataBus;
     this.irqHold = active && hold;
-    this.execute(this.definition.input, {
-      inputnum: this.constant('INPUT_LINE_IRQ0', 0),
-      state: active ? this.constant('ASSERT_LINE', 1) : this.constant('CLEAR_LINE', 0),
-    });
+    this.setInputLine(
+      this.constant('INPUT_LINE_IRQ0', 0),
+      active ? this.constant('ASSERT_LINE', 1) : this.constant('CLEAR_LINE', 0),
+    );
+  }
+
+  setInputLine(inputnum: number, state: number): void {
+    this.execute(this.definition.input, { inputnum, state });
   }
 
   nmi(): void {

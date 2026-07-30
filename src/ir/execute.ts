@@ -69,7 +69,7 @@ interface GeneratedPointer {
 }
 
 interface ExecutionResult {
-  control?: 'return' | 'break';
+  control?: 'return' | 'break' | 'continue';
   value?: unknown;
 }
 
@@ -328,6 +328,8 @@ function executeOperations(
       };
     } else if (operation.op === 'break') {
       return { control: 'break' };
+    } else if (operation.op === 'continue') {
+      return { control: 'continue' };
     } else if (operation.op === 'if') {
       const branch = truthy(evaluate(operation.condition, context))
         ? operation.then
@@ -372,6 +374,7 @@ function executeOperations(
       for (; index >= 0 && index < operation.cases.length; index++) {
         const result = executeOperations(operation.cases[index]!.body, context);
         if (result.control === 'return') return result;
+        if (result.control === 'continue') return result;
         if (result.control === 'break') break;
       }
     }
@@ -517,6 +520,22 @@ function evaluateCall(
     if (name === 'std::max') {
       return Math.max(...args.map(toNumber));
     }
+    if (name === 'std::clamp') {
+      return Math.min(toNumber(args[2]), Math.max(toNumber(args[1]), toNumber(args[0])));
+    }
+    if (name === 'ALLOC' || name === 'make_unique_clear') {
+      return new Uint8Array(Math.max(0, toNumber(args[0])));
+    }
+    if (name === 'floor') return Math.floor(toNumber(args[0]));
+    if (name === 'cos') return Math.cos(toNumber(args[0]));
+    if (name === 'sin') return Math.sin(toNumber(args[0]));
+    if (name === 'DEGREE_TO_RADIAN') return toNumber(args[0]) * Math.PI / 180;
+    if (name === 'rgb_t') {
+      const red = toNumber(args[0]) & 0xff;
+      const green = toNumber(args[1]) & 0xff;
+      const blue = toNumber(args[2]) & 0xff;
+      return (0xff000000 | blue << 16 | green << 8 | red) >>> 0;
+    }
     if (name === 'assert' || name === 'static_assert') return 0;
     if (name === 'sizeof') {
       return typeByteWidth(generatedExpressionName(expression.args[0]!));
@@ -568,6 +587,23 @@ function evaluateCall(
   }
   if (expression.callee.kind === 'member') {
     const generatedName = `${generatedExpressionName(expression.callee.object)}.${expression.callee.property}`;
+    const schedulerCall = expression.callee.property === 'synchronize' &&
+      expression.callee.object.kind === 'call' &&
+      expression.callee.object.callee.kind === 'member' &&
+      expression.callee.object.callee.property === 'scheduler' &&
+      expression.callee.object.callee.object.kind === 'call' &&
+      expression.callee.object.callee.object.callee.kind === 'identifier' &&
+      expression.callee.object.callee.object.callee.name === 'machine';
+    if (schedulerCall) {
+      const callback = timerDelegateName(expression.args[0]);
+      const generatedCallback = callback
+        ? context.bindings.referenceCalls?.[callback]
+        : undefined;
+      if (!generatedCallback) return 0;
+      return generatedCallback(
+        expression.args[1] ? evaluate(expression.args[1], context) : 0,
+      );
+    }
     const generated = context.bindings.referenceCalls?.[generatedName];
     if (generated) {
       return generated(...generatedCallArguments(generatedName, expression.args, context));
@@ -627,6 +663,7 @@ function evaluateCall(
         if (method === 'bytes' || method === 'size' || method === 'length') {
           return object.length;
         }
+        if (method === 'empty') return object.length === 0 ? 1 : 0;
         if (method === 'resize') {
           resizeGeneratedMemory(expression.callee.object, toNumber(args[0]), context);
           return 0;
@@ -676,11 +713,11 @@ function assign(
     const object = evaluate(target.object, context);
     const index = toNumber(evaluate(target.index, context));
     const current = indexValue(object, index);
-    const next = toNumber(assignmentValue(operator, current, value));
+    const next = assignmentValue(operator, current, value);
     if (isGeneratedPointer(object)) {
       setPointerValue(object, index, next);
     } else if (ArrayBuffer.isView(object)) {
-      (object as Uint8Array)[index] = next;
+      (object as Uint8Array)[index] = toNumber(next);
     } else if (Array.isArray(object)) {
       object[index] = next;
     }
@@ -689,7 +726,10 @@ function assign(
   if (target.kind === 'unary' && target.operator === '*') {
     const pointer = evaluate(target.operand, context);
     if (!isGeneratedPointer(pointer)) {
-      throw new Error('generated dereference assignment has no pointer');
+      const received = pointer && typeof pointer === 'object'
+        ? `object with keys ${Object.keys(pointer).join(', ') || '(none)'}`
+        : `${typeof pointer} ${String(pointer)}`;
+      throw new Error(`generated dereference assignment has no pointer (received ${received})`);
     }
     const current = pointerValue(pointer, 0);
     setPointerValue(pointer, 0, assignmentValue(operator, current, value));
@@ -744,6 +784,12 @@ function assignCallResult(
 
 function assignmentValue(operator: string, current: unknown, value: unknown): unknown {
   if (operator === '=') return value;
+  if (operator === '+=' && isGeneratedPointer(current)) {
+    return offsetPointer(current, toNumber(value));
+  }
+  if (operator === '-=' && isGeneratedPointer(current)) {
+    return offsetPointer(current, -toNumber(value));
+  }
   if (
     operator === '&=' &&
     current &&
@@ -836,6 +882,17 @@ function addressOf(expression: GeneratedExpression, context: ExecutionContext): 
     return isGeneratedPointer(source)
       ? offsetPointer(source, offset)
       : { generatedPointer: true, source, offset };
+  }
+  if (expression.kind === 'call' && expression.callee.kind === 'member') {
+    const object = evaluate(expression.callee.object, context);
+    const reference = object && typeof object === 'object'
+      ? (object as Record<string, unknown>)[`${expression.callee.property}&`]
+      : undefined;
+    if (typeof reference === 'function') {
+      const args = expression.args.map(argument => toNumber(evaluate(argument, context)));
+      const pointer = reference.apply(object, args);
+      if (isGeneratedPointer(pointer)) return pointer;
+    }
   }
   return {
     generatedPointer: true,

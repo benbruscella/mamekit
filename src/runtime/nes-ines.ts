@@ -25,6 +25,19 @@ export interface INesInfo {
   chr: Uint8Array | null;
 }
 
+/**
+ * MAME's iNES loader expands NROM-128's single 16 KiB PRG chip to the 32 KiB
+ * CPU window before the cartridge interface configures its four 8 KiB banks.
+ * Keep `ines.prg` untouched for CRC identification, but mount this image.
+ */
+export function mountedINesPrg(ines: INesInfo): Uint8Array {
+  if (ines.prg.length !== 0x4000) return ines.prg;
+  const mounted = new Uint8Array(0x8000);
+  mounted.set(ines.prg, 0);
+  mounted.set(ines.prg, 0x4000);
+  return mounted;
+}
+
 /** Parse a 16-byte-header iNES / NES 2.0 file. Returns null when it isn't one. */
 export function parseINes(bytes: Uint8Array): INesInfo | null {
   if (bytes.length < 16) return null;
@@ -187,4 +200,98 @@ export function identify(
     reason = meta ? 'runs on a supported board — not yet verified' : 'unrecognized dump on a supported board — untested';
   }
   return { ines, meta, identified: meta !== undefined, slot, mapper: ines.mapper, approx, tier, playable, supported, reason, prgCrc, chrCrc };
+}
+
+// --- MAME software-list cartridge sets -------------------------------------------
+//
+// A softlist zip holds the cart's CHIPS, named as nes.xml names them
+// ("hvc-ma-0 prg", "hvc-ma-0 chr"), with no iNES header anywhere. That is what
+// `mame nes <name>` requires, so it is how the verified sets are packed.
+//
+// Rather than teach every consumer about headerless carts, the set is turned
+// back into a canonical iNES image: the header is rebuilt from the softlist
+// facts (mapper from the slot, mirroring and battery from the entry), and the
+// chips are concatenated in offset order. Everything downstream — parseINes,
+// identify, the cart store, the boot path — stays unchanged.
+
+/** Invert a mapper->slot table, keeping the lowest mapper per slot. */
+function slotMappers(mapperSlots: Record<number, string>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [mapper, slot] of Object.entries(mapperSlots)) {
+    const n = Number(mapper);
+    if (out[slot] === undefined || n < out[slot]) out[slot] = n;
+  }
+  return out;
+}
+
+/** Assemble one dataarea's chips from a crc-keyed pool, or null if any is absent. */
+function assembleArea(area: SoftArea | undefined, byCrc: Map<string, Uint8Array>): Uint8Array | null {
+  if (!area?.roms.length) return null;
+  const parts: Uint8Array[] = [];
+  let total = 0;
+  for (const rom of area.roms) {
+    const bytes = byCrc.get(rom.crc);
+    if (!bytes || bytes.length !== rom.size) return null;
+    parts.push(bytes);
+    total += bytes.length;
+  }
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const part of parts) { out.set(part, off); off += part.length; }
+  return out;
+}
+
+/**
+ * Rebuild an iNES image from a MAME software-list cartridge zip.
+ *
+ * Chips are matched by CRC, never by filename: nes.xml chip labels are not
+ * reproducible from a dump, and a CRC match is exact. Returns null when the
+ * zip is not a recognised complete set, which is the signal to fall back to
+ * treating its entries as whole .nes files.
+ */
+export function inesFromSoftlistSet(
+  files: Map<string, Uint8Array>,
+  catalog: SoftCatalog | null,
+  mapperSlots: Record<number, string> = {},
+): { bytes: Uint8Array; entry: SoftEntry } | null {
+  if (!catalog) return null;
+  const byCrc = new Map<string, Uint8Array>();
+  for (const bytes of files.values()) {
+    if (bytes.length) byCrc.set(hex8(crc32(bytes)), bytes);
+  }
+  if (!byCrc.size) return null;
+
+  const candidates = new Set<number>();
+  for (const crc of byCrc.keys()) {
+    for (const idx of catalog.crcIndex[crc] ?? []) candidates.add(idx);
+  }
+
+  const bySlot = slotMappers(mapperSlots);
+  for (const idx of candidates) {
+    const entry = catalog.entries[idx];
+    const prg = assembleArea(entry.prg, byCrc);
+    if (!prg || prg.length % 0x4000 !== 0) continue;
+    const chr = assembleArea(entry.chr, byCrc);
+    // an entry with a chr dataarea whose chips are missing is an incomplete set
+    if (entry.chr?.roms.length && !chr) continue;
+    if (chr && chr.length % 0x2000 !== 0) continue;
+
+    const mapper = bySlot[entry.slot] ?? 0;
+    const header = new Uint8Array(16);
+    header[0] = 0x4e; header[1] = 0x45; header[2] = 0x53; header[3] = 0x1a;
+    header[4] = prg.length / 0x4000;
+    header[5] = chr ? chr.length / 0x2000 : 0;
+    header[6] = ((mapper & 0x0f) << 4)
+      | (entry.mirroring === 'vertical' ? 0x01 : 0)
+      | (entry.bwram ? 0x02 : 0)
+      | (entry.mirroring === 'four' || entry.mirroring === '4screen' ? 0x08 : 0);
+    header[7] = mapper & 0xf0;
+
+    const bytes = new Uint8Array(16 + prg.length + (chr?.length ?? 0));
+    bytes.set(header, 0);
+    bytes.set(prg, 16);
+    if (chr) bytes.set(chr, 16 + prg.length);
+    return { bytes, entry };
+  }
+  return null;
 }

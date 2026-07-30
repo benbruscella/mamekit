@@ -535,7 +535,7 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
               executableArtifact: 'generated machine handlers',
             }
         : {}),
-    })),
+      })),
   };
   writeFileSync(join(root, 'hardware-manifest.json'), JSON.stringify(compact, null, 2));
   writeFileSync(

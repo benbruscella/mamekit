@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
 import { evalExpr } from '../kg/parse.ts';
 import type { BoardSourceRef, GeneratedHandlerProgram } from '../ir/board.ts';
@@ -29,6 +29,11 @@ export interface GeneratedDeviceMember {
     elementBytes: number;
     /** Share tag; DEVICE_SELF resolves to the device's own tag at runtime. */
     share?: 'self' | string;
+  };
+  /** Source-declared MAME finder resolved by the generic composition host. */
+  finder?: {
+    kind: 'input' | 'device';
+    tag: string;
   };
 }
 
@@ -62,6 +67,48 @@ export interface GeneratedDeviceDefinition {
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
   methods: GeneratedDeviceMethod[];
+  /** Source-derived runtime entry points that must use direct generated code. */
+  hotMethods?: string[];
+  /** A source-declared card slot with generated child-device definitions. */
+  slot?: {
+    member: string;
+    default?: string;
+    /** Runtime selector supplied by the machine host, e.g. "cart.mapper". */
+    selector?: string;
+    options: Record<string, GeneratedDeviceDefinition>;
+  };
+  /** Runtime resources and power-on calls derived by a capability compiler. */
+  resources?: {
+    members?: Record<string, GeneratedDeviceResource>;
+    initialize?: {
+      method: string;
+      args?: GeneratedDeviceResource[];
+    }[];
+  };
+  /** Dynamic address ranges installed by MAME machine_start. */
+  bus?: {
+    cpu?: string;
+    ranges: {
+      start: number;
+      end: number;
+      read?: string;
+      write?: string;
+      bank?: string;
+    }[];
+  };
+  /** Cross-device address-space calls resolved by a composition role. */
+  role?: string;
+  links?: {
+    call: string;
+    targetRole: string;
+    method?: string;
+    ranges?: {
+      start: number;
+      end: number;
+      target: 'self' | 'slot';
+      method: string;
+    }[];
+  }[];
   /** Ratio between the configured input clock and one execute_run cycle. */
   clockDivider?: number;
   /** Address width of the device's internal data space, when source-declared. */
@@ -74,6 +121,17 @@ export interface GeneratedDeviceDefinition {
     diagnostics: number;
   };
 }
+
+export type GeneratedDeviceResource =
+  | { kind: 'number'; value: number }
+  | { kind: 'region'; name: string }
+  | { kind: 'region-length'; name: string }
+  | { kind: 'region-pages'; name: string; bytes: number }
+  | { kind: 'region-page-mask'; name: string; bytes: number }
+  | { kind: 'memory'; name: string; bytes: number; onlyWhenRegionMissing?: string }
+  | { kind: 'missing-region-number'; name: string; missing: number; present: number }
+  | { kind: 'config-map'; path: string; values: Record<string, number>; fallback?: number }
+  | { kind: 'bank-array'; name: string; count: number };
 
 /**
  * Compile a MAME device class and its MAME-defined base classes into the
@@ -94,17 +152,44 @@ export function compileMameDevice(
     ast.units.flatMap(unit => unit.classes).map(declaration => [declaration.name, declaration]),
   );
   const hierarchy = classHierarchy(definition.className, classes);
-  const classSet = new Set(hierarchy);
+  const memberOwners = new Map<string, string[]>();
+  for (const className of hierarchy) {
+    const declaration = classes.get(className);
+    if (!declaration) continue;
+    for (const member of memberDeclarations(declaration)) {
+      const owners = memberOwners.get(member.name) ?? [];
+      owners.push(className);
+      memberOwners.set(member.name, owners);
+    }
+  }
+  const emittedMemberName = (owner: string, name: string): string => {
+    const owners = memberOwners.get(name) ?? [];
+    const ownerIndex = owners.indexOf(owner);
+    if (ownerIndex <= 0) return name;
+    return `${name}__${owner.replace(/\W+/g, '_')}`;
+  };
+  const resolvedMemberName = (className: string, name: string): string => {
+    const classIndex = hierarchy.indexOf(className);
+    const owner = (memberOwners.get(name) ?? [])
+      .filter(candidate => hierarchy.indexOf(candidate) <= classIndex)
+      .at(-1);
+    return owner ? emittedMemberName(owner, name) : name;
+  };
   // MAME instantiates some device families from a template base (the buffered
   // spriteram widths). Resolving the concrete arguments keeps the generated
   // device tied to the width the driver actually declares.
   const templateArguments = resolveTemplateArguments(definition.className, classes);
   const specialize = (className: string, text: string): string => {
     const substitutions = templateArguments.get(className);
-    if (!substitutions) return text;
     let specialized = text;
-    for (const [parameter, argument] of Object.entries(substitutions)) {
+    for (const [parameter, argument] of Object.entries(substitutions ?? {})) {
       specialized = specialized.replace(new RegExp(`\\b${parameter}\\b`, 'g'), argument);
+    }
+    for (const name of memberOwners.keys()) {
+      const resolved = resolvedMemberName(className, name);
+      if (resolved !== name) {
+        specialized = specialized.replace(new RegExp(`\\b${name}\\b`, 'g'), resolved);
+      }
     }
     return specialized;
   };
@@ -139,22 +224,44 @@ export function compileMameDevice(
     'nvram_read',
     'nvram_write',
   ]);
-  const methods = ast.units
-    .flatMap(unit => unit.functions)
-    .filter(method => classSet.has(method.className))
-    .filter(method => !ignoredMethods.has(method.name))
-    .map(method => compileMethod(specializeMethod(method, specialize), interruptCallbacks, sourceTables));
+  const methods: GeneratedDeviceMethod[] = [];
+  const methodOwners = new Map<string, string>();
+  const replaceOrAppend = (method: MameFunction): void => {
+    const specialized = specializeMethod(method, specialize);
+    if (ignoredMethods.has(specialized.name) || specialized.parameters.includes('...')) return;
+    const signature = methodSignature(specialized.name, specialized.parameters);
+    const existing = methods.findIndex(candidate =>
+      methodSignature(candidate.name, candidate.parameters) === signature);
+    const compiled = compileMethod(specialized, interruptCallbacks, sourceTables);
+    // hierarchy is base-first: a derived virtual with the same signature
+    // replaces its base implementation, while genuine overloads remain.
+    // Keep a qualified alias for an overridden base because derived MAME
+    // methods can explicitly call `base_class::method(...)`.
+    if (existing >= 0) {
+      const previous = methods[existing]!;
+      const owner = methodOwners.get(signature);
+      if (owner) {
+        const qualified = `${owner}::${previous.name}`;
+        if (!methods.some(candidate => candidate.name === qualified)) {
+          methods.push({ ...previous, name: qualified });
+        }
+      }
+      methods[existing] = compiled;
+    } else {
+      methods.push(compiled);
+    }
+    methodOwners.set(signature, specialized.className);
+  };
 
+  const sourceMethods = ast.units.flatMap(unit => unit.functions);
   for (const className of hierarchy) {
+    for (const method of sourceMethods.filter(candidate => candidate.className === className)) {
+      replaceOrAppend(method);
+    }
     const declaration = classes.get(className);
     if (!declaration) continue;
     for (const method of inlineMethods(declaration)) {
-      const specialized = specializeMethod(method, specialize);
-      if (methods.some(candidate =>
-        candidate.name === specialized.name &&
-        candidate.parameters === specialized.parameters)) continue;
-      if (ignoredMethods.has(specialized.name)) continue;
-      methods.push(compileMethod(specialized, interruptCallbacks, sourceTables));
+      replaceOrAppend(method);
     }
   }
 
@@ -175,6 +282,7 @@ export function compileMameDevice(
     if (!declaration) return [];
     return memberDeclarations(declaration).map(member => ({
       ...member,
+      name: emittedMemberName(className, member.name),
       valueType: specialize(className, member.valueType),
     })).flatMap(member => {
       if (member.valueType.startsWith('devcb_')) {
@@ -190,6 +298,7 @@ export function compileMameDevice(
       const signed = integerSigned(member.valueType);
       const allocated = allocatedArrays.get(member.name) ?? fixedArrays.get(member.name);
       const memory = memoryContainer(member.valueType, member.name, constructorBindings);
+      const finder = finderBinding(member.valueType, member.name, constructorBindings);
       return [{
         name: member.name,
         valueType: member.valueType,
@@ -197,6 +306,7 @@ export function compileMameDevice(
         ...(signed ? { signed } : {}),
         ...(allocated ? { values: allocated } : {}),
         ...(memory ? { memory } : {}),
+        ...(finder ? { finder } : {}),
       }];
     });
   });
@@ -259,6 +369,10 @@ export function compileMameDevice(
       diagnostics,
     },
   };
+}
+
+function methodSignature(name: string, parameters: string): string {
+  return `${name}(${parameters.replace(/\s+/g, ' ').trim()})`;
 }
 
 export function mameDeviceRomSet(
@@ -326,9 +440,38 @@ function executionDataAddressBits(
 }
 
 function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
+  const files: string[] = [];
+  const seen = new Set<string>();
+  const visit = (absolute: string): void => {
+    if (!existsSync(absolute)) return;
+    const file = relative(mameSrc, absolute);
+    if (seen.has(file)) return;
+    seen.add(file);
+    files.push(file);
+
+    const source = readFileSync(absolute, 'utf8');
+    // A .cpp commonly includes the declarations for every sibling option it
+    // registers. Following those would compile an entire bus when only one
+    // class was requested. Base-class dependencies are expressed by headers,
+    // so only headers extend the family closure.
+    if (extname(absolute) !== '.h') return;
+    for (const match of source.matchAll(/^\s*#include\s+"([^"]+)"/gm)) {
+      // Follow headers that are part of the same device family. Includes
+      // resolved through MAME's global include paths (screen.h, emu.h, etc.)
+      // describe host services, not another source-defined base class.
+      const included = join(dirname(absolute), match[1]!);
+      if (!existsSync(included)) continue;
+      visit(included);
+      if (extname(included) === '.h') {
+        visit(join(dirname(included), `${basename(included, '.h')}.cpp`));
+      }
+    }
+  };
+
   const absolute = join(mameSrc, sourceFile);
-  const header = join(dirname(absolute), `${basename(absolute, extname(absolute))}.h`);
-  return [sourceFile, relative(mameSrc, header)];
+  visit(absolute);
+  visit(join(dirname(absolute), `${basename(absolute, extname(absolute))}.h`));
+  return files;
 }
 
 /**
@@ -412,7 +555,7 @@ function compileMethod(
   }
   for (const [name, values] of Object.entries(sourceTables)) {
     body = body.replace(
-      new RegExp(`\\b${name}\\s*\\[([^\\]]+)\\]`, 'g'),
+      new RegExp(`\\b${name}\\s*\\[((?:[^\\[\\]]|\\[[^\\]]*\\])*)\\]`, 'g'),
       (_entry, index: string) => `TABLE(${index}, ${values.join(', ')})`,
     );
   }
@@ -436,7 +579,7 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
   // MAME declares pointer-returning accessors as `Type *buffer()`, so the
   // sigils sit against the method name rather than the return type.
   const pattern =
-    /(?:^|\n)\s*(?:template\s*<[^>{}]+>\s*)?(?:[\w:<>,~*&]+\s+)+[*&]*\s*(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
+    /(?:^|\n)\s*(?:template\s*<[^>{}]+>\s*)?(?:[\w:<>,~*&]+\s+)+[*&]*\s*(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?(?:(?:override|final|noexcept)\s*)*\{/g;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', match.index + match[0].length - 1);
@@ -485,9 +628,22 @@ function memberDeclarations(
   declaration: MameClass,
 ): { name: string; valueType: string }[] {
   const members: { name: string; valueType: string }[] = [];
+  // C++ commonly groups scalar members (`int m_base, m_mask;`). Treat every
+  // declarator as its own field before the single-declarator patterns below.
+  for (const match of declaration.body.matchAll(
+    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?)\s+(m_\w+(?:\s*,\s*m_\w+)+)\s*;/gm,
+  )) {
+    const valueType = match[1]!.replace(/\s+/g, ' ').trim();
+    for (const name of match[2]!.split(',').map(value => value.trim())) {
+      if (!members.some(member => member.name === name)) {
+        members.push({ valueType, name });
+      }
+    }
+  }
   const patterns = [
     /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(m_\w+)\s*(?:\[[^\]]+\])?\s*;/gm,
     /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(m_\w+)\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*\*\s*(m_\w+)\s*(?:\[[^\]]+\])?\s*;/gm,
   ];
   for (const pattern of patterns) {
     for (const match of declaration.body.matchAll(pattern)) {
@@ -499,6 +655,22 @@ function memberDeclarations(
     }
   }
   return members;
+}
+
+function finderBinding(
+  valueType: string,
+  name: string,
+  constructorBindings: Record<string, string[]>,
+): GeneratedDeviceMember['finder'] {
+  const kind = valueType === 'required_ioport' || valueType === 'optional_ioport'
+    ? 'input'
+    : /^(?:required|optional)_device(?:_array)?</.test(valueType)
+      ? 'device'
+      : undefined;
+  if (!kind) return undefined;
+  const target = constructorBindings[name]?.at(-1);
+  const tag = target && unquoteToken(target);
+  return { kind, tag: tag ?? '' };
 }
 
 /**
@@ -560,14 +732,15 @@ interface Constructor {
   className: string;
   parameters: string[];
   initializers: { name: string; args: string[] }[];
+  body: string;
 }
 
-function constructorInitialValues(
+export function constructorInitialValues(
   concreteClass: string,
   source: string,
   constants: Record<string, number> = {},
 ): Record<string, number> {
-  const constructors = new Map<string, Constructor>();
+  const constructors = new Map<string, Constructor[]>();
   const pattern = /\b(\w+)::\1\s*\(/g;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(source)) !== null) {
@@ -576,32 +749,53 @@ function constructorInitialValues(
     if (close < 0) continue;
     const brace = source.indexOf('{', close + 1);
     if (brace < 0) continue;
+    const braceEnd = matchingBrace(source, brace);
+    if (braceEnd < 0) continue;
     const between = source.slice(close + 1, brace).trim();
-    const initializerSource = between.startsWith(':') ? between.slice(1) : '';
-    constructors.set(match[1]!, {
+    const initializerSource = (between.startsWith(':') ? between.slice(1) : '')
+      .replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '');
+    const constructor: Constructor = {
       className: match[1]!,
       parameters: splitMameArgs(source.slice(open + 1, close)).map(parameterName),
       initializers: splitMameArgs(initializerSource).flatMap(initializer => {
         const parsed = /^(\w+)\s*\(([\s\S]*)\)$/.exec(initializer.trim());
         return parsed ? [{ name: parsed[1]!, args: splitMameArgs(parsed[2]!) }] : [];
       }),
-    });
+      body: source.slice(brace + 1, braceEnd),
+    };
+    const overloads = constructors.get(match[1]!) ?? [];
+    overloads.push(constructor);
+    constructors.set(match[1]!, overloads);
     pattern.lastIndex = brace + 1;
   }
   const result: Record<string, number> = {};
+  const activeConstructors = new Set<string>();
   const visit = (className: string, values: number[] = []): void => {
-    const constructor = constructors.get(className);
+    const overloads = constructors.get(className) ?? [];
+    const constructor = overloads.find(candidate =>
+      values.length > 0 && candidate.parameters.length === values.length) ??
+      [...overloads].sort((left, right) =>
+        left.parameters.length - right.parameters.length)[0];
     if (!constructor) return;
+    const activeKey = `${className}/${constructor.parameters.length}`;
+    if (activeConstructors.has(activeKey)) return;
+    activeConstructors.add(activeKey);
     const env = Object.fromEntries(
       constructor.parameters.map((parameter, index) => [parameter, values[index] ?? 0]),
     );
     for (const initializer of constructor.initializers) {
-      const args = initializer.args.map(arg => constantValue(arg, { ...constants, ...env }));
+      const args = initializer.args.map(arg =>
+        constantValue(arg, { ...constants, ...env }) ?? 0);
       if (constructors.has(initializer.name)) visit(initializer.name, args);
       else if (initializer.name.startsWith('m_') && args.length === 1) {
         result[initializer.name] = args[0]!;
       }
     }
+    for (const assignment of constructor.body.matchAll(/\b(m_\w+)\s*=\s*([^;]+);/g)) {
+      const value = constantValue(assignment[2]!, { ...constants, ...env });
+      if (value !== undefined && Number.isFinite(value)) result[assignment[1]!] = value;
+    }
+    activeConstructors.delete(activeKey);
   };
   visit(concreteClass);
   return result;
@@ -611,14 +805,14 @@ function parameterName(parameter: string): string {
   return /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.trim())?.[1] ?? parameter.trim();
 }
 
-function constantValue(expression: string, env: Record<string, number>): number {
+function constantValue(expression: string, env: Record<string, number>): number | undefined {
   const value = expression.trim();
   if (value === 'true') return 1;
   if (value === 'false' || value === 'nullptr') return 0;
   if (env[value] !== undefined) return env[value];
   if (/^0x[\da-f]+$/i.test(value)) return Number.parseInt(value, 16);
   if (/^-?\d+$/.test(value)) return Number(value);
-  return 0;
+  return evalExpr(value, env) ?? undefined;
 }
 
 function numericConstants(source: string): Record<string, number> {
@@ -630,6 +824,18 @@ function numericConstants(source: string): Record<string, number> {
     /\b(?:static\s+)?constexpr\s+(?:\w+\s+)+(\w+)\s*=\s*([^;]+);/g,
   )) {
     expressions.set(match[1]!, match[2]!.trim());
+  }
+  for (const declaration of source.matchAll(/\benum(?:\s+\w+)?\s*\{([^{}]+)\}/g)) {
+    let previous: string | undefined;
+    for (const raw of splitMameArgs(declaration[1]!)) {
+      const entry = raw.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '').trim();
+      if (!entry) continue;
+      const match = /^(\w+)(?:\s*=\s*([\s\S]+))?$/.exec(entry);
+      if (!match) continue;
+      const expression = match[2]?.trim() ?? (previous ? `${previous} + 1` : '0');
+      expressions.set(match[1]!, expression);
+      previous = match[1]!;
+    }
   }
   const constants: Record<string, number> = {};
   for (let pass = 0; pass <= expressions.size; pass++) {
@@ -675,7 +881,7 @@ function fixedMemberArrays(
 ): Map<string, number[]> {
   const arrays = new Map<string, number[]>();
   for (const declaration of source.matchAll(
-    /^\s*(?:const\s+)?[\w:]+\s+(m_\w+)\s*\[([^\]]+)\]\s*;/gm,
+    /^\s*(?:const\s+)?[\w:]+\s*\*?\s*(m_\w+)\s*\[([^\]]+)\]\s*;/gm,
   )) {
     const count = evalExpr(declaration[2]!.trim(), constants);
     if (count === null || !Number.isInteger(count) || count <= 0) continue;

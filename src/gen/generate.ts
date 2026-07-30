@@ -24,7 +24,10 @@ import {
   compileNamco54Discrete,
 } from '../mame/audio-compiler.ts';
 import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.ts';
+import { compileNesApu } from '../mame/nes-apu-compiler.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
+import { artworkDir, romsDir } from '../paths.ts';
+import { cartArtIndex, type CartArt } from './cart-art.ts';
 import {
   GAME_CATEGORIES,
   gameDataPath,
@@ -405,7 +408,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               clock: cpus[0].clock,
               worklet: String(discreteDevice.props.type).toLowerCase().replace(/_/g, '-'),
             }
-          : { kind: 'none' };
+    : { kind: 'none' };
+  const nesApu = sound.kind === 'nes' ? compileNesApu(opts.mameSrc) : undefined;
   // The post-mix level belongs to the sound family's capability package, so
   // the shell reads it from the generated config instead of keeping a table
   // that every new family would have to be added to.
@@ -677,13 +681,22 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         // compact on purpose: ~4.5k entries; indented it triples in size
         writeFileSync(catalogPath, JSON.stringify(catalog));
       }
+      const set = `${category}/${opts.game}`;
+      const cartArt = localCartArt(listName);
+      const artCount = Object.keys(cartArt).length;
+      const shelved = writeCartShelfIndex(
+        join(romsDir(projectRoot), category, opts.game), opts.outDir, set);
       cart = {
         interface: catalog.interface,
         list: listName,
         catalogUrl: 'softlist.json',
+        ...(shelved ? { cartsUrl: 'carts.json' } : {}),
+        ...(artCount ? { cartArt } : {}),
         slots: CART_SLOT_SUPPORT[family] ?? [],
         games: CART_GAME_SUPPORT[family] ?? [],
       };
+      if (shelved) console.log(`cart shelf index: ${shelved} dumps available for ${set}`);
+      if (artCount) console.log(`cart artwork: ${artCount} cartridge(s) with local photography`);
       cartEntries = catalog.entries.length;
       console.log(`softlist "${listName}": ${catalog.entries.length} cartridges catalogued`);
       break;
@@ -769,12 +782,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   let hasHistory = false;
   let historyText = '';
   let historyCredit = '';
-  const curatedHistoryPath = join(
-    projectRoot,
-    'artwork/data/history',
-    `${opts.game}.txt`,
-  );
-  const historyXmlPath = join(projectRoot, 'artwork/data/history/history.xml');
+  const historyDir = join(artworkDir(projectRoot), 'data/history');
+  const curatedHistoryPath = join(historyDir, `${opts.game}.txt`);
+  const historyXmlPath = join(historyDir, 'history.xml');
   if (existsSync(curatedHistoryPath)) {
     try {
       historyText = readFileSync(curatedHistoryPath, 'utf8')
@@ -840,6 +850,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     opts.outDir,
     config.board as unknown as BoardConfig,
     compiledVideo,
+    nesApu,
   );
 
   // the full dossier: everything above as a standalone markdown document,
@@ -857,8 +868,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     } : {}),
   }));
   console.log(`\ngenerated ${join(opts.outDir, 'config.json')} (+ meta.json, DOSSIER.md, runtime report)`);
-  if (!existsSync(join(projectRoot, 'roms', `${opts.game}.zip`))) {
-    console.log(`note: put ${opts.game}.zip in ${join(projectRoot, 'roms')}/ to auto-load ROMs (or drop the zip onto the page)`);
+  if (!existsSync(join(romsDir(projectRoot), `${opts.game}.zip`))) {
+    console.log(`note: put ${opts.game}.zip in ${romsDir(projectRoot)}/ to auto-load ROMs (or drop the zip onto the page)`);
   }
 }
 
@@ -1227,4 +1238,58 @@ if (game) {
   rmSync(buildDir, { recursive: true, force: true });
   console.log(`app ready: ${join(appDir, 'index.html')}`);
   return true;
+}
+
+/**
+ * Slim cartridge availability index for the console room.
+ *
+ * The local dump audit writes _manifest.json beside the set's zips, recording
+ * which cartridges are bit-exact matches for their nes.xml entry (verified) and
+ * which are not (experimental). That file carries every per-cart hash and runs
+ * close to a megabyte; the shelf needs only the bucket key, the softlist short
+ * name to join on, and the tier. Emitting the reduction beside the generated
+ * machine keeps the room's first paint same-origin and instant instead of
+ * pulling the whole manifest from the mirror on every visit.
+ *
+ * Returns the entry count, or 0 when there is no local audit to reduce.
+ */
+/**
+ * Real cartridge photography for the console room, kept local and gitignored
+ * (same copyright treatment as arcade flyers). The naming convention and the
+ * scan itself live in gen/cart-art.ts, shared with the dev server so a running
+ * server sees art added after generation.
+ *
+ * The index is baked into config.json because a shelf shows thousands of
+ * cartridges: letting the browser probe for art it does not have would mean
+ * thousands of 404s per visit on a deployed site.
+ */
+function localCartArt(list: string): Record<string, CartArt> {
+  return cartArtIndex(join(artworkDir(projectRoot), 'carts', list));
+}
+
+function writeCartShelfIndex(setDir: string, outDir: string, set: string): number {
+  const manifestPath = join(setDir, '_manifest.json');
+  if (!existsSync(manifestPath)) return 0;
+  let manifest: { carts?: unknown[] };
+  try {
+    manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { carts?: unknown[] };
+  } catch {
+    console.warn(`  ! ${manifestPath} is not readable JSON — cart shelf index skipped`);
+    return 0;
+  }
+  const carts: { file: string; name?: string; tier: 'verified' | 'experimental' }[] = [];
+  for (const raw of manifest.carts ?? []) {
+    const cart = raw as { file?: string; target?: string; status?: string; match?: { name?: string } };
+    const file = cart.target ?? cart.file;
+    if (typeof file !== 'string' || !file.toLowerCase().endsWith('.zip')) continue;
+    if (cart.status === 'verified' && cart.match?.name) {
+      carts.push({ file, name: cart.match.name, tier: 'verified' });
+    } else {
+      carts.push({ file, tier: 'experimental' });
+    }
+  }
+  if (!carts.length) return 0;
+  // compact on purpose: one line per thousand carts is still ~60 KB
+  writeFileSync(join(outDir, 'carts.json'), JSON.stringify({ set, carts }));
+  return carts.length;
 }

@@ -18,6 +18,7 @@ import {
   gameCategory,
   gameOutputDir,
 } from './gen/output-layout.ts';
+import { artworkDir } from './paths.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '..');
@@ -25,7 +26,7 @@ const projectRoot = resolve(here, '..');
 function usage(): never {
   console.error('usage: mamekit [graph|from-graph] <game> [--mame-src <path>] [--out <dir>] [--serve [port]]');
   console.error('       mamekit <game> --from-graph [graph.json]');
-  console.error('       mamekit --all              generate every accepted target, then the app');
+  console.error('       mamekit --all              generate every required target, then the app');
   console.error('       mamekit --build-runtime [--build-app] [--targets <game,...>]');
   console.error('       mamekit --serve            serve the unified app + all generated games');
   process.exit(2);
@@ -130,27 +131,24 @@ function findDriverFile(game: string): string {
 // ---------------------------------------------------------------------------
 
 if (generateAll) {
-  // One pass over the accepted target set, then one hardware closure and app
-  // build across exactly those targets. The set comes from the acceptance
-  // contracts, so there is no list here to fall out of step with them.
-  //
-  // Everything is built in a staging tree and swapped in at the end, so a
-  // failure part-way leaves the previous distribution intact rather than a
-  // half-replaced one.
-  const { ACCEPTED_TARGETS } = await import('./gen/targets.ts');
-  const stagingRoot = `${outRoot}.staging`;
-  rmSync(stagingRoot, { recursive: true, force: true });
-  for (const target of ACCEPTED_TARGETS) {
+  // One pass over every required target, then one hardware closure and app
+  // build across exactly those targets. Most are discovered from acceptance
+  // contracts; consoles may temporarily contribute synthetic-only targets.
+  const { GENERATION_TARGETS } = await import('./gen/targets.ts');
+  // A complete build owns the output directory. Starting clean prevents
+  // deleted or renamed generated modules surviving from an earlier build.
+  rmSync(outRoot, { recursive: true, force: true });
+  for (const target of GENERATION_TARGETS) {
     console.log(`\nmamekit: generating ${target}`);
-    await pipeline(target, stagingRoot, true);
+    await pipeline(target, outRoot, true);
   }
   const { buildHardwareClosure, emitHardwareClosure } = await import('./mame/hardware.ts');
-  const targetGraphs = ACCEPTED_TARGETS.map(target => ({
+  const targetGraphs = GENERATION_TARGETS.map(target => ({
     game: target,
     graph: JSON.parse(readFileSync(
       join(
-        existingGameOutputDir(stagingRoot, target)
-          ?? gameOutputDir(stagingRoot, 'arcade', target),
+        existingGameOutputDir(outRoot, target)
+          ?? gameOutputDir(outRoot, 'arcade', target),
         'graph.json',
       ),
       'utf8',
@@ -158,28 +156,23 @@ if (generateAll) {
   }));
   console.log(`\nmamekit: resolving MAME hardware used by ${targetGraphs.length} targets`);
   const closure = buildHardwareClosure(mameSrc, targetGraphs);
-  emitHardwareClosure(closure, stagingRoot);
+  emitHardwareClosure(closure, outRoot);
   const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
-  const refreshedReports = refreshRuntimeReports(stagingRoot);
+  const refreshedReports = refreshRuntimeReports(outRoot);
   console.log(
     `generated hardware closure: ${closure.summary.sourceResolved}/${closure.summary.types} ` +
     `types source-resolved, ${closure.summary.unresolved} unresolved; ` +
     `${refreshedReports} generation reports refreshed`,
   );
   const { buildApp } = await import('./gen/generate.ts');
-  if (!buildApp(stagingRoot)) {
-    rmSync(stagingRoot, { recursive: true, force: true });
-    process.exitCode = 1;
-  } else {
+  if (!buildApp(outRoot)) process.exitCode = 1;
+  else {
     const { gamesManifest } = await import('./serve.ts');
-    const { swapStagedBuild, writeBuildManifest } = await import('./gen/build-manifest.ts');
-    // The manifest is written before the swap so the staged tree is already
-    // self-describing; serving validates it against the catalog.
-    writeBuildManifest(stagingRoot, ACCEPTED_TARGETS, mameSrc, String(process.hrtime.bigint()));
-    writeFileSync(join(stagingRoot, 'games.json'),
-      await gamesManifest(stagingRoot, join(projectRoot, 'artwork')));
-    swapStagedBuild(stagingRoot, outRoot);
-    console.log(`\nmamekit: distribution replaced at ${outRoot}`);
+    const { writeBuildManifest } = await import('./gen/build-manifest.ts');
+    writeBuildManifest(outRoot, GENERATION_TARGETS, mameSrc, String(process.hrtime.bigint()));
+    writeFileSync(join(outRoot, 'games.json'),
+      await gamesManifest(outRoot, artworkDir(projectRoot)));
+    console.log(`\nmamekit: distribution generated at ${outRoot}`);
   }
 } else if (buildAppOnly || buildRuntimeOnly) {
   const { REQUIRED_TARGETS } = await import('./gen/targets.ts');
@@ -227,14 +220,14 @@ if (generateAll) {
     writeBuildManifest(outRoot, targets, mameSrc, String(process.hrtime.bigint()));
     const { gamesManifest } = await import('./serve.ts');
     writeFileSync(join(outRoot, 'games.json'),
-      await gamesManifest(outRoot, join(projectRoot, 'artwork')));
+      await gamesManifest(outRoot, artworkDir(projectRoot)));
   }
 } else if (serveOnly) {
   const { buildApp } = await import('./gen/generate.ts');
   buildApp(outRoot);
   const { serve } = await import('./serve.ts');
   const port = await serve(
-    { '': outRoot, artwork: join(projectRoot, 'artwork') }, // ROMs are never served
+    { '': outRoot, artwork: artworkDir(projectRoot) }, // ROMs are never served
     Number(opts.serve) || 8280,
   );
   console.log(`\nserving http://localhost:${port}/app/  (menu; games at /app/g/<game>/)`);
@@ -245,11 +238,11 @@ if (generateAll) {
 }
 
 /**
- * `staged` marks a target generated as part of a full --all build: the catalog
+ * `batched` marks a target generated as part of a full --all build: the catalog
  * and closure are written once at the end, so an intermediate manifest here
  * would describe a tree that is deliberately still incomplete.
  */
-async function pipeline(game: string, root = outRoot, staged = false): Promise<void> {
+async function pipeline(game: string, root = outRoot, batched = false): Promise<void> {
 console.log(`mamekit: searching MAME source at ${mameSrc}`);
 const driverFile = findDriverFile(game);
 console.log(`mamekit: driver for "${game}" -> ${driverFile.slice(mameSrc.length + 1)}`);
@@ -298,21 +291,24 @@ if (regions.length) {
 if (command === 'run') {
   const { generate, buildApp } = await import('./gen/generate.ts');
   await generate(sub, { mameSrc, outDir, game, fullGraph: graph });
-  const skipApp = 'skip-app' in opts;
+  // A batched --all build compiles one unified app after every target and the
+  // shared hardware closure exist. Compiling here would rebuild the same app
+  // once per target against an intentionally incomplete catalog.
+  const skipApp = batched || 'skip-app' in opts;
   if (!skipApp && !buildApp(root)) process.exitCode = 1;
   // static manifest so the built tree is servable as plain files (github
   // pages); the dev server's live /games.json route shadows it locally
-  if (!staged && !skipApp) {
+  if (!batched && !skipApp) {
     const { gamesManifest } = await import('./serve.ts');
     writeFileSync(join(root, 'games.json'),
-      await gamesManifest(root, join(projectRoot, 'artwork')));
+      await gamesManifest(root, artworkDir(projectRoot)));
   }
 }
 
 if ('serve' in opts || argv.includes('--serve')) {
   const { serve } = await import('./serve.ts');
   const port = await serve(
-    { '': outRoot, artwork: join(projectRoot, 'artwork') }, // ROMs are never served
+    { '': outRoot, artwork: artworkDir(projectRoot) }, // ROMs are never served
     Number(opts.serve) || 8280,
   );
   console.log(
@@ -362,12 +358,12 @@ async function pipelineFromGraph(game: string): Promise<void> {
   if (!('skip-app' in opts) && !buildApp(outRoot)) process.exitCode = 1;
   const { gamesManifest } = await import('./serve.ts');
   writeFileSync(join(outRoot, 'games.json'),
-    await gamesManifest(outRoot, join(projectRoot, 'artwork')));
+    await gamesManifest(outRoot, artworkDir(projectRoot)));
 
   if ('serve' in opts) {
     const { serve } = await import('./serve.ts');
     const port = await serve(
-      { '': outRoot, artwork: join(projectRoot, 'artwork') },
+      { '': outRoot, artwork: artworkDir(projectRoot) },
       Number(opts.serve) || 8280,
     );
     console.log(`\nserving http://localhost:${port}/app/`);

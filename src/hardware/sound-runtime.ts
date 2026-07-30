@@ -26,6 +26,8 @@ export interface SoundRuntimeContext {
   state: Record<string, unknown>;
   /** Forward a register write to the generated worklet. */
   soundWrite(offset: number, data: number, frac?: number, method?: string): void;
+  /** Push bulk sample bytes to a worklet (the NES DMC cannot read the CPU bus there). */
+  soundData(id: number, bytes: Uint8Array): void;
   /** Position within the current video frame, so writes keep their timing. */
   fraction(): number;
   /** Call a method on an instantiated generated device, if it has one. */
@@ -34,9 +36,22 @@ export interface SoundRuntimeContext {
   runCallbackHandler(callbackId: string): number | undefined;
   /** Deliver a device signal through the board's typed effects. */
   dispatch(ownerTag: string, signal: string, value: number): void;
+  /** Read the live generated program bus, used by integrated DMA sound units. */
+  readProgram(cpuTag: string, address: number): number;
+  /** Charge cycles stolen by an integrated peripheral to its owning CPU. */
+  stallCpu(cpuTag: string, cycles: number): void;
+  /** Drive a CPU input line without collapsing distinct IRQ sources. */
+  setCpuInputLine(cpuTag: string, line: number, state: number): void;
 }
 
-export type SoundRuntimeInstaller = (context: SoundRuntimeContext) => void;
+export interface SoundRuntimeHooks {
+  /** Advance an integrated sound device by CPU cycles actually elapsed. */
+  tickCpu?(cpuTag: string, cycles: number): void;
+  reset?(): void;
+}
+
+export type SoundRuntimeInstaller =
+  (context: SoundRuntimeContext) => SoundRuntimeHooks | void;
 
 /** Every name a generated handler may use to reach one device. */
 export function deviceAliases(board: BoardIr, tag: string): string[] {

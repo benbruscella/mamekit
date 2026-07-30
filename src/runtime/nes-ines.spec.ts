@@ -1,7 +1,14 @@
 // Self-test for iNES header parsing + softlist-catalog identification.
 // Run with: node src/runtime/nes-ines.spec.ts
 
-import { parseINes, identify, type SoftCatalog, type SoftEntry } from './nes-ines.ts';
+import {
+  parseINes,
+  identify,
+  inesFromSoftlistSet,
+  mountedINesPrg,
+  type SoftCatalog,
+  type SoftEntry,
+} from './nes-ines.ts';
 import { crc32 } from './zip.ts';
 
 let totalPass = 0;
@@ -80,6 +87,21 @@ function makeINes(opts: {
   const p = parseINes(withTrainer)!;
   eq('trainer skipped', p.prg[0], 0xab);
   eq('trainer flag', p.trainer, true);
+}
+{
+  const p = parseINes(makeINes({
+    prgBanks: 1,
+    chrBanks: 0,
+    prgFill: index => index === 0x3fff ? 0x34 : index === 0 ? 0x12 : 0,
+  }))!;
+  const mounted = mountedINesPrg(p);
+  eq('16K PRG is mounted twice like MAME call_load_ines', [
+    mounted.length,
+    mounted[0],
+    mounted[0x3fff],
+    mounted[0x4000],
+    mounted[0x7fff],
+  ], [0x8000, 0x12, 0x34, 0x12, 0x34]);
 }
 {
   eq('wrong magic -> null', parseINes(new Uint8Array(32).fill(0x4e)), null);
@@ -172,3 +194,75 @@ function makeINes(opts: {
 
 console.log(`\nnes-ines.spec: ${totalPass} passed, ${totalFail} failed`);
 if (totalFail > 0) process.exitCode = 1;
+
+// --- MAME software-list chip sets ---------------------------------------------------
+// A softlist zip has no iNES header: the chips are separate members named as
+// nes.xml names them. Rebuilding must be by CRC (labels are not reproducible)
+// and must produce an image the normal parse/identify path accepts.
+{
+  const prgChip = new Uint8Array(0x4000).fill(0xa5);
+  const chrChip = new Uint8Array(0x2000).fill(0x5a);
+  const prgCrc = hex8(crc32(prgChip));
+  const chrCrc = hex8(crc32(chrChip));
+  const entry: SoftEntry = {
+    name: 'mario1',
+    description: 'Mario Bros. (World)',
+    year: '1983',
+    publisher: 'Nintendo',
+    slot: 'nrom',
+    mirroring: 'horizontal',
+    prg: { size: 0x8000, roms: [{ size: 0x4000, crc: prgCrc, offset: 0 }] },
+    chr: { size: 0x2000, roms: [{ size: 0x2000, crc: chrCrc, offset: 0 }] },
+  };
+  const catalog: SoftCatalog = {
+    list: 'nes',
+    description: 'test',
+    interface: 'nes_cart',
+    entries: [entry],
+    crcIndex: { [prgCrc]: [0], [chrCrc]: [0] },
+  };
+
+  // chip labels as MAME spells them, deliberately not in offset order
+  const files = new Map<string, Uint8Array>([
+    ['hvc-ma-0 chr', chrChip],
+    ['hvc-ma-0 prg', prgChip],
+  ]);
+  const set = inesFromSoftlistSet(files, catalog, { 0: 'nrom', 1: 'sxrom' });
+  eq('chip set recognised', set !== null, true);
+  eq('chip set entry', set?.entry.name, 'mario1');
+
+  const rebuilt = set ? parseINes(set.bytes) : null;
+  eq('rebuilt parses as iNES', rebuilt !== null, true);
+  eq('rebuilt prg size', rebuilt?.prgSize, 0x4000);
+  eq('rebuilt chr size', rebuilt?.chrSize, 0x2000);
+  eq('mapper from slot', rebuilt?.mapper, 0);
+  eq('rebuilt mirroring', rebuilt?.mirroring, 'horizontal');
+  eq('rebuilt battery', rebuilt?.battery, false);
+
+  // ...and identifies back to the same entry, exactly
+  const resolved = rebuilt
+    ? identify(rebuilt, catalog, { slots: ['nrom'], games: ['mario1'], mapperSlots: { 0: 'nrom' } })
+    : null;
+  eq('round trip identifies', resolved?.meta?.name, 'mario1');
+  eq('round trip is exact', resolved?.approx, false);
+  eq('round trip tier', resolved?.tier, 'tested');
+
+  eq('incomplete set rejected',
+    inesFromSoftlistSet(new Map([['hvc-ma-0 prg', prgChip]]), catalog, { 0: 'nrom' }), null);
+  eq('unknown chips rejected',
+    inesFromSoftlistSet(new Map([['x', new Uint8Array(0x4000).fill(3)]]), catalog, { 0: 'nrom' }), null);
+  eq('no catalog rejected', inesFromSoftlistSet(files, null, { 0: 'nrom' }), null);
+
+  // vertical mirroring and a battery survive the round trip
+  const batteryCatalog: SoftCatalog = {
+    ...catalog,
+    entries: [{ ...entry, mirroring: 'vertical', bwram: 0x2000 }],
+  };
+  const bset = inesFromSoftlistSet(files, batteryCatalog, { 0: 'nrom' });
+  const bines = bset ? parseINes(bset.bytes) : null;
+  eq('battery cart mirroring', bines?.mirroring, 'vertical');
+  eq('battery cart battery flag', bines?.battery, true);
+}
+
+console.log(`nes-ines.spec: chip-set reassembly checked (${totalPass} passed, ${totalFail} failed)`);
+if (totalFail) process.exitCode = 1;
