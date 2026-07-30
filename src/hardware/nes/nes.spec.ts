@@ -15,7 +15,8 @@ import {
   NesApu,
 } from './apu.ts';
 
-const mameSource = new URL('../../../../mame/', import.meta.url).pathname;
+const mameSource = process.env.MAME_SRC ??
+  new URL('../../../../mame/', import.meta.url).pathname;
 const definitions = indexMameHardware(mameSource);
 const types = ['PPU_2C02', 'NES_CONTROL_PORT', 'NES_CART_SLOT'];
 const extraction = extractNes({
