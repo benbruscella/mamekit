@@ -21,6 +21,7 @@ import { openCartStore, type CartRecord } from './cartstore.ts';
 import {
   parseINes,
   identify,
+  inesFromSoftlistSet,
   mountedINesPrg,
   type ResolvedCart,
   type SoftCatalog,
@@ -42,8 +43,8 @@ const MAX_CART = 8 * 1024 * 1024; // no real cartridge is bigger than 8 MiB
 // --- artwork tunables (named so the orchestrator can screenshot-iterate) -------
 const CART_W = 200;
 const CART_H = 250;
-const CART_BODY_TOP = '#d3d0c6';   // warm light grey, plastic top
-const CART_BODY_BOT = '#b4b1a6';   // darker plastic bottom
+const CART_BODY_TOP = '#9a9a94';   // NES grey plastic, lit from above
+const CART_BODY_BOT = '#77776f';   // same plastic in shadow at the base
 const CART_LABEL_BG = '#f4f1e7';   // classic off-white label
 const CART_LABEL_FRAME = '#141414'; // black-bordered NES label frame
 const STRIPE_TESTED = '#2f6bd8';       // blue label stripe — verified
@@ -116,6 +117,76 @@ function artHash(value: string): number {
   return hash >>> 0;
 }
 
+/** The label is 133px wide: past ~21 characters the sub line reaches its edge. */
+function clampSub(sub: string, max = 21): string {
+  return sub.length <= max ? sub : `${sub.slice(0, max - 1).trimEnd()}…`;
+}
+
+
+// Deterministic label art. Four distinct compositions rather than one, because
+// 4,500 tiles of the same sun-over-mountain read as a placeholder rather than a
+// shelf. Motif, palette and geometry all derive from the softlist id, so a cart
+// always looks like itself. No copyrighted box scans are involved; a real label
+// photo, when the visitor has one, is drawn on top of this (applyCartArt).
+const ART_X = 53.5;
+const ART_Y = 25.5;
+const ART_W = 133;
+const ART_H = 64;
+
+function labelArtFor(hash: number, hue: number): string {
+  const pick = (shift: number, mod: number) => (hash >>> shift) % mod;
+  const back = `<rect x="${ART_X}" y="${ART_Y}" width="${ART_W}" height="${ART_H}" fill="hsl(${hue} 38% 17%)"/>`;
+  const ink = (deg: number, s: number, l: number) => `hsl(${(hue + deg) % 360} ${s}% ${l}%)`;
+  const right = ART_X + ART_W;
+  const bottom = ART_Y + ART_H;
+
+  switch (hash % 4) {
+    case 0: { // sun over ridges
+      const cx = ART_X + 22 + pick(8, ART_W - 44);
+      return back
+        + `<circle cx="${cx}" cy="${ART_Y + 16 + pick(16, 14)}" r="${10 + pick(20, 10)}" fill="${ink(42, 78, 58)}" opacity=".9"/>`
+        + `<path d="M${ART_X} ${bottom - 9} L${ART_X + 30 + pick(4, 30)} ${ART_Y + 22} L${ART_X + 78 + pick(12, 36)} ${bottom - 9} Z" fill="${ink(185, 48, 27)}"/>`
+        + `<path d="M${ART_X} ${bottom} L${ART_X + 50 + pick(10, 26)} ${ART_Y + 36} L${right} ${bottom} Z" fill="${ink(215, 42, 36)}"/>`;
+    }
+    case 1: { // stacked bands with a horizon strip
+      let bands = back;
+      const n = 4 + pick(6, 3);
+      for (let i = 0; i < n; i++) {
+        const h = ART_H / n;
+        bands += `<rect x="${ART_X}" y="${ART_Y + i * h}" width="${ART_W}" height="${h}"
+          fill="${ink(24 * i, 60 - i * 4, 26 + i * 7)}" opacity=".95"/>`;
+      }
+      return bands
+        + `<circle cx="${right - 24 - pick(14, 40)}" cy="${ART_Y + 18}" r="${8 + pick(9, 7)}" fill="${ink(60, 85, 66)}"/>`;
+    }
+    case 2: { // radiating rays from a low corner
+      const ox = pick(6, 2) ? ART_X + 8 : right - 8;
+      let rays = back;
+      for (let i = 0; i < 6; i++) {
+        rays += `<path d="M${ox} ${bottom} L${ART_X + (i * ART_W) / 6} ${ART_Y} L${ART_X + ((i + 1) * ART_W) / 6} ${ART_Y} Z"
+          fill="${ink(i * 14, 62, 24 + i * 5)}" opacity=".9"/>`;
+      }
+      return rays
+        + `<circle cx="${ox}" cy="${bottom}" r="${12 + pick(18, 8)}" fill="${ink(48, 88, 62)}" opacity=".95"/>`;
+    }
+    default: { // sprite grid, the "arcade screenshot" look
+      let cells = back;
+      const cols = 6 + pick(8, 3);
+      const rows = 3 + pick(12, 2);
+      const cw = ART_W / cols;
+      const ch = ART_H / rows;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (((hash >>> ((r * cols + c) % 24)) & 3) === 0) continue;
+          cells += `<rect x="${ART_X + c * cw + 1}" y="${ART_Y + r * ch + 1}" width="${cw - 2}" height="${ch - 2}" rx="1"
+            fill="${ink((r * cols + c) * 11, 66, 30 + ((r + c) % 4) * 9)}"/>`;
+        }
+      }
+      return cells;
+    }
+  }
+}
+
 function cartSvg(o: { title: string; sub: string; state: CartState; artKey?: string }): string {
   const hash = artHash(o.artKey ?? o.title);
   const hue = hash % 360;
@@ -126,73 +197,76 @@ function cartSvg(o: { title: string; sub: string; state: CartState; artKey?: str
         : o.artKey ? catalogStripe : STRIPE_PLACEHOLDER;
   const dim = (o.state === 'placeholder' && !o.artKey) || o.state === 'unsupported';
   const dashed = o.state === 'placeholder' && !o.artKey;
-  const titleColor = o.artKey ? '#fff' : dim ? '#8b8b86' : '#181818';
+  const titleColor = dim ? '#8b8b86' : '#181818';
   const subColor = dim ? '#7a7a75' : '#6b6045';
-  const lines = wrapCartTitle(o.title);
+  // The label is narrower than the cart, so titles wrap sooner than the
+  // exported default: a real NES label is ~70% of the shell width.
+  const lines = wrapCartTitle(o.title, 15);
 
+  // Left fifth of the shell is the ribbed grip: ~20 fine horizontal grooves.
   let ridges = '';
-  for (let i = 0; i < 5; i++) {
-    const y = 26 + i * 7;
-    ridges += `<rect x="16" y="${y}" width="168" height="3" fill="rgba(0,0,0,.17)"/>`
-      + `<rect x="16" y="${y + 3}" width="168" height="2" fill="rgba(255,255,255,.4)"/>`;
+  for (let i = 0; i < 20; i++) {
+    const y = 32 + i * 6.6;
+    ridges += `<rect x="16" y="${y}" width="30" height="3" fill="rgba(0,0,0,.24)"/>`
+      + `<rect x="16" y="${y + 3}" width="30" height="1.6" fill="rgba(255,255,255,.28)"/>`;
   }
 
   const titleSvg = lines.map((l, i) =>
-    `<text x="34" y="${112 + i * 20}" font-family="ui-sans-serif,system-ui,sans-serif" font-size="15" font-weight="800" fill="${titleColor}">${esc(l)}</text>`).join('');
+    `<text x="60" y="${112 + i * 19}" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="800" fill="${titleColor}">${esc(l)}</text>`).join('');
 
   // state marks (drawn on top of the label)
   let mark = '';
   if (o.state === 'lit') {
-    mark = `<circle cx="171" cy="24" r="15" fill="${SEAL_GREEN}" stroke="#fff" stroke-width="2"/>`
-      + `<text x="171" y="30" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="17" font-weight="900" fill="#fff">✓</text>`;
+    mark = `<circle cx="167" cy="42" r="14" fill="${SEAL_GREEN}" stroke="#fff" stroke-width="2"/>`
+      + `<text x="167" y="47.5" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="16" font-weight="900" fill="#fff">✓</text>`;
   } else if (o.state === 'experimental') {
-    mark = `<rect x="146" y="12" width="44" height="17" rx="3" fill="${STRIPE_EXPERIMENTAL}"/>`
-      + `<text x="168" y="24.5" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" font-weight="800" fill="#221a05" letter-spacing="1">EXP</text>`;
+    mark = `<rect x="142" y="31" width="42" height="17" rx="3" fill="${STRIPE_EXPERIMENTAL}"/>`
+      + `<text x="163" y="43.5" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" font-weight="800" fill="#221a05" letter-spacing="1">EXP</text>`;
   } else if (o.state === 'unsupported') {
-    mark = `<text x="100" y="205" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="30" font-weight="900" fill="#e0504d" opacity=".85">✕</text>`;
+    mark = `<text x="120" y="70" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="30" font-weight="900" fill="#e0504d" opacity=".9">✕</text>`;
   }
   const chip = o.state === 'placeholder' && !o.artKey
-    ? `<rect x="40" y="176" width="120" height="26" rx="13" fill="rgba(6,8,20,.55)" stroke="${STRIPE_PLACEHOLDER}" stroke-width="1.5" stroke-dasharray="4 3"/>`
-      + `<text x="100" y="193" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10.5" font-weight="800" fill="#c6cdec" letter-spacing=".5">◍ INSERT DUMP</text>`
+    ? `<rect x="62" y="136" width="116" height="24" rx="12" fill="rgba(6,8,20,.55)" stroke="${STRIPE_PLACEHOLDER}" stroke-width="1.5" stroke-dasharray="4 3"/>`
+      + `<text x="120" y="152" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" font-weight="800" fill="#c6cdec" letter-spacing=".5">◍ INSERT DUMP</text>`
     : '';
   // Every catalog entry gets deterministic label art from its metadata. This
   // keeps all 4,000+ carts visually distinct without bundling copyrighted box
   // scans: color, sun position and horizon bars are stable for the softlist id.
-  const labelArt = o.artKey
-    ? `<rect x="25.5" y="85.5" width="149" height="63" fill="hsl(${hue} 38% 17%)"/>
-       <circle cx="${48 + (hash % 102)}" cy="${99 + ((hash >>> 8) % 28)}" r="${13 + ((hash >>> 16) % 15)}"
-         fill="hsl(${(hue + 42) % 360} 78% 58%)" opacity=".86"/>
-       <path d="M26 139 L${58 + (hash % 35)} 104 L${112 + ((hash >>> 5) % 42)} 139 Z"
-         fill="hsl(${(hue + 185) % 360} 48% 27%)"/>
-       <path d="M26 146 L${82 + ((hash >>> 10) % 30)} 119 L175 146 Z"
-         fill="hsl(${(hue + 215) % 360} 42% 36%)"/>`
-    : '';
+  const labelArt = o.artKey ? labelArtFor(hash, hue) : '';
 
   return `<svg viewBox="0 0 ${CART_W} ${CART_H}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
     <defs>
       <linearGradient id="cb" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="${CART_BODY_TOP}"/><stop offset="1" stop-color="${CART_BODY_BOT}"/>
       </linearGradient>
+      <clipPath id="clabel">
+        <rect x="${ART_X}" y="${ART_Y}" width="${ART_W}" height="${ART_H}"/>
+      </clipPath>
     </defs>
-    <rect x="6" y="4" width="188" height="242" rx="11" fill="url(#cb)"/>
-    <rect x="10" y="6" width="180" height="3" rx="1.5" fill="rgba(255,255,255,.5)"/>
-    <rect x="10" y="239" width="180" height="5" rx="2" fill="rgba(0,0,0,.28)"/>
+    <!-- shell: rounded top, stepped-in base, notched top shoulders -->
+    <rect x="6" y="4" width="188" height="242" rx="9" fill="url(#cb)"/>
+    <rect x="6" y="4" width="26" height="13" rx="4" fill="rgba(0,0,0,.16)"/>
+    <rect x="168" y="4" width="26" height="13" rx="4" fill="rgba(0,0,0,.16)"/>
+    <rect x="10" y="6" width="180" height="2.5" rx="1.2" fill="rgba(255,255,255,.42)"/>
+    <rect x="6" y="196" width="188" height="50" fill="rgba(0,0,0,.07)"/>
+    <rect x="6" y="195" width="188" height="1.6" fill="rgba(0,0,0,.22)"/>
+    <rect x="6" y="197" width="188" height="1.2" fill="rgba(255,255,255,.18)"/>
     ${ridges}
-    <rect x="22" y="72" width="156" height="150" rx="5" fill="none" stroke="${CART_LABEL_FRAME}" stroke-width="3"${dashed ? ' stroke-dasharray="7 5"' : ''}/>
-    <rect x="25.5" y="75.5" width="149" height="143" rx="3" fill="${CART_LABEL_BG}"/>
-    <rect x="25.5" y="75.5" width="149" height="10" fill="${stripe}"/>
-    ${labelArt}
+    <!-- the label: right ~70% of the shell, black-framed, top-aligned -->
+    <rect x="50" y="12" width="140" height="158" rx="3" fill="none" stroke="${CART_LABEL_FRAME}" stroke-width="3"${dashed ? ' stroke-dasharray="7 5"' : ''}/>
+    <rect x="53.5" y="15.5" width="133" height="151" rx="2" fill="${CART_LABEL_BG}"/>
+    <rect x="53.5" y="15.5" width="133" height="10" fill="${stripe}"/>
+    <g clip-path="url(#clabel)">${labelArt}</g>
     ${titleSvg}
-    <text x="34" y="154" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10.5" font-weight="600" fill="${subColor}">${esc(o.sub)}</text>
-    <rect x="34" y="228" width="132" height="5" rx="2" fill="rgba(0,0,0,.4)"/>
-    ${dim ? `<rect x="6" y="4" width="188" height="242" rx="11" fill="rgba(6,7,15,.5)"/>` : ''}
+    <text x="60" y="${112 + lines.length * 19 + 4}" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="${subColor}">${esc(clampSub(o.sub))}</text>
+    <!-- moulded insertion arrow and the base recess -->
+    <path d="M92 208 H108 L100 222 Z" fill="rgba(0,0,0,.26)"/>
+    <rect x="68" y="228" width="64" height="9" rx="3" fill="rgba(0,0,0,.13)"/>
+    ${dim ? `<rect x="6" y="4" width="188" height="242" rx="9" fill="rgba(6,7,15,.5)"/>` : ''}
     ${chip}${mark}
   </svg>`;
 }
 
-// --- inline-SVG NES front-loader (room-header hero) ----------------------------
-// Trademark-free: neutral "CONTROL DECK" wordmark, classic dark stripes + red
-// power LED + a darker inset cartridge flap across the lower ~42%.
 function consoleArt(W: number, H: number): string {
   const cw = W * 0.82, cx = (W - cw) / 2, ch = cw * 0.6, cy = (H - ch) / 2 - H * 0.03;
   const n = (x: number) => x.toFixed(1);
@@ -411,7 +485,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   // --- compatibility clarity strip (always visible) ------------------------------
   const testedTitles = support.games.map(name => stripSet(catalog?.entries.find(e => e.name === name)?.description ?? name));
   const boardNames = support.slots.map(s => SLOT_PCB[s] ?? s.toUpperCase());
-  const stripText = `Tested & verified: ${testedTitles.join(', ') || '—'} · Also playable (experimental): any cart on ${boardNames.join(', ') || 'no'} boards.`;
+  const stripText = `Any cart on ${boardNames.join(', ') || 'no'} boards.`;
   const compat = el('div', `max-width:1280px;box-sizing:border-box;margin:12px auto 0;padding:0 36px;
     color:#8b95cf;font-size:12px;text-align:center;line-height:1.6`);
   compat.setAttribute('data-compat-strip', '');
@@ -482,7 +556,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   boardFilter.style.cssText = `padding:11px 14px;border-radius:8px;border:2px solid #303a78;
     background:#111633;color:#d8dcff;font:inherit;cursor:pointer`;
   for (const [value, label] of [
-    ['all', 'All cartridges'],
+    ['all', 'All cartridges (nes.xml)'],
     ['playable', 'Playable boards'],
     ...support.slots.map(slot => [slot, SLOT_PCB[slot] ?? slot.toUpperCase()]),
   ]) {
@@ -500,7 +574,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     background:linear-gradient(90deg,#080913,#101329 50%,#080913);
     border:1px solid #202650;box-shadow:inset 0 12px 30px rgba(0,0,0,.65)`);
   const libraryRow = el('div', `display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
-    align-items:end;gap:28px 18px;position:relative;z-index:1`);
+    align-items:start;justify-items:center;gap:26px 18px;position:relative;z-index:1`);
   libraryRow.setAttribute('data-library-shelf', '');
   const shelfLip = el('div', `position:absolute;left:8px;right:8px;bottom:10px;height:18px;border-radius:4px;
     background:linear-gradient(#575268,#211f2c 42%,#090a10 45%);
@@ -563,13 +637,49 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   };
 
   const coverEl = (svg: string, glow: boolean, dim: boolean): HTMLElement => {
-    const c = el('div', `width:${CART_W}px;height:${CART_H}px;border-radius:12px;cursor:pointer;
+    const c = el('div', `position:relative;width:${CART_W}px;height:${CART_H}px;border-radius:12px;cursor:pointer;
       transition:transform .15s ease, box-shadow .2s ease;
       box-shadow:${glow ? `0 0 34px rgba(90,150,255,.5), 0 12px 24px rgba(0,0,0,.5)` : '0 12px 22px rgba(0,0,0,.45)'};
       ${dim ? 'opacity:.9' : ''}`);
     c.innerHTML = svg;
     return c;
   };
+
+  /**
+   * Use real cartridge photography when the visitor has it locally, under
+   * .data/artwork/carts/<list>/ keyed by softlist short name (see CONTRIBUTING):
+   *
+   *   <name>.<ext>          the whole cartridge  -> replaces the drawn shell
+   *   <name>.sticker.<ext>  the label only       -> sits inside the drawn label
+   *
+   * png / jpg / jpeg / webp. The available files are resolved at generation time
+   * into config.json, so the shelf never probes for art it does not have — with
+   * thousands of cartridges on screen, guessing would mean thousands of 404s.
+   * A file that fails to decode leaves the drawn cartridge showing.
+   *
+   * The sticker rect matches the label drawn by cartSvg: x 53.5..186.5,
+   * y 15.5..166.5 of a 200x250 viewBox.
+   */
+  const cartArt = cfg.cart?.cartArt ?? {};
+  function applyCartArt(cover: HTMLElement, name: string): void {
+    const list = cfg.cart?.list;
+    const art = name ? cartArt[name] : undefined;
+    if (!list || !art) return;
+    const file = art.cart ?? art.sticker;
+    if (!file) return;
+    const img = document.createElement('img');
+    img.alt = '';
+    img.style.cssText = art.cart
+      // a photo of the whole cartridge stands in for the drawing entirely
+      ? `position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+         opacity:0;transition:opacity .2s ease;pointer-events:none`
+      : `position:absolute;left:26.75%;top:6.2%;width:66.5%;height:60.4%;
+         object-fit:cover;opacity:0;transition:opacity .2s ease;pointer-events:none;border-radius:2px`;
+    img.addEventListener('load', () => { img.style.opacity = '1'; });
+    img.addEventListener('error', () => img.remove());
+    img.src = `../artwork/carts/${encodeURIComponent(list)}/${encodeURIComponent(file)}`;
+    cover.appendChild(img);
+  }
 
   // --- "other" tiles (experimental / unsupported / unreadable dumps) --------------
   interface Other extends Card {
@@ -647,6 +757,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     cover.style.width = '160px';
     cover.style.height = '200px';
     cover.style.transform = 'perspective(700px) rotateY(-2deg)';
+    applyCartArt(cover, row.entry?.name ?? row.avail?.name ?? '');
     cover.addEventListener('mouseenter', () => {
       cover.style.transform = 'perspective(700px) translateY(-8px) rotateY(0)';
       cover.style.boxShadow = `0 0 28px hsla(${artHash(row.key) % 360},80%,60%,.34),0 18px 28px rgba(0,0,0,.7)`;
@@ -659,13 +770,13 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     const label = el('div', `max-width:164px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
       font:700 10px ui-monospace,monospace;letter-spacing:.5px;text-align:center;
       color:${row.tier === 'verified' ? '#5ecf7a' : row.avail ? '#e6a02a' : playableBoard ? '#e8b64c' : '#737ba7'}`);
-    label.textContent = row.tier === 'verified' ? `${pcb} · ⤓ VERIFIED DUMP`
-      : row.tier === 'experimental' ? `${pcb} · ⤓ EXPERIMENTAL`
+    label.textContent = row.tier === 'verified' ? `${pcb} · VERIFIED DUMP`
+      : row.tier === 'experimental' ? `${pcb} · EXPERIMENTAL`
         : playableBoard ? `${pcb} · READY FOR DUMP`
           : `${pcb} · DISPLAY ONLY`;
     label.title = row.avail
       ? `${row.title} — ${row.tier === 'verified'
-        ? 'verified against nes.xml' : 'unverified dump'}; click to fetch it from the mirror`
+        ? 'verified against nes.xml' : 'unverified dump'}; search the web for this dump`
       : `${row.title} — ${label.textContent}`;
     item.append(cover, label);
 
@@ -680,18 +791,19 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       info: () => openTargetModal(row.entry, row.key),
       eject: () => {},
     };
+    // Every tile carries a button row, present or not, so tiles in a row share
+    // one height and the cartridges line up on the shelf lip.
+    const buttons = el('div', 'display:flex;gap:8px;align-items:center;justify-content:center;min-height:30px');
     if (row.avail) {
-      const buttons = el('div', 'display:flex;gap:8px;align-items:center;justify-content:center;min-height:26px');
-      const f = mkBtn('⤓ Fetch', 'data-fetch', true, coreSupported);
+      const f = mkBtn('⌕ Search', 'data-fetch', true, coreSupported);
       f.addEventListener('click', ev => { ev.stopPropagation(); card.play(); });
-      const i = mkBtn('i', 'data-info', false, true);
-      i.addEventListener('click', ev => { ev.stopPropagation(); card.info(); });
-      buttons.append(f, i);
-      item.appendChild(buttons);
-      cover.onclick = card.play;
-    } else {
-      cover.onclick = card.info;
+      buttons.appendChild(f);
     }
+    const i = mkBtn('i', 'data-info', false, true);
+    i.addEventListener('click', ev => { ev.stopPropagation(); card.info(); });
+    buttons.appendChild(i);
+    item.appendChild(buttons);
+    cover.onclick = row.avail ? card.play : card.info;
     return card;
   }
 
@@ -703,12 +815,9 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     const term = search.value.trim().toLocaleLowerCase();
     const filter = boardFilter.value;
     const matches = rows.filter(row => {
-      if (filter === 'bucket' && !row.avail) return false;
       if (filter === 'verified' && row.tier !== 'verified') return false;
-      if (filter === 'experimental' && row.tier !== 'experimental') return false;
       if (filter === 'playable' && !(row.slot !== '' && support.slots.includes(row.slot))) return false;
-      if (!['all', 'playable', 'bucket', 'verified', 'experimental'].includes(filter)
-        && row.slot !== filter) return false;
+      if (!['all', 'playable', 'verified'].includes(filter) && row.slot !== filter) return false;
       return !term || row.haystack.includes(term);
     });
     libraryRow.textContent = '';
@@ -740,21 +849,14 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       if (cart.tier === 'verified' && cart.name) availByName.set(cart.name, cart);
       else bucketExtras.push(cart);
     }
-    const total = availByName.size + bucketExtras.length;
-    if (!total) return;
-    for (const [value, label] of [
-      // A wall of cartridges that play on click beats a catalogue of display
-      // pieces, so these lead the list and become the default.
-      ['bucket', `In the mirror (${total.toLocaleString()})`],
-      ['verified', `Verified dumps (${availByName.size.toLocaleString()})`],
-      ['experimental', `Experimental (${bucketExtras.length.toLocaleString()})`],
-    ]) {
-      const option = document.createElement('option');
-      option.value = value;
-      option.textContent = label;
-      boardFilter.insertBefore(option, boardFilter.firstChild);
-    }
-    boardFilter.value = filterTouched ? boardFilter.value : 'bucket';
+    if (!availByName.size && !bucketExtras.length) return;
+    // ONE availability choice, worded so it cannot read as "we host these":
+    // a verified dump is one a web search is known to be able to find.
+    const option = document.createElement('option');
+    option.value = 'verified';
+    option.textContent = `Verified dumps (${availByName.size.toLocaleString()})`;
+    boardFilter.insertBefore(option, boardFilter.firstChild);
+    boardFilter.value = filterTouched ? boardFilter.value : 'verified';
     rows = libraryRows();
     renderCatalog(true);
   }
@@ -764,7 +866,9 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   });
 
   function buildOther(rec: CartRecord, resolved: ResolvedCart | null): Other {
-    const state: CartState = resolved?.tier === 'experimental' ? 'experimental' : 'unsupported';
+    const state: CartState = resolved?.tier === 'tested' ? 'lit'
+      : resolved?.tier === 'experimental' ? 'experimental'
+        : 'unsupported';
     const title = stripSet(resolved?.meta?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, ''));
     const dumpSub = resolved?.meta ? [resolved.meta.publisher, resolved.meta.year].filter(Boolean).join(' · ') : `${(rec.size / 1024).toFixed(0)} KB`;
     const canPlay = playable(resolved);
@@ -773,13 +877,15 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     item.setAttribute('data-cart-tile', rec.id);
     item.dataset.tier = resolved ? resolved.tier : 'unreadable';
 
-    const cover = coverEl(cartSvg({ title, sub: dumpSub, state }), false, state !== 'experimental');
+    const cover = coverEl(cartSvg({ title, sub: dumpSub, state }), state === 'lit', state === 'unsupported');
+    applyCartArt(cover, resolved?.meta?.name ?? '');
     cover.onclick = () => other.info();
 
     const status = el('div', `font-size:10px;font-weight:700;letter-spacing:.8px;text-align:center;min-height:13px;
       max-width:${CART_W}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`);
     status.setAttribute('data-status', '');
     if (!resolved) { status.style.color = '#e0504d'; status.textContent = 'CANNOT READ — EJECT'; }
+    else if (resolved.tier === 'tested') { status.style.color = '#5ecf7a'; status.textContent = '✓ VERIFIED'; }
     else if (resolved.tier === 'experimental') { status.style.color = '#e8b64c'; status.textContent = 'EXPERIMENTAL — UNTESTED'; }
     else { status.style.color = '#8b93c4'; status.textContent = (resolved.reason ?? 'MAPPER NOT SUPPORTED').toUpperCase(); }
     status.title = status.textContent;
@@ -1125,8 +1231,16 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
         if (data.length > MAX_CART) continue;
         if (parseINes(data)) { await shelve(zname.split('/').pop() ?? zname, data); shelved++; }
       }
-      if (!shelved) toast(`${name}: no iNES cartridges inside`);
-      return shelved > 0;
+      if (shelved) return true;
+      // No whole .nes inside: this may be a MAME software-list set, whose
+      // entries are the cart's individual chips. Rebuild the image from them.
+      const set = inesFromSoftlistSet(zentries, catalog, MAPPER_SLOTS);
+      if (set) {
+        await shelve(`${set.entry.name}.nes`, set.bytes);
+        return true;
+      }
+      toast(`${name}: no iNES cartridge or known chip set inside`);
+      return false;
     }
     if (parseINes(bytes)) { await shelve(name, bytes); return true; }
     toast(`${name} isn't an iNES cartridge (.nes)`);
@@ -1159,7 +1273,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     const restoreLabel = label.textContent;
     const restoreColor = label.style.color;
     const restoreShadow = cover.style.boxShadow;
-    label.textContent = '⤓ FETCHING FROM MIRROR…';
+    label.textContent = '⌕ SEARCHING THE WEB…';
     label.style.color = GOLD;
     cover.style.transition = 'transform .28s ease, box-shadow .28s ease';
     if (!stillMotion) {

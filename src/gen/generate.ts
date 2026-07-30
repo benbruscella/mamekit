@@ -681,6 +681,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         writeFileSync(catalogPath, JSON.stringify(catalog));
       }
       const set = `${category}/${opts.game}`;
+      const cartArt = localCartArt(listName);
+      const artCount = Object.keys(cartArt).length;
       const shelved = writeCartShelfIndex(
         join(romsDir(projectRoot), category, opts.game), opts.outDir, set);
       cart = {
@@ -688,10 +690,12 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         list: listName,
         catalogUrl: 'softlist.json',
         ...(shelved ? { cartsUrl: 'carts.json' } : {}),
+        ...(artCount ? { cartArt } : {}),
         slots: CART_SLOT_SUPPORT[family] ?? [],
         games: CART_GAME_SUPPORT[family] ?? [],
       };
       if (shelved) console.log(`cart shelf index: ${shelved} dumps available for ${set}`);
+      if (artCount) console.log(`cart artwork: ${artCount} cartridge(s) with local photography`);
       cartEntries = catalog.entries.length;
       console.log(`softlist "${listName}": ${catalog.entries.length} cartridges catalogued`);
       break;
@@ -1248,6 +1252,36 @@ if (game) {
  *
  * Returns the entry count, or 0 when there is no local audit to reduce.
  */
+/**
+ * Real cartridge photography for the console room, kept local and gitignored
+ * (same copyright treatment as arcade flyers). Two kinds per cartridge, keyed by
+ * softlist short name:
+ *
+ *   <name>.<ext>          the whole cartridge, front on   -> replaces the drawn shell
+ *   <name>.sticker.<ext>  just the label sticker          -> overlaid on the drawn shell
+ *
+ * The list is resolved at generation time and written into config.json rather
+ * than probed at runtime: the shelf shows thousands of cartridges, and letting
+ * it guess would mean thousands of 404s per visit. Adding art therefore means
+ * re-running generation for the target.
+ */
+const CART_ART_EXT = /\.(png|jpe?g|webp)$/i;
+
+function localCartArt(list: string): Record<string, { cart?: string; sticker?: string }> {
+  const dir = join(artworkDir(projectRoot), 'carts', list);
+  if (!existsSync(dir)) return {};
+  const art: Record<string, { cart?: string; sticker?: string }> = {};
+  for (const file of readdirSync(dir).sort()) {
+    if (!CART_ART_EXT.test(file)) continue;
+    const stem = file.replace(CART_ART_EXT, '');
+    const sticker = stem.toLowerCase().endsWith('.sticker');
+    const name = sticker ? stem.slice(0, -'.sticker'.length) : stem;
+    if (!name) continue;
+    (art[name] ??= {})[sticker ? 'sticker' : 'cart'] = file;
+  }
+  return art;
+}
+
 function writeCartShelfIndex(setDir: string, outDir: string, set: string): number {
   const manifestPath = join(setDir, '_manifest.json');
   if (!existsSync(manifestPath)) return 0;

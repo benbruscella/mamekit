@@ -295,6 +295,44 @@ has a local, gitignored presentation package under `.data/`:
 .data/artwork/data/history/<target>.txt     optional curated story override
 ```
 
+### CONSOLE CARTRIDGE PHOTOGRAPHY
+
+A console room draws every catalogued cartridge itself, and uses real
+photography wherever the machine's owner has it. Files live under the software
+list name and are keyed by **softlist short name** — the same name the verified
+dump zip carries, so `mame nes mario1` and `mario1.jpg` agree:
+
+```text
+.data/artwork/carts/<list>/<name>.<ext>           the whole cartridge, front on
+.data/artwork/carts/<list>/<name>.sticker.<ext>   the label sticker only
+```
+
+`<list>` is the software list (`nes`), `<ext>` is `png`, `jpg`, `jpeg` or
+`webp`. The two kinds are used differently, so both are worth having:
+
+| file | used as |
+|---|---|
+| `mario1.jpg` | replaces the drawn shell entirely — a real cart on the shelf |
+| `mario1.sticker.jpg` | sits inside the drawn shell's label, keeping the moulded plastic |
+
+When both exist the whole-cartridge photo wins. Crop the sticker tight to the
+label edges; it is placed into the label rect and will stretch to fill it.
+
+The available files are resolved **at generation time** into `config.json`, so
+adding art means regenerating that target:
+
+```sh
+node bin/mamekit.js <target> --skip-app
+```
+
+That indirection is deliberate: a shelf shows thousands of cartridges, and
+letting the browser probe for art it does not have would mean thousands of 404s
+on every visit. `npm run gen -- <target>` reports how many cartridges it found
+art for.
+
+These are photographs of copyrighted labels: like every other artwork path they
+are gitignored, and the deploy includes them only with `--artwork`.
+
 Good first-stop catalogs are
 [progetto-SNAPS](https://www.progettosnaps.net/) for MAME-named cabinets,
 flyers, marquees, control panels, PCB photographs, snapshots and artwork packs,

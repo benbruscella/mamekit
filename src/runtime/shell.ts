@@ -193,6 +193,11 @@ export interface ShellConfig {
     interface: string; list: string; catalogUrl: string; slots: string[]; games: string[];
     /** generated cartridge availability index, when a local dump audit existed */
     cartsUrl?: string;
+    /**
+     * Local cartridge photography under /artwork/carts/<list>, keyed by softlist
+     * short name: `cart` is the whole shell, `sticker` is the label only.
+     */
+    cartArt?: Record<string, { cart?: string; sticker?: string }>;
   };
   /** base url of the compiled runtime dir (for worklet modules) */
   runtimeUrl: string;
