@@ -3,6 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gameOutputDir } from '../gen/output-layout.ts';
+import { romsDir } from '../paths.ts';
 import { AUDIO_PROBES } from '../hardware/acceptance-registry.ts';
 import { KeyboardInput } from '../runtime/input.ts';
 import {
@@ -63,7 +64,7 @@ export async function runGameAcceptance(
   const gameDir = gameOutputDir(outRoot, contract.category, contract.game);
   const romPath = resolve(
     process.env[contract.romEnvironment]
-      ?? join(root, `roms/${contract.category}/${contract.game}.zip`),
+      ?? join(romsDir(root), contract.category, `${contract.game}.zip`),
   );
   assert.ok(existsSync(gameDir), `${contract.game}: generated output is missing: ${gameDir}`);
   assert.ok(existsSync(romPath), `${contract.game}: acceptance ROM is missing: ${romPath}`);
@@ -79,7 +80,7 @@ export async function runGameAcceptance(
   // from several zips: galaga.zip plus namco51.zip and namco54.zip. The set
   // names are the MAME device short names carried in the generated manifest.
   for (const romSet of new Set(config.roms.flatMap(spec => spec.romSet ? [spec.romSet] : []))) {
-    const devicePath = resolve(join(root, `roms/${contract.category}/${romSet}.zip`));
+    const devicePath = resolve(join(romsDir(root), contract.category, `${romSet}.zip`));
     assert.ok(
       existsSync(devicePath),
       `${contract.game}: MAME device ROM set "${romSet}" is missing: ${devicePath}`,

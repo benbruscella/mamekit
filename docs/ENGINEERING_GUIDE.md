@@ -14,6 +14,23 @@ boundaries.
 - a MAME checkout, normally at sibling path `../mame`;
 - local ROMs only for acceptance and manual browser validation.
 
+### LOCAL ASSET TREE
+
+ROMs and artwork are copyrighted, so they live outside version control in one
+hidden, gitignored tree:
+
+```text
+.data/roms/<category>/<target>.zip    acceptance ROMs (arcade, consoles/nes)
+.data/artwork/                        bezels, flyers, cabinet and marquee scans
+.data/Makefile                        npm wrappers + the DreamObjects sync
+.data/.env                            DH_ACCESS_KEY_ID / DH_SECRET_KEY
+```
+
+`src/paths.ts` is the only place that names `.data`; tooling resolves paths
+through `romsDir()` and `artworkDir()` rather than hardcoding either. ROMs are
+never served or deployed — `src/cli.ts` mounts artwork explicitly and nothing
+mounts roms. Run `make -C .data help` for the sync targets.
+
 MAME source discovery order is implemented by the CLI. Override automatic
 discovery with:
 

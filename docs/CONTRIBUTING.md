@@ -284,15 +284,15 @@ use it before deciding that a write hash or merely audible output is correct.
 ### STEP 6: ADD THE PRESENTATION PACKAGE
 
 The ROM is only the executable machine payload. A supported arcade game also
-has a local, gitignored presentation package:
+has a local, gitignored presentation package under `.data/`:
 
 ```text
-artwork/<target>.zip                  MAME bezel and default.lay
-artwork/covers/<target>.png           promotional flyer
-artwork/media/cabinets/<target>.png   cabinet photograph
-artwork/media/marquees/<target>.png   marquee scan
-artwork/data/history/history.xml      shared Gaming History dataset
-artwork/data/history/<target>.txt     optional curated story override
+.data/artwork/<target>.zip                  MAME bezel and default.lay
+.data/artwork/covers/<target>.png           promotional flyer
+.data/artwork/media/cabinets/<target>.png   cabinet photograph
+.data/artwork/media/marquees/<target>.png   marquee scan
+.data/artwork/data/history/history.xml      shared Gaming History dataset
+.data/artwork/data/history/<target>.txt     optional curated story override
 ```
 
 Good first-stop catalogs are

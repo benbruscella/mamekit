@@ -2,7 +2,7 @@
 # Publish dist/ to the gh-pages branch as a single history-free commit.
 #
 #   npm run deploy              # site without artwork (safe default)
-#   npm run deploy -- --artwork # include artwork/ (copyrighted scans — your call)
+#   npm run deploy -- --artwork # include .data/artwork/ (copyrighted scans — your call)
 #
 # ROMs are NEVER published: dist/ contains none, and visitors load their own
 # zip through the in-app drop zone (validated against the chip manifest).
@@ -13,13 +13,13 @@ ART="${1:-}"
 
 npm run gen:all
 
-# artwork is copyrighted (same treatment as roms/) — opt-in only
+# artwork is copyrighted (same treatment as .data/roms/) — opt-in only
 rm -rf dist/artwork
 if [[ "$ART" == "--artwork" ]]; then
   mkdir -p dist/artwork
   # everything the app fetches at runtime; data/ (61 MB history dat) is
   # dev-time only — its text is extracted under dist/games/<category>/<game>/
-  rsync -a --exclude 'data' --exclude '.DS_Store' artwork/ dist/artwork/
+  rsync -a --exclude 'data' --exclude '.DS_Store' .data/artwork/ dist/artwork/
 fi
 
 # artwork flags match what we shipped (ROMs are never part of the manifest)

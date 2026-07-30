@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { auditGenerated } from './audit-generated.ts';
 import { REQUIRED_TARGETS } from './targets.ts';
 import { gamesManifest } from '../serve.ts';
+import { artworkDir } from '../paths.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const mameSource = resolve(process.env.MAME_SRC ?? join(projectRoot, '../mame'));
@@ -41,7 +42,7 @@ assert.ok(!existsSync(join(outRoot, 'app/modules')));
 assert.ok(existsSync(join(outRoot, 'runtime/core/generated-board.js')));
 
 const games = JSON.parse(
-  await gamesManifest(outRoot, join(projectRoot, 'artwork')),
+  await gamesManifest(outRoot, artworkDir(projectRoot)),
 ) as {
   game: string;
   supported: boolean;

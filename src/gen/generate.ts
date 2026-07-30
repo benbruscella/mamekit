@@ -26,6 +26,7 @@ import {
 import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.ts';
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
+import { artworkDir, romsDir } from '../paths.ts';
 import {
   GAME_CATEGORIES,
   gameDataPath,
@@ -771,12 +772,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   let hasHistory = false;
   let historyText = '';
   let historyCredit = '';
-  const curatedHistoryPath = join(
-    projectRoot,
-    'artwork/data/history',
-    `${opts.game}.txt`,
-  );
-  const historyXmlPath = join(projectRoot, 'artwork/data/history/history.xml');
+  const historyDir = join(artworkDir(projectRoot), 'data/history');
+  const curatedHistoryPath = join(historyDir, `${opts.game}.txt`);
+  const historyXmlPath = join(historyDir, 'history.xml');
   if (existsSync(curatedHistoryPath)) {
     try {
       historyText = readFileSync(curatedHistoryPath, 'utf8')
@@ -860,8 +858,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     } : {}),
   }));
   console.log(`\ngenerated ${join(opts.outDir, 'config.json')} (+ meta.json, DOSSIER.md, runtime report)`);
-  if (!existsSync(join(projectRoot, 'roms', `${opts.game}.zip`))) {
-    console.log(`note: put ${opts.game}.zip in ${join(projectRoot, 'roms')}/ to auto-load ROMs (or drop the zip onto the page)`);
+  if (!existsSync(join(romsDir(projectRoot), `${opts.game}.zip`))) {
+    console.log(`note: put ${opts.game}.zip in ${romsDir(projectRoot)}/ to auto-load ROMs (or drop the zip onto the page)`);
   }
 }
 

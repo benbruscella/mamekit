@@ -1,5 +1,5 @@
 // MAME cabinet artwork loading (browser-only). Artwork zips live in the
-// user's gitignored artwork/ dir (same copyright treatment as roms/) and are
+// user's gitignored .data/artwork/ dir (same treatment as .data/roms/) and are
 // served at /artwork/<game>.zip. Bezel PNGs carry a transparent window where
 // the CRT sits — findWindow() locates it so the menu can composite covers
 // and the shell can play the game inside the real cabinet art.

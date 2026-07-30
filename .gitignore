@@ -1,13 +1,17 @@
-# ROMs are copyrighted — never commit them (any variant of the dir name)
+# Local asset tree: ROMs and artwork are copyrighted — never commit them.
+# Both live under .data/, so one rule covers the lot (see .data/Makefile).
+/.data/
+
+# Former locations, kept so a stray copy of either can never be committed
 /roms/
 /_roms/
+artwork/
 *.zip
 
 /node_modules/
 /out/
 /dist/
 .DS_Store
-artwork/
 .playwright-mcp/
 .env
 .files

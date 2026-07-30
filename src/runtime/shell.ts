@@ -96,7 +96,7 @@ export interface DropZone {
 }
 
 /** public mirror bucket probed by the drop screen's "Try web search" */
-const ROM_SEARCH_BASE = 'https://mamehistory.s3.us-east-005.dream.io/roms/arcade';
+const ROM_SEARCH_BASE = 'https://mamekit.s3.us-east-005.dream.io/roms/arcade';
 
 /**
  * Look for the romset on the web: the mirror bucket directly, then the dev

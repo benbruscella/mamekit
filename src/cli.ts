@@ -18,6 +18,7 @@ import {
   gameCategory,
   gameOutputDir,
 } from './gen/output-layout.ts';
+import { artworkDir } from './paths.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '..');
@@ -170,7 +171,7 @@ if (generateAll) {
     const { writeBuildManifest } = await import('./gen/build-manifest.ts');
     writeBuildManifest(outRoot, GENERATION_TARGETS, mameSrc, String(process.hrtime.bigint()));
     writeFileSync(join(outRoot, 'games.json'),
-      await gamesManifest(outRoot, join(projectRoot, 'artwork')));
+      await gamesManifest(outRoot, artworkDir(projectRoot)));
     console.log(`\nmamekit: distribution generated at ${outRoot}`);
   }
 } else if (buildAppOnly || buildRuntimeOnly) {
@@ -219,14 +220,14 @@ if (generateAll) {
     writeBuildManifest(outRoot, targets, mameSrc, String(process.hrtime.bigint()));
     const { gamesManifest } = await import('./serve.ts');
     writeFileSync(join(outRoot, 'games.json'),
-      await gamesManifest(outRoot, join(projectRoot, 'artwork')));
+      await gamesManifest(outRoot, artworkDir(projectRoot)));
   }
 } else if (serveOnly) {
   const { buildApp } = await import('./gen/generate.ts');
   buildApp(outRoot);
   const { serve } = await import('./serve.ts');
   const port = await serve(
-    { '': outRoot, artwork: join(projectRoot, 'artwork') }, // ROMs are never served
+    { '': outRoot, artwork: artworkDir(projectRoot) }, // ROMs are never served
     Number(opts.serve) || 8280,
   );
   console.log(`\nserving http://localhost:${port}/app/  (menu; games at /app/g/<game>/)`);
@@ -300,14 +301,14 @@ if (command === 'run') {
   if (!batched && !skipApp) {
     const { gamesManifest } = await import('./serve.ts');
     writeFileSync(join(root, 'games.json'),
-      await gamesManifest(root, join(projectRoot, 'artwork')));
+      await gamesManifest(root, artworkDir(projectRoot)));
   }
 }
 
 if ('serve' in opts || argv.includes('--serve')) {
   const { serve } = await import('./serve.ts');
   const port = await serve(
-    { '': outRoot, artwork: join(projectRoot, 'artwork') }, // ROMs are never served
+    { '': outRoot, artwork: artworkDir(projectRoot) }, // ROMs are never served
     Number(opts.serve) || 8280,
   );
   console.log(
@@ -357,12 +358,12 @@ async function pipelineFromGraph(game: string): Promise<void> {
   if (!('skip-app' in opts) && !buildApp(outRoot)) process.exitCode = 1;
   const { gamesManifest } = await import('./serve.ts');
   writeFileSync(join(outRoot, 'games.json'),
-    await gamesManifest(outRoot, join(projectRoot, 'artwork')));
+    await gamesManifest(outRoot, artworkDir(projectRoot)));
 
   if ('serve' in opts) {
     const { serve } = await import('./serve.ts');
     const port = await serve(
-      { '': outRoot, artwork: join(projectRoot, 'artwork') },
+      { '': outRoot, artwork: artworkDir(projectRoot) },
       Number(opts.serve) || 8280,
     );
     console.log(`\nserving http://localhost:${port}/app/`);
