@@ -31,6 +31,8 @@ export interface RomRegionSpec {
   size: number;
   /** MAME ROMREGION_ERASE00/ERASEFF initialization for unloaded bytes. */
   fill?: number;
+  /** MAME ROMREGION_INVERT complements every byte after the region is loaded. */
+  invert?: boolean;
   /**
    * MAME device short name owning this region's ROMs, when they come from a
    * device set rather than the game set. MAME commonised device ROMs so one
@@ -452,6 +454,9 @@ export function assembleRegions(
         );
       }
       for (const ro of load.reloadOffsets ?? []) bytes.set(f.subarray(0, load.size), ro);
+    }
+    if (spec.invert) {
+      for (let index = 0; index < bytes.length; index++) bytes[index] ^= 0xff;
     }
     regions[spec.region] = bytes;
   }

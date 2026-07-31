@@ -70,6 +70,14 @@ export interface GeneratedCpuDefinition {
       outputSignal: string;
       outputMask: number;
     }[];
+    portHandshake?: {
+      portIndex: number;
+      controlAddress: number;
+      inputLine: number;
+      latchEnableMask: number;
+      outputSelectMask: number;
+      flagMask: number;
+    };
   };
   summary: {
     diagnostics: number;
@@ -139,6 +147,10 @@ class IrCpu implements Cpu {
   private readonly internalRam = new Map<number, number>();
   private readonly portData: number[];
   private readonly portDirection: number[];
+  private portHandshakeControl = 0;
+  private portHandshakeInputState = 0;
+  private portHandshakeLatched = false;
+  private portHandshakePendingClear = false;
 
   constructor(definition: GeneratedCpuDefinition, bus: CpuBus) {
     this.definition = definition;
@@ -213,6 +225,11 @@ class IrCpu implements Cpu {
   }
 
   reset(): void {
+    this.portDirection.fill(0);
+    this.portHandshakeControl = 0;
+    this.portHandshakeInputState = 0;
+    this.portHandshakeLatched = false;
+    this.portHandshakePendingClear = false;
     this.execute(this.definition.reset);
   }
 
@@ -253,6 +270,7 @@ class IrCpu implements Cpu {
   }
 
   setInputLine(inputnum: number, state: number): void {
+    this.updatePortHandshakeInput(inputnum, state);
     this.execute(this.definition.input, { inputnum, state });
   }
 
@@ -380,11 +398,32 @@ class IrCpu implements Cpu {
   private readMemory(address: number): number {
     const location = address & 0xffff;
     const ports = this.definition.internal?.ports ?? [];
+    const handshake = this.definition.internal?.portHandshake;
+    if (location === handshake?.controlAddress) {
+      if (this.portHandshakeControl & handshake.flagMask) {
+        this.portHandshakePendingClear = true;
+      }
+      return this.portHandshakeControl;
+    }
     for (let index = 0; index < ports.length; index++) {
       const port = ports[index]!;
       if (location === port.directionAddress) return 0xff;
       if (location !== port.dataAddress) continue;
       const direction = this.portDirection[index]!;
+      if (index === handshake?.portIndex) {
+        if (this.portHandshakePendingClear) {
+          this.portHandshakeControl &= ~handshake.flagMask;
+          this.portHandshakePendingClear = false;
+        }
+        const data =
+          (this.portHandshakeControl & handshake.latchEnableMask) ||
+          direction === 0xff
+            ? this.portData[index]!
+            : (Number(this.bus.signal?.(port.inputSignal, 0) ?? 0xff) & ~direction) |
+              (this.portData[index]! & direction);
+        this.portHandshakeLatched = false;
+        return data & 0xff;
+      }
       const input = Number(this.bus.signal?.(port.inputSignal, 0) ?? 0xff) & 0xff;
       return direction === 0xff
         ? this.portData[index]!
@@ -406,6 +445,11 @@ class IrCpu implements Cpu {
     const location = address & 0xffff;
     const data = value & 0xff;
     const ports = this.definition.internal?.ports ?? [];
+    const handshake = this.definition.internal?.portHandshake;
+    if (location === handshake?.controlAddress) {
+      this.portHandshakeControl = data;
+      return;
+    }
     for (let index = 0; index < ports.length; index++) {
       const port = ports[index]!;
       if (location === port.directionAddress) {
@@ -414,6 +458,10 @@ class IrCpu implements Cpu {
         return;
       }
       if (location === port.dataAddress) {
+        if (index === handshake?.portIndex && this.portHandshakePendingClear) {
+          this.portHandshakeControl &= ~handshake.flagMask;
+          this.portHandshakePendingClear = false;
+        }
         this.portData[index] = data;
         this.emitPort(index);
         return;
@@ -430,10 +478,28 @@ class IrCpu implements Cpu {
     const port = this.definition.internal?.ports[index];
     if (!port) return;
     const direction = this.portDirection[index]!;
-    const data = direction
-      ? (this.portData[index]! & direction) | (direction ^ 0xff)
-      : this.portData[index]!;
+    const data = (this.portData[index]! & direction) | (direction ^ 0xff);
     this.bus.signal?.(port.outputSignal, data & port.outputMask);
+  }
+
+  private updatePortHandshakeInput(inputnum: number, state: number): void {
+    const handshake = this.definition.internal?.portHandshake;
+    if (!handshake || inputnum !== handshake.inputLine) return;
+    if (
+      !this.portHandshakeInputState &&
+      state !== 0 &&
+      !this.portHandshakeLatched &&
+      (this.portHandshakeControl & handshake.latchEnableMask)
+    ) {
+      const port = this.definition.internal!.ports[handshake.portIndex]!;
+      const direction = this.portDirection[handshake.portIndex]!;
+      const input = Number(this.bus.signal?.(port.inputSignal, 0) ?? 0xff) & 0xff;
+      this.portData[handshake.portIndex] =
+        (input & ~direction) | (this.portData[handshake.portIndex]! & direction);
+      this.portHandshakeLatched = true;
+      this.portHandshakeControl |= handshake.flagMask;
+    }
+    this.portHandshakeInputState = state;
   }
 
   private isInternalRam(address: number): boolean {

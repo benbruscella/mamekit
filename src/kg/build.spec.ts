@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { gameSubgraph } from './build.ts';
+import { gameSubgraph, resolveMachineLifecycle } from './build.ts';
 import type { KnowledgeGraph, KGNode } from './types.ts';
+import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 
 const callback = (
   id: string,
@@ -29,8 +30,44 @@ const graph: KnowledgeGraph = {
   },
   nodes: [
     { id: 'game:test', label: 'Game', props: {} },
-    { id: 'machine:derived', label: 'MachineConfig', props: {} },
-    { id: 'machine:base', label: 'MachineConfig', props: {} },
+    {
+      id: 'machine:derived',
+      label: 'MachineConfig',
+      props: {
+        devicePatches: [
+          JSON.stringify({
+            tag: 'screen',
+            config: ['screen.screen_vblank().set_inputline(...)'],
+          }),
+        ],
+      },
+    },
+    {
+      id: 'machine:base',
+      label: 'MachineConfig',
+      props: {
+        devicePatches: [
+          JSON.stringify({
+            tag: 'screen',
+            config: ['screen.set_raw(...)'],
+            screenRaw: {
+              pixclock: 6_000_000,
+              htotal: 384,
+              hbend: 0,
+              hbstart: 256,
+              vtotal: 264,
+              vbend: 16,
+              vbstart: 240,
+            },
+          }),
+        ],
+      },
+    },
+    {
+      id: 'screen',
+      label: 'Device',
+      props: { type: 'SCREEN', tag: 'screen', config: [] },
+    },
     callback('derived-slot-0', 'latch', 'q_out_cb', 'set', 0),
     callback('derived-slot-1', 'latch', 'q_out_cb', 'set', 1),
     callback('derived-append-2', 'latch', 'q_out_cb', 'append', 2),
@@ -40,6 +77,7 @@ const graph: KnowledgeGraph = {
   edges: [
     { from: 'game:test', to: 'machine:derived', rel: 'USES_MACHINE' },
     { from: 'machine:derived', to: 'machine:base', rel: 'CALLS' },
+    { from: 'machine:base', to: 'screen', rel: 'HAS_DEVICE' },
     { from: 'machine:derived', to: 'derived-slot-0', rel: 'HAS_CALLBACK' },
     { from: 'machine:derived', to: 'derived-slot-1', rel: 'HAS_CALLBACK' },
     { from: 'machine:derived', to: 'derived-append-2', rel: 'HAS_CALLBACK' },
@@ -48,7 +86,8 @@ const graph: KnowledgeGraph = {
   ],
 };
 
-const callbacks = gameSubgraph(graph, 'test').nodes
+const composed = gameSubgraph(graph, 'test');
+const callbacks = composed.nodes
   .filter(node => node.label === 'Callback')
   .map(node => node.id)
   .sort();
@@ -60,4 +99,32 @@ assert.deepEqual(callbacks, [
   'derived-slot-1',
 ]);
 
-console.log('build.spec: derived callback shadowing preserves slots and append chains');
+const screen = composed.nodes.find(node => node.id === 'screen');
+assert.deepEqual(
+  screen?.props.screenRaw,
+  [6_000_000, 384, 0, 256, 264, 16, 240],
+  'a callback-only derived patch must not mask base screen timing',
+);
+
+const lifecycleAst = new MameAstIndex(parseMameAst([{
+  file: 'machine.cpp',
+  source: `
+MACHINE_RESET_MEMBER(test_state, common)
+{
+  common_reset();
+}
+MACHINE_RESET_MEMBER(test_state, test)
+{
+  MACHINE_RESET_CALL_MEMBER(common);
+  machine_latch_w(0);
+}
+`,
+}]));
+assert.deepEqual(
+  resolveMachineLifecycle(lifecycleAst, 'test_state', 'test', 'reset')
+    .map(fn => fn.name),
+  ['machine_reset_common', 'machine_reset_test'],
+  'machine reset call members must execute base-first',
+);
+
+console.log('build.spec: derived callback shadowing and device patch composition passed');

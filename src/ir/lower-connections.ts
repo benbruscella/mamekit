@@ -51,6 +51,7 @@ const CPU_INPUT_LINES: Record<string, CpuLine> = {
   INPUT_LINE_RESET: 'reset',
   INPUT_LINE_HALT: 'halt',
   INPUT_LINE_IRQ0: 'irq',
+  M6801_IRQ1_LINE: 'irq',
 };
 
 /** MAME's flip_screen helpers on driver_device. */

@@ -334,6 +334,15 @@ function decodeExecution(reader: Reader, value: unknown): void {
     }
   }
 
+  if (execution.resetHandlers !== undefined) {
+    for (const [index, handler] of reader.array(
+      execution.resetHandlers,
+      'execution.resetHandlers',
+    ).entries()) {
+      reader.string(handler, `execution.resetHandlers[${index}]`);
+    }
+  }
+
   const screen = reader.object(execution.screen, 'execution.screen');
   const screenSource = sourceOf(screen);
   for (const field of ['width', 'height', 'refresh', 'vtotal', 'vbstart', 'rotate']) {
@@ -384,6 +393,8 @@ function decodeRanges(
     const range = reader.object(entry, rangePath, source);
     const start = reader.number(range.start, `${rangePath}.start`, source);
     const end = reader.number(range.end, `${rangePath}.end`, source);
+    reader.optionalNumber(range.mirror, `${rangePath}.mirror`, source);
+    reader.optionalNumber(range.romOffset, `${rangePath}.romOffset`, source);
     if (end < start) {
       reader.fail(rangePath, `range ends (${hex(end)}) before it starts (${hex(start)})`, source);
     }

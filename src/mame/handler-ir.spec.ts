@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import { compileMameHandler } from './handler-ir.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
-import { executeGeneratedHandler } from '../runtime/generated-handler.ts';
+import {
+  executeGeneratedHandler,
+  executeGeneratedProgram,
+} from '../runtime/generated-handler.ts';
 
 const pacmanVideo = compileMameHandler(`
   m_videoram[offset] = data;
@@ -244,4 +247,24 @@ const conditionalSideEffect = compileMameHandler(
 assert.deepEqual(conditionalSideEffect.diagnostics, []);
 assert.equal(conditionalSideEffect.operations[0]?.op, 'if');
 
-console.log('handler-ir.spec: 35 passed');
+// Numeric member-template arguments identify MAME's templated input pins.
+const memberTemplate = compileMameHandler('m_soundnmi->in_w<0>(0);');
+assert.deepEqual(memberTemplate.diagnostics, []);
+const memberTemplateCall = memberTemplate.operations[0];
+assert.equal(
+  memberTemplateCall?.op === 'call' &&
+    memberTemplateCall.expression.callee.kind === 'member'
+    ? memberTemplateCall.expression.callee.property
+    : '',
+  'in_w_0',
+);
+
+// Driver handlers use unsized static string tables to select input ports.
+const staticArray = compileMameHandler(`
+  static const char *const portnames[] = { "DSW0", "DSW1", "IN1", "IN2" };
+  return portnames[address & 3];
+`);
+assert.deepEqual(staticArray.diagnostics, []);
+assert.equal(executeGeneratedProgram(staticArray, {}, { address: 6 }).value, 'IN1');
+
+console.log('handler-ir.spec: 37 passed');

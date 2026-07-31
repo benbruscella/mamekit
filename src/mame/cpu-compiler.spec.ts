@@ -3,6 +3,7 @@ import {
   compileMameI8080,
   compileMameKonami1,
   compileMameMc6809,
+  compileMameM6801U4,
   compileMameM6803,
   compileMameRp2a03,
   compileMameZ80,
@@ -129,6 +130,43 @@ assert.equal(acknowledgements, 0, 'CPU must defer vector evaluation until acknow
 assert.equal(lazyIrq.step(), 0xd7);
 assert.equal(acknowledgements, 1, 'CPU must evaluate its vector on acknowledge');
 
+// Z80's IRQ-acknowledge line callback is separate from the vector callback.
+// Treating both as acknowledgeIrq() reads side-effecting vectors twice.
+const irqAckSource = generatedCpuExecutableSource({
+  ...lazyIrqDefinition,
+  type: 'IRQ_ACK_CALLBACK_TEST',
+  schemaVersion: 1,
+  dialect: 'z80',
+  sourceFiles: [],
+  methods: [],
+  opcodes: [],
+  summary: { opcodes: 0, compiledOpcodes: 0, methods: 0, compiledMethods: 0, diagnostics: 0 },
+  step: {
+    operations: [{
+      op: 'call',
+      expression: {
+        kind: 'call',
+        callee: { kind: 'identifier', name: 'm_irqack_cb' },
+        args: [{ kind: 'number', value: 1 }],
+      },
+    }, {
+      op: 'return',
+      value: {
+        kind: 'call',
+        callee: { kind: 'identifier', name: 'standard_irq_callback' },
+        args: [],
+      },
+    }],
+    diagnostics: [],
+  },
+});
+assert.match(irqAckSource, /bus\.signal\?\.\('irqack_cb', 1\)/);
+assert.equal(
+  irqAckSource.match(/this\.acknowledgeIrq\(\)/g)?.length,
+  1,
+  'only standard_irq_callback may consume the interrupt vector',
+);
+
 // Multi-declarator C++ for-initializers must emit valid JS (one `let`, comma
 // separated declarators) all the way through new Function.
 import { compileMameHandler } from './handler-ir.ts';
@@ -187,6 +225,24 @@ assert.equal(
   true,
 );
 
+const m6801u4Definition = compileMameM6801U4(process.env.MAME_SRC ?? '../mame');
+assert.equal(m6801u4Definition.type, 'M6801U4');
+assert.equal(m6801u4Definition.summary.compiledOpcodes, 256);
+assert.equal(m6801u4Definition.summary.diagnostics, 0);
+assert.deepEqual(m6801u4Definition.internal?.ram, [{ start: 0x40, end: 0xff }]);
+assert.deepEqual(
+  m6801u4Definition.internal?.ports.map(port => port.dataAddress),
+  [0x02, 0x03, 0x06, 0x07],
+);
+assert.deepEqual(m6801u4Definition.internal?.portHandshake, {
+  portIndex: 2,
+  controlAddress: 0x0f,
+  inputLine: 2,
+  latchEnableMask: 0x08,
+  outputSelectMask: 0x10,
+  flagMask: 0x80,
+});
+
 clearGeneratedCpus();
 registerGeneratedCpu(m6803Definition);
 const m6803Memory = new Uint8Array(0x10000);
@@ -208,7 +264,7 @@ m6803.reset();
 assert.equal(m6803.step(), 2);
 assert.equal(m6803.get('m_d.b.h'), 0x5a);
 assert.equal(m6803.step(), 3);
-assert.deepEqual(m6803Signals.at(-1), ['out_p1_cb', 0x5a]);
+assert.deepEqual(m6803Signals.at(-1), ['out_p1_cb', 0xff]);
 
 const konami1Definition = compileMameKonami1(process.env.MAME_SRC ?? '../mame');
 assert.equal(konami1Definition.summary.opcodes, 768);

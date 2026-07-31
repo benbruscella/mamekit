@@ -16,6 +16,8 @@ export const DEVICE_ID = 'device';
 export const DEVICE_MAME_TYPES = [
   'BUFFERED_SPRITERAM8',
   'GENERIC_LATCH_8',
+  'INPUT_MERGER_ALL_HIGH',
+  'INPUT_MERGER_ANY_HIGH',
   'ER2055',
   'LS259',
   'MB14241',

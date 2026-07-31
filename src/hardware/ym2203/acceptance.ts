@@ -22,7 +22,11 @@ export async function createYm2203Probe(
     join(context.outRoot, 'runtime/generated', YM2203_WORKLET_ARTIFACT.replace(/\.ts$/, '.js')),
   ).href) as {
     GeneratedYm2203Mixer: new (
-      clock: number, chips: number, outputRate: number, routes?: unknown,
+      clock: number,
+      chips: number,
+      outputRate: number,
+      routes?: unknown,
+      auxiliaryDevices?: unknown,
     ) => Mixer;
     GeneratedYm2203FrameRenderer: new (
       mixer: Mixer, outputRate: number, refresh: number,
@@ -34,6 +38,7 @@ export async function createYm2203Probe(
     context.sound.chips ?? 1,
     context.outputRate,
     context.sound.routes,
+    context.sound.auxiliaryDevices,
   );
   return new module.GeneratedYm2203FrameRenderer(mixer, context.outputRate, context.refresh);
 }

@@ -197,6 +197,45 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     videoStartRe.lastIndex = braceEnd + 1;
   }
 
+  // MAME's legacy lifecycle overrides are function definitions hidden behind
+  // macros. Give them stable names so extraction can select the override that
+  // belongs to a machine config and compile it like any other driver method.
+  // CALL_MEMBER is represented by the ordered lifecycle plan rather than as
+  // an ordinary C++ call, so blank it while preserving source offsets/lines.
+  const lifecycleRe =
+    /\bMACHINE_(START|RESET)_MEMBER\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)\s*\{/g;
+  while ((fm = lifecycleRe.exec(masked)) !== null) {
+    const braceStart = masked.indexOf('{', fm.index + fm[0].length - 1);
+    const braceEnd = matchPair(masked, braceStart, '{', '}');
+    if (braceEnd < 0) continue;
+    const bodyStart = braceStart + 1;
+    const kind = fm[1]!.toLowerCase();
+    const rawBody = source.slice(bodyStart, braceEnd);
+    const body = rawBody.replace(
+      new RegExp(`\\bMACHINE_${fm[1]}_CALL_MEMBER\\s*\\([^)]*\\)\\s*;?`, 'g'),
+      value => value.replace(/[^\r\n]/g, ' '),
+    );
+    functions.push({
+      kind: 'function',
+      className: fm[2]!,
+      name: `machine_${kind}_${fm[3]}`,
+      parameters: '',
+      body,
+      statements: parseStatements(
+        file,
+        body,
+        maskComments(body),
+        0,
+        body.length,
+        buildLineStarts(body),
+      ),
+      span: span(fm.index, braceEnd + 1),
+      bodySpan: span(bodyStart, braceEnd),
+    });
+    occupied.push([fm.index, braceEnd + 1]);
+    lifecycleRe.lastIndex = braceEnd + 1;
+  }
+
   const classes: MameClass[] = [];
   const classRe = /\bclass\s+(\w+)\s*:\s*([^{]+)\{/g;
   let cm: RegExpExecArray | null;

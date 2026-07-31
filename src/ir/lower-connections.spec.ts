@@ -12,8 +12,8 @@ let passed = 0;
 const check = (name: string, run: () => void): void => { run(); passed++; void name; };
 
 const context: ConnectionContext = {
-  cpuTags: new Set(['maincpu', 'audiocpu']),
-  deviceTags: new Set(['maincpu', 'audiocpu', 'mainlatch', 'timeplt_audio', 'aysnd']),
+  cpuTags: new Set(['maincpu', 'audiocpu', 'mcu']),
+  deviceTags: new Set(['maincpu', 'audiocpu', 'mcu', 'mainlatch', 'timeplt_audio', 'aysnd']),
   handlerKeys: new Set([
     'fixture_state.irq_w',
     'timeplt_audio_device.sh_irqtrigger_w',
@@ -76,6 +76,10 @@ check('a CPU input line lowers to the named pin', () => {
   assert.deepEqual(
     effect({ targetTag: 'maincpu', inputLine: 'INPUT_LINE_NMI' }),
     { kind: 'cpu-line', tag: 'maincpu', line: 'nmi', delivery: 'pulse' },
+  );
+  assert.deepEqual(
+    effect({ targetTag: 'mcu', inputLine: 'M6801_IRQ1_LINE' }),
+    { kind: 'cpu-line', tag: 'mcu', line: 'irq', delivery: 'level' },
   );
 });
 

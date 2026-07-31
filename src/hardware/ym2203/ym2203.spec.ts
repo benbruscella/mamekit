@@ -19,8 +19,23 @@ const sound: Sound = {
   controlOffset: -1,
 };
 
-function context(): SoundRuntimeContext & { writes: [number, number, string | undefined][] } {
+function context(auxiliary = false):
+SoundRuntimeContext & { writes: [number, number, string | undefined][] } {
   const writes: [number, number, string | undefined][] = [];
+  const contextSound: Sound = auxiliary
+    ? {
+        ...sound,
+        auxiliaryDevices: [{
+          type: 'YM3526',
+          deviceTag: 'ym2',
+          member: 'm_ym2',
+          clock: 3_000_000,
+          gain: 0.5,
+          target: 'mono',
+          writeMethods: ['write'],
+        }],
+      }
+    : sound;
   return {
     writes,
     board: {
@@ -28,17 +43,17 @@ function context(): SoundRuntimeContext & { writes: [number, number, string | un
       game: 'gng', family: 'gng', driverFile: 'src/mame/capcom/gng.cpp',
       callbacks: [], connections: [],
       devices: [
-        { id: 'a', tag: 'ym1', type: 'YM2203', member: 'm_ym1' },
-        { id: 'b', tag: 'ym2', type: 'YM2203', member: 'm_ym2' },
+        { id: 'a', tag: 'ym1', type: 'YM2203', member: 'm_ym1', clock: 1 },
+        { id: 'b', tag: 'ym2', type: 'YM2203', member: 'm_ym2', clock: 1 },
       ],
       execution: {
         cpus: [{ tag: 'audiocpu', clock: 1, region: 'audiocpu' }],
         screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 0, rotate: 0 },
         frameEvents: [],
       },
-      sound,
+      sound: contextSound,
     },
-    sound,
+    sound: contextSound,
     registry: { read: {}, write: {} },
     calls: {},
     state: {},
@@ -59,14 +74,16 @@ function context(): SoundRuntimeContext & { writes: [number, number, string | un
 check('port writes land in the chip\'s port pair', () => {
   const ctx = context();
   installYm2203Runtime(ctx);
-  ctx.registry.write['ym1.write']!(0, 0, 0x28);
+  ctx.registry.write['ym1.write']!(0, 0, 0x07);
   ctx.registry.write['ym1.write']!(0, 1, 0x0f);
   ctx.registry.write['ym2.write']!(0, 1, 0x33);
   assert.deepEqual(ctx.writes, [
-    [0, 0x28, 'write'],
+    [0, 0x07, 'write'],
     [1, 0x0f, 'write'],
     [3, 0x33, 'write'],
   ]);
+  assert.equal(ctx.registry.read['ym1.read']!(0, 0), 0);
+  assert.equal(ctx.registry.read['ym1.read']!(0, 1), 0x0f);
 });
 
 check('a reset reaches the chip through its generated device port', () => {
@@ -82,6 +99,43 @@ check('generated handlers reach each chip by alias', () => {
   for (const alias of ['ym1', 'm_ym1', 'm_ym2', 'ym2']) {
     assert.equal(typeof ctx.calls[`${alias}.write`], 'function');
   }
+});
+
+check('auxiliary YM3526 writes follow the primary YM2203 port pair', () => {
+  const ctx = context(true);
+  installYm2203Runtime(ctx);
+  ctx.registry.write['ym2.write']!(0, 0, 0x20);
+  ctx.calls['m_ym2.write']!(1, 0x01);
+  assert.deepEqual(ctx.writes, [
+    [4, 0x20, 'ym2.write'],
+    [5, 0x01, 'ym2.write'],
+  ]);
+  assert.equal(ctx.registry.read['ym2.read']!(0, 0), 0x06);
+  assert.equal(ctx.registry.read['ym2.read']!(0, 1), 0xff);
+});
+
+check('YM2203 timers assert and clear the generated IRQ callback', () => {
+  const ctx = context();
+  const irq: number[] = [];
+  ctx.dispatch = (tag, signal, value) => {
+    assert.equal(tag, 'ym1');
+    assert.equal(signal, 'irq_handler');
+    irq.push(value);
+  };
+  const hooks = installYm2203Runtime(ctx);
+  // Timer B period: 16 * (256 - 0xff) * 12 operators * /6 prescale.
+  ctx.registry.write['ym1.write']!(0, 0, 0x26);
+  ctx.registry.write['ym1.write']!(0, 1, 0xff);
+  ctx.registry.write['ym1.write']!(0, 0, 0x27);
+  ctx.registry.write['ym1.write']!(0, 1, 0x0a);
+  hooks.tickCpu?.('audiocpu', 1_151);
+  assert.deepEqual(irq, []);
+  hooks.tickCpu?.('audiocpu', 1);
+  assert.deepEqual(irq, [1]);
+  assert.equal(ctx.registry.read['ym1.read']!(0, 0) & 0x02, 0x02);
+  ctx.registry.write['ym1.write']!(0, 0, 0x27);
+  ctx.registry.write['ym1.write']!(0, 1, 0x2a);
+  assert.deepEqual(irq, [1, 0]);
 });
 
 console.log(`ym2203.spec: ${passed} passed, 0 failed`);

@@ -95,8 +95,17 @@ export class GeneratedFrameRunner {
   frame(framebuffer: Uint32Array): void {
     const screen = this.machine.execution.screen;
     for (let line = 0; line < screen.vtotal; line++) {
+      // Raster screens present the completed visible frame at the transition
+      // into vblank. Rendering after any vblank CPU time can observe transient
+      // blanking/bank-control writes that belong to the next frame.
+      if (
+        line === screen.vbstart &&
+        (screen.updateMode ?? 'frame') === 'frame'
+      ) {
+        this.video?.render(framebuffer);
+      }
       this.onLine?.(line, 'before-processors', framebuffer);
-      if (this.eventPhase === 'before-processors') this.dispatchLine(line);
+      if (this.eventPhase === 'before-processors') this.dispatchLine(line, framebuffer);
       // MAME's VIDEO_UPDATE_SCANLINE timer calls update_partial at the start
       // of the scanline, before CPUs execute the interval leading to the next
       // line. Drawing afterwards can combine sprite RAM from two states across
@@ -111,13 +120,13 @@ export class GeneratedFrameRunner {
       }
 
       this.onLine?.(line, 'after-processors', framebuffer);
-      if (this.eventPhase === 'after-processors') this.dispatchLine(line);
+      if (this.eventPhase === 'after-processors') this.dispatchLine(line, framebuffer);
     }
     this.frames++;
-    if (screen.updateMode !== 'scanline') this.video?.render(framebuffer);
+    if (screen.updateMode === 'partial') this.video?.render(framebuffer);
   }
 
-  private dispatchLine(line: number): void {
+  private dispatchLine(line: number, framebuffer: Uint32Array): void {
     for (const event of this.eventsByLine.get(line) ?? []) this.onEvent?.(event);
     for (const scheduled of this.periodicEvents) {
       scheduled.carry += scheduled.eventsPerLine;

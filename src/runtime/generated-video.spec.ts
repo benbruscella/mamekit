@@ -5,6 +5,7 @@ import { executeGeneratedProgram } from './generated-handler.ts';
 import type { BoardIr } from '../ir/board.ts';
 import {
   createGeneratedTileInfoTarget,
+  generatedDirectScreenShape,
   generatedScrollBand,
   generatedTileGroupTransparentMask,
   generatedTileMemoryIndex,
@@ -12,6 +13,26 @@ import {
   GeneratedVideoRenderer,
   type GeneratedVideoPrimitives,
 } from './generated-video.ts';
+
+assert.equal(
+  generatedDirectScreenShape({
+    execution: { screenUpdate: { handler: 'fixture.screen_update' } },
+    handlers: [{
+      ownerClass: 'fixture',
+      method: 'screen_update',
+      body: `
+        bitmap.fill(255, cliprect);
+        for (offs = 0; offs < m_objectram.bytes(); offs += 4) {
+          prom_line = prom + 0x80 + ((gfx_num & 0xe0) >> 1);
+          code = m_videoram[goffs + 1];
+          m_gfxdecode->gfx(0)->transpen(bitmap,cliprect, code, color, 0, 0, 0, 0, 15);
+          sx += 16;
+        }
+      `,
+    }],
+  } as unknown as BoardIr),
+  'bublbobl-object-columns',
+);
 
 assert.deepEqual(
   Array.from({ length: 32 }, (_, row) => generatedScrollBand(row, 32, 4)),

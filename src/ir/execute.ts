@@ -95,6 +95,8 @@ const DEFAULT_CONSTANTS: Record<string, number> = {
   INPUT_LINE_IRQ0: 0,
   INPUT_LINE_NMI: -1,
   INPUT_LINE_RESET: -2,
+  M6801_IRQ1_LINE: 0,
+  M6801_IS3_LINE: 2,
   M6809_IRQ_LINE: 0,
   TILE_FLIPX: 1,
   TILE_FLIPY: 2,
@@ -526,6 +528,7 @@ function evaluateCall(
     if (name === 'ALLOC' || name === 'make_unique_clear') {
       return new Uint8Array(Math.max(0, toNumber(args[0])));
     }
+    if (name === 'ARRAY') return args;
     if (name === 'floor') return Math.floor(toNumber(args[0]));
     if (name === 'cos') return Math.cos(toNumber(args[0]));
     if (name === 'sin') return Math.sin(toNumber(args[0]));
@@ -572,6 +575,10 @@ function evaluateCall(
       return values[index] ?? 0;
     }
     if (name === 'ioport') return reference(`ioport:${String(args[0] ?? '')}`);
+    // Driver handlers use the machine-level membank("tag") finder. Preserve
+    // its string tag as a reference so a following ->set_entry(...) reaches
+    // the source-derived bank binding instead of coercing the tag to zero.
+    if (name === 'membank') return reference(String(args[0] ?? ''));
     if (['u8', 'uint8_t'].includes(name)) return toNumber(args[0]) & 0xff;
     if (['s8', 'int8_t'].includes(name)) return (toNumber(args[0]) << 24) >> 24;
     if (['u16', 'uint16_t'].includes(name)) return toNumber(args[0]) & 0xffff;

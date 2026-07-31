@@ -98,6 +98,31 @@ check('timer callback member parsed',
   ['test_state', 'scanline_tick', 'int param']);
 check('IRQ callback member parsed', memberMacros.functions[1]?.name, 'interrupt_vector');
 
+const lifecycleMacros = parseMameSource('machine.cpp', `
+MACHINE_RESET_MEMBER(test_state, common)
+{
+  m_subcpu->set_input_line(INPUT_LINE_RESET, ASSERT_LINE);
+}
+MACHINE_RESET_MEMBER(test_state, test)
+{
+  MACHINE_RESET_CALL_MEMBER(common);
+  m_bank = 0;
+}
+`);
+check(
+  'machine reset members parsed',
+  lifecycleMacros.functions.map(fn => [fn.className, fn.name]),
+  [
+    ['test_state', 'machine_reset_common'],
+    ['test_state', 'machine_reset_test'],
+  ],
+);
+check(
+  'lifecycle call macro excluded from executable body',
+  lifecycleMacros.functions[1]?.body.includes('MACHINE_RESET_CALL_MEMBER'),
+  false,
+);
+
 // MAME instantiates some device families from a template base; the base name,
 // its parameters and the derived class's arguments all have to survive parsing.
 const templates = parseMameSource('bufsprite.h', `
