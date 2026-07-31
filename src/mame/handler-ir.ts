@@ -8,7 +8,7 @@ interface Token {
 }
 
 const TYPE_WORDS = new Set([
-  'auto', 'bool', 'char', 'const', 'constexpr', 'double', 'int', 'offs_t', 'pen_t',
+  'auto', 'bool', 'char', 'const', 'constexpr', 'double', 'int', 'offs_t', 'pen_t', 'static',
   'rectangle', 'rgb_t', 'tilemap_memory_index',
   's8', 's16', 's32', 'u8', 'u16', 'u32',
   'int8_t', 'int16_t', 'int32_t', 'uint8_t', 'uint16_t', 'uint32_t', 'unsigned',
@@ -397,7 +397,8 @@ class HandlerParser {
     while (this.peek().kind === 'identifier' && TYPE_WORDS.has(this.peek().text)) {
       typeWords.push(this.take().text);
     }
-    const valueType = typeWords.find(word => word !== 'const' && word !== 'constexpr');
+    const valueType = typeWords.find(word =>
+      word !== 'const' && word !== 'constexpr' && word !== 'static');
     const declarations: GeneratedHandlerOperation[] = [];
     while (!this.at('eof')) {
       let declarator = '';
@@ -416,16 +417,35 @@ class HandlerParser {
       this.take();
       let value: GeneratedExpression | undefined;
       if (this.consume('[')) {
-        const length = this.parseExpression();
-        if (!length || !this.consume(']')) {
+        const length = this.consume(']')
+          ? undefined
+          : this.parseExpression();
+        if (length && !this.consume(']')) {
           this.unsupportedStatement(`invalid array declaration of "${name.text}"`);
           return declarations;
         }
-        value = {
-          kind: 'call',
-          callee: { kind: 'identifier', name: 'ALLOC' },
-          args: [length],
-        };
+        if (this.consume('=')) {
+          if (!this.consume('{')) {
+            this.unsupportedStatement(`invalid array initializer of "${name.text}"`);
+            return declarations;
+          }
+          const values = this.parseDelimitedExpressions('}');
+          if (!values) {
+            this.unsupportedStatement(`invalid array initializer of "${name.text}"`);
+            return declarations;
+          }
+          value = {
+            kind: 'call',
+            callee: { kind: 'identifier', name: 'ARRAY' },
+            args: values,
+          };
+        } else {
+          value = {
+            kind: 'call',
+            callee: { kind: 'identifier', name: 'ALLOC' },
+            args: [length ?? { kind: 'number', value: 0 }],
+          };
+        }
       } else if (this.consume('=')) value = this.parseExpression();
       else if (this.consume('(')) {
         const args = this.parseArguments();
@@ -553,7 +573,12 @@ class HandlerParser {
         const property = this.peek();
         if (property.kind !== 'identifier') return undefined;
         this.take();
-        expression = { kind: 'member', object: expression, property: property.text };
+        const templateArgs = this.consumeTemplateArguments();
+        const specialized = templateArgs?.length &&
+          templateArgs.every(arg => /^\d+$/.test(arg))
+          ? `${property.text}_${templateArgs.join('_')}`
+          : property.text;
+        expression = { kind: 'member', object: expression, property: specialized };
       } else if (this.consume('::')) {
         const property = this.peek();
         if (property.kind !== 'identifier') return undefined;
@@ -585,24 +610,49 @@ class HandlerParser {
    * unambiguously one: only type-shaped tokens inside, and a call or a closing
    * parenthesis after. Anything else stays a less-than comparison.
    */
-  private consumeTemplateArguments(): boolean {
-    if (!this.atText('<')) return false;
+  private consumeTemplateArguments(): string[] | undefined {
+    if (!this.atText('<')) return undefined;
     let cursor = this.index + 1;
     let depth = 1;
+    const args: string[] = [];
+    let current = '';
     while (depth > 0) {
       const token = this.tokens[cursor];
-      if (!token || token.kind === 'eof') return false;
-      if (token.text === '<') depth++;
-      else if (token.text === '>') depth--;
+      if (!token || token.kind === 'eof') return undefined;
+      if (token.text === '<') {
+        depth++;
+        current += token.text;
+      } else if (token.text === '>') {
+        depth--;
+        if (depth > 0) current += token.text;
+      } else if (token.text === ',' && depth === 1) {
+        args.push(current);
+        current = '';
+      }
       else if (
         token.kind !== 'identifier' && token.kind !== 'number' &&
         ![',', '*', '&', '::'].includes(token.text)
-      ) return false;
+      ) return undefined;
+      else current += token.text;
       cursor++;
     }
-    if (!['(', ')'].includes(this.tokens[cursor]?.text ?? '')) return false;
+    if (!['(', ')'].includes(this.tokens[cursor]?.text ?? '')) return undefined;
+    args.push(current);
     this.index = cursor;
-    return true;
+    return args;
+  }
+
+  private parseDelimitedExpressions(terminator: string): GeneratedExpression[] | undefined {
+    const values: GeneratedExpression[] = [];
+    if (this.consume(terminator)) return values;
+    while (!this.at('eof')) {
+      const value = this.parseExpression();
+      if (!value) return undefined;
+      values.push(value);
+      if (this.consume(terminator)) return values;
+      if (!this.consume(',')) return undefined;
+    }
+    return undefined;
   }
 
   private parseArguments(): GeneratedExpression[] | undefined {

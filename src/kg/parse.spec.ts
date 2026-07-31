@@ -15,6 +15,7 @@ import {
   parseMachineConfigs,
   parseMemberTags,
   parseMemoryBanks,
+  parseEnumConstants,
   parseRomSets,
 } from './parse.ts';
 
@@ -80,6 +81,24 @@ eq('memory bank configure_entries', parseMemoryBanks(
   offset: 0x10000,
   stride: 0x1000,
   raw: 'm_mainbank->configure_entries(0, 16, memregion("maincpu")->base() + 0x10000, 0x1000)',
+}]);
+
+eq('tagged memory bank configured from driver init', parseMemoryBanks(
+  `
+  uint8_t *ROM = memregion("maincpu")->base();
+  membank("bank1")->configure_entries(0, 8, &ROM[0x10000], 0x4000);
+  `,
+  {},
+  {},
+), [{
+  member: 'bank1',
+  tag: 'bank1',
+  startEntry: 0,
+  entries: 8,
+  region: 'maincpu',
+  offset: 0x10000,
+  stride: 0x4000,
+  raw: 'membank("bank1")->configure_entries(0, 8, &ROM[0x10000], 0x4000)',
 }]);
 
 eq('indexed memory-bank array entries', parseMemoryBanks(
@@ -165,13 +184,16 @@ CONS( 1983, famicom, 0, nes, famicom, famicom, nes_state, init_famicom, "Nintend
 
 // --- machine config: SOFTWARE_LIST + screen setters + slot defaults ----------
 {
-  const body = `
+	const body = `
 void nes_state::nes(machine_config &config)
 {
 	rp2a03_device &maincpu(RP2A03G(config, m_maincpu, NTSC_APU_CLOCK));
 	maincpu.set_addrmap(AS_PROGRAM, &nes_state::nes_map);
 	maincpu.add_route(0, "mono", 0.60, 2);
 	DAC_8BIT_R2R(config, "dac", 0).add_route(ALL_OUTPUTS, "mono", 0.25);
+
+	MCFG_MACHINE_START_OVERRIDE(nes_state, nes)
+	MCFG_MACHINE_RESET_OVERRIDE(nes_state, nes)
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_SCANLINE);
@@ -233,6 +255,11 @@ void nes_state::nes(machine_config &config)
   const seeded = parseDefines('#define LOCAL (BASE*2)\n#define BASE 7', { BASE: 3 });
   eq('seeded constant resolves', seeded.LOCAL, 6);   // uses seed BASE=3 at eval time
   eq('local redefinition wins', seeded.BASE, 7);
+  eq(
+    'enum constants resolve included values',
+    parseEnumConstants('enum { TIN = LINE_MAX, IS3, STBY };', { LINE_MAX: 1 }),
+    { LINE_MAX: 1, TIN: 1, IS3: 2, STBY: 3 },
+  );
 }
 
 // --- MAME inline address-map lambdas become named generated handlers ---------

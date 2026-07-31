@@ -6,6 +6,8 @@ export interface RangeSpec {
   start: number;
   end: number;
   mirror?: number;
+  /** Byte offset in the supplied ROM corresponding to this range's start. */
+  romOffset?: number;
   kind: 'rom' | 'ram' | 'handler' | 'nop';
   /** handler registry keys, e.g. "galaga_state.bosco_dsw_r" */
   read?: string;
@@ -46,7 +48,7 @@ export class Bus {
 
       if (r.kind === 'rom') {
         // offset-based so mirror images read the same region bytes
-        read = (_a, off) => rom[r.start + off];
+        read = (_a, off) => rom[(r.romOffset ?? r.start) + off];
       } else if (r.kind === 'ram') {
         const bytes = r.share
           ? (this.shares[r.share] ??= new Uint8Array(size))

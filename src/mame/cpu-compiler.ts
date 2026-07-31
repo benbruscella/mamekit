@@ -80,6 +80,14 @@ export interface GeneratedCpuDefinition {
       outputSignal: string;
       outputMask: number;
     }[];
+    portHandshake?: {
+      portIndex: number;
+      controlAddress: number;
+      inputLine: number;
+      latchEnableMask: number;
+      outputSelectMask: number;
+      flagMask: number;
+    };
   };
   summary: {
     opcodes: number;
@@ -1031,6 +1039,22 @@ export function compileMameM6803(mameSrc: string): GeneratedCpuDefinition {
 }
 
 /**
+ * Compile the MC6801U4 with the same MAME 6803 instruction table and the
+ * U4-specific internal RAM/port map selected by its constructor.
+ */
+export function compileMameM6801U4(mameSrc: string): GeneratedCpuDefinition {
+  const definition = compileMameM6803(mameSrc);
+  const variantFile = 'src/devices/cpu/m6800/m6801.cpp';
+  const variant = readFileSync(join(mameSrc, variantFile), 'utf8');
+  return {
+    ...definition,
+    type: 'M6801U4',
+    dialect: 'mame-m6801u4-cpp-op-handler',
+    internal: compileM6801U4InternalPlan(variant),
+  };
+}
+
+/**
  * Compile MAME's standard 6809 microcode DSL into an executable CPU definition.
  *
  * `m6809.lst` plus `base6x09.lst` are the whole instruction set, and
@@ -1518,6 +1542,53 @@ function compileM6803InternalPlan(
       outputSignal: `out_p${port}_cb`,
       outputMask: port === 2 ? outputMask : 0xff,
     })),
+  };
+}
+
+function compileM6801U4InternalPlan(
+  source: string,
+): NonNullable<GeneratedCpuDefinition['internal']> {
+  const address = (method: string): number => {
+    const match = new RegExp(
+      `map\\(\\s*(0x[\\da-f]+|\\d+)\\s*,[^;]+FUNC\\([^)]*::${method}\\)`,
+      'i',
+    ).exec(source);
+    if (!match) throw new Error(`MAME M6801U4 internal map is missing ${method}`);
+    return Number(match[1]);
+  };
+  const map =
+    /void\s+m6801u4_cpu_device::m6801u4_mem[\s\S]*?\{([\s\S]*?)\}/.exec(source)?.[1] ?? '';
+  const ram = /map\(\s*(0x[\da-f]+|\d+)\s*,\s*(0x[\da-f]+|\d+)\s*\)\.ram/.exec(map);
+  if (!ram) throw new Error('MAME M6801U4 internal RAM map is missing');
+  const outputMask = Number(
+    /void\s+m6801_cpu_device::write_port2[\s\S]*?\bdata\s*&=\s*(0x[\da-f]+|\d+)/i
+      .exec(source)?.[1],
+  ) || 0xff;
+  const constant = (name: string): number => {
+    const value = new RegExp(
+      `#define\\s+${name}\\s+(0x[\\da-f]+|\\d+)`,
+      'i',
+    ).exec(source)?.[1];
+    if (!value) throw new Error(`MAME M6801U4 source is missing ${name}`);
+    return Number(value);
+  };
+  return {
+    ram: [{ start: Number(ram[1]), end: Number(ram[2]) }],
+    ports: [1, 2, 3, 4].map(port => ({
+      dataAddress: address(`p${port}_data_w`),
+      directionAddress: address(`p${port}_ddr_w`),
+      inputSignal: `in_p${port}_cb`,
+      outputSignal: `out_p${port}_cb`,
+      outputMask: port === 2 ? outputMask : 0xff,
+    })),
+    portHandshake: {
+      portIndex: 2,
+      controlAddress: address('p3_csr_w'),
+      inputLine: 2,
+      latchEnableMask: constant('M6801_P3CSR_LE'),
+      outputSelectMask: constant('M6801_P3CSR_OSS'),
+      flagMask: constant('M6801_P3CSR_IS3_FLAG'),
+    },
   };
 }
 

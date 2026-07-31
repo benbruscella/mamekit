@@ -203,6 +203,14 @@ export function lowerGeneratedMachine(
       );
     }
   }
+  const selectedMachineId = graph.edges.find(edge =>
+    edge.from === `game:${game}` && edge.rel === 'USES_MACHINE')?.to;
+  const selectedMachine = selectedMachineId
+    ? byId.get(selectedMachineId)
+    : undefined;
+  const resetHandlers = Array.isArray(selectedMachine?.props.resetHandlers)
+    ? selectedMachine.props.resetHandlers.map(String)
+    : [];
   const execution: GeneratedExecutionPlan = {
     cpus: board.cpus.map(cpu => {
       const interruptVectorWriters = inferInterruptVectorWriters(
@@ -216,7 +224,7 @@ export function lowerGeneratedMachine(
         ...(nesApu && cpu.type?.toLowerCase() === 'rp2a03'
           ? { ranges: mergeInternalRanges(cpu.ranges ?? [], nesApu) }
           : {}),
-        cycleClock: cpu.type === 'mc6809'
+        cycleClock: cpu.type === 'mc6809' || cpu.type === 'm6801u4'
           ? cpu.clock / 4
           : cpu.type === 'i8039'
             ? cpu.clock / 15
@@ -225,6 +233,7 @@ export function lowerGeneratedMachine(
         ...(deviceByTag.get(cpu.tag)?.source ? { source: deviceByTag.get(cpu.tag)!.source } : {}),
       };
     }),
+    ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(graph.nodes.some(node => node.label === 'MemoryBank') ? {
       banks: lowerMemoryBanks(graph, sourceRef),
     } : {}),
@@ -306,6 +315,7 @@ export function lowerGeneratedMachine(
           ...(lowerAudioRoutes(graph, ymDevices).length
             ? { routes: lowerAudioRoutes(graph, ymDevices) }
             : {}),
+          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
         }
     : ayDevices.length
       ? {
@@ -517,6 +527,7 @@ export function lowerAudioRoutes(
 const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   DAC_8BIT_R2R: ['data_w'],
   MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
+  YM3526: ['write'],
 };
 
 /**

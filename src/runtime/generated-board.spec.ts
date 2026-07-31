@@ -148,6 +148,101 @@ opcodeBoard.frame(new Uint32Array(1));
 assert.equal(programRead, 0x11);
 assert.equal(opcodeRead, 0x22, 'the generated board must preserve the AS_OPCODES bus');
 
+let cpuSignalRead = -1;
+let cpuHandlerSignalRead = -1;
+registerGeneratedCpu({
+  type: 'CPU_SIGNAL_FIXTURE',
+  summary: { diagnostics: 0 },
+  create(bus) {
+    return {
+      reset() {},
+      step() { return 1; },
+      run(cycles) {
+        cpuSignalRead = bus.signal?.('in_p1_cb', 0) ?? -1;
+        cpuHandlerSignalRead = bus.signal?.('in_p3_cb', 0) ?? -1;
+        return cycles;
+      },
+      setIrqLine() {},
+      setInputLine() {},
+      nmi() {},
+      get() { return 0; },
+      set() {},
+      invoke() { return 0; },
+    };
+  },
+});
+const signalMachine: BoardIr = {
+  ...opcodeMachine,
+  game: 'cpu-signal-fixture',
+  callbacks: [{
+    id: 'cpu-input',
+    ownerTag: 'mcu',
+    signal: 'in_p1_cb',
+    operation: 'set_ioport',
+    targetTag: 'IN0',
+    targetPort: 'IN0',
+  }, {
+    id: 'cpu-handler-input',
+    ownerTag: 'mcu',
+    signal: 'in_p3_cb',
+    operation: 'set',
+    targetClass: 'fixture_state',
+    targetMethod: 'port3_r',
+  }],
+  connections: [{
+    callbackId: 'cpu-input',
+    effect: { kind: 'port-read', port: 'IN0' },
+    transforms: [],
+  }, {
+    callbackId: 'cpu-handler-input',
+    effect: { kind: 'handler', handler: 'fixture_state.port3_r' },
+    transforms: [],
+  }],
+  handlers: [{
+    id: 'handler:fixture_state.port3_r',
+    ownerClass: 'fixture_state',
+    method: 'port3_r',
+    program: {
+      operations: [{
+        op: 'return',
+        value: { kind: 'number', value: 0x5a },
+      }],
+      diagnostics: [],
+    },
+  }],
+  execution: {
+    ...opcodeMachine.execution,
+    cpus: [{
+      tag: 'mcu',
+      type: 'CPU_SIGNAL_FIXTURE',
+      clock: 60,
+      region: 'mcu',
+      ranges: [{ start: 0, end: 0, kind: 'rom' }],
+    }],
+  },
+};
+const signalBoard = createGeneratedBoard(
+  signalMachine,
+  {
+    game: signalMachine.game,
+    family: 'fixture',
+    cpus: [],
+    ranges: [],
+    screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 1, rotate: 0 },
+    clocks: { namco06: 0, wsg: 0 },
+  },
+  { mcu: Uint8Array.of(0) },
+  { read: port => port === 'IN0' ? 0xa5 : 0xff },
+  { soundWrite: () => {} },
+);
+signalBoard.frame(new Uint32Array(1));
+assert.equal(cpuSignalRead, 0xa5, 'CPU input callbacks must return the bound port value');
+assert.equal(
+  cpuHandlerSignalRead,
+  0x5a,
+  'CPU input callbacks must return the generated handler value',
+);
+
 let slotBackedRan = false;
 registerGeneratedCpu({
   type: 'SLOT_BACKED_FIXTURE',

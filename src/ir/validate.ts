@@ -71,6 +71,13 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     (board.handlers ?? []).map(handler => `${handler.ownerClass}.${handler.method}`),
   );
   const handlerMethods = new Set((board.handlers ?? []).map(handler => handler.method));
+  for (const [index, handler] of (board.execution.resetHandlers ?? []).entries()) {
+    if (handlerKeys.has(handler)) continue;
+    fail(
+      `execution.resetHandlers[${index}]`,
+      `machine reset handler "${handler}" was not generated`,
+    );
+  }
   // A MAME timer_device is declared by the callback that schedules it rather
   // than by a machine-config device line, so it owns itself.
   const timerOwners = new Set(

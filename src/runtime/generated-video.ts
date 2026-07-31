@@ -390,16 +390,19 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
     for (let index = 0; index < count; index++) this.update(base + index);
   }
 
-  /** palette_device::read_entry, little-endian across base then ext bytes. */
+  /** palette_device::read_entry, honoring the configured device byte order. */
   private entry(pen: number): number {
     let raw = 0;
+    const totalBytes = this.bytesPerEntry * (this.ext ? 2 : 1);
+    const shiftFor = (byte: number): number =>
+      8 * (this.plan.endianness === 'big' ? totalBytes - byte - 1 : byte);
     for (let byte = 0; byte < this.bytesPerEntry; byte++) {
-      raw |= (this.ram[pen * this.bytesPerEntry + byte] ?? 0) << (8 * byte);
+      raw |= (this.ram[pen * this.bytesPerEntry + byte] ?? 0) << shiftFor(byte);
     }
     if (this.ext) {
       for (let byte = 0; byte < this.bytesPerEntry; byte++) {
         raw |= (this.ext[pen * this.bytesPerEntry + byte] ?? 0) <<
-          (8 * (this.bytesPerEntry + byte));
+          shiftFor(this.bytesPerEntry + byte);
       }
     }
     return raw >>> 0;
@@ -994,7 +997,10 @@ export function generatedScrollBand(
   return Math.min(bands - 1, Math.floor(tile * bands / tileCount));
 }
 
-type GeneratedDirectScreenShape = 'galaxian-no-bullets' | 'timeplt';
+type GeneratedDirectScreenShape =
+  | 'bublbobl-object-columns'
+  | 'galaxian-no-bullets'
+  | 'timeplt';
 
 /**
  * Select direct executors by the generated MAME routine structure. Keeping the
@@ -1008,6 +1014,16 @@ export function generatedDirectScreenShape(
   const screen = machine.handlers?.find(handler =>
     `${handler.ownerClass}.${handler.method}` === screenKey);
   const body = screen?.body ?? '';
+  if (
+    body.includes('bitmap.fill(255, cliprect)') &&
+    body.includes('for (offs = 0; offs < m_objectram.bytes(); offs += 4)') &&
+    body.includes('prom_line = prom + 0x80 + ((gfx_num & 0xe0) >> 1)') &&
+    body.includes('m_gfxdecode->gfx(0)->transpen(bitmap,cliprect,') &&
+    body.includes('m_videoram[goffs + 1]') &&
+    body.includes('sx += 16')
+  ) {
+    return 'bublbobl-object-columns';
+  }
   if (
     body.includes('m_draw_background_ptr(bitmap, cliprect)') &&
     body.includes('m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
@@ -1279,6 +1295,75 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     cliprect: GeneratedRectangle,
   ): boolean {
     if (handler !== this.machine.execution.screenUpdate?.handler) return false;
+    if (this.directScreenShape === 'bublbobl-object-columns') {
+      bitmap.fill(255, cliprect);
+      if (!Number(this.state.m_video_enable ?? 0)) return true;
+      const objectram = this.state.m_objectram;
+      const videoram = this.state.m_videoram;
+      const proms = this.state.m_proms;
+      const gfx = this.gfx[0];
+      if (
+        !ArrayBuffer.isView(objectram) ||
+        !ArrayBuffer.isView(videoram) ||
+        !ArrayBuffer.isView(proms) ||
+        !gfx
+      ) {
+        return false;
+      }
+      const objects = objectram as Uint8Array;
+      const video = videoram as Uint8Array;
+      const prom = proms as Uint8Array;
+      const flipped = Boolean(this.state.__flip_screen);
+      let sx = 0;
+      for (let offset = 0; offset < objects.length; offset += 4) {
+        if (
+          (objects[offset] ?? 0) === 0 &&
+          (objects[offset + 1] ?? 0) === 0 &&
+          (objects[offset + 2] ?? 0) === 0 &&
+          (objects[offset + 3] ?? 0) === 0
+        ) {
+          continue;
+        }
+        const gfxNumber = objects[offset + 1] ?? 0;
+        const attributes = objects[offset + 3] ?? 0;
+        const promBase = 0x80 + ((gfxNumber & 0xe0) >>> 1);
+        let gfxOffset = (gfxNumber & 0x1f) * 0x80;
+        if ((gfxNumber & 0xa0) === 0xa0) gfxOffset |= 0x1000;
+        const sy = -(objects[offset] ?? 0);
+        for (let yc = 0; yc < 32; yc++) {
+          const control = prom[promBase + (yc >>> 1)] ?? 0;
+          if (control & 0x08) continue;
+          if (!(control & 0x04)) {
+            sx = objects[offset + 2] ?? 0;
+            if (attributes & 0x40) sx -= 256;
+          }
+          for (let xc = 0; xc < 2; xc++) {
+            const graphicsOffset =
+              gfxOffset +
+              xc * 0x40 +
+              (yc & 7) * 2 +
+              (control & 3) * 0x10;
+            const low = video[graphicsOffset] ?? 0;
+            const high = video[graphicsOffset + 1] ?? 0;
+            const code = low + 256 * (high & 3) + 1024 * (attributes & 0x0f);
+            const color = (high & 0x3c) >>> 2;
+            let flipX = high & 0x40;
+            let flipY = high & 0x80;
+            let x = sx + xc * 8;
+            let y = (sy + yc * 8) & 0xff;
+            if (flipped) {
+              x = 248 - x;
+              y = 248 - y;
+              flipX = Number(!flipX);
+              flipY = Number(!flipY);
+            }
+            gfx.transpen(bitmap, cliprect, code, color, flipX, flipY, x, y, 15);
+          }
+        }
+        sx += 16;
+      }
+      return true;
+    }
     if (this.directScreenShape === 'galaxian-no-bullets') {
       const background = this.bindings.referenceCalls?.m_draw_background_ptr;
       if (!background) return false;

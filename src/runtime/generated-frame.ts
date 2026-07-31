@@ -96,7 +96,7 @@ export class GeneratedFrameRunner {
     const screen = this.machine.execution.screen;
     for (let line = 0; line < screen.vtotal; line++) {
       this.onLine?.(line, 'before-processors', framebuffer);
-      if (this.eventPhase === 'before-processors') this.dispatchLine(line);
+      if (this.eventPhase === 'before-processors') this.dispatchLine(line, framebuffer);
       // MAME's VIDEO_UPDATE_SCANLINE timer calls update_partial at the start
       // of the scanline, before CPUs execute the interval leading to the next
       // line. Drawing afterwards can combine sprite RAM from two states across
@@ -111,13 +111,17 @@ export class GeneratedFrameRunner {
       }
 
       this.onLine?.(line, 'after-processors', framebuffer);
-      if (this.eventPhase === 'after-processors') this.dispatchLine(line);
+      if (this.eventPhase === 'after-processors') this.dispatchLine(line, framebuffer);
     }
     this.frames++;
+    // Keep frame-mode presentation at the established end-of-frame boundary.
+    // Moving it to vbstart changed late-frame video for otherwise unrelated
+    // boards; games that need scanline timing opt into the explicit scanline
+    // mode above.
     if (screen.updateMode !== 'scanline') this.video?.render(framebuffer);
   }
 
-  private dispatchLine(line: number): void {
+  private dispatchLine(line: number, framebuffer: Uint32Array): void {
     for (const event of this.eventsByLine.get(line) ?? []) this.onEvent?.(event);
     for (const scheduled of this.periodicEvents) {
       scheduled.carry += scheduled.eventsPerLine;

@@ -15,6 +15,7 @@ import {
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
   parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
   parseInitPatches, parseInitRomTransforms, parseTextMacros, parseMemoryBanks, evalExpr,
+  parseEnumConstants,
   type InputPortsDef,
 } from './parse.ts';
 
@@ -22,7 +23,7 @@ const VERSION = '0.1.0';
 
 /**
  * Build the knowledge graph for one MAME driver file (plus its .h header and
- * any sibling _v/_a compilation units, which share the state class).
+ * any sibling _m/_v/_a compilation units, which share the state class).
  */
 export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph {
   const g = new GraphBuilder();
@@ -34,7 +35,13 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   // (m52.cpp includes irem.h; irem.cpp holds the audio-board device's
   // device_add_mconfig with the M6803 + AY8910s + MSM5205)
   const stem = driverBase.replace(/\.cpp$/, '');
-  const family = [driverBase, `${stem}.h`, `${stem}_v.cpp`, `${stem}_a.cpp`]
+  const family = [
+    driverBase,
+    `${stem}.h`,
+    `${stem}_m.cpp`,
+    `${stem}_v.cpp`,
+    `${stem}_a.cpp`,
+  ]
     .map(f => join(dir, f))
     .filter(f => existsSync(f));
 
@@ -49,6 +56,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       for (const extra of [
         join(incDir, inc),
         join(incDir, `${includedStem}.cpp`),
+        join(incDir, `${includedStem}_m.cpp`),
         join(incDir, `${includedStem}_v.cpp`),
         join(incDir, `${includedStem}_a.cpp`),
       ]) {
@@ -88,12 +96,34 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   // constants from external includes (clock XTALs live in device headers:
   // cpu/m6502/rp2a03.h defines NTSC_APU_CLOCK) — defines only, no graph nodes.
   // Externals seed first, the driver family's own defines win.
-  let extConsts: Record<string, number> = {};
-  for (const inc of slashIncludes) {
-    for (const cand of [join(mameSrc, 'src/devices', inc), join(mameSrc, 'src', inc), join(mameSrc, 'src/mame', inc)]) {
+  const externalSources: string[] = [];
+  const pendingExternalIncludes = [...slashIncludes];
+  const seenExternalIncludes = new Set<string>();
+  while (pendingExternalIncludes.length) {
+    const inc = pendingExternalIncludes.shift()!;
+    if (seenExternalIncludes.has(inc)) continue;
+    seenExternalIncludes.add(inc);
+    for (const cand of [
+      join(mameSrc, 'src/devices', inc),
+      join(mameSrc, 'src', inc),
+      join(mameSrc, 'src/mame', inc),
+    ]) {
       if (!existsSync(cand)) continue;
-      extConsts = parseDefines(stripComments(readFileSync(cand, 'utf8')), extConsts);
+      const source = readFileSync(cand, 'utf8');
+      externalSources.push(source);
+      for (const nested of parseIncludes(source)) {
+        if (nested.includes('/')) pendingExternalIncludes.push(nested);
+      }
       break;
+    }
+  }
+  let extConsts: Record<string, number> = {};
+  // Includes are discovered parent-first. Iterate so a child header can seed
+  // an enum expression in the parent on the following pass.
+  for (let pass = 0; pass <= externalSources.length; pass++) {
+    for (const source of externalSources) {
+      extConsts = parseDefines(stripComments(source), extConsts);
+      extConsts = parseEnumConstants(source, extConsts);
     }
   }
   const consts = parseDefines(combined, extConsts);
@@ -262,16 +292,35 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   for (const cfg of machineConfigs) {
     const cfgId = `machine:${cfg.cls}.${cfg.name}`;
     const cfgFunction = ast.findFunction(cfg.cls, cfg.name);
+    const resetFunctions = resolveMachineLifecycle(
+      ast,
+      cfg.cls,
+      cfg.name,
+      'reset',
+    );
+    const resetHandlers = resetFunctions.map(fn => `${fn.className}.${fn.name}`);
     g.node('MachineConfig', cfgId, {
       cls: cfg.cls,
       name: cfg.name,
       calls: cfg.calls,
+      ...(resetHandlers.length ? { resetHandlers } : {}),
       ...(cfg.devicePatches.length
         ? { devicePatches: cfg.devicePatches.map(patch => JSON.stringify(patch)) }
         : {}),
       ...spanProps(cfgFunction?.span),
     });
     definedIn(cfgId, cfgFunction?.span);
+    for (const fn of resetFunctions) {
+      const handlerId = emitSourceHandlerClosure(
+        g,
+        ast,
+        fn.className,
+        fn.name,
+        consts,
+        fn.span,
+      );
+      g.edge(cfgId, handlerId, 'CALLS_HANDLER');
+    }
     for (const callback of g.nodes.values()) {
       if (callback.label !== 'Callback' || callback.props.signal !== 'timer') continue;
       const targetClass = String(callback.props.targetClass ?? '');
@@ -284,10 +333,34 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (target) g.edge(cfgId, `machine:${target.cls}.${target.name}`, 'CALLS');
     }
     const machineStart = ast.findFunctionInHierarchy(cfg.cls, 'machine_start');
-    const banks = parseMemoryBanks(machineStart?.body ?? '', memberTags, consts);
-    for (const [index, bank] of banks.entries()) {
+    const bankRoots = [
+      ...(machineStart ? [machineStart] : []),
+      ...games
+        .filter(game => game.cls === cfg.cls && game.machine === cfg.name)
+        .flatMap(game => {
+          const init = ast.findFunctionInHierarchy(cfg.cls, game.init);
+          return init ? [init] : [];
+        }),
+    ];
+    const bankFunctions: MameFunction[] = [];
+    const pendingBankFunctions = [...bankRoots];
+    const seenBankFunctions = new Set<string>();
+    while (pendingBankFunctions.length) {
+      const fn = pendingBankFunctions.shift()!;
+      const key = `${fn.className}.${fn.name}`;
+      if (seenBankFunctions.has(key)) continue;
+      seenBankFunctions.add(key);
+      bankFunctions.push(fn);
+      for (const call of fn.statements.flatMap(statement => statement.calls)) {
+        const target = ast.findFunctionInHierarchy(cfg.cls, call.name);
+        if (target) pendingBankFunctions.push(target);
+      }
+    }
+    const bankSources = bankFunctions.flatMap(fn =>
+      parseMemoryBanks(fn.body, memberTags, consts).map(bank => ({ bank, source: fn.span })));
+    for (const [index, { bank, source }] of bankSources.entries()) {
       // One node per configure call: a bank's entries may be placed by several.
-      const window = banks.filter(other => other.tag === bank.tag).length > 1
+      const window = bankSources.filter(other => other.bank.tag === bank.tag).length > 1
         ? `/${index}`
         : '';
       const bankId = `bank:${cfg.cls}.${cfg.name}/${bank.tag}${window}`;
@@ -300,10 +373,10 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         offset: bank.offset,
         stride: bank.stride,
         raw: bank.raw,
-        ...spanProps(machineStart?.span),
+        ...spanProps(source),
       });
       g.edge(cfgId, bankId, 'HAS_BANK');
-      definedIn(bankId, machineStart?.span);
+      definedIn(bankId, source);
     }
     for (const list of cfg.softwareLists) {
       const listId = `softlist:${list.name}`;
@@ -482,6 +555,51 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     ...(license ? { license } : {}),
     ...(copyrightHolders ? { copyrightHolders } : {}),
   });
+}
+
+/**
+ * Resolve a legacy MAME lifecycle override in base-first execution order.
+ *
+ * MACHINE_RESET_CALL_MEMBER is deliberately removed from the executable
+ * handler body by the AST parser. Its source spelling still determines this
+ * ordered plan, preventing the macro from becoming an unresolved runtime call.
+ */
+export function resolveMachineLifecycle(
+  ast: MameAstIndex,
+  className: string,
+  machineName: string,
+  kind: 'start' | 'reset',
+): MameFunction[] {
+  const root = ast.findFunctionInHierarchy(
+    className,
+    `machine_${kind}_${machineName}`,
+  );
+  if (!root) return [];
+
+  const ordered: MameFunction[] = [];
+  const visited = new Set<string>();
+  const visit = (fn: MameFunction): void => {
+    const key = `${fn.className}.${fn.name}`;
+    if (visited.has(key)) return;
+    visited.add(key);
+    const unit = ast.ast.units.find(candidate =>
+      candidate.file === fn.bodySpan.file);
+    const rawBody = unit?.source.slice(fn.bodySpan.start, fn.bodySpan.end) ?? '';
+    const callRe = new RegExp(
+      `\\bMACHINE_${kind.toUpperCase()}_CALL_MEMBER\\s*\\(\\s*(\\w+)\\s*\\)`,
+      'g',
+    );
+    for (const call of rawBody.matchAll(callRe)) {
+      const dependency = ast.findFunctionInHierarchy(
+        fn.className,
+        `machine_${kind}_${call[1]}`,
+      );
+      if (dependency) visit(dependency);
+    }
+    ordered.push(fn);
+  };
+  visit(root);
+  return ordered;
 }
 
 function emitSourceTimerCallbacks(
@@ -779,7 +897,8 @@ function emitCallbacks(
     const transforms = calls.slice(operationIndex + 1).map(call =>
       `${call.name}${call.args.length ? `(${call.args.join(', ')})` : ''}`,
     );
-    const callbackId = `${devId}/callback${callbackIndex++}`;
+    const callbackOwner = deviceTag.replace(/[^A-Za-z0-9_]+/g, '_');
+    const callbackId = `${devId}/callback:${callbackOwner}:${callbackIndex++}`;
     const props: Record<string, PropValue> = {
       signal: signal.name,
       operation: operation.name,
@@ -816,7 +935,8 @@ function emitCallbacks(
     if (quotedTarget) props.targetTag = quotedTarget;
     if (operation.name === 'set_ioport' && quotedTarget) props.targetPort = quotedTarget;
     if (operation.name.includes('inputline')) {
-      const line = operation.args.find(arg => /INPUT_LINE_|^\d+$/.test(arg.trim()));
+      const line = operation.args.find(arg =>
+        /^(?:INPUT_LINE_[A-Z0-9_]+|[A-Z][A-Z0-9_]*_LINE|\d+)$/.test(arg.trim()));
       if (line) props.inputLine = line.trim();
     }
     if (operation.name === 'set_maincpu') {
@@ -1083,7 +1203,8 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
         .map(edge => edge.to));
     }
   }
-  const patched = new Set<string>();
+  const patchedClocks = new Set<string>();
+  const patchedScreenRaws = new Set<string>();
   for (const configId of configOrder) {
     const config = nodes.find(node => node.id === configId);
     const encoded = Array.isArray(config?.props.devicePatches)
@@ -1099,7 +1220,6 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
           vtotal: number; vbend: number; vbstart: number;
         };
       };
-      if (patched.has(patch.tag)) continue;
       const deviceIds = new Set(configOrder.flatMap(id => edges
         .filter(edge => edge.from === id && edge.rel === 'HAS_DEVICE')
         .map(edge => edge.to)));
@@ -1108,9 +1228,11 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
         node.label === 'Device' &&
         String(node.props.tag) === patch.tag);
       if (!device) continue;
-      patched.add(patch.tag);
-      if (patch.clock !== undefined) device.props.clock = patch.clock;
-      if (patch.screenRaw) {
+      if (patch.clock !== undefined && !patchedClocks.has(patch.tag)) {
+        device.props.clock = patch.clock;
+        patchedClocks.add(patch.tag);
+      }
+      if (patch.screenRaw && !patchedScreenRaws.has(patch.tag)) {
         device.props.screenRaw = [
           patch.screenRaw.pixclock,
           patch.screenRaw.htotal,
@@ -1120,6 +1242,7 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
           patch.screenRaw.vbend,
           patch.screenRaw.vbstart,
         ];
+        patchedScreenRaws.add(patch.tag);
       }
       const raw = Array.isArray(device.props.config)
         ? device.props.config.map(String)

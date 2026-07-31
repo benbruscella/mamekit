@@ -141,6 +141,72 @@ const internalCpu = createCpu('internal_io', {
 assert.equal(internalCpu.invoke('internal_round_trip'), 0xff);
 assert.deepEqual(internalSignals, [['p1_out_cb', 0xff]]);
 
+const handshakeSignals: Array<[string, number]> = [];
+registerGeneratedCpu(definition('internal_handshake', {
+  internal: {
+    ram: [],
+    ports: [{
+      dataAddress: 0x06,
+      directionAddress: 0x04,
+      inputSignal: 'in_p3_cb',
+      outputSignal: 'out_p3_cb',
+      outputMask: 0xff,
+    }],
+    portHandshake: {
+      portIndex: 0,
+      controlAddress: 0x0f,
+      inputLine: 2,
+      latchEnableMask: 0x08,
+      outputSelectMask: 0x10,
+      flagMask: 0x80,
+    },
+  },
+  methods: [
+    {
+      name: 'enable_handshake',
+      parameters: '',
+      program: compileMameHandler('WRITE(0x0f, 0x08);'),
+    },
+    {
+      name: 'read_handshake',
+      parameters: '',
+      program: compileMameHandler(`
+        int status = READ(0x0f);
+        int data = READ(0x06);
+        return (status << 8) | data;
+      `),
+    },
+    {
+      name: 'read_status',
+      parameters: '',
+      program: compileMameHandler('return READ(0x0f);'),
+    },
+    {
+      name: 'write_while_input',
+      parameters: '',
+      program: compileMameHandler('WRITE(0x06, 0x12);'),
+    },
+  ],
+}));
+const handshakeCpu = createCpu('internal_handshake', {
+  read: () => 0,
+  write: () => {},
+  in: () => 0,
+  out: () => {},
+  signal: (name, state) => {
+    if (name === 'in_p3_cb') return 0x5a;
+    handshakeSignals.push([name, state]);
+    return 0;
+  },
+});
+handshakeCpu.invoke('enable_handshake');
+handshakeCpu.setInputLine(2, 1);
+handshakeCpu.setInputLine(2, 0);
+assert.equal(handshakeCpu.invoke('read_handshake'), 0x885a);
+assert.equal(handshakeCpu.invoke('read_status'), 0x08);
+handshakeCpu.invoke('write_while_input');
+assert.deepEqual(handshakeSignals, [['out_p3_cb', 0xff]]);
+
 let delegated = 0;
 registerGeneratedCpu({
   type: 'delegated',

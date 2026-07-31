@@ -1,6 +1,7 @@
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
 import { compileMameDevice } from '../../mame/device-compiler.ts';
 import type { MameHardwareDefinition } from '../../mame/hardware.ts';
+import { compileInputMerger } from '../../mame/input-merger-compiler.ts';
 import { compileNamco51Protocol } from '../../mame/namco51-compiler.ts';
 import { compileNamco53Protocol } from '../../mame/namco53-compiler.ts';
 import type {
@@ -16,6 +17,14 @@ import {
 } from './definition.ts';
 
 type Compiled = ReturnType<typeof compileMameDevice>;
+
+const SPECIALIZED: Record<
+string,
+(mameSource: string, definition: MameHardwareDefinition) => Compiled
+> = {
+  INPUT_MERGER_ALL_HIGH: compileInputMerger,
+  INPUT_MERGER_ANY_HIGH: compileInputMerger,
+};
 
 /** Devices MAMEKIT lowers as a protocol rather than by running MCU firmware. */
 const PROTOCOL: Record<string, () => Compiled> = {
@@ -34,10 +43,10 @@ export function extractDevices(input: CapabilityInput): CapabilityExtraction | u
       continue;
     }
     if (!entry.definition) continue;
-    const device = compileMameDevice(
-      input.mameSource,
-      entry.definition as MameHardwareDefinition,
-    );
+    const definition = entry.definition as MameHardwareDefinition;
+    const device = SPECIALIZED[type]
+      ? SPECIALIZED[type](input.mameSource, definition)
+      : compileMameDevice(input.mameSource, definition);
     // A device whose methods did not lower cleanly is not executable. Emitting
     // it anyway would claim hardware the runtime cannot actually run.
     if (device.summary.diagnostics) continue;

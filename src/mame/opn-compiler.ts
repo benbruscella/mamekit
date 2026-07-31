@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { splitMameArgs } from './ast.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
+import type { GeneratedYm3526Plan } from './opl-compiler.ts';
 
 /**
  * Lower MAME's YM2203 (OPN) sound device.
@@ -553,12 +554,32 @@ export interface GeneratedYmRoute {
  * ymfm's OPN algorithm; every table, bitfield offset, ratio and constant it
  * consumes comes from `plan`, which is read out of MAME's ymfm sources.
  */
-export function generatedYm2203WorkletSource(plan: GeneratedYm2203Plan): string {
+export function generatedYm2203WorkletSource(
+  plan: GeneratedYm2203Plan,
+  ym3526Plan?: GeneratedYm3526Plan,
+): string {
   return `// GENERATED from ${plan.source.file}:${plan.source.line}; do not edit.
 // The OPN FM engine, SSG engine, register bitfield map, die-extracted sine,
 // power, envelope-increment and detune tables, and the fidelity/prescale
 // resampling ratios are all lowered from MAME's bundled ymfm implementation.
 const plan = ${JSON.stringify(plan, null, 2)};
+
+interface GeneratedYm3526Plan {
+  channels: number;
+  operators: number;
+  registers: number;
+  waveformLength: number;
+  sampleRateDivider: number;
+  operatorMap: [number, number][];
+  operatorOffsets: number[];
+  multiples: number[];
+}
+
+// Keep the nullable plan's declared union even in a targeted build where the
+// literal is null. Without the assertion TypeScript narrows a const null all
+// the way to never inside the dormant OPL class, breaking unrelated YM2203-only
+// targets such as Commando.
+const ym3526Plan = (${JSON.stringify(ym3526Plan ?? null, null, 2)}) as GeneratedYm3526Plan | null;
 
 export interface GeneratedYmRoute {
   chip: number;
@@ -572,6 +593,14 @@ export interface GeneratedYmWrite {
   data: number;
   frac?: number;
   method?: string;
+}
+
+export interface GeneratedAuxiliaryAudioDevice {
+  type: string;
+  deviceTag: string;
+  clock: number;
+  gain: number;
+  target: string;
 }
 
 interface Field {
@@ -1156,11 +1185,251 @@ export class GeneratedYm2203Chip {
 }
 
 /**
+ * YM3526 execution core hosted beside the OPN chips. Its topology, register
+ * size, operator offsets, multiplier table and native rate are emitted from
+ * ymfm. The envelope and phase accumulators run at the browser output rate,
+ * while preserving the chip's register-visible two-operator algorithms.
+ */
+export class GeneratedYm3526Chip {
+  private readonly regs: Uint8Array;
+  private readonly waveform = new Uint16Array(FM.waveformLength);
+  private readonly operatorChannel: Uint8Array;
+  private readonly phase: Uint32Array;
+  private readonly envAttenuation: Uint16Array;
+  private readonly envelopeState: Uint8Array;
+  private readonly keyState: Uint8Array;
+  private readonly feedback1: Int32Array;
+  private readonly feedback2: Int32Array;
+  private readonly feedbackIn: Int32Array;
+  private readonly clock: number;
+  private readonly outputRate: number;
+  private address = 0;
+  private envCounter = 0;
+  private samplePhase = 0;
+  private lastSample = 0;
+
+  constructor(clock: number, outputRate: number) {
+    const opl = ym3526Plan;
+    if (!opl) throw new Error('YM3526 plan was not emitted');
+    this.regs = new Uint8Array(opl.registers);
+    this.operatorChannel = new Uint8Array(opl.operators);
+    this.phase = new Uint32Array(opl.operators);
+    this.envAttenuation = new Uint16Array(opl.operators);
+    this.envelopeState = new Uint8Array(opl.operators);
+    this.keyState = new Uint8Array(opl.operators);
+    this.feedback1 = new Int32Array(opl.channels);
+    this.feedback2 = new Int32Array(opl.channels);
+    this.feedbackIn = new Int32Array(opl.channels);
+    this.clock = clock;
+    this.outputRate = outputRate;
+    // Revision 1 has one waveform. Build it from the same die-extracted table
+    // and logarithmic DAC representation used by ymfm's OPN implementation.
+    for (let index = 0; index < FM.waveformLength; index++) {
+      this.waveform[index] =
+        FM.sinTable[(bitfield(index, 8) ? ~index : index) & 0xff]! |
+        (bitfield(index, 9) << 15);
+    }
+    for (let channel = 0; channel < opl.channels; channel++) {
+      for (const operator of opl.operatorMap[channel]!) {
+        this.operatorChannel[operator] = channel;
+      }
+    }
+    this.reset();
+  }
+
+  reset(): void {
+    this.regs.fill(0);
+    this.phase.fill(0);
+    this.envAttenuation.fill(0x3ff);
+    this.envelopeState.fill(FM.egRelease);
+    this.keyState.fill(0);
+    this.feedback1.fill(0);
+    this.feedback2.fill(0);
+    this.feedbackIn.fill(0);
+    this.address = 0;
+    this.envCounter = 0;
+    this.samplePhase = 0;
+    this.lastSample = 0;
+  }
+
+  write(port: number, data: number): void {
+    if ((port & 1) === 0) this.address = data & 0xff;
+    else this.regs[this.address] = data & 0xff;
+  }
+
+  sample(): number {
+    const opl = ym3526Plan!;
+    // YM3526 emits one native sample per prescale*operators input clocks.
+    // Clock at that rate and hold between native samples; driving its envelope
+    // directly at AudioContext rate changes every decay/release time.
+    this.samplePhase += this.clock / opl.sampleRateDivider / this.outputRate;
+    while (this.samplePhase >= 1) {
+      this.lastSample = this.clockChip();
+      this.samplePhase--;
+    }
+    return this.lastSample;
+  }
+
+  private clockChip(): number {
+    const opl = ym3526Plan!;
+    let total = 0;
+    this.envCounter = (this.envCounter + 4) >>> 0;
+    for (let channel = 0; channel < opl.channels; channel++) {
+      const [modulator, carrier] = opl.operatorMap[channel]!;
+      const keyRegister = this.regs[0xb0 + channel]!;
+      const keyOn = (keyRegister & 0x20) !== 0;
+      const blockFreq = ((keyRegister & 0x1f) << 8) | this.regs[0xa0 + channel]!;
+      this.updateKey(modulator, keyOn, blockFreq);
+      this.updateKey(carrier, keyOn, blockFreq);
+      this.clockEnvelope(modulator, blockFreq);
+      this.clockEnvelope(carrier, blockFreq);
+      this.clockPhase(modulator, blockFreq);
+      this.clockPhase(carrier, blockFreq);
+
+      // ymfm clocks the two feedback samples before producing this sample.
+      this.feedback2[channel] = this.feedback1[channel]!;
+      this.feedback1[channel] = this.feedbackIn[channel]!;
+      const algorithm = this.regs[0xc0 + channel]!;
+      const feedback = (algorithm >>> 1) & 7;
+      const feedbackInput = feedback === 0
+        ? 0
+        : (this.feedback1[channel]! + this.feedback2[channel]!) >> (10 - feedback);
+      const mod = this.operatorSample(modulator, feedbackInput);
+      this.feedbackIn[channel] = mod;
+
+      // Revision 1 uses the previous modulator sample for carrier modulation
+      // and shifts each channel by one before summing to its external DAC.
+      const carrierInput = (algorithm & 1) !== 0 ? 0 : this.feedback1[channel]! >> 1;
+      let voice = this.operatorSample(carrier, carrierInput) >> 1;
+      if ((algorithm & 1) !== 0) {
+        voice = clamp(voice + (this.feedback1[channel]! >> 1), -32768, 32767);
+      }
+      total += voice;
+    }
+    // YM3014 mantissa/exponent truncation, matching ym3526::generate.
+    return roundtripFp(total) / 32768;
+  }
+
+  private updateKey(operator: number, on: boolean, blockFreq: number): void {
+    if (on && this.keyState[operator] === 0) {
+      this.keyState[operator] = 1;
+      this.envelopeState[operator] = FM.egAttack;
+      this.phase[operator] = 0;
+      if (this.envelopeRate(operator, FM.egAttack, blockFreq) >= 62) {
+        this.envAttenuation[operator] = 0;
+      }
+    } else if (!on && this.keyState[operator] !== 0) {
+      this.keyState[operator] = 0;
+      this.envelopeState[operator] = FM.egRelease;
+    }
+  }
+
+  private envelopeRate(operator: number, state: number, blockFreq = 0): number {
+    const opl = ym3526Plan!;
+    const offset = opl.operatorOffsets[operator]!;
+    const characteristics = this.regs[0x20 + offset]!;
+    const rates = this.regs[0x60 + offset]!;
+    const sustainRelease = this.regs[0x80 + offset]!;
+    const block = bitfield(blockFreq, 10, 3);
+    const keycode = (block << 1) |
+      bitfield(blockFreq, 9 - bitfield(this.regs[0x08]!, 6), 1);
+    const ksr = keycode >>> (2 * (bitfield(characteristics, 4) ^ 1));
+    const raw = state === FM.egAttack
+      ? bitfield(rates, 4, 4) * 4
+      : state === FM.egDecay
+        ? bitfield(rates, 0, 4) * 4
+        : state === FM.egSustain && bitfield(characteristics, 5)
+          ? 0
+          : bitfield(sustainRelease, 0, 4) * 4;
+    return raw === 0 ? 0 : Math.min(raw + ksr, 63);
+  }
+
+  private clockEnvelope(operator: number, blockFreq: number): void {
+    const opl = ym3526Plan!;
+    const offset = opl.operatorOffsets[operator]!;
+    const state = this.envelopeState[operator]!;
+    if (state === FM.egAttack && this.envAttenuation[operator] === 0) {
+      this.envelopeState[operator] = FM.egDecay;
+    }
+    const sustainRelease = this.regs[0x80 + offset]!;
+    let sustain = bitfield(sustainRelease, 4, 4);
+    sustain |= (sustain + 1) & 0x10;
+    if (
+      this.envelopeState[operator] === FM.egDecay &&
+      this.envAttenuation[operator]! >= sustain << 5
+    ) {
+      this.envelopeState[operator] = FM.egSustain;
+    }
+
+    const current = this.envelopeState[operator]!;
+    const rate = this.envelopeRate(operator, current, blockFreq);
+    const rateShift = rate >>> 2;
+    const shiftedCounter = ((this.envCounter >>> 2) << rateShift) >>> 0;
+    if ((shiftedCounter & 0x7ff) !== 0) return;
+    const relevantShift = rateShift <= 11 ? 11 : rateShift;
+    const relevantBits = (shiftedCounter >>> relevantShift) & 7;
+    const packed = FM.incrementTable[rate]!;
+    const increment = (packed >>> (4 * relevantBits)) & 0x0f;
+    if (current === FM.egAttack) {
+      if (rate < 62) {
+        this.envAttenuation[operator] +=
+          (~this.envAttenuation[operator]! * increment) >> 4;
+      }
+    } else {
+      this.envAttenuation[operator] += increment;
+      if (this.envAttenuation[operator]! >= 0x400) {
+        this.envAttenuation[operator] = 0x3ff;
+      }
+    }
+  }
+
+  private clockPhase(operator: number, blockFreq: number): void {
+    const opl = ym3526Plan!;
+    const offset = opl.operatorOffsets[operator]!;
+    const multiple = opl.multiples[this.regs[0x20 + offset]! & 0x0f]! * 2;
+    const fnum = (blockFreq & 0x3ff) << 2;
+    const block = bitfield(blockFreq, 10, 3);
+    const step = (((fnum << block) >>> 2) * multiple) >>> 1;
+    this.phase[operator] = (this.phase[operator]! + step) >>> 0;
+  }
+
+  private operatorSample(operator: number, modulation: number): number {
+    const opl = ym3526Plan!;
+    const offset = opl.operatorOffsets[operator]!;
+    if (this.envAttenuation[operator]! > FM.egQuiet) return 0;
+    const waveformIndex = ((this.phase[operator]! >>> 10) + Math.trunc(modulation)) &
+      (opl.waveformLength - 1);
+    const sinAttenuation = this.waveform[waveformIndex]!;
+    const level = this.regs[0x40 + offset]!;
+    let totalLevel = (level & 0x3f) << 3;
+    const kslBits = level >>> 6;
+    const ksl = ((kslBits >>> 1) | ((kslBits & 1) << 1));
+    if (ksl !== 0) {
+      const channel = this.operatorChannel[operator]!;
+      const keyRegister = this.regs[0xb0 + channel]!;
+      const blockFreq = ((keyRegister & 0x1f) << 8) | this.regs[0xa0 + channel]!;
+      const table = [0, 24, 32, 37, 40, 43, 45, 47, 48, 50, 51, 52, 53, 54, 55, 56];
+      const attenuation = Math.max(
+        0,
+        table[bitfield(blockFreq, 6, 4)]! - 8 * (bitfield(blockFreq, 10, 3) ^ 7),
+      );
+      totalLevel += attenuation << ksl;
+    }
+    const env = Math.min(this.envAttenuation[operator]! + totalLevel, 0x3ff) << 2;
+    const attenuation = (sinAttenuation & 0x7fff) + env;
+    const linear = FM.powerTable[attenuation & 0xff]! >>> (attenuation >>> 8);
+    return bitfield(sinAttenuation, 15) ? -linear : linear;
+  }
+}
+
+/**
  * Hosts the machine's YM2203 bank, resampling each chip's native ymfm rate to
  * the host output rate and mixing the driver's add_route gains.
  */
 export class GeneratedYm2203Mixer {
   private readonly chips: GeneratedYm2203Chip[];
+  private readonly oplChips: GeneratedYm3526Chip[];
+  private readonly oplGains: number[];
   private readonly routes: GeneratedYmRoute[];
   private readonly chipRate: number;
   private readonly outputRate: number;
@@ -1174,8 +1443,13 @@ export class GeneratedYm2203Mixer {
     chips: number,
     outputRate: number,
     routes?: GeneratedYmRoute[],
+    auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[],
   ) {
     this.chips = Array.from({ length: Math.max(1, chips) }, () => new GeneratedYm2203Chip());
+    const oplDevices = (auxiliaryDevices ?? []).filter(device => device.type === 'YM3526');
+    this.oplChips = oplDevices.map(device =>
+      new GeneratedYm3526Chip(device.clock, outputRate));
+    this.oplGains = oplDevices.map(device => device.gain);
     this.chipRate = clock / plan.sampleRateDivider;
     this.outputRate = outputRate;
     this.held = this.chips.map(() => new Int32Array(4));
@@ -1187,6 +1461,13 @@ export class GeneratedYm2203Mixer {
 
   /** Register writes arrive as chip * 2 + port, matching the generated board. */
   write(offset: number, data: number, method?: string): void {
+    const primaryPorts = this.chips.length * 2;
+    if (offset >= primaryPorts) {
+      const opl = Math.floor((offset - primaryPorts) / 2);
+      if (method === 'reset') this.oplChips[opl]?.reset();
+      else this.oplChips[opl]?.write((offset - primaryPorts) & 1, data);
+      return;
+    }
     const chip = Math.floor(offset / 2);
     if (method === 'reset') {
       this.chips[chip]?.reset();
@@ -1216,7 +1497,11 @@ export class GeneratedYm2203Mixer {
       accumulated += this.routedTotal();
     }
     this.lastSample = steps > 0 ? accumulated / steps : this.lastSample;
-    return Math.max(-1, Math.min(1, this.lastSample / 32768));
+    let output = this.lastSample / 32768;
+    for (let chip = 0; chip < this.oplChips.length; chip++) {
+      output += this.oplChips[chip]!.sample() * this.oplGains[chip]!;
+    }
+    return Math.max(-1, Math.min(1, output));
   }
 
   private routedTotal(): number {
@@ -1283,6 +1568,7 @@ class GeneratedYm2203Processor extends AudioWorkletProcessor {
         clock?: number;
         chips?: number;
         routes?: GeneratedYmRoute[];
+        auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
         refresh?: number;
         offset?: number;
         data?: number;
@@ -1295,6 +1581,7 @@ class GeneratedYm2203Processor extends AudioWorkletProcessor {
           message.chips ?? 1,
           sampleRate,
           message.routes,
+          message.auxiliaryDevices,
         );
         this.renderer = new GeneratedYm2203FrameRenderer(
           this.mixer,

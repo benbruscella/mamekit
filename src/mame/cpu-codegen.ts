@@ -126,6 +126,7 @@ ${aliases}
   }
 
   reset(): void {
+    this.resetInternal();
 ${emitProgram(definition.reset, contextFor(definition, [], 'void'), 4)}
   }
 
@@ -146,6 +147,7 @@ ${step}
   }
 
   setInputLine(inputnum: number, state: number): void {
+    this.updateInternalInput(inputnum, state);
     this.generatedInput(inputnum, state);
   }
 
@@ -225,25 +227,55 @@ function emitInternalFields(definition: GeneratedCpuDefinition): string {
     '  private readonly internalRam = new Uint8Array(0x10000);',
     `  private readonly portData = new Uint8Array(${ports.length});`,
     `  private readonly portDirection = new Uint8Array(${ports.length});`,
+    '  private portHandshakeControl = 0;',
+    '  private portHandshakeInputState = 0;',
+    '  private portHandshakeLatched = false;',
+    '  private portHandshakePendingClear = false;',
   ].join('\n');
 }
 
 function emitInternalMethods(definition: GeneratedCpuDefinition): string {
   const ram = definition.internal?.ram ?? [];
   const ports = definition.internal?.ports ?? [];
+  const handshake = definition.internal?.portHandshake;
   const ramCondition = ram.length
     ? ram.map(range =>
         `(location >= ${range.start} && location <= ${range.end})`).join(' || ')
     : 'false';
+  const controlRead = handshake ? `
+    if (location === ${handshake.controlAddress}) {
+      if (this.portHandshakeControl & ${handshake.flagMask}) {
+        this.portHandshakePendingClear = true;
+      }
+      return this.portHandshakeControl;
+    }` : '';
   const portReads = ports.map((port, index) => `
     if (location === ${port.directionAddress}) return 0xff;
     if (location === ${port.dataAddress}) {
       const direction = this.portDirection[${index}];
-      const input = Number(this.bus.signal?.(${JSON.stringify(port.inputSignal)}, 0) ?? 0xff) & 0xff;
+${index === handshake?.portIndex
+    ? `      if (this.portHandshakePendingClear) {
+        this.portHandshakeControl &= ~${handshake.flagMask};
+        this.portHandshakePendingClear = false;
+      }
+      const data =
+        (this.portHandshakeControl & ${handshake.latchEnableMask}) ||
+        direction === 0xff
+          ? this.portData[${index}]
+          : (Number(this.bus.signal?.(${JSON.stringify(port.inputSignal)}, 0) ?? 0xff) & ~direction) |
+            (this.portData[${index}] & direction);
+      this.portHandshakeLatched = false;
+      return data & 0xff;`
+    : `      const input = Number(this.bus.signal?.(${JSON.stringify(port.inputSignal)}, 0) ?? 0xff) & 0xff;
       return direction === 0xff
         ? this.portData[${index}]
-        : (input & ~direction) | (this.portData[${index}] & direction);
+        : (input & ~direction) | (this.portData[${index}] & direction);`}
     }`).join('');
+  const controlWrite = handshake ? `
+    if (location === ${handshake.controlAddress}) {
+      this.portHandshakeControl = data;
+      return;
+    }` : '';
   const portWrites = ports.map((port, index) => `
     if (location === ${port.directionAddress}) {
       this.portDirection[${index}] = data;
@@ -251,7 +283,13 @@ function emitInternalMethods(definition: GeneratedCpuDefinition): string {
       return;
     }
     if (location === ${port.dataAddress}) {
-      this.portData[${index}] = data;
+${index === handshake?.portIndex
+    ? `      if (this.portHandshakePendingClear) {
+        this.portHandshakeControl &= ~${handshake.flagMask};
+        this.portHandshakePendingClear = false;
+      }
+`
+    : ''}      this.portData[${index}] = data;
       this.emitPort(${index}, ${JSON.stringify(port.outputSignal)}, ${port.outputMask});
       return;
     }`).join('');
@@ -259,15 +297,38 @@ function emitInternalMethods(definition: GeneratedCpuDefinition): string {
   const decryptCases = Object.entries(decrypt?.xorByAddress ?? {})
     .map(([address, xor]) => `      case ${address}: return value ^ ${xor};`)
     .join('\n');
+  const updateInput = handshake
+    ? `    if (inputnum !== ${handshake.inputLine}) return;
+    if (
+      !this.portHandshakeInputState &&
+      state !== 0 &&
+      !this.portHandshakeLatched &&
+      (this.portHandshakeControl & ${handshake.latchEnableMask})
+    ) {
+      const direction = this.portDirection[${handshake.portIndex}];
+      const input = Number(
+        this.bus.signal?.(
+          ${JSON.stringify(ports[handshake.portIndex]?.inputSignal ?? '')},
+          0,
+        ) ?? 0xff,
+      ) & 0xff;
+      this.portData[${handshake.portIndex}] =
+        (input & ~direction) | (this.portData[${handshake.portIndex}] & direction);
+      this.portHandshakeLatched = true;
+      this.portHandshakeControl |= ${handshake.flagMask};
+    }
+    this.portHandshakeInputState = state;`
+    : `    void inputnum;
+    void state;`;
   return `  private readMemory(address: number): number {
-    const location = address & 0xffff;${portReads}
+    const location = address & 0xffff;${controlRead}${portReads}
     if (${ramCondition}) return this.internalRam[location];
     return this.bus.read(location) & 0xff;
   }
 
   private writeMemory(address: number, value: number): void {
     const location = address & 0xffff;
-    const data = value & 0xff;${portWrites}
+    const data = value & 0xff;${controlWrite}${portWrites}
     if (${ramCondition}) {
       this.internalRam[location] = data;
       return;
@@ -289,10 +350,20 @@ ${decryptCases}
 
   private emitPort(index: number, signal: string, outputMask: number): void {
     const direction = this.portDirection[index];
-    const data = direction
-      ? (this.portData[index] & direction) | (direction ^ 0xff)
-      : this.portData[index];
+    const data = (this.portData[index] & direction) | (direction ^ 0xff);
     this.bus.signal?.(signal, data & outputMask);
+  }
+
+  private resetInternal(): void {
+    this.portDirection.fill(0);
+    this.portHandshakeControl = 0;
+    this.portHandshakeInputState = 0;
+    this.portHandshakeLatched = false;
+    this.portHandshakePendingClear = false;
+  }
+
+  private updateInternalInput(inputnum: number, state: number): void {
+${updateInput}
   }`;
 }
 
@@ -721,11 +792,11 @@ function emitCall(
       `${args[0] ?? '0'}) ?? 0)`;
   }
   if (name === 'standard_irq_callback') return 'this.acknowledgeIrq()';
-  if (name === 'LOG' || name === 'LOGMASKED' || name === 'logerror') return '0';
-  if (name === 'standard_irq_callback' || name === 'm_irqack_cb' ||
-      name === 'm_irqack_cb.bind') {
-    return 'this.acknowledgeIrq()';
+  if (name === 'm_irqack_cb') {
+    return `(this.bus.signal?.('irqack_cb', ${args[0] ?? '0'}) ?? 0)`;
   }
+  if (name === 'm_irqack_cb.bind') return '0';
+  if (name === 'LOG' || name === 'LOGMASKED' || name === 'logerror') return '0';
   if (name === 'total_cycles') return '1';
 
   // Unbound MAME callbacks, debugger hooks, daisy-chain hooks and logging are

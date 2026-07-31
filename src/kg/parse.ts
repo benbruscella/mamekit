@@ -227,6 +227,39 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
  * `seed` supplies constants from other files (device headers define clocks
  * like NTSC_APU_CLOCK in terms of their own XTALs); later files win.
  */
+/**
+ * Resolve unscoped C/C++ enum entries used by driver/device headers.
+ * A seed supplies values from included headers and earlier extraction passes.
+ */
+export function parseEnumConstants(
+  src: string,
+  seed: Record<string, number> = {},
+): Record<string, number> {
+  const resolved = { ...seed };
+  for (const match of stripComments(src).matchAll(
+    /\benum(?:\s+class)?(?:\s+\w+)?(?:\s*:\s*[^{]+)?\s*\{([\s\S]*?)\}\s*;/g,
+  )) {
+    let next = 0;
+    let validNext = true;
+    for (const rawEntry of splitArgs(match[1]!)) {
+      const parsed = /^(\w+)(?:\s*=\s*([\s\S]+))?$/.exec(rawEntry.trim());
+      if (!parsed) continue;
+      if (parsed[2]) {
+        const value = evalExpr(parsed[2], resolved);
+        if (value === null) {
+          validNext = false;
+          continue;
+        }
+        next = value;
+        validNext = true;
+      }
+      if (!validNext) continue;
+      resolved[parsed[1]!] = next++;
+    }
+  }
+  return resolved;
+}
+
 export function parseDefines(src: string, seed: Record<string, number> = {}): Record<string, number> {
   const out: Record<string, number> = { ...seed };
   const re = /^#define\s+(\w+)\s+(.+)$|(?:static\s+)?constexpr\s+(?:XTAL|int|unsigned|double|u?int\d+_t)\s+(\w+)\s*(?:\(([^;]*)\)|=\s*([^;]*))\s*;/gm;
@@ -559,6 +592,14 @@ function splitStatements(body: string): string[] {
     } else if (c === '(') { depth++; cur += c; }
     else if (c === ')') { depth--; cur += c; }
     else if (c === ';' && depth === 0) { stmts.push(cur.trim()); cur = ''; }
+    else if (
+      c === '\n' &&
+      depth === 0 &&
+      /^\s*MCFG_[A-Z0-9_]+\s*\([\s\S]*\)\s*$/.test(cur)
+    ) {
+      stmts.push(cur.trim());
+      cur = '';
+    }
     else cur += c;
   }
   if (cur.trim()) stmts.push(cur.trim());
@@ -704,13 +745,14 @@ export function parseMemoryBanks(
 ): MemoryBankDef[] {
   const banks: MemoryBankDef[] = [];
   const regionAliases = pointerRegionAliases(body);
-  const call = /\b(m_\w+(?:\s*\[\s*\d+\s*\])?)\s*->\s*configure_(entries|entry)\s*\(/g;
+  const call =
+    /(?:\b(m_\w+(?:\s*\[\s*\d+\s*\])?)|membank\(\s*"([^"]+)"\s*\))\s*->\s*configure_(entries|entry)\s*\(/g;
   let match: RegExpExecArray | null;
   while ((match = call.exec(body)) !== null) {
-    const open = body.indexOf('(', match.index + match[1]!.length);
+    const open = body.indexOf('(', match.index + match[0]!.lastIndexOf('configure_'));
     const close = matchParen(body, open);
     if (close < 0) continue;
-    const plural = match[2] === 'entries';
+    const plural = match[3] === 'entries';
     const args = splitArgs(body.slice(open + 1, close));
     if (args.length !== (plural ? 4 : 2)) continue;
     const source = regionPointer(args[plural ? 2 : 1]!, regionAliases, consts);
@@ -718,10 +760,10 @@ export function parseMemoryBanks(
     const entries = plural ? evalExpr(args[1]!, consts) : 1;
     const stride = plural ? evalExpr(args[3]!, consts) : 0;
     if (!source || startEntry === null || entries === null || stride === null) continue;
-    const member = match[1]!.replace(/\s+/g, '');
+    const member = match[1]?.replace(/\s+/g, '') ?? match[2]!;
     banks.push({
       member,
-      tag: memberTags[member] ?? member.replace(/^m_/, ''),
+      tag: match[2] ?? memberTags[member] ?? member.replace(/^m_/, ''),
       startEntry,
       entries,
       region: source.region,

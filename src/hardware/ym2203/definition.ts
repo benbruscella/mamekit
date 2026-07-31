@@ -7,10 +7,13 @@ import type { PortDeclaration } from '../ports.ts';
 
 export const YM2203_ID = 'ym2203';
 
-export const YM2203_MAME_TYPES = ['YM2203'] as const;
+// YM3526 is hosted as an auxiliary chip by the same generated worklet. This
+// matches boards such as Bubble Bobble where OPN and OPL share one speaker.
+export const YM2203_MAME_TYPES = ['YM2203', 'YM3526'] as const;
 
 /** Emitted artifacts, relative to dist/runtime/generated. */
 export const YM2203_IR_ARTIFACT = 'audio/ym2203.audio.ir.json';
+export const YM3526_IR_ARTIFACT = 'audio/ym3526.audio.ir.json';
 export const YM2203_WORKLET_ARTIFACT = 'audio/ym2203-worklet.ts';
 
 /**

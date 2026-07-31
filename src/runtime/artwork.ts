@@ -65,7 +65,7 @@ export async function loadArtwork(game: string, prefer: 'marquee' | 'bezel'): Pr
   }
 }
 
-/** Parse MAME default.lay: pick the upright view, resolve its art PNG + screen bounds. */
+/** Parse MAME default.lay: pick the bezel view, resolve its art PNG + screen bounds. */
 async function layArtwork(files: Map<string, Uint8Array>): Promise<Artwork | null> {
   const layBytes = files.get('default.lay');
   if (!layBytes) return null;
@@ -171,8 +171,9 @@ export function parseArtworkLayout(source: string): LayoutView | null {
     );
     views.push({ name, screen, art, file, rotate, tints });
   }
-  views.sort((a, b) =>
-    Number(/upright/i.test(b.name)) - Number(/upright/i.test(a.name)));
+  const viewScore = (view: LayoutView): number =>
+    /bezel/i.test(view.name) ? 2 : /upright/i.test(view.name) ? 1 : 0;
+  views.sort((a, b) => viewScore(b) - viewScore(a));
   return views[0] ?? null;
 }
 

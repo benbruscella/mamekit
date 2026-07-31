@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import ts from 'typescript';
+import { compileYm3526 } from './opl-compiler.ts';
 import { compileYm2203, generatedYm2203WorkletSource } from './opn-compiler.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
 
@@ -140,7 +142,64 @@ assert.match(source, /export class GeneratedYm2203Mixer/);
 assert.match(source, /export class GeneratedYm2203FrameRenderer/);
 assert.match(source, /private updatePrescale\(prescale: number\): void/);
 assert.match(source, /candidate\.requiresPrescale === this\.prescale/);
+assert.match(
+  source,
+  /const ym3526Plan = \(null\) as GeneratedYm3526Plan \| null/,
+  'YM2203-only target builds must preserve the nullable OPL plan type',
+);
 assert.ok(!/\bimport\b/.test(source), 'the worklet must not import anything');
 assert.ok(source.includes('"sinTable"'), 'the worklet must embed the lowered plan');
+
+// Exercise the emitted YM3526 core at a block/key-scale combination whose
+// effective attack rate is 62. ymfm makes that attack immediate on key-on; if
+// the block frequency is omitted during the transition, the operator enters
+// attack at rate 60, then hits the rate-62 update glitch and stays silent.
+const oplPlan = compileYm3526(mameSrc, {
+  type: 'YM3526',
+  className: 'ym3526_device',
+  sourceFile: 'src/devices/sound/ymopl.cpp',
+  sourceLine: 12,
+  sourceColumn: 1,
+  macro: '',
+});
+const compositeSource = generatedYm2203WorkletSource(plan, oplPlan);
+const javascript = ts.transpileModule(compositeSource, {
+  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+}).outputText;
+Object.assign(globalThis, {
+  AudioWorkletProcessor: class { readonly port = {}; },
+  registerProcessor: () => {},
+});
+const worklet = await import(
+  `data:text/javascript;base64,${Buffer.from(javascript).toString('base64')}`
+) as {
+  GeneratedYm3526Chip: new (
+    clock: number,
+    outputRate: number,
+  ) => { write(port: number, data: number): void; sample(): number };
+};
+const opl = new worklet.GeneratedYm3526Chip(3_000_000, 48_000);
+const oplWrite = (address: number, data: number): void => {
+  opl.write(0, address);
+  opl.write(1, data);
+};
+for (const offset of [0, 3]) {
+  oplWrite(0x20 + offset, 0x21);
+  oplWrite(0x40 + offset, 0x00);
+  oplWrite(0x60 + offset, 0xf0);
+  oplWrite(0x80 + offset, 0x00);
+}
+oplWrite(0xc0, 0x01);
+oplWrite(0xa0, 0x98);
+oplWrite(0xb0, 0x31);
+let oplSquares = 0;
+let oplPeak = 0;
+for (let sample = 0; sample < 4_800; sample++) {
+  const value = opl.sample();
+  oplSquares += value * value;
+  oplPeak = Math.max(oplPeak, Math.abs(value));
+}
+assert.ok(Math.sqrt(oplSquares / 4_800) > 0.1, 'YM3526 keyed voice must have body');
+assert.ok(oplPeak > 0.2, 'YM3526 keyed voice must reach the external DAC');
 
 console.log('opn-compiler.spec: YM2203 OPN plan lowered from ymfm source passed');

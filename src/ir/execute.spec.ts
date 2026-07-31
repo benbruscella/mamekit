@@ -54,6 +54,30 @@ check('a program that falls off the end returns nothing', () => {
   assert.deepEqual(executeGeneratedProgram(program([]), {}), { returned: false });
 });
 
+check('membank finder calls retain their string tag', () => {
+  let selected = -1;
+  executeGeneratedHandler(
+    program([{
+      op: 'call',
+      expression: {
+        kind: 'call',
+        callee: {
+          kind: 'member',
+          object: {
+            kind: 'call',
+            callee: { kind: 'identifier', name: 'membank' },
+            args: [{ kind: 'string', value: 'bank1' }],
+          },
+          property: 'set_entry',
+        },
+        args: [{ kind: 'number', value: 2 }],
+      },
+    }]),
+    { calls: { 'bank1.set_entry': value => { selected = value; } } },
+  );
+  assert.equal(selected, 2);
+});
+
 // A program with diagnostics never lowered cleanly. Running it anyway would
 // execute a partial translation of the MAME source.
 check('a program with compiler diagnostics refuses to run', () => {

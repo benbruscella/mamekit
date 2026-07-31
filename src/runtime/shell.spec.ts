@@ -6,6 +6,7 @@ const regions = assembleRegions(
   [
     { region: 'eraseff', size: 4, fill: 0xff, loads: [] },
     { region: 'erase00', size: 4, fill: 0x00, loads: [] },
+    { region: 'inverted', size: 4, invert: true, loads: [] },
   ],
   new Map(),
   () => {},
@@ -13,6 +14,7 @@ const regions = assembleRegions(
 
 assert.deepEqual([...regions.eraseff!], [0xff, 0xff, 0xff, 0xff]);
 assert.deepEqual([...regions.erase00!], [0x00, 0x00, 0x00, 0x00]);
+assert.deepEqual([...regions.inverted!], [0xff, 0xff, 0xff, 0xff]);
 
 const splitFile = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
 const splitRegions = assembleRegions(
@@ -31,6 +33,23 @@ const splitRegions = assembleRegions(
   () => {},
 );
 assert.deepEqual([...splitRegions.gfx2!], [5, 6, 7, 8]);
+
+const invertedLoad = assembleRegions(
+  [{
+    region: 'gfx1',
+    size: 4,
+    invert: true,
+    loads: [{
+      file: 'graphics.bin',
+      offset: 0,
+      size: 4,
+      crc: '32d988a9',
+    }],
+  }],
+  new Map([['graphics.bin', Uint8Array.from([0x00, 0x55, 0xaa, 0xff])]]),
+  () => {},
+);
+assert.deepEqual([...invertedLoad.gfx1!], [0xff, 0xaa, 0x55, 0x00]);
 
 const transformed = { gfx1: Uint8Array.from({ length: 32 }, (_, index) => index) };
 applyRomTransforms(transformed, [{

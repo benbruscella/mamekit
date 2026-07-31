@@ -168,7 +168,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', KONAMI1: 'konami1', I8039: 'i8039', I8080: 'i8080', M6803: 'm6803', MC6809: 'mc6809', MC6809E: 'mc6809e', RP2A03: 'rp2a03', RP2A03G: 'rp2a03' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', KONAMI1: 'konami1', I8039: 'i8039', I8080: 'i8080', M6801U4: 'm6801u4', M6803: 'm6803', MC6809: 'mc6809', MC6809E: 'mc6809e', RP2A03: 'rp2a03', RP2A03G: 'rp2a03' };
   const cpuDevs = devices.filter(d => String(d.props.type) in CPU_TYPES);
   if (cpuDevs.length === 0) throw new Error('no supported CPU devices found in machine config');
 
@@ -225,11 +225,17 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       return mapRefs.find(m => (m.edge.props?.space ?? 'AS_PROGRAM') === space)?.node;
     };
     const programMap = forSpace('AS_PROGRAM');
-    if (!programMap) throw new Error(`no address map on ${dev.props.tag}`);
-    const ranges = collectRanges(programMap.id).map(rangeSpec);
+    if (!programMap && dev.props.type !== 'M6801U4') {
+      throw new Error(`no address map on ${dev.props.tag}`);
+    }
+    const ranges = programMap
+      ? collectRanges(programMap.id).map(rangeSpec)
+      : [{ start: 0xf000, end: 0xffff, kind: 'rom', romOffset: 0 }];
     // program-space global_mask (the Irem sound 6803 masks to 0x7fff so its
     // reset vector at $FFFE reads ROM $7FFE)
-    const mask = programMap.props.globalMask !== undefined ? Number(programMap.props.globalMask) : undefined;
+    const mask = programMap?.props.globalMask !== undefined
+      ? Number(programMap.props.globalMask)
+      : undefined;
     const opcodeMap = forSpace('AS_OPCODES');
     let opcode: Record<string, unknown> | undefined;
     if (opcodeMap) {
@@ -390,6 +396,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             clock: Number(ymChips[0].props.clock),
             chips: ymChips.length,
             ...(ymRoutes.length ? { routes: ymRoutes } : {}),
+            ...(auxiliaryAudioDevices.length
+              ? { auxiliaryDevices: auxiliaryAudioDevices }
+              : {}),
           };
         })()
       : ayChips.length
@@ -482,6 +491,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     region: String(region.props.tag),
     size: Number(region.props.size),
     ...(String(region.props.flags).includes('ROMREGION_ERASEFF') ? { fill: 0xff } : {}),
+    ...(String(region.props.flags).includes('ROMREGION_INVERT') ? { invert: true } : {}),
     loads: g.out(region.id, 'LOADS').map(({ node: rom }) => {
       const crc = String(rom.props.crc);
       const alts = (altSlots.get(`${region.props.tag}/${rom.props.offset}/${rom.props.size}`) ?? [])

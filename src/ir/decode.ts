@@ -274,6 +274,18 @@ function decodeVideo(reader: Reader, value: unknown): void {
     reader.string(palette.tag, 'video.ramPalette.tag', source);
     reader.number(palette.entries, 'video.ramPalette.entries', source);
     reader.number(palette.bytesPerEntry, 'video.ramPalette.bytesPerEntry', source);
+    if (palette.endianness !== undefined) {
+      const endianness = reader.string(
+        palette.endianness,
+        'video.ramPalette.endianness',
+        source,
+      );
+      if (endianness !== 'little' && endianness !== 'big') {
+        throw new Error(
+          `${source}: video.ramPalette.endianness must be "little" or "big"`,
+        );
+      }
+    }
     for (const [index, channel] of reader.array(
       palette.channels, 'video.ramPalette.channels', source).entries()) {
       const path = `video.ramPalette.channels[${index}]`;
@@ -334,6 +346,15 @@ function decodeExecution(reader: Reader, value: unknown): void {
     }
   }
 
+  if (execution.resetHandlers !== undefined) {
+    for (const [index, handler] of reader.array(
+      execution.resetHandlers,
+      'execution.resetHandlers',
+    ).entries()) {
+      reader.string(handler, `execution.resetHandlers[${index}]`);
+    }
+  }
+
   const screen = reader.object(execution.screen, 'execution.screen');
   const screenSource = sourceOf(screen);
   for (const field of ['width', 'height', 'refresh', 'vtotal', 'vbstart', 'rotate']) {
@@ -384,6 +405,8 @@ function decodeRanges(
     const range = reader.object(entry, rangePath, source);
     const start = reader.number(range.start, `${rangePath}.start`, source);
     const end = reader.number(range.end, `${rangePath}.end`, source);
+    reader.optionalNumber(range.mirror, `${rangePath}.mirror`, source);
+    reader.optionalNumber(range.romOffset, `${rangePath}.romOffset`, source);
     if (end < start) {
       reader.fail(rangePath, `range ends (${hex(end)}) before it starts (${hex(start)})`, source);
     }

@@ -1,6 +1,7 @@
 import {
   compileMameI8080,
   compileMameKonami1,
+  compileMameM6801U4,
   compileMameM6803,
   compileMameMc6809,
   compileMameMcs48,
@@ -20,6 +21,7 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   Z80: compileMameZ80,
   I8080: compileMameI8080,
   I8039: compileMameMcs48,
+  M6801U4: compileMameM6801U4,
   M6803: compileMameM6803,
   KONAMI1: compileMameKonami1,
   MC6809: compileMameMc6809,

@@ -105,7 +105,9 @@ export function compileMameVideo(
   const start = startMatch
     ? ast.findFunction(startMatch[1]!, `video_start_${startMatch[2]}`)
     : ast.findFunctionInHierarchy(String(machine.props.cls), 'video_start');
-  if (!start) return fail(`missing video_start for ${String(machine.props.cls)}`);
+  if (!start && !screen) {
+    return fail(`missing video_start and screen update for ${String(machine.props.cls)}`);
+  }
 
   const decodes = effectiveGfxDecodes(graph, machineId);
   if (!decodes.length) return fail(`missing gfx decode in machine composition`);
@@ -118,10 +120,12 @@ export function compileMameVideo(
     .reduce((scale, entry) => Math.max(scale, Number(entry.props.xscale ?? 1)), 1);
   const numericDefaults = numericState(memberDefaults);
   const configState = machineConfigInitialState(ast, source, config, constants);
-  const tilemaps = compileTilemaps(start, { ...constants, ...numericDefaults }, ast)
-    .filter((tilemap, index, all) =>
-      all.findIndex(candidate => candidate.member === tilemap.member) === index);
-  if (!tilemaps.length) return fail(`video_start emitted no tilemaps`);
+  const tilemaps = start
+    ? compileTilemaps(start, { ...constants, ...numericDefaults }, ast)
+      .filter((tilemap, index, all) =>
+        all.findIndex(candidate => candidate.member === tilemap.member) === index)
+    : [];
+  if (start && !tilemaps.length) return fail(`video_start emitted no tilemaps`);
   const handlers: GeneratedHandler[] = [];
   const game = graph.nodes.find(node => node.label === 'Game');
   const delegates = compileInitDelegates(
@@ -212,13 +216,15 @@ export function compileMameVideo(
         ...arrayState(memberDefaults),
         ...(needsClassDefaults ? memberDefaults : {}),
         ...configState,
-        ...initialState(start.body, { ...constants, ...numericDefaults }),
+        ...(start
+          ? initialState(start.body, { ...constants, ...numericDefaults })
+          : {}),
       },
       ...(renderScale !== 1 ? { renderScale: { x: renderScale, y: 1 } } : {}),
       ...(Object.keys(delegates).length ? { delegates } : {}),
       ...(Object.keys(colorTables).length ? { colorTables } : {}),
       ...(lfsrTable ? { lfsrTable } : {}),
-      source: sourceRef(start),
+      source: sourceRef(start ?? screen!),
     },
     handlers,
   };
@@ -1015,6 +1021,10 @@ function compileSetFormatRamPalette(
   if (!inverted && decoder[2] !== 'standard') {
     return fail(`unsupported rgb decoder kind ${decoder[2]}`);
   }
+  const configuredEndianness =
+    /\.set_endianness\s*\(\s*ENDIANNESS_(LITTLE|BIG)\s*\)/.exec(raw)?.[1];
+  const endianness = configuredEndianness?.toLowerCase() as
+    'little' | 'big' | undefined;
 
   // palette_device::device_start binds memshare(tag()) and tag() + "_ext".
   const tag = String(device.props.tag);
@@ -1033,6 +1043,7 @@ function compileSetFormatRamPalette(
   );
   return {
     tag,
+    ...(endianness ? { endianness } : {}),
     ...(shares.has(extShare) ? { extShare } : {}),
     entries,
     bytesPerEntry: Number(decoder[1]),

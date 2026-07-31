@@ -7,6 +7,7 @@ const writes: Array<[number, number, number]> = [];
 const shares: Record<string, Uint8Array> = {};
 const bus = new Bus([
   { start: 0x0000, end: 0x0003, kind: 'rom' },
+  { start: 0xf000, end: 0xf003, kind: 'rom', romOffset: 0 },
   { start: 0x1000, end: 0x1003, kind: 'ram', share: 'work' },
   { start: 0x2000, end: 0x2001, mirror: 0x0100, kind: 'handler', read: 'read', write: 'write' },
   {
@@ -37,6 +38,7 @@ const bus = new Bus([
 
 assert.equal(bus.read(0), 0x11);
 assert.equal(bus.read(3), 0x44);
+assert.equal(bus.read(0xf002), 0x33);
 assert.equal(bus.read(0x9999), 0xff);
 bus.write(0x1002, 0x1a5);
 assert.equal(bus.read(0x1002), 0xa5);

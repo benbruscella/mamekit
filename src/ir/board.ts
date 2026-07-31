@@ -24,6 +24,8 @@ export interface RangeSpec {
   start: number;
   end: number;
   mirror?: number;
+  /** Byte offset in the ROM region corresponding to this range's start. */
+  romOffset?: number;
   kind: 'rom' | 'ram' | 'handler' | 'nop';
   /** handler registry keys, e.g. "galaga_state.bosco_dsw_r" */
   read?: string;
@@ -282,6 +284,8 @@ export interface GeneratedFrameEvent {
 
 export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
+  /** Driver lifecycle handlers executed in source-derived base-first order. */
+  resetHandlers?: string[];
   banks?: {
     tag: string;
     member: string;
@@ -396,6 +400,8 @@ export interface GeneratedPromPalettePlan {
 export interface GeneratedRamPalettePlan {
   /** palette_device tag; also the base memory share name. */
   tag: string;
+  /** Byte order selected by palette_device::set_endianness; defaults to little. */
+  endianness?: 'little' | 'big';
   /** High-byte share tag when MAME splits palette RAM across two shares. */
   extShare?: string;
   entries: number;

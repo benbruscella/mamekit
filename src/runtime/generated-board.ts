@@ -22,6 +22,7 @@ import {
 } from './generated-handler.ts';
 import type { BoardIr } from '../ir/board.ts';
 import {
+  applyBoardTransforms,
   bindBoardEffects,
   type BoundEffect,
   type EffectBindings,
@@ -377,20 +378,27 @@ class IrBoard implements Board {
         in: bus.in,
         out: bus.out,
         signal: (signal, state) => {
-          const callback = machine.callbacks.find(candidate =>
+          const callbacks = machine.callbacks.filter(candidate =>
             candidate.ownerTag === specification.tag &&
             candidate.signal === signal);
-          const value = callback
-            ? executeGeneratedCallbackHandler(
-                machine,
-                callback,
-                this.bindings,
-                { state, data: state },
-              )
-            : undefined;
-          if (value !== undefined) return value;
-          dispatchGeneratedCallbacks(machine, specification.tag, signal, state, this.effects);
-          return 0;
+          let result: number | undefined;
+          for (const callback of callbacks) {
+            const effect = this.effects.get(callback.id);
+            if (!effect) {
+              throw new Error(
+                `${machine.game}: CPU signal callback "${callback.id}" has no bound effect`,
+              );
+            }
+            const value = effect.reads
+              ? effect.run(0)
+              : effect.run(applyBoardTransforms(state, effect.transforms));
+            if (value !== undefined) {
+              result = effect.reads
+                ? applyBoardTransforms(Number(value) || 0, effect.transforms)
+                : Number(value);
+            }
+          }
+          return result ?? 0;
         },
       });
       this.cpus.set(specification.tag, cpu);
@@ -400,14 +408,15 @@ class IrBoard implements Board {
       const acknowledge = machine.callbacks.find(callback =>
         callback.ownerTag === specification.tag &&
         callback.signal === 'set_irq_acknowledge_callback');
-      const interruptVector = (): number =>
-        acknowledge
+      const interruptVector = (): number => {
+        return acknowledge
           ? executeGeneratedCallbackHandler(
               machine,
               acknowledge,
               this.bindings,
             ) ?? 0xff
           : 0xff;
+      };
       calls[`m_${specification.tag}.set_input_line`] = (line, state) => {
         applyGeneratedCpuInputLine(
           cpu,
@@ -434,8 +443,8 @@ class IrBoard implements Board {
           this.cpuHeld.set(specification.tag, false);
         }
         else {
-          cpu.setIrqLine(true);
-          cpu.setIrqLine(false);
+          cpu.setInputLine(line, 1);
+          cpu.setInputLine(line, 0);
         }
       };
       calls[`m_${specification.tag}.total_cycles`] = () =>
@@ -502,7 +511,6 @@ class IrBoard implements Board {
         this.effects,
       );
     }
-
     let activeFramebuffer: Uint32Array | undefined;
     let video: GeneratedVideoRenderer | undefined;
     if (machine.execution.screenUpdate) {
@@ -558,6 +566,7 @@ class IrBoard implements Board {
       },
       video,
     });
+    this.runMachineReset();
   }
 
   private configureHostedProcessor(
@@ -641,12 +650,28 @@ class IrBoard implements Board {
   reset(): void {
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
+    for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
     this.videoPrimitives?.reset?.();
     for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
     this.frameRunner.reset();
     this.soundRuntime?.reset?.();
     this.currentLine = 0;
+    this.runMachineReset();
+  }
+
+  /** Execute MAME's selected MACHINE_RESET_MEMBER chain, base first. */
+  private runMachineReset(): void {
+    for (const key of this.machine.execution.resetHandlers ?? []) {
+      const handler = this.machine.handlers?.find(candidate =>
+        `${candidate.ownerClass}.${candidate.method}` === key);
+      if (!handler?.program || handler.program.diagnostics.length) {
+        throw new Error(
+          `${this.machine.game}: machine reset handler "${key}" is not executable`,
+        );
+      }
+      executeGeneratedMachineHandler(this.machine, handler, this.bindings, {});
+    }
   }
 
   snapshot(): BoardSnapshot {
@@ -968,7 +993,7 @@ class IrBoard implements Board {
       (handler.parameters ?? '').split(',')[0]?.trim() ?? '',
     )?.[1];
     return state => {
-      executeGeneratedMachineHandler(this.machine, handler, this.bindings, {
+      return executeGeneratedMachineHandler(this.machine, handler, this.bindings, {
         state,
         data: state,
         ...(firstParameter ? { [firstParameter]: state } : {}),
