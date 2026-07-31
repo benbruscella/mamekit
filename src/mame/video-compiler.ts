@@ -1021,6 +1021,10 @@ function compileSetFormatRamPalette(
   if (!inverted && decoder[2] !== 'standard') {
     return fail(`unsupported rgb decoder kind ${decoder[2]}`);
   }
+  const configuredEndianness =
+    /\.set_endianness\s*\(\s*ENDIANNESS_(LITTLE|BIG)\s*\)/.exec(raw)?.[1];
+  const endianness = configuredEndianness?.toLowerCase() as
+    'little' | 'big' | undefined;
 
   // palette_device::device_start binds memshare(tag()) and tag() + "_ext".
   const tag = String(device.props.tag);
@@ -1039,6 +1043,7 @@ function compileSetFormatRamPalette(
   );
   return {
     tag,
+    ...(endianness ? { endianness } : {}),
     ...(shares.has(extShare) ? { extShare } : {}),
     entries,
     bytesPerEntry: Number(decoder[1]),

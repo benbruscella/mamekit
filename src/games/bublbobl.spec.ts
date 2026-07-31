@@ -46,6 +46,7 @@ assert.ok(video, 'Bubble Bobble direct object renderer must lower to video IR');
 assert.deepEqual(video.plan.tilemaps, []);
 assert.equal(video.plan.ramPalette?.entries, 256);
 assert.equal(video.plan.ramPalette?.bytesPerEntry, 2);
+assert.equal(video.plan.ramPalette?.endianness, 'big');
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
 
 const m6801 = compileMameM6801U4(mameSrc);

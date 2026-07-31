@@ -400,6 +400,8 @@ export interface GeneratedPromPalettePlan {
 export interface GeneratedRamPalettePlan {
   /** palette_device tag; also the base memory share name. */
   tag: string;
+  /** Byte order selected by palette_device::set_endianness; defaults to little. */
+  endianness?: 'little' | 'big';
   /** High-byte share tag when MAME splits palette RAM across two shares. */
   extShare?: string;
   entries: number;

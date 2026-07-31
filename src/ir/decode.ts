@@ -274,6 +274,18 @@ function decodeVideo(reader: Reader, value: unknown): void {
     reader.string(palette.tag, 'video.ramPalette.tag', source);
     reader.number(palette.entries, 'video.ramPalette.entries', source);
     reader.number(palette.bytesPerEntry, 'video.ramPalette.bytesPerEntry', source);
+    if (palette.endianness !== undefined) {
+      const endianness = reader.string(
+        palette.endianness,
+        'video.ramPalette.endianness',
+        source,
+      );
+      if (endianness !== 'little' && endianness !== 'big') {
+        throw new Error(
+          `${source}: video.ramPalette.endianness must be "little" or "big"`,
+        );
+      }
+    }
     for (const [index, channel] of reader.array(
       palette.channels, 'video.ramPalette.channels', source).entries()) {
       const path = `video.ramPalette.channels[${index}]`;

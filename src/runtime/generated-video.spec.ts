@@ -419,4 +419,36 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
   assert.equal(resetPalette.colors[0], 0xffffffff);
 }
 
-console.log('generated-video.spec: 21 passed');
+// Multi-byte palette RAM follows palette_device::set_endianness. Bubble Bobble
+// writes RGBx_444 as high byte then low byte; byte-swapping it yields the
+// characteristic blue/magenta-only corruption this guards against.
+{
+  const bigEndianMachine: BoardIr = {
+    ...machine,
+    video: {
+      gfx: [],
+      tilemaps: [],
+      initialState: {},
+      ramPalette: {
+        tag: 'palette',
+        endianness: 'big',
+        entries: 1,
+        bytesPerEntry: 2,
+        channels: [
+          { channel: 'r', bits: 4, shift: 12 },
+          { channel: 'g', bits: 4, shift: 8 },
+          { channel: 'b', bits: 4, shift: 4 },
+        ],
+      },
+    },
+  };
+  const state: Record<string, unknown> = {};
+  const primitives = new GeneratedMameVideoPrimitives(bigEndianMachine, {}, state, {});
+  const palette = state.m_palette as { colors: Uint32Array };
+  primitives.writePaletteRam(0, 0xa3);
+  primitives.writePaletteRam(1, 0x70);
+  // Canvas pixels are stored as little-endian ABGR words.
+  assert.equal(palette.colors[0], 0xff7733aa);
+}
+
+console.log('generated-video.spec: 22 passed');

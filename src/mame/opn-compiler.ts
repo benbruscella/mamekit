@@ -1176,41 +1176,58 @@ export class GeneratedYm2203Chip {
  */
 export class GeneratedYm3526Chip {
   private readonly regs: Uint8Array;
-  private readonly phase: Float64Array;
-  private readonly envelope: Float64Array;
+  private readonly waveform = new Uint16Array(FM.waveformLength);
+  private readonly phase: Uint32Array;
+  private readonly envAttenuation: Uint16Array;
   private readonly envelopeState: Uint8Array;
-  private readonly keyed: Uint8Array;
+  private readonly keyState: Uint8Array;
   private readonly feedback1: Float64Array;
   private readonly feedback2: Float64Array;
+  private readonly feedbackIn: Float64Array;
   private readonly clock: number;
   private readonly outputRate: number;
   private address = 0;
-  private noise = 1;
+  private envCounter = 0;
+  private samplePhase = 0;
+  private lastSample = 0;
 
   constructor(clock: number, outputRate: number) {
     const opl = ym3526Plan;
     if (!opl) throw new Error('YM3526 plan was not emitted');
     this.regs = new Uint8Array(opl.registers);
-    this.phase = new Float64Array(opl.operators);
-    this.envelope = new Float64Array(opl.operators);
+    this.phase = new Uint32Array(opl.operators);
+    this.envAttenuation = new Uint16Array(opl.operators);
     this.envelopeState = new Uint8Array(opl.operators);
-    this.keyed = new Uint8Array(opl.operators);
+    this.keyState = new Uint8Array(opl.operators);
     this.feedback1 = new Float64Array(opl.channels);
     this.feedback2 = new Float64Array(opl.channels);
+    this.feedbackIn = new Float64Array(opl.channels);
     this.clock = clock;
     this.outputRate = outputRate;
+    // Revision 1 has one waveform. Build it from the same die-extracted table
+    // and logarithmic DAC representation used by ymfm's OPN implementation.
+    for (let index = 0; index < FM.waveformLength; index++) {
+      this.waveform[index] =
+        FM.sinTable[(bitfield(index, 8) ? ~index : index) & 0xff]! |
+        (bitfield(index, 9) << 15);
+    }
+    this.reset();
   }
 
   reset(): void {
     this.regs.fill(0);
     this.phase.fill(0);
-    this.envelope.fill(0);
+    this.envAttenuation.fill(0x3ff);
     this.envelopeState.fill(0);
-    this.keyed.fill(0);
+    this.envelopeState.fill(FM.egRelease);
+    this.keyState.fill(0);
     this.feedback1.fill(0);
     this.feedback2.fill(0);
+    this.feedbackIn.fill(0);
     this.address = 0;
-    this.noise = 1;
+    this.envCounter = 0;
+    this.samplePhase = 0;
+    this.lastSample = 0;
   }
 
   write(port: number, data: number): void {
@@ -1220,115 +1237,168 @@ export class GeneratedYm3526Chip {
 
   sample(): number {
     const opl = ym3526Plan!;
-    const rhythm = this.regs[0xbd]!;
+    // YM3526 emits one native sample per prescale*operators input clocks.
+    // Clock at that rate and hold between native samples; driving its envelope
+    // directly at AudioContext rate changes every decay/release time.
+    this.samplePhase += this.clock / opl.sampleRateDivider / this.outputRate;
+    while (this.samplePhase >= 1) {
+      this.lastSample = this.clockChip();
+      this.samplePhase--;
+    }
+    return this.lastSample;
+  }
+
+  private clockChip(): number {
+    const opl = ym3526Plan!;
     let total = 0;
-    this.noise = ((this.noise >>> 1) ^
-      (-(this.noise & 1) & 0x800302)) >>> 0;
+    this.envCounter = (this.envCounter + 4) >>> 0;
     for (let channel = 0; channel < opl.channels; channel++) {
       const [modulator, carrier] = opl.operatorMap[channel]!;
       const keyRegister = this.regs[0xb0 + channel]!;
-      let keyOn = (keyRegister & 0x20) !== 0;
-      if ((rhythm & 0x20) !== 0 && channel >= 6) {
-        keyOn = channel === 6
-          ? (rhythm & 0x10) !== 0
-          : channel === 7
-            ? (rhythm & 0x09) !== 0
-            : (rhythm & 0x06) !== 0;
-      }
+      const keyOn = (keyRegister & 0x20) !== 0;
       this.updateKey(modulator, keyOn);
       this.updateKey(carrier, keyOn);
 
-      const fnum = this.regs[0xa0 + channel]! | ((keyRegister & 3) << 8);
-      const block = (keyRegister >>> 2) & 7;
-      const frequency = this.clock / opl.sampleRateDivider *
-        fnum * Math.pow(2, block) / Math.pow(2, 20);
+      const blockFreq = ((keyRegister & 0x1f) << 8) | this.regs[0xa0 + channel]!;
+      this.clockEnvelope(modulator, blockFreq);
+      this.clockEnvelope(carrier, blockFreq);
+      this.clockPhase(modulator, blockFreq);
+      this.clockPhase(carrier, blockFreq);
+
+      // ymfm clocks the two feedback samples before producing this sample.
+      this.feedback2[channel] = this.feedback1[channel]!;
+      this.feedback1[channel] = this.feedbackIn[channel]!;
       const algorithm = this.regs[0xc0 + channel]!;
       const feedback = (algorithm >>> 1) & 7;
       const feedbackInput = feedback === 0
         ? 0
-        : (this.feedback1[channel]! + this.feedback2[channel]!) *
-          Math.pow(2, feedback - 8);
-      const mod = this.operatorSample(modulator, frequency, feedbackInput);
-      this.feedback2[channel] = this.feedback1[channel]!;
-      this.feedback1[channel] = mod;
-      const carrierInput = (algorithm & 1) !== 0 ? 0 : mod * 0.5;
-      let voice = this.operatorSample(carrier, frequency, carrierInput);
-      if ((algorithm & 1) !== 0) voice += mod;
-      if ((rhythm & 0x20) !== 0 && channel >= 7) {
-        voice *= (this.noise & 1) !== 0 ? 1 : -1;
+        : (this.feedback1[channel]! + this.feedback2[channel]!) /
+          Math.pow(2, 10 - feedback);
+      const mod = this.operatorSample(modulator, feedbackInput);
+      this.feedbackIn[channel] = mod;
+
+      // Revision 1 uses the previous modulator sample for carrier modulation
+      // and shifts each channel by one before summing to its external DAC.
+      const carrierInput = (algorithm & 1) !== 0 ? 0 : this.feedback1[channel]! / 2;
+      let voice = this.operatorSample(carrier, carrierInput) / 2;
+      if ((algorithm & 1) !== 0) {
+        voice = clamp(voice + this.feedback1[channel]! / 2, -32768, 32767);
       }
       total += voice;
     }
-    return total / opl.channels;
+    // YM3014 mantissa/exponent truncation, matching ym3526::generate.
+    return roundtripFp(total) / 32768;
   }
 
   private updateKey(operator: number, on: boolean): void {
-    if (on && this.keyed[operator] === 0) {
-      this.keyed[operator] = 1;
-      this.envelopeState[operator] = 1;
-      this.envelope[operator] = 0;
+    if (on && this.keyState[operator] === 0) {
+      this.keyState[operator] = 1;
+      this.envelopeState[operator] = FM.egAttack;
       this.phase[operator] = 0;
-    } else if (!on && this.keyed[operator] !== 0) {
-      this.keyed[operator] = 0;
-      this.envelopeState[operator] = 4;
+      if (this.envelopeRate(operator, FM.egAttack) >= 62) {
+        this.envAttenuation[operator] = 0;
+      }
+    } else if (!on && this.keyState[operator] !== 0) {
+      this.keyState[operator] = 0;
+      this.envelopeState[operator] = FM.egRelease;
     }
   }
 
-  private operatorSample(operator: number, frequency: number, modulation: number): number {
+  private envelopeRate(operator: number, state: number, blockFreq = 0): number {
     const opl = ym3526Plan!;
     const offset = opl.operatorOffsets[operator]!;
     const characteristics = this.regs[0x20 + offset]!;
-    const level = this.regs[0x40 + offset]!;
     const rates = this.regs[0x60 + offset]!;
     const sustainRelease = this.regs[0x80 + offset]!;
-    const multiple = opl.multiples[characteristics & 0x0f]!;
-    this.advanceEnvelope(
-      operator,
-      rates >>> 4,
-      rates & 0x0f,
-      sustainRelease >>> 4,
-      sustainRelease & 0x0f,
-      (characteristics & 0x20) !== 0,
-    );
-    this.phase[operator] =
-      (this.phase[operator]! + frequency * multiple / this.outputRate) % 1;
-    const totalLevel = level & 0x3f;
-    const amplitude = this.envelope[operator]! * Math.pow(10, -(totalLevel * 0.75) / 20);
-    return Math.sin((this.phase[operator]! + modulation) * Math.PI * 2) * amplitude;
+    const block = bitfield(blockFreq, 10, 3);
+    const keycode = (block << 1) |
+      bitfield(blockFreq, 9 - bitfield(this.regs[0x08]!, 6), 1);
+    const ksr = keycode >>> (2 * (bitfield(characteristics, 4) ^ 1));
+    const raw = state === FM.egAttack
+      ? bitfield(rates, 4, 4) * 4
+      : state === FM.egDecay
+        ? bitfield(rates, 0, 4) * 4
+        : state === FM.egSustain && bitfield(characteristics, 5)
+          ? 0
+          : bitfield(sustainRelease, 0, 4) * 4;
+    return raw === 0 ? 0 : Math.min(raw + ksr, 63);
   }
 
-  private advanceEnvelope(
-    operator: number,
-    attack: number,
-    decay: number,
-    sustain: number,
-    release: number,
-    sustaining: boolean,
-  ): void {
-    const rate = (value: number, scale: number): number =>
-      value === 0 ? 0 : Math.pow(2, value * 0.5) * scale / this.outputRate;
+  private clockEnvelope(operator: number, blockFreq: number): void {
+    const opl = ym3526Plan!;
+    const offset = opl.operatorOffsets[operator]!;
     const state = this.envelopeState[operator]!;
-    if (state === 1) {
-      this.envelope[operator] +=
-        (1 - this.envelope[operator]!) * rate(attack, 18);
-      if (this.envelope[operator]! >= 0.999) {
-        this.envelope[operator] = 1;
-        this.envelopeState[operator] = 2;
+    if (state === FM.egAttack && this.envAttenuation[operator] === 0) {
+      this.envelopeState[operator] = FM.egDecay;
+    }
+    const sustainRelease = this.regs[0x80 + offset]!;
+    let sustain = bitfield(sustainRelease, 4, 4);
+    sustain |= (sustain + 1) & 0x10;
+    if (
+      this.envelopeState[operator] === FM.egDecay &&
+      this.envAttenuation[operator]! >= sustain << 5
+    ) {
+      this.envelopeState[operator] = FM.egSustain;
+    }
+
+    const current = this.envelopeState[operator]!;
+    const rate = this.envelopeRate(operator, current, blockFreq);
+    const rateShift = rate >>> 2;
+    const shiftedCounter = (this.envCounter >>> 2) * Math.pow(2, rateShift);
+    if ((shiftedCounter & 0x7ff) !== 0) return;
+    const relevantShift = rateShift <= 11 ? 11 : rateShift;
+    const relevantBits = Math.floor(shiftedCounter / Math.pow(2, relevantShift)) & 7;
+    const packed = FM.incrementTable[rate]!;
+    const increment = (packed >>> (4 * relevantBits)) & 0x0f;
+    if (current === FM.egAttack) {
+      if (rate < 62) {
+        this.envAttenuation[operator] +=
+          (~this.envAttenuation[operator]! * increment) >> 4;
       }
-    } else if (state === 2) {
-      const target = Math.pow(10, -(sustain * 3) / 20);
-      this.envelope[operator] -= rate(decay, 0.9);
-      if (this.envelope[operator]! <= target) {
-        this.envelope[operator] = target;
-        this.envelopeState[operator] = sustaining ? 3 : 4;
-      }
-    } else if (state === 4) {
-      this.envelope[operator] -= rate(release, 0.55);
-      if (this.envelope[operator]! <= 0) {
-        this.envelope[operator] = 0;
-        this.envelopeState[operator] = 0;
+    } else {
+      this.envAttenuation[operator] += increment;
+      if (this.envAttenuation[operator]! >= 0x400) {
+        this.envAttenuation[operator] = 0x3ff;
       }
     }
+  }
+
+  private clockPhase(operator: number, blockFreq: number): void {
+    const opl = ym3526Plan!;
+    const offset = opl.operatorOffsets[operator]!;
+    const multiple = opl.multiples[this.regs[0x20 + offset]! & 0x0f]! * 2;
+    const fnum = (blockFreq & 0x3ff) << 2;
+    const block = bitfield(blockFreq, 10, 3);
+    const step = (((fnum << block) >>> 2) * multiple) >>> 1;
+    this.phase[operator] = (this.phase[operator]! + step) >>> 0;
+  }
+
+  private operatorSample(operator: number, modulation: number): number {
+    const opl = ym3526Plan!;
+    const offset = opl.operatorOffsets[operator]!;
+    if (this.envAttenuation[operator]! > FM.egQuiet) return 0;
+    const waveformIndex = ((this.phase[operator]! >>> 10) + Math.trunc(modulation)) &
+      (opl.waveformLength - 1);
+    const sinAttenuation = this.waveform[waveformIndex]!;
+    const level = this.regs[0x40 + offset]!;
+    let totalLevel = (level & 0x3f) << 3;
+    const kslBits = level >>> 6;
+    const ksl = ((kslBits >>> 1) | ((kslBits & 1) << 1));
+    if (ksl !== 0) {
+      const channel = opl.operatorMap.findIndex(pair => pair.includes(operator));
+      const keyRegister = this.regs[0xb0 + channel]!;
+      const blockFreq = ((keyRegister & 0x1f) << 8) | this.regs[0xa0 + channel]!;
+      const table = [0, 24, 32, 37, 40, 43, 45, 47, 48, 50, 51, 52, 53, 54, 55, 56];
+      const attenuation = Math.max(
+        0,
+        table[bitfield(blockFreq, 6, 4)]! - 8 * (bitfield(blockFreq, 10, 3) ^ 7),
+      );
+      totalLevel += attenuation << ksl;
+    }
+    const env = Math.min(this.envAttenuation[operator]! + totalLevel, 0x3ff) << 2;
+    const attenuation = (sinAttenuation & 0x7fff) + env;
+    const linear = FM.powerTable[attenuation & 0xff]! >>> (attenuation >>> 8);
+    return bitfield(sinAttenuation, 15) ? -linear : linear;
   }
 }
 

@@ -390,16 +390,19 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
     for (let index = 0; index < count; index++) this.update(base + index);
   }
 
-  /** palette_device::read_entry, little-endian across base then ext bytes. */
+  /** palette_device::read_entry, honoring the configured device byte order. */
   private entry(pen: number): number {
     let raw = 0;
+    const totalBytes = this.bytesPerEntry * (this.ext ? 2 : 1);
+    const shiftFor = (byte: number): number =>
+      8 * (this.plan.endianness === 'big' ? totalBytes - byte - 1 : byte);
     for (let byte = 0; byte < this.bytesPerEntry; byte++) {
-      raw |= (this.ram[pen * this.bytesPerEntry + byte] ?? 0) << (8 * byte);
+      raw |= (this.ram[pen * this.bytesPerEntry + byte] ?? 0) << shiftFor(byte);
     }
     if (this.ext) {
       for (let byte = 0; byte < this.bytesPerEntry; byte++) {
         raw |= (this.ext[pen * this.bytesPerEntry + byte] ?? 0) <<
-          (8 * (this.bytesPerEntry + byte));
+          shiftFor(this.bytesPerEntry + byte);
       }
     }
     return raw >>> 0;
