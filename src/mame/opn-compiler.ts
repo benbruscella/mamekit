@@ -1177,13 +1177,14 @@ export class GeneratedYm2203Chip {
 export class GeneratedYm3526Chip {
   private readonly regs: Uint8Array;
   private readonly waveform = new Uint16Array(FM.waveformLength);
+  private readonly operatorChannel: Uint8Array;
   private readonly phase: Uint32Array;
   private readonly envAttenuation: Uint16Array;
   private readonly envelopeState: Uint8Array;
   private readonly keyState: Uint8Array;
-  private readonly feedback1: Float64Array;
-  private readonly feedback2: Float64Array;
-  private readonly feedbackIn: Float64Array;
+  private readonly feedback1: Int32Array;
+  private readonly feedback2: Int32Array;
+  private readonly feedbackIn: Int32Array;
   private readonly clock: number;
   private readonly outputRate: number;
   private address = 0;
@@ -1195,13 +1196,14 @@ export class GeneratedYm3526Chip {
     const opl = ym3526Plan;
     if (!opl) throw new Error('YM3526 plan was not emitted');
     this.regs = new Uint8Array(opl.registers);
+    this.operatorChannel = new Uint8Array(opl.operators);
     this.phase = new Uint32Array(opl.operators);
     this.envAttenuation = new Uint16Array(opl.operators);
     this.envelopeState = new Uint8Array(opl.operators);
     this.keyState = new Uint8Array(opl.operators);
-    this.feedback1 = new Float64Array(opl.channels);
-    this.feedback2 = new Float64Array(opl.channels);
-    this.feedbackIn = new Float64Array(opl.channels);
+    this.feedback1 = new Int32Array(opl.channels);
+    this.feedback2 = new Int32Array(opl.channels);
+    this.feedbackIn = new Int32Array(opl.channels);
     this.clock = clock;
     this.outputRate = outputRate;
     // Revision 1 has one waveform. Build it from the same die-extracted table
@@ -1211,6 +1213,11 @@ export class GeneratedYm3526Chip {
         FM.sinTable[(bitfield(index, 8) ? ~index : index) & 0xff]! |
         (bitfield(index, 9) << 15);
     }
+    for (let channel = 0; channel < opl.channels; channel++) {
+      for (const operator of opl.operatorMap[channel]!) {
+        this.operatorChannel[operator] = channel;
+      }
+    }
     this.reset();
   }
 
@@ -1218,7 +1225,6 @@ export class GeneratedYm3526Chip {
     this.regs.fill(0);
     this.phase.fill(0);
     this.envAttenuation.fill(0x3ff);
-    this.envelopeState.fill(0);
     this.envelopeState.fill(FM.egRelease);
     this.keyState.fill(0);
     this.feedback1.fill(0);
@@ -1256,10 +1262,9 @@ export class GeneratedYm3526Chip {
       const [modulator, carrier] = opl.operatorMap[channel]!;
       const keyRegister = this.regs[0xb0 + channel]!;
       const keyOn = (keyRegister & 0x20) !== 0;
-      this.updateKey(modulator, keyOn);
-      this.updateKey(carrier, keyOn);
-
       const blockFreq = ((keyRegister & 0x1f) << 8) | this.regs[0xa0 + channel]!;
+      this.updateKey(modulator, keyOn, blockFreq);
+      this.updateKey(carrier, keyOn, blockFreq);
       this.clockEnvelope(modulator, blockFreq);
       this.clockEnvelope(carrier, blockFreq);
       this.clockPhase(modulator, blockFreq);
@@ -1272,17 +1277,16 @@ export class GeneratedYm3526Chip {
       const feedback = (algorithm >>> 1) & 7;
       const feedbackInput = feedback === 0
         ? 0
-        : (this.feedback1[channel]! + this.feedback2[channel]!) /
-          Math.pow(2, 10 - feedback);
+        : (this.feedback1[channel]! + this.feedback2[channel]!) >> (10 - feedback);
       const mod = this.operatorSample(modulator, feedbackInput);
       this.feedbackIn[channel] = mod;
 
       // Revision 1 uses the previous modulator sample for carrier modulation
       // and shifts each channel by one before summing to its external DAC.
-      const carrierInput = (algorithm & 1) !== 0 ? 0 : this.feedback1[channel]! / 2;
-      let voice = this.operatorSample(carrier, carrierInput) / 2;
+      const carrierInput = (algorithm & 1) !== 0 ? 0 : this.feedback1[channel]! >> 1;
+      let voice = this.operatorSample(carrier, carrierInput) >> 1;
       if ((algorithm & 1) !== 0) {
-        voice = clamp(voice + this.feedback1[channel]! / 2, -32768, 32767);
+        voice = clamp(voice + (this.feedback1[channel]! >> 1), -32768, 32767);
       }
       total += voice;
     }
@@ -1290,12 +1294,12 @@ export class GeneratedYm3526Chip {
     return roundtripFp(total) / 32768;
   }
 
-  private updateKey(operator: number, on: boolean): void {
+  private updateKey(operator: number, on: boolean, blockFreq: number): void {
     if (on && this.keyState[operator] === 0) {
       this.keyState[operator] = 1;
       this.envelopeState[operator] = FM.egAttack;
       this.phase[operator] = 0;
-      if (this.envelopeRate(operator, FM.egAttack) >= 62) {
+      if (this.envelopeRate(operator, FM.egAttack, blockFreq) >= 62) {
         this.envAttenuation[operator] = 0;
       }
     } else if (!on && this.keyState[operator] !== 0) {
@@ -1344,10 +1348,10 @@ export class GeneratedYm3526Chip {
     const current = this.envelopeState[operator]!;
     const rate = this.envelopeRate(operator, current, blockFreq);
     const rateShift = rate >>> 2;
-    const shiftedCounter = (this.envCounter >>> 2) * Math.pow(2, rateShift);
+    const shiftedCounter = ((this.envCounter >>> 2) << rateShift) >>> 0;
     if ((shiftedCounter & 0x7ff) !== 0) return;
     const relevantShift = rateShift <= 11 ? 11 : rateShift;
-    const relevantBits = Math.floor(shiftedCounter / Math.pow(2, relevantShift)) & 7;
+    const relevantBits = (shiftedCounter >>> relevantShift) & 7;
     const packed = FM.incrementTable[rate]!;
     const increment = (packed >>> (4 * relevantBits)) & 0x0f;
     if (current === FM.egAttack) {
@@ -1385,7 +1389,7 @@ export class GeneratedYm3526Chip {
     const kslBits = level >>> 6;
     const ksl = ((kslBits >>> 1) | ((kslBits & 1) << 1));
     if (ksl !== 0) {
-      const channel = opl.operatorMap.findIndex(pair => pair.includes(operator));
+      const channel = this.operatorChannel[operator]!;
       const keyRegister = this.regs[0xb0 + channel]!;
       const blockFreq = ((keyRegister & 0x1f) << 8) | this.regs[0xa0 + channel]!;
       const table = [0, 24, 32, 37, 40, 43, 45, 47, 48, 50, 51, 52, 53, 54, 55, 56];
