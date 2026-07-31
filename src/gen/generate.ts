@@ -33,6 +33,11 @@ import {
   gameDataPath,
   gameOutputDir,
 } from './output-layout.ts';
+import {
+  machineDossierMarkdown as renderDossierMarkdown,
+  type DossierData,
+} from './dossier.ts';
+import { emitArchiveRoutes } from './archive.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '../..');
@@ -771,17 +776,36 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       { encoding: 'utf8', timeout: 30000 });
     const lines = (log.stdout ?? '').trim().split('\n').filter(Boolean);
     if (lines.length) {
-      const authors = new Map<string, number>();
+      const authors = new Map<string, {
+        commits: number;
+        firstCommit: string;
+        lastCommit: string;
+      }>();
       for (const l of lines) {
-        const name = l.split('|')[1];
-        if (name) authors.set(name, (authors.get(name) ?? 0) + 1);
+        const [date, name] = l.split('|');
+        if (!name || !date) continue;
+        const author = authors.get(name);
+        if (author) {
+          author.commits++;
+          author.firstCommit = date;
+        } else {
+          authors.set(name, {
+            commits: 1,
+            firstCommit: date,
+            lastCommit: date,
+          });
+        }
       }
+      const authorStats = [...authors.entries()]
+        .map(([name, author]) => ({ name, ...author }))
+        .sort((a, b) => b.commits - a.commits || a.name.localeCompare(b.name));
       gitHistory = {
         firstCommit: lines[lines.length - 1].split('|')[0],
         lastCommit: lines[0].split('|')[0],
         commits: lines.length,
         contributors: authors.size,
-        topAuthors: [...authors.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([n]) => n),
+        topAuthors: authorStats.slice(0, 5).map(author => author.name),
+        authorStats,
       };
     }
   } catch { /* no git history available */ }
@@ -863,9 +887,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     nesApu,
   );
 
-  // the full dossier: everything above as a standalone markdown document,
-  // readable outside the app (games/<category>/<game>/DOSSIER.md)
-  writeFileSync(join(opts.outDir, 'DOSSIER.md'), machineDossierMarkdown({
+  // The canonical dossier data feeds both the portable Markdown download and
+  // the styled in-site HTML route emitted by buildApp.
+  const dossier: DossierData = {
     game: opts.game, title, fullname: String(game.props.fullname),
     year: String(game.props.year), company: String(game.props.company),
     family, driverFile: String(graph.meta.driverFile),
@@ -876,8 +900,12 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     ...(cart ? {
       cart: { list: String(cart.list), entries: cartEntries, slots: cart.slots as string[] },
     } : {}),
-  }));
-  console.log(`\ngenerated ${join(opts.outDir, 'config.json')} (+ meta.json, DOSSIER.md, runtime report)`);
+  };
+  const dossierMarkdown = renderDossierMarkdown(dossier);
+  writeFileSync(join(opts.outDir, 'dossier.json'), JSON.stringify(dossier, null, 2));
+  writeFileSync(join(opts.outDir, 'DOSSIER.md'), dossierMarkdown);
+  writeFileSync(join(opts.outDir, `${opts.game}-dossier.md`), dossierMarkdown);
+  console.log(`\ngenerated ${join(opts.outDir, 'config.json')} (+ meta.json, dossier, runtime report)`);
   if (!existsSync(join(romsDir(projectRoot), `${opts.game}.zip`))) {
     console.log(`note: put ${opts.game}.zip in ${romsDir(projectRoot)}/ to auto-load ROMs (or drop the zip onto the page)`);
   }
@@ -1245,7 +1273,12 @@ if (game) {
     if (!existsSync(compiledGroup)) continue;
     cpSync(compiledGroup, join(outRoot, group), { recursive: true });
   }
+  const archive = emitArchiveRoutes(outRoot, appDir);
   rmSync(buildDir, { recursive: true, force: true });
+  console.log(
+    `archive ready: ${archive.games} games, ${archive.facetValues} facet pages, ` +
+    `${archive.dossiers} dossiers`,
+  );
   console.log(`app ready: ${join(appDir, 'index.html')}`);
   return true;
 }

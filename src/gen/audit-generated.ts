@@ -35,6 +35,12 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
   else if (!registry.includes('registerGeneratedBoard')) {
     failures.push('unified generated registry does not register board factories');
   }
+  if (!existsSync(join(outRoot, 'app/browse/index.html'))) {
+    failures.push('browse archive index is missing');
+  }
+  if (!existsSync(join(outRoot, 'app/browse/index.json'))) {
+    failures.push('browse archive data is missing');
+  }
 
   // A dist whose catalog, hardware closure and build manifest disagree is a
   // mixed build: boards registered against a closure that was not built for
@@ -165,7 +171,9 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
   for (const { game: target, category, dir } of generatedTargets) {
     const required = [
       'config.json',
+      'dossier.json',
       'DOSSIER.md',
+      `${target}-dossier.md`,
       'graph.json',
       'runtime-report.json',
       'generated/board.ts',
@@ -175,6 +183,9 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     ];
     for (const file of required) {
       if (!existsSync(join(dir, file))) failures.push(`${target}: missing ${file}`);
+    }
+    if (!existsSync(join(outRoot, `app/g/${target}/dossier/index.html`))) {
+      failures.push(`${target}: styled dossier route is missing`);
     }
     if (!existsSync(join(dir, 'generated/board.json'))) continue;
     const boardSource = readFileSync(join(dir, 'generated/board.ts'), 'utf8');
