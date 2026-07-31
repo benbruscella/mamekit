@@ -95,15 +95,6 @@ export class GeneratedFrameRunner {
   frame(framebuffer: Uint32Array): void {
     const screen = this.machine.execution.screen;
     for (let line = 0; line < screen.vtotal; line++) {
-      // Raster screens present the completed visible frame at the transition
-      // into vblank. Rendering after any vblank CPU time can observe transient
-      // blanking/bank-control writes that belong to the next frame.
-      if (
-        line === screen.vbstart &&
-        (screen.updateMode ?? 'frame') === 'frame'
-      ) {
-        this.video?.render(framebuffer);
-      }
       this.onLine?.(line, 'before-processors', framebuffer);
       if (this.eventPhase === 'before-processors') this.dispatchLine(line, framebuffer);
       // MAME's VIDEO_UPDATE_SCANLINE timer calls update_partial at the start
@@ -123,7 +114,11 @@ export class GeneratedFrameRunner {
       if (this.eventPhase === 'after-processors') this.dispatchLine(line, framebuffer);
     }
     this.frames++;
-    if (screen.updateMode === 'partial') this.video?.render(framebuffer);
+    // Keep frame-mode presentation at the established end-of-frame boundary.
+    // Moving it to vbstart changed late-frame video for otherwise unrelated
+    // boards; games that need scanline timing opt into the explicit scanline
+    // mode above.
+    if (screen.updateMode !== 'scanline') this.video?.render(framebuffer);
   }
 
   private dispatchLine(line: number, framebuffer: Uint32Array): void {

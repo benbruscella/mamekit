@@ -59,7 +59,7 @@ assert.deepEqual(lines, [0, 1, 2]);
 assert.deepEqual(events, ['callback:vblank']);
 assert.equal(vblanks, 1);
 assert.equal(renders, 1);
-assert.deepEqual(timeline, ['cpu', 'cpu', 'render', 'cpu']);
+assert.deepEqual(timeline, ['cpu', 'cpu', 'cpu', 'render']);
 assert.equal(runner.frameCount, 1);
 
 const scanlines: number[] = [];
