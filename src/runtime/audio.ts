@@ -12,7 +12,7 @@
  * `clock` (defaults to sampleRate — for the WSG they are the same, 96000).
  */
 import type { GeneratedAudioRoute } from '../ir/board.ts';
-import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 
 export interface WorkletCoreConfig {
   readonly sampleRate: number;
@@ -25,6 +25,8 @@ export interface WorkletCoreConfig {
   readonly auxiliary?: GeneratedDacFilterPlan;
   readonly auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
   readonly discreteMixer?: GeneratedDiscreteMixerPlan;
+  readonly discreteDac?: GeneratedDiscreteDacPlan;
+  readonly discreteEffects?: GeneratedDiscreteEffectsPlan;
   readonly speakerFilter?: GeneratedSpeakerFilterPlan;
   /** video refresh rate (Hz) — paces the worklet's write scheduler */
   readonly refresh?: number;
@@ -106,6 +108,8 @@ export class AudioOutput {
       auxiliary: core.auxiliary,
       auxiliaryDevices: core.auxiliaryDevices,
       discreteMixer: core.discreteMixer,
+      discreteDac: core.discreteDac,
+      discreteEffects: core.discreteEffects,
       refresh: core.refresh,
       debug: core.debug,
     });

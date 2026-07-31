@@ -17,8 +17,14 @@ import {
   lowerAuxiliaryAudioDevices,
 } from './emit-machine.ts';
 import type { BoardConfig } from '../runtime/types.ts';
+import type {
+  GeneratedDiscreteDacPlan,
+  GeneratedDiscreteEffectsPlan,
+} from '../ir/audio-protocol.ts';
 import { compileMameVideo, effectiveGfxDecodes } from '../mame/video-compiler.ts';
 import {
+  compileDiscreteDacAttenuator,
+  compileDiscreteEffects,
   compileDiscreteMixer,
   compileMameSpeakerFilter,
   compileNamco54Discrete,
@@ -65,6 +71,9 @@ const KEYMAP: Record<string, string[]> = {
   IPT_COIN1: ['Digit5'],
   IPT_COIN2: ['Digit6'],
   IPT_SERVICE1: ['Digit9'],
+  IPT_SERVICE2: ['Digit8'],
+  IPT_SERVICE3: ['Digit7'],
+  IPT_SERVICE4: ['Digit0'],
   // console pads (nes joypad: A=IPT_BUTTON2 -> KeyZ, B=IPT_BUTTON1 -> KeyX/Space)
   IPT_START: ['Enter'],
   IPT_SELECT: ['ShiftRight'],
@@ -173,7 +182,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', KONAMI1: 'konami1', I8039: 'i8039', I8080: 'i8080', M6801U4: 'm6801u4', M6803: 'm6803', MC6809: 'mc6809', MC6809E: 'mc6809e', RP2A03: 'rp2a03', RP2A03G: 'rp2a03' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', KONAMI1: 'konami1', I8039: 'i8039', MB8884: 'i8039', I8080: 'i8080', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', RP2A03: 'rp2a03', RP2A03G: 'rp2a03' };
   const cpuDevs = devices.filter(d => String(d.props.type) in CPU_TYPES);
   if (cpuDevs.length === 0) throw new Error('no supported CPU devices found in machine config');
 
@@ -198,10 +207,17 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     const spec: Record<string, unknown> = {
       start: Number(r.props.start),
       end: Number(r.props.end),
-      kind: r.props.rom ? 'rom' : r.props.ram || r.props.writeonly ? 'ram' : 'handler',
+      kind: r.props.rom
+        ? 'rom'
+        : r.props.ram || r.props.readonly || r.props.writeonly
+          ? 'ram'
+          : 'handler',
     };
     if (r.props.mirror) spec.mirror = Number(r.props.mirror);
+    if (r.props.regionOffset !== undefined) spec.romOffset = Number(r.props.regionOffset);
     if (r.props.share) spec.share = String(r.props.share);
+    if (r.props.readonly || r.props.nopw) spec.readOnly = true;
+    if (r.props.writeonly || r.props.nopr) spec.writeOnly = true;
     if (reads[0]) spec.read = handlerKey(reads[0]);
     if (writes[0]) {
       spec.write = handlerKey(writes[0]);
@@ -233,9 +249,15 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     if (!programMap && dev.props.type !== 'M6801U4') {
       throw new Error(`no address map on ${dev.props.tag}`);
     }
+    const rangeNodes = programMap ? collectRanges(programMap.id) : [];
     const ranges = programMap
-      ? collectRanges(programMap.id).map(rangeSpec)
+      ? rangeNodes.map(rangeSpec)
       : [{ start: 0xf000, end: 0xffff, kind: 'rom', romOffset: 0 }];
+    const explicitRegions = [...new Set(
+      rangeNodes
+        .map(range => range.props.region)
+        .filter((region): region is string => typeof region === 'string' && region.length > 0),
+    )];
     // program-space global_mask (the Irem sound 6803 masks to 0x7fff so its
     // reset vector at $FFFE reads ROM $7FFE)
     const mask = programMap?.props.globalMask !== undefined
@@ -264,16 +286,20 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       ...(mask !== undefined ? { mask } : {}),
       ...(opcode ? { opcode } : {}),
       io,
+      ...(explicitRegions.length === 1 ? { region: explicitRegions[0] } : {}),
     };
   };
 
-  const cpus = cpuDevs.map(d => ({
-    tag: String(d.props.tag),
-    type: CPU_TYPES[String(d.props.type)],
-    clock: Number(d.props.clock),
-    region: String(d.props.tag), // rom region tag == cpu tag across supported families
-    ...cpuMaps(d),
-  }));
+  const cpus = cpuDevs.map(d => {
+    const maps = cpuMaps(d);
+    return {
+      tag: String(d.props.tag),
+      type: CPU_TYPES[String(d.props.type)],
+      clock: Number(d.props.clock),
+      region: maps.region ?? String(d.props.tag),
+      ...maps,
+    };
+  });
 
   // legacy alias: boards for single-map families read cpus[n].ranges; the
   // shared `ranges` field mirrors cpu[0] for the galaga family's shared map
@@ -375,10 +401,16 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       id: device.id,
       tag: String(device.props.tag),
       type: String(device.props.type),
+      ...(configuredDeviceMember(device.props)
+        ? { member: configuredDeviceMember(device.props) }
+        : {}),
       ...(typeof device.props.clock === 'number' ? { clock: device.props.clock } : {}),
     })),
   );
   const ymChips = devices.filter(d => d.props.type === 'YM2203');
+  const snChips = devices.filter(d =>
+    ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
+      'GAMEGEAR', 'SEGAPSG'].includes(String(d.props.type)));
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
         const type = String(device.props.type);
@@ -416,6 +448,19 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               ? { auxiliaryDevices: auxiliaryAudioDevices }
               : {}),
           }
+        : snChips.length
+          ? (() => {
+              const snRoutes = lowerAudioRoutes(
+                graph,
+                snChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
+              );
+              return {
+                kind: 'sn76489',
+                clock: Number(snChips[0].props.clock),
+                chips: snChips.length,
+                ...(snRoutes.length ? { routes: snRoutes } : {}),
+              };
+            })()
         : discreteDevice
           ? {
               kind: 'discrete',
@@ -438,6 +483,41 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     .map(String)
     .map(value => /\bDISCRETE\s*\([^,]+,[^,]+,\s*(\w+)\s*\)/.exec(value)?.[1])
     .find((value): value is string => Boolean(value));
+  if (sound.kind === 'none' && discreteNetlist) {
+    const sourceFiles = [
+      String(graph.meta.driverFile),
+      ...graph.nodes
+        .filter(node => node.label === 'SourceFile')
+        .map(node => String(node.props.path)),
+    ];
+    const discreteDac = compileDiscreteDacAttenuator(
+      opts.mameSrc,
+      sourceFiles,
+      discreteNetlist,
+    );
+    if (discreteDac) {
+      Object.assign(sound, {
+        kind: 'discrete',
+        clock: cpus[0].clock,
+        worklet: '../../hardware/discrete-dac/discrete-dac',
+        discreteDac,
+      });
+    } else {
+      const discreteEffects = compileDiscreteEffects(
+        opts.mameSrc,
+        sourceFiles,
+        discreteNetlist,
+      );
+      if (discreteEffects) {
+        Object.assign(sound, {
+          kind: 'discrete',
+          clock: cpus[0].clock,
+          worklet: '../../hardware/discrete-effects/discrete-effects',
+          discreteEffects,
+        });
+      }
+    }
+  }
   if (sound.kind === 'wsg' && discreteNetlist) {
     Object.assign(sound, {
       auxiliary: compileNamco54Discrete(
@@ -560,16 +640,22 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // active-low, galaxian's are active-HIGH (coin bit 0 at rest) — the resting
   // ("init") byte must be computed per port or galaxian sees a stuck coin switch.
   //
-  // PORT_INCLUDE resolution: walk the INCLUDES_PORTS chain root-first and
+  // PORT_INCLUDE resolution: walk every INCLUDES_PORTS branch root-first and
   // merge — a PORT_START in a derived set replaces the whole port; a
   // PORT_MODIFY replaces base fields whose masks overlap (mpatrol inherits
   // m52's coin/start/service ports and modifies the joystick bits).
   interface EffPort { tag: string; fields: KGNode[] }
   const inputsChain: KGNode[] = [];
-  for (let n: KGNode | undefined = inputs; n; n = g.out(n.id, 'INCLUDES_PORTS')[0]?.node) {
-    inputsChain.unshift(n);
-    if (inputsChain.length > 8) break; // cycle guard
-  }
+  const inputSetsSeen = new Set<string>();
+  const appendInputSet = (node: KGNode | undefined): void => {
+    if (!node || inputSetsSeen.has(node.id)) return;
+    inputSetsSeen.add(node.id);
+    for (const include of g.out(node.id, 'INCLUDES_PORTS')) {
+      appendInputSet(include.node);
+    }
+    inputsChain.push(node);
+  };
+  appendInputSet(inputs);
   const effPorts = new Map<string, EffPort>();
   for (const setNode of inputsChain) {
     for (const { node: port } of g.out(setNode.id, 'HAS_PORT')) {
@@ -604,9 +690,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         init = (init & ~mask) | (value & mask);
         dipDefaults.push({ port: tag, mask, value, name: String(f.props.name ?? '') });
       } else if (kind === 'service') {
-        // service switch at rest = released
-        if (activeLow) init |= mask;
-        dipDefaults.push({ port: tag, mask, value: activeLow ? mask : 0, name: 'Service Mode' });
+        const value = Number(f.props.defaultValue ?? (activeLow ? mask : 0));
+        init = (init & ~mask) | (value & mask);
+        dipDefaults.push({ port: tag, mask, value, name: 'Service Mode' });
       } else if (kind === 'bit') {
         if (activeLow) init |= mask; // released = bit set; active-high released = bit clear
         const type = String(f.props.type ?? '');
@@ -745,13 +831,23 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         JSON.parse(String(value)) as Record<string, unknown>)
     : undefined;
 
+  const compiledVideo = compileMameVideo(graph, opts.mameSrc, machine.id);
   const config = {
     game: opts.game,
     title,
     family,
     ...(kind ? { kind } : {}),
     dataPath,
-    board: { family, cpus, ranges, ...(io ? { io } : {}), ...(customs.length ? { customs } : {}), screen, clocks },
+    board: {
+      family,
+      cpus,
+      ranges,
+      ...(io ? { io } : {}),
+      ...(customs.length ? { customs } : {}),
+      screen,
+      clocks,
+      videoMode: compiledVideo?.plan.bitmap ? 'bitmap' : 'handler',
+    },
     sound,
     roms,
     ...(romPatches ? { romPatches } : {}),
@@ -876,7 +972,6 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const runtimeReport = buildRuntimeReport(graph, config as unknown as RuntimeConfigShape);
   writeFileSync(join(opts.outDir, 'runtime-report.json'), JSON.stringify(runtimeReport, null, 2));
   writeFileSync(join(opts.outDir, 'runtime-report.md'), runtimeReportMarkdown(runtimeReport));
-  const compiledVideo = compileMameVideo(graph, opts.mameSrc, machine.id);
   emitGeneratedMachine(
     graph,
     opts.game,
@@ -885,6 +980,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     config.board as unknown as BoardConfig,
     compiledVideo,
     nesApu,
+    'discreteDac' in sound
+      ? sound.discreteDac as GeneratedDiscreteDacPlan
+      : 'discreteEffects' in sound
+        ? sound.discreteEffects as GeneratedDiscreteEffectsPlan
+      : undefined,
   );
 
   // The canonical dossier data feeds both the portable Markdown download and
@@ -915,6 +1015,11 @@ export function handlerOwnsSharedRam(sourceBody: string, share: string): boolean
   if (!share) return false;
   const member = `m_${share.replace(/[^A-Za-z0-9_]/g, '_')}`;
   return new RegExp(`\\b${member}\\s*\\[[^\\]]+\\]\\s*[-+*/&|^]?=`).test(sourceBody);
+}
+
+function configuredDeviceMember(props: Record<string, unknown>): string | undefined {
+  const config = Array.isArray(props.config) ? props.config.map(String).join('\n') : '';
+  return /\(\s*config\s*,\s*(m_\w+(?:\[\d+\])?)/.exec(config)?.[1];
 }
 
 /**

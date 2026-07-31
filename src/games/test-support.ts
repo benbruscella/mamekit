@@ -43,7 +43,10 @@ export function assertGameContract(contract: GameTestContract): void {
   let previousEnd = 0;
   for (const action of contract.actions) {
     assert.ok(action.atFrame >= previousEnd, `${contract.game}: input actions overlap`);
-    assert.ok(action.atFrame + action.heldFrames + action.releasedFrames <= contract.frames);
-    previousEnd = action.atFrame + action.heldFrames + action.releasedFrames;
+    const end = 'code' in action
+      ? action.atFrame + action.heldFrames + action.releasedFrames
+      : action.atFrame;
+    assert.ok(end <= contract.frames);
+    previousEnd = end;
   }
 }

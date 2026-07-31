@@ -232,7 +232,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         start: r.start, end: r.end, raw: r.raw, ...spanProps(rangeSource),
       };
       if (r.mirror !== undefined) props.mirror = r.mirror;
-      for (const flag of ['rom', 'ram', 'writeonly', 'nopw', 'nopr'] as const) {
+      for (const flag of ['rom', 'ram', 'readonly', 'writeonly', 'nopw', 'nopr'] as const) {
         if (r[flag]) props[flag] = true;
       }
       if (r.share) props.share = r.share;
@@ -240,6 +240,8 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (r.portWrite) props.portWrite = r.portWrite;
       if (r.bankRead) props.bankRead = memberTags[`m_${r.bankRead}`] ?? r.bankRead;
       if (r.bankWrite) props.bankWrite = memberTags[`m_${r.bankWrite}`] ?? r.bankWrite;
+      if (r.region) props.region = r.region;
+      if (r.regionOffset !== undefined) props.regionOffset = r.regionOffset;
       g.node('AddressRange', rangeId, props);
       g.edge(mapId, rangeId, 'HAS_RANGE');
       for (const dir of ['read', 'write'] as const) {
@@ -426,7 +428,10 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         ...spanProps(ast.findStatement(dev.config[0] ?? '', cfgFunction)?.span),
       };
       const configCalls = dev.config.flatMap(raw => {
-        const call = /(?:\w+|m_\w+)\s*(?:->|\.)\s*(\w+)\s*\(([\s\S]*)\)\s*;?$/.exec(raw.trim());
+        // Device finder arrays retain their source spelling (`m_pia[0]`).
+        // Accept the subscript here so their constant machine-config setters
+        // are lowered just like setters on scalar finder members.
+        const call = /(?:\w+|m_\w+(?:\[\d+\])?)\s*(?:->|\.)\s*(\w+)\s*\(([\s\S]*)\)\s*;?$/.exec(raw.trim());
         if (!call) return [];
         const values = splitMameArgs(call[2]!).map(value => evalExpr(value, consts));
         return values.every((value): value is number => value !== null)
@@ -573,7 +578,7 @@ export function resolveMachineLifecycle(
   const root = ast.findFunctionInHierarchy(
     className,
     `machine_${kind}_${machineName}`,
-  );
+  ) ?? ast.findFunctionInHierarchy(className, `machine_${kind}`);
   if (!root) return [];
 
   const ordered: MameFunction[] = [];
@@ -747,7 +752,9 @@ function emitInputPorts(
   const inpId = `inputs:${inp.name}`;
   g.node('InputPorts', inpId, { name: inp.name, ...spanProps(source) });
   g.edge(inpId, fileId, 'DEFINED_IN', source ? spanProps(source) : undefined);
-  if (inp.include) g.edge(inpId, `inputs:${inp.include}`, 'INCLUDES_PORTS');
+  for (const include of inp.includes ?? []) {
+    g.edge(inpId, `inputs:${include}`, 'INCLUDES_PORTS');
+  }
   for (const port of inp.ports) {
     const portId = `${inpId}/${port.tag}`;
     g.node('Port', portId, { tag: port.tag, modify: port.modify ?? false });
@@ -925,7 +932,7 @@ function emitCallbacks(
 
     const funcArg = operation.args.find(arg => arg.includes('FUNC('));
     const func = funcArg
-      ? /FUNC\(\s*(?:(\w+)::)?(\w+(?:<\d+>)?)\s*\)/.exec(funcArg)
+      ? /FUNC\(\s*(?:(\w+)::)?(\w+(?:<[^>]+>)?)\s*\)/.exec(funcArg)
       : null;
     const quotedTarget = operation.name === 'configure_scanline'
       ? undefined
@@ -936,7 +943,8 @@ function emitCallbacks(
     if (operation.name === 'set_ioport' && quotedTarget) props.targetPort = quotedTarget;
     if (operation.name.includes('inputline')) {
       const line = operation.args.find(arg =>
-        /^(?:INPUT_LINE_[A-Z0-9_]+|[A-Z][A-Z0-9_]*_LINE|\d+)$/.test(arg.trim()));
+        /^(?:INPUT_LINE_[A-Z0-9_]+|[A-Z][A-Z0-9_]*_INPUT_LINE_[A-Z0-9_]+|[A-Z][A-Z0-9_]*_LINE|\d+)$/
+          .test(arg.trim()));
       if (line) props.inputLine = line.trim();
     }
     if (operation.name === 'set_maincpu') {
@@ -945,7 +953,8 @@ function emitCallbacks(
     }
     if (func) {
       props.targetClass = func[1] ?? '';
-      props.targetMethod = func[2].replace(/<(\d+)>/, '_$1');
+      props.targetMethod = func[2].replace(/<([^>]+)>/, (_match, argument: string) =>
+        `_${argument.replace(/[^A-Za-z0-9_]+/g, '_')}`);
     }
 
     g.node('Callback', callbackId, props);
@@ -953,7 +962,8 @@ function emitCallbacks(
 
     if (func) {
       const owner = func[1] ?? '';
-      const method = func[2].replace(/<(\d+)>/, '_$1');
+      const method = func[2].replace(/<([^>]+)>/, (_match, argument: string) =>
+        `_${argument.replace(/[^A-Za-z0-9_]+/g, '_')}`);
       const handlerId = emitSourceHandlerClosure(
         g,
         ast,
@@ -969,7 +979,8 @@ function emitCallbacks(
       const target = findConfigDevice(quotedTarget);
       if (target) g.edge(callbackId, target.id, 'TARGETS_DEVICE');
     } else {
-      const targetArg = operation.args.find(arg => /^m_\w+$/.test(arg.trim()));
+      const targetArg = operation.args.find(arg =>
+        /^m_\w+(?:\[\d+\])?$/.test(arg.trim()));
       const targetTag = targetArg ? memberTags[targetArg.trim()] : undefined;
       if (targetTag) {
         props.targetTag = targetTag;
@@ -1066,6 +1077,28 @@ function emitSourceHandlerClosure(
       ast,
       dependency.className,
       dependency.name,
+      constants,
+      dependency.span,
+      visited,
+    );
+    g.edge(handlerId, dependencyId, 'CALLS_HANDLER');
+  }
+  // timer_expired_delegate and similar wrappers carry their callback as
+  // FUNC(owner::method), not as an ordinary call in the statement AST.
+  for (const reference of fn.body.matchAll(
+    /\bFUNC\s*\(\s*(\w+)::(\w+(?:<\d+>)?)\s*\)/g,
+  )) {
+    const dependencyMethod = reference[2]!.replace(/<(\d+)>/, '_$1');
+    const dependency = ast.findFunctionInHierarchy(
+      reference[1]!,
+      dependencyMethod.replace(/_\d+$/, ''),
+    );
+    if (!dependency || dependency === fn) continue;
+    const dependencyId = emitSourceHandlerClosure(
+      g,
+      ast,
+      dependency.className,
+      dependencyMethod,
       constants,
       dependency.span,
       visited,

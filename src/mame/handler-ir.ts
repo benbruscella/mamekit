@@ -246,12 +246,12 @@ class HandlerParser {
     } else if (this.isDeclaration()) {
       initialize = this.parseDeclaration();
     } else {
-      const operation = this.parseMutation(';');
-      if (!operation) {
+      const operations = this.parseMutationList(';');
+      if (!operations) {
         this.unsupportedStatement('invalid for initializer');
         return undefined;
       }
-      initialize = [operation];
+      initialize = operations;
     }
     const condition = this.parseExpression();
     if (!condition || !this.consume(';')) {
@@ -378,6 +378,23 @@ class HandlerParser {
     }
     if (!value || !this.consume(terminator)) return undefined;
     return { op: 'assign', target, operator, value };
+  }
+
+  private parseMutationList(terminator: string): GeneratedHandlerOperation[] | undefined {
+    const operations: GeneratedHandlerOperation[] = [];
+    while (!this.at('eof')) {
+      const expression = this.parseExpression();
+      if (!expression || expression.kind !== 'assignment') return undefined;
+      operations.push({
+        op: 'assign',
+        target: expression.target,
+        operator: expression.operator,
+        value: expression.value,
+      });
+      if (this.consume(terminator)) return operations;
+      if (!this.consume(',')) return undefined;
+    }
+    return undefined;
   }
 
   private isDeclaration(): boolean {

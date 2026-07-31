@@ -31,6 +31,7 @@ export interface RuntimeConfigShape {
     cpus: RuntimeCpu[];
     ranges: RuntimeRange[];
     io?: { ranges: RuntimeRange[] };
+    videoMode?: 'handler' | 'bitmap';
   };
 }
 
@@ -185,7 +186,6 @@ export function buildRuntimeReport(
     }));
   const sourceHandlerByKey = new Map(sourceHandlers.map(handler => [handler.key, handler]));
   const handlers: RuntimeRequirement[] = handlerNames.map(name => {
-    const prefix = name.split('.')[0]!;
     const sourceHandler = sourceHandlerByKey.get(name);
     if (GENERIC_HANDLER_PREFIXES.some(generic => name.startsWith(generic))) {
       return { name, status: 'generated' };
@@ -193,7 +193,12 @@ export function buildRuntimeReport(
     if (sourceHandler?.program.diagnostics.length === 0) {
       return { name, status: 'generated', source: nodeSource(sourceHandler.node) };
     }
-    const device = deviceRequirementByTag.get(prefix);
+    // Device tags may contain dots (for example Donkey Kong's "ls175.3d").
+    // Resolve the longest tag prefix rather than treating the first dot as the
+    // boundary between device and method.
+    const device = [...deviceRequirementByTag.entries()]
+      .filter(([tag]) => name.startsWith(`${tag}.`))
+      .sort(([left], [right]) => right.length - left.length)[0]?.[1];
     if (device) {
       return {
         name,
@@ -282,7 +287,11 @@ export function buildRuntimeReport(
     .map(item => item.name)
     .sort();
   const boardMode = config.board.cpus.length ? 'generated' : 'missing';
-  const screenUpdateCompiled = Boolean(screenProgram && screenProgram.diagnostics.length === 0);
+  // Packed/direct framebuffer plans execute through the generated video
+  // renderer and therefore do not require the configured device screen-update
+  // method to appear as a driver handler.
+  const screenUpdateCompiled = config.board.videoMode === 'bitmap' ||
+    Boolean(screenProgram && screenProgram.diagnostics.length === 0);
 
   return {
     schemaVersion: 2,
@@ -314,7 +323,9 @@ export function buildRuntimeReport(
       frameCallbacks,
       ...(screenUpdate ? { screenUpdate } : {}),
       screenUpdateCompiled,
-      screenUpdateDiagnostics: screenProgram?.diagnostics ?? ['screen-update source method not found'],
+      screenUpdateDiagnostics: config.board.videoMode === 'bitmap'
+        ? []
+        : screenProgram?.diagnostics ?? ['screen-update source method not found'],
     },
     summary,
   };

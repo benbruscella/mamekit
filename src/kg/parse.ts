@@ -479,12 +479,15 @@ export interface HandlerRef {
 
 export interface AddressRangeDef {
   start: number; end: number; mirror?: number;
-  rom?: boolean; ram?: boolean; writeonly?: boolean; nopw?: boolean; nopr?: boolean;
+  rom?: boolean; ram?: boolean; readonly?: boolean; writeonly?: boolean;
+  nopw?: boolean; nopr?: boolean;
   read?: HandlerRef; write?: HandlerRef;
   /** input-port tag from .portr("IN0") / .portw(...) */
   portRead?: string; portWrite?: string;
   /** memory-bank name from .bankr(m_foo) / .bankr("foo") (m_ prefix stripped) */
   bankRead?: string; bankWrite?: string;
+  /** Explicit ROM region and byte offset from .region("tag", offset). */
+  region?: string; regionOffset?: number;
   share?: string;
   raw: string;
 }
@@ -528,6 +531,7 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
         switch (method) {
           case 'rom': range.rom = true; break;
           case 'ram': range.ram = true; break;
+          case 'readonly': range.readonly = true; break;
           case 'writeonly': range.writeonly = true; break;
           case 'nopw': range.nopw = true; break;
           case 'nopr': range.nopr = true; break;
@@ -539,6 +543,10 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
           case 'portw': range.portWrite = unquote(args[0]); break;
           case 'bankr': range.bankRead = unquote(args[0]).replace(/^m_/, ''); break;
           case 'bankw': range.bankWrite = unquote(args[0]).replace(/^m_/, ''); break;
+          case 'region':
+            range.region = unquote(args[0]);
+            range.regionOffset = evalExpr(args[1] ?? '0') ?? 0;
+            break;
           case 'r': range.read = parseHandlerArgs(args); break;
           case 'w': range.write = parseHandlerArgs(args); break;
           case 'lr8': range.read = parseInlineHandler(args, name, range, 'lr8'); break;
@@ -628,13 +636,18 @@ function parseChain(s: string): { method: string; args: string[] }[] {
 function parseHandlerArgs(args: string[]): HandlerRef | undefined {
   const funcArg = args.find(a => a.includes('FUNC('));
   if (!funcArg) return undefined;
-  const fm = /FUNC\(\s*(?:(\w+)::)?(\w+(?:<\d+>)?)\s*\)/.exec(funcArg);
+  const fm = /FUNC\(\s*(?:(\w+)::)?(\w+(?:<[^>]+>)?)\s*\)/.exec(funcArg);
   if (!fm) return undefined;
-  const ref: HandlerRef = { method: fm[2].replace(/<(\d+)>/, '_$1') };
+  const ref: HandlerRef = { method: normalizeTemplatedMethod(fm[2]) };
   if (fm[1]) ref.deviceClass = fm[1];
   const devArg = args.find(a => !a.includes('FUNC('));
   if (devArg) ref.deviceRef = unquote(devArg.trim());
   return ref;
+}
+
+function normalizeTemplatedMethod(method: string): string {
+  return method.replace(/<([^>]+)>/, (_match, argument: string) =>
+    `_${argument.replace(/[^A-Za-z0-9_]+/g, '_')}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -1121,7 +1134,7 @@ export interface PortFieldDef {
   settings?: { value: number; name: string; condition?: string }[];
 }
 export interface PortDef { tag: string; modify?: boolean; fields: PortFieldDef[]; }
-export interface InputPortsDef { name: string; include?: string; ports: PortDef[]; }
+export interface InputPortsDef { name: string; includes?: string[]; ports: PortDef[]; }
 
 /**
  * Collect #define text macros used inside INPUT_PORTS blocks:
@@ -1198,7 +1211,9 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
       const args = splitArgs(body.slice(open + 1, close));
       const trailing = body.slice(close + 1, body.indexOf('\n', close) === -1 ? body.length : body.indexOf('\n', close));
       switch (tm[1]) {
-        case 'PORT_INCLUDE': def.include = args[0].trim(); break;
+        case 'PORT_INCLUDE':
+          (def.includes ??= []).push(args[0].trim());
+          break;
         case 'PORT_START': port = { tag: resolveStr(args[0]), fields: [] }; def.ports.push(port); dip = null; break;
         case 'PORT_MODIFY': port = { tag: resolveStr(args[0]), modify: true, fields: [] }; def.ports.push(port); dip = null; break;
         case 'PORT_BIT': {
@@ -1217,7 +1232,23 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
         case 'PORT_SERVICE_DIPLOC': // service dip with a DIPLOC arg — same semantics
         case 'PORT_SERVICE': {
           if (!port) break;
-          port.fields.push({ kind: 'service', mask: evalExpr(args[0]) ?? 0, activeLow: args[1].includes('LOW') });
+          const mask = evalExpr(args[0]) ?? 0;
+          // PORT_SERVICE_DIPLOC supplies an explicit numeric inactive
+          // default. PORT_SERVICE instead supplies IP_ACTIVE_LOW/HIGH.
+          const polarity = args[1]?.trim() ?? '';
+          const activeToken = /^IP_ACTIVE_(LOW|HIGH)$/.exec(polarity);
+          const activeLow = activeToken
+            ? activeToken[1] === 'LOW'
+            : ((evalExpr(polarity) ?? 0) & mask) !== 0;
+          const defaultValue = activeToken
+            ? (activeLow ? mask : 0)
+            : evalExpr(polarity) ?? 0;
+          port.fields.push({
+            kind: 'service',
+            mask,
+            defaultValue,
+            activeLow,
+          });
           dip = null;
           break;
         }
@@ -1327,13 +1358,22 @@ function parseOffsetList(s: string): (number | string)[] {
   const inner = s.trim().replace(/^\{/, '').replace(/\}$/, '');
   const out: (number | string)[] = [];
   for (const part of splitArgs(inner)) {
-    const step = /^STEP(\d+)\(\s*([^,]+),\s*([^)]+)\)$/.exec(part.trim());
+    const step = /^STEP(\d+)\s*\(([\s\S]*)\)$/.exec(part.trim());
     if (step) {
       const n = Number(step[1]);
-      const start = evalExpr(step[2]);
-      const inc = evalExpr(step[3]);
+      const args = splitArgs(step[2]!);
+      const start = evalExpr(args[0] ?? '');
+      const inc = evalExpr(args[1] ?? '');
       if (start !== null && inc !== null) {
         for (let i = 0; i < n; i++) out.push(start + i * inc);
+        continue;
+      }
+      if (args[0]?.trim().startsWith('RGN_FRAC(') && inc !== null) {
+        const base = args[0].trim();
+        for (let i = 0; i < n; i++) {
+          const offset = i * inc;
+          out.push(offset ? `${base}${offset > 0 ? '+' : ''}${offset}` : base);
+        }
         continue;
       }
     }
@@ -1413,6 +1453,14 @@ export type RomTransformDef =
       displacement: number;
     }
   | {
+      /** Apply MAME's bitswap<8>(byte, b7, ..., b0) over one region interval. */
+      kind: 'byte-bitswap';
+      region: string;
+      start: number;
+      end: number;
+      bits: number[];
+    }
+  | {
       /**
        * Driver-init opcode/data split: initialize a target region from the
        * source, then substitute bytes in [start,end) through this table.
@@ -1457,16 +1505,62 @@ export function parseInitRomTransforms(
   consts: Record<string, number> = {},
 ): Record<string, RomTransformDef[]> {
   const out: Record<string, RomTransformDef[]> = {};
-  for (const { name, body } of extractFunctionBody(src, /void\s+(\w+)::(init_\w+)\(\)/g)) {
-    const transforms: RomTransformDef[] = [];
-    const aliases = new Map<string, string>();
-    for (const match of body.matchAll(
-      /\b(?:uint8_t|u8)\s*\*\s*(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)\s*->\s*base\(\s*\)\s*;/g,
-    )) {
-      aliases.set(match[1], match[2]);
+  const functions = extractFunctionBody(src, /void\s+(\w+)::(\w+)\(\s*\)/g);
+  const functionsByOwner = new Map(
+    functions.map(fn => [`${fn.cls}::${fn.name}`, fn]),
+  );
+  const expandBodies = (
+    cls: string,
+    body: string,
+    visited = new Set<string>(),
+  ): string[] => {
+    const expanded = [body];
+    for (const call of body.matchAll(/\b(\w+)\s*\(\s*\)\s*;/g)) {
+      const key = `${cls}::${call[1]}`;
+      if (visited.has(key)) continue;
+      const dependency = functionsByOwner.get(key);
+      if (!dependency) continue;
+      visited.add(key);
+      expanded.push(...expandBodies(cls, dependency.body, visited));
     }
-    for (const [alias, region] of aliases) {
+    return expanded;
+  };
+  for (const { cls, name, body: initBody } of functions.filter(fn =>
+    fn.name.startsWith('init_'))) {
+    const transforms: RomTransformDef[] = [];
+    for (const body of expandBodies(cls, initBody)) {
+      const aliases = new Map<string, string>();
+      for (const match of body.matchAll(
+        /\b(?:uint8_t|u8)\s*\*\s*(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)\s*->\s*base\(\s*\)\s*;/g,
+      )) {
+        aliases.set(match[1], match[2]);
+      }
+      for (const [alias, region] of aliases) {
       const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const byteBitswap = new RegExp(
+        String.raw`for\s*\(\s*(?:\w+\s+)?(\w+)\s*=\s*([^;]+)\s*;` +
+        String.raw`\s*\1\s*<\s*([^;]+)\s*;\s*(?:\1\+\+|\+\+\1)\s*\)` +
+        String.raw`\s*\{?\s*${escaped}\s*\[\s*\1\s*\]\s*=\s*bitswap\s*<\s*8\s*>\s*` +
+        String.raw`\(\s*${escaped}\s*\[\s*\1\s*\]\s*,\s*([^)]+)\)\s*;`,
+        'g',
+      );
+      for (const match of body.matchAll(byteBitswap)) {
+        const start = evalExpr(match[2], consts);
+        const end = evalExpr(match[3], consts);
+        const bits = match[4]!.split(',').map(bit => evalExpr(bit, consts));
+        if (
+          start === null || end === null || start < 0 || end < start ||
+          bits.length !== 8 || bits.some(bit => bit === null || bit < 0 || bit > 7) ||
+          new Set(bits).size !== 8
+        ) continue;
+        transforms.push({
+          kind: 'byte-bitswap',
+          region,
+          start,
+          end,
+          bits: bits.map(bit => bit!),
+        });
+      }
       const swap = new RegExp(
         String.raw`if\s*\(\s*\(\s*(\w+)\s*&\s*([^)]+?)\s*\)\s*==\s*([^)]+?)\s*\)` +
         String.raw`\s*\{[\s\S]*?\b\w+\s*=\s*${escaped}\s*\[\s*\1\s*\]\s*;` +
@@ -1519,14 +1613,15 @@ export function parseInitRomTransforms(
           consts,
         ));
       if (table.some(value => value === null)) continue;
-      transforms.push({
-        kind: 'byte-substitution',
-        sourceRegion: region,
-        targetRegion: assignment[1]!.replace(/^m_/, ''),
-        start,
-        end,
-        table: table.map(value => value! & 0xff),
-      });
+        transforms.push({
+          kind: 'byte-substitution',
+          sourceRegion: region,
+          targetRegion: assignment[1]!.replace(/^m_/, ''),
+          start,
+          end,
+          table: table.map(value => value! & 0xff),
+        });
+      }
     }
     if (transforms.length) out[name] = transforms;
   }

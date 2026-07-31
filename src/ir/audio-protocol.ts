@@ -66,6 +66,51 @@ export interface GeneratedDiscreteMixerPlan {
   source: { file: string; line: number; netlist: string };
 }
 
+/** Source-derived DAC, resistor attenuator and CR-filter discrete topology. */
+export interface GeneratedDiscreteDacPlan {
+  schemaVersion: 1;
+  type: 'DISCRETE_DAC_ATTENUATOR';
+  dac: { node: number; gain: number; offset: number; initial: number };
+  volumeNode: number;
+  /** Driver symbols used when handlers write the two normalized input nodes. */
+  inputNodes?: Record<string, number>;
+  channels: {
+    shift: number;
+    mask: number;
+    resistances: number[];
+    dividerResistance: number;
+    filterResistance: number;
+    filterCapacitance: number;
+    outputGain: number;
+  }[];
+  source: { file: string; line: number; netlist: string };
+}
+
+/** Source-derived triggered effects and CPU-driven DAC discrete topology. */
+export interface GeneratedDiscreteEffectsPlan {
+  schemaVersion: 1;
+  type: 'DISCRETE_EFFECTS';
+  /** Driver symbols accepted by discrete_device::write/write_line callbacks. */
+  inputNodes: Record<string, number>;
+  dac: {
+    node: number;
+    gain: number;
+    filterFrequency: number;
+    q: number;
+  };
+  voices: {
+    node: number;
+    mode: 'noise' | 'tone';
+    frequency: number;
+    release: number;
+    gain: number;
+    activeLow: boolean;
+  }[];
+  dischargeNode?: number;
+  outputGain: number;
+  source: { file: string; line: number; netlist: string };
+}
+
 /** A non-primary sound stream routed into the generated browser mixer. */
 export interface GeneratedAuxiliaryAudioDevice {
   type: string;

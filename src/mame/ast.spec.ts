@@ -92,11 +92,20 @@ IRQ_CALLBACK_MEMBER(test_state::interrupt_vector)
 {
   return 0xcf;
 }
+INTERRUPT_GEN_MEMBER(test_state::vblank_irq)
+{
+  device.execute().set_input_line(0, HOLD_LINE);
+}
 `);
 check('timer callback member parsed',
   [memberMacros.functions[0]?.className, memberMacros.functions[0]?.name, memberMacros.functions[0]?.parameters],
   ['test_state', 'scanline_tick', 'int param']);
 check('IRQ callback member parsed', memberMacros.functions[1]?.name, 'interrupt_vector');
+check(
+  'interrupt generator member parsed',
+  [memberMacros.functions[2]?.name, memberMacros.functions[2]?.parameters],
+  ['vblank_irq', 'device_t &device'],
+);
 
 const lifecycleMacros = parseMameSource('machine.cpp', `
 MACHINE_RESET_MEMBER(test_state, common)

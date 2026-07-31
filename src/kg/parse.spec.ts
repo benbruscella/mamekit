@@ -12,6 +12,7 @@ import {
   parseGames,
   parseGfxLayouts,
   parseInitRomTransforms,
+  parseInputPorts,
   parseMachineConfigs,
   parseMemberTags,
   parseMemoryBanks,
@@ -34,6 +35,53 @@ function eq(label: string, actual: unknown, expected: unknown): void {
 }
 
 eq('expression bitwise precedence', evalExpr('(3 << 4) | (7 & 3) ^ 1'), 48 | (3 ^ 1));
+
+eq('service DIP keeps its source default and polarity', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("DSW")
+  PORT_SERVICE_DIPLOC( 0x80, 0x80, "SW:8" )
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields[0], {
+  kind: 'service',
+  mask: 0x80,
+  defaultValue: 0x80,
+  activeLow: true,
+});
+
+eq('PORT_SERVICE active-low token produces a released-high default', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("SERVICE")
+  PORT_SERVICE( 0x01, IP_ACTIVE_LOW )
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields[0], {
+  kind: 'service',
+  mask: 0x01,
+  defaultValue: 0x01,
+  activeLow: true,
+});
+
+eq('all PORT_INCLUDE declarations are preserved in source order', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_INCLUDE( controls )
+  PORT_INCLUDE( system )
+  PORT_INCLUDE( dips )
+INPUT_PORTS_END
+`)[0]?.includes, ['controls', 'system', 'dips']);
+
+eq('nested symbolic STEP gfx offsets expand', parseGfxLayouts(`
+static const gfx_layout sprites = {
+  16, 1, RGN_FRAC(1,4), 1,
+  { 0 },
+  { STEP8(0,1), STEP8(RGN_FRAC(1,4),1) },
+  { 0 },
+  16
+};
+`)[0]?.xOffsets, [
+  0, 1, 2, 3, 4, 5, 6, 7,
+  'RGN_FRAC(1,4)', 'RGN_FRAC(1,4)+1', 'RGN_FRAC(1,4)+2',
+  'RGN_FRAC(1,4)+3', 'RGN_FRAC(1,4)+4', 'RGN_FRAC(1,4)+5',
+  'RGN_FRAC(1,4)+6', 'RGN_FRAC(1,4)+7',
+]);
 
 eq('disabled diagnostic ROM is excluded', parseRomSets(`
 ROM_START( board )
@@ -278,6 +326,28 @@ void timeplt_state::main_map(address_map &map)
   eq('lw8 inline body', handler?.inlineBody, 'm_mainlatch->write_d0(offset >> 1, data);');
 }
 
+{
+  const [map] = parseAddressMaps(`
+void qix_state::video_map(address_map &map)
+{
+  map(0x9800, 0x9800).mirror(0x03ff).readonly().share(m_scanline_latch);
+}
+`);
+  eq('readonly shared range', map.ranges[0]?.readonly, true);
+  eq('readonly shared tag', map.ranges[0]?.share, 'scanline_latch');
+}
+
+{
+  const [map] = parseAddressMaps(`
+void seicross_state::mcu_map(address_map &map)
+{
+  map(0x8000, 0xf7ff).rom().region("maincpu", 0x20);
+}
+`);
+  eq('explicit ROM region tag', map.ranges[0]?.region, 'maincpu');
+  eq('explicit ROM region offset', map.ranges[0]?.regionOffset, 0x20);
+}
+
 // MAME array finders format their tags from a printf pattern and a starting
 // index; the machine config references elements by subscript while the address
 // map uses the formatted tag, so both spellings must resolve.
@@ -417,6 +487,27 @@ void galaga_state::init_galaga()
     indexMask: 0x0808,
     indexValue: 0x0800,
     displacement: 8,
+  }],
+});
+
+eq('driver-init helper byte bitswap', parseInitRomTransforms(`
+void frog_state::decode_sound()
+{
+  uint8_t *rombase = memregion("audiocpu")->base();
+  for (uint32_t offs = 0; offs < 0x800; offs++)
+    rombase[offs] = bitswap<8>(rombase[offs], 7,6,5,4,3,2,0,1);
+}
+void frog_state::init_frog()
+{
+  decode_sound();
+}
+`), {
+  init_frog: [{
+    kind: 'byte-bitswap',
+    region: 'audiocpu',
+    start: 0,
+    end: 0x800,
+    bits: [7, 6, 5, 4, 3, 2, 0, 1],
   }],
 });
 

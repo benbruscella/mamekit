@@ -14,8 +14,12 @@ import type {
   GeneratedHandlerOperation,
   GeneratedVideoPlan,
 } from '../ir/board.ts';
-import type { GeneratedAuxiliaryAudioDevice } from '../ir/audio-protocol.ts';
-import type { GeneratedNesApuPlan } from '../ir/audio-protocol.ts';
+import type {
+  GeneratedAuxiliaryAudioDevice,
+  GeneratedDiscreteDacPlan,
+  GeneratedDiscreteEffectsPlan,
+  GeneratedNesApuPlan,
+} from '../ir/audio-protocol.ts';
 import { BoardIrError } from '../ir/decode.ts';
 import { lowerConnections } from '../ir/lower-connections.ts';
 import { validateBoardIr } from '../ir/validate.ts';
@@ -31,6 +35,7 @@ export function lowerGeneratedMachine(
   board: BoardConfig,
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
   nesApu?: GeneratedNesApuPlan,
+  discretePlan?: GeneratedDiscreteDacPlan | GeneratedDiscreteEffectsPlan,
 ): BoardIr {
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
   const tagCounts = new Map<string, number>();
@@ -267,6 +272,10 @@ export function lowerGeneratedMachine(
     device.type === 'RP2A03' || device.type === 'RP2A03G');
   const ayDevices = devices.filter(device => device.type === 'AY8910');
   const ymDevices = devices.filter(device => device.type === 'YM2203');
+  const snDevices = devices.filter(device =>
+    ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
+      'GAMEGEAR', 'SEGAPSG'].includes(device.type));
+  const discreteDevice = devices.find(device => device.type === 'DISCRETE');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
     .filter((key): key is string => Boolean(key));
@@ -332,6 +341,19 @@ export function lowerGeneratedMachine(
           } : {}),
           ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
         }
+    : snDevices.length
+      ? {
+          kind: 'sn76489',
+          deviceTag: snDevices[0]!.tag,
+          deviceTags: snDevices.map(device => device.tag),
+          deviceType: snDevices[0]!.type,
+          writeMethods: ['write'],
+          enableMethods: [],
+          controlOffset: -1,
+          ...(lowerAudioRoutes(graph, snDevices).length
+            ? { routes: lowerAudioRoutes(graph, snDevices) }
+            : {}),
+        }
     : generatedSoundboard
       ? (() => {
           const writeMethods = [...new Set(maps.flatMap(map => map.ranges)
@@ -347,7 +369,17 @@ export function lowerGeneratedMachine(
             controlOffset: -1,
           };
         })()
-      : undefined;
+      : discreteDevice
+        ? {
+            kind: 'discrete',
+            deviceTag: discreteDevice.tag,
+            deviceType: discreteDevice.type,
+            writeMethods: ['write'],
+            enableMethods: [],
+            controlOffset: -1,
+            ...(discretePlan?.inputNodes ? { writeOffsets: discretePlan.inputNodes } : {}),
+          }
+        : undefined;
   const lowered = lowerConnections(callbacks, {
     cpuTags: new Set(execution.cpus.map(cpu => cpu.tag)),
     deviceTags: new Set(devices.map(device => device.tag)),
@@ -525,7 +557,8 @@ export function lowerAudioRoutes(
 }
 
 const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
-  DAC_8BIT_R2R: ['data_w'],
+  DAC_4BIT_R2R: ['data_w', 'write'],
+  DAC_8BIT_R2R: ['data_w', 'write'],
   MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
   YM3526: ['write'],
 };
@@ -548,7 +581,12 @@ export function lowerAuxiliaryAudioDevices(
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
   return devices.flatMap(device => {
     const writeMethods = AUXILIARY_AUDIO_METHODS[device.type];
-    if (!writeMethods || !Number.isFinite(device.clock)) return [];
+    const clock = Number.isFinite(device.clock)
+      ? device.clock!
+      : device.type === 'DAC_4BIT_R2R' || device.type === 'DAC_8BIT_R2R'
+        ? 0
+        : undefined;
+    if (!writeMethods || clock === undefined) return [];
     const routeEdge = graph.edges.find(edge =>
       edge.from === device.id && edge.rel === 'HAS_AUDIO_ROUTE');
     const route = routeEdge ? byId.get(routeEdge.to) : undefined;
@@ -566,7 +604,7 @@ export function lowerAuxiliaryAudioDevices(
       type: device.type,
       deviceTag: device.tag,
       ...(device.member ? { member: device.member } : {}),
-      clock: device.clock!,
+      clock,
       ...(initialMode ? { initialMode } : {}),
       gain,
       target: String(route.props.target),
@@ -821,8 +859,17 @@ export function emitGeneratedMachine(
   board: BoardConfig,
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
   nesApu?: GeneratedNesApuPlan,
+  discretePlan?: GeneratedDiscreteDacPlan | GeneratedDiscreteEffectsPlan,
 ): BoardIr {
-  const machine = lowerGeneratedMachine(graph, game, family, board, compiledVideo, nesApu);
+  const machine = lowerGeneratedMachine(
+    graph,
+    game,
+    family,
+    board,
+    compiledVideo,
+    nesApu,
+    discretePlan,
+  );
   const generatedDir = join(outDir, 'generated');
   rmSync(generatedDir, { recursive: true, force: true });
   mkdirSync(generatedDir, { recursive: true });

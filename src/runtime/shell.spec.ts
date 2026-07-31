@@ -65,6 +65,16 @@ assert.deepEqual(
     24, 25, 26, 27, 28, 29, 30, 31, 16, 17, 18, 19, 20, 21, 22, 23],
 );
 
+const bitswapped: Regions = { audiocpu: Uint8Array.from([0x01, 0x02, 0x81, 0xff]) };
+applyRomTransforms(bitswapped, [{
+  kind: 'byte-bitswap',
+  region: 'audiocpu',
+  start: 0,
+  end: 3,
+  bits: [7, 6, 5, 4, 3, 2, 0, 1],
+}]);
+assert.deepEqual([...bitswapped.audiocpu!], [0x02, 0x01, 0x82, 0xff]);
+
 const splitOpcodes: Regions = { maincpu: Uint8Array.from([0x80, 0x02, 0x11]) };
 const substitution = Array.from({ length: 256 }, (_unused, value) =>
   (value & 0x11) | ((value & 0xe0) >> 4) | ((value & 0x0e) << 4));

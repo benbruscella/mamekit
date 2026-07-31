@@ -97,6 +97,10 @@ export class GeneratedVideoRenderer implements VideoRenderer {
   }
 
   updatePartial(frame: Uint32Array, line: number): void {
+    // Framebuffer plans render directly from live RAM at frame end. Their
+    // configured device screen-update callback is intentionally not a driver
+    // handler, so partial-update notifications are bookkeeping only.
+    if (this.machine.video?.bitmap) return;
     if (this.machine.execution.screen.updateMode !== 'partial') return;
     const yOffset = this.machine.execution.screen.yOffset ?? 0;
     const finalY = yOffset + this.height - 1;
@@ -107,6 +111,7 @@ export class GeneratedVideoRenderer implements VideoRenderer {
   }
 
   renderLine(frame: Uint32Array, line: number): void {
+    if (this.machine.video?.bitmap) return;
     const yOffset = this.machine.execution.screen.yOffset ?? 0;
     if (line < yOffset || line >= yOffset + this.height) return;
     this.renderRegion(frame, line, line);
@@ -435,6 +440,44 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
   }
 }
 
+/** Palette-device RAM used by a packed framebuffer plan. */
+class GeneratedBitmapPalette implements GeneratedPaletteDevice {
+  colors: Uint32Array;
+  readonly ram: Uint8Array;
+  private readonly plan:
+    NonNullable<NonNullable<BoardIr['video']>['bitmap']>['paletteRam'] & {};
+
+  constructor(
+    plan: NonNullable<NonNullable<BoardIr['video']>['bitmap']>['paletteRam'] & {},
+  ) {
+    this.plan = plan;
+    this.ram = new Uint8Array(plan.entries);
+    this.colors = createRamPalette(plan, this.ram);
+  }
+
+  read8(offset: number): number {
+    return this.ram[offset] ?? 0;
+  }
+
+  write8(offset: number, data: number): void {
+    if (offset < 0 || offset >= this.ram.length) return;
+    this.ram[offset] = data & 0xff;
+    this.colors = createRamPalette(this.plan, this.ram);
+  }
+
+  transpen_mask(): number {
+    return 0;
+  }
+
+  black_pen(): number {
+    return 0;
+  }
+
+  pens(): Uint32Array {
+    return this.colors;
+  }
+}
+
 /**
  * MAME palexpand<NumBits>: fill eight bits by repeating the raw value from the
  * most significant bit down, truncating the final partial copy.
@@ -468,6 +511,7 @@ class GeneratedPalette implements GeneratedPaletteDevice {
     const coreCount = Math.max(
       plan.colorCount,
       ...(plan.computedColors ?? []).map(group => group.base + group.count),
+      ...(plan.promColors ?? []).map(group => group.base + group.count),
     );
     const core = new Uint32Array(coreCount);
     for (let index = 0; index < plan.colorCount; index++) {
@@ -494,6 +538,24 @@ class GeneratedPalette implements GeneratedPaletteDevice {
           let value = 0;
           for (let bit = 0; bit < channel.bits.length; bit++) {
             value += values[bit]! * ((index >> channel.bits[bit]!) & 1);
+          }
+          rgb[channel.channel] = Math.floor(value + 0.5);
+        }
+        core[group.base + index] = packRgb(rgb.r, rgb.g, rgb.b);
+      }
+    }
+    for (const group of plan.promColors ?? []) {
+      for (let index = 0; index < group.count; index++) {
+        const rgb = { r: 0, g: 0, b: 0 };
+        for (const channel of group.channels) {
+          const values = channel.weights ?? computeWeights({
+            ...plan,
+            channels: [channel],
+          })[channel.channel];
+          let value = 0;
+          for (let bit = 0; bit < channel.bits.length; bit++) {
+            const source = prom[index + (channel.offsets?.[bit] ?? 0)] ?? 0;
+            value += values[bit]! * ((source >> channel.bits[bit]!) & 1);
           }
           rgb[channel.channel] = Math.floor(value + 0.5);
         }
@@ -1000,7 +1062,8 @@ export function generatedScrollBand(
 type GeneratedDirectScreenShape =
   | 'bublbobl-object-columns'
   | 'galaxian-no-bullets'
-  | 'timeplt';
+  | 'timeplt'
+  | 'taitosj-layered-char-ram';
 
 /**
  * Select direct executors by the generated MAME routine structure. Keeping the
@@ -1014,6 +1077,19 @@ export function generatedDirectScreenShape(
   const screen = machine.handlers?.find(handler =>
     `${handler.ownerClass}.${handler.method}` === screenKey);
   const body = screen?.body ?? '';
+  if (
+    body.includes('video_update_common(bitmap, cliprect,') &&
+    machine.handlers?.some(handler =>
+      handler.method === 'draw_layers' &&
+      handler.body?.includes('m_gfxdecode->gfx(m_colorbank[0] & 0x08 ? 2 : 0)->transpen') &&
+      handler.body.includes('m_videoram[2][offs]')) &&
+    machine.handlers?.some(handler =>
+      handler.method === 'draw_sprites' &&
+      handler.body?.includes('SPRITE_RAM_PAGE_OFFSET') &&
+      handler.body.includes('get_sprite_gfx_element(which)->transpen'))
+  ) {
+    return 'taitosj-layered-char-ram';
+  }
   if (
     body.includes('bitmap.fill(255, cliprect)') &&
     body.includes('for (offs = 0; offs < m_objectram.bytes(); offs += 4)') &&
@@ -1103,6 +1179,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         state[member] = Array.isArray(value) ? [...value] : value;
       }
     }
+    const bitmapPlan = machine.video?.bitmap;
+    if (bitmapPlan && !ArrayBuffer.isView(state[bitmapPlan.member])) {
+      state[bitmapPlan.member] = new Uint8Array(
+        (bitmapPlan.rowStart + bitmapPlan.rows) * bitmapPlan.bytesPerRow,
+      );
+    }
     for (const [member, values] of Object.entries(machine.video?.colorTables ?? {})) {
       state[member] = Uint32Array.from(values, value => value >>> 0);
     }
@@ -1125,6 +1207,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     if (machine.video?.ramPalette) {
       this.ramPalette = new GeneratedRamPalette(machine.video.ramPalette);
       this.palettes.set('m_palette', this.ramPalette);
+    }
+    if (bitmapPlan?.paletteRam) {
+      this.palettes.set(
+        bitmapPlan.paletteRam.member,
+        new GeneratedBitmapPalette(bitmapPlan.paletteRam),
+      );
     }
     for (const palette of machine.video?.palettes ?? []) {
       this.palettes.set(palette.member, new GeneratedPalette(palette.plan, regions));
@@ -1417,7 +1505,166 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       tilemap.draw(screen, bitmap, cliprect, 1, 0);
       return true;
     }
+    if (this.directScreenShape === 'taitosj-layered-char-ram') {
+      return this.drawTaitoSj(bitmap, cliprect);
+    }
     return false;
+  }
+
+  private drawTaitoSj(bitmap: BitmapTarget, cliprect: GeneratedRectangle): boolean {
+    const direct = bitmap.direct;
+    const chars = this.state.m_characterram;
+    const video = this.state.m_videoram;
+    const colorbank = this.state.m_colorbank;
+    const scroll = this.state.m_scroll;
+    const columnScroll = this.state.m_colscrolly;
+    const sprites = this.state.m_spriteram;
+    const videoMode = this.state.m_video_mode;
+    const priority = this.state.m_video_priority;
+    const prom = this.state.m_proms;
+    if (
+      !direct ||
+      !ArrayBuffer.isView(chars) ||
+      !Array.isArray(video) ||
+      video.some(layer => !ArrayBuffer.isView(layer)) ||
+      !ArrayBuffer.isView(colorbank) ||
+      !ArrayBuffer.isView(scroll) ||
+      !ArrayBuffer.isView(columnScroll) ||
+      !ArrayBuffer.isView(sprites) ||
+      !ArrayBuffer.isView(videoMode) ||
+      !ArrayBuffer.isView(priority) ||
+      !ArrayBuffer.isView(prom)
+    ) return false;
+    const characterRam = chars as Uint8Array;
+    const videoRam = video as Uint8Array[];
+    const colors = colorbank as Uint8Array;
+    const scrollRam = scroll as Uint8Array;
+    const columns = columnScroll as Uint8Array;
+    const spriteRam = sprites as Uint8Array;
+    const mode = (videoMode as Uint8Array)[0] ?? 0;
+    const priorityValue = (priority as Uint8Array)[0] ?? 0;
+    const priorityProm = prom as Uint8Array;
+    const layers = Array.from({ length: 3 }, () => {
+      const pixels = new Uint16Array(256 * 256);
+      pixels.fill(0x40);
+      return pixels;
+    });
+    const pixel = (
+      bank: number,
+      code: number,
+      x: number,
+      y: number,
+      sprite: boolean,
+    ): number => {
+      const xOffsets = sprite && x >= 8 ? 64 + 7 - (x - 8) : 7 - x;
+      const yOffsets = sprite && y >= 8 ? 128 + (y - 8) * 8 : y * 8;
+      const increment = sprite ? 256 : 64;
+      let value = 0;
+      for (let plane = 0; plane < 3; plane++) {
+        const bit = [32768, 16384, 0][plane]! +
+          code * increment + yOffsets + xOffsets;
+        const source = characterRam[bank + (bit >>> 3)] ?? 0;
+        value |= ((source >>> (bit & 7)) & 1) << plane;
+      }
+      return value;
+    };
+    const flipX = Boolean(mode & 0x01);
+    const flipY = Boolean(mode & 0x02);
+    for (let layer = 0; layer < 3; layer++) {
+      const bank = layer === 0
+        ? (colors[0]! & 0x08 ? 0x1800 : 0)
+        : layer === 1
+          ? (colors[0]! & 0x80 ? 0x1800 : 0)
+          : (colors[1]! & 0x08 ? 0x1800 : 0);
+      const color = layer === 0
+        ? colors[0]! & 7
+        : layer === 1
+          ? (colors[0]! >>> 4) & 7
+          : colors[1]! & 7;
+      for (let offset = 0; offset < 0x400; offset++) {
+        let tileX = offset & 31;
+        let tileY = offset >>> 5;
+        if (flipX) tileX = 31 - tileX;
+        if (flipY) tileY = 31 - tileY;
+        const code = videoRam[layer]![offset] ?? 0;
+        for (let y = 0; y < 8; y++) {
+          for (let x = 0; x < 8; x++) {
+            const pen = pixel(bank, code, flipX ? 7 - x : x, flipY ? 7 - y : y, false);
+            if (pen) layers[layer]![(tileY * 8 + y) * 256 + tileX * 8 + x] =
+              color * 8 + pen;
+          }
+        }
+      }
+    }
+    const target = direct.pixels;
+    const background = 8 * (colors[1]! & 7);
+    target.fill(background);
+    const order = new Array<number>(4);
+    let mask = 0;
+    for (let index = 3; index >= 0; index--) {
+      let data = priorityProm[0x10 * (priorityValue & 0x0f) + mask] ?? 0;
+      data = priorityValue & 0x10 ? data >>> 2 : data & 3;
+      mask |= 1 << data;
+      order[index] = data;
+    }
+    const drawLayer = (layer: number): void => {
+      const source = layers[layer]!;
+      const rawScrollX = scrollRam[layer * 2] ?? 0;
+      const scrollX = flipX ? rawScrollX : -rawScrollX;
+      for (let outputY = 0; outputY < direct.height; outputY++) {
+        const hardwareY = outputY + (this.machine.execution.screen.yOffset ?? 0);
+        for (let outputX = 0; outputX < direct.width; outputX++) {
+          const column = (outputX >>> 3) & 31;
+          const rawScrollY = (columns[layer * 32 + column] ?? 0) +
+            (scrollRam[layer * 2 + 1] ?? 0);
+          const sourceX = (outputX + scrollX) & 0xff;
+          const sourceY = (hardwareY + (flipY ? rawScrollY : -rawScrollY)) & 0xff;
+          const pen = source[sourceY * 256 + sourceX]!;
+          if (pen !== 0x40) target[outputY * direct.width + outputX] = pen;
+        }
+      }
+    };
+    const drawSprites = (): void => {
+      if (!(mode & 0x80)) return;
+      const page = mode & 0x04 ? 0x80 : 0;
+      for (let sprite = 0x1f; sprite >= 0; sprite--) {
+        const which = (sprite - 1) & 0x1f;
+        if (which >= 0x10 && which <= 0x17) continue;
+        const offset = page + which * 4;
+        let sx = ((spriteRam[offset] ?? 0) - 1) & 0xff;
+        let sy = 240 - (spriteRam[offset + 1] ?? 0);
+        if (sy >= 240) continue;
+        const attributes = spriteRam[offset + 2] ?? 0;
+        const code = (spriteRam[offset + 3] ?? 0) & 0x3f;
+        const bank = spriteRam[offset + 3]! & 0x40 ? 0x1800 : 0;
+        const color = 2 * ((colors[1]! >>> 4) & 3) + ((attributes >>> 2) & 1);
+        let spriteFlipX = Boolean(attributes & 1);
+        let spriteFlipY = Boolean(attributes & 2);
+        if (flipX) { sx = 238 - sx; spriteFlipX = !spriteFlipX; }
+        if (flipY) { sy = 242 - sy; spriteFlipY = !spriteFlipY; }
+        for (let y = 0; y < 16; y++) {
+          const outputY = sy + y - (this.machine.execution.screen.yOffset ?? 0);
+          if (outputY < 0 || outputY >= direct.height) continue;
+          for (let x = 0; x < 16; x++) {
+            const pen = pixel(
+              bank,
+              code,
+              spriteFlipX ? 15 - x : x,
+              spriteFlipY ? 15 - y : y,
+              true,
+            );
+            if (!pen) continue;
+            for (const outputX of [sx + x, sx + x - 256]) {
+              if (outputX >= 0 && outputX < direct.width) {
+                target[outputY * direct.width + outputX] = color * 8 + pen;
+              }
+            }
+          }
+        }
+      }
+    };
+    for (const item of order) item === 0 ? drawSprites() : drawLayer(item - 1);
+    return true;
   }
 
   private drawGalaxianSprites(
@@ -1492,6 +1739,28 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   }
 
   resolveScreenPens(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void {
+    if (this.directScreenShape === 'taitosj-layered-char-ram') {
+      const paletteRam = this.state.m_paletteram;
+      if (!ArrayBuffer.isView(paletteRam)) return;
+      const bytes = paletteRam as Uint8Array;
+      const weights = [0x21, 0x47, 0x97];
+      const end = Math.min(frame.length, pens.length, start + count);
+      for (let index = start; index < end; index++) {
+        const pen = pens[index]! & 0x3f;
+        const low = bytes[pen * 2] ?? 0;
+        const high = bytes[pen * 2 + 1] ?? 0;
+        const component = (bits: number[]) =>
+          bits.reduce((sum, bit, position) =>
+            sum + weights[position]! * Number(!(bit < 8 ? low & (1 << bit) : high & (1 << (bit - 8)))),
+          0);
+        frame[index] = packRgb(
+          component([14, 15, 0]),
+          component([11, 12, 13]),
+          component([8, 9, 10]),
+        );
+      }
+      return;
+    }
     const colors = this.palette?.colors;
     if (!colors) return;
     const end = Math.min(frame.length, pens.length, start + count);
@@ -1514,9 +1783,11 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const paletteBytes = plan.paletteRam
       ? this.state[plan.paletteRam.member]
       : undefined;
-    const palette = plan.paletteRam && ArrayBuffer.isView(paletteBytes)
-      ? createRamPalette(plan.paletteRam, paletteBytes as Uint8Array)
-      : undefined;
+    const palette = paletteBytes instanceof GeneratedBitmapPalette
+      ? paletteBytes.colors
+      : plan.paletteRam && ArrayBuffer.isView(paletteBytes)
+        ? createRamPalette(plan.paletteRam, paletteBytes as Uint8Array)
+        : undefined;
     const flipX = Boolean(plan.flipXMember && this.state[plan.flipXMember]);
     const flipY = Boolean(plan.flipYMember && this.state[plan.flipYMember]);
     for (let outputY = 0; outputY < plan.rows; outputY++) {
@@ -1534,10 +1805,15 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
             ? sourcePixel * bitsPerPixel
             : (pixelsPerByte - 1 - sourcePixel) * bitsPerPixel;
           const value = (sourceByte >>> shift) & ((1 << bitsPerPixel) - 1);
+          const paletteIndex = value + (
+            plan.paletteBankMember
+              ? (Number(this.state[plan.paletteBankMember] ?? 0) << bitsPerPixel)
+              : 0
+          );
           const x = plan.xOffset + outputX;
           if (x < this.width && outputY < this.height) {
             frame[outputY * this.width + x] =
-              (palette?.[value] ??
+              (palette?.[paletteIndex] ??
                 (value ? plan.white : plan.black)) >>> 0;
           }
         }
@@ -1558,6 +1834,22 @@ function createRamPalette(
   plan: NonNullable<NonNullable<BoardIr['video']>['bitmap']>['paletteRam'] & {},
   bytes: Uint8Array,
 ): Uint32Array {
+  if (plan.lookup) {
+    const colors = new Uint32Array(plan.entries);
+    for (let index = 0; index < colors.length; index++) {
+      const raw = bytes[index] ?? 0;
+      const intensity =
+        (raw >>> plan.lookup.intensityShift) & plan.lookup.intensityMask;
+      const rgb = { r: 0, g: 0, b: 0 };
+      for (const channel of plan.lookup.channels) {
+        const value = (raw >>> channel.valueShift) & channel.valueMask;
+        rgb[channel.channel] =
+          plan.lookup.values[(value << channel.valueTableShift) | intensity] ?? 0;
+      }
+      colors[index] = packRgb(rgb.r, rgb.g, rgb.b);
+    }
+    return colors;
+  }
   const network = {
     min: plan.min,
     max: plan.max,

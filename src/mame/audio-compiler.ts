@@ -9,6 +9,8 @@ import type { MameHardwareDefinition } from './hardware.ts';
 import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE } from '../ir/audio-protocol.ts';
 import type {
   GeneratedDacFilterPlan,
+  GeneratedDiscreteDacPlan,
+  GeneratedDiscreteEffectsPlan,
   GeneratedDiscreteMixerPlan,
   GeneratedSpeakerFilterPlan,
 } from '../ir/audio-protocol.ts';
@@ -254,6 +256,330 @@ export function compileDiscreteMixer(
     source: {
       file: sourceFile,
       line: source.slice(0, marker.index).split('\n').length,
+      netlist,
+    },
+  };
+}
+
+/**
+ * Lower MAME's direct DAC -> selectable resistor attenuation -> CR filter
+ * topology. This is the discrete network used by Qix; recognition is entirely
+ * by source operations and wiring rather than driver name.
+ */
+export function compileDiscreteDacAttenuator(
+  mameSrc: string,
+  sourceFiles: string | readonly string[],
+  netlist: string,
+): GeneratedDiscreteDacPlan | undefined {
+  const markerPattern = new RegExp(
+    `DISCRETE_SOUND_START\\s*\\(\\s*${netlist}\\s*\\)`,
+  );
+  const sourceEntry = [...new Set(
+    (Array.isArray(sourceFiles) ? sourceFiles : [sourceFiles])
+      .filter(file => existsSync(join(mameSrc, file))),
+  )]
+    .map(file => ({ file, source: readFileSync(join(mameSrc, file), 'utf8') }))
+    .find(candidate => markerPattern.test(candidate.source));
+  if (!sourceEntry) return undefined;
+  const { file, source } = sourceEntry;
+  const body = discreteSoundBody(source, netlist);
+  if (!body) return undefined;
+  const allowed = new Set([
+    'DISCRETE_INPUTX_DATA',
+    'DISCRETE_INPUT_DATA',
+    'DISCRETE_TRANSFORM2',
+    'DISCRETE_TRANSFORM3',
+    'DISCRETE_COMP_ADDER',
+    'DISCRETE_SWITCH',
+    'DISCRETE_CRFILTER',
+    'DISCRETE_OUTPUT',
+  ]);
+  const operations = [...body.matchAll(/\b(DISCRETE_[A-Z0-9_]+)\s*\(/g)]
+    .map(match => match[1]!);
+  if (!operations.length || operations.some(operation => !allowed.has(operation))) {
+    return undefined;
+  }
+  const node = (value: string | undefined): number | undefined => {
+    let expression = value ?? '';
+    const symbol = /^\s*&?\s*([A-Za-z_]\w*)\s*$/.exec(expression)?.[1];
+    if (symbol) {
+      expression = new RegExp(
+        `\\b${symbol}\\s*=\\s*(NODE_\\d+)`,
+      ).exec(source)?.[1] ?? expression;
+    }
+    const match = /\bNODE_(\d+)\b/.exec(expression);
+    return match ? Number(match[1]) : undefined;
+  };
+  const analog = (value: string | undefined): number => {
+    const text = (value ?? '')
+      .replace(/\bRES_K\s*\(\s*([^)]+)\)/g, '($1*1000)')
+      .replace(/\bCAP_U\s*\(\s*([^)]+)\)/g, '($1*0.000001)');
+    if (!/^[\d.eE+\-*/()\s]+$/.test(text)) return NaN;
+    return Function(`"use strict"; return (${text});`)() as number;
+  };
+  const dacArgs = callArgs(body, 'DISCRETE_INPUTX_DATA')[0];
+  const volumeArgs = callArgs(body, 'DISCRETE_INPUT_DATA')[0];
+  const dacNode = node(dacArgs?.[0]);
+  const volumeNode = node(volumeArgs?.[0]);
+  if (!dacArgs || dacNode === undefined || volumeNode === undefined) return undefined;
+  const transforms = [
+    ...callArgs(body, 'DISCRETE_TRANSFORM3'),
+    ...callArgs(body, 'DISCRETE_TRANSFORM2'),
+  ].filter(args => node(args[1]) === volumeNode);
+  const adders = callArgs(body, 'DISCRETE_COMP_ADDER');
+  const filters = callArgs(body, 'DISCRETE_CRFILTER');
+  const outputs = callArgs(body, 'DISCRETE_OUTPUT');
+  if (
+    transforms.length !== 2 ||
+    adders.length !== 2 ||
+    filters.length !== 2 ||
+    outputs.length !== 2
+  ) return undefined;
+  const descriptor = symbolName(adders[0]?.[2]);
+  const resistorText = descriptor
+    ? new RegExp(
+        `${descriptor}\\s*=\\s*\\{[\\s\\S]*?\\{([^}]+)\\}`,
+      ).exec(source)?.[1]
+    : undefined;
+  const resistances = resistorText
+    ? splitMameArgs(resistorText).map(analog).filter(Number.isFinite)
+    : [];
+  if (!resistances.length) return undefined;
+  const channels = transforms.map((transform, index) => {
+    const shift = transform.length >= 5 && analog(transform[2]) === 16 ? 4 : 0;
+    const filter = filters[index]!;
+    const output = outputs[index]!;
+    return {
+      shift,
+      mask: 0x0f,
+      resistances,
+      dividerResistance: 10_000,
+      filterResistance: analog(filter[2]),
+      filterCapacitance: analog(filter[3]),
+      outputGain: analog(output[1]),
+    };
+  });
+  if (channels.some(channel =>
+    !Number.isFinite(channel.filterResistance) ||
+    !Number.isFinite(channel.filterCapacitance) ||
+    !(channel.filterResistance > 0) ||
+    !(channel.filterCapacitance > 0)
+  )) return undefined;
+  return {
+    schemaVersion: 1,
+    type: 'DISCRETE_DAC_ATTENUATOR',
+    dac: {
+      node: dacNode,
+      gain: analog(dacArgs[1]),
+      offset: analog(dacArgs[2]),
+      initial: analog(dacArgs[3]),
+    },
+    volumeNode,
+    inputNodes: Object.fromEntries([
+      [symbolName(dacArgs[0]), dacNode],
+      [symbolName(volumeArgs?.[0]), volumeNode],
+    ].filter((entry): entry is [string, number] =>
+      typeof entry[0] === 'string' && entry[1] !== undefined)),
+    channels,
+    source: {
+      file,
+      line: source.slice(0, markerPattern.exec(source)!.index).split('\n').length,
+      netlist,
+    },
+  };
+}
+
+/**
+ * Lower a discrete board made from active-low effect triggers plus a
+ * processor-driven DAC. The topology is recognised from the netlist itself;
+ * game and driver names are deliberately not part of the contract.
+ */
+export function compileDiscreteEffects(
+  mameSrc: string,
+  sourceFiles: string | readonly string[],
+  netlist: string,
+): GeneratedDiscreteEffectsPlan | undefined {
+  const markerPattern = new RegExp(
+    `DISCRETE_SOUND_START\\s*\\(\\s*${netlist}\\s*\\)`,
+  );
+  const sourceEntry = [...new Set(
+    (Array.isArray(sourceFiles) ? sourceFiles : [sourceFiles])
+      .filter(file => existsSync(join(mameSrc, file))),
+  )]
+    .map(file => ({ file, source: readFileSync(join(mameSrc, file), 'utf8') }))
+    .find(candidate => markerPattern.test(candidate.source));
+  if (!sourceEntry) return undefined;
+  const { file, source } = sourceEntry;
+  const body = discreteSoundBody(source, netlist);
+  if (!body) return undefined;
+
+  const macros = preprocessorMacros(source);
+  const resolveMacro = (expression: string, seen = new Set<string>()): string => {
+    const name = /^\s*&?\s*([A-Za-z_]\w*)\s*$/.exec(expression)?.[1];
+    if (!name || seen.has(name) || !macros.has(name)) return expression.trim();
+    seen.add(name);
+    return resolveMacro(macros.get(name)!, seen);
+  };
+  const node = (expression: string | undefined): number | undefined => {
+    const match = /\bNODE_(\d+)\b/.exec(resolveMacro(expression ?? ''));
+    return match ? Number(match[1]) : undefined;
+  };
+  const analog = (expression: string | undefined, depth = 0): number => {
+    if (!expression || depth > 20) return NaN;
+    let text = expression
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/'/g, '')
+      .trim();
+    text = text
+      .replace(/\bRES_K\s*\(\s*([^)]+)\)/g, '($1*1000)')
+      .replace(/\bRES_M\s*\(\s*([^)]+)\)/g, '($1*1000000)')
+      .replace(/\bCAP_U\s*\(\s*([^)]+)\)/g, '($1*0.000001)')
+      .replace(/\bCAP_N\s*\(\s*([^)]+)\)/g, '($1*0.000000001)')
+      .replace(/\bR_SERIES\s*\(\s*([^,]+),\s*([^)]+)\)/g, '(($1)+($2))')
+      .replace(
+        /\bRES_2_PARALLEL\s*\(\s*([^,]+),\s*([^)]+)\)/g,
+        '((($1)*($2))/(($1)+($2)))',
+      );
+    for (const name of new Set(text.match(/\b[A-Za-z_]\w*\b/g) ?? [])) {
+      const replacement = macros.get(name);
+      if (!replacement) continue;
+      const value = analog(replacement, depth + 1);
+      if (Number.isFinite(value)) {
+        text = text.replace(new RegExp(`\\b${name}\\b`, 'g'), String(value));
+      }
+    }
+    if (!/^[\d.eE+\-*/()\s]+$/.test(text)) return NaN;
+    try {
+      return Function(`"use strict"; return (${text});`)() as number;
+    } catch {
+      return NaN;
+    }
+  };
+
+  const inputCalls = callArgs(
+    body.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''),
+    'DISCRETE_INPUT_NOT',
+  );
+  const dacArgs = callArgs(
+    body.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''),
+    'DISCRETE_INPUT_BUFFER',
+  )[0];
+  const dacNode = node(dacArgs?.[0]);
+  const triggerSymbols = inputCalls
+    .map(args => symbolName(args[0]))
+    .filter((value): value is string => Boolean(value));
+  if (triggerSymbols.length < 3 || dacNode === undefined) return undefined;
+  if (
+    !/\bDISCRETE_(?:LFSR_NOISE|NOISE)\s*\(/.test(body) ||
+    !/\bDISCRETE_MIXER\d+\s*\(/.test(body) ||
+    !/\bDISCRETE_OUTPUT\s*\(/.test(body)
+  ) return undefined;
+
+  const inputNodes: Record<string, number> = {};
+  for (const [name] of macros) {
+    const resolved = node(name);
+    if (resolved !== undefined && (
+      triggerSymbols.some(symbol => node(symbol) === resolved) ||
+      resolved === dacNode
+    )) inputNodes[name] = resolved;
+  }
+  const dacSymbol = symbolName(dacArgs?.[0]);
+  if (dacSymbol) inputNodes[dacSymbol] = dacNode;
+  const dischargeSymbol = triggerSymbols.find(symbol =>
+    [2, 3, 4, 5, 6, 7, 8].some(arity =>
+      callArgs(body, `DISCRETE_TRANSFORM${arity}`).some(args =>
+        args.some(argument => node(argument) === dacNode) &&
+        args.filter(argument => node(argument) === node(symbol)).length >= 1)));
+  const voiceSymbols = triggerSymbols.filter(symbol => symbol !== dischargeSymbol);
+
+  const astables = callArgs(body, 'DISCRETE_555_ASTABLE_CV').map(args => ({
+    position: body.indexOf(`DISCRETE_555_ASTABLE_CV(${args[0]}`),
+    frequency: 1.44 / (
+      (analog(args[2]) + 2 * analog(args[3])) * analog(args[4])
+    ),
+  })).filter(entry => Number.isFinite(entry.frequency) && entry.frequency > 0);
+  const releaseFor = (symbol: string): number => {
+    const args = callArgs(body, 'DISCRETE_RCDISC_MODULATED')
+      .find(call => node(call[1]) === node(symbol));
+    const release = args
+      ? analog(args.at(-3)) * analog(args.at(-2))
+      : NaN;
+    return Number.isFinite(release) && release > 0 ? release : 0.18;
+  };
+  const toneFor = (symbol: string): number | undefined => {
+    const occurrences = [...body.matchAll(new RegExp(`\\b${symbol}\\b`, 'g'))]
+      .map(match => match.index);
+    const association = astables.find(astable =>
+      astable.position >= 0 &&
+      occurrences.some(position => position < astable.position &&
+        astable.position - position < 1_200));
+    return association?.frequency;
+  };
+  let noiseFrequency = 4_000;
+  const siblingHeader = join(
+    mameSrc,
+    dirname(file),
+    `${basename(file, extname(file)).replace(/_a$/, '')}.h`,
+  );
+  if (existsSync(siblingHeader)) {
+    const header = readFileSync(siblingHeader, 'utf8');
+    const documented = /Noise frequency:\s*([\d.]+)\s*(k)?hz/i.exec(header);
+    if (documented) {
+      noiseFrequency = Number(documented[1]) * (documented[2] ? 1_000 : 1);
+    }
+  }
+  const voiceGain = 1 / (voiceSymbols.length + 1);
+  const voices = voiceSymbols.map((symbol, index) => {
+    const frequency = toneFor(symbol);
+    return {
+      node: node(symbol)!,
+      mode: frequency ? 'tone' as const : 'noise' as const,
+      frequency: frequency ?? noiseFrequency,
+      release: releaseFor(symbol),
+      gain: voiceGain,
+      activeLow: true,
+      // Preserve declaration order when two aliases resolve to the same node.
+      _index: index,
+    };
+  }).sort((left, right) => left._index - right._index)
+    .map(({ _index: _ignored, ...voice }) => voice);
+  const sallenArgs = callArgs(body, 'DISCRETE_SALLEN_KEY_FILTER')[0];
+  const descriptor = symbolName(sallenArgs?.[4]);
+  const descriptorBody = descriptor
+    ? new RegExp(
+        `${descriptor}\\s*=\\s*\\{([\\s\\S]*?)\\};`,
+      ).exec(source)?.[1]
+    : undefined;
+  const filterValues = descriptorBody ? splitMameArgs(descriptorBody) : [];
+  const r1 = analog(filterValues[0]);
+  const r2 = analog(filterValues[1]);
+  const c1 = analog(filterValues[5]);
+  const c2 = analog(filterValues[6]);
+  const filterFrequency = [r1, r2, c1, c2].every(value => value > 0)
+    ? 1 / (2 * Math.PI * Math.sqrt(r1 * r2 * c1 * c2))
+    : 2_000;
+  const q = c1 > 0 && c2 > 0 ? 0.5 * Math.sqrt(c1 / c2) : 0.707;
+  const outputArgs = callArgs(body, 'DISCRETE_OUTPUT').at(-1);
+  const outputScale = analog(outputArgs?.[1]);
+  const dischargeNode = dischargeSymbol ? node(dischargeSymbol) : undefined;
+  return {
+    schemaVersion: 1,
+    type: 'DISCRETE_EFFECTS',
+    inputNodes,
+    dac: {
+      node: dacNode,
+      gain: voiceGain,
+      filterFrequency,
+      q,
+    },
+    voices,
+    ...(dischargeNode !== undefined ? { dischargeNode } : {}),
+    outputGain: Number.isFinite(outputScale)
+      ? Math.min(1, Math.abs(outputScale) / 32_767)
+      : 1,
+    source: {
+      file,
+      line: source.slice(0, markerPattern.exec(source)!.index).split('\n').length,
       netlist,
     },
   };
@@ -1901,14 +2227,22 @@ export class GeneratedMsm5205Core {
 }
 
 export class GeneratedDac8Core {
-  private value = 0x80;
+  private readonly mask: number;
+  private readonly midpoint: number;
+  private value: number;
+
+  constructor(bits = 8) {
+    this.mask = (1 << bits) - 1;
+    this.midpoint = 1 << (bits - 1);
+    this.value = this.midpoint;
+  }
 
   write(method: string, data: number): void {
-    if (method === 'data_w') this.value = data & 0xff;
+    if (method === 'data_w' || method === 'write') this.value = data & this.mask;
   }
 
   sample(): number {
-    return (this.value - 0x80) / 0x80;
+    return (this.value - this.midpoint) / this.midpoint;
   }
 }
 
@@ -1991,11 +2325,11 @@ export class GeneratedAy8910Mixer {
             gain: device.gain,
             core: new GeneratedMsm5205Core(device.initialMode),
           }]
-        : device.type === 'DAC_8BIT_R2R'
+        : device.type === 'DAC_4BIT_R2R' || device.type === 'DAC_8BIT_R2R'
           ? [{
               deviceTag: device.deviceTag,
               gain: device.gain,
-              core: new GeneratedDac8Core(),
+              core: new GeneratedDac8Core(device.type === 'DAC_4BIT_R2R' ? 4 : 8),
             }]
           : []);
     this.auxiliaryGainTotal = this.auxiliary.reduce(

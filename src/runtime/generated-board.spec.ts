@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import type { BoardIr } from '../ir/board.ts';
 import {
   applyGeneratedCpuInputLine,
+  pulseGeneratedCpuInputLine,
   bindGeneratedDriverState,
   bindGeneratedRegionState,
   bindGeneratedShareState,
   createGeneratedBoard,
+  generatedSignalHandlerArguments,
 } from './generated-board.ts';
 import { registerGeneratedCpu } from './generated-cpu.ts';
 
@@ -56,10 +58,30 @@ assert.equal(nmis, 0);
 assert.equal(held, true);
 applyGeneratedCpuInputLine(lineCpu, -2, 0, state => { held = state; });
 assert.equal(held, false);
+applyGeneratedCpuInputLine(lineCpu, -3, 1, state => { held = state; });
+assert.equal(held, true, 'INPUT_LINE_HALT must suspend the CPU');
+applyGeneratedCpuInputLine(lineCpu, -3, 0, state => { held = state; });
+assert.equal(held, false, 'clearing INPUT_LINE_HALT must resume the CPU');
 applyGeneratedCpuInputLine(lineCpu, -1, 1, state => { held = state; });
 assert.equal(nmis, 1);
 applyGeneratedCpuInputLine(lineCpu, 0, 2, state => { held = state; });
 assert.equal(irqs, 1);
+pulseGeneratedCpuInputLine(lineCpu, -1);
+assert.equal(nmis, 2, 'device.execute().pulse_input_line must deliver an NMI pulse');
+
+assert.deepEqual(
+  generatedSignalHandlerArguments(
+    'offs_t offset, uint8_t data, uint8_t mem_mask',
+    4,
+  ),
+  { state: 4, data: 4, offset: 0, mem_mask: 0xff },
+  'device write callbacks must receive MAME default offset and active mem_mask arguments',
+);
+const callbackDevice = {};
+assert.equal(
+  generatedSignalHandlerArguments('device_t &device', 1, callbackDevice).device,
+  callbackDevice,
+);
 
 const driverState: Record<string, unknown> = {};
 const driverCalls: Record<string, (...args: number[]) => number | void> = {};

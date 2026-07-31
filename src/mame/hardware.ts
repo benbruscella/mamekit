@@ -83,6 +83,7 @@ const DECLARATIVE_HOST_TYPES = new Set([
   'NETLIST_SOUND',
   'NETLIST_STREAM_INPUT',
   'NETLIST_STREAM_OUTPUT',
+  'NVRAM',
   'PALETTE',
   'SCREEN',
   'SPEAKER',
@@ -341,6 +342,7 @@ function resolveDefinition(
   definitions: Map<string, MameHardwareDefinition>,
 ): MameHardwareDefinition | undefined {
   const aliases: Record<string, string> = {
+    I8255A: 'I8255',
     MC6809: 'M6809',
     MC6809E: 'M6809E',
   };

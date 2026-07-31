@@ -51,7 +51,12 @@ const CPU_INPUT_LINES: Record<string, CpuLine> = {
   INPUT_LINE_RESET: 'reset',
   INPUT_LINE_HALT: 'halt',
   INPUT_LINE_IRQ0: 'irq',
+  M6800_IRQ_LINE: 'irq',
+  M6802_IRQ_LINE: 'irq',
   M6801_IRQ1_LINE: 'irq',
+  M6809_IRQ_LINE: 'irq',
+  M6809_FIRQ_LINE: 'firq',
+  Z80_INPUT_LINE_BUSREQ: 'halt',
 };
 
 /** MAME's flip_screen helpers on driver_device. */
@@ -151,6 +156,35 @@ export function lowerCallbackEffect(
     context.auxiliaryAudio?.get(callback.targetTag)?.has(callback.targetMethod)
   ) {
     return { kind: 'audio-write', tag: callback.targetTag, method: callback.targetMethod };
+  }
+
+  // Discrete sound inputs may be wired straight from latch callbacks rather
+  // than through an address-map write. Preserve the source node encoded in
+  // write_line_<NODE> as the method identifier for the generated backend.
+  if (
+    callback.targetTag &&
+    callback.targetTag === context.soundTag &&
+    callback.targetMethod?.startsWith('write_line_')
+  ) {
+    return {
+      kind: 'audio-write',
+      tag: callback.targetTag,
+      method: callback.targetMethod!,
+    };
+  }
+
+  // Custom interrupt generators receive the owning CPU as their implicit
+  // `device` parameter. Their source body may gate or vector the interrupt,
+  // so preserve the handler instead of reducing it to an unconditional line.
+  if (
+    ['set_vblank_int', 'set_periodic_int'].includes(callback.signal) &&
+    callback.targetClass &&
+    callback.targetMethod
+  ) {
+    const key = `${callback.targetClass}.${callback.targetMethod}`;
+    if (context.handlerKeys.has(key) && context.cpuTags.has(callback.ownerTag)) {
+      return { kind: 'handler', handler: key, deviceTag: callback.ownerTag };
+    }
   }
 
   // A method on a generated device the runtime instantiates.

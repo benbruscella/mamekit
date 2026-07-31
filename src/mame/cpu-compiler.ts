@@ -850,10 +850,57 @@ export function compileMameI8080(mameSrc: string): GeneratedCpuDefinition {
  * resulting ordinary C++ statements to handler IR.
  */
 export function compileMameM6803(mameSrc: string): GeneratedCpuDefinition {
+  return compileMameM6800Family(mameSrc, {
+    type: 'M6803',
+    dispatch: 'm6803_insn',
+    cycles: 'cycles_6803',
+    tableFile: 'src/devices/cpu/m6800/m6801.cpp',
+    tableClass: 'm6801_cpu_device',
+    internal: 'm6803',
+  });
+}
+
+/** Compile the Motorola M6802 variant selected by MAME's device constructor. */
+export function compileMameM6802(mameSrc: string): GeneratedCpuDefinition {
+  return compileMameM6800Family(mameSrc, {
+    type: 'M6802',
+    dispatch: 'm6800_insn',
+    cycles: 'cycles_6800',
+    tableFile: 'src/devices/cpu/m6800/m6800.cpp',
+    tableClass: 'm6800_cpu_device',
+    internal: 'm6802',
+  });
+}
+
+/** Compile the pin-compatible NSC8105 with its MAME opcode permutation. */
+export function compileMameNsc8105(mameSrc: string): GeneratedCpuDefinition {
+  return compileMameM6800Family(mameSrc, {
+    type: 'NSC8105',
+    dispatch: 'nsc8105_insn',
+    cycles: 'cycles_nsc8105',
+    tableFile: 'src/devices/cpu/m6800/m6800.cpp',
+    tableClass: 'm6800_cpu_device',
+    internal: 'm6802',
+  });
+}
+
+function compileMameM6800Family(
+  mameSrc: string,
+  variantConfig: {
+    type: 'M6802' | 'M6803' | 'NSC8105';
+    dispatch: string;
+    cycles: string;
+    tableFile: string;
+    tableClass: string;
+    internal: 'm6802' | 'm6803';
+  },
+): GeneratedCpuDefinition {
   const cppFile = 'src/devices/cpu/m6800/m6800.cpp';
   const headerFile = 'src/devices/cpu/m6800/m6800.h';
-  const variantFile = 'src/devices/cpu/m6800/m6801.cpp';
-  const variantHeaderFile = 'src/devices/cpu/m6800/m6801.h';
+  const variantFile = variantConfig.tableFile;
+  const variantHeaderFile = variantConfig.internal === 'm6803'
+    ? 'src/devices/cpu/m6800/m6801.h'
+    : headerFile;
   const operationsFile = 'src/devices/cpu/m6800/6800ops.hxx';
   const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
   const header = readFileSync(join(mameSrc, headerFile), 'utf8');
@@ -954,13 +1001,20 @@ export function compileMameM6803(mameSrc: string): GeneratedCpuDefinition {
     },
   ];
 
-  const cycles = extractMameByteArray(variant, 'cycles_6803', { XX: 4 });
-  const dispatch = extractM6803Dispatch(variant);
+  const cycles = extractMameByteArray(variant, variantConfig.cycles, { XX: 4 });
+  const dispatch = extractM6800Dispatch(
+    variant,
+    variantConfig.dispatch,
+    variantConfig.tableClass,
+  );
   const opcodes = dispatch.map((method, opcode) => ({
     key: `${opcode.toString(16).padStart(2, '0')}00`,
     dispatch: false,
     program: compileMameHandler(`${method}(); cycles += ${cycles[opcode]};`),
-    source: sourceRef(variantFile, lineAt(variant, variant.indexOf('m6803_insn'))),
+    source: sourceRef(
+      variantFile,
+      lineAt(variant, variant.indexOf(variantConfig.dispatch)),
+    ),
   }));
   const resetMethod = base('device_reset')!;
   const inputMethod = base('execute_set_input')!;
@@ -983,6 +1037,7 @@ export function compileMameM6803(mameSrc: string): GeneratedCpuDefinition {
   `);
   const constants = {
     M6800_IRQ_LINE: 0,
+    M6802_IRQ_LINE: 0,
     M6800_WAI: 8,
     M6800_SLP: 0x10,
     INPUT_LINE_IRQ0: 0,
@@ -1002,7 +1057,9 @@ export function compileMameM6803(mameSrc: string): GeneratedCpuDefinition {
     { name: 'cycles' },
     { name: 'm_icount' },
   ];
-  const internal = compileM6803InternalPlan(variant);
+  const internal = variantConfig.internal === 'm6803'
+    ? compileM6803InternalPlan(variant)
+    : compileM6802InternalPlan(cpp);
   const programs = [
     start,
     reset,
@@ -1014,7 +1071,7 @@ export function compileMameM6803(mameSrc: string): GeneratedCpuDefinition {
   ];
   return {
     schemaVersion: 1,
-    type: 'M6803',
+    type: variantConfig.type,
     dialect: 'mame-cpp-op-handler',
     sourceFiles: [cppFile, headerFile, variantFile, variantHeaderFile, operationsFile],
     constants,
@@ -1419,6 +1476,11 @@ export function compileMameMc6809(mameSrc: string): GeneratedCpuDefinition {
   return compileM6809Core(mameSrc, { type: 'MC6809' });
 }
 
+/** MC6809E changes the external clock pins, not the instruction core. */
+export function compileMameMc6809E(mameSrc: string): GeneratedCpuDefinition {
+  return compileM6809Core(mameSrc, { type: 'MC6809E' });
+}
+
 interface MameOperationMacro {
   parameters?: string[];
   body: string;
@@ -1504,15 +1566,30 @@ function extractMameByteArray(
   return values;
 }
 
-function extractM6803Dispatch(source: string): string[] {
-  const match = /m6803_insn\s*\[[^\]]+\]\s*=\s*\{([\s\S]*?)\};/.exec(source);
-  if (!match) throw new Error('MAME M6803 opcode dispatch table is missing');
-  const methods = [...match[1]!.matchAll(/&m6801_cpu_device::(\w+)/g)]
+function extractM6800Dispatch(
+  source: string,
+  table: string,
+  ownerClass: string,
+): string[] {
+  const match = new RegExp(`${table}\\s*\\[[^\\]]+\\]\\s*=\\s*\\{([\\s\\S]*?)\\};`)
+    .exec(source);
+  if (!match) throw new Error(`MAME ${table} opcode dispatch table is missing`);
+  const methods = [...match[1]!.matchAll(new RegExp(`&${ownerClass}::(\\w+)`, 'g'))]
     .map(entry => entry[1]!);
   if (methods.length !== 256) {
-    throw new Error(`MAME M6803 dispatch contains ${methods.length}, expected 256`);
+    throw new Error(`MAME ${table} dispatch contains ${methods.length}, expected 256`);
   }
   return methods;
+}
+
+function compileM6802InternalPlan(
+  source: string,
+): NonNullable<GeneratedCpuDefinition['internal']> {
+  const map =
+    /void\s+m6802_cpu_device::ram_map[\s\S]*?\{([\s\S]*?)\}/.exec(source)?.[1] ?? '';
+  const ram = /map\(\s*(0x[\da-f]+|\d+)\s*,\s*(0x[\da-f]+|\d+)\s*\)\.ram/.exec(map);
+  if (!ram) throw new Error('MAME M6802 internal RAM map is missing');
+  return { ram: [{ start: Number(ram[1]), end: Number(ram[2]) }], ports: [] };
 }
 
 function compileM6803InternalPlan(
@@ -1840,7 +1917,7 @@ function compileOpcodeOperations(
 }
 
 export function normalizeMameExecutionSource(source: string): string {
-  let normalized = stripInactivePreprocessorBranches(source)
+  let normalized = stripTracingCalls(stripInactivePreprocessorBranches(source))
     .replace(/^[ \t]*#if\s+0[^\r\n]*\r?\n[\s\S]*?^[ \t]*#endif[^\r\n]*(?:\r?\n|$)/gm, '')
     .replaceAll('[[fallthrough]];', '')
     .replace(/\bstatic_assert\s*\([^;]*\)\s*;/g, '')
@@ -1901,6 +1978,41 @@ export function normalizeMameExecutionSource(source: string): string {
       );
   }
   return normalized;
+}
+
+/**
+ * Replace MAME's diagnostic-only calls with a harmless expression. A balanced
+ * scan is required because log arguments often contain initializer lists and
+ * nested calls that cannot be removed safely with a regular expression.
+ */
+function stripTracingCalls(source: string): string {
+  const call = /\b(?:LOG[A-Z0-9_]*|logerror|popmessage)\s*\(/g;
+  let output = '';
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+  while ((match = call.exec(source)) !== null) {
+    let depth = 1;
+    let quote = '';
+    let escaped = false;
+    let index = call.lastIndex;
+    for (; index < source.length && depth; index++) {
+      const char = source[index]!;
+      if (quote) {
+        if (escaped) escaped = false;
+        else if (char === '\\') escaped = true;
+        else if (char === quote) quote = '';
+        continue;
+      }
+      if (char === '"' || char === '\'') quote = char;
+      else if (char === '(') depth++;
+      else if (char === ')') depth--;
+    }
+    if (depth) break;
+    output += source.slice(cursor, match.index) + 'TRACE_NOOP()';
+    cursor = index;
+    call.lastIndex = index;
+  }
+  return output + source.slice(cursor);
 }
 
 function stripInactivePreprocessorBranches(source: string): string {

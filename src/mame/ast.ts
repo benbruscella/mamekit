@@ -156,7 +156,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   }
 
   const memberMacroRe =
-    /\b(TIMER_CALLBACK_MEMBER|TIMER_DEVICE_CALLBACK_MEMBER|IRQ_CALLBACK_MEMBER|TILEMAP_MAPPER_MEMBER|TILE_GET_INFO_MEMBER)\s*\(\s*(\w+)::(\w+)\s*\)\s*\{/g;
+    /\b(INTERRUPT_GEN_MEMBER|TIMER_CALLBACK_MEMBER|TIMER_DEVICE_CALLBACK_MEMBER|IRQ_CALLBACK_MEMBER|TILEMAP_MAPPER_MEMBER|TILE_GET_INFO_MEMBER)\s*\(\s*(\w+)::(\w+)\s*\)\s*\{/g;
   while ((fm = memberMacroRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', fm.index + fm[0].length - 1);
     const braceEnd = matchPair(masked, braceStart, '{', '}');
@@ -308,6 +308,7 @@ function classTemplateParameters(masked: string, classIndex: number): string[] {
 }
 
 function memberMacroParameters(name: string): string {
+  if (name === 'INTERRUPT_GEN_MEMBER') return 'device_t &device';
   if (name === 'IRQ_CALLBACK_MEMBER') return 'int irqline';
   if (name === 'TILEMAP_MAPPER_MEMBER') {
     return 'u32 col, u32 row, u32 num_cols, u32 num_rows';

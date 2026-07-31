@@ -11,7 +11,7 @@ interface DeviceMember {
   bits?: 1 | 8 | 16 | 32;
   signed?: boolean;
   initial?: number;
-  values?: number[];
+  values?: unknown[];
   memory?: {
     kind: 'shared' | 'owned';
     elementBytes: number;
@@ -224,12 +224,14 @@ export function createDevice(type: string, options: GeneratedDeviceOptions = {})
 
 class IrTimer {
   private remainingSeconds = Infinity;
+  private intervalSeconds = Infinity;
   private period = Infinity;
   private parameter = 0;
   private adjustmentGeneration = 0;
 
   adjust(delay: number, parameter = 0, period = Infinity): void {
     this.remainingSeconds = Number.isFinite(delay) && delay >= 0 ? delay : Infinity;
+    this.intervalSeconds = this.remainingSeconds;
     this.period = Number.isFinite(period) && period > 0 ? period : Infinity;
     this.parameter = parameter;
     this.adjustmentGeneration++;
@@ -237,6 +239,15 @@ class IrTimer {
 
   remaining(): number {
     return this.remainingSeconds;
+  }
+
+  elapsed(): number {
+    if (!Number.isFinite(this.intervalSeconds)) return 0;
+    return Math.max(0, this.intervalSeconds - Math.max(0, this.remainingSeconds));
+  }
+
+  enabled(): boolean {
+    return Number.isFinite(this.remainingSeconds);
   }
 
   tick(seconds: number, callback: (parameter: number) => void): void {
@@ -264,6 +275,7 @@ class IrTimer {
         break;
       }
       this.remainingSeconds += firedPeriod;
+      this.intervalSeconds = firedPeriod;
     }
   }
 }
@@ -367,6 +379,7 @@ class IrDevice implements Device {
         save_pointer: () => 0,
         logerror: () => 0,
         clock: () => clock,
+        clocks_to_attotime: ticks => clock > 0 ? ticks / clock : Infinity,
         set_pen_color: (entry, color) => {
           palette[entry] = color >>> 0;
           return 0;

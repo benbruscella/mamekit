@@ -9,7 +9,7 @@ import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig } from './types.ts';
 import type { GeneratedAudioRoute } from '../ir/board.ts';
-import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 import { fetchRomBytes } from './rom-source.ts';
 
 export interface RomLoad {
@@ -66,6 +66,8 @@ export interface SoundSpec {
   auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
   /** MAME DISCRETE_SOUND_START network consuming primary stream outputs. */
   discreteMixer?: GeneratedDiscreteMixerPlan;
+  discreteDac?: GeneratedDiscreteDacPlan;
+  discreteEffects?: GeneratedDiscreteEffectsPlan;
   /** MAME's source-derived post-mix speaker effect. */
   speakerFilter?: GeneratedSpeakerFilterPlan;
   /**
@@ -216,6 +218,13 @@ export type RomTransform =
       displacement: number;
     }
   | {
+      kind: 'byte-bitswap';
+      region: string;
+      start: number;
+      end: number;
+      bits: number[];
+    }
+  | {
       kind: 'byte-substitution';
       sourceRegion: string;
       targetRegion: string;
@@ -240,6 +249,31 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
         const value = region[index]!;
         region[index] = region[other]!;
         region[other] = value;
+      }
+      continue;
+    }
+    if (transform.kind === 'byte-bitswap') {
+      const region = regions[transform.region];
+      if (
+        !region ||
+        transform.start < 0 ||
+        transform.end < transform.start ||
+        transform.end > region.length ||
+        transform.bits.length !== 8 ||
+        transform.bits.some(bit => bit < 0 || bit > 7) ||
+        new Set(transform.bits).size !== 8
+      ) {
+        throw new Error(
+          `ROM byte bitswap for "${transform.region}" has invalid bounds or bit order`,
+        );
+      }
+      for (let index = transform.start; index < transform.end; index++) {
+        const value = region[index]!;
+        region[index] = transform.bits.reduce(
+          (result, sourceBit, outputIndex) =>
+            result | (((value >> sourceBit) & 1) << (7 - outputIndex)),
+          0,
+        );
       }
       continue;
     }
@@ -327,6 +361,14 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     soundWrite: (offset, data, frac, method) => audio.write(offset, data, frac, method),
     soundData: (id, bytes) => audio.data(id, bytes),
   });
+  // Match MAME's soft-reset key. This is needed by boards such as Qix whose
+  // first-boot operator flow stores a language in NVRAM and asks for a reset.
+  addEventListener('keydown', event => {
+    if (event.code !== 'F3' || event.repeat) return;
+    event.preventDefault();
+    input.releaseAll();
+    board.reset();
+  });
   ui.setNative(board.fbWidth, board.fbHeight); // the board owns true geometry
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
@@ -352,6 +394,8 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
         auxiliary: cfg.sound.auxiliary,
         auxiliaryDevices: cfg.sound.auxiliaryDevices,
         discreteMixer: cfg.sound.discreteMixer,
+        discreteDac: cfg.sound.discreteDac,
+        discreteEffects: cfg.sound.discreteEffects,
         speakerFilter: cfg.sound.speakerFilter,
         refresh: cfg.board.screen.refresh,
         debug: input.debug,

@@ -540,6 +540,9 @@ function emitCall(
     if (context.definition.methods.some(method => method.name === name)) {
       return `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''})`;
     }
+    if (context.definition.callbacks.some(callback => callback.member === name)) {
+      return `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''})`;
+    }
     return `(runtime.calls[${JSON.stringify(name)}]?.(${args.join(', ')}) ?? 0)`;
   }
   if (expression.callee.kind === 'member') {

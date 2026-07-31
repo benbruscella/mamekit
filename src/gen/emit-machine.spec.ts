@@ -2,6 +2,7 @@ import {
   generatedBoardSource,
   inferredMemberIndexRank,
   lowerAudioRoutes,
+  lowerAuxiliaryAudioDevices,
   lowerGeneratedMachine,
 } from './emit-machine.ts';
 import type { KnowledgeGraph } from '../kg/types.ts';
@@ -142,6 +143,33 @@ if (
   allYmOutputs.some((route, channel) => route.channel !== channel || route.gain !== 0.15)
 ) {
   throw new Error('YM2203 ALL_OUTPUTS did not expand to all four routed streams');
+}
+
+const defaultClockDacGraph: KnowledgeGraph = {
+  meta: graph.meta,
+  nodes: [{
+    id: 'device:dac',
+    label: 'Device',
+    props: {
+      type: 'DAC_8BIT_R2R',
+      tag: 'dac',
+      config: ['DAC_8BIT_R2R(config, m_dac)'],
+    },
+  }, {
+    id: 'route:dac',
+    label: 'AudioRoute',
+    props: { output: 'ALL_OUTPUTS', target: 'speaker', gain: 0.15 },
+  }],
+  edges: [{ from: 'device:dac', to: 'route:dac', rel: 'HAS_AUDIO_ROUTE' }],
+};
+const defaultClockDac = lowerAuxiliaryAudioDevices(defaultClockDacGraph, [{
+  id: 'device:dac',
+  tag: 'dac',
+  type: 'DAC_8BIT_R2R',
+  member: 'm_dac',
+}]);
+if (defaultClockDac[0]?.clock !== 0 || defaultClockDac[0]?.member !== 'm_dac') {
+  throw new Error('clockless passive R2R DACs must lower as routed auxiliary streams');
 }
 
 const filterHandlers = [

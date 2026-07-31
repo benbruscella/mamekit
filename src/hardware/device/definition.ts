@@ -16,15 +16,20 @@ export const DEVICE_ID = 'device';
 export const DEVICE_MAME_TYPES = [
   'BUFFERED_SPRITERAM8',
   'GENERIC_LATCH_8',
+  'I8257',
+  'I8255A',
   'INPUT_MERGER_ALL_HIGH',
   'INPUT_MERGER_ANY_HIGH',
   'ER2055',
   'LS259',
+  'LATCH8',
   'MB14241',
   'MB8844',
   'NAMCO_06XX',
   'NAMCO_54XX',
+  'PIA6821',
   'STARFIELD_05XX',
+  'MC6845',
   // Protocol devices: MAME models these as an MCU running firmware, and
   // MAMEKIT lowers the protocol its methods implement instead.
   'NAMCO_51XX',

@@ -125,6 +125,7 @@ export async function runGameAcceptance(
 
   const eventTarget = new EventTarget();
   const input = new KeyboardInput(config.bindings, config.dipDefaults, config.ports);
+  input.debug = process.env.MAMEKIT_DEBUG_INPUT === '1';
   input.attach(eventTarget);
   verifyInputBindings(contract, config, input, eventTarget);
 
@@ -154,6 +155,16 @@ export async function runGameAcceptance(
   const runFrame = (): void => {
     pendingWrites.length = 0;
     board.frame(framebuffer);
+    if (input.debug && !input.dump().split(' ').every(value => value.endsWith('=ff'))) {
+      const devices = (board as unknown as {
+        devices?: Map<string, { invoke(name: string): unknown }>;
+      }).devices;
+      console.log(
+        `[input-readback] ${input.dump()} ` +
+        `pia0.a=${Number(devices?.get('pia0')?.invoke('get_in_a_value')).toString(16)} ` +
+        `pia0.b=${Number(devices?.get('pia0')?.invoke('get_in_b_value')).toString(16)}`,
+      );
+    }
     const snapshot = board.snapshot();
     for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {
       if (snapshot.frame < requirement.fromFrame) continue;
@@ -177,6 +188,10 @@ export async function runGameAcceptance(
   const captureActions = !diagnosticCapture || options.captureActions;
   for (const action of captureActions ? contract.actions : []) {
     while (board.snapshot().frame < action.atFrame) runFrame();
+    if ('reset' in action) {
+      board.reset();
+      continue;
+    }
     pulse(
       eventTarget,
       action.code,
@@ -222,6 +237,7 @@ export async function runGameAcceptance(
     shares?: Record<string, Uint8Array>;
     state?: Record<string, unknown>;
     cpus?: Map<string, { get(name: string): number }>;
+    devices?: Map<string, { get(name: string): number }>;
   };
   const debugTilemap = debugBoard.state?.m_tilemap as {
     tiles?: unknown[];
@@ -229,13 +245,48 @@ export async function runGameAcceptance(
   const debugPalette = debugBoard.state?.m_palette as {
     colors?: Uint32Array;
   } | undefined;
+  const debugVideoRam = debugBoard.state?.m_videoram as
+    | Uint8Array
+    | { pixels?: Uint32Array }
+    | undefined;
+  const debugVideoBytes = ArrayBuffer.isView(debugVideoRam)
+    ? debugVideoRam as Uint8Array
+    : debugVideoRam?.pixels;
   const sharedActivity = Object.fromEntries(
     Object.entries(debugBoard.shares ?? {}).map(([name, bytes]) => [
       name,
       {
         nonzero: bytes.reduce((count, value) => count + Number(value !== 0), 0),
         hash: hash(bytes),
+        first: [...bytes.slice(0, 16)],
+        last: [...bytes.slice(-16)],
       },
+    ]),
+  );
+  const finalCpuRegisters = Object.fromEntries(
+    [...(debugBoard.cpus ?? [])].map(([tag, cpu]) => [
+      tag,
+      Object.fromEntries(
+        ['A', 'B', 'C', 'D', 'E', 'H', 'L', 'HL', 'IX', 'IY', 'PC', 'SP',
+          'm_pc', 'm_x', 'm_y', 'm_u', 'm_s', 'm_d', 'm_dp', 'm_cc',
+          'm_firq_line', 'm_irq_line', 'm_nmi_state', 'm_service_attention']
+          .map(name => [name, cpu.get(name)]),
+      ),
+    ]),
+  );
+  const numericDriverState = Object.fromEntries(
+    Object.entries(debugBoard.state ?? {})
+      .filter((entry): entry is [string, number] => typeof entry[1] === 'number')
+      .sort(([left], [right]) => left.localeCompare(right)),
+  );
+  const generatedDeviceState = Object.fromEntries(
+    [...(debugBoard.devices ?? [])].map(([tag, device]) => [
+      tag,
+      Object.fromEntries(
+        ['m_a_input_overrides_output_mask', 'm_ddr_a', 'm_ctl_a', 'm_out_a',
+          'm_ddr_b', 'm_ctl_b', 'm_out_b']
+          .map(name => [name, device.get(name)]),
+      ),
     ]),
   );
   assert.ok(
@@ -244,6 +295,9 @@ export async function runGameAcceptance(
       `(${JSON.stringify({
         checkpoints,
         snapshot: finalSnapshot,
+        cpuRegisters: finalCpuRegisters,
+        generatedDeviceState,
+        driverState: numericDriverState,
         sharedActivity,
         tilemap: {
           tiles: debugTilemap?.tiles?.length ?? 0,
@@ -259,11 +313,32 @@ export async function runGameAcceptance(
               ),
             }
           : undefined,
+        videoRam: debugVideoBytes
+          ? {
+              bytes: debugVideoBytes.length,
+              nonzero: [...debugVideoBytes].reduce(
+                (count, value) => count + Number(value !== 0),
+                0,
+              ),
+              hash: hash(new Uint8Array(
+                debugVideoBytes.buffer,
+                debugVideoBytes.byteOffset,
+                debugVideoBytes.byteLength,
+              )),
+            }
+          : undefined,
       })})`,
   );
   assert.ok(
     result.audio.writes > 0,
-    `${contract.game}: generated sound has no writes (${JSON.stringify(result.audio)})`,
+    `${contract.game}: generated sound has no writes ` +
+      `(${JSON.stringify({
+        audio: result.audio,
+        sharedActivity,
+        cpuRegisters: finalCpuRegisters,
+        generatedDeviceState,
+        snapshot: finalSnapshot,
+      })})`,
   );
   assert.ok(
     result.audio.rms > 0.001,
@@ -277,6 +352,8 @@ export async function runGameAcceptance(
           ]),
         ),
         writes: allWrites.slice(0, 32),
+        sharedActivity,
+        cpuRegisters: finalCpuRegisters,
         cpuInterrupts: Object.fromEntries(
           [...(debugBoard.cpus ?? [])].map(([tag, cpu]) => [
             tag,
@@ -338,7 +415,8 @@ function verifyInputBindings(
   input: KeyboardInput,
   target: EventTarget,
 ): void {
-  for (const code of new Set(contract.actions.map(action => action.code))) {
+  for (const code of new Set(contract.actions.flatMap(action =>
+    'code' in action ? [action.code] : []))) {
     const binding = config.bindings.find(candidate => candidate.keys.includes(code));
     assert.ok(binding, `${contract.game}: ${code} has no generated input binding`);
     const released = input.read(binding.port);

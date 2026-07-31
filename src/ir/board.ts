@@ -32,6 +32,10 @@ export interface RangeSpec {
   write?: string;
   /** shared RAM tag; ranges with the same share alias the same bytes */
   share?: string;
+  /** This memory range does not accept CPU writes. */
+  readOnly?: boolean;
+  /** This memory range does not return its stored bytes to the CPU. */
+  writeOnly?: boolean;
   /** The MAME write handler explicitly stores this shared RAM byte itself. */
   writeHandlerOwnsRam?: boolean;
 }
@@ -92,7 +96,7 @@ export type BoardEffect =
    */
   | { kind: 'device-method'; tag: string; method: string; ownerClass?: string }
   /** Execute a generated handler program. */
-  | { kind: 'handler'; handler: string }
+  | { kind: 'handler'; handler: string; deviceTag?: string }
   /** Read an input port back to the caller (MAME set_ioport). */
   | { kind: 'port-read'; port: string }
   /** Board-level video control lowered from MAME's flip_screen helpers. */
@@ -372,6 +376,15 @@ export interface GeneratedPromPalettePlan {
       pullup: number;
     }[];
   }[];
+  /**
+   * Additional indirect-color sections read from a different range of the
+   * same PROM with their own fixed bit weights.
+   */
+  promColors?: {
+    base: number;
+    count: number;
+    channels: GeneratedPromPalettePlan['channels'];
+  }[];
   lookupOffset: number;
   lookupCount: number;
   lookupMask: number;
@@ -479,7 +492,21 @@ export interface GeneratedBitmapPlan {
       pulldown: number;
       pullup: number;
     }[];
+    /** Direct source table used by palette formats such as Qix R2G2B2I2. */
+    lookup?: {
+      values: number[];
+      intensityShift: number;
+      intensityMask: number;
+      channels: {
+        channel: 'r' | 'g' | 'b';
+        valueShift: number;
+        valueMask: number;
+        valueTableShift: number;
+      }[];
+    };
   };
+  /** Bank selecting a consecutive palette page (one page per source value). */
+  paletteBankMember?: string;
   flipXMember?: string;
   flipYMember?: string;
   black: number;
@@ -495,6 +522,8 @@ export interface GeneratedVideoPlan {
    * m_sprite_height_prom binds "spr_height_prom").
    */
   regionBindings?: Record<string, string>;
+  /** Byte offset applied to a region pointer assigned inside a source callback. */
+  regionBindingOffsets?: Record<string, number>;
   palette?: GeneratedPromPalettePlan;
   palettes?: {
     member: string;
@@ -539,6 +568,8 @@ export interface GeneratedSoundBinding {
   writeMethods: string[];
   enableMethods: string[];
   controlOffset: number;
+  /** Symbolic discrete-node constants normalized to worklet input offsets. */
+  writeOffsets?: Record<string, number>;
   routes?: GeneratedAudioRoute[];
   /** Index rank inferred from MAME handler IR for the routed filter member. */
   filterLayout?: 'flat' | 'matrix';

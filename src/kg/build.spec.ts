@@ -127,4 +127,20 @@ assert.deepEqual(
   'machine reset call members must execute base-first',
 );
 
+const modernLifecycleAst = new MameAstIndex(parseMameAst([{
+  file: 'modern.cpp',
+  source: `
+void modern_state::machine_reset()
+{
+  m_mcu->set_input_line(INPUT_LINE_HALT, ASSERT_LINE);
+}
+`,
+}]));
+assert.deepEqual(
+  resolveMachineLifecycle(modernLifecycleAst, 'modern_state', 'modern', 'reset')
+    .map(fn => fn.name),
+  ['machine_reset'],
+  'modern virtual machine_reset overrides must apply to every selected machine config',
+);
+
 console.log('build.spec: derived callback shadowing and device patch composition passed');

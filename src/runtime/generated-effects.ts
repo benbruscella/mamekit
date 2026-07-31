@@ -13,7 +13,7 @@ export type EffectExecutor = (value: number) => number | void;
 export interface EffectBindings {
   cpuLine(tag: string, line: CpuLine, delivery: CpuLineDelivery): EffectExecutor | undefined;
   deviceMethod(tag: string, method: string, ownerClass?: string): EffectExecutor | undefined;
-  handler(key: string): EffectExecutor | undefined;
+  handler(key: string, deviceTag?: string): EffectExecutor | undefined;
   portRead(port: string): EffectExecutor | undefined;
   videoControl(control: 'flip-screen' | 'flip-screen-x' | 'flip-screen-y'): EffectExecutor | undefined;
   audioControl(tag: string, control: 'mute' | 'enable', offset?: number): EffectExecutor | undefined;
@@ -40,7 +40,7 @@ function executorFor(effect: BoardEffect, bindings: EffectBindings): EffectExecu
     case 'unconnected': return () => {};
     case 'cpu-line': return bindings.cpuLine(effect.tag, effect.line, effect.delivery);
     case 'device-method': return bindings.deviceMethod(effect.tag, effect.method, effect.ownerClass);
-    case 'handler': return bindings.handler(effect.handler);
+    case 'handler': return bindings.handler(effect.handler, effect.deviceTag);
     case 'port-read': return bindings.portRead(effect.port);
     case 'video-control': return bindings.videoControl(effect.control);
     case 'audio-control': return bindings.audioControl(effect.tag, effect.control, effect.offset);

@@ -134,6 +134,8 @@ registerGeneratedDevice({
     method('bytes', '', 'return m_live.bytes();'),
     method('device_start', '', 'm_buffered.resize(bytes());'),
     method('buffer', '', 'return &m_buffered[0];'),
+    method('peek', '', 'return *m_live;'),
+    method('poke', 'uint8_t value', '*m_live = value;'),
     method(
       'copy',
       'uint32_t srcoffset = 0, uint32_t srclength = 0x7fffffff',
@@ -147,9 +149,12 @@ registerGeneratedDevice({
 const share = Uint8Array.from([9, 8, 7, 6]);
 const memoryDevice = createDevice('MEMORY_TEST', { tag: 'spriteram', shares: { spriteram: share } });
 assert.equal(memoryDevice.call('bytes'), 4);
+assert.equal(memoryDevice.call('peek'), 9);
+memoryDevice.call('poke', 0x5a);
+assert.equal(share[0], 0x5a, 'shared-pointer dereference assignment must write its first byte');
 memoryDevice.invoke('copy');
 const buffered = memoryDevice.invoke('buffer') as { source?: Uint8Array };
-assert.deepEqual([...(buffered.source ?? new Uint8Array(0))], [9, 8, 7, 6],
+assert.deepEqual([...(buffered.source ?? new Uint8Array(0))], [0x5a, 8, 7, 6],
   'the default srclength argument must copy the whole buffer');
 assert.throws(
   () => createDevice('MEMORY_TEST', { tag: 'missing', shares: {} }),

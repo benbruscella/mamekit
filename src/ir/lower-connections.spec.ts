@@ -81,6 +81,10 @@ check('a CPU input line lowers to the named pin', () => {
     effect({ targetTag: 'mcu', inputLine: 'M6801_IRQ1_LINE' }),
     { kind: 'cpu-line', tag: 'mcu', line: 'irq', delivery: 'level' },
   );
+  assert.deepEqual(
+    effect({ targetTag: 'maincpu', inputLine: 'Z80_INPUT_LINE_BUSREQ' }),
+    { kind: 'cpu-line', tag: 'maincpu', line: 'halt', delivery: 'level' },
+  );
 });
 
 // MAME's driver interrupt generators act on the device the interrupt is
@@ -99,6 +103,21 @@ check('a driver interrupt generator lowers to its pin and delivery mode', () => 
       context,
     ),
     { kind: 'cpu-line', tag: 'audiocpu', line: 'nmi', delivery: 'pulse' },
+  );
+});
+
+check('a custom interrupt generator preserves its source handler and CPU device', () => {
+  assert.deepEqual(
+    lowerCallbackEffect(
+      callback({
+        ownerTag: 'maincpu',
+        signal: 'set_vblank_int',
+        targetClass: 'fixture_state',
+        targetMethod: 'irq_w',
+      }),
+      context,
+    ),
+    { kind: 'handler', handler: 'fixture_state.irq_w', deviceTag: 'maincpu' },
   );
 });
 
@@ -130,6 +149,24 @@ check('a secondary stream device lowers to an audio write', () => {
   assert.deepEqual(
     effect({ targetTag: 'dac', targetClass: 'dac_byte_interface', targetMethod: 'data_w' }),
     { kind: 'audio-write', tag: 'dac', method: 'data_w' },
+  );
+});
+
+check('a discrete latch input lowers to an audio write', () => {
+  assert.deepEqual(
+    lowerCallbackEffect(
+      callback({
+        targetTag: 'discrete',
+        targetClass: 'discrete_device',
+        targetMethod: 'write_line_DS_SOUND0_INP',
+      }),
+      { ...context, soundTag: 'discrete' },
+    ),
+    {
+      kind: 'audio-write',
+      tag: 'discrete',
+      method: 'write_line_DS_SOUND0_INP',
+    },
   );
 });
 

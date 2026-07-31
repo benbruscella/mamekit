@@ -14,6 +14,8 @@ export interface RangeSpec {
   write?: string;
   /** shared RAM tag; ranges with the same share alias the same bytes */
   share?: string;
+  readOnly?: boolean;
+  writeOnly?: boolean;
   /** The MAME write handler explicitly stores this shared RAM byte itself. */
   writeHandlerOwnsRam?: boolean;
 }
@@ -26,7 +28,10 @@ export interface HandlerRegistry {
   write: Record<string, WriteHandler>;
 }
 
-const OPEN_BUS = 0xff;
+// address_space::m_unmap defaults to zero in MAME. Drivers that call
+// unmap_value_high must carry that choice explicitly in generated IR rather
+// than making every NOP/unmapped range read high.
+const OPEN_BUS = 0x00;
 
 export class Bus {
   private readId = new Uint8Array(0x10000);
@@ -76,6 +81,8 @@ export class Bus {
           write = h;
         }
       }
+      if (r.writeOnly) read = null;
+      if (r.readOnly) write = null;
 
       const readIdx = read ? this.readFns.push(read) - 1 : 0;
       const writeIdx = write ? this.writeFns.push(write) - 1 : 0;

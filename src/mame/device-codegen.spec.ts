@@ -128,6 +128,27 @@ assert.ok(
   timerEmitted.methods.includes('cold_path'),
   'source-declared timer callbacks must compile even when they contain no loop',
 );
+const callbackEmitted = generatedDeviceMethodsSource({
+  ...definition,
+  callbacks: [{
+    member: 'm_out_de_cb',
+    signal: 'out_de_callback',
+    slots: 1,
+    initial: 0,
+  }],
+  hotMethods: ['emit_display_enable'],
+  methods: [{
+    name: 'emit_display_enable',
+    parameters: 'int state',
+    source: { file: 'src/devices/test.cpp', line: 4 },
+    program: compileMameHandler('m_out_de_cb(state);'),
+  }],
+});
+assert.match(
+  callbackEmitted.source,
+  /runtime\.invoke\("m_out_de_cb", state\)/,
+  'compiled device callback members must dispatch through the runtime member emitter',
+);
 
 const methods = Function(`return ${emitted.source}`)() as Record<
   string,

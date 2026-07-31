@@ -78,6 +78,28 @@ check('membank finder calls retain their string tag', () => {
   assert.equal(selected, 2);
 });
 
+check('64-bit function-style casts preserve timer divisors', () => {
+  assert.equal(
+    executeGeneratedHandler(
+      program([{
+        op: 'return',
+        value: {
+          kind: 'binary',
+          operator: '%',
+          left: { kind: 'number', value: 302_464 },
+          right: {
+            kind: 'call',
+            callee: { kind: 'identifier', name: 'uint64_t' },
+            args: [{ kind: 'number', value: 40_960 }],
+          },
+        },
+      }]),
+      {},
+    ),
+    15_744,
+  );
+});
+
 // A program with diagnostics never lowered cleanly. Running it anyway would
 // execute a partial translation of the MAME source.
 check('a program with compiler diagnostics refuses to run', () => {
