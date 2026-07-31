@@ -81,6 +81,25 @@ assert.deepEqual(
   },
 );
 
+const multiViewLayout = `
+<mamelayout version="2">
+  <element name="plain_bezel"><image file="plain.png" /></element>
+  <element name="bubble_bezel"><image file="bubble.png" /></element>
+  <view name="Upright_Artwork">
+    <screen index="0"><bounds x="10" y="10" width="100" height="100" /></screen>
+    <element ref="plain_bezel"><bounds x="0" y="0" width="120" height="120" /></element>
+  </view>
+  <view name="Bezel_Homebrew">
+    <screen index="0"><bounds x="20" y="20" width="80" height="80" /></screen>
+    <element ref="bubble_bezel"><bounds x="0" y="0" width="120" height="120" /></element>
+  </view>
+</mamelayout>`;
+assert.equal(
+  parseArtworkLayout(multiViewLayout)?.file,
+  'bubble.png',
+  'an explicit bezel view must win over a plain upright surround',
+);
+
 if (originalDocument === undefined) {
   delete (globalThis as { document?: Document }).document;
 } else {
