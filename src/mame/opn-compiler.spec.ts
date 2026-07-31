@@ -142,6 +142,11 @@ assert.match(source, /export class GeneratedYm2203Mixer/);
 assert.match(source, /export class GeneratedYm2203FrameRenderer/);
 assert.match(source, /private updatePrescale\(prescale: number\): void/);
 assert.match(source, /candidate\.requiresPrescale === this\.prescale/);
+assert.match(
+  source,
+  /const ym3526Plan = \(null\) as GeneratedYm3526Plan \| null/,
+  'YM2203-only target builds must preserve the nullable OPL plan type',
+);
 assert.ok(!/\bimport\b/.test(source), 'the worklet must not import anything');
 assert.ok(source.includes('"sinTable"'), 'the worklet must embed the lowered plan');
 

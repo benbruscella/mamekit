@@ -563,7 +563,23 @@ export function generatedYm2203WorkletSource(
 // power, envelope-increment and detune tables, and the fidelity/prescale
 // resampling ratios are all lowered from MAME's bundled ymfm implementation.
 const plan = ${JSON.stringify(plan, null, 2)};
-const ym3526Plan = ${JSON.stringify(ym3526Plan ?? null, null, 2)};
+
+interface GeneratedYm3526Plan {
+  channels: number;
+  operators: number;
+  registers: number;
+  waveformLength: number;
+  sampleRateDivider: number;
+  operatorMap: [number, number][];
+  operatorOffsets: number[];
+  multiples: number[];
+}
+
+// Keep the nullable plan's declared union even in a targeted build where the
+// literal is null. Without the assertion TypeScript narrows a const null all
+// the way to never inside the dormant OPL class, breaking unrelated YM2203-only
+// targets such as Commando.
+const ym3526Plan = (${JSON.stringify(ym3526Plan ?? null, null, 2)}) as GeneratedYm3526Plan | null;
 
 export interface GeneratedYmRoute {
   chip: number;
