@@ -102,6 +102,15 @@ interface MenuEntry {
 const hex8 = (n: number) => n.toString(16).padStart(8, '0');
 const esc = (s: string) => s.replace(/[&<>]/g, c => (c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'));
 const stripSet = (s: string) => s.replace(/\s*\(.*\)$/, ''); // drop the "(Europe, rev. A)" region suffix
+const browseSlug = (value: string): string => value.normalize('NFKD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .replace(/&/g, ' and ')
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '')
+  .replace(/-{2,}/g, '-') || 'unknown';
+const browseUrl = (facet: string, value: string): string =>
+  `browse/${facet}/${browseSlug(value)}/`;
 
 function el(tag: string, css: string): HTMLElement {
   const e = document.createElement(tag);
@@ -1131,12 +1140,35 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     host.appendChild(s);
     return s;
   };
-  const row = (parent: HTMLElement, name: string, value: string): void => {
+  const row = (parent: HTMLElement, name: string, value: string, href?: string): void => {
+    const r = el('div', 'display:flex;gap:10px;margin:2px 0');
+    const l = el('span', 'color:#6b76b8;min-width:120px;flex-shrink:0');
+    l.textContent = name;
+    const v = href ? document.createElement('a') : el('span', 'color:#e8eaf6');
+    v.style.cssText = href ? 'color:#b8c4ff;text-decoration:none' : 'color:#e8eaf6';
+    if (href && v instanceof HTMLAnchorElement) v.href = href;
+    v.textContent = value;
+    r.append(l, v);
+    parent.appendChild(r);
+  };
+  const linkedValues = (
+    parent: HTMLElement,
+    name: string,
+    values: string[],
+    facet: string,
+  ): void => {
     const r = el('div', 'display:flex;gap:10px;margin:2px 0');
     const l = el('span', 'color:#6b76b8;min-width:120px;flex-shrink:0');
     l.textContent = name;
     const v = el('span', 'color:#e8eaf6');
-    v.textContent = value;
+    values.forEach((value, index) => {
+      if (index) v.appendChild(document.createTextNode(', '));
+      const a = document.createElement('a');
+      a.href = browseUrl(facet, value);
+      a.textContent = value;
+      a.style.cssText = 'color:#b8c4ff;text-decoration:none';
+      v.appendChild(a);
+    });
     r.append(l, v);
     parent.appendChild(r);
   };
@@ -1255,31 +1287,55 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       const h = el('div', `font-size:26px;font-weight:800;color:${GOLD};line-height:1.2;margin-bottom:2px`);
       h.textContent = (entry?.fullname ?? cfg.title).replace(/\s*\(.*\)$/, '');
       const subh = el('div', 'color:#7f8ac9;font-size:14px;margin-bottom:14px');
-      subh.textContent = [entry?.manufacturer, entry?.year].filter(Boolean).join(' · ');
+      if (entry?.manufacturer) {
+        const manufacturer = document.createElement('a');
+        manufacturer.href = browseUrl('manufacturer', entry.manufacturer);
+        manufacturer.textContent = entry.manufacturer;
+        manufacturer.style.cssText = 'color:inherit;text-decoration:none';
+        subh.appendChild(manufacturer);
+      }
+      if (entry?.manufacturer && entry?.year) subh.appendChild(document.createTextNode(' · '));
+      if (entry?.year) {
+        const year = document.createElement('a');
+        year.href = browseUrl('year', entry.year);
+        year.textContent = entry.year;
+        year.style.cssText = 'color:inherit;text-decoration:none';
+        subh.appendChild(year);
+      }
       inner.append(h, subh);
 
       // machine facts straight from the generated config (the knowledge graph)
       const hw = section(inner, 'The machine (extracted from the MAME driver)');
       for (const cpu of cfg.board.cpus) {
+        const family = (cpu.type ?? 'z80').toUpperCase();
         row(hw, cpu === cfg.board.cpus[0] ? 'Processors' : '',
-          `${(cpu.type ?? 'z80').toUpperCase()} "${cpu.tag}" @ ${(cpu.clock / 1e6).toFixed(3)} MHz`);
+          `${family} "${cpu.tag}" @ ${(cpu.clock / 1e6).toFixed(3)} MHz`,
+          browseUrl('cpu', family));
       }
-      if (cfg.sound && cfg.sound.kind !== 'none') row(hw, 'Sound', cfg.sound.kind + (cfg.sound.clock ? ` @ ${(cfg.sound.clock / 1e6).toFixed(3)} MHz` : ''));
+      if (cfg.sound && cfg.sound.kind !== 'none') {
+        const sound = `${cfg.sound.kind.toUpperCase()}${cfg.sound.chips ? ` × ${cfg.sound.chips}` : ''}`;
+        row(hw, 'Sound', sound + (cfg.sound.clock ? ` @ ${(cfg.sound.clock / 1e6).toFixed(3)} MHz` : ''),
+          browseUrl('sound', sound));
+      }
       const sc = cfg.board.screen;
-      row(hw, 'Screen', `${sc.width}×${sc.height} @ ${sc.refresh.toFixed(2)} Hz`);
+      const screen = `${sc.width}×${sc.height} @ ${sc.refresh.toFixed(2)} Hz${sc.rotate ? ` · rotated ${sc.rotate}°` : ''}`;
+      row(hw, 'Screen', screen, browseUrl('screen', screen));
       if (cfg.cart) {
         row(hw, 'Cartridge slot', `${cfg.cart.interface} · mappers: ${cfg.cart.slots.join(', ') || 'none yet'}`);
         row(hw, 'Verified titles', cfg.cart.games.join(', ') || 'none yet');
       }
 
       const ppl = section(inner, 'The MAME driver — the people who reverse-engineered it');
-      if (entry?.driverFile) row(ppl, 'Driver source', entry.driverFile);
-      if (entry?.copyrightHolders) row(ppl, 'Written by', entry.copyrightHolders);
-      if (entry?.license) row(ppl, 'License', entry.license);
+      if (entry?.driverFile) row(ppl, 'Driver source', entry.driverFile,
+        browseUrl('driver', entry.driverFile));
+      if (entry?.copyrightHolders) row(ppl, 'Written by', entry.copyrightHolders,
+        browseUrl('written-by', entry.copyrightHolders));
+      if (entry?.license) row(ppl, 'License', entry.license,
+        browseUrl('license', entry.license));
       if (entry?.gitHistory) {
         const gh = entry.gitHistory;
         row(ppl, 'History', `${gh.commits} commits by ${gh.contributors} contributors, ${gh.firstCommit.slice(0, 4)}–${gh.lastCommit.slice(0, 4)}`);
-        row(ppl, 'Top contributors', gh.topAuthors.join(', '));
+        linkedValues(ppl, 'Top contributors', gh.topAuthors, 'author');
       }
 
       // the console's story — same "- CHAPTER -" split as the menu's modal
@@ -1312,9 +1368,18 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
         });
       }
 
+      const dossier = document.createElement('a');
+      dossier.href = `g/${encodeURIComponent(cfg.game)}/dossier/`;
+      dossier.textContent = 'Full dossier';
+      dossier.style.cssText = `padding:9px 18px;border-radius:8px;font-weight:700;text-decoration:none;
+        border:2px solid #2a3160;color:#9fb0ff`;
+      const browse = document.createElement('a');
+      browse.href = 'browse/';
+      browse.textContent = 'Browse the archive';
+      browse.style.cssText = dossier.style.cssText;
       const c = footerBtn('Close', true);
       c.addEventListener('click', close);
-      footer.append(c);
+      footer.append(dossier, browse, c);
       c.focus();
     });
   }

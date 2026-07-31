@@ -60,6 +60,24 @@ export function matchesMenuEntry(
   return kind === tab && (!query || haystack.includes(query.trim().toLowerCase()));
 }
 
+export function browseSlug(value: string): string {
+  return value.normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-') || 'unknown';
+}
+
+export function menuShelfMaxWidth(tab: 'arcade' | 'console'): string {
+  // 4 × 320px tiles + 3 × 26px gaps + 72px horizontal padding.
+  return tab === 'arcade' ? '1470px' : '1280px';
+}
+
+const browseUrl = (facet: string, value: string): string =>
+  `browse/${facet}/${browseSlug(value)}/`;
+
 // Deterministic covers: emulate exactly COVER_FRAMES frames (deep into
 // attract mode) and screenshot that frame. Cached forever in localStorage,
 // keyed by frame count so changing it regenerates.
@@ -134,7 +152,12 @@ export async function runMenu(): Promise<void> {
     border:2px solid #2a3160;background:#0a0c1c;color:#eee;font:14px ui-sans-serif,system-ui;outline:none`;
   search.addEventListener('focus', () => { search.style.borderColor = '#f2c200'; });
   search.addEventListener('blur', () => { search.style.borderColor = '#2a3160'; });
-  header.append(marquee, search);
+  const browse = document.createElement('a');
+  browse.href = 'browse/';
+  browse.textContent = 'BROWSE THE ARCHIVE';
+  browse.style.cssText = `margin-left:auto;margin-right:112px;padding:9px 15px;border:1px solid #43509a;
+    border-radius:999px;color:#b9c3ff;text-decoration:none;font-size:11px;font-weight:800;letter-spacing:1px`;
+  header.append(marquee, search, browse);
   root.appendChild(header);
 
   // --- ARCADE | CONSOLES tab pills ------------------------------------------------
@@ -157,6 +180,8 @@ export async function runMenu(): Promise<void> {
     activeTab = tab;
     history.replaceState(null, '', tab === 'console' ? '?tab=consoles' : location.pathname);
     stylePills();
+    const shelf = document.querySelector<HTMLElement>('[data-game-wall]');
+    if (shelf) shelf.style.maxWidth = menuShelfMaxWidth(tab);
     applyFilter();
   };
   for (const [tab, text] of [['arcade', 'ARCADE'], ['console', 'CONSOLES']] as const) {
@@ -173,7 +198,8 @@ export async function runMenu(): Promise<void> {
 
   // --- shelves ------------------------------------------------------------------
   const wall = el('div', `display:flex;flex-wrap:wrap;gap:34px 26px;justify-content:center;
-    padding:44px 36px 0;max-width:1280px;margin:0 auto`);
+    padding:44px 36px 0;max-width:${menuShelfMaxWidth(activeTab)};margin:0 auto`);
+  wall.setAttribute('data-game-wall', '');
   root.appendChild(wall);
 
   const empty = el('div', 'text-align:center;color:#7f8ac9;padding:60px;display:none;width:100%');
@@ -378,7 +404,15 @@ export async function runMenu(): Promise<void> {
     const h = el('div', 'font-size:30px;font-weight:800;color:#f2c200;line-height:1.15;margin-bottom:2px');
     h.textContent = entry.fullname;
     const subh = el('div', 'color:#7f8ac9;font-size:15px;margin-bottom:10px');
-    subh.textContent = `${entry.manufacturer} · ${entry.year}`;
+    const manufacturerLink = document.createElement('a');
+    manufacturerLink.href = browseUrl('manufacturer', entry.manufacturer);
+    manufacturerLink.textContent = entry.manufacturer;
+    manufacturerLink.style.cssText = 'color:inherit;text-decoration:none';
+    const yearLink = document.createElement('a');
+    yearLink.href = browseUrl('year', entry.year);
+    yearLink.textContent = entry.year;
+    yearLink.style.cssText = 'color:inherit;text-decoration:none';
+    subh.append(manufacturerLink, document.createTextNode(' · '), yearLink);
     heroText.append(h, subh);
     hero.appendChild(heroText);
     const cab = img(`../artwork/media/cabinets/${game}.png`,
@@ -407,12 +441,35 @@ export async function runMenu(): Promise<void> {
       host.appendChild(s);
       return s;
     };
-    const row = (parent: HTMLElement, label: string, value: string) => {
+    const row = (parent: HTMLElement, label: string, value: string, href?: string) => {
+      const r = el('div', 'display:flex;gap:10px;margin:2px 0');
+      const l = el('span', 'color:#6b76b8;min-width:120px;flex-shrink:0');
+      l.textContent = label;
+      const v = href ? document.createElement('a') : el('span', 'color:#e8eaf6');
+      v.style.cssText = href ? 'color:#b8c4ff;text-decoration:none' : 'color:#e8eaf6';
+      if (href && v instanceof HTMLAnchorElement) v.href = href;
+      v.textContent = value;
+      r.append(l, v);
+      parent.appendChild(r);
+    };
+    const linkedValues = (
+      parent: HTMLElement,
+      label: string,
+      values: string[],
+      facet: string,
+    ) => {
       const r = el('div', 'display:flex;gap:10px;margin:2px 0');
       const l = el('span', 'color:#6b76b8;min-width:120px;flex-shrink:0');
       l.textContent = label;
       const v = el('span', 'color:#e8eaf6');
-      v.textContent = value;
+      values.forEach((value, index) => {
+        if (index) v.appendChild(document.createTextNode(', '));
+        const a = document.createElement('a');
+        a.href = browseUrl(facet, value);
+        a.textContent = value;
+        a.style.cssText = 'color:#b8c4ff;text-decoration:none';
+        v.appendChild(a);
+      });
       r.append(l, v);
       parent.appendChild(r);
     };
@@ -429,24 +486,33 @@ export async function runMenu(): Promise<void> {
     try {
       const cfg = await fetch(`../${entry.dataPath}/config.json`).then(r => r.json());
       for (const cpu of cfg.board.cpus) {
-        row(hw, cpu === cfg.board.cpus[0] ? 'Processors' : '', `${(cpu.type ?? 'z80').toUpperCase()} "${cpu.tag}" @ ${(cpu.clock / 1e6).toFixed(3)} MHz`);
+        const cpuFamily = (cpu.type ?? 'z80').toUpperCase();
+        row(hw, cpu === cfg.board.cpus[0] ? 'Processors' : '',
+          `${cpuFamily} "${cpu.tag}" @ ${(cpu.clock / 1e6).toFixed(3)} MHz`,
+          browseUrl('cpu', cpuFamily));
       }
       const s = cfg.sound ?? {};
-      row(hw, 'Sound', s.kind === 'none' ? 'discrete analog board' : `${s.kind}${s.chips ? ` × ${s.chips}` : ''}${s.clock ? ` @ ${(s.clock / 1e6).toFixed(3)} MHz` : ''}`);
+      const soundFact = `${s.kind === 'none' ? 'Discrete analog board' : String(s.kind).toUpperCase()}${s.chips ? ` × ${s.chips}` : ''}`;
+      const soundDetail = `${soundFact}${s.clock ? ` @ ${(s.clock / 1e6).toFixed(3)} MHz` : ''}`;
+      row(hw, 'Sound', soundDetail, browseUrl('sound', soundFact));
       const sc = cfg.board.screen;
-      row(hw, 'Screen', `${sc.width}×${sc.height} @ ${sc.refresh.toFixed(2)} Hz${sc.rotate ? ` · rotated ${sc.rotate}°` : ''}`);
+      const screenFact = `${sc.width}×${sc.height} @ ${sc.refresh.toFixed(2)} Hz${sc.rotate ? ` · rotated ${sc.rotate}°` : ''}`;
+      row(hw, 'Screen', screenFact, browseUrl('screen', screenFact));
       row(hw, 'ROM chips', `${cfg.roms.reduce((n: number, r: { loads: unknown[] }) => n + r.loads.length, 0)} across ${cfg.roms.length} regions`);
     } catch { row(hw, 'Machine', 'config not generated yet'); }
 
     // The people — driver credits + git history
     const ppl = section('The MAME driver — the people who reverse-engineered it', colB);
-    if (entry.driverFile) row(ppl, 'Driver source', entry.driverFile);
-    if (entry.copyrightHolders) row(ppl, 'Written by', entry.copyrightHolders);
-    if (entry.license) row(ppl, 'License', entry.license);
+    if (entry.driverFile) row(ppl, 'Driver source', entry.driverFile,
+      browseUrl('driver', entry.driverFile));
+    if (entry.copyrightHolders) row(ppl, 'Written by', entry.copyrightHolders,
+      browseUrl('written-by', entry.copyrightHolders));
+    if (entry.license) row(ppl, 'License', entry.license,
+      browseUrl('license', entry.license));
     if (entry.gitHistory) {
       const gh = entry.gitHistory;
       row(ppl, 'History', `${gh.commits} commits by ${gh.contributors} contributors, ${gh.firstCommit.slice(0, 4)}–${gh.lastCommit.slice(0, 4)}`);
-      row(ppl, 'Top contributors', gh.topAuthors.join(', '));
+      linkedValues(ppl, 'Top contributors', gh.topAuthors, 'author');
     }
 
     // The story — Gaming History write-up (arcade-history.com, attributed),
@@ -512,8 +578,7 @@ export async function runMenu(): Promise<void> {
     );
     viewer.target = '_blank';
     links.appendChild(viewer);
-    const dossier = mkBtn('Full dossier (markdown)', `../${entry.dataPath}/DOSSIER.md`, false);
-    dossier.target = '_blank';
+    const dossier = mkBtn('Full dossier', `g/${game}/dossier/`, false);
     links.appendChild(dossier);
     card.appendChild(links);
 
