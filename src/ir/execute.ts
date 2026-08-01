@@ -484,7 +484,11 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
   if (expression.kind === 'member') {
     const object = evaluate(expression.object, context);
     if (isReference(object)) return reference(`${object.reference}.${expression.property}`);
-    if (object && typeof object === 'object' && expression.property in object) {
+    if (
+      object &&
+      (typeof object === 'object' || typeof object === 'function') &&
+      expression.property in object
+    ) {
       return (object as Record<string, unknown>)[expression.property];
     }
     return reference(expression.property);
@@ -668,7 +672,7 @@ function evaluateCall(
       if (CACHE_ONLY_METHODS.has(method)) return 0;
       return reference(`${key}()`);
     }
-    if (object && typeof object === 'object') {
+    if (object && (typeof object === 'object' || typeof object === 'function')) {
       const args = expression.args.map(arg => evaluate(arg, context));
       const methodValue = (object as Record<string, unknown>)[method];
       if (typeof methodValue === 'function') return methodValue.apply(object, args);

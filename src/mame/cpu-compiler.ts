@@ -554,7 +554,10 @@ function parseM6502OpcodeBlocks(file: string, source: string): M6502OpcodeBlock[
  * selects the source method for every opcode, while the AST compiler lowers
  * those methods and their shared execution helpers.
  */
-export function compileMameMcs48(mameSrc: string): GeneratedCpuDefinition {
+export function compileMameMcs48(
+  mameSrc: string,
+  variant: 'I8039' | 'MB8884' = 'I8039',
+): GeneratedCpuDefinition {
   const cppFile = 'src/devices/cpu/mcs48/mcs48.cpp';
   const headerFile = 'src/devices/cpu/mcs48/mcs48.h';
   const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
@@ -653,17 +656,37 @@ export function compileMameMcs48(mameSrc: string): GeneratedCpuDefinition {
       ASSERT_LINE: 1,
     }),
   };
+  const variantClass = variant === 'MB8884' ? 'mb8884_device' : 'i8039_device';
+  const constructor = new RegExp(
+    `${variantClass}::${variantClass}\\([^\\n]*\\)\\s*` +
+    `:\\s*mcs48_cpu_device\\(([^\\n]+)\\)`,
+  ).exec(cpp);
+  if (!constructor) throw new Error(`MAME MCS-48 source has no ${variantClass} constructor`);
+  const constructorArgs = splitMameArgs(constructor[1]!);
+  const constructorValue = (index: number): number => {
+    const expression = constructorArgs[index]?.trim() ?? '';
+    const value = constants[expression] ?? Number(expression);
+    if (!Number.isFinite(value)) {
+      throw new Error(`${variantClass} constructor argument ${index} is not numeric: ${expression}`);
+    }
+    return value;
+  };
+  // mcs48_cpu_device(mconfig, type, tag, owner, clock,
+  //                  rom_size, ram_size, feature_mask, opcode_table)
+  const romSize = constructorValue(5);
+  const ramSize = constructorValue(6);
+  const featureMask = constructorValue(7);
   const members = extractMembers(header, {}).filter(member => member.name !== 'm_rtemp');
   const setInitial = (name: string, initial: number): void => {
     const member = members.find(candidate => candidate.name === name);
     if (member) member.initial = initial;
     else members.push({ name, bits: 16, initial });
   };
-  setInitial('m_feature_mask', constants.I8048_FEATURE ?? 3);
-  setInitial('m_rom_size', 0);
-  setInitial('m_ram_size', 128);
+  setInitial('m_feature_mask', featureMask);
+  setInitial('m_rom_size', romSize);
+  setInitial('m_ram_size', ramSize);
   members.push(
-    { name: 'm_dataptr', bits: 8, values: new Array(128).fill(0) },
+    { name: 'm_dataptr', bits: 8, values: new Array(ramSize).fill(0) },
     { name: 'm_ref', bits: 32, initial: 0 },
   );
   const opcodes = opcodeNames.map((name, opcode) => {
@@ -687,7 +710,7 @@ export function compileMameMcs48(mameSrc: string): GeneratedCpuDefinition {
   ];
   return {
     schemaVersion: 1,
-    type: 'I8039',
+    type: variant,
     dialect: 'mame-mcs48-ophandler-table',
     sourceFiles: [cppFile, headerFile],
     constants,
@@ -924,7 +947,12 @@ function compileMameM6800Family(
   const opcodeMethods = operationAst.units[0]!.functions.map(fn => ({
     name: fn.name,
     parameters: fn.parameters,
-    program: compileMameHandler(normalize(fn.body)),
+    // M6800 CLI executes one complete following instruction before sampling
+    // an already-asserted IRQ.  The source expresses that as recursive
+    // execute_one(), which cannot be left as the generated helper stub.
+    program: compileMameHandler(fn.name === 'cli'
+      ? 'm_irq_delay = (m_cc & 0x10) ? 1 : 0; m_cc &= ~0x10;'
+      : normalize(fn.body)),
     source: sourceRef(operationsFile, fn.span.line),
   }));
 
@@ -1024,7 +1052,8 @@ function compileMameM6800Family(
     normalize(inputMethod.body).replace(/\birqline\b/g, 'inputnum'),
   );
   const service = compileMameHandler(`
-    check_irq_lines();
+    if (m_irq_delay) m_irq_delay = 0;
+    else check_irq_lines();
     if (cycles > 0) return;
     if (m_wai_state & (M6800_WAI | M6800_SLP)) {
       cycles += 1;
@@ -1048,7 +1077,7 @@ function compileMameM6800Family(
   const members: GeneratedCpuMember[] = [
     ...['m_ppc', 'm_pc', 'm_s', 'm_x', 'm_d', 'm_ea']
       .map(name => ({ name, bits: 16 as const, pair: true })),
-    ...['m_cc', 'm_wai_state', 'm_nmi_state', 'm_nmi_pending']
+    ...['m_cc', 'm_wai_state', 'm_nmi_state', 'm_nmi_pending', 'm_irq_delay']
       .map(name => ({ name, bits: 8 as const })),
     { name: 'm_irq_state', bits: 8, values: [0, 0, 0, 0, 0] },
     { name: 'flags8i', bits: 8, values: extractMameByteArray(cpp, 'flags8i') },

@@ -562,6 +562,13 @@ export function compileDiscreteEffects(
   const outputArgs = callArgs(body, 'DISCRETE_OUTPUT').at(-1);
   const outputScale = analog(outputArgs?.[1]);
   const dischargeNode = dischargeSymbol ? node(dischargeSymbol) : undefined;
+  const dischargeArgs = dischargeSymbol
+    ? callArgs(body, 'DISCRETE_RCDISC')
+      .find(args => node(args[1]) === dischargeNode)
+    : undefined;
+  const dischargeRelease = dischargeArgs
+    ? analog(dischargeArgs[3]) * analog(dischargeArgs[4])
+    : NaN;
   return {
     schemaVersion: 1,
     type: 'DISCRETE_EFFECTS',
@@ -573,7 +580,14 @@ export function compileDiscreteEffects(
       q,
     },
     voices,
-    ...(dischargeNode !== undefined ? { dischargeNode } : {}),
+    ...(dischargeNode !== undefined
+      ? {
+          dischargeNode,
+          dischargeRelease: Number.isFinite(dischargeRelease) && dischargeRelease > 0
+            ? dischargeRelease
+            : 0.1,
+        }
+      : {}),
     outputGain: Number.isFinite(outputScale)
       ? Math.min(1, Math.abs(outputScale) / 32_767)
       : 1,

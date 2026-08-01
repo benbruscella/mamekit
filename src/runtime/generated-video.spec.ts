@@ -5,6 +5,7 @@ import { executeGeneratedProgram } from './generated-handler.ts';
 import type { BoardIr } from '../ir/board.ts';
 import {
   createGeneratedTileInfoTarget,
+  decodeTaitoSjRamPixel,
   generatedDirectScreenShape,
   generatedScrollBand,
   generatedTileGroupTransparentMask,
@@ -13,6 +14,18 @@ import {
   GeneratedVideoRenderer,
   type GeneratedVideoPrimitives,
 } from './generated-video.ts';
+
+const taitoSjRam = new Uint8Array(0x3000);
+// charlayout plane 0 at bit 32768 is the high pen bit; x offset 7 selects
+// the byte's least-significant mask under MAME's MSB-first bit numbering.
+taitoSjRam[4096] = 0x01;
+assert.equal(decodeTaitoSjRamPixel(taitoSjRam, 0, 0, 0, 0, false), 4);
+taitoSjRam[4096] = 0;
+taitoSjRam[2048] = 0x01;
+assert.equal(decodeTaitoSjRamPixel(taitoSjRam, 0, 0, 0, 0, false), 2);
+taitoSjRam[2048] = 0;
+taitoSjRam[0] = 0x01;
+assert.equal(decodeTaitoSjRamPixel(taitoSjRam, 0, 0, 0, 0, false), 1);
 
 assert.equal(
   generatedDirectScreenShape({
@@ -451,4 +464,49 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
   assert.equal(palette.colors[0], 0xff7733aa);
 }
 
-console.log('generated-video.spec: 22 passed');
+// Packed-framebuffer machines such as Juno First still receive their palette
+// bytes through palette_device::write8; those writes must update the bitmap
+// palette rather than only the tile/sprite RAM-palette implementation.
+{
+  const bitmapMachine: BoardIr = {
+    ...machine,
+    video: {
+      gfx: [],
+      tilemaps: [],
+      initialState: {},
+      bitmap: {
+        member: 'm_videoram',
+        rowStart: 0,
+        rows: 1,
+        bytesPerRow: 1,
+        xOffset: 0,
+        lsbFirst: true,
+        bitsPerPixel: 4,
+        black: 0xff000000,
+        white: 0xffffffff,
+        paletteRam: {
+          member: 'm_palette',
+          entries: 1,
+          min: 0,
+          max: 255,
+          scaler: 1,
+          channels: [
+            { channel: 'r', bits: [0], resistances: [1], pulldown: 0, pullup: 0 },
+            { channel: 'g', bits: [1], resistances: [1], pulldown: 0, pullup: 0 },
+            { channel: 'b', bits: [2], resistances: [1], pulldown: 0, pullup: 0 },
+          ],
+        },
+      },
+    },
+  };
+  const state: Record<string, unknown> = {};
+  const primitives = new GeneratedMameVideoPrimitives(bitmapMachine, {}, state, {});
+  const palette = state.m_palette as { colors: Uint32Array };
+  assert.equal(palette.colors[0], 0xff000000);
+  primitives.writePaletteRam(0, 0x07);
+  assert.equal(palette.colors[0], 0xffffffff);
+  primitives.reset();
+  assert.equal(palette.colors[0], 0xff000000);
+}
+
+console.log('generated-video.spec: 23 passed');

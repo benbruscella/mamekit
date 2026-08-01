@@ -465,6 +465,11 @@ class GeneratedBitmapPalette implements GeneratedPaletteDevice {
     this.colors = createRamPalette(this.plan, this.ram);
   }
 
+  reset(): void {
+    this.ram.fill(0);
+    this.colors = createRamPalette(this.plan, this.ram);
+  }
+
   transpen_mask(): number {
     return 0;
   }
@@ -525,7 +530,10 @@ class GeneratedPalette implements GeneratedPaletteDevice {
         }
         rgb[channel.channel] = Math.floor(value + 0.5);
       }
-      core[index] = packRgb(rgb.r, rgb.g, rgb.b);
+      core[index] = plan.forceBlack &&
+          (index & plan.forceBlack.mask) === plan.forceBlack.value
+        ? packRgb(0, 0, 0)
+        : packRgb(rgb.r, rgb.g, rgb.b);
     }
     // Computed sections derive each channel from bits of the color index
     // through their own resistor network (05xx star colors and kin).
@@ -1142,6 +1150,29 @@ export function generatedDirectScreenShape(
   return undefined;
 }
 
+/** Decode one pixel from the Taito SJ board's writable character RAM. */
+export function decodeTaitoSjRamPixel(
+  characterRam: Uint8Array,
+  bank: number,
+  code: number,
+  x: number,
+  y: number,
+  sprite: boolean,
+): number {
+  const xOffset = sprite && x >= 8 ? 64 + 7 - (x - 8) : 7 - x;
+  const yOffset = sprite && y >= 8 ? 128 + (y - 8) * 8 : y * 8;
+  const increment = sprite ? 256 : 64;
+  let value = 0;
+  for (let plane = 0; plane < 3; plane++) {
+    const bit = [32768, 16384, 0][plane]! + code * increment + yOffset + xOffset;
+    const source = characterRam[bank + (bit >>> 3)] ?? 0;
+    // gfx_element::decode reads layout offsets MSB-first within each byte,
+    // and plane zero contributes the most-significant pen bit.
+    value |= Number(Boolean(source & (0x80 >>> (bit & 7)))) << (2 - plane);
+  }
+  return value;
+}
+
 /**
  * Hardware-neutral MAME video services. All layouts, palette wiring,
  * tile callbacks, sprite loops and initial state come from generated IR.
@@ -1155,6 +1186,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private readonly palette?: GeneratedPaletteDevice;
   private readonly palettes = new Map<string, GeneratedPaletteDevice>();
   private readonly ramPalette?: GeneratedRamPalette;
+  private readonly bitmapPalette?: GeneratedBitmapPalette;
   private readonly gfxByDecode = new Map<string, GeneratedGfxElement[]>();
   private readonly bindings: GeneratedHandlerBindings;
   private readonly directScreenShape?: GeneratedDirectScreenShape;
@@ -1209,10 +1241,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       this.palettes.set('m_palette', this.ramPalette);
     }
     if (bitmapPlan?.paletteRam) {
-      this.palettes.set(
-        bitmapPlan.paletteRam.member,
-        new GeneratedBitmapPalette(bitmapPlan.paletteRam),
-      );
+      this.bitmapPalette = new GeneratedBitmapPalette(bitmapPlan.paletteRam);
+      this.palettes.set(bitmapPlan.paletteRam.member, this.bitmapPalette);
     }
     for (const palette of machine.video?.palettes ?? []) {
       this.palettes.set(palette.member, new GeneratedPalette(palette.plan, regions));
@@ -1549,25 +1579,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       pixels.fill(0x40);
       return pixels;
     });
-    const pixel = (
-      bank: number,
-      code: number,
-      x: number,
-      y: number,
-      sprite: boolean,
-    ): number => {
-      const xOffsets = sprite && x >= 8 ? 64 + 7 - (x - 8) : 7 - x;
-      const yOffsets = sprite && y >= 8 ? 128 + (y - 8) * 8 : y * 8;
-      const increment = sprite ? 256 : 64;
-      let value = 0;
-      for (let plane = 0; plane < 3; plane++) {
-        const bit = [32768, 16384, 0][plane]! +
-          code * increment + yOffsets + xOffsets;
-        const source = characterRam[bank + (bit >>> 3)] ?? 0;
-        value |= ((source >>> (bit & 7)) & 1) << plane;
-      }
-      return value;
-    };
     const flipX = Boolean(mode & 0x01);
     const flipY = Boolean(mode & 0x02);
     for (let layer = 0; layer < 3; layer++) {
@@ -1589,7 +1600,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         const code = videoRam[layer]![offset] ?? 0;
         for (let y = 0; y < 8; y++) {
           for (let x = 0; x < 8; x++) {
-            const pen = pixel(bank, code, flipX ? 7 - x : x, flipY ? 7 - y : y, false);
+            const pen = decodeTaitoSjRamPixel(
+              characterRam, bank, code,
+              flipX ? 7 - x : x,
+              flipY ? 7 - y : y,
+              false,
+            );
             if (pen) layers[layer]![(tileY * 8 + y) * 256 + tileX * 8 + x] =
               color * 8 + pen;
           }
@@ -1646,9 +1662,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
           const outputY = sy + y - (this.machine.execution.screen.yOffset ?? 0);
           if (outputY < 0 || outputY >= direct.height) continue;
           for (let x = 0; x < 16; x++) {
-            const pen = pixel(
-              bank,
-              code,
+            const pen = decodeTaitoSjRamPixel(
+              characterRam, bank, code,
               spriteFlipX ? 15 - x : x,
               spriteFlipY ? 15 - y : y,
               true,
@@ -1732,10 +1747,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   /** palette_device::write8 / write8_ext into source-derived palette RAM. */
   writePaletteRam(offset: number, data: number, ext = false): void {
     this.ramPalette?.write(offset, data, ext);
+    if (!ext) this.bitmapPalette?.write8(offset, data);
   }
 
   reset(): void {
     this.ramPalette?.reset();
+    this.bitmapPalette?.reset();
   }
 
   resolveScreenPens(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void {

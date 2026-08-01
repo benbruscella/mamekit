@@ -16,8 +16,10 @@ export class GeneratedDiscreteAudioCore {
   private readonly active: boolean[];
   private readonly envelope: number[];
   private readonly phase: number[];
+  private readonly noiseOutput: number[];
   private random = 0x6d2b79f5;
   private dac = 0;
+  private dacGate = 0;
   private dacLowpass = 0;
   private previousLowpass = 0;
   private dacHighpass = 0;
@@ -32,6 +34,7 @@ export class GeneratedDiscreteAudioCore {
     this.active = plan?.voices.map(() => false) ?? [];
     this.envelope = plan?.voices.map(() => 0) ?? [];
     this.phase = plan?.voices.map(() => 0) ?? [];
+    this.noiseOutput = plan?.voices.map(() => 1) ?? [];
   }
 
   write(offset: number, data: number): void {
@@ -39,6 +42,13 @@ export class GeneratedDiscreteAudioCore {
     if (!plan) return;
     if (offset === plan.dac.node) {
       this.dac = data & 0xff;
+      return;
+    }
+    if (offset === plan.dischargeNode) {
+      // The source node is DISCRETE_INPUT_NOT: a high latch output releases
+      // Q7 and passes the DAC immediately; a low output lets its RC envelope
+      // decay instead of replaying the CPU's idle sample loop forever.
+      if (data & 1) this.dacGate = 1;
       return;
     }
     for (let index = 0; index < plan.voices.length; index++) {
@@ -57,14 +67,22 @@ export class GeneratedDiscreteAudioCore {
     for (let index = 0; index < plan.voices.length; index++) {
       const voice = plan.voices[index]!;
       const releaseSamples = Math.max(1, voice.release * this.outputRate);
+      // These gates feed RCDISC/RCDISC_MODULATED one-shots in the source
+      // netlist.  A held latch starts the transient once; it does not sustain
+      // the oscillator at full volume indefinitely.
       this.envelope[index] *= Math.exp(-1 / releaseSamples);
       if (this.envelope[index] < 1e-5) this.envelope[index] = 0;
       let signal: number;
       if (voice.mode === 'noise') {
-        this.random ^= this.random << 13;
-        this.random ^= this.random >>> 17;
-        this.random ^= this.random << 5;
-        signal = (this.random & 1) ? 1 : -1;
+        this.phase[index] += voice.frequency / this.outputRate;
+        while (this.phase[index] >= 1) {
+          this.phase[index]--;
+          this.random ^= this.random << 13;
+          this.random ^= this.random >>> 17;
+          this.random ^= this.random << 5;
+          this.noiseOutput[index] = (this.random & 1) ? 1 : -1;
+        }
+        signal = this.noiseOutput[index]!;
       } else {
         this.phase[index] = (
           this.phase[index] + voice.frequency / this.outputRate
@@ -88,7 +106,17 @@ export class GeneratedDiscreteAudioCore {
       this.dacHighpass + this.dacLowpass - this.previousLowpass
     );
     this.previousLowpass = this.dacLowpass;
-    mixed += this.dacHighpass * plan.dac.gain;
+    if (plan.dischargeNode === undefined) {
+      this.dacGate = 1;
+    } else {
+      const releaseSamples = Math.max(
+        1,
+        (plan.dischargeRelease ?? 0.1) * this.outputRate,
+      );
+      this.dacGate *= Math.exp(-1 / releaseSamples);
+      if (this.dacGate < 1e-5) this.dacGate = 0;
+    }
+    mixed += this.dacHighpass * plan.dac.gain * this.dacGate;
     return Math.max(-1, Math.min(1, mixed * plan.outputGain));
   }
 }

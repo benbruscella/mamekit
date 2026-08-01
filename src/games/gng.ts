@@ -44,9 +44,9 @@ export const gng: GameTestContract = {
     audio: {
       writes: 478544,
       nonzeroWrites: 250736,
-      writeHash: 'bcd7e38a',
-      pcmHash: 'd287873d',
-      rms: 0.066986,
+      writeHash: 'd74bd818',
+      pcmHash: '704e6cd5',
+      rms: 0.06703,
     },
   },
 };

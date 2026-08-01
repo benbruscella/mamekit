@@ -31,6 +31,7 @@ import {
 } from '../mame/audio-compiler.ts';
 import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.ts';
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
+import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 import { artworkDir, romsDir } from '../paths.ts';
 import { cartArtIndex, type CartArt } from './cart-art.ts';
@@ -66,6 +67,7 @@ const KEYMAP: Record<string, string[]> = {
   // force-releases left/right movement while firing (user directive)
   IPT_BUTTON1: ['Space', 'KeyX'],
   IPT_BUTTON2: ['KeyZ'],
+  IPT_BUTTON3: ['KeyC'],
   IPT_START1: ['Digit1'],
   IPT_START2: ['Digit2'],
   IPT_COIN1: ['Digit5'],
@@ -122,6 +124,45 @@ function chunkTriples(values: number[]): [number, number, number][] {
     triples.push([values[index]!, values[index + 1]!, values[index + 2]!]);
   }
   return triples;
+}
+
+/**
+ * Lower the common NVRAM custom-handler shape used by arcade boards: clear a
+ * share, then copy a source-declared byte table into its beginning. This is
+ * power-on state, not a ROM patch; omitting it can leave bookkeeping/coinage
+ * data invalid even though the game reaches attract mode.
+ */
+export function sourceNvramInitializers(
+  devices: readonly KGNode[],
+  mameSrc: string,
+): { share: string; bytes: number[] }[] {
+  const result: { share: string; bytes: number[] }[] = [];
+  for (const device of devices.filter(node => node.props.type === 'NVRAM')) {
+    const config = Array.isArray(device.props.config)
+      ? device.props.config.map(String).join('\n')
+      : String(device.props.config ?? '');
+    const callback = /set_custom_handler\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)\s*\)\s*\)/
+      .exec(config);
+    const sourceFile = String(device.props.sourceFile ?? '');
+    if (!callback || !sourceFile || !existsSync(join(mameSrc, sourceFile))) continue;
+    const source = readFileSync(join(mameSrc, sourceFile), 'utf8');
+    const ast = new MameAstIndex(parseMameAst([{ file: sourceFile, source }]));
+    const fn = ast.findFunctionInHierarchy(callback[1]!, callback[2]!);
+    if (!fn) continue;
+    const table = /static\s+const\s+(?:u?int8_t|u8)\s+(\w+)\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/
+      .exec(fn.body);
+    if (!table) continue;
+    const name = table[1]!;
+    if (
+      !new RegExp(`memset\\s*\\(\\s*data\\s*,\\s*(?:0x00|0)\\s*,\\s*size\\s*\\)`).test(fn.body) ||
+      !new RegExp(`memcpy\\s*\\(\\s*data\\s*,\\s*${name}\\s*,\\s*sizeof\\s*\\(\\s*${name}\\s*\\)\\s*\\)`).test(fn.body)
+    ) continue;
+    const bytes = [...table[3]!.matchAll(/\b(?:0x[\da-f]+|\d+)\b/gi)]
+      .map(match => Number(match[0]));
+    if (bytes.length !== Number(table[2]) || bytes.some(value => value > 0xff)) continue;
+    result.push({ share: String(device.props.tag), bytes });
+  }
+  return result;
 }
 
 export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Promise<void> {
@@ -182,7 +223,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', KONAMI1: 'konami1', I8039: 'i8039', MB8884: 'i8039', I8080: 'i8080', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', RP2A03: 'rp2a03', RP2A03G: 'rp2a03' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', KONAMI1: 'konami1', I8039: 'i8039', MB8884: 'mb8884', I8080: 'i8080', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', RP2A03: 'rp2a03', RP2A03G: 'rp2a03' };
   const cpuDevs = devices.filter(d => String(d.props.type) in CPU_TYPES);
   if (cpuDevs.length === 0) throw new Error('no supported CPU devices found in machine config');
 
@@ -830,6 +871,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     ? game.props.romTransforms.map(value =>
         JSON.parse(String(value)) as Record<string, unknown>)
     : undefined;
+  const initialShares = sourceNvramInitializers(devices, opts.mameSrc);
 
   const compiledVideo = compileMameVideo(graph, opts.mameSrc, machine.id);
   const config = {
@@ -843,6 +885,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       cpus,
       ranges,
       ...(io ? { io } : {}),
+      ...(initialShares.length ? { initialShares } : {}),
       ...(customs.length ? { customs } : {}),
       screen,
       clocks,

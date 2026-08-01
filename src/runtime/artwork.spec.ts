@@ -90,6 +90,7 @@ const multiViewLayout = `
     <element ref="plain_bezel"><bounds x="0" y="0" width="120" height="120" /></element>
   </view>
   <view name="Bezel_Homebrew">
+    <bounds x="10" y="15" width="100" height="90" />
     <screen index="0"><bounds x="20" y="20" width="80" height="80" /></screen>
     <element ref="bubble_bezel"><bounds x="0" y="0" width="120" height="120" /></element>
   </view>
@@ -98,6 +99,25 @@ assert.equal(
   parseArtworkLayout(multiViewLayout)?.file,
   'bubble.png',
   'an explicit bezel view must win over a plain upright surround',
+);
+assert.deepEqual(parseArtworkLayout(multiViewLayout)?.bounds, {
+  x: 10, y: 15, w: 100, h: 90,
+});
+
+const instructionFirstLayout = `
+<mamelayout version="2">
+  <element name="inst"><image file="instructions.png" /></element>
+  <element name="bezel"><image file="motorace_bezel.png" /></element>
+  <view name="Upright_Artwork">
+    <screen index="0"><bounds x="20" y="30" width="80" height="100" /></screen>
+    <bezel element="inst"><bounds x="110" y="20" width="30" height="50" /></bezel>
+    <bezel element="bezel"><bounds x="0" y="0" width="160" height="180" /></bezel>
+  </view>
+</mamelayout>`;
+assert.equal(
+  parseArtworkLayout(instructionFirstLayout)?.file,
+  'motorace_bezel.png',
+  'an instruction-card placement must not replace the cabinet bezel',
 );
 
 if (originalDocument === undefined) {

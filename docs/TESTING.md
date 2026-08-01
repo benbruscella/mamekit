@@ -27,10 +27,13 @@ source forms, generated hardware contracts, and named supported machines.
 | Current clean generation | `npm run test:current` | yes | no | yes |
 | All registered target generation | `npm run test:generation` | yes | no | manual |
 | Generated game behavior | `npm run test:games` | no after generation | yes | local |
+| Shared-core blast radius | `npm run test:blast-radius` | no after generation | yes | local |
 | Browser presentation | `npm run serve` plus browser QA | no after generation | yes | local |
 
-`npm test` runs the two CI gates: every colocated spec, then clean generation
-and audit of the branch's current target set.
+`npm test` runs every colocated spec, clean generation/audit, and then every
+real-ROM game contract. It is the local shared-core gate and requires the ROMs
+under `.data/roms`. CI runs the first two gates separately because it cannot
+legally contain those ROMs; green CI alone is therefore not a release gate.
 
 ### TYPE AND COLOCATED SPECS
 
@@ -60,10 +63,9 @@ canvas, audio and interaction behavior remains part of browser QA.
 
 ### CURRENT CLEAN GENERATION
 
-`test:current` invokes `gen:all`, which deletes `dist`, generates Pac-Man,
-Pooyan, Time Pilot, Space Invaders, Galaxian, Galaga, Dig Dug, Moon Patrol,
-Roc'n Rope and Juno First from MAME, builds their shared hardware closure and
-app, then runs the generated-output audit. It detects stale-output masking,
+`test:current` invokes `gen:all`, which deletes `dist`, generates every
+auto-discovered supported-game contract from MAME, builds their shared
+hardware closure and app, then runs the generated-output audit. It detects stale-output masking,
 missing modules, unsupported hardware, duplicate trees, embedded machine JSON,
 imports from `src`, and blocked catalog entries.
 
@@ -98,6 +100,12 @@ input-ready attract state at different times. Frame counts range from 600 to
 contracts to cover their three-CPU self-tests before coin and start input.
 Every action has deterministic press and release durations. A test failure
 therefore identifies a changed trajectory, not only a final screenshot.
+
+Each contract runs in its own optimized Node process. The short gap between
+contracts lets macOS reclaim JIT mappings for the unusually large generated
+CPU modules; without it, rapid process churn can end in a native Node signal
+instead of a useful emulator assertion. This isolation does not affect the
+generated browser runtime.
 
 The throughput measurement includes CPU execution, generated video, checkpoint
 hashing and deterministic audio probing. It is not the browser's presentation
@@ -233,11 +241,15 @@ which compiler, graph, IR, generated hardware, input, timing, video, or audio
 change produced the difference.
 
 After the new behavior has been compared with MAME and manually verified in
-the browser, print candidate values with:
+the browser, record candidate values with:
 
 ```sh
 npm run test:games:record
 ```
+
+This command rewrites only each token's `golden` object. Review the resulting
+diff before keeping it; recording is not evidence that the new behavior is
+correct.
 
 To inspect the exact final native frame from a focused contract, set a PPM
 output path:
@@ -248,7 +260,7 @@ MAMEKIT_UPDATE_GOLDENS=1 \
 node -e "import { runGameAcceptance } from './src/games/acceptance-harness.ts'; import { digdug } from './src/games/digdug.ts'; await runGameAcceptance(digdug)"
 ```
 
-Review the output and edit only the affected token. Then rerun
+Review the diff and keep only the affected token changes. Then rerun
 `npm run test:games` without the recording flag. A review should be able to
 explain every changed region, frame-state, video, write, or PCM hash.
 

@@ -16,6 +16,7 @@ for (const type of ['Z80', 'I8257', 'MB8884', 'DISCRETE']) {
 const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video);
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
+assert.deepEqual(video.plan.palette?.forceBlack, { mask: 0x03, value: 0x00 });
 const audio = compileDiscreteEffects(
   mameSourceRoot(),
   [

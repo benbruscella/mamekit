@@ -1520,6 +1520,11 @@ export class GeneratedYm2203FrameRenderer {
   private readonly mixer: GeneratedYm2203Mixer;
   private readonly outputRate: number;
   private readonly refresh: number;
+  private writes: readonly GeneratedYmWrite[] = [];
+  private writeIndex = 0;
+  private count = 0;
+  private cursor = 0;
+  private active = false;
 
   constructor(mixer: GeneratedYm2203Mixer, outputRate: number, refresh: number) {
     this.mixer = mixer;
@@ -1527,19 +1532,57 @@ export class GeneratedYm2203FrameRenderer {
     this.refresh = refresh;
   }
 
-  render(writes: readonly GeneratedYmWrite[]): Float32Array {
+  begin(writes: readonly GeneratedYmWrite[]): number {
+    // Complete end-of-frame writes before accepting another frame. This is
+    // normally done by nextSample(); keeping it here also makes the renderer
+    // safe for direct probe use.
+    this.finish();
     this.sampleCarry += this.outputRate / this.refresh;
-    const count = Math.floor(this.sampleCarry);
-    this.sampleCarry -= count;
-    const output = new Float32Array(count);
-    let sampleIndex = 0;
-    for (const write of writes) {
-      const writeSample = Math.ceil(Math.max(0, Math.min(1, write.frac ?? 0)) * count);
-      while (sampleIndex < writeSample) output[sampleIndex++] = this.mixer.sample();
+    this.count = Math.floor(this.sampleCarry);
+    this.sampleCarry -= this.count;
+    this.writes = writes;
+    this.writeIndex = 0;
+    this.cursor = 0;
+    this.active = true;
+    return this.count;
+  }
+
+  nextSample(): number | undefined {
+    if (!this.active) return undefined;
+    if (this.cursor >= this.count) {
+      this.finish();
+      return undefined;
+    }
+    while (this.writeIndex < this.writes.length) {
+      const write = this.writes[this.writeIndex]!;
+      const at = Math.ceil(
+        Math.max(0, Math.min(1, write.frac ?? 0)) * this.count,
+      );
+      if (at > this.cursor) break;
+      this.mixer.write(write.offset, write.data, write.method);
+      this.writeIndex++;
+    }
+    this.cursor++;
+    return this.mixer.sample();
+  }
+
+  render(writes: readonly GeneratedYmWrite[]): Float32Array {
+    const output = new Float32Array(this.begin(writes));
+    for (let index = 0; index < output.length; index++) {
+      output[index] = this.nextSample() ?? 0;
+    }
+    // Writes exactly at the end of the frame still affect the next frame.
+    this.nextSample();
+    return output;
+  }
+
+  private finish(): void {
+    if (!this.active) return;
+    while (this.writeIndex < this.writes.length) {
+      const write = this.writes[this.writeIndex++]!;
       this.mixer.write(write.offset, write.data, write.method);
     }
-    while (sampleIndex < count) output[sampleIndex++] = this.mixer.sample();
-    return output;
+    this.active = false;
   }
 }
 
@@ -1556,9 +1599,7 @@ declare function registerProcessor(
 class GeneratedYm2203Processor extends AudioWorkletProcessor {
   private mixer?: GeneratedYm2203Mixer;
   private renderer?: GeneratedYm2203FrameRenderer;
-  private readonly frames: Float32Array[] = [];
-  private current?: Float32Array;
-  private currentIndex = 0;
+  private readonly frames: GeneratedYmWrite[][] = [];
 
   constructor() {
     super();
@@ -1591,21 +1632,20 @@ class GeneratedYm2203Processor extends AudioWorkletProcessor {
       } else if (message.type === 'write') {
         this.mixer?.write(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch') {
-        if (this.renderer) {
-          this.frames.push(this.renderer.render(message.writes ?? []));
-          while (this.frames.length > 8) this.frames.shift();
-        }
+        this.frames.push(message.writes ?? []);
       }
     };
   }
 
   private nextSample(): number {
-    while (!this.current || this.currentIndex >= this.current.length) {
-      this.current = this.frames.shift();
-      this.currentIndex = 0;
-      if (!this.current) return 0;
+    while (this.renderer) {
+      const sample = this.renderer.nextSample();
+      if (sample !== undefined) return sample;
+      const writes = this.frames.shift();
+      if (!writes) return 0;
+      this.renderer.begin(writes);
     }
-    return this.current[this.currentIndex++]!;
+    return 0;
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {

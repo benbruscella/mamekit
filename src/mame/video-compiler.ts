@@ -161,6 +161,13 @@ export function compileMameVideo(
   if (start && !tilemaps.length) return fail(`video_start emitted no tilemaps`);
   const handlers: GeneratedHandler[] = [];
   const game = graph.nodes.find(node => node.label === 'Game');
+  const driverInit = ast.findFunctionInHierarchy(
+    String(machine.props.cls),
+    String(game?.props.init ?? ''),
+  );
+  const driverInitState = driverInit
+    ? initialState(driverInit.body, { ...constants, ...numericDefaults })
+    : {};
   const delegates = compileInitDelegates(
     ast,
     String(machine.props.cls),
@@ -259,6 +266,7 @@ export function compileMameVideo(
         ...(start
           ? initialState(start.body, { ...constants, ...numericDefaults })
           : {}),
+        ...driverInitState,
       },
       ...(renderScale !== 1 ? { renderScale: { x: renderScale, y: 1 } } : {}),
       ...(Object.keys(delegates).length ? { delegates } : {}),
@@ -948,6 +956,22 @@ function compileResNetAllPalette(
     };
   });
   const count = Math.max(0, end - start + 1);
+  const forceBlackMatch = /if\s*\(\s*\(\s*(\w+)\s*&\s*([^)]+?)\s*\)\s*==\s*([^)]+?)\s*\)[\s\S]*?compute_res_net\s*\([^,]+,[^,]+,\s*(\w+)\s*\)[\s\S]*?set_pen_color\s*\(\s*\1\s*,/m
+    .exec(fn.body);
+  let forceBlack: GeneratedPromPalettePlan['forceBlack'];
+  if (forceBlackMatch) {
+    const overrideNet = initializer('res_net_info', forceBlackMatch[4]!);
+    const zeroInputChannels = overrideNet
+      ? [...overrideNet.matchAll(
+        /\{\s*RES_NET_AMP_\w+\s*,\s*[^,]+\s*,\s*[^,]+\s*,\s*(\d+)\s*,/g,
+      )].slice(0, 3).every(row => Number(row[1]) === 0)
+      : false;
+    const mask = expressionNumber(forceBlackMatch[2]!, constants);
+    const value = expressionNumber(forceBlackMatch[3]!, constants);
+    if (zeroInputChannels && Number.isInteger(mask) && Number.isInteger(value)) {
+      forceBlack = { mask, value };
+    }
+  }
   return {
     region,
     colorCount: count,
@@ -955,6 +979,7 @@ function compileResNetAllPalette(
     max: 255,
     scaler: -1,
     channels,
+    ...(forceBlack ? { forceBlack } : {}),
     lookupOffset: start,
     lookupCount: count,
     lookupMask: count - 1,
@@ -1986,7 +2011,7 @@ function sourceMemberDefaults(
     if (value != null && Number.isFinite(value)) defaults[match[1]!] = value;
   }
   for (const match of source.matchAll(
-    /\b(?:bool|int|u?int(?:8|16|32)_t|u8|u16|u32)\s+(m_\w+)\s*\[\s*(\d+)\s*\]\s*\{\s*\}\s*;/g,
+    /\b(?:bool|int|u?int(?:8|16|32)_t|u8|u16|u32)\s+(m_\w+)\s*\[\s*(\d+)\s*\]\s*(?:=\s*)?\{\s*\}\s*;/g,
   )) {
     defaults[match[1]!] = new Array(Number(match[2])).fill(0);
   }

@@ -7,6 +7,7 @@ import {
   bindGeneratedRegionState,
   bindGeneratedShareState,
   createGeneratedBoard,
+  generatedDeviceCallbackArguments,
   generatedSignalHandlerArguments,
 } from './generated-board.ts';
 import { registerGeneratedCpu } from './generated-cpu.ts';
@@ -81,6 +82,20 @@ const callbackDevice = {};
 assert.equal(
   generatedSignalHandlerArguments('device_t &device', 1, callbackDevice).device,
   callbackDevice,
+);
+assert.deepEqual(
+  generatedDeviceCallbackArguments(['offs_t offset', 'uint8_t data'], 0x7f),
+  [0, 0x7f],
+  'device callbacks must supply offset zero before latch write data',
+);
+assert.deepEqual(
+  generatedDeviceCallbackArguments(['offs_t offset'], 0x7f),
+  [0],
+  'device read callbacks must not reinterpret their signal value as an offset',
+);
+assert.deepEqual(
+  generatedDeviceCallbackArguments(['uint8_t data'], 0x7f),
+  [0x7f],
 );
 
 const driverState: Record<string, unknown> = {};

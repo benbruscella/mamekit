@@ -160,6 +160,7 @@ class IrBoard implements Board {
   private readonly frameRunner: GeneratedFrameRunner;
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
+  private currentLineFraction = 0;
   private soundRuntime?: SoundRuntimeHooks;
 
   constructor(
@@ -180,6 +181,15 @@ class IrBoard implements Board {
         if (!range.share) continue;
         this.shares[range.share] ??= new Uint8Array(range.end - range.start + 1);
       }
+    }
+    for (const initializer of machine.execution.initialShares ?? []) {
+      const share = this.shares[initializer.share];
+      if (!share) {
+        throw new Error(
+          `${machine.game}: initial share "${initializer.share}" is not mapped`,
+        );
+      }
+      share.set(initializer.bytes.slice(0, share.length));
     }
     for (const specification of machine.devices ?? []) {
       if (hasGeneratedDevice(specification.type)) {
@@ -401,6 +411,9 @@ class IrBoard implements Board {
         write: (address, data) => bus.write(address & mask, data),
         in: bus.in,
         out: bus.out,
+        timing: (elapsed, target) => {
+          this.currentLineFraction = target > 0 ? Math.min(1, elapsed / target) : 0;
+        },
         signal: (signal, state) => {
           const callbacks = machine.callbacks.filter(candidate =>
             candidate.ownerTag === specification.tag &&
@@ -580,6 +593,7 @@ class IrBoard implements Board {
           const executed = stalled + (cycles > stalled
             ? this.cpus.get(specification.tag)!.run(cycles - stalled)
             : 0);
+          this.currentLineFraction = 0;
           this.soundRuntime?.tickCpu?.(specification.tag, executed);
           this.cpuCycles.set(
             specification.tag,
@@ -603,6 +617,7 @@ class IrBoard implements Board {
       onLine: (line, phase, framebuffer) => {
         if (phase === 'before-processors') activeFramebuffer = framebuffer;
         this.currentLine = line;
+        this.currentLineFraction = 0;
         const seconds = 1 /
           (this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal);
         for (const device of this.devices.values()) device.tick(seconds);
@@ -1021,7 +1036,8 @@ class IrBoard implements Board {
   }
 
   private soundFraction(): number {
-    return this.currentLine / this.machine.execution.screen.vtotal;
+    return (this.currentLine + this.currentLineFraction) /
+      this.machine.execution.screen.vtotal;
   }
 
   /**
@@ -1073,7 +1089,10 @@ class IrBoard implements Board {
       deviceMethod: (tag, method, ownerClass) => {
         const device = this.devices.get(tag);
         if (device?.methodNames().includes(method)) {
-          return state => device.call(method, state);
+          return state => device.call(
+            method,
+            ...generatedDeviceCallbackArguments(device.parameters(method), state),
+          );
         }
         // A composite MAME device (timeplt_audio) is not instantiated; its
         // methods are the generated handlers for its class.
@@ -1139,6 +1158,23 @@ class IrBoard implements Board {
       },
     };
   }
+}
+
+/**
+ * Adapt a devcb's value to the target device method signature.  MAME supplies
+ * offset zero when a one-value callback is bound to a conventional
+ * read/write(offs_t, data) handler; passing the value as the first argument
+ * silently turns it into the offset and drops the data.
+ */
+export function generatedDeviceCallbackArguments(
+  parameters: readonly string[],
+  state: number,
+): number[] {
+  if (!parameters.length) return [];
+  if (/\boffs_t\b/.test(parameters[0]!)) {
+    return parameters.length === 1 ? [0] : [0, state];
+  }
+  return [state];
 }
 
 export function generatedSignalHandlerArguments(

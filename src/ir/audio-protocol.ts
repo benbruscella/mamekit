@@ -107,6 +107,8 @@ export interface GeneratedDiscreteEffectsPlan {
     activeLow: boolean;
   }[];
   dischargeNode?: number;
+  /** RC decay applied to the DAC when the active-low discharge gate closes. */
+  dischargeRelease?: number;
   outputGain: number;
   source: { file: string; line: number; netlist: string };
 }

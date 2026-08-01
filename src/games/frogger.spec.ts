@@ -14,6 +14,11 @@ for (const type of ['Z80', 'I8255A', 'AY8910', 'NETLIST_SOUND']) {
 }
 const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video);
+assert.equal(
+  video.plan.initialState.m_frogger_adjust,
+  1,
+  'init_frogger must retain the nibble-swapped sprite-position hardware flag',
+);
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
 
 console.log('frogger.spec: Konami sound and Galaxian-derived video passed');

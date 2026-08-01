@@ -341,15 +341,24 @@ class IrDevice implements Device {
     for (const callback of definition.callbacks) {
       const slots = Array.from({ length: callback.slots }, () => [] as DeviceCallbackListener[]);
       this.listeners.set(callback.signal, slots);
-      const emitters = slots.map(listeners =>
-        (...args: number[]) => {
+      const emitters = slots.map(listeners => {
+        const emitter = (...args: number[]) => {
           let result = callback.initial ?? 0;
           for (const listener of listeners) {
             const value = listener(...args);
             if (value !== undefined) result = value;
           }
           return result;
+        };
+        // MAME device code uses devcb::isunset() to decide which callback
+        // slots override internal latch state.  Treating an unbound slot as a
+        // callback returning zero changes input pins and can redirect CPU
+        // execution (DK's T0/T1 sound inputs are one concrete example).
+        Object.defineProperty(emitter, 'isunset', {
+          value: () => listeners.length === 0,
         });
+        return emitter;
+      });
       this.members[callback.member] = callback.slots === 1 ? emitters[0] : emitters;
     }
     for (const specification of definition.timers ?? []) {

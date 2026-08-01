@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import {
   compileMameI8080,
   compileMameKonami1,
+  compileMameM6802,
   compileMameMc6809,
   compileMameM6801U4,
   compileMameM6803,
+  compileMameMcs48,
   compileMameRp2a03,
   compileMameZ80,
 } from './cpu-compiler.ts';
@@ -16,6 +18,14 @@ import {
   type GeneratedCpuDefinition,
 } from '../runtime/generated-cpu.ts';
 
+const i8039Definition = compileMameMcs48(process.env.MAME_SRC ?? '../mame', 'I8039');
+const mb8884Definition = compileMameMcs48(process.env.MAME_SRC ?? '../mame', 'MB8884');
+assert.equal(i8039Definition.type, 'I8039');
+assert.equal(mb8884Definition.type, 'MB8884');
+assert.equal(i8039Definition.members.find(member => member.name === 'm_ram_size')?.initial, 128);
+assert.equal(mb8884Definition.members.find(member => member.name === 'm_ram_size')?.initial, 64);
+assert.equal(mb8884Definition.members.find(member => member.name === 'm_dataptr')?.values?.length, 64);
+
 const definition = compileMameZ80(process.env.MAME_SRC ?? '../mame');
 assert.equal(definition.summary.opcodes, 1536);
 assert.equal(definition.summary.compiledOpcodes, 1536);
@@ -23,6 +33,16 @@ assert.equal(definition.summary.diagnostics, 0);
 assert.ok(definition.methods.some(method => method.name === 'get_f'));
 assert.ok(definition.methods.some(method => method.name === 'm_f.pv'));
 assert.equal(definition.sourceFiles.includes('src/devices/cpu/z80/z80.lst'), true);
+assert.match(
+  generatedCpuExecutableSource(definition),
+  /this\.bus\.timing\?\.\(total, target\)/,
+  'direct generated CPUs must preserve instruction-level peripheral timing',
+);
+assert.match(
+  generatedCpuExecutableSource(definition),
+  /this\.generatedService\(\)/,
+  'generated CPUs must preserve each family\'s instruction-boundary IRQ service',
+);
 
 clearGeneratedCpus();
 registerGeneratedCpu(definition);
@@ -225,6 +245,35 @@ assert.equal(
   true,
 );
 
+const m6802Definition = compileMameM6802(process.env.MAME_SRC ?? '../mame');
+assert.ok(m6802Definition.members.some(member => member.name === 'm_irq_delay'));
+clearGeneratedCpus();
+registerGeneratedCpu(m6802Definition);
+const m6802Memory = new Uint8Array(0x10000);
+m6802Memory.set([0x0e, 0x01, 0x01], 0x8000); // CLI; NOP; NOP
+m6802Memory.set([0x0e, 0xb6, 0x40, 0x00, 0x3b], 0x9000); // CLI; LDAA $4000; RTI
+m6802Memory[0xfff8] = 0x90;
+m6802Memory[0xfff9] = 0x00;
+m6802Memory[0xfffe] = 0x80;
+m6802Memory[0xffff] = 0x00;
+let m6802PiaReads = 0;
+let m6802: ReturnType<typeof createCpu>;
+m6802 = createCpu('M6802', {
+  read: address => {
+    if (address === 0x4000) {
+      m6802PiaReads++;
+      m6802.setIrqLine(false);
+    }
+    return m6802Memory[address]!;
+  },
+  write: (address, data) => { m6802Memory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+m6802.setIrqLine(true);
+for (let instruction = 0; instruction < 6; instruction++) m6802.step();
+assert.equal(m6802PiaReads, 1, 'M6802 CLI must execute the PIA read before resampling level IRQ');
+
 const m6801u4Definition = compileMameM6801U4(process.env.MAME_SRC ?? '../mame');
 assert.equal(m6801u4Definition.type, 'M6801U4');
 assert.equal(m6801u4Definition.summary.compiledOpcodes, 256);
@@ -397,4 +446,4 @@ assert.equal(mc6809.get('m_d.b.h'), 0x42);
 mc6809.step();
 assert.equal(mc6809Memory[0x1000], 0x42, 'MC6809 extended store must reach the bus');
 
-console.log('cpu-compiler.spec: 55 passed');
+console.log('cpu-compiler.spec: 60 passed');

@@ -51,6 +51,8 @@ export interface GameAcceptanceOptions {
   captureAudioWrites?: string;
   /** Duration override used by diagnostic captures. */
   frames?: number;
+  /** Return current fingerprints without comparing them to recorded goldens. */
+  recording?: boolean;
 }
 
 export async function runGameAcceptance(
@@ -170,7 +172,9 @@ export async function runGameAcceptance(
       if (snapshot.frame < requirement.fromFrame) continue;
       if (requirement.toFrame !== undefined && snapshot.frame > requirement.toFrame) continue;
       const count = pendingWrites.filter(write =>
-        write.method === requirement.method && write.data !== 0).length;
+        write.method === requirement.method &&
+        (requirement.offset === undefined || write.offset === requirement.offset) &&
+        write.data !== 0).length;
       requiredAudioCounts.set(
         index,
         (requiredAudioCounts.get(index) ?? 0) + count,
@@ -270,6 +274,7 @@ export async function runGameAcceptance(
         ['A', 'B', 'C', 'D', 'E', 'H', 'L', 'HL', 'IX', 'IY', 'PC', 'SP',
           'm_pc', 'm_x', 'm_y', 'm_u', 'm_s', 'm_d', 'm_dp', 'm_cc',
           'm_firq_line', 'm_irq_line', 'm_nmi_state', 'm_service_attention']
+          .concat(['m_irq_state.0', 'm_wai_state'])
           .map(name => [name, cpu.get(name)]),
       ),
     ]),
@@ -284,7 +289,8 @@ export async function runGameAcceptance(
       tag,
       Object.fromEntries(
         ['m_a_input_overrides_output_mask', 'm_ddr_a', 'm_ctl_a', 'm_out_a',
-          'm_ddr_b', 'm_ctl_b', 'm_out_b']
+          'm_ddr_b', 'm_ctl_b', 'm_out_b', 'm_in_ca1', 'm_out_ca2',
+          'm_irq_a1', 'm_irq_a_state', 'm_state']
           .map(name => [name, device.get(name)]),
       ),
     ]),
@@ -373,15 +379,18 @@ export async function runGameAcceptance(
     const window = requirement.toFrame === undefined
       ? `after frame ${requirement.fromFrame}`
       : `from frame ${requirement.fromFrame} through ${requirement.toFrame}`;
+    const source = requirement.offset === undefined
+      ? requirement.method
+      : `${requirement.method} offset ${requirement.offset}`;
     assert.ok(
       actual >= requirement.minimumNonzeroWrites,
-      `${contract.game}: ${requirement.method} audio emitted ${actual} nonzero writes ` +
+      `${contract.game}: ${source} audio emitted ${actual} nonzero writes ` +
         `${window} (minimum ${requirement.minimumNonzeroWrites})`,
     );
     if (requirement.maximumNonzeroWrites !== undefined) {
       assert.ok(
         actual <= requirement.maximumNonzeroWrites,
-        `${contract.game}: ${requirement.method} audio emitted ${actual} nonzero writes ` +
+        `${contract.game}: ${source} audio emitted ${actual} nonzero writes ` +
           `${window} (maximum ${requirement.maximumNonzeroWrites})`,
       );
     }
@@ -395,8 +404,10 @@ export async function runGameAcceptance(
   // the host is, so checking it first let a loaded machine abort the run before
   // it ever compared hashes — hiding a real behavioural regression behind a
   // performance failure.
-  if (process.env.MAMEKIT_UPDATE_GOLDENS === '1') {
-    console.log(`${contract.game}:\n${JSON.stringify(result, null, 2)}`);
+  if (options.recording || process.env.MAMEKIT_UPDATE_GOLDENS === '1') {
+    if (!options.recording) {
+      console.log(`${contract.game}:\n${JSON.stringify(result, null, 2)}`);
+    }
   } else {
     assert.ok(contract.golden, `${contract.game}: no acceptance golden is recorded`);
     assert.deepEqual(result, contract.golden, `${contract.game}: generated behavior changed`);

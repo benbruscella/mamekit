@@ -1,10 +1,25 @@
 import {
   generatedBoardSource,
+  generatedCpuCycleClock,
   inferredMemberIndexRank,
   lowerAudioRoutes,
   lowerAuxiliaryAudioDevices,
   lowerGeneratedMachine,
 } from './emit-machine.ts';
+
+for (const type of ['m6802', 'm6803', 'nsc8105', 'm6801u4', 'mc6809']) {
+  if (generatedCpuCycleClock(type, 4_000_000) !== 1_000_000) {
+    throw new Error(`${type} must use MAME's divide-by-four execution clock`);
+  }
+}
+if (generatedCpuCycleClock('mc6809e', 1_000_000) !== 1_000_000) {
+  throw new Error('externally-clocked MC6809E must retain its configured execution clock');
+}
+for (const type of ['i8039', 'mb8884']) {
+  if (generatedCpuCycleClock(type, 6_000_000) !== 400_000) {
+    throw new Error(`${type} must use MAME's divide-by-fifteen execution clock`);
+  }
+}
 import type { KnowledgeGraph } from '../kg/types.ts';
 import type { BoardConfig } from '../runtime/types.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';

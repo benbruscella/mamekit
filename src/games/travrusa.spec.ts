@@ -15,5 +15,10 @@ for (const type of ['Z80', 'M6803', 'AY8910', 'MSM5205']) {
 const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video);
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
+assert.deepEqual(
+  video.plan.initialState.m_scrollx,
+  [0, 0],
+  'C++ zero-initialized video arrays must remain writable generated state',
+);
 
 console.log('travrusa.spec: Irem M52 audio and tile/sprite video passed');

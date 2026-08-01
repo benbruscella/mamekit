@@ -23,8 +23,8 @@ import { CPU_MAME_TYPES, cpuIrArtifact, cpuModuleArtifact } from './definition.t
 const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   Z80: compileMameZ80,
   I8080: compileMameI8080,
-  I8039: compileMameMcs48,
-  MB8884: compileMameMcs48,
+  I8039: source => compileMameMcs48(source, 'I8039'),
+  MB8884: source => compileMameMcs48(source, 'MB8884'),
   M6801U4: compileMameM6801U4,
   M6802: compileMameM6802,
   M6803: compileMameM6803,

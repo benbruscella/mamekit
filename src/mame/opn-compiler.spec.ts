@@ -140,6 +140,13 @@ assert.match(source, /^\/\/ GENERATED from 3rdparty\/ymfm\/src\/ymfm_opn\.cpp:\d
 assert.match(source, /registerProcessor\('ym2203', GeneratedYm2203Processor\)/);
 assert.match(source, /export class GeneratedYm2203Mixer/);
 assert.match(source, /export class GeneratedYm2203FrameRenderer/);
+assert.match(source, /begin\(writes: readonly GeneratedYmWrite\[\]\): number/);
+assert.match(source, /const sample = this\.renderer\.nextSample\(\)/);
+assert.doesNotMatch(
+  source,
+  /this\.renderer\.render\(message\.writes/,
+  'the audio-thread message callback must not render a whole video frame',
+);
 assert.match(source, /private updatePrescale\(prescale: number\): void/);
 assert.match(source, /candidate\.requiresPrescale === this\.prescale/);
 assert.match(

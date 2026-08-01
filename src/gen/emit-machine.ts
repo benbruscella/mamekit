@@ -14,6 +14,16 @@ import type {
   GeneratedHandlerOperation,
   GeneratedVideoPlan,
 } from '../ir/board.ts';
+
+/** MAME device input clocks converted to the instruction-cycle scheduler rate. */
+export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
+  if (
+    type === 'mc6809' || type === 'm6801u4' || type === 'm6802' ||
+    type === 'm6803' || type === 'nsc8105'
+  ) return clock / 4;
+  if (type === 'i8039' || type === 'mb8884') return clock / 15;
+  return clock;
+}
 import type {
   GeneratedAuxiliaryAudioDevice,
   GeneratedDiscreteDacPlan,
@@ -229,15 +239,12 @@ export function lowerGeneratedMachine(
         ...(nesApu && cpu.type?.toLowerCase() === 'rp2a03'
           ? { ranges: mergeInternalRanges(cpu.ranges ?? [], nesApu) }
           : {}),
-        cycleClock: cpu.type === 'mc6809' || cpu.type === 'm6801u4'
-          ? cpu.clock / 4
-          : cpu.type === 'i8039'
-            ? cpu.clock / 15
-            : cpu.clock,
+        cycleClock: generatedCpuCycleClock(cpu.type, cpu.clock),
         ...(interruptVectorWriters.length ? { interruptVectorWriters } : {}),
         ...(deviceByTag.get(cpu.tag)?.source ? { source: deviceByTag.get(cpu.tag)!.source } : {}),
       };
     }),
+    ...(board.initialShares?.length ? { initialShares: board.initialShares } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(graph.nodes.some(node => node.label === 'MemoryBank') ? {
       banks: lowerMemoryBanks(graph, sourceRef),

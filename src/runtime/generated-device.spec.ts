@@ -36,6 +36,8 @@ const definition: GeneratedDeviceDefinition = {
     ),
     method('device_reset', '', 'm_byte = 7;'),
     method('write', 'uint8_t data', 'm_byte = data; m_q[1](data); return external(data);'),
+    method('slot0_unset', '', 'return m_q[0].isunset();'),
+    method('slot1_unset', '', 'return m_q[1].isunset();'),
     method('timer_tick', 'int param', 'm_count += param;'),
     method(
       'reschedule_tick',
@@ -79,7 +81,11 @@ assert.equal(device.arity('write'), 1);
 assert.deepEqual(device.signalNames(), ['q_out_cb']);
 
 const signals: number[] = [];
+assert.equal(device.call('slot0_unset'), 1);
+assert.equal(device.call('slot1_unset'), 1);
 device.on('q_out_cb', value => signals.push(value), 1);
+assert.equal(device.call('slot0_unset'), 1);
+assert.equal(device.call('slot1_unset'), 0);
 device.bindCall('external', value => value + 2);
 assert.equal(device.call('write', 0xff), 0x101);
 assert.equal(device.get('m_byte'), 0xff);

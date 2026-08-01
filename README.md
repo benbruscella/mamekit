@@ -66,10 +66,10 @@ npm run serve
 ```
 
 `npm run gen:all` always deletes `dist` before generation. The current branch
-keeps that command scoped to Pac-Man, Pooyan, Time Pilot, Space Invaders,
-Galaxian, Galaga, Dig Dug, Moon Patrol, Roc'n Rope, Juno First, Gyruss and
-Ghosts'n Goblins while the source-generation pattern is validated one machine
-at a time.
+auto-discovers every supported-game contract. Generation uses a bounded worker
+pool sized to available CPU parallelism; override it with
+`npm run gen:all -- --jobs 12` when needed. The shared hardware closure and app
+are built once after the target workers finish.
 
 The generated application is served at `http://localhost:8280/app/`.
 

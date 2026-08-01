@@ -17,6 +17,15 @@ export const dkong: GameTestContract = {
     { atFrame: 390, code: 'ArrowRight', heldFrames: 60, releasedFrames: 20 },
     { atFrame: 480, code: 'Space', heldFrames: 30, releasedFrames: 20 },
   ],
+  audioRequirements: [
+    { method: 'write', offset: 7, fromFrame: 330, minimumNonzeroWrites: 10_000 },
+    {
+      method: 'discrete.write_line_DS_SOUND2_INP',
+      offset: 3,
+      fromFrame: 330,
+      minimumNonzeroWrites: 1,
+    },
+  ],
   golden: {
     regions: {
       gfx1: '4a641aaa',
@@ -26,20 +35,20 @@ export const dkong: GameTestContract = {
       soundcpu: 'c5c54e40',
     },
     checkpoints: {
-      1: { video: '540dc572', state: '35295e2a' },
-      60: { video: 'bec7bcbf', state: 'f4583530' },
-      180: { video: 'bec7bcbf', state: '31653a21' },
-      300: { video: 'bec7bcbf', state: '2d2a94af' },
-      480: { video: 'e5b8e175', state: '83219c32' },
-      600: { video: 'ca5e95cf', state: 'ba583b18' },
-      900: { video: 'b0b06e58', state: '35077e42' },
+      1: { video: 'ad795c56', state: '7a04c9c5' },
+      60: { video: '69b683e7', state: 'eb6113a2' },
+      180: { video: '69b683e7', state: '13040f14' },
+      300: { video: '69b683e7', state: '7eea4b3d' },
+      480: { video: '453885b9', state: 'ffc938fc' },
+      600: { video: '84d61c51', state: '753eaab7' },
+      900: { video: '0fcc8564', state: '3c3ebd9c' },
     },
     audio: {
-      writes: 157763,
-      nonzeroWrites: 153510,
-      writeHash: 'e6cb6e71',
-      pcmHash: '2f9e7232',
-      rms: 0.017465,
+      writes: 172929,
+      nonzeroWrites: 114811,
+      writeHash: '0c511c35',
+      pcmHash: '90668b58',
+      rms: 0.00748,
     },
   },
 };

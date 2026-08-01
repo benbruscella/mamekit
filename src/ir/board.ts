@@ -288,6 +288,8 @@ export interface GeneratedFrameEvent {
 
 export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
+  /** Source-defined power-on contents for battery-backed/shared RAM. */
+  initialShares?: { share: string; bytes: number[] }[];
   /** Driver lifecycle handlers executed in source-derived base-first order. */
   resetHandlers?: string[];
   banks?: {
@@ -357,6 +359,12 @@ export interface GeneratedPromPalettePlan {
     pulldown: number;
     pullup: number;
   }[];
+  /**
+   * PROM indices overridden to electrical black after resistor decoding.
+   * Some boards tri-state their palette outputs for a masked subset of
+   * colors (for example the Donkey Kong background).
+   */
+  forceBlack?: { mask: number; value: number };
   /**
    * Indirect-color sections computed from the color INDEX bits rather than a
    * PROM (e.g. the 05xx starfield palette): each channel's bits select bits

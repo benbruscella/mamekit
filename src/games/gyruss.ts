@@ -39,9 +39,9 @@ export const gyruss: GameTestContract = {
     audio: {
       writes: 72835,
       nonzeroWrites: 54418,
-      writeHash: '48414fb1',
-      pcmHash: 'e7b9c2f3',
-      rms: 0.022656,
+      writeHash: '574de1ef',
+      pcmHash: '7113b16c',
+      rms: 0.022845,
     },
   },
 };

@@ -51,6 +51,8 @@ export interface GameTestContract {
   /** Required generated audio activity in a named source-device path. */
   audioRequirements?: {
     method: string;
+    /** Restrict the requirement to one generated sound-device register. */
+    offset?: number;
     fromFrame: number;
     toFrame?: number;
     minimumNonzeroWrites: number;
