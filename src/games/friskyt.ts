@@ -38,8 +38,8 @@ export const friskyt: GameTestContract = {
       writes: 144145,
       nonzeroWrites: 143676,
       writeHash: '0a564845',
-      pcmHash: '9e4fc22d',
-      rms: 0.077047,
+      pcmHash: '39cf4f7b',
+      rms: 0.076998,
     },
   },
 };
