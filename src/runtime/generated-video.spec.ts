@@ -8,6 +8,7 @@ import {
   decodeTaitoSjRamPixel,
   generatedDirectScreenShape,
   generatedScrollBand,
+  generatedTileGroupIndirectMask,
   generatedTileGroupTransparentMask,
   generatedTileMemoryIndex,
   GeneratedMameVideoPrimitives,
@@ -227,6 +228,21 @@ assert.equal(generatedTileGroupTransparentMask(splitPlan, 1, 0x10), 0x0f);
 assert.equal(generatedTileGroupTransparentMask(splitPlan, 1, 0x20), 0);
 assert.equal(generatedTileGroupTransparentMask(splitPlan, 1, 0x30), 0x0f);
 assert.equal(generatedTileGroupTransparentMask(splitPlan, 2, 0), undefined);
+let configuredGroupColor = -1;
+assert.equal(
+  generatedTileGroupIndirectMask({
+    indirectMask: (color, transparent) => {
+      configuredGroupColor = color;
+      return (color << 8) | transparent;
+    },
+  }, 7, 3),
+  0x703,
+);
+assert.equal(
+  configuredGroupColor,
+  7,
+  'configure_groups transparency must use tile group, not a palette-bank color',
+);
 const screenState: Record<string, unknown> = {};
 const videoRegion = Uint8Array.of(0x12, 0x34);
 const generatedPrimitives = new GeneratedMameVideoPrimitives(

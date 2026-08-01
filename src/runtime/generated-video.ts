@@ -1004,7 +1004,11 @@ class GeneratedTilemap {
           if (groupMask !== undefined) {
             transparentMask = groupMask;
           } else if (this.plan.transparentIndirect !== undefined) {
-            transparentMask = gfx.indirectMask(tile.color, this.plan.transparentIndirect);
+            transparentMask = generatedTileGroupIndirectMask(
+              gfx,
+              tile.group,
+              this.plan.transparentIndirect,
+            );
           } else if (this.plan.transparentPen !== undefined) {
             transparentMask = 1 << this.plan.transparentPen;
           }
@@ -1064,6 +1068,20 @@ export function generatedTileGroupTransparentMask(
   if (layers & 0x20) transparent |= mask.background;
   if (layers & 0x40) transparent = 0xffffffff;
   return transparent >>> 0;
+}
+
+/**
+ * MAME configure_groups precomputes one transparency mask per tile group.
+ * A tile's palette color may subsequently select a different high bank while
+ * its group deliberately remains on the low color bits (Bank Panic does this
+ * with m_color_hi). Recomputing from tile.color makes that high bank opaque.
+ */
+export function generatedTileGroupIndirectMask(
+  gfx: { indirectMask(color: number, transparent: number): number },
+  group: number,
+  transparent: number,
+): number {
+  return gfx.indirectMask(group, transparent);
 }
 
 export function generatedTileMemoryIndex(mapped: unknown): number {

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { inputKeys } from '../gen/generate.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
+import { generatedTileGroupIndirectMask } from '../runtime/generated-video.ts';
 import { bankp } from './bankp.ts';
 import { gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
@@ -36,5 +37,23 @@ assert.deepEqual(
   [1, 2, 3].map(button => inputKeys('bankp', `IPT_BUTTON${button}`)),
   [['KeyZ'], ['KeyX'], ['KeyC']],
 );
+for (const tilemap of video.plan.tilemaps) {
+  assert.equal(tilemap.transparentIndirect, 0);
+}
+assert.match(
+  video.handlers.find(handler => handler.method === 'get_fg_tile_info')?.body ?? '',
+  /tileinfo\.group\s*=\s*color\s*&\s*0x1f/,
+);
+assert.match(
+  video.handlers.find(handler => handler.method === 'get_bg_tile_info')?.body ?? '',
+  /tileinfo\.group\s*=\s*color\s*&\s*0xf/,
+);
+// Later rounds raise m_color_hi. Their indirect palette page intentionally
+// contains no color zero, but configure_groups must keep using the low color
+// group to identify transparent door/sprite-shaped pixels.
+const bankedTransparency = {
+  indirectMask: (color: number) => color < 0x10 ? 0x81 : 0,
+};
+assert.equal(generatedTileGroupIndirectMask(bankedTransparency, 0x0f, 0), 0x81);
 
 console.log('bankp.spec: triple SN76489, Z/X/C controls and dual-tilemap video passed');

@@ -55,6 +55,13 @@ const mameResult = spawnSync(resolve(mame), [
   '-skip_gameinfo',
 ], {
   cwd: dirname(resolve(mame)),
+  // Homebrew's SDL build still probes the window server with -video none.
+  // The dummy backends make wavwrite usable from CI/headless agent sessions.
+  env: {
+    ...process.env,
+    SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? 'dummy',
+    SDL_AUDIODRIVER: process.env.SDL_AUDIODRIVER ?? 'dummy',
+  },
   encoding: 'utf8',
   stdio: ['ignore', 'pipe', 'pipe'],
   maxBuffer: 16 * 1024 * 1024,

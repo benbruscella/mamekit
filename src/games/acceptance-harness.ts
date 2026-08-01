@@ -60,6 +60,14 @@ export interface GameAcceptanceOptions {
   }[];
   /** Return current fingerprints without comparing them to recorded goldens. */
   recording?: boolean;
+  /** Read-only per-frame diagnostic hook for long-state-transition captures. */
+  inspectFrame?: (frame: {
+    number: number;
+    framebuffer: Uint32Array;
+    state: Readonly<Record<string, unknown>>;
+    /** Sound writes emitted during this frame, before the probe consumes them. */
+    writes: readonly SoundWrite[];
+  }) => void;
 }
 
 export async function runGameAcceptance(
@@ -183,6 +191,14 @@ export async function runGameAcceptance(
       );
     }
     const snapshot = board.snapshot();
+    options.inspectFrame?.({
+      number: snapshot.frame,
+      framebuffer,
+      state: (board as unknown as {
+        state?: Record<string, unknown>;
+      }).state ?? {},
+      writes: pendingWrites,
+    });
     for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {
       if (snapshot.frame < requirement.fromFrame) continue;
       if (requirement.toFrame !== undefined && snapshot.frame > requirement.toFrame) continue;
