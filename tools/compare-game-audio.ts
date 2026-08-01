@@ -46,6 +46,7 @@ await runGameAcceptance(contract, projectRoot, {
 
 const mameResult = spawnSync(resolve(mame), [
   game,
+  '-rompath', join(projectRoot, '.data/roms', contract.category),
   '-video', 'none',
   '-sound', 'none',
   '-wavwrite', mameWav,

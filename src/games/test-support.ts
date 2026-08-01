@@ -40,6 +40,16 @@ export function assertGameContract(contract: GameTestContract): void {
   );
   assert.ok(Object.keys(contract.golden.regions).length > 0);
   assert.ok(contract.golden.audio.writes > 0);
+  if (contract.minimumAudioRms !== undefined) {
+    assert.ok(contract.minimumAudioRms > 0);
+  }
+  for (const requirement of contract.shareRequirements ?? []) {
+    assert.match(requirement.share, /^\S+$/);
+    assert.ok(requirement.minimumNonzeroBytes >= 0);
+    if (requirement.maximumNonzeroBytes !== undefined) {
+      assert.ok(requirement.maximumNonzeroBytes >= requirement.minimumNonzeroBytes);
+    }
+  }
   let previousEnd = 0;
   for (const action of contract.actions) {
     assert.ok(action.atFrame >= previousEnd, `${contract.game}: input actions overlap`);

@@ -493,6 +493,7 @@ export function compileDiscreteEffects(
   const voiceSymbols = triggerSymbols.filter(symbol => symbol !== dischargeSymbol);
 
   const astables = callArgs(body, 'DISCRETE_555_ASTABLE_CV').map(args => ({
+    args,
     position: body.indexOf(`DISCRETE_555_ASTABLE_CV(${args[0]}`),
     frequency: 1.44 / (
       (analog(args[2]) + 2 * analog(args[3])) * analog(args[4])
@@ -501,10 +502,26 @@ export function compileDiscreteEffects(
   const releaseFor = (symbol: string): number => {
     const args = callArgs(body, 'DISCRETE_RCDISC_MODULATED')
       .find(call => node(call[1]) === node(symbol));
-    const release = args
+    const directRelease = args
       ? analog(args.at(-3)) * analog(args.at(-2))
       : NaN;
-    return Number.isFinite(release) && release > 0 ? release : 0.18;
+    const triggerNode = node(args?.[0]);
+    const transformedNode = triggerNode === undefined ? undefined : [2, 3, 4, 5, 6, 7, 8]
+      .flatMap(arity => callArgs(body, `DISCRETE_TRANSFORM${arity}`))
+      .find(call => call.slice(1).some(argument => node(argument) === triggerNode));
+    const downstream = transformedNode
+      ? callArgs(body, 'DISCRETE_RCDISC2')
+        .find(call => node(call[1]) === node(transformedNode[0]))
+      : undefined;
+    // RCDISC2's discharge leg is the audible tail after the trigger pulse.
+    // In DK this is the difference between a 10 ms click and the real ~0.5 s
+    // jump transient.
+    const downstreamRelease = downstream
+      ? analog(downstream[5]) * analog(downstream[6])
+      : NaN;
+    const releases = [directRelease, downstreamRelease]
+      .filter(value => Number.isFinite(value) && value > 0);
+    return releases.length > 0 ? Math.max(...releases) : 0.18;
   };
   const toneFor = (symbol: string): number | undefined => {
     const occurrences = [...body.matchAll(new RegExp(`\\b${symbol}\\b`, 'g'))]
@@ -514,6 +531,40 @@ export function compileDiscreteEffects(
       occurrences.some(position => position < astable.position &&
         astable.position - position < 1_200));
     return association?.frequency;
+  };
+  const vcoFor = (symbol: string) => {
+    const custom = callArgs(body, 'DISCRETE_CUSTOM8')
+      .find(call => node(call[2]) === node(symbol));
+    if (!custom) return undefined;
+    const controlNode = node(custom[0]);
+    const oscillatorNode = node(custom[3]);
+    const astable = astables.find(entry => node(entry.args[5]) === controlNode);
+    const inverter = callArgs(body, 'DISCRETE_INVERTER_OSC')
+      .find(call => node(call[0]) === oscillatorNode);
+    if (!astable || !inverter) return undefined;
+    const modulationResistance = analog(inverter[3]);
+    const modulationParallelResistance = analog(inverter[4]);
+    const modulationCapacitance = analog(inverter[5]);
+    const inverterDescriptor = symbolName(inverter[7]) ?? '';
+    const values = {
+      modulationFrequency: 1 / (2 * modulationResistance * modulationCapacitance),
+      modulationResistance,
+      modulationParallelResistance,
+      modulationCapacitance,
+      modulationType: (inverterDescriptor.includes('walk') ? 2 : 1) as 1 | 2,
+      controlResistance1: analog(custom[4]),
+      controlResistance2: analog(custom[5]),
+      oscillatorResistance: analog(custom[6]),
+      outputResistance: analog(custom[7]),
+      controlCapacitance: analog(custom[8]),
+      timerResistance1: analog(astable.args[2]),
+      timerResistance2: analog(astable.args[3]),
+      timerCapacitance: analog(astable.args[4]),
+      supplyVoltage: analog(custom[9]),
+    };
+    return Object.values(values).every(value => Number.isFinite(value) && value > 0)
+      ? values
+      : undefined;
   };
   let noiseFrequency = 4_000;
   const siblingHeader = join(
@@ -528,16 +579,34 @@ export function compileDiscreteEffects(
       noiseFrequency = Number(documented[1]) * (documented[2] ? 1_000 : 1);
     }
   }
-  const voiceGain = 1 / (voiceSymbols.length + 1);
+  const outputAttenuations = callArgs(body, 'DISCRETE_MULTIPLY')
+    .filter(args => /^DS_OUT_SOUND\d+$/.test(symbolName(args[0]) ?? ''))
+    .map(args => analog(args[2]));
+  const dacMixGain = 1 / (voiceSymbols.length + 1);
+  const exactDkongNetwork = /\bdkong_custom_mixer\b/.test(body) &&
+    /\bDISCRETE_RCINTEGRATE\s*\(NODE_294\b/.test(body);
   const voices = voiceSymbols.map((symbol, index) => {
     const frequency = toneFor(symbol);
+    const vco = frequency ? vcoFor(symbol) : undefined;
     return {
       node: node(symbol)!,
       mode: frequency ? 'tone' as const : 'noise' as const,
       frequency: frequency ?? noiseFrequency,
+      ...(vco ? { vco } : {}),
       release: releaseFor(symbol),
-      gain: voiceGain,
-      activeLow: true,
+      gain: Number.isFinite(outputAttenuations[index])
+        ? outputAttenuations[index]! / voiceSymbols.length
+        : 1 / (voiceSymbols.length + 1),
+      // DISCRETE_INPUT_NOT makes the netlist node active-low, but write_line
+      // receives the latch value before that inverter. A high latch value is
+      // therefore the trigger edge seen by this generated core.
+      activeLow: false,
+      ...(vco ? { triggerEdge: 'both' as const } : {}),
+      ...(vco && exactDkongNetwork ? {
+        network: vco.modulationType === 1
+          ? 'dkong-jump' as const
+          : 'dkong-walk' as const,
+      } : {}),
       // Preserve declaration order when two aliases resolve to the same node.
       _index: index,
     };
@@ -561,6 +630,14 @@ export function compileDiscreteEffects(
   const q = c1 > 0 && c2 > 0 ? 0.5 * Math.sqrt(c1 / c2) : 0.707;
   const outputArgs = callArgs(body, 'DISCRETE_OUTPUT').at(-1);
   const outputScale = analog(outputArgs?.[1]);
+  const dacTransform = [2, 3, 4, 5, 6, 7, 8]
+    .flatMap(arity => callArgs(body, `DISCRETE_TRANSFORM${arity}`))
+    .find(args => node(args[1]) === dacNode && Number.isFinite(analog(args[2])));
+  // DISCRETE_INPUT_BUFFER carries an 8-bit code, while the analog netlist
+  // commonly converts it to supply volts in the following transform
+  // (DS_DAC * DK_SUP_V/256). Preserve that voltage domain before applying
+  // the resistor mix and DISCRETE_OUTPUT volts-to-full-scale gain.
+  const dacVoltageScale = dacTransform ? analog(dacTransform[2]) * 256 : 1;
   const dischargeNode = dischargeSymbol ? node(dischargeSymbol) : undefined;
   const dischargeArgs = dischargeSymbol
     ? callArgs(body, 'DISCRETE_RCDISC')
@@ -575,11 +652,12 @@ export function compileDiscreteEffects(
     inputNodes,
     dac: {
       node: dacNode,
-      gain: voiceGain,
+      gain: dacMixGain * (Number.isFinite(dacVoltageScale) ? dacVoltageScale : 1),
       filterFrequency,
       q,
     },
     voices,
+    ...(exactDkongNetwork ? { outputNetwork: 'dkong2b' as const } : {}),
     ...(dischargeNode !== undefined
       ? {
           dischargeNode,

@@ -179,6 +179,12 @@ export function compileMameVideo(
     ...Object.values(delegates).filter((target): target is string => target !== null),
   ];
   addHandlerClosure(handlers, ast, roots, constants);
+  const updateMode = handlers.some(handler =>
+    handler.body?.includes('cliprect.max_y - 1') &&
+    handler.body.includes('sprite') &&
+    handler.body.includes('transpen'))
+    ? 'scanline' as const
+    : undefined;
   const gfx = decodes.flatMap(decode => {
     const binding = decodeBindings.get(String(decode.props.name));
     return graph.edges
@@ -250,6 +256,7 @@ export function compileMameVideo(
 
   return {
     plan: {
+      ...(updateMode ? { updateMode } : {}),
       gfx,
       ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
       ...(Object.keys(pointerBindings.offsets).length
@@ -925,13 +932,13 @@ function compileResNetAllPalette(
   ) return undefined;
 
   const channelRows = [...net.matchAll(
-    /\{\s*RES_NET_AMP_\w+\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*(\d+)\s*,\s*\{([^{}]+)\}\s*\}/g,
+    /\{\s*(RES_NET_AMP_\w+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*(\d+)\s*,\s*\{([^{}]+)\}\s*\}/g,
   )];
   if (channelRows.length < 3) return undefined;
   const channels = (['r', 'g', 'b'] as const).map((channel, index) => {
     const row = channelRows[index]!;
-    const count = Number(row[3]);
-    const networkResistances = splitMameArgs(row[4]!)
+    const count = Number(row[4]);
+    const networkResistances = splitMameArgs(row[5]!)
       .slice(0, count)
       .map(value => expressionNumber(value, constants));
     const bits: number[] = [];
@@ -951,8 +958,8 @@ function compileResNetAllPalette(
       bits,
       offsets: channelOffsets,
       resistances,
-      pulldown: expressionNumber(row[2], constants),
-      pullup: expressionNumber(row[1], constants),
+      pulldown: expressionNumber(row[3], constants),
+      pullup: expressionNumber(row[2], constants),
     };
   });
   const count = Math.max(0, end - start + 1);
@@ -972,6 +979,28 @@ function compileResNetAllPalette(
       forceBlack = { mask, value };
     }
   }
+  const exactResNet =
+    /RES_NET_VCC_5V/.test(net) &&
+    /RES_NET_VBIAS_5V/.test(net) &&
+    /RES_NET_VIN_(?:MB7052|TTL_OUT)/.test(net) &&
+    /RES_NET_MONITOR_SANYO_EZV20/.test(net) &&
+    channelRows.every((row, index) => channels[index]!.resistances.length === Number(row[4]));
+  const amplifiers = channelRows.map(row =>
+    row[1] === 'RES_NET_AMP_DARLINGTON'
+      ? 'darlington' as const
+      : row[1] === 'RES_NET_AMP_EMITTER'
+        ? 'emitter' as const
+        : 'none' as const);
+  const normalizeCall = /normalize_range\s*\(\s*([^,]+)\s*,\s*([^,)]+)(?:\s*,\s*([^,]+)\s*,\s*([^)]+))?\)/
+    .exec(fn.body);
+  const normalize = normalizeCall
+    ? {
+        start: expressionNumber(normalizeCall[1]!, constants),
+        end: expressionNumber(normalizeCall[2]!, constants),
+        lumMin: normalizeCall[3] ? expressionNumber(normalizeCall[3], constants) : 0,
+        lumMax: normalizeCall[4] ? expressionNumber(normalizeCall[4], constants) : 255,
+      }
+    : undefined;
   return {
     region,
     colorCount: count,
@@ -979,6 +1008,10 @@ function compileResNetAllPalette(
     max: 255,
     scaler: -1,
     channels,
+    ...(exactResNet ? {
+      resNet: { input: 'ttl' as const, monitor: 'sanyo' as const, amplifiers },
+    } : {}),
+    ...(normalize && Object.values(normalize).every(Number.isFinite) ? { normalize } : {}),
     ...(forceBlack ? { forceBlack } : {}),
     lookupOffset: start,
     lookupCount: count,
@@ -1077,6 +1110,38 @@ function compileNamedPalette(
         lookupOffset: expressionAt(sourceVariable[2] ?? 'i', loop.start),
         lookupCount: Math.max(0, loop.end - loop.start),
       });
+    }
+    // Some dual lookup-PROM boards ground A7 and use the loop's high bit to
+    // select a second physical PROM. Expand that folded local address into
+    // affine banks the generated runtime can apply without re-parsing C++.
+    const folded = /\b\w+\s*=\s*\(\s*i\s*<<\s*\d+\s*&\s*(0x[\da-f]+|\d+)\s*\)\s*\|\s*\(\s*i\s*&\s*(0x[\da-f]+|\d+)\s*\)/i
+      .exec(fn.body);
+    if (folded && banks.length === 2) {
+      const high = Number(folded[1]);
+      const lowMask = Number(folded[2]);
+      const count = lowMask + 1;
+      const lookupBase = banks[0]!.lookupOffset ?? 0;
+      const penDeltas = [...fn.body.matchAll(
+        /\bset_pen_indirect\s*\(\s*\w+\s*(?:\|\s*(0x[\da-f]+|\d+))?/gi,
+      )].slice(0, banks.length).map(match => Number(match[1] ?? 0));
+      if (
+        Number.isInteger(high) && high > lowMask &&
+        Number.isInteger(count) && count > 0 &&
+        penDeltas.length === banks.length
+      ) {
+        const foldedBanks: GeneratedPromPalettePlan['banks'] = [];
+        for (const sourceBase of [0, high]) {
+          for (let index = 0; index < banks.length; index++) {
+            foldedBanks.push({
+              ...banks[index]!,
+              penOffset: sourceBase + penDeltas[index]!,
+              lookupOffset: lookupBase + sourceBase,
+              lookupCount: count,
+            });
+          }
+        }
+        banks.splice(0, banks.length, ...foldedBanks);
+      }
     }
     const fixedCall = new RegExp(
       `${member}->set_pen_indirect\\s*\\(([^;]+)\\)\\s*;`,
@@ -1499,6 +1564,35 @@ function compilePalette(
       }];
     });
   });
+  const folded = /\b\w+\s*=\s*\(\s*i\s*<<\s*\d+\s*&\s*(0x[\da-f]+|\d+)\s*\)\s*\|\s*\(\s*i\s*&\s*(0x[\da-f]+|\d+)\s*\)/i
+    .exec(lookupLoops.map(loop => loop.body).join('\n'));
+  if (folded && banks.length === 2) {
+    const high = Number(folded[1]);
+    const lowMask = Number(folded[2]);
+    const count = lowMask + 1;
+    const lookupBase = banks[0]!.lookupOffset ?? 0;
+    const penDeltas = [...body.matchAll(
+      /\bset_pen_indirect\s*\(\s*\w+\s*(?:\|\s*(0x[\da-f]+|\d+))?/gi,
+    )].slice(0, banks.length).map(match => Number(match[1] ?? 0));
+    if (
+      Number.isInteger(high) && high > lowMask &&
+      Number.isInteger(count) && count > 0 &&
+      penDeltas.length === banks.length
+    ) {
+      const foldedBanks: GeneratedPromPalettePlan['banks'] = [];
+      for (const sourceBase of [0, high]) {
+        for (let index = 0; index < banks.length; index++) {
+          foldedBanks.push({
+            ...banks[index]!,
+            penOffset: sourceBase + penDeltas[index]!,
+            lookupOffset: lookupBase + sourceBase,
+            lookupCount: count,
+          });
+        }
+      }
+      banks.splice(0, banks.length, ...foldedBanks);
+    }
+  }
   const palettePenCall = paletteLoop?.body.includes('set_pen_color')
     ? findCallArguments(paletteLoop.body, 'palette.set_pen_color')
     : undefined;

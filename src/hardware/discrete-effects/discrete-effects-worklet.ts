@@ -10,19 +10,41 @@ export interface GeneratedDiscreteWrite {
   method?: string;
 }
 
+interface DkongVoiceState {
+  inverterCap: number;
+  inverterG2: number;
+  controlVoltage: number;
+  timerCap: number;
+  timerHigh: boolean;
+  rcModCap: number;
+  rcDisc2: number;
+  crCap: number;
+}
+
 export class GeneratedDiscreteAudioCore {
   private readonly outputRate: number;
   private readonly plan?: GeneratedDiscreteEffectsPlan;
   private readonly active: boolean[];
   private readonly envelope: number[];
   private readonly phase: number[];
+  private readonly modulationPhase: number[];
+  private readonly controlVoltage: number[];
   private readonly noiseOutput: number[];
+  private readonly dkongVoiceState: DkongVoiceState[];
   private random = 0x6d2b79f5;
   private dac = 0;
   private dacGate = 0;
-  private dacLowpass = 0;
+  private dacReleased = false;
+  private dacInput1 = 0;
+  private dacInput2 = 0;
+  private dacLowpass1 = 0;
+  private dacLowpass2 = 0;
   private previousLowpass = 0;
   private dacHighpass = 0;
+  private dkongMixerLowpass = 0;
+  private dkongMixerCoupling = 0;
+  private dkongAmplifierCoupling1 = 0;
+  private dkongAmplifierCoupling2 = 0;
 
   constructor(
     outputRate: number,
@@ -34,7 +56,19 @@ export class GeneratedDiscreteAudioCore {
     this.active = plan?.voices.map(() => false) ?? [];
     this.envelope = plan?.voices.map(() => 0) ?? [];
     this.phase = plan?.voices.map(() => 0) ?? [];
+    this.modulationPhase = plan?.voices.map(() => 0) ?? [];
+    this.controlVoltage = plan?.voices.map(() => 0) ?? [];
     this.noiseOutput = plan?.voices.map(() => 1) ?? [];
+    this.dkongVoiceState = plan?.voices.map(() => ({
+      inverterCap: 0,
+      inverterG2: 0,
+      controlVoltage: 0,
+      timerCap: 0,
+      timerHigh: true,
+      rcModCap: 0,
+      rcDisc2: 0,
+      crCap: 0,
+    })) ?? [];
   }
 
   write(offset: number, data: number): void {
@@ -48,14 +82,18 @@ export class GeneratedDiscreteAudioCore {
       // The source node is DISCRETE_INPUT_NOT: a high latch output releases
       // Q7 and passes the DAC immediately; a low output lets its RC envelope
       // decay instead of replaying the CPU's idle sample loop forever.
-      if (data & 1) this.dacGate = 1;
+      this.dacReleased = Boolean(data & 1);
+      if (this.dacReleased) this.dacGate = 1;
       return;
     }
     for (let index = 0; index < plan.voices.length; index++) {
       const voice = plan.voices[index]!;
       if (offset !== voice.node) continue;
       const active = voice.activeLow ? (data & 1) === 0 : (data & 1) !== 0;
-      if (active && !this.active[index]) this.envelope[index] = 1;
+      if (
+        active !== this.active[index] &&
+        (active || voice.triggerEdge === 'both')
+      ) this.envelope[index] = 1;
       this.active[index] = active;
     }
   }
@@ -64,6 +102,8 @@ export class GeneratedDiscreteAudioCore {
     const plan = this.plan;
     if (!plan) return 0;
     let mixed = 0;
+    let dkongJump = 0;
+    let dkongWalk = 0;
     for (let index = 0; index < plan.voices.length; index++) {
       const voice = plan.voices[index]!;
       const releaseSamples = Math.max(1, voice.release * this.outputRate);
@@ -84,29 +124,85 @@ export class GeneratedDiscreteAudioCore {
         }
         signal = this.noiseOutput[index]!;
       } else {
-        this.phase[index] = (
-          this.phase[index] + voice.frequency / this.outputRate
-        ) % 1;
-        signal = this.phase[index] < 0.5 ? 1 : -1;
+        if (voice.vco && voice.network) {
+          const signal = this.sampleDkongTone(index, voice);
+          if (voice.network === 'dkong-jump') dkongJump = signal;
+          else dkongWalk = signal;
+          continue;
+        }
+        let frequency = voice.frequency;
+        if (voice.vco) {
+          const vco = voice.vco;
+          this.modulationPhase[index] = (
+            this.modulationPhase[index]! +
+            vco.modulationFrequency / this.outputRate
+          ) % 1;
+          const oscillatorVoltage = this.modulationPhase[index]! < 0.5
+            ? vco.supplyVoltage
+            : 0;
+          // Port of dkong_custom_mixer's source circuit: the active-low
+          // netlist signal is downstream of the latch inverter, while the
+          // write reaching this core is the pre-inverter latch value.
+          const invertedInput = this.active[index] ? 0 : 1;
+          const inputResistance = invertedInput === 0
+            ? parallel(vco.controlResistance1 + vco.controlResistance2,
+              vco.oscillatorResistance)
+            : parallel(vco.controlResistance2, vco.oscillatorResistance);
+          const internalControlResistance = parallel(5_000, 10_000);
+          const totalResistance = parallel(
+            inputResistance + vco.outputResistance,
+            internalControlResistance,
+          );
+          const targetCurrent = vco.supplyVoltage / 5_000 +
+            (invertedInput === 0
+              ? vco.supplyVoltage /
+                (vco.controlResistance1 + vco.controlResistance2)
+              : 0) +
+            oscillatorVoltage / vco.oscillatorResistance;
+          const targetVoltage = targetCurrent * totalResistance;
+          const alpha = 1 - Math.exp(
+            -1 / (
+              this.outputRate * totalResistance * vco.controlCapacitance
+            ),
+          );
+          this.controlVoltage[index] += (
+            targetVoltage - this.controlVoltage[index]!
+          ) * alpha;
+
+          // NE555 astable with a live control-voltage pin. The threshold is
+          // CV and the trigger level is CV/2, matching dsd_555_astbl.
+          const threshold = this.controlVoltage[index]!;
+          const trigger = threshold / 2;
+          if (threshold >= 0.25 && threshold < vco.supplyVoltage) {
+            const charge = (
+              vco.timerResistance1 + vco.timerResistance2
+            ) * vco.timerCapacitance * Math.log(
+              (vco.supplyVoltage - trigger) /
+              (vco.supplyVoltage - threshold),
+            );
+            const discharge = vco.timerResistance2 *
+              vco.timerCapacitance * Math.log(2);
+            const period = charge + discharge;
+            if (Number.isFinite(period) && period > 0) frequency = 1 / period;
+          }
+        }
+        const phaseStep = Math.min(0.49, frequency / this.outputRate);
+        this.phase[index] = (this.phase[index] + phaseStep) % 1;
+        const tonePhase = this.phase[index]!;
+        // MAME's DISC_555_OUT_ENERGY accounts for the fraction of a sample on
+        // either side of each 555 transition. polyBLEP is the equivalent
+        // band-limited step here; a raw sign() square aliases audibly and was
+        // the remaining scratchy/buzzy character in DK's effects.
+        signal = tonePhase < 0.5 ? 1 : -1;
+        signal += polyBlep(tonePhase, phaseStep);
+        signal -= polyBlep((tonePhase + 0.5) % 1, phaseStep);
       }
       mixed += signal * this.envelope[index] * voice.gain;
     }
 
-    // MAME's DAC input is unipolar. Its following Sallen-Key and coupling
-    // capacitors are represented by a source-derived low-pass then high-pass.
-    const input = this.dac / 255;
-    const lowAlpha = 1 - Math.exp(
-      -2 * Math.PI * plan.dac.filterFrequency / this.outputRate,
-    );
-    this.dacLowpass += (input - this.dacLowpass) * lowAlpha;
-    const highFrequency = Math.max(5, plan.dac.filterFrequency / 100);
-    const rc = 1 / (2 * Math.PI * highFrequency);
-    const highAlpha = rc / (rc + 1 / this.outputRate);
-    this.dacHighpass = highAlpha * (
-      this.dacHighpass + this.dacLowpass - this.previousLowpass
-    );
-    this.previousLowpass = this.dacLowpass;
     if (plan.dischargeNode === undefined) {
+      this.dacGate = 1;
+    } else if (this.dacReleased) {
       this.dacGate = 1;
     } else {
       const releaseSamples = Math.max(
@@ -116,9 +212,344 @@ export class GeneratedDiscreteAudioCore {
       this.dacGate *= Math.exp(-1 / releaseSamples);
       if (this.dacGate < 1e-5) this.dacGate = 0;
     }
-    mixed += this.dacHighpass * plan.dac.gain * this.dacGate;
+    // DK's transform is DS_DAC * 5/256 and its discharge transistor is before
+    // the Sallen-Key stage. Keep that voltage domain for the exact network.
+    const input = plan.outputNetwork === 'dkong2b'
+      ? this.dac * 5 / 256 * this.dacGate
+      : this.dac / 255;
+    // RBJ biquad for MAME's two-op-amp Sallen-Key stage. The generated plan
+    // carries both its measured cutoff and Q; the old one-pole substitute
+    // ignored Q and left DAC samples (including Mario's death voice) buzzy.
+    const omega = 2 * Math.PI * plan.dac.filterFrequency / this.outputRate;
+    const cosine = Math.cos(omega);
+    const alpha = Math.sin(omega) / (2 * plan.dac.q);
+    const a0 = 1 + alpha;
+    const b0 = (1 - cosine) / 2 / a0;
+    const b1 = (1 - cosine) / a0;
+    const b2 = b0;
+    const a1 = -2 * cosine / a0;
+    const a2 = (1 - alpha) / a0;
+    const lowpass = b0 * input + b1 * this.dacInput1 +
+      b2 * this.dacInput2 - a1 * this.dacLowpass1 - a2 * this.dacLowpass2;
+    this.dacInput2 = this.dacInput1;
+    this.dacInput1 = input;
+    this.dacLowpass2 = this.dacLowpass1;
+    this.dacLowpass1 = lowpass;
+    const highFrequency = Math.max(5, plan.dac.filterFrequency / 100);
+    const rc = 1 / (2 * Math.PI * highFrequency);
+    const highAlpha = rc / (rc + 1 / this.outputRate);
+    this.dacHighpass = highAlpha * (
+      this.dacHighpass + lowpass - this.previousLowpass
+    );
+    this.previousLowpass = lowpass;
+    const dacOutput = plan.outputNetwork === 'dkong2b'
+      ? lowpass
+      : this.dacHighpass * plan.dac.gain * this.dacGate;
+    if (plan.outputNetwork === 'dkong2b') {
+      return this.sampleDkongOutput(mixed, dkongJump, dacOutput, dkongWalk);
+    }
+    mixed += dacOutput;
     return Math.max(-1, Math.min(1, mixed * plan.outputGain));
   }
+
+  private sampleDkongTone(
+    index: number,
+    voice: GeneratedDiscreteEffectsPlan['voices'][number],
+  ): number {
+    const vco = voice.vco!;
+    const state = this.dkongVoiceState[index]!;
+    const dt = 1 / this.outputRate;
+    const oscillatorVoltage = stepInverterOscillator(state, vco, dt);
+    const invertedInput = this.active[index] ? 0 : 1;
+    const inputResistance = invertedInput === 0
+      ? parallel(vco.controlResistance1 + vco.controlResistance2,
+        vco.oscillatorResistance)
+      : parallel(vco.controlResistance2, vco.oscillatorResistance);
+    const totalResistance = parallel(
+      inputResistance + vco.outputResistance,
+      parallel(5_000, 10_000),
+    );
+    const targetCurrent = vco.supplyVoltage / 5_000 +
+      (invertedInput === 0
+        ? vco.supplyVoltage /
+          (vco.controlResistance1 + vco.controlResistance2)
+        : 0) + oscillatorVoltage / vco.oscillatorResistance;
+    const targetVoltage = targetCurrent * totalResistance;
+    state.controlVoltage += (targetVoltage - state.controlVoltage) *
+      rcCharge(dt, totalResistance * vco.controlCapacitance);
+    const timer = step555Energy(
+      state,
+      vco,
+      dt,
+      voice.network === 'dkong-walk' ? 1.36 : 1,
+    );
+
+    if (voice.network === 'dkong-walk') {
+      const triggered = stepRcDiscMod(
+        state,
+        invertedInput,
+        timer,
+        1_000,
+        4_700,
+        1_000,
+        10_000,
+        3.3e-6,
+        5,
+        dt,
+      );
+      const highpass = triggered - state.crCap;
+      state.crCap += highpass * rcCharge(dt, 11_200 * 4.7e-6);
+      return highpass * 0.5;
+    }
+
+    const trigger = stepRcDiscMod(
+      state,
+      invertedInput,
+      0,
+      10_000,
+      0,
+      0,
+      10_000,
+      1e-6,
+      5,
+      dt,
+    );
+    const triggerSwitch = trigger > 0.6;
+    const target = triggerSwitch ? 0 : 5;
+    const resistance = triggerSwitch ? 10_000 : 110_000;
+    state.rcDisc2 += (target - state.rcDisc2) *
+      rcCharge(dt, resistance * 4.7e-6);
+    // NODE_35 is the slow 110k/4.7u charge and fast 10k/4.7u discharge
+    // controlling how much of the 555 survives the diode mixer. Express the
+    // same gate directly: the transistor RCINTEGRATE model is numerically
+    // ill-conditioned around its bias point and previously collapsed almost
+    // the whole half-second jump tail into one click.
+    const gate = Math.max(0, Math.min(1, (5 - state.rcDisc2) / 5));
+    return (timer - 2.25) * gate * (5_100 / 7_100);
+  }
+
+  private sampleDkongOutput(
+    stomp: number,
+    jump: number,
+    dac: number,
+    walk: number,
+  ): number {
+    const dt = 1 / this.outputRate;
+    // The source transistor stage is strongly level-dependent. These are its
+    // measured small-signal gains at the two DK operating points, taken from
+    // the isolated MAME -wavwrite events (not arbitrary master-volume knobs).
+    const resistorMix = (
+      stomp + jump * 1.9 + dac * 4.8 + walk * 4.23
+    ) / 4;
+    this.dkongMixerLowpass += (resistorMix - this.dkongMixerLowpass) *
+      rcCharge(dt, 11_750 * 100e-9);
+    let value = this.dkongMixerLowpass - this.dkongMixerCoupling;
+    this.dkongMixerCoupling += value * rcCharge(dt, 100_000 * 1e-6);
+    // The following transistor stage is biased by a fixed 1.50 V term. Its
+    // small-signal path is unity; retaining the DC bias in floating point and
+    // removing it again in the two coupling capacitors loses the actual effect
+    // signal after the long idle lead-in. Apply the same two source CR stages
+    // directly to the AC component.
+    let highpass = value - this.dkongAmplifierCoupling1;
+    this.dkongAmplifierCoupling1 += highpass *
+      rcCharge(dt, 50_000 * 33e-6);
+    value = highpass;
+    highpass = value - this.dkongAmplifierCoupling2;
+    this.dkongAmplifierCoupling2 += highpass *
+      rcCharge(dt, 1_000 * 4.7e-6);
+    return Math.max(-1, Math.min(1, highpass * 3.41 / 5));
+  }
+}
+
+function stepInverterOscillator(
+  state: DkongVoiceState,
+  vco: NonNullable<GeneratedDiscreteEffectsPlan['voices'][number]['vco']>,
+  dt: number,
+): number {
+  const supply = vco.supplyVoltage;
+  const transfer = (input: number): number => {
+    if (input <= 0) return supply;
+    const normalized = Math.min(1, input / supply);
+    const outLow = supply * 0.02;
+    const outHigh = supply * 0.98;
+    const fall = supply * 0.3;
+    const rise = supply * 0.7;
+    const exponent = (
+      Math.log(-Math.log(outLow / supply)) -
+      Math.log(-Math.log(outHigh / supply))
+    ) / Math.log(rise / fall);
+    const coefficient = Math.exp(
+      Math.log(-Math.log(outLow / supply)) -
+      exponent * Math.log(rise / supply),
+    );
+    return supply * Math.exp(-coefficient * Math.pow(normalized, exponent));
+  };
+
+  let input = state.inverterCap + state.inverterG2;
+  let gate1: number;
+  let gate2: number;
+  let gate3: number;
+  if (vco.modulationType === 1) {
+    gate1 = transfer(input);
+    gate2 = transfer(gate1);
+    gate3 = transfer(gate2);
+  } else {
+    gate1 = 0;
+    gate3 = transfer(input);
+    gate2 = transfer(gate3);
+  }
+  let clamped = false;
+  if (input < -0.1) {
+    input = -0.1;
+    clamped = true;
+  } else if (input > supply + 0.1) {
+    input = supply + 0.1;
+    clamped = true;
+  }
+  let difference: number;
+  if (clamped) {
+    const ratio = vco.modulationParallelResistance /
+      (vco.modulationParallelResistance + vco.modulationResistance);
+    difference = gate3 * ratio - (state.inverterCap + gate2) +
+      input * (1 - ratio);
+    difference *= 1 - Math.exp(-dt / (
+      parallel(vco.modulationResistance, vco.modulationParallelResistance) *
+      vco.modulationCapacitance
+    ));
+  } else {
+    difference = gate3 - (state.inverterCap + gate2);
+    difference *= 1 - Math.exp(-dt / (
+      vco.modulationResistance * vco.modulationCapacitance
+    ));
+  }
+  state.inverterCap += difference;
+  state.inverterG2 = gate2;
+  return gate3;
+}
+
+function step555Energy(
+  state: DkongVoiceState,
+  vco: NonNullable<GeneratedDiscreteEffectsPlan['voices'][number]['vco']>,
+  sampleTime: number,
+  periodScale = 1,
+): number {
+  const threshold = state.controlVoltage;
+  const trigger = threshold / 2;
+  if (threshold < 0.25) return state.timerHigh ? 4.5 : 0;
+  if (state.timerCap >= threshold) state.timerHigh = false;
+  else if (state.timerCap <= trigger) state.timerHigh = true;
+
+  let remaining = sampleTime;
+  let lastTransitionTime = 0;
+  let transitions = 0;
+  while (remaining > 1e-15 && transitions < 8) {
+    if (state.timerHigh) {
+      const timeConstant = (
+        vco.timerResistance1 + vco.timerResistance2
+      ) * vco.timerCapacitance * periodScale;
+      const next = state.timerCap + (vco.supplyVoltage - state.timerCap) *
+        rcCharge(remaining, timeConstant);
+      if (next < threshold) {
+        state.timerCap = next;
+        break;
+      }
+      const used = -timeConstant * Math.log(
+        (vco.supplyVoltage - threshold) /
+        (vco.supplyVoltage - state.timerCap),
+      );
+      remaining = Math.max(0, remaining - Math.max(0, used));
+      lastTransitionTime = remaining;
+      state.timerCap = threshold;
+      state.timerHigh = false;
+    } else {
+      const timeConstant = vco.timerResistance2 * vco.timerCapacitance *
+        periodScale;
+      const next = state.timerCap * Math.exp(-remaining / timeConstant);
+      if (next > trigger) {
+        state.timerCap = next;
+        break;
+      }
+      const used = -timeConstant * Math.log(trigger / state.timerCap);
+      remaining = Math.max(0, remaining - Math.max(0, used));
+      lastTransitionTime = remaining;
+      state.timerCap = trigger;
+      state.timerHigh = true;
+    }
+    transitions++;
+  }
+  const fraction = lastTransitionTime > 0
+    ? lastTransitionTime / sampleTime
+    : 1;
+  return 4.5 * (state.timerHigh ? fraction : 1 - fraction);
+}
+
+function stepRcDiscMod(
+  state: DkongVoiceState,
+  input1: number,
+  input2: number,
+  resistance1: number,
+  resistance2: number,
+  resistance3: number,
+  resistance4: number,
+  capacitance: number,
+  supply: number,
+  dt: number,
+): number {
+  const mod1 = input1 > 0.5 ? 1 : 0;
+  const mod2 = input2 > 0.6 ? 1 : 0;
+  const rc = Math.max(1, mod1 ? resistance2 : resistance1 + resistance2);
+  const rc2 = mod2
+    ? parallelOrZero(resistance3, resistance4)
+    : resistance4;
+  const gain = voltageDivider(rc, resistance4);
+  const diodeGain = voltageDivider(rc, rc2);
+  const target = mod1 ? 0 : supply;
+  let difference = target - state.rcModCap;
+  const diodeVoltage = difference * diodeGain;
+  let output: number;
+  if (diodeVoltage < -0.6) {
+    difference = target + 0.6 - state.rcModCap;
+    difference *= 1 - Math.exp(-dt / (capacitance * rc));
+    state.rcModCap += difference;
+    output = mod2 ? 0 : -0.6;
+  } else {
+    difference *= 1 - Math.exp(-dt / (capacitance * (rc + rc2)));
+    state.rcModCap += difference;
+    output = mod2 ? 0 : (target - state.rcModCap) * gain;
+  }
+  return output;
+}
+
+function rcCharge(dt: number, timeConstant: number): number {
+  return timeConstant > 0 ? 1 - Math.exp(-dt / timeConstant) : 1;
+}
+
+function voltageDivider(top: number, bottom: number): number {
+  const total = top + bottom;
+  return total > 0 ? bottom / total : 0;
+}
+
+function parallelOrZero(left: number, right: number): number {
+  if (left <= 0) return right;
+  if (right <= 0) return left;
+  return parallel(left, right);
+}
+
+function parallel(left: number, right: number): number {
+  return left * right / (left + right);
+}
+
+function polyBlep(phase: number, step: number): number {
+  if (step <= 0) return 0;
+  if (phase < step) {
+    const value = phase / step;
+    return value + value - value * value - 1;
+  }
+  if (phase > 1 - step) {
+    const value = (phase - 1) / step;
+    return value * value + value + value + 1;
+  }
+  return 0;
 }
 
 export class GeneratedDiscreteAudioFrameRenderer {

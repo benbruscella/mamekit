@@ -102,10 +102,36 @@ export interface GeneratedDiscreteEffectsPlan {
     node: number;
     mode: 'noise' | 'tone';
     frequency: number;
+    /** Source-derived inverter oscillator and 555 control-voltage network. */
+    vco?: {
+      modulationFrequency: number;
+      modulationResistance: number;
+      modulationParallelResistance: number;
+      modulationCapacitance: number;
+      modulationType: 1 | 2;
+      controlResistance1: number;
+      controlResistance2: number;
+      oscillatorResistance: number;
+      outputResistance: number;
+      controlCapacitance: number;
+      timerResistance1: number;
+      timerResistance2: number;
+      timerCapacitance: number;
+      supplyVoltage: number;
+    };
     release: number;
     gain: number;
     activeLow: boolean;
+    /** RCDISC_MODULATED networks respond to both latch transitions. */
+    triggerEdge?: 'active' | 'both';
+    /**
+     * Exact source topology used after the oscillator. These circuits cannot
+     * be represented by a generic ADSR without changing their pitch/timbre.
+     */
+    network?: 'dkong-jump' | 'dkong-walk';
   }[];
+  /** Run the source circuit's final resistor mixer and amplifier stages. */
+  outputNetwork?: 'dkong2b';
   dischargeNode?: number;
   /** RC decay applied to the DAC when the active-low discharge gate closes. */
   dischargeRelease?: number;

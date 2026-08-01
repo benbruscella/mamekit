@@ -47,6 +47,18 @@ const graph: KnowledgeGraph = {
       sourceLine: 42,
     },
   }, {
+    id: 'device:dma',
+    label: 'Device',
+    props: {
+      type: 'I8257',
+      tag: 'dma',
+      config: [
+        'I8257(config, m_dma, 1000000)',
+        'm_dma->out_hrq_cb().set_inputline(m_maincpu, Z80_INPUT_LINE_BUSREQ)',
+        'm_dma->set_reverse_rw_mode(true)',
+      ],
+    },
+  }, {
     id: 'device:ay0',
     label: 'Device',
     props: {
@@ -63,6 +75,16 @@ const graph: KnowledgeGraph = {
       operation: 'set_irq_acknowledge_callback',
       targetClass: 'test_state',
       targetMethod: 'vector_r',
+    },
+  }, {
+    id: 'callback:periodic',
+    label: 'Callback',
+    props: {
+      ownerTag: 'maincpu',
+      signal: 'set_periodic_int',
+      operation: 'set_periodic_int',
+      targetMethod: 'irq0_line_hold',
+      periodHz: 36.62109375,
     },
   }, {
     id: 'handler:vector_r',
@@ -120,11 +142,26 @@ if (reset.callbackId !== machine.callbacks[0]?.id) {
   throw new Error('connection lost its callback provenance');
 }
 if (machine.execution.cpus[0]?.clock !== 1_000_000) throw new Error('execution plan missing CPU clock');
+if (
+  machine.execution.frameEvents.find(event => event.callbackId === 'callback:periodic')
+    ?.frequency !== 36.62109375
+) {
+  throw new Error('non-video-locked periodic interrupts must retain fractional frequency');
+}
 if (machine.execution.cpus[0]?.interruptVectorWriters?.[0] !== 'test_state.vector_w') {
   throw new Error('interrupt-vector writer relation was not lowered from handler IR');
 }
 if (machine.devices?.find(device => device.tag === 'ay.0')?.member !== 'm_ay[0]') {
   throw new Error('device-array members must retain their finder index');
+}
+const dma = machine.devices?.find(device => device.tag === 'dma');
+if (
+  dma?.member !== 'm_dma' ||
+  dma.configuration?.length !== 1 ||
+  dma.configuration[0]?.method !== 'set_reverse_rw_mode' ||
+  dma.configuration[0]?.args[0] !== 1
+) {
+  throw new Error('direct device configuration calls must retain boolean arguments');
 }
 const source = generatedBoardSource(machine);
 if (!source.includes('decodeBoardIr(')) {

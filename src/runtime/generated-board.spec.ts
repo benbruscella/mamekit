@@ -78,6 +78,21 @@ assert.deepEqual(
   { state: 4, data: 4, offset: 0, mem_mask: 0xff },
   'device write callbacks must receive MAME default offset and active mem_mask arguments',
 );
+assert.deepEqual(
+  generatedSignalHandlerArguments(
+    'offs_t offset, uint8_t data, uint8_t mem_mask',
+    0x7f,
+    undefined,
+    [0x6900, 0x7f, 0xff],
+  ),
+  { state: 0x7f, data: 0x7f, offset: 0x6900, mem_mask: 0xff },
+  'parallel callbacks must preserve offset while binding data to the emitted value',
+);
+assert.equal(
+  generatedSignalHandlerArguments('uint8_t data', 0x7f, undefined, [0x6900, 0x7f]).data,
+  0x7f,
+  'single-data handlers must not reinterpret a parallel callback offset as data',
+);
 const callbackDevice = {};
 assert.equal(
   generatedSignalHandlerArguments('device_t &device', 1, callbackDevice).device,

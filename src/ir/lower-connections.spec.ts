@@ -75,7 +75,7 @@ check('a CPU input line lowers to the named pin', () => {
   );
   assert.deepEqual(
     effect({ targetTag: 'maincpu', inputLine: 'INPUT_LINE_NMI' }),
-    { kind: 'cpu-line', tag: 'maincpu', line: 'nmi', delivery: 'pulse' },
+    { kind: 'cpu-line', tag: 'maincpu', line: 'nmi', delivery: 'level' },
   );
   assert.deepEqual(
     effect({ targetTag: 'mcu', inputLine: 'M6801_IRQ1_LINE' }),

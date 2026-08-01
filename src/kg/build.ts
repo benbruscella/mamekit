@@ -860,6 +860,22 @@ const CALLBACK_OPERATIONS = new Set([
   'set_maincpu', 'configure_scanline',
 ]);
 
+/** Return the complete argument of attotime::from_hz, including nested parens. */
+export function fromHzExpression(value: string): string | undefined {
+  const marker = 'from_hz(';
+  const start = value.indexOf(marker);
+  if (start < 0) return undefined;
+  let depth = 1;
+  const expressionStart = start + marker.length;
+  for (let index = expressionStart; index < value.length; index++) {
+    if (value[index] === '(') depth++;
+    else if (value[index] === ')' && --depth === 0) {
+      return value.slice(expressionStart, index);
+    }
+  }
+  return undefined;
+}
+
 function emitCallbacks(
   g: GraphBuilder,
   ast: MameAstIndex,
@@ -917,8 +933,8 @@ function emitCallbacks(
     if (transforms.length) props.transforms = transforms;
     if (operation.name === 'set_periodic_int') {
       const period = operation.args.find(arg => arg.includes('from_hz'));
-      const hzExpr = period ? /from_hz\(([^)]+)\)/.exec(period)?.[1] : undefined;
-      const hz = hzExpr ? evalExpr(hzExpr) : null;
+      const hzExpr = period ? fromHzExpression(period) : undefined;
+      const hz = hzExpr ? evalExpr(hzExpr, constants) : null;
       if (hz !== null) props.periodHz = hz;
       if (period) props.periodExpr = period;
     }

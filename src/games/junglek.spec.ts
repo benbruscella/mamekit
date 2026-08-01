@@ -19,5 +19,8 @@ for (const type of ['Z80', 'INPUT_MERGER_ALL_HIGH', 'DAC_8BIT_R2R', 'DISCRETE'])
 const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video);
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
+const audioIrq = graph.nodes.find(node =>
+  node.label === 'Callback' && node.props.signal === 'set_periodic_int');
+assert.equal(audioIrq?.props.periodHz, 36.62109375);
 
-console.log('junglek.spec: dual-Z80, four-AY audio and Taito SJ video passed');
+console.log('junglek.spec: dual-Z80, 36.621 Hz audio IRQ, collisions and Taito SJ video passed');

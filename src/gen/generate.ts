@@ -81,6 +81,21 @@ const KEYMAP: Record<string, string[]> = {
   IPT_SELECT: ['ShiftRight'],
 };
 
+// Games whose physical control order differs from the shared two-button
+// convention. Keep these local: swapping the global X/Z mapping would silently
+// change every established game and the NES pad.
+const GAME_KEYMAP: Record<string, Record<string, string[]>> = {
+  bankp: {
+    IPT_BUTTON1: ['KeyZ'],
+    IPT_BUTTON2: ['KeyX'],
+    IPT_BUTTON3: ['KeyC'],
+  },
+};
+
+export function inputKeys(game: string, type: string): string[] | undefined {
+  return GAME_KEYMAP[game]?.[type] ?? KEYMAP[type];
+}
+
 // Cart-slot options (mappers/PCBs) each runtime board family implements —
 // a device-library capability table like CPU_TYPES, not a game fact. The
 // softlist catalog carries every cart's slot; the app greys out the rest.
@@ -755,7 +770,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         }
         if (mods.includes('PORT_COCKTAIL')) continue;  // player-2 cocktail path: unbound
         if (mods.includes('PORT_PLAYER(2)')) continue; // don't double-bind P1 keys
-        const keys = KEYMAP[type];
+        const keys = inputKeys(opts.game, type);
         if (keys) bindings.push({ port: tag, mask, keys, label: type, activeLow });
       }
     }
@@ -782,7 +797,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           if (activeLow) init |= mask;
           if (boundController) continue;
           const type = String(f.props.type ?? '');
-          const keys = KEYMAP[type];
+          const keys = inputKeys(opts.game, type);
           if (!keys) continue;
           const mods = (f.props.modifiers as string[] | undefined) ?? [];
           const named = mods.map(m => /PORT_NAME\("(?:%p )?([^"]+)"\)/.exec(m)?.[1]).find(Boolean);
@@ -874,6 +889,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const initialShares = sourceNvramInitializers(devices, opts.mameSrc);
 
   const compiledVideo = compileMameVideo(graph, opts.mameSrc, machine.id);
+  if (compiledVideo?.plan.updateMode) {
+    screen.updateMode = compiledVideo.plan.updateMode;
+  }
   const config = {
     game: opts.game,
     title,
@@ -1420,6 +1438,14 @@ if (game) {
     const compiledGroup = join(compiledDir, group);
     if (!existsSync(compiledGroup)) continue;
     cpSync(compiledGroup, join(outRoot, group), { recursive: true });
+  }
+  // tsc only emits JSON modules that are imported by executable code. The
+  // closure manifest, hardware graph/report and device IR are build products
+  // consumed by audits and the catalog, so restore the complete staged
+  // generated tree after overlaying its compiled JavaScript modules.
+  const stagedGenerated = join(srcDir, 'runtime/generated');
+  if (existsSync(stagedGenerated)) {
+    cpSync(stagedGenerated, join(outRoot, 'runtime/generated'), { recursive: true });
   }
   const archive = emitArchiveRoutes(outRoot, appDir);
   rmSync(buildDir, { recursive: true, force: true });

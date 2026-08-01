@@ -127,15 +127,9 @@ export function lowerGeneratedMachine(
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
       ...(deviceCallbackHz(node.props) ? { callbackHz: deviceCallbackHz(node.props) } : {}),
-      ...(Array.isArray(node.props.configCalls) ? {
-        configuration: node.props.configCalls.flatMap(value => {
-          const match = /^(\w+)\((.*)\)$/.exec(String(value));
-          return match ? [{
-            method: match[1]!,
-            args: match[2]!.split(',').map(argument => Number(argument.trim())),
-          }] : [];
-        }),
-      } : {}),
+      ...(deviceConfiguration(node.props).length
+        ? { configuration: deviceConfiguration(node.props) }
+        : {}),
       ...(typeof node.props.slotOptions === 'string'
         ? { slotOptions: node.props.slotOptions }
         : {}),
@@ -626,6 +620,37 @@ function deviceMember(props: Record<string, unknown>): string | undefined {
   return /\(\s*config\s*,\s*(m_\w+(?:\[\d+\])?)/.exec(config)?.[1];
 }
 
+function deviceConfiguration(
+  props: Record<string, unknown>,
+): { method: string; args: number[] }[] {
+  const encoded = Array.isArray(props.configCalls)
+    ? props.configCalls.map(String)
+    : [];
+  const member = deviceMember(props);
+  if (member && Array.isArray(props.config)) {
+    const escaped = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    for (const line of props.config.map(String)) {
+      const match = new RegExp(`^${escaped}->(\\w+)\\((.*)\\)$`).exec(line.trim());
+      if (match) encoded.push(`${match[1]}(${match[2]})`);
+    }
+  }
+  return encoded.flatMap(value => {
+    const match = /^(\w+)\((.*)\)$/.exec(value);
+    if (!match) return [];
+    const rawArgs = match[2]!.trim();
+    const args = rawArgs ? rawArgs.split(',').map(argument => {
+      const raw = argument.trim();
+      if (raw === 'true') return 1;
+      if (raw === 'false') return 0;
+      return Number(raw);
+    }) : [];
+    return args.every(Number.isFinite) ? [{ method: match[1]!, args }] : [];
+  }).filter((entry, index, all) => all.findIndex(candidate =>
+    candidate.method === entry.method &&
+    candidate.args.length === entry.args.length &&
+    candidate.args.every((value, arg) => value === entry.args[arg])) === index);
+}
+
 function inferInterruptVectorWriters(
   cpuTag: string,
   ioRanges: BoardConfig['cpus'][number]['ranges'],
@@ -790,7 +815,22 @@ function lowerFrameEvents(
     if (callback.signal !== 'set_periodic_int' || !callback.periodHz) continue;
     const eventsPerFrame = callback.periodHz / refreshHz;
     const count = Math.round(eventsPerFrame);
-    if (count <= 0 || Math.abs(eventsPerFrame - count) > 0.1) continue;
+    if (count <= 0 || Math.abs(eventsPerFrame - count) > 0.1) {
+      // Free-running oscillators are not generally integer multiples of the
+      // video refresh. Preserve their frequency and let the frame runner's
+      // fractional carry place each edge on the correct scanline instead of
+      // silently dropping the interrupt (Taito SJ: 36.621 Hz vs 59.186 Hz).
+      events.push({
+        callbackId: callback.id,
+        ownerTag: callback.ownerTag,
+        signal: callback.signal,
+        line: 0,
+        state: 1,
+        frequency: callback.periodHz,
+        ...(callback.source ? { source: callback.source } : {}),
+      });
+      continue;
+    }
     for (let index = 0; index < count; index++) {
       events.push({
         callbackId: callback.id,

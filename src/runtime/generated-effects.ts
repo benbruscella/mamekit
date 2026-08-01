@@ -8,7 +8,7 @@
 import type { BoardEffect, BoardIr, BoardTransform, CpuLine, CpuLineDelivery } from '../ir/board.ts';
 
 /** Applies the transformed value; read effects ignore the argument. */
-export type EffectExecutor = (value: number) => number | void;
+export type EffectExecutor = (value: number, ...sourceArgs: number[]) => number | void;
 
 export interface EffectBindings {
   cpuLine(tag: string, line: CpuLine, delivery: CpuLineDelivery): EffectExecutor | undefined;

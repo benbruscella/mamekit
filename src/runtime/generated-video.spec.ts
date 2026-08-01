@@ -12,6 +12,8 @@ import {
   generatedTileMemoryIndex,
   GeneratedMameVideoPrimitives,
   GeneratedVideoRenderer,
+  taitoSjLayerScrollX,
+  taitoSjSpritePosition,
   type GeneratedVideoPrimitives,
 } from './generated-video.ts';
 
@@ -26,6 +28,20 @@ assert.equal(decodeTaitoSjRamPixel(taitoSjRam, 0, 0, 0, 0, false), 2);
 taitoSjRam[2048] = 0;
 taitoSjRam[0] = 0x01;
 assert.equal(decodeTaitoSjRamPixel(taitoSjRam, 0, 0, 0, 0, false), 1);
+
+assert.deepEqual(
+  [0, 1, 2].map(layer => taitoSjLayerScrollX(0x25, layer, false)),
+  [-24, -16, -16],
+  'Taito SJ unflipped layers retain their hardware pixel skew',
+);
+assert.deepEqual(
+  [0, 1, 2].map(layer => taitoSjLayerScrollX(0x25, layer, true)),
+  [40, 48, 48],
+  'Taito SJ flipped layers retain their hardware pixel skew',
+);
+assert.deepEqual(taitoSjSpritePosition(0, 0), { x: 255, y: 240, visible: false });
+assert.deepEqual(taitoSjSpritePosition(1, 241), { x: 0, y: 255, visible: false });
+assert.deepEqual(taitoSjSpritePosition(17, 16), { x: 16, y: 224, visible: true });
 
 assert.equal(
   generatedDirectScreenShape({

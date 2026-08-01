@@ -305,6 +305,12 @@ class IrBoard implements Board {
     }
 
     const calls: NonNullable<GeneratedHandlerBindings['calls']> = {};
+    let runAutonomousNow = (): void => {};
+    calls['machine().scheduler().abort_timeslice'] = () => {
+      runAutonomousNow();
+      return 0;
+    };
+    calls['machine().scheduler().perfect_quantum'] = () => 0;
     this.bindings = { members: this.state, inputs, calls };
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
@@ -400,6 +406,19 @@ class IrBoard implements Board {
         const mask = specification.io.globalMask ?? 0xffff;
         bus.in = port => ioBus.read(port & mask);
         bus.out = (port, data) => ioBus.write(port & mask, data);
+      }
+      const programSpace = {
+        read_byte: (address: number) => bus.read(address),
+        write_byte: (address: number, value: number) => bus.write(address, value),
+      };
+      const cpuMember = machine.devices?.find(device =>
+        device.tag === specification.tag)?.member;
+      for (const owner of [
+        specification.tag,
+        `m_${specification.tag}`,
+        cpuMember,
+      ].filter(Boolean) as string[]) {
+        calls[`${owner}.space`] = () => programSpace;
       }
       const mask = specification.mask ?? 0xffff;
       const cpu = createCpu(type, {
@@ -554,16 +573,31 @@ class IrBoard implements Board {
         },
       }];
     });
+    runAutonomousNow = () => {
+      // Drivers use abort_timeslice after asserting short DMA request pulses so
+      // the autonomous controller observes them before the CPU clears them.
+      // One generous local slice is bounded and covers a complete 8257 burst.
+      for (const processor of autonomousProcessors) processor.run(4096);
+    };
     // Machine latches drive reset/hold lines at power-on. Hosted processors
     // must be wired before these initial values are emitted.
     for (const callback of machine.callbacks) {
-      if (callback.signal !== 'q_out_cb' || callback.slot === undefined) continue;
+      if (
+        !['q_out_cb', 'write_cb'].includes(callback.signal) ||
+        callback.slot === undefined
+      ) continue;
       const source = this.devices.get(callback.ownerTag);
       if (!source) continue;
+      const member = callback.signal === 'q_out_cb' ? 'm_q' : 'm_value';
+      if (callback.signal === 'write_cb' && source.get(member) === 0) continue;
+      // A generated CPU resets during construction and may drive a latch
+      // before board-level device callbacks have been attached. MAME wires
+      // those callbacks in machine_config first, so replay the live latch
+      // output here to preserve the electrical state it would have observed.
       dispatchGeneratedCallback(
         machine,
         callback.id,
-        (source.get('m_q') >> callback.slot) & 1,
+        (source.get(member) >> callback.slot) & 1,
         this.effects,
       );
     }
@@ -1052,12 +1086,17 @@ class IrBoard implements Board {
       candidate.program &&
       !candidate.program.diagnostics.length);
     if (!handler?.program) return undefined;
-    return state => {
+    return (state, ...sourceArgs) => {
       return executeGeneratedMachineHandler(
         this.machine,
         handler,
         this.bindings,
-        generatedSignalHandlerArguments(handler.parameters, state, firstArgument),
+        generatedSignalHandlerArguments(
+          handler.parameters,
+          state,
+          firstArgument,
+          sourceArgs,
+        ),
       );
     };
   }
@@ -1070,8 +1109,15 @@ class IrBoard implements Board {
         // create), so the target may not be instantiated yet at bind time.
         if (!this.machine.execution.cpus.some(cpu => cpu.tag === tag)) return undefined;
         if (line === 'nmi') {
-          // Only the NMI pin. Clearing it must not touch IRQ.
-          return state => { if (state) this.cpus.get(tag)?.nmi(); };
+          // A driver nmi_line_pulse callback is already an edge. A devcb
+          // set_inputline connection is a held pin and must reach the CPU as
+          // both assert and clear; the generated core then detects only the
+          // low-to-high transition. Treating every asserted callback as a
+          // pulse retriggered chained input mergers while their output had
+          // never gone low (notably Taito SJ's sound NMI circuit).
+          return delivery === 'pulse'
+            ? state => { if (state) this.cpus.get(tag)?.nmi(); }
+            : state => this.cpus.get(tag)?.setInputLine(INPUT_LINE_NMI, state ? 1 : 0);
         }
         if (line === 'reset') {
           return state => {
@@ -1079,7 +1125,26 @@ class IrBoard implements Board {
             if (state) this.cpus.get(tag)?.reset();
           };
         }
-        if (line === 'halt') return state => { this.cpuHeld.set(tag, Boolean(state)); };
+        if (line === 'halt') {
+          return state => {
+            const held = Boolean(state);
+            this.cpuHeld.set(tag, held);
+            // Z80 bus request is represented by MAME's HALT-class input line.
+            // The CPU's busack callback grants the requesting bus master; if
+            // that acknowledgement is never emitted, an 8257 remains parked
+            // in S0 and no DMA transfer can begin.
+            if (this.machine.callbacks.some(callback =>
+              callback.ownerTag === tag && callback.signal === 'busack_cb')) {
+              dispatchGeneratedCallbacks(
+                this.machine,
+                tag,
+                'busack_cb',
+                Number(held),
+                this.effects,
+              );
+            }
+          };
+        }
         // irq/firq. MAME's *_line_hold keeps the line asserted until the CPU
         // acknowledges it; assert and level leave it to the source to clear.
         return state => {
@@ -1181,6 +1246,7 @@ export function generatedSignalHandlerArguments(
   parameters: string | undefined,
   state: number,
   firstArgument?: unknown,
+  sourceArgs: readonly number[] = [],
 ): Record<string, unknown> {
   const declarations = (parameters ?? '')
     .split(',')
@@ -1193,13 +1259,15 @@ export function generatedSignalHandlerArguments(
     if (index === 0 && firstArgument !== undefined) {
       args[name] = firstArgument;
     } else if (name === 'offset') {
-      args[name] = 0;
+      args[name] = sourceArgs[0] ?? 0;
     } else if (name === 'mem_mask') {
-      args[name] = /\b(?:u?int)?32_t\b|\bu32\b/.test(declaration)
-        ? 0xffffffff
-        : /\b(?:u?int)?16_t\b|\bu16\b/.test(declaration)
-          ? 0xffff
-          : 0xff;
+      args[name] = sourceArgs.length >= 3
+        ? sourceArgs.at(-1)
+        : /\b(?:u?int)?32_t\b|\bu32\b/.test(declaration)
+          ? 0xffffffff
+          : /\b(?:u?int)?16_t\b|\bu16\b/.test(declaration)
+            ? 0xffff
+            : 0xff;
     } else {
       args[name] = state;
     }

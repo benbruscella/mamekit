@@ -107,7 +107,7 @@ function compileI8257(
   `);
   replaceMethod(device, 'next_channel', `
     for (int step = 0; step < 4; step++) {
-      int channel = MODE_ROTATING_PRIORITY
+      int channel = BIT(m_transfer_mode, 4)
         ? ((m_last_channel + step + 1) & 3)
         : step;
       if (is_request_active(channel)) {
@@ -117,6 +117,110 @@ function compileI8257(
       }
     }
     return false;
+  `);
+  replaceMethod(device, 'is_request_active', `
+    return BIT(m_request, channel) && BIT(m_transfer_mode, channel);
+  `);
+  replaceMethod(device, 'dma_read', `
+    offs_t offset = m_channel[m_current_channel].m_address;
+    switch (m_channel[m_current_channel].m_mode) {
+      case MODE_TRANSFER_VERIFY:
+        break;
+      case MODE_TRANSFER_WRITE:
+        m_temp = m_in_ior_cb[m_current_channel](offset);
+        break;
+      case MODE_TRANSFER_READ:
+        m_temp = m_in_memr_cb(offset);
+        break;
+    }
+  `);
+  replaceMethod(device, 'dma_write', `
+    offs_t offset = m_channel[m_current_channel].m_address;
+    switch (m_channel[m_current_channel].m_mode) {
+      case MODE_TRANSFER_VERIFY:
+        m_verify_cb[m_current_channel](offset);
+        break;
+      case MODE_TRANSFER_WRITE:
+        m_out_memw_cb(offset, m_temp);
+        break;
+      case MODE_TRANSFER_READ:
+        m_out_iow_cb[m_current_channel](offset, m_temp);
+        break;
+    }
+  `);
+  replaceMethod(device, 'advance', `
+    bool tc = m_tc;
+    bool al = BIT(m_transfer_mode, 7) && (m_current_channel == 2);
+    set_tc(0);
+    if (tc) {
+      m_status |= 1 << m_current_channel;
+      if (al) {
+        m_channel[2].m_address = m_channel[3].m_address;
+        m_channel[2].m_count = m_channel[3].m_count;
+        m_channel[2].m_mode = m_channel[3].m_mode;
+      } else if (BIT(m_transfer_mode, 6)) {
+        m_transfer_mode &= ~(1 << m_current_channel);
+      }
+    }
+    if (!(al && tc)) {
+      m_channel[m_current_channel].m_count--;
+      m_channel[m_current_channel].m_count &= 0x3fff;
+      m_channel[m_current_channel].m_address++;
+    }
+  `);
+  replaceMethod(device, 'execute_run', `
+    do {
+      switch (m_state) {
+        case STATE_SI:
+          set_tc(0);
+          if (next_channel()) m_state = STATE_S0;
+          else m_icount = 0;
+          break;
+        case STATE_S0:
+          set_hreq(1);
+          if (m_hack) m_state = STATE_S1;
+          else m_icount = 0;
+          break;
+        case STATE_S1:
+          set_tc(0);
+          m_state = STATE_S2;
+          break;
+        case STATE_S2:
+          set_dack();
+          m_state = STATE_S3;
+          break;
+        case STATE_S3:
+          dma_read();
+          if (BIT(m_transfer_mode, 5)) dma_write();
+          if (m_ready) {
+            m_state = STATE_S4;
+            if ((m_channel[m_current_channel].m_count == 0) &&
+                (m_channel[m_current_channel].m_mode != MODE_TRANSFER_READ)) set_tc(1);
+          } else m_state = STATE_SW;
+          break;
+        case STATE_SW:
+          if (m_ready) {
+            m_state = STATE_S4;
+            if ((m_channel[m_current_channel].m_count == 0) &&
+                (m_channel[m_current_channel].m_mode != MODE_TRANSFER_READ)) set_tc(1);
+          }
+          break;
+        case STATE_S4:
+          if (!BIT(m_transfer_mode, 5)) dma_write();
+          if ((m_channel[m_current_channel].m_count == 0) &&
+              (m_channel[m_current_channel].m_mode == MODE_TRANSFER_READ)) set_tc(1);
+          advance();
+          if (m_hack && next_channel()) m_state = STATE_S1;
+          else {
+            set_hreq(0);
+            m_current_channel = -1;
+            m_state = STATE_SI;
+            set_dack();
+          }
+          break;
+      }
+      m_icount--;
+    } while (m_icount > 0);
   `);
   return refreshSummary(device);
 }

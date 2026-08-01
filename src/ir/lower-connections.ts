@@ -107,7 +107,7 @@ export function lowerCallbackEffect(
         line,
         // MAME asserts these lines directly; the source holds them until
         // the latch bit changes back.
-        delivery: line === 'nmi' ? 'pulse' : 'level',
+        delivery: 'level',
       };
     }
   }

@@ -51,6 +51,13 @@ export interface GameAcceptanceOptions {
   captureAudioWrites?: string;
   /** Duration override used by diagnostic captures. */
   frames?: number;
+  /** Direct source-CPU writes used only for isolated hardware diagnostics. */
+  programWrites?: {
+    atFrame: number;
+    cpu: string;
+    address: number;
+    data: number;
+  }[];
   /** Return current fingerprints without comparing them to recorded goldens. */
   recording?: boolean;
 }
@@ -155,7 +162,15 @@ export async function runGameAcceptance(
   const checkpointFrames = new Set(diagnosticCapture ? [] : contract.checkpoints);
   const startedAt = performance.now();
   const runFrame = (): void => {
-    pendingWrites.length = 0;
+    const nextFrame = board.snapshot().frame + 1;
+    for (const write of options.programWrites ?? []) {
+      if (write.atFrame !== nextFrame) continue;
+      const bus = (board as unknown as {
+        cpuBuses?: Map<string, { write(address: number, data: number): void }>;
+      }).cpuBuses?.get(write.cpu);
+      assert.ok(bus, `${contract.game}: diagnostic CPU bus ${write.cpu} is missing`);
+      bus.write(write.address, write.data);
+    }
     board.frame(framebuffer);
     if (input.debug && !input.dump().split(' ').every(value => value.endsWith('=ff'))) {
       const devices = (board as unknown as {
@@ -181,6 +196,7 @@ export async function runGameAcceptance(
       );
     }
     audio.render(pendingWrites, diagnosticCapture || snapshot.frame >= 120);
+    pendingWrites.length = 0;
     if (checkpointFrames.has(snapshot.frame)) {
       checkpoints[String(snapshot.frame)] = {
         video: hash(new Uint8Array(framebuffer.buffer)),
@@ -374,6 +390,29 @@ export async function runGameAcceptance(
         snapshot: finalSnapshot,
       })})`,
   );
+  if (contract.minimumAudioRms !== undefined) {
+    assert.ok(
+      result.audio.rms >= contract.minimumAudioRms,
+      `${contract.game}: audio RMS ${result.audio.rms} is below the ` +
+        `${contract.minimumAudioRms} contract floor`,
+    );
+  }
+  for (const requirement of contract.shareRequirements ?? []) {
+    const activity = sharedActivity[requirement.share];
+    assert.ok(activity, `${contract.game}: required share "${requirement.share}" is missing`);
+    assert.ok(
+      activity.nonzero >= requirement.minimumNonzeroBytes,
+      `${contract.game}: share "${requirement.share}" has ${activity.nonzero} nonzero bytes ` +
+        `(minimum ${requirement.minimumNonzeroBytes})`,
+    );
+    if (requirement.maximumNonzeroBytes !== undefined) {
+      assert.ok(
+        activity.nonzero <= requirement.maximumNonzeroBytes,
+        `${contract.game}: share "${requirement.share}" has ${activity.nonzero} nonzero bytes ` +
+          `(maximum ${requirement.maximumNonzeroBytes})`,
+      );
+    }
+  }
   for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {
     const actual = requiredAudioCounts.get(index) ?? 0;
     const window = requirement.toFrame === undefined

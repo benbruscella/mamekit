@@ -359,6 +359,14 @@ export interface GeneratedPromPalettePlan {
     pulldown: number;
     pullup: number;
   }[];
+  /** Exact MAME res_net electrical model when the source declares one. */
+  resNet?: {
+    input: 'ttl';
+    monitor: 'sanyo';
+    amplifiers: ('darlington' | 'emitter' | 'none')[];
+  };
+  /** palette_t::normalize_range applied after PROM decoding/overrides. */
+  normalize?: { start: number; end: number; lumMin: number; lumMax: number };
   /**
    * PROM indices overridden to electrical black after resistor decoding.
    * Some boards tri-state their palette outputs for a masked subset of
@@ -523,6 +531,12 @@ export interface GeneratedBitmapPlan {
 }
 
 export interface GeneratedVideoPlan {
+  /**
+   * Rendering cadence required by the lowered video implementation. This is
+   * source-derived when a screen update delegates to scanline-buffered sprite
+   * hardware even if the machine configuration itself has no scanline flag.
+   */
+  updateMode?: 'scanline' | 'partial';
   gfx: GeneratedGfxEntry[];
   /**
    * MAME required/optional_region_ptr member -> ROM region tag. The C++ member

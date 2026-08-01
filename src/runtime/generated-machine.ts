@@ -64,7 +64,10 @@ export function wireDeviceCallbacks(
             // devcb_write_line emits only state. The effect consumes
             // data/state, never the trailing access mask.
             const value = args.length >= 3 ? args.at(-2) : args.at(-1);
-            return effect.run(applyBoardTransforms(value ?? 0, effect.transforms));
+            return effect.run(
+              applyBoardTransforms(value ?? 0, effect.transforms),
+              ...args,
+            );
           },
       callback.slot ?? 0,
     );

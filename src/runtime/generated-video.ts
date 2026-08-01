@@ -521,12 +521,28 @@ class GeneratedPalette implements GeneratedPaletteDevice {
     const core = new Uint32Array(coreCount);
     for (let index = 0; index < plan.colorCount; index++) {
       const rgb = { r: 0, g: 0, b: 0 };
-      for (const channel of plan.channels) {
+      for (const [channelIndex, channel] of plan.channels.entries()) {
         const values = weights[channel.channel];
-        let value = 0;
-        for (let bit = 0; bit < channel.bits.length; bit++) {
-          const source = prom[index + (channel.offsets?.[bit] ?? 0)] ?? 0;
-          value += values[bit]! * ((source >> channel.bits[bit]!) & 1);
+        let value: number;
+        if (plan.resNet) {
+          let inputs = 0;
+          for (let bit = 0; bit < channel.bits.length; bit++) {
+            const source = prom[index + (channel.offsets?.[bit] ?? 0)] ?? 0;
+            inputs |= ((source >> channel.bits[bit]!) & 1) << bit;
+          }
+          value = computeMameTtlSanyoResNet(
+            inputs,
+            channel.resistances,
+            channel.pullup,
+            channel.pulldown,
+            plan.resNet.amplifiers[channelIndex] ?? 'none',
+          );
+        } else {
+          value = 0;
+          for (let bit = 0; bit < channel.bits.length; bit++) {
+            const source = prom[index + (channel.offsets?.[bit] ?? 0)] ?? 0;
+            value += values[bit]! * ((source >> channel.bits[bit]!) & 1);
+          }
         }
         rgb[channel.channel] = Math.floor(value + 0.5);
       }
@@ -535,6 +551,7 @@ class GeneratedPalette implements GeneratedPaletteDevice {
         ? packRgb(0, 0, 0)
         : packRgb(rgb.r, rgb.g, rgb.b);
     }
+    if (plan.normalize) normalizePaletteRange(core, plan.normalize);
     // Computed sections derive each channel from bits of the color index
     // through their own resistor network (05xx star colors and kin).
     for (const group of plan.computedColors ?? []) {
@@ -1069,6 +1086,7 @@ export function generatedScrollBand(
 
 type GeneratedDirectScreenShape =
   | 'bublbobl-object-columns'
+  | 'dkong-scanline-sprites'
   | 'galaxian-no-bullets'
   | 'timeplt'
   | 'taitosj-layered-char-ram';
@@ -1085,6 +1103,18 @@ export function generatedDirectScreenShape(
   const screen = machine.handlers?.find(handler =>
     `${handler.ownerClass}.${handler.method}` === screenKey);
   const body = screen?.body ?? '';
+  if (
+    body.includes('machine().tilemap().set_flip_all(m_flip ? TILEMAP_FLIPX | TILEMAP_FLIPY : 0)') &&
+    body.includes('m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
+    body.includes('draw_sprites(bitmap, cliprect, 0x40, 1)') &&
+    machine.handlers?.some(handler =>
+      handler.method === 'draw_sprites' &&
+      handler.body?.includes('scanline_vf = (cliprect.max_y - 1) & 0xFF') &&
+      handler.body.includes('(num_sprt < 16)') &&
+      handler.body.includes('m_gfxdecode->gfx(1)->transpen(bitmap,cliprect,'))
+  ) {
+    return 'dkong-scanline-sprites';
+  }
   if (
     body.includes('video_update_common(bitmap, cliprect,') &&
     machine.handlers?.some(handler =>
@@ -1171,6 +1201,28 @@ export function decodeTaitoSjRamPixel(
     value |= Number(Boolean(source & (0x80 >>> (bit & 7)))) << (2 - plane);
   }
   return value;
+}
+
+/** Taito SJ's layer shifters include a different fixed pixel skew per plane. */
+export function taitoSjLayerScrollX(
+  raw: number,
+  layer: number,
+  flipped: boolean,
+): number {
+  const fudge1 = [3, 1, -1][layer] ?? 0;
+  const fudge2 = [8, 10, 12][layer] ?? 0;
+  return (flipped ? raw & 0xf8 : -(raw & 0xf8)) +
+    ((raw + fudge1) & 7) + fudge2;
+}
+
+/** Coordinates are eight-bit on the board; subtraction must wrap before clipping. */
+export function taitoSjSpritePosition(
+  x: number,
+  y: number,
+): { x: number; y: number; visible: boolean } {
+  const sx = (x - 1) & 0xff;
+  const sy = (240 - y) & 0xff;
+  return { x: sx, y: sy, visible: sy < 240 };
 }
 
 /**
@@ -1413,6 +1465,44 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     cliprect: GeneratedRectangle,
   ): boolean {
     if (handler !== this.machine.execution.screenUpdate?.handler) return false;
+    if (this.directScreenShape === 'dkong-scanline-sprites') {
+      const tilemap = this.state.m_bg_tilemap as GeneratedTilemap | undefined;
+      const spriteRam = this.state.m_sprite_ram;
+      const gfx = this.gfx[1];
+      if (!tilemap || !ArrayBuffer.isView(spriteRam) || !gfx) return false;
+      const flipped = Boolean(this.state.m_flip);
+      tilemap.set_flip(flipped ? 3 : 0);
+      tilemap.draw(screen, bitmap, cliprect, 0, 0);
+
+      const sprites = spriteRam as Uint8Array;
+      const scanline = cliprect.max_y & 0xff;
+      let bufferedScanline = (cliprect.max_y - 1) & 0xff;
+      if (flipped) bufferedScanline ^= 0xff;
+      const addY = flipped ? 0xf7 : 0xf9;
+      const addX = 0xf7;
+      const base = Number(this.state.m_sprite_bank ?? 0) << 9;
+      let drawn = 0;
+      for (let offset = base; drawn < 16 && offset < base + 0x200; offset += 4) {
+        let y = sprites[offset] ?? 0;
+        if (((y + addY + 1 + bufferedScanline) & 0xf0) !== 0xf0) continue;
+        const attributes = sprites[offset + 2] ?? 0;
+        const code = ((sprites[offset + 1] ?? 0) & 0x7f) + ((attributes & 0x40) << 1);
+        const color = (attributes & 0x0f) + 16 * Number(this.state.m_palette_bank ?? 0);
+        let flipX = attributes & 0x80;
+        const flipY = (sprites[offset + 1] ?? 0) & 0x80;
+        let x = ((sprites[offset + 3] ?? 0) + addX + 1) & 0xff;
+        if (flipped) {
+          x = (x ^ 0xff) - 15;
+          flipX = Number(!flipX);
+        }
+        y = scanline - ((y + addY + 1 + bufferedScanline) & 0x0f);
+        gfx.transpen(bitmap, cliprect, code, color, flipX, flipY, x, y, 0);
+        gfx.transpen(bitmap, cliprect, code, color, flipX, flipY, flipped ? x + 256 : x - 256, y, 0);
+        gfx.transpen(bitmap, cliprect, code, color, flipX, flipY, x, y - 256, 0);
+        drawn++;
+      }
+      return true;
+    }
     if (this.directScreenShape === 'bublbobl-object-columns') {
       bitmap.fill(255, cliprect);
       if (!Number(this.state.m_video_enable ?? 0)) return true;
@@ -1551,6 +1641,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const sprites = this.state.m_spriteram;
     const videoMode = this.state.m_video_mode;
     const priority = this.state.m_video_priority;
+    const collision = this.state.m_collision_reg;
     const prom = this.state.m_proms;
     if (
       !direct ||
@@ -1563,6 +1654,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       !ArrayBuffer.isView(sprites) ||
       !ArrayBuffer.isView(videoMode) ||
       !ArrayBuffer.isView(priority) ||
+      !ArrayBuffer.isView(collision) ||
       !ArrayBuffer.isView(prom)
     ) return false;
     const characterRam = chars as Uint8Array;
@@ -1573,6 +1665,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const spriteRam = sprites as Uint8Array;
     const mode = (videoMode as Uint8Array)[0] ?? 0;
     const priorityValue = (priority as Uint8Array)[0] ?? 0;
+    const collisionRam = collision as Uint8Array;
     const priorityProm = prom as Uint8Array;
     const layers = Array.from({ length: 3 }, () => {
       const pixels = new Uint16Array(256 * 256);
@@ -1623,55 +1716,94 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       mask |= 1 << data;
       order[index] = data;
     }
-    const drawLayer = (layer: number): void => {
+    const layerPixel = (layer: number, outputX: number, hardwareY: number): number => {
+      if (!(mode & (0x10 << layer))) return 0x40;
       const source = layers[layer]!;
       const rawScrollX = scrollRam[layer * 2] ?? 0;
-      const scrollX = flipX ? rawScrollX : -rawScrollX;
+      const scrollX = taitoSjLayerScrollX(rawScrollX, layer, flipX);
+      const sourceX = (outputX - scrollX) & 0xff;
+      const sourceColumn = sourceX >>> 3;
+      const columnIndex = flipY ? 31 - sourceColumn : sourceColumn;
+      const columnValue = columns[layer * 32 + columnIndex] ?? 0;
+      const globalScrollY = scrollRam[layer * 2 + 1] ?? 0;
+      const scrollY = flipY
+        ? columnValue + globalScrollY
+        : -columnValue - globalScrollY;
+      const sourceY = (hardwareY - scrollY) & 0xff;
+      return source[sourceY * 256 + sourceX]!;
+    };
+    const drawLayer = (layer: number): void => {
+      if (!(mode & (0x10 << layer))) return;
       for (let outputY = 0; outputY < direct.height; outputY++) {
         const hardwareY = outputY + (this.machine.execution.screen.yOffset ?? 0);
         for (let outputX = 0; outputX < direct.width; outputX++) {
-          const column = (outputX >>> 3) & 31;
-          const rawScrollY = (columns[layer * 32 + column] ?? 0) +
-            (scrollRam[layer * 2 + 1] ?? 0);
-          const sourceX = (outputX + scrollX) & 0xff;
-          const sourceY = (hardwareY + (flipY ? rawScrollY : -rawScrollY)) & 0xff;
-          const pen = source[sourceY * 256 + sourceX]!;
+          const pen = layerPixel(layer, outputX, hardwareY);
           if (pen !== 0x40) target[outputY * direct.width + outputX] = pen;
         }
       }
     };
+    const spriteInfo = (which: number, applyGlobalFlip: boolean) => {
+      const page = mode & 0x04 ? 0x80 : 0;
+      const offset = page + which * 4;
+      const position = taitoSjSpritePosition(
+        spriteRam[offset] ?? 0,
+        spriteRam[offset + 1] ?? 0,
+      );
+      let sx = position.x;
+      let sy = position.y;
+      const attributes = spriteRam[offset + 2] ?? 0;
+      let spriteFlipX = Boolean(attributes & 1);
+      let spriteFlipY = Boolean(attributes & 2);
+      if (applyGlobalFlip && flipX) {
+        sx = (238 - sx) & 0xff;
+        spriteFlipX = !spriteFlipX;
+      }
+      if (applyGlobalFlip && flipY) {
+        sy = (242 - sy) & 0xff;
+        spriteFlipY = !spriteFlipY;
+      }
+      return {
+        ...position,
+        x: sx,
+        y: sy,
+        flipX: spriteFlipX,
+        flipY: spriteFlipY,
+        code: (spriteRam[offset + 3] ?? 0) & 0x3f,
+        bank: spriteRam[offset + 3]! & 0x40 ? 0x1800 : 0,
+        color: 2 * ((colors[1]! >>> 4) & 3) + ((attributes >>> 2) & 1),
+      };
+    };
+    const spritePen = (
+      info: ReturnType<typeof spriteInfo>,
+      x: number,
+      y: number,
+    ): number => decodeTaitoSjRamPixel(
+      characterRam,
+      info.bank,
+      info.code,
+      info.flipX ? 15 - x : x,
+      info.flipY ? 15 - y : y,
+      true,
+    );
     const drawSprites = (): void => {
       if (!(mode & 0x80)) return;
-      const page = mode & 0x04 ? 0x80 : 0;
       for (let sprite = 0x1f; sprite >= 0; sprite--) {
         const which = (sprite - 1) & 0x1f;
         if (which >= 0x10 && which <= 0x17) continue;
-        const offset = page + which * 4;
-        let sx = ((spriteRam[offset] ?? 0) - 1) & 0xff;
-        let sy = 240 - (spriteRam[offset + 1] ?? 0);
-        if (sy >= 240) continue;
-        const attributes = spriteRam[offset + 2] ?? 0;
-        const code = (spriteRam[offset + 3] ?? 0) & 0x3f;
-        const bank = spriteRam[offset + 3]! & 0x40 ? 0x1800 : 0;
-        const color = 2 * ((colors[1]! >>> 4) & 3) + ((attributes >>> 2) & 1);
-        let spriteFlipX = Boolean(attributes & 1);
-        let spriteFlipY = Boolean(attributes & 2);
-        if (flipX) { sx = 238 - sx; spriteFlipX = !spriteFlipX; }
-        if (flipY) { sy = 242 - sy; spriteFlipY = !spriteFlipY; }
+        const info = spriteInfo(which, true);
+        if (!info.visible) continue;
+        const minX = flipX ? 1 : 3;
+        const maxX = flipX ? 252 : 254;
         for (let y = 0; y < 16; y++) {
-          const outputY = sy + y - (this.machine.execution.screen.yOffset ?? 0);
+          const hardwareY = info.y + y;
+          const outputY = hardwareY - (this.machine.execution.screen.yOffset ?? 0);
           if (outputY < 0 || outputY >= direct.height) continue;
           for (let x = 0; x < 16; x++) {
-            const pen = decodeTaitoSjRamPixel(
-              characterRam, bank, code,
-              spriteFlipX ? 15 - x : x,
-              spriteFlipY ? 15 - y : y,
-              true,
-            );
+            const pen = spritePen(info, x, y);
             if (!pen) continue;
-            for (const outputX of [sx + x, sx + x - 256]) {
-              if (outputX >= 0 && outputX < direct.width) {
-                target[outputY * direct.width + outputX] = color * 8 + pen;
+            for (const outputX of [info.x + x, info.x + x - 256]) {
+              if (outputX >= minX && outputX <= maxX) {
+                target[outputY * direct.width + outputX] = info.color * 8 + pen;
               }
             }
           }
@@ -1679,6 +1811,65 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       }
     };
     for (const item of order) item === 0 ? drawSprites() : drawLayer(item - 1);
+
+    // Taito SJ exposes sprite/sprite and sprite/layer collisions to the game.
+    // They accumulate until the CPU writes HTCLR, so rendering must OR into
+    // the shared registers rather than resetting them each frame.
+    if (mode & 0x80) {
+      const active = Array.from({ length: 0x20 }, (_, which) =>
+        which >= 0x10 && which <= 0x17 ? undefined : spriteInfo(which, false));
+      for (let first = 0; first < 0x20; first++) {
+        const left = active[first];
+        if (!left?.visible) continue;
+        for (let second = first + 1; second < 0x20; second++) {
+          const right = active[second];
+          if (!right?.visible) continue;
+          const signed = (value: number) => value & 0x80 ? value - 0x100 : value;
+          if (
+            Math.abs(signed(left.x) - signed(right.x)) >= 16 ||
+            Math.abs(signed(left.y) - signed(right.y)) >= 16
+          ) continue;
+          const minX = Math.max(left.x, right.x);
+          const maxX = Math.min(left.x + 15, right.x + 15);
+          const minY = Math.max(left.y, right.y);
+          const maxY = Math.min(left.y + 15, right.y + 15);
+          let hit = false;
+          for (let y = minY; y <= maxY && !hit; y++) {
+            for (let x = minX; x <= maxX; x++) {
+              if (
+                spritePen(left, x - left.x, y - left.y) &&
+                spritePen(right, x - right.x, y - right.y)
+              ) { hit = true; break; }
+            }
+          }
+          if (!hit) continue;
+          const collided = second === 0x1f ? first : second;
+          let register = collided >>> 3;
+          if (register === 3) register = 2;
+          collisionRam[register] = collisionRam[register]! | (1 << (collided & 7));
+        }
+      }
+      for (let which = 0; which < 0x20; which++) {
+        const raw = active[which];
+        if (!raw?.visible) continue;
+        const info = spriteInfo(which, true);
+        let layerHits = 0;
+        for (let y = 0; y < 16; y++) {
+          const hardwareY = info.y + y;
+          if (hardwareY < 0 || hardwareY > 255) continue;
+          for (let x = 0; x < 16; x++) {
+            const hardwareX = info.x + x;
+            if (hardwareX < 0 || hardwareX > 255 || !spritePen(info, x, y)) continue;
+            for (let layer = 0; layer < 3; layer++) {
+              if (layerPixel(layer, hardwareX, hardwareY) !== 0x40) {
+                layerHits |= 1 << layer;
+              }
+            }
+          }
+        }
+        collisionRam[3] = collisionRam[3]! | layerHits;
+      }
+    }
     return true;
   }
 
@@ -1989,6 +2180,100 @@ function computeWeights(
     raw[channel] = raw[channel].map(value => value * scale);
   }
   return raw;
+}
+
+/**
+ * MAME compute_res_net for the MB7052/TTL-output, 5V-bias path followed by
+ * the Sanyo EZV20 monitor stage. These are electrical inputs: a zero bit
+ * actively pulls low and the monitor then inverts the mixed voltage.
+ */
+function computeMameTtlSanyoResNet(
+  inputs: number,
+  resistances: readonly number[],
+  biasResistance: number,
+  groundResistance: number,
+  amplifier: 'darlington' | 'emitter' | 'none',
+): number {
+  const vcc = 5;
+  const vBias = 5;
+  const vLow = 0.05;
+  const vHigh = 4;
+  const ttlHighResistance = 50;
+  let conductance = 0;
+  let weightedVoltage = 0;
+  for (let bit = 0; bit < resistances.length; bit++) {
+    const resistance = resistances[bit]!;
+    if (!resistance || ((inputs >> bit) & 1)) continue;
+    conductance += 1 / resistance;
+    weightedVoltage += vLow / resistance;
+  }
+  if (biasResistance) {
+    conductance += 1 / biasResistance;
+    weightedVoltage += vBias / biasResistance;
+  }
+  if (groundResistance) conductance += 1 / groundResistance;
+
+  let openCollector = conductance > 0 && weightedVoltage / conductance > vHigh;
+  for (let bit = 0; bit < resistances.length; bit++) {
+    const resistance = resistances[bit]!;
+    if (!resistance || !((inputs >> bit) & 1) || openCollector) continue;
+    conductance += 1 / (resistance + ttlHighResistance);
+    weightedVoltage += vHigh / (resistance + ttlHighResistance);
+  }
+  let voltage = conductance > 0 ? weightedVoltage / conductance : 0;
+  if (amplifier === 'darlington') voltage = Math.max(0.7, voltage);
+  else if (amplifier === 'emitter') voltage = Math.max(0, voltage - 0.7);
+
+  voltage = vcc - voltage;
+  voltage = Math.max(0, voltage - 0.7);
+  voltage = Math.min(voltage, vcc - 1.4);
+  voltage = voltage / (vcc - 1.4) * vcc;
+  return Math.floor(voltage * 255 / vcc + 0.4);
+}
+
+function normalizePaletteRange(
+  colors: Uint32Array,
+  range: { start: number; end: number; lumMin: number; lumMax: number },
+): void {
+  const start = Math.max(0, range.start);
+  const end = Math.min(colors.length - 1, range.end);
+  let minimum = 255_000;
+  let maximum = 0;
+  for (let index = start; index <= end; index++) {
+    const color = colors[index]!;
+    const red = color & 0xff;
+    const green = (color >>> 8) & 0xff;
+    const blue = (color >>> 16) & 0xff;
+    const luminance = 299 * red + 587 * green + 114 * blue;
+    minimum = Math.min(minimum, luminance);
+    maximum = Math.max(maximum, luminance);
+  }
+  if (maximum <= minimum) return;
+  const targetMinimum = range.lumMin < 0
+    ? Math.floor((minimum + 500) / 1000)
+    : range.lumMin;
+  const targetMaximum = range.lumMax < 0
+    ? Math.floor((maximum + 500) / 1000)
+    : range.lumMax;
+  const clamp = (value: number) => Math.max(0, Math.min(255, value));
+  for (let index = start; index <= end; index++) {
+    const color = colors[index]!;
+    const red = color & 0xff;
+    const green = (color >>> 8) & 0xff;
+    const blue = (color >>> 16) & 0xff;
+    const luminance = 299 * red + 587 * green + 114 * blue;
+    const u = Math.trunc((blue - Math.trunc(luminance / 1000)) * 492 / 1000);
+    const v = Math.trunc((red - Math.trunc(luminance / 1000)) * 877 / 1000);
+    const target = targetMinimum + Math.trunc(
+      (luminance - minimum) * (targetMaximum - targetMinimum + 1) /
+      (maximum - minimum),
+    );
+    colors[index] = packRgb(
+      clamp(target + Math.trunc(1140 * v / 1000)),
+      clamp(target - Math.trunc(395 * u / 1000) - Math.trunc(581 * v / 1000)),
+      clamp(target + Math.trunc(2032 * u / 1000)),
+    );
+  }
 }
 
 function packRgb(red: number, green: number, blue: number): number {

@@ -58,5 +58,13 @@ export interface GameTestContract {
     minimumNonzeroWrites: number;
     maximumNonzeroWrites?: number;
   }[];
+  /** Minimum rendered PCM energy; stricter than the harness silence floor. */
+  minimumAudioRms?: number;
+  /** Required final activity for source-declared shared RAM. */
+  shareRequirements?: {
+    share: string;
+    minimumNonzeroBytes: number;
+    maximumNonzeroBytes?: number;
+  }[];
   golden?: GameAcceptanceGolden;
 }
