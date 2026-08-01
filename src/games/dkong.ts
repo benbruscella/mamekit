@@ -29,7 +29,9 @@ export const dkong: GameTestContract = {
       method: 'discrete.write_line_DS_SOUND2_INP',
       offset: 3,
       fromFrame: 330,
-      minimumNonzeroWrites: 1,
+      // Kong lands repeatedly while bending the girders. One incidental
+      // latch write is insufficient coverage for this distinctive effect.
+      minimumNonzeroWrites: 5,
     },
     {
       method: 'discrete.write_line_DS_SOUND0_INP',
@@ -71,8 +73,8 @@ export const dkong: GameTestContract = {
       writes: 341882,
       nonzeroWrites: 283415,
       writeHash: '604ad954',
-      pcmHash: '0763dc4c',
-      rms: 0.199089,
+      pcmHash: 'a7b0c6f9',
+      rms: 0.200561,
     },
   },
 };

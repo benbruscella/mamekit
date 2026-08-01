@@ -607,6 +607,12 @@ export function compileDiscreteEffects(
           ? 'dkong-jump' as const
           : 'dkong-walk' as const,
       } : {}),
+      ...(!vco && exactDkongNetwork ? {
+        // SOUND2 is Kong's stomp/landing circuit: a 24-bit LFSR, LS161
+        // divider and two-stage RC/transistor envelope. It is not generic
+        // exponentially-gated white noise.
+        network: 'dkong-stomp' as const,
+      } : {}),
       // Preserve declaration order when two aliases resolve to the same node.
       _index: index,
     };

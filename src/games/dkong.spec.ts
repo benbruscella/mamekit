@@ -53,6 +53,10 @@ assert.deepEqual(
   tones.map(voice => voice.network).sort(),
   ['dkong-jump', 'dkong-walk'],
 );
+assert.equal(
+  audio.voices.find(voice => voice.mode === 'noise')?.network,
+  'dkong-stomp',
+);
 assert.deepEqual(
   tones.map(voice => voice.vco!.modulationType).sort(),
   [1, 2],
@@ -107,9 +111,14 @@ const dominantBand = (
 };
 const walk = isolatedEffect(1, 0.5);
 const jump = isolatedEffect(2, 0.6);
+const stomp = isolatedEffect(3, 0.7);
 assert.ok(rms(walk) > 0.025 && rms(walk) < 0.037);
 assert.ok(rms(jump) > 0.035 && rms(jump) < 0.050);
 assert.ok(dominantBand(walk, 450, 550) >= 480);
 assert.ok(dominantBand(jump, 300, 420) >= 330);
+// Kong's girder-intro landing is a long, heavy discrete transient, not the
+// former 33 ms generic-noise click. Require audible energy well past 250 ms.
+assert.ok(rms(stomp) > 0.02);
+assert.ok(rms(stomp.slice(12_000, 24_000)) > 0.008);
 
 console.log('dkong.spec: DMA, modulated discrete sound and Nintendo video passed');

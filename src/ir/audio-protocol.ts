@@ -128,7 +128,7 @@ export interface GeneratedDiscreteEffectsPlan {
      * Exact source topology used after the oscillator. These circuits cannot
      * be represented by a generic ADSR without changing their pitch/timbre.
      */
-    network?: 'dkong-jump' | 'dkong-walk';
+    network?: 'dkong-stomp' | 'dkong-jump' | 'dkong-walk';
   }[];
   /** Run the source circuit's final resistor mixer and amplifier stages. */
   outputNetwork?: 'dkong2b';

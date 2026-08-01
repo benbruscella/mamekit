@@ -45,6 +45,14 @@ export class GeneratedDiscreteAudioCore {
   private dkongMixerCoupling = 0;
   private dkongAmplifierCoupling1 = 0;
   private dkongAmplifierCoupling2 = 0;
+  private dkongStompLfsr = 0;
+  private dkongStompNoisePhase = 0;
+  private dkongStompNoise = false;
+  private dkongStompCounter = 0;
+  private dkongStompTriggerCap = 0;
+  private dkongStompEnvelope = 0;
+  private dkongStompIntegrateCap = 0;
+  private dkongStompVce = 0;
 
   constructor(
     outputRate: number,
@@ -102,6 +110,7 @@ export class GeneratedDiscreteAudioCore {
     const plan = this.plan;
     if (!plan) return 0;
     let mixed = 0;
+    let dkongStomp = 0;
     let dkongJump = 0;
     let dkongWalk = 0;
     for (let index = 0; index < plan.voices.length; index++) {
@@ -114,6 +123,10 @@ export class GeneratedDiscreteAudioCore {
       if (this.envelope[index] < 1e-5) this.envelope[index] = 0;
       let signal: number;
       if (voice.mode === 'noise') {
+        if (voice.network === 'dkong-stomp') {
+          dkongStomp = this.sampleDkongStomp(index);
+          continue;
+        }
         this.phase[index] += voice.frequency / this.outputRate;
         while (this.phase[index] >= 1) {
           this.phase[index]--;
@@ -246,10 +259,121 @@ export class GeneratedDiscreteAudioCore {
       ? lowpass
       : this.dacHighpass * plan.dac.gain * this.dacGate;
     if (plan.outputNetwork === 'dkong2b') {
-      return this.sampleDkongOutput(mixed, dkongJump, dacOutput, dkongWalk);
+      return this.sampleDkongOutput(
+        dkongStomp, dkongJump, dacOutput, dkongWalk,
+      );
     }
     mixed += dacOutput;
     return Math.max(-1, Math.min(1, mixed * plan.outputGain));
+  }
+
+  /**
+   * DK SOUND2 (0x7d02), used for Kong landing/stomping in the girder intro.
+   * This follows dkong2b_discrete's NODE_11..NODE_22 path. The old renderer
+   * reduced it to 33 ms of white noise, losing both the divider's low thump
+   * and the roughly 360 ms recovery envelope.
+   */
+  private sampleDkongStomp(index: number): number {
+    const dt = 1 / this.outputRate;
+
+    // Three cascaded LS164s clocked by 2VF (4 kHz). MAME takes the XOR result
+    // before it is inverted and shifted back into bit zero.
+    this.dkongStompNoisePhase += 4_000 / this.outputRate;
+    while (this.dkongStompNoisePhase >= 1) {
+      this.dkongStompNoisePhase--;
+      const feedback = (
+        ((this.dkongStompLfsr >>> 10) ^
+          (this.dkongStompLfsr >>> 23)) & 1
+      );
+      this.dkongStompLfsr = (
+        ((this.dkongStompLfsr << 1) | (feedback ^ 1)) & 0x00ff_ffff
+      );
+      const noise = feedback !== 0;
+      if (!this.dkongStompNoise && noise) {
+        this.dkongStompCounter = (this.dkongStompCounter + 1) & 7;
+      }
+      this.dkongStompNoise = noise;
+    }
+
+    // NODE_15: Q5's active-low, AC-coupled trigger pulse.
+    const invertedInput = this.active[index] ? 0 : 1;
+    const triggerResistance = invertedInput ? 1 : 10_000;
+    const triggerTarget = invertedInput ? 0 : 5;
+    let difference = triggerTarget - this.dkongStompTriggerCap;
+    const dividerGain = 10_000 / (triggerResistance + 10_000);
+    if (difference * dividerGain < -0.6) {
+      difference = triggerTarget + 0.6 - this.dkongStompTriggerCap;
+      this.dkongStompTriggerCap += difference *
+        rcCharge(dt, triggerResistance * 1e-6);
+    } else {
+      this.dkongStompTriggerCap += difference *
+        rcCharge(dt, (triggerResistance + 10_000) * 1e-6);
+    }
+    const trigger = invertedInput
+      ? -0.6
+      : (triggerTarget - this.dkongStompTriggerCap) * dividerGain;
+
+    // NODE_17: fast discharge while Q5 conducts, slow 110k/3.3u recovery.
+    const conducting = trigger > 0.6;
+    const envelopeTarget = conducting ? 0 : 5;
+    const envelopeResistance = conducting ? 10_000 : 110_000;
+    this.dkongStompEnvelope += (
+      envelopeTarget - this.dkongStompEnvelope
+    ) * rcCharge(dt, envelopeResistance * 3.3e-6);
+
+    // LS161 QA/QB select a broad, irregular low-frequency pulse train. The
+    // diode mixer chooses it only when it rises above the stomp envelope.
+    const dividedNoise = this.dkongStompCounter > 3 ? 5 : 0;
+    const diodeMix = Math.max(
+      0,
+      this.dkongStompEnvelope - 0.4,
+      dividedNoise - 0.8,
+    );
+
+    // NODE_22: source RCINTEGRATE type 1 (Q4, R3-R6, C19), ported from
+    // MAME's Ebers-Moll approximation. Its asymmetrical response is what
+    // turns the stepped divider output into the recognisable heavy thump.
+    const r1 = 750;
+    const r2 = parallel(2_000 + 5_100, 4_700);
+    const gain = r2 / (r1 + r2);
+    const discharge = diodeMix - 0.7 < this.dkongStompIntegrateCap * gain;
+    let capacitorCurrent: number;
+    let emitterVoltage: number;
+    let transistorResistance: number;
+    let transistorCurrent: number;
+    if (discharge) {
+      let delta = -this.dkongStompIntegrateCap;
+      const decay = Math.exp(-dt / ((r1 + r2) * 1e-6));
+      capacitorCurrent = -decay * delta / (r1 + r2);
+      delta -= delta * decay;
+      this.dkongStompIntegrateCap += delta;
+      transistorCurrent = 0;
+      emitterVoltage = this.dkongStompIntegrateCap * gain;
+      transistorResistance = Math.abs(capacitorCurrent) > 1e-15
+        ? emitterVoltage / capacitorCurrent
+        : 1e12;
+    } else {
+      let delta = 5 - this.dkongStompVce - this.dkongStompIntegrateCap;
+      const charge = Math.exp(-dt / (r1 * 1e-6));
+      capacitorCurrent = charge * delta / r1;
+      delta -= delta * charge;
+      this.dkongStompIntegrateCap += delta;
+      transistorCurrent = capacitorCurrent +
+        (capacitorCurrent * r1 + this.dkongStompIntegrateCap) / r2;
+      transistorResistance = (5 - this.dkongStompVce) / transistorCurrent;
+      emitterVoltage = 5 - this.dkongStompVce;
+    }
+    const junction = diodeMix - emitterVoltage;
+    const collectorCurrent = junction > 0.7
+      ? 0.99 * 7e-15 * Math.exp(0.7 / 0.026 - 1)
+      : 0.99 * 7e-15 * Math.exp(junction / 0.026 - 1);
+    let vce = Math.min(4.9, 5 - transistorResistance * collectorCurrent);
+    vce = Math.max(vce, 0.1);
+    this.dkongStompVce = 0.1 * vce + 0.9 * (
+      5 - emitterVoltage - transistorCurrent * 0
+    );
+
+    return this.dkongStompIntegrateCap * (5_100 / 7_100);
   }
 
   private sampleDkongTone(
