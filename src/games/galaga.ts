@@ -54,51 +54,21 @@ export const galaga: GameTestContract = {
       sub2: '6d220ddd',
     },
     checkpoints: {
-      '1': {
-        video: '967206d7',
-        state: '564a0362',
-      },
-      '300': {
-        video: '8fa90953',
-        state: 'e4d52427',
-      },
-      '720': {
-        video: '972b5194',
-        state: '8766b4c5',
-      },
-      '760': {
-        video: '21864713',
-        state: 'c2b08b5c',
-      },
-      '900': {
-        video: 'd4ed5a0c',
-        state: '89ec91f1',
-      },
-      '1050': {
-        video: 'f0cb037c',
-        state: '32f3e31d',
-      },
-      '1300': {
-        video: '9505b9bf',
-        state: '26e66a55',
-      },
-      '1600': {
-        video: '83a2539e',
-        state: '6db93f95',
-      },
-      '2456': {
-        video: '492457b6',
-        state: '36ba2aaf',
-      },
-      '2600': {
-        video: 'fd5bcec5',
-        state: '6c74795c',
-      },
+      1: { video: '967206d7', state: '564a0362' },
+      300: { video: '8fa90953', state: 'e4d52427' },
+      720: { video: '972b5194', state: '8766b4c5' },
+      760: { video: '21864713', state: 'c2b08b5c' },
+      900: { video: 'd4ed5a0c', state: '89ec91f1' },
+      1050: { video: 'f0cb037c', state: '32f3e31d' },
+      1300: { video: '9505b9bf', state: '26e66a55' },
+      1600: { video: '83a2539e', state: '6db93f95' },
+      2456: { video: '492457b6', state: '36ba2aaf' },
+      2600: { video: 'fd5bcec5', state: '6c74795c' },
     },
     audio: {
       writes: 311904,
       nonzeroWrites: 30687,
-      writeHash: 'bfac7536',
+      writeHash: '1157f939',
       pcmHash: 'fc6b5b22',
       rms: 0.075614,
     },

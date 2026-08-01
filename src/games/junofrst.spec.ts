@@ -51,7 +51,7 @@ assert.deepEqual(lowerAuxiliaryAudioDevices(graph, devices), [{
   clock: 0,
   gain: 0.25,
   target: 'speaker',
-  writeMethods: ['data_w'],
+  writeMethods: ['data_w', 'write'],
 }]);
 
 const mcs48 = compileMameMcs48(mameSrc);

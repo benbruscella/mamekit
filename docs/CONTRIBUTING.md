@@ -365,11 +365,14 @@ Only after manual verification:
 npm run test:games:record
 ```
 
-Review the candidate values, add them to the token, then run the normal test:
+Review the candidate changes, then run the normal test:
 
 ```sh
 npm run test:games
 ```
+
+The recorder updates the token's `golden` object directly. Review its git diff
+and discard unrelated baseline changes before running the normal test.
 
 Do not update hashes merely to make a failing test pass. Explain whether each
 change came from ROM assembly, CPU/device state, video, audio writes, generated
@@ -383,7 +386,6 @@ empty `dist` and verify that existing contracts remain unchanged.
 
 ```sh
 npm test
-npm run test:games
 ```
 
 Run `npm run test:generation` after broad changes to parsing, graph
@@ -410,7 +412,7 @@ then the complete applicable set:
 npm run build
 npm run test:unit
 npm run test:current
-npm run test:games              # requires local ROMs
+npm run test:blast-radius       # every game; requires local ROMs
 git diff --check
 ```
 

@@ -7,7 +7,9 @@
 //   --out <dir>         output root (default: <mamekit>/out)
 //   --targets <games>   comma-separated runtime closure targets
 
+import { spawn } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { availableParallelism } from 'node:os';
 import { join, resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildGraph, gameSubgraph } from './kg/build.ts';
@@ -27,6 +29,7 @@ function usage(): never {
   console.error('usage: mamekit [graph|from-graph] <game> [--mame-src <path>] [--out <dir>] [--serve [port]]');
   console.error('       mamekit <game> --from-graph [graph.json]');
   console.error('       mamekit --all              generate every required target, then the app');
+  console.error('                  [--jobs <n>]   parallel target generators (default: CPU count)');
   console.error('       mamekit --build-runtime [--build-app] [--targets <game,...>]');
   console.error('       mamekit --serve            serve the unified app + all generated games');
   process.exit(2);
@@ -94,18 +97,21 @@ function detectMameSrc(required: boolean): string {
   process.exit(1);
 }
 
-/** Locate the driver .cpp that defines GAME/CONS/SYST/COMP(..., <game>, ...) — cached. */
-function findDriverFile(game: string): string {
+function readDriverCache(): Record<string, string> {
   const cacheFile = join(outRoot, '.driver-cache.json');
   let cache: Record<string, string> = {};
   if (existsSync(cacheFile)) {
     try { cache = JSON.parse(readFileSync(cacheFile, 'utf8')); } catch { /* rebuild */ }
   }
-  if (cache[game] && existsSync(join(mameSrc, cache[game]))) return join(mameSrc, cache[game]);
+  return cache;
+}
 
-  // rows may carry a leading /* NNN */ index comment (mw8080bw.cpp style);
-  // console/system rows use CONS/SYST/COMP and may have "19??" years
-  const gameRe = new RegExp(`^\\s*(?:/\\*[^*]*\\*/\\s*)?(?:GAME[XL]?|CONS|SYST|COMP)\\(\\s*[\\d?]{4},\\s*${game}\\s*,`, 'm');
+/** Index every MAME driver in one filesystem pass so parallel children only read. */
+function rebuildDriverCache(): Record<string, string> {
+  const cache: Record<string, string> = {};
+  // Rows may carry a leading index comment; console/system years may contain ?.
+  const gameRe =
+    /^\s*(?:\/\*[^*]*\*\/\s*)?(?:GAME[XL]?|CONS|SYST|COMP)\(\s*[\d?]{4},\s*([A-Za-z0-9_]+)\s*,/gm;
   const root = join(mameSrc, 'src/mame');
   const stack = [root];
   while (stack.length) {
@@ -115,17 +121,93 @@ function findDriverFile(game: string): string {
       if (statSync(full).isDirectory()) stack.push(full);
       else if (entry.endsWith('.cpp')) {
         const text = readFileSync(full, 'utf8');
-        if (gameRe.test(text)) {
-          cache[game] = full.slice(mameSrc.length + 1);
-          mkdirSync(outRoot, { recursive: true });
-          writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
-          return full;
+        gameRe.lastIndex = 0;
+        for (let match = gameRe.exec(text); match; match = gameRe.exec(text)) {
+          cache[match[1]!] = full.slice(mameSrc.length + 1);
         }
       }
     }
   }
+  mkdirSync(outRoot, { recursive: true });
+  writeFileSync(join(outRoot, '.driver-cache.json'), JSON.stringify(cache, null, 2));
+  return cache;
+}
+
+/** Locate the driver .cpp that defines GAME/CONS/SYST/COMP(..., <game>, ...) — cached. */
+function findDriverFile(game: string): string {
+  let cache = readDriverCache();
+  if (cache[game] && existsSync(join(mameSrc, cache[game]))) return join(mameSrc, cache[game]);
+  cache = rebuildDriverCache();
+  if (cache[game] && existsSync(join(mameSrc, cache[game]))) return join(mameSrc, cache[game]);
+  const root = join(mameSrc, 'src/mame');
   console.error(`error: no driver in ${root} defines game "${game}"`);
   process.exit(1);
+}
+
+async function generateTargetsInParallel(targets: readonly string[]): Promise<void> {
+  // Prime the shared index before children start. Each target otherwise writes
+  // independently under dist/games/<category>/<game>.
+  const cache = rebuildDriverCache();
+  const absent = targets.filter(target => !cache[target]);
+  if (absent.length) throw new Error(`MAME drivers not found: ${absent.join(', ')}`);
+
+  const requested = Number(opts.jobs ?? process.env.MAMEKIT_JOBS);
+  const jobs = Number.isInteger(requested) && requested > 0
+    ? Math.min(requested, targets.length)
+    : Math.min(availableParallelism(), targets.length);
+  console.log(`mamekit: generating ${targets.length} targets with ${jobs} workers`);
+
+  let next = 0;
+  let failure: Error | undefined;
+  const worker = async (): Promise<void> => {
+    while (!failure) {
+      const index = next++;
+      const target = targets[index];
+      if (!target) return;
+      try {
+        const output = await generateTargetProcess(target);
+        console.log(`mamekit: generated ${target} (${index + 1}/${targets.length})`);
+        if (output.trim()) console.log(output.trimEnd());
+      } catch (error) {
+        failure = error as Error;
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: jobs }, () => worker()));
+  if (failure) throw failure;
+}
+
+function generateTargetProcess(target: string): Promise<string> {
+  return new Promise((resolveProcess, rejectProcess) => {
+    const child = spawn(process.execPath, [
+      join(projectRoot, 'bin/mamekit.js'),
+      target,
+      '--skip-app',
+      '--mame-src',
+      mameSrc,
+      '--out',
+      outRoot,
+    ], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', chunk => { stdout += chunk; });
+    child.stderr.on('data', chunk => { stderr += chunk; });
+    child.once('error', rejectProcess);
+    child.once('exit', (code, signal) => {
+      if (code === 0) {
+        resolveProcess(stdout);
+        return;
+      }
+      rejectProcess(new Error(
+        `${target}: generator exited ${code ?? `from signal ${signal}`}` +
+        `${stderr.trim() ? `\n${stderr.trimEnd()}` : ''}`,
+      ));
+    });
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -138,10 +220,7 @@ if (generateAll) {
   // A complete build owns the output directory. Starting clean prevents
   // deleted or renamed generated modules surviving from an earlier build.
   rmSync(outRoot, { recursive: true, force: true });
-  for (const target of GENERATION_TARGETS) {
-    console.log(`\nmamekit: generating ${target}`);
-    await pipeline(target, outRoot, true);
-  }
+  await generateTargetsInParallel(GENERATION_TARGETS);
   const { buildHardwareClosure, emitHardwareClosure } = await import('./mame/hardware.ts');
   const targetGraphs = GENERATION_TARGETS.map(target => ({
     game: target,

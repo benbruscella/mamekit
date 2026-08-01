@@ -1,9 +1,25 @@
 import {
   generatedBoardSource,
+  generatedCpuCycleClock,
   inferredMemberIndexRank,
   lowerAudioRoutes,
+  lowerAuxiliaryAudioDevices,
   lowerGeneratedMachine,
 } from './emit-machine.ts';
+
+for (const type of ['m6802', 'm6803', 'nsc8105', 'm6801u4', 'mc6809']) {
+  if (generatedCpuCycleClock(type, 4_000_000) !== 1_000_000) {
+    throw new Error(`${type} must use MAME's divide-by-four execution clock`);
+  }
+}
+if (generatedCpuCycleClock('mc6809e', 1_000_000) !== 1_000_000) {
+  throw new Error('externally-clocked MC6809E must retain its configured execution clock');
+}
+for (const type of ['i8039', 'mb8884']) {
+  if (generatedCpuCycleClock(type, 6_000_000) !== 400_000) {
+    throw new Error(`${type} must use MAME's divide-by-fifteen execution clock`);
+  }
+}
 import type { KnowledgeGraph } from '../kg/types.ts';
 import type { BoardConfig } from '../runtime/types.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
@@ -31,6 +47,18 @@ const graph: KnowledgeGraph = {
       sourceLine: 42,
     },
   }, {
+    id: 'device:dma',
+    label: 'Device',
+    props: {
+      type: 'I8257',
+      tag: 'dma',
+      config: [
+        'I8257(config, m_dma, 1000000)',
+        'm_dma->out_hrq_cb().set_inputline(m_maincpu, Z80_INPUT_LINE_BUSREQ)',
+        'm_dma->set_reverse_rw_mode(true)',
+      ],
+    },
+  }, {
     id: 'device:ay0',
     label: 'Device',
     props: {
@@ -47,6 +75,38 @@ const graph: KnowledgeGraph = {
       operation: 'set_irq_acknowledge_callback',
       targetClass: 'test_state',
       targetMethod: 'vector_r',
+    },
+  }, {
+    id: 'callback:periodic',
+    label: 'Callback',
+    props: {
+      ownerTag: 'maincpu',
+      signal: 'set_periodic_int',
+      operation: 'set_periodic_int',
+      targetMethod: 'irq0_line_hold',
+      periodHz: 36.62109375,
+    },
+  }, {
+    id: 'callback:vblank-hold',
+    label: 'Callback',
+    props: {
+      ownerTag: 'screen',
+      signal: 'screen_vblank',
+      operation: 'set_inputline',
+      targetTag: 'maincpu',
+      inputLine: 'INPUT_LINE_IRQ0',
+      raw: 'm_screen->screen_vblank().set_inputline(m_maincpu, INPUT_LINE_IRQ0, HOLD_LINE)',
+    },
+  }, {
+    id: 'callback:vblank-level',
+    label: 'Callback',
+    props: {
+      ownerTag: 'screen',
+      signal: 'screen_vblank',
+      operation: 'set_inputline',
+      targetTag: 'sub',
+      inputLine: 'INPUT_LINE_IRQ0',
+      raw: 'm_screen->screen_vblank().set_inputline(m_sub, INPUT_LINE_IRQ0)',
     },
   }, {
     id: 'handler:vector_r',
@@ -104,11 +164,55 @@ if (reset.callbackId !== machine.callbacks[0]?.id) {
   throw new Error('connection lost its callback provenance');
 }
 if (machine.execution.cpus[0]?.clock !== 1_000_000) throw new Error('execution plan missing CPU clock');
+if (
+  machine.execution.frameEvents.find(event => event.callbackId === 'callback:periodic')
+    ?.frequency !== 36.62109375
+) {
+  throw new Error('non-video-locked periodic interrupts must retain fractional frequency');
+}
+const heldVblankEvents = machine.execution.frameEvents.filter(
+  event => event.callbackId === 'callback:vblank-hold',
+);
+if (
+  heldVblankEvents.length !== 1 ||
+  heldVblankEvents[0]?.line !== 240 ||
+  heldVblankEvents[0]?.state !== 1
+) {
+  throw new Error('HOLD_LINE vblank callbacks must fire once rather than remain asserted');
+}
+const levelVblankEvents = machine.execution.frameEvents.filter(
+  event => event.callbackId === 'callback:vblank-level',
+);
+if (
+  levelVblankEvents.length !== 2 ||
+  levelVblankEvents[0]?.state !== 0 ||
+  levelVblankEvents[1]?.state !== 1
+) {
+  throw new Error('level-sensitive vblank callbacks must retain both edges');
+}
+const heldVblankConnection = machine.connections.find(
+  connection => connection.callbackId === 'callback:vblank-hold',
+);
+if (
+  heldVblankConnection?.effect.kind !== 'cpu-line' ||
+  heldVblankConnection.effect.delivery !== 'hold'
+) {
+  throw new Error('HOLD_LINE must lower to held CPU-line delivery');
+}
 if (machine.execution.cpus[0]?.interruptVectorWriters?.[0] !== 'test_state.vector_w') {
   throw new Error('interrupt-vector writer relation was not lowered from handler IR');
 }
 if (machine.devices?.find(device => device.tag === 'ay.0')?.member !== 'm_ay[0]') {
   throw new Error('device-array members must retain their finder index');
+}
+const dma = machine.devices?.find(device => device.tag === 'dma');
+if (
+  dma?.member !== 'm_dma' ||
+  dma.configuration?.length !== 1 ||
+  dma.configuration[0]?.method !== 'set_reverse_rw_mode' ||
+  dma.configuration[0]?.args[0] !== 1
+) {
+  throw new Error('direct device configuration calls must retain boolean arguments');
 }
 const source = generatedBoardSource(machine);
 if (!source.includes('decodeBoardIr(')) {
@@ -142,6 +246,53 @@ if (
   allYmOutputs.some((route, channel) => route.channel !== channel || route.gain !== 0.15)
 ) {
   throw new Error('YM2203 ALL_OUTPUTS did not expand to all four routed streams');
+}
+
+const defaultClockDacGraph: KnowledgeGraph = {
+  meta: graph.meta,
+  nodes: [{
+    id: 'device:dac',
+    label: 'Device',
+    props: {
+      type: 'DAC_8BIT_R2R',
+      tag: 'dac',
+      config: ['DAC_8BIT_R2R(config, m_dac)'],
+    },
+  }, {
+    id: 'route:dac',
+    label: 'AudioRoute',
+    props: { output: 'ALL_OUTPUTS', target: 'speaker', gain: 0.15 },
+  }, {
+    id: 'device:dacvol',
+    label: 'Device',
+    props: { type: 'DISCRETE', tag: 'dacvol' },
+  }, {
+    id: 'route:dacvol',
+    label: 'AudioRoute',
+    props: { output: '0', target: 'dac', input: 0, gain: 1 },
+  }],
+  edges: [
+    { from: 'device:dac', to: 'route:dac', rel: 'HAS_AUDIO_ROUTE' },
+    { from: 'device:dacvol', to: 'route:dacvol', rel: 'HAS_AUDIO_ROUTE' },
+  ],
+};
+const defaultClockDac = lowerAuxiliaryAudioDevices(defaultClockDacGraph, [{
+  id: 'device:dac',
+  tag: 'dac',
+  type: 'DAC_8BIT_R2R',
+  member: 'm_dac',
+}, {
+  id: 'device:dacvol',
+  tag: 'dacvol',
+  type: 'DISCRETE',
+  member: 'm_dacvol',
+}]);
+if (
+  defaultClockDac[0]?.clock !== 0 ||
+  defaultClockDac[0]?.member !== 'm_dac' ||
+  defaultClockDac[0]?.referenceControl?.member !== 'm_dacvol'
+) {
+  throw new Error('clockless passive R2R DACs must lower as routed auxiliary streams');
 }
 
 const filterHandlers = [

@@ -58,7 +58,8 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run audio:compare -- <target> --mame /path/to/mame` | compare MAMEKIT and MAME power-on WAVs |
 | `npm run test:generation` | clean-generate every required target and audit all output |
 | `npm run test:games` | deterministic real-ROM contracts for supported games |
-| `npm run test:games:record` | print candidate game baselines for review |
+| `npm run test:blast-radius` | run every old and new real-ROM game canary |
+| `npm run test:games:record` | record candidate game baselines for review |
 | `npm run serve` | rebuild app shell and serve `dist` on localhost |
 | `npm run deploy -- --artwork` | clean-generate and publish the static site |
 
@@ -71,6 +72,12 @@ Neither command holds a target list of its own. `gen:all` is
 contracts in `src/games/contracts.ts`: a game with a contract is by definition
 one that must generate and pass. `src/gen/targets.spec.ts` asserts that target
 discovery, the generated catalog and the contracts name the same set.
+
+Target generation is already parallel. `gen:all` uses a bounded worker pool
+whose default size is the host's available CPU parallelism. Override it with
+`npm run gen:all -- --jobs 12` or `MAMEKIT_JOBS=12`; do not launch an
+unbounded process per target because every worker parses and lowers a sizeable
+MAME source closure before the shared runtime/app build runs once.
 
 ## 3. CLEAN GENERATION IS MANDATORY
 

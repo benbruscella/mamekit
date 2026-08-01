@@ -28,7 +28,9 @@ export function extractAy8910(input: CapabilityInput): CapabilityExtraction | un
     : undefined;
 
   // MAME routes the R2R ladder into the same speaker; the worklet mixes it.
-  const routedDac = input.entries.some(candidate => candidate.type === 'DAC_8BIT_R2R');
+  const routedDacs = input.entries
+    .map(candidate => candidate.type)
+    .filter(type => type === 'DAC_4BIT_R2R' || type === 'DAC_8BIT_R2R');
 
   const artifacts: CapabilityArtifact[] = [
     { path: AY8910_IR_ARTIFACT, contents: JSON.stringify(plan, null, 2) },
@@ -45,14 +47,15 @@ export function extractAy8910(input: CapabilityInput): CapabilityExtraction | un
     executableTypes: [
       'AY8910',
       ...(msm5205 ? ['MSM5205'] : []),
-      ...(routedDac ? ['DAC_8BIT_R2R'] : []),
+      ...routedDacs,
     ],
     executable: {
       AY8910: { kind: 'audio', artifact: AY8910_WORKLET_ARTIFACT },
       ...(msm5205 ? { MSM5205: { kind: 'audio' as const, artifact: MSM5205_IR_ARTIFACT } } : {}),
-      ...(routedDac
-        ? { DAC_8BIT_R2R: { kind: 'audio' as const, artifact: AY8910_WORKLET_ARTIFACT } }
-        : {}),
+      ...Object.fromEntries(routedDacs.map(type => [
+        type,
+        { kind: 'audio' as const, artifact: AY8910_WORKLET_ARTIFACT },
+      ])),
     },
     artifacts,
   };

@@ -33,6 +33,8 @@ export interface AudioProbeContext {
     auxiliary?: unknown;
     auxiliaryDevices?: unknown;
     discreteMixer?: unknown;
+    discreteDac?: unknown;
+    discreteEffects?: unknown;
   };
   /** Assembled ROM regions, for cores that read a wavetable. */
   regions: Record<string, Uint8Array>;

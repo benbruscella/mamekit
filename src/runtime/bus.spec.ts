@@ -19,6 +19,8 @@ const bus = new Bus([
     writeHandlerOwnsRam: true,
   },
   { start: 0x4000, end: 0x4001, kind: 'ram', share: 'palette', write: 'paletteWrite' },
+  { start: 0x5000, end: 0x5000, kind: 'ram', share: 'latched', readOnly: true },
+  { start: 0x6000, end: 0x6000, kind: 'ram', share: 'writeLatch', writeOnly: true },
 ], rom, {
   read: {
     read: (address, offset) => {
@@ -39,7 +41,7 @@ const bus = new Bus([
 assert.equal(bus.read(0), 0x11);
 assert.equal(bus.read(3), 0x44);
 assert.equal(bus.read(0xf002), 0x33);
-assert.equal(bus.read(0x9999), 0xff);
+assert.equal(bus.read(0x9999), 0);
 bus.write(0x1002, 0x1a5);
 assert.equal(bus.read(0x1002), 0xa5);
 assert.equal(bus.shares.work?.[2], 0xa5);
@@ -55,7 +57,14 @@ assert.deepEqual(writes[1], [0x3001, 1, 0], 'handler must observe old shared RAM
 bus.write(0x4001, 0x66);
 assert.equal(bus.read(0x4001), 0x66);
 assert.deepEqual(writes[2], [0x4001, 1, 0x66], 'device-backed RAM remains write-through');
-assert.equal(bus.in(0), 0xff);
+bus.shares.latched![0] = 0x7c;
+assert.equal(bus.read(0x5000), 0x7c);
+bus.write(0x5000, 0x11);
+assert.equal(bus.read(0x5000), 0x7c, 'read-only shares must ignore CPU writes');
+bus.write(0x6000, 0x93);
+assert.equal(bus.shares.writeLatch![0], 0x93);
+assert.equal(bus.read(0x6000), 0, 'write-only shares must return open bus');
+assert.equal(bus.in(0), 0);
 
 assert.throws(
   () => new Bus([{ start: 0, end: 0, kind: 'handler', read: 'missing' }], rom, { read: {}, write: {} }),

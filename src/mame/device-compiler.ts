@@ -18,7 +18,7 @@ export interface GeneratedDeviceMember {
   bits?: 1 | 8 | 16 | 32;
   signed?: boolean;
   initial?: number;
-  values?: number[];
+  values?: unknown[];
   /**
    * MAME memory containers rather than scalar state. A `shared` member is a
    * required/optional_shared_ptr bound to a board memory share; an `owned`

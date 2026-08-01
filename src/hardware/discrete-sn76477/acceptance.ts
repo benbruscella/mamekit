@@ -21,12 +21,18 @@ export async function createDiscreteProbe(
     context.outRoot,
     `runtime/generated/audio/${context.sound.worklet}-worklet.js`,
   )).href) as {
-    GeneratedDiscreteAudioCore: new (outputRate: number, clock?: number) => DiscreteCore;
+    GeneratedDiscreteAudioCore: new (
+      outputRate: number, clock?: number, plan?: unknown,
+    ) => DiscreteCore;
     GeneratedDiscreteAudioFrameRenderer: new (
       core: DiscreteCore, outputRate: number, refresh: number,
     ) => { render(writes: readonly ProbeSoundWrite[]): Float32Array };
   };
-  const core = new module.GeneratedDiscreteAudioCore(context.outputRate, context.sound.clock);
+  const core = new module.GeneratedDiscreteAudioCore(
+    context.outputRate,
+    context.sound.clock,
+    context.sound.discreteDac ?? context.sound.discreteEffects,
+  );
   return new module.GeneratedDiscreteAudioFrameRenderer(
     core,
     context.outputRate,

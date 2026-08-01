@@ -32,6 +32,10 @@ export interface RangeSpec {
   write?: string;
   /** shared RAM tag; ranges with the same share alias the same bytes */
   share?: string;
+  /** This memory range does not accept CPU writes. */
+  readOnly?: boolean;
+  /** This memory range does not return its stored bytes to the CPU. */
+  writeOnly?: boolean;
   /** The MAME write handler explicitly stores this shared RAM byte itself. */
   writeHandlerOwnsRam?: boolean;
 }
@@ -47,6 +51,8 @@ export interface GeneratedCallback {
   targetMethod?: string;
   targetPort?: string;
   inputLine?: string;
+  /** Constant line state supplied by MAME's set_inputline helper. */
+  delivery?: CpuLineDelivery;
   periodHz?: number;
   periodExpr?: string;
   scanlines?: number[];
@@ -92,7 +98,7 @@ export type BoardEffect =
    */
   | { kind: 'device-method'; tag: string; method: string; ownerClass?: string }
   /** Execute a generated handler program. */
-  | { kind: 'handler'; handler: string }
+  | { kind: 'handler'; handler: string; deviceTag?: string }
   /** Read an input port back to the caller (MAME set_ioport). */
   | { kind: 'port-read'; port: string }
   /** Board-level video control lowered from MAME's flip_screen helpers. */
@@ -284,6 +290,8 @@ export interface GeneratedFrameEvent {
 
 export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
+  /** Source-defined power-on contents for battery-backed/shared RAM. */
+  initialShares?: { share: string; bytes: number[] }[];
   /** Driver lifecycle handlers executed in source-derived base-first order. */
   resetHandlers?: string[];
   banks?: {
@@ -353,6 +361,20 @@ export interface GeneratedPromPalettePlan {
     pulldown: number;
     pullup: number;
   }[];
+  /** Exact MAME res_net electrical model when the source declares one. */
+  resNet?: {
+    input: 'ttl';
+    monitor: 'sanyo';
+    amplifiers: ('darlington' | 'emitter' | 'none')[];
+  };
+  /** palette_t::normalize_range applied after PROM decoding/overrides. */
+  normalize?: { start: number; end: number; lumMin: number; lumMax: number };
+  /**
+   * PROM indices overridden to electrical black after resistor decoding.
+   * Some boards tri-state their palette outputs for a masked subset of
+   * colors (for example the Donkey Kong background).
+   */
+  forceBlack?: { mask: number; value: number };
   /**
    * Indirect-color sections computed from the color INDEX bits rather than a
    * PROM (e.g. the 05xx starfield palette): each channel's bits select bits
@@ -371,6 +393,15 @@ export interface GeneratedPromPalettePlan {
       pulldown: number;
       pullup: number;
     }[];
+  }[];
+  /**
+   * Additional indirect-color sections read from a different range of the
+   * same PROM with their own fixed bit weights.
+   */
+  promColors?: {
+    base: number;
+    count: number;
+    channels: GeneratedPromPalettePlan['channels'];
   }[];
   lookupOffset: number;
   lookupCount: number;
@@ -479,7 +510,21 @@ export interface GeneratedBitmapPlan {
       pulldown: number;
       pullup: number;
     }[];
+    /** Direct source table used by palette formats such as Qix R2G2B2I2. */
+    lookup?: {
+      values: number[];
+      intensityShift: number;
+      intensityMask: number;
+      channels: {
+        channel: 'r' | 'g' | 'b';
+        valueShift: number;
+        valueMask: number;
+        valueTableShift: number;
+      }[];
+    };
   };
+  /** Bank selecting a consecutive palette page (one page per source value). */
+  paletteBankMember?: string;
   flipXMember?: string;
   flipYMember?: string;
   black: number;
@@ -488,6 +533,12 @@ export interface GeneratedBitmapPlan {
 }
 
 export interface GeneratedVideoPlan {
+  /**
+   * Rendering cadence required by the lowered video implementation. This is
+   * source-derived when a screen update delegates to scanline-buffered sprite
+   * hardware even if the machine configuration itself has no scanline flag.
+   */
+  updateMode?: 'scanline' | 'partial';
   gfx: GeneratedGfxEntry[];
   /**
    * MAME required/optional_region_ptr member -> ROM region tag. The C++ member
@@ -495,6 +546,8 @@ export interface GeneratedVideoPlan {
    * m_sprite_height_prom binds "spr_height_prom").
    */
   regionBindings?: Record<string, string>;
+  /** Byte offset applied to a region pointer assigned inside a source callback. */
+  regionBindingOffsets?: Record<string, number>;
   palette?: GeneratedPromPalettePlan;
   palettes?: {
     member: string;
@@ -539,6 +592,8 @@ export interface GeneratedSoundBinding {
   writeMethods: string[];
   enableMethods: string[];
   controlOffset: number;
+  /** Symbolic discrete-node constants normalized to worklet input offsets. */
+  writeOffsets?: Record<string, number>;
   routes?: GeneratedAudioRoute[];
   /** Index rank inferred from MAME handler IR for the routed filter member. */
   filterLayout?: 'flat' | 'matrix';

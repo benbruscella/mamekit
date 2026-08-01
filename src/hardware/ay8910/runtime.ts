@@ -14,7 +14,7 @@ const PORT_A = 14;
 const PORT_B = 15;
 
 export function installAy8910Runtime(context: SoundRuntimeContext): void {
-  const { board, sound, registry, calls } = context;
+  const { board, sound, registry, calls, state } = context;
   const tags = soundTags(sound);
   const addresses = new Map(tags.map(tag => [tag, 0]));
   const registers = new Map(tags.map(tag => [tag, new Uint8Array(16)]));
@@ -106,6 +106,19 @@ export function installAy8910Runtime(context: SoundRuntimeContext): void {
           return result;
         };
       }
+    }
+    const reference = auxiliary.referenceControl;
+    if (reference?.member) {
+      state[reference.member] = {
+        write: (...args: number[]) => {
+          context.soundWrite(
+            0,
+            args.at(-1) ?? 0,
+            context.fraction(),
+            `${auxiliary.deviceTag}.reference_w`,
+          );
+        },
+      };
     }
   }
 }

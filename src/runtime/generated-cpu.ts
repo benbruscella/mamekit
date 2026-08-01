@@ -14,6 +14,8 @@ export interface CpuBus {
   in(port: number): number;
   out(port: number, data: number): void;
   signal?(name: string, state: number): number | void;
+  /** Instruction boundary within the current scheduler slice. */
+  timing?(elapsedCycles: number, targetCycles: number): void;
 }
 
 interface CpuAlias {
@@ -256,7 +258,11 @@ class IrCpu implements Cpu {
 
   run(target: number): number {
     let total = 0;
-    while (total < target) total += this.step();
+    while (total < target) {
+      this.bus.timing?.(total, target);
+      total += this.step();
+    }
+    this.bus.timing?.(target, target);
     return total;
   }
 

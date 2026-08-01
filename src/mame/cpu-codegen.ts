@@ -136,7 +136,11 @@ ${step}
 
   run(target: number): number {
     let total = 0;
-    while (total < target) total += this.step();
+    while (total < target) {
+      this.bus.timing?.(total, target);
+      total += this.step();
+    }
+    this.bus.timing?.(target, target);
     return total;
   }
 

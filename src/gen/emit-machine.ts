@@ -14,8 +14,22 @@ import type {
   GeneratedHandlerOperation,
   GeneratedVideoPlan,
 } from '../ir/board.ts';
-import type { GeneratedAuxiliaryAudioDevice } from '../ir/audio-protocol.ts';
-import type { GeneratedNesApuPlan } from '../ir/audio-protocol.ts';
+
+/** MAME device input clocks converted to the instruction-cycle scheduler rate. */
+export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
+  if (
+    type === 'mc6809' || type === 'm6801u4' || type === 'm6802' ||
+    type === 'm6803' || type === 'nsc8105'
+  ) return clock / 4;
+  if (type === 'i8039' || type === 'mb8884') return clock / 15;
+  return clock;
+}
+import type {
+  GeneratedAuxiliaryAudioDevice,
+  GeneratedDiscreteDacPlan,
+  GeneratedDiscreteEffectsPlan,
+  GeneratedNesApuPlan,
+} from '../ir/audio-protocol.ts';
 import { BoardIrError } from '../ir/decode.ts';
 import { lowerConnections } from '../ir/lower-connections.ts';
 import { validateBoardIr } from '../ir/validate.ts';
@@ -31,6 +45,7 @@ export function lowerGeneratedMachine(
   board: BoardConfig,
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
   nesApu?: GeneratedNesApuPlan,
+  discretePlan?: GeneratedDiscreteDacPlan | GeneratedDiscreteEffectsPlan,
 ): BoardIr {
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
   const tagCounts = new Map<string, number>();
@@ -77,6 +92,8 @@ export function lowerGeneratedMachine(
       if (props.targetMethod) callback.targetMethod = String(props.targetMethod);
       if (props.targetPort) callback.targetPort = String(props.targetPort);
       if (props.inputLine) callback.inputLine = String(props.inputLine);
+      const lineDelivery = /\b(HOLD|ASSERT|PULSE)_LINE\b/.exec(String(props.raw ?? ''))?.[1];
+      if (lineDelivery) callback.delivery = lineDelivery.toLowerCase() as 'hold' | 'assert' | 'pulse';
       if (props.periodHz !== undefined) callback.periodHz = Number(props.periodHz);
       if (props.periodExpr) callback.periodExpr = String(props.periodExpr);
       if (Array.isArray(props.scanlines)) callback.scanlines = props.scanlines.map(Number);
@@ -112,15 +129,9 @@ export function lowerGeneratedMachine(
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
       ...(deviceCallbackHz(node.props) ? { callbackHz: deviceCallbackHz(node.props) } : {}),
-      ...(Array.isArray(node.props.configCalls) ? {
-        configuration: node.props.configCalls.flatMap(value => {
-          const match = /^(\w+)\((.*)\)$/.exec(String(value));
-          return match ? [{
-            method: match[1]!,
-            args: match[2]!.split(',').map(argument => Number(argument.trim())),
-          }] : [];
-        }),
-      } : {}),
+      ...(deviceConfiguration(node.props).length
+        ? { configuration: deviceConfiguration(node.props) }
+        : {}),
       ...(typeof node.props.slotOptions === 'string'
         ? { slotOptions: node.props.slotOptions }
         : {}),
@@ -224,15 +235,12 @@ export function lowerGeneratedMachine(
         ...(nesApu && cpu.type?.toLowerCase() === 'rp2a03'
           ? { ranges: mergeInternalRanges(cpu.ranges ?? [], nesApu) }
           : {}),
-        cycleClock: cpu.type === 'mc6809' || cpu.type === 'm6801u4'
-          ? cpu.clock / 4
-          : cpu.type === 'i8039'
-            ? cpu.clock / 15
-            : cpu.clock,
+        cycleClock: generatedCpuCycleClock(cpu.type, cpu.clock),
         ...(interruptVectorWriters.length ? { interruptVectorWriters } : {}),
         ...(deviceByTag.get(cpu.tag)?.source ? { source: deviceByTag.get(cpu.tag)!.source } : {}),
       };
     }),
+    ...(board.initialShares?.length ? { initialShares: board.initialShares } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(graph.nodes.some(node => node.label === 'MemoryBank') ? {
       banks: lowerMemoryBanks(graph, sourceRef),
@@ -267,6 +275,10 @@ export function lowerGeneratedMachine(
     device.type === 'RP2A03' || device.type === 'RP2A03G');
   const ayDevices = devices.filter(device => device.type === 'AY8910');
   const ymDevices = devices.filter(device => device.type === 'YM2203');
+  const snDevices = devices.filter(device =>
+    ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
+      'GAMEGEAR', 'SEGAPSG'].includes(device.type));
+  const discreteDevice = devices.find(device => device.type === 'DISCRETE');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
     .filter((key): key is string => Boolean(key));
@@ -332,6 +344,19 @@ export function lowerGeneratedMachine(
           } : {}),
           ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
         }
+    : snDevices.length
+      ? {
+          kind: 'sn76489',
+          deviceTag: snDevices[0]!.tag,
+          deviceTags: snDevices.map(device => device.tag),
+          deviceType: snDevices[0]!.type,
+          writeMethods: ['write'],
+          enableMethods: [],
+          controlOffset: -1,
+          ...(lowerAudioRoutes(graph, snDevices).length
+            ? { routes: lowerAudioRoutes(graph, snDevices) }
+            : {}),
+        }
     : generatedSoundboard
       ? (() => {
           const writeMethods = [...new Set(maps.flatMap(map => map.ranges)
@@ -347,7 +372,17 @@ export function lowerGeneratedMachine(
             controlOffset: -1,
           };
         })()
-      : undefined;
+      : discreteDevice
+        ? {
+            kind: 'discrete',
+            deviceTag: discreteDevice.tag,
+            deviceType: discreteDevice.type,
+            writeMethods: ['write'],
+            enableMethods: [],
+            controlOffset: -1,
+            ...(discretePlan?.inputNodes ? { writeOffsets: discretePlan.inputNodes } : {}),
+          }
+        : undefined;
   const lowered = lowerConnections(callbacks, {
     cpuTags: new Set(execution.cpus.map(cpu => cpu.tag)),
     deviceTags: new Set(devices.map(device => device.tag)),
@@ -525,7 +560,8 @@ export function lowerAudioRoutes(
 }
 
 const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
-  DAC_8BIT_R2R: ['data_w'],
+  DAC_4BIT_R2R: ['data_w', 'write'],
+  DAC_8BIT_R2R: ['data_w', 'write'],
   MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
   YM3526: ['write'],
 };
@@ -548,7 +584,12 @@ export function lowerAuxiliaryAudioDevices(
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
   return devices.flatMap(device => {
     const writeMethods = AUXILIARY_AUDIO_METHODS[device.type];
-    if (!writeMethods || !Number.isFinite(device.clock)) return [];
+    const clock = Number.isFinite(device.clock)
+      ? device.clock!
+      : device.type === 'DAC_4BIT_R2R' || device.type === 'DAC_8BIT_R2R'
+        ? 0
+        : undefined;
+    if (!writeMethods || clock === undefined) return [];
     const routeEdge = graph.edges.find(edge =>
       edge.from === device.id && edge.rel === 'HAS_AUDIO_ROUTE');
     const route = routeEdge ? byId.get(routeEdge.to) : undefined;
@@ -562,16 +603,30 @@ export function lowerAuxiliaryAudioDevices(
     const initialMode =
       /set_prescaler_selector\([^)]*::(\w+)\)/.exec(config)?.[1];
     const targetInput = Number(route.props.input);
+    const referenceDevice = devices.find(candidate => {
+      if (candidate.type !== 'DISCRETE') return false;
+      return graph.edges.some(edge => {
+        if (edge.from !== candidate.id || edge.rel !== 'HAS_AUDIO_ROUTE') return false;
+        const referenceRoute = byId.get(edge.to);
+        return referenceRoute?.props.target === device.tag;
+      });
+    });
     return [{
       type: device.type,
       deviceTag: device.tag,
       ...(device.member ? { member: device.member } : {}),
-      clock: device.clock!,
+      clock,
       ...(initialMode ? { initialMode } : {}),
       gain,
       target: String(route.props.target),
       ...(Number.isInteger(targetInput) ? { targetInput } : {}),
       writeMethods,
+      ...(referenceDevice ? {
+        referenceControl: {
+          deviceTag: referenceDevice.tag,
+          ...(referenceDevice.member ? { member: referenceDevice.member } : {}),
+        },
+      } : {}),
     }];
   });
 }
@@ -579,6 +634,37 @@ export function lowerAuxiliaryAudioDevices(
 function deviceMember(props: Record<string, unknown>): string | undefined {
   const config = Array.isArray(props.config) ? props.config.map(String).join('\n') : '';
   return /\(\s*config\s*,\s*(m_\w+(?:\[\d+\])?)/.exec(config)?.[1];
+}
+
+function deviceConfiguration(
+  props: Record<string, unknown>,
+): { method: string; args: number[] }[] {
+  const encoded = Array.isArray(props.configCalls)
+    ? props.configCalls.map(String)
+    : [];
+  const member = deviceMember(props);
+  if (member && Array.isArray(props.config)) {
+    const escaped = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    for (const line of props.config.map(String)) {
+      const match = new RegExp(`^${escaped}->(\\w+)\\((.*)\\)$`).exec(line.trim());
+      if (match) encoded.push(`${match[1]}(${match[2]})`);
+    }
+  }
+  return encoded.flatMap(value => {
+    const match = /^(\w+)\((.*)\)$/.exec(value);
+    if (!match) return [];
+    const rawArgs = match[2]!.trim();
+    const args = rawArgs ? rawArgs.split(',').map(argument => {
+      const raw = argument.trim();
+      if (raw === 'true') return 1;
+      if (raw === 'false') return 0;
+      return Number(raw);
+    }) : [];
+    return args.every(Number.isFinite) ? [{ method: match[1]!, args }] : [];
+  }).filter((entry, index, all) => all.findIndex(candidate =>
+    candidate.method === entry.method &&
+    candidate.args.length === entry.args.length &&
+    candidate.args.every((value, arg) => value === entry.args[arg])) === index);
 }
 
 function inferInterruptVectorWriters(
@@ -730,7 +816,10 @@ function lowerFrameEvents(
       });
       // MAME screen_vblank delegates see both edges; the falling edge lands
       // at vblank end (handlers like galaga's starfield config run on !state).
-      if (callback.signal === 'screen_vblank') {
+      if (
+        callback.signal === 'screen_vblank' &&
+        !(callback.operation === 'set_inputline' && callback.delivery)
+      ) {
         events.push({
           callbackId: callback.id,
           ownerTag: callback.ownerTag,
@@ -745,7 +834,22 @@ function lowerFrameEvents(
     if (callback.signal !== 'set_periodic_int' || !callback.periodHz) continue;
     const eventsPerFrame = callback.periodHz / refreshHz;
     const count = Math.round(eventsPerFrame);
-    if (count <= 0 || Math.abs(eventsPerFrame - count) > 0.1) continue;
+    if (count <= 0 || Math.abs(eventsPerFrame - count) > 0.1) {
+      // Free-running oscillators are not generally integer multiples of the
+      // video refresh. Preserve their frequency and let the frame runner's
+      // fractional carry place each edge on the correct scanline instead of
+      // silently dropping the interrupt (Taito SJ: 36.621 Hz vs 59.186 Hz).
+      events.push({
+        callbackId: callback.id,
+        ownerTag: callback.ownerTag,
+        signal: callback.signal,
+        line: 0,
+        state: 1,
+        frequency: callback.periodHz,
+        ...(callback.source ? { source: callback.source } : {}),
+      });
+      continue;
+    }
     for (let index = 0; index < count; index++) {
       events.push({
         callbackId: callback.id,
@@ -821,8 +925,17 @@ export function emitGeneratedMachine(
   board: BoardConfig,
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
   nesApu?: GeneratedNesApuPlan,
+  discretePlan?: GeneratedDiscreteDacPlan | GeneratedDiscreteEffectsPlan,
 ): BoardIr {
-  const machine = lowerGeneratedMachine(graph, game, family, board, compiledVideo, nesApu);
+  const machine = lowerGeneratedMachine(
+    graph,
+    game,
+    family,
+    board,
+    compiledVideo,
+    nesApu,
+    discretePlan,
+  );
   const generatedDir = join(outDir, 'generated');
   rmSync(generatedDir, { recursive: true, force: true });
   mkdirSync(generatedDir, { recursive: true });

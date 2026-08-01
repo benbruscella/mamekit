@@ -52,6 +52,13 @@ import {
   NES_PORTS,
 } from './nes/definition.ts';
 import { extractNes } from './nes/extract.ts';
+import {
+  SN76489_ID,
+  SN76489_MAME_TYPES,
+  SN76489_MASTER_GAIN,
+  SN76489_PORTS,
+} from './sn76489/definition.ts';
+import { extractSn76489 } from './sn76489/extract.ts';
 
 export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
   // CPUs — one capability over every generated core.
@@ -96,6 +103,13 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     ports: YM2203_PORTS,
     extract: extractYm2203,
     masterGain: YM2203_MASTER_GAIN,
+  },
+  {
+    id: SN76489_ID,
+    mameTypes: SN76489_MAME_TYPES,
+    ports: SN76489_PORTS,
+    extract: extractSn76489,
+    masterGain: SN76489_MASTER_GAIN,
   },
   // Recognised by shape: their MAME classes are named per driver.
   {

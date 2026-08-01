@@ -253,7 +253,9 @@ const ayModule = await import(
     mixer: { write(offset: number, data: number): void; sample(): number },
     outputRate: number,
     refresh: number,
-  ) => { render(writes: { offset: number; data: number; frac?: number }[]): Float32Array };
+  ) => { render(writes: {
+    offset: number; data: number; frac?: number; method?: string;
+  }[]): Float32Array };
 };
 const ay = new ayModule.GeneratedAy8910Core(1_789_772);
 assert.equal(ay.nativeRate, 1_789_772 / 8);
@@ -353,5 +355,34 @@ assert.equal(timed.length, 800);
 assert.ok(timed.slice(0, 400).every(sample => sample === 0));
 assert.ok(timed.slice(400).some(sample => sample !== 0));
 assert.match(aySource, /write\.frac/);
+
+const dacMixer = new ayModule.GeneratedAy8910Mixer(
+  1_789_772,
+  1,
+  48_000,
+  [],
+  [{
+    type: 'DAC_8BIT_R2R', deviceTag: 'dac', clock: 0, gain: 1,
+    target: 'speaker', writeMethods: ['data_w'],
+  }],
+);
+const dacRenderer = new ayModule.GeneratedAy8910FrameRenderer(dacMixer, 48_000, 60);
+const integrated = dacRenderer.render([
+  { offset: 0, data: 0, frac: 0, method: 'dac.data_w' },
+  { offset: 0, data: 0xff, frac: 0.5 / 800, method: 'dac.data_w' },
+]);
+assert.ok(
+  Math.abs(integrated[0]!) < 0.01,
+  `sub-sample DAC writes must integrate instead of aliasing (${integrated[0]})`,
+);
+const fullReference = dacRenderer.render([
+  { offset: 0, data: 0xff, frac: 0, method: 'dac.data_w' },
+]);
+dacMixer.write(0, 0x80, 'dac.reference_w');
+const halfReference = dacRenderer.render([]);
+assert.ok(
+  Math.abs(halfReference[0]!) < Math.abs(fullReference[0]!) * 0.6,
+  'the generated DAC reference input must control output amplitude',
+);
 
 console.log('audio-compiler.spec: generated audio cores passed');

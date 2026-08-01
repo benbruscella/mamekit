@@ -19,7 +19,7 @@ import type {
   GameTestContract,
 } from './types.ts';
 
-interface SoundWrite {
+export interface SoundWrite {
   offset: number;
   data: number;
   frac?: number;
@@ -51,6 +51,23 @@ export interface GameAcceptanceOptions {
   captureAudioWrites?: string;
   /** Duration override used by diagnostic captures. */
   frames?: number;
+  /** Direct source-CPU writes used only for isolated hardware diagnostics. */
+  programWrites?: {
+    atFrame: number;
+    cpu: string;
+    address: number;
+    data: number;
+  }[];
+  /** Return current fingerprints without comparing them to recorded goldens. */
+  recording?: boolean;
+  /** Read-only per-frame diagnostic hook for long-state-transition captures. */
+  inspectFrame?: (frame: {
+    number: number;
+    framebuffer: Uint32Array;
+    state: Readonly<Record<string, unknown>>;
+    /** Sound writes emitted during this frame, before the probe consumes them. */
+    writes: readonly SoundWrite[];
+  }) => void;
 }
 
 export async function runGameAcceptance(
@@ -125,6 +142,7 @@ export async function runGameAcceptance(
 
   const eventTarget = new EventTarget();
   const input = new KeyboardInput(config.bindings, config.dipDefaults, config.ports);
+  input.debug = process.env.MAMEKIT_DEBUG_INPUT === '1';
   input.attach(eventTarget);
   verifyInputBindings(contract, config, input, eventTarget);
 
@@ -152,20 +170,49 @@ export async function runGameAcceptance(
   const checkpointFrames = new Set(diagnosticCapture ? [] : contract.checkpoints);
   const startedAt = performance.now();
   const runFrame = (): void => {
-    pendingWrites.length = 0;
+    const nextFrame = board.snapshot().frame + 1;
+    for (const write of options.programWrites ?? []) {
+      if (write.atFrame !== nextFrame) continue;
+      const bus = (board as unknown as {
+        cpuBuses?: Map<string, { write(address: number, data: number): void }>;
+      }).cpuBuses?.get(write.cpu);
+      assert.ok(bus, `${contract.game}: diagnostic CPU bus ${write.cpu} is missing`);
+      bus.write(write.address, write.data);
+    }
     board.frame(framebuffer);
+    if (input.debug && !input.dump().split(' ').every(value => value.endsWith('=ff'))) {
+      const devices = (board as unknown as {
+        devices?: Map<string, { invoke(name: string): unknown }>;
+      }).devices;
+      console.log(
+        `[input-readback] ${input.dump()} ` +
+        `pia0.a=${Number(devices?.get('pia0')?.invoke('get_in_a_value')).toString(16)} ` +
+        `pia0.b=${Number(devices?.get('pia0')?.invoke('get_in_b_value')).toString(16)}`,
+      );
+    }
     const snapshot = board.snapshot();
+    options.inspectFrame?.({
+      number: snapshot.frame,
+      framebuffer,
+      state: (board as unknown as {
+        state?: Record<string, unknown>;
+      }).state ?? {},
+      writes: pendingWrites,
+    });
     for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {
       if (snapshot.frame < requirement.fromFrame) continue;
       if (requirement.toFrame !== undefined && snapshot.frame > requirement.toFrame) continue;
       const count = pendingWrites.filter(write =>
-        write.method === requirement.method && write.data !== 0).length;
+        write.method === requirement.method &&
+        (requirement.offset === undefined || write.offset === requirement.offset) &&
+        write.data !== 0).length;
       requiredAudioCounts.set(
         index,
         (requiredAudioCounts.get(index) ?? 0) + count,
       );
     }
     audio.render(pendingWrites, diagnosticCapture || snapshot.frame >= 120);
+    pendingWrites.length = 0;
     if (checkpointFrames.has(snapshot.frame)) {
       checkpoints[String(snapshot.frame)] = {
         video: hash(new Uint8Array(framebuffer.buffer)),
@@ -177,6 +224,10 @@ export async function runGameAcceptance(
   const captureActions = !diagnosticCapture || options.captureActions;
   for (const action of captureActions ? contract.actions : []) {
     while (board.snapshot().frame < action.atFrame) runFrame();
+    if ('reset' in action) {
+      board.reset();
+      continue;
+    }
     pulse(
       eventTarget,
       action.code,
@@ -222,6 +273,7 @@ export async function runGameAcceptance(
     shares?: Record<string, Uint8Array>;
     state?: Record<string, unknown>;
     cpus?: Map<string, { get(name: string): number }>;
+    devices?: Map<string, { get(name: string): number }>;
   };
   const debugTilemap = debugBoard.state?.m_tilemap as {
     tiles?: unknown[];
@@ -229,13 +281,50 @@ export async function runGameAcceptance(
   const debugPalette = debugBoard.state?.m_palette as {
     colors?: Uint32Array;
   } | undefined;
+  const debugVideoRam = debugBoard.state?.m_videoram as
+    | Uint8Array
+    | { pixels?: Uint32Array }
+    | undefined;
+  const debugVideoBytes = ArrayBuffer.isView(debugVideoRam)
+    ? debugVideoRam as Uint8Array
+    : debugVideoRam?.pixels;
   const sharedActivity = Object.fromEntries(
     Object.entries(debugBoard.shares ?? {}).map(([name, bytes]) => [
       name,
       {
         nonzero: bytes.reduce((count, value) => count + Number(value !== 0), 0),
         hash: hash(bytes),
+        first: [...bytes.slice(0, 16)],
+        last: [...bytes.slice(-16)],
       },
+    ]),
+  );
+  const finalCpuRegisters = Object.fromEntries(
+    [...(debugBoard.cpus ?? [])].map(([tag, cpu]) => [
+      tag,
+      Object.fromEntries(
+        ['A', 'B', 'C', 'D', 'E', 'H', 'L', 'HL', 'IX', 'IY', 'PC', 'SP',
+          'm_pc', 'm_x', 'm_y', 'm_u', 'm_s', 'm_d', 'm_dp', 'm_cc',
+          'm_firq_line', 'm_irq_line', 'm_nmi_state', 'm_service_attention']
+          .concat(['m_irq_state.0', 'm_wai_state'])
+          .map(name => [name, cpu.get(name)]),
+      ),
+    ]),
+  );
+  const numericDriverState = Object.fromEntries(
+    Object.entries(debugBoard.state ?? {})
+      .filter((entry): entry is [string, number] => typeof entry[1] === 'number')
+      .sort(([left], [right]) => left.localeCompare(right)),
+  );
+  const generatedDeviceState = Object.fromEntries(
+    [...(debugBoard.devices ?? [])].map(([tag, device]) => [
+      tag,
+      Object.fromEntries(
+        ['m_a_input_overrides_output_mask', 'm_ddr_a', 'm_ctl_a', 'm_out_a',
+          'm_ddr_b', 'm_ctl_b', 'm_out_b', 'm_in_ca1', 'm_out_ca2',
+          'm_irq_a1', 'm_irq_a_state', 'm_state']
+          .map(name => [name, device.get(name)]),
+      ),
     ]),
   );
   assert.ok(
@@ -244,6 +333,9 @@ export async function runGameAcceptance(
       `(${JSON.stringify({
         checkpoints,
         snapshot: finalSnapshot,
+        cpuRegisters: finalCpuRegisters,
+        generatedDeviceState,
+        driverState: numericDriverState,
         sharedActivity,
         tilemap: {
           tiles: debugTilemap?.tiles?.length ?? 0,
@@ -259,11 +351,32 @@ export async function runGameAcceptance(
               ),
             }
           : undefined,
+        videoRam: debugVideoBytes
+          ? {
+              bytes: debugVideoBytes.length,
+              nonzero: [...debugVideoBytes].reduce(
+                (count, value) => count + Number(value !== 0),
+                0,
+              ),
+              hash: hash(new Uint8Array(
+                debugVideoBytes.buffer,
+                debugVideoBytes.byteOffset,
+                debugVideoBytes.byteLength,
+              )),
+            }
+          : undefined,
       })})`,
   );
   assert.ok(
     result.audio.writes > 0,
-    `${contract.game}: generated sound has no writes (${JSON.stringify(result.audio)})`,
+    `${contract.game}: generated sound has no writes ` +
+      `(${JSON.stringify({
+        audio: result.audio,
+        sharedActivity,
+        cpuRegisters: finalCpuRegisters,
+        generatedDeviceState,
+        snapshot: finalSnapshot,
+      })})`,
   );
   assert.ok(
     result.audio.rms > 0.001,
@@ -277,6 +390,8 @@ export async function runGameAcceptance(
           ]),
         ),
         writes: allWrites.slice(0, 32),
+        sharedActivity,
+        cpuRegisters: finalCpuRegisters,
         cpuInterrupts: Object.fromEntries(
           [...(debugBoard.cpus ?? [])].map(([tag, cpu]) => [
             tag,
@@ -291,20 +406,46 @@ export async function runGameAcceptance(
         snapshot: finalSnapshot,
       })})`,
   );
+  if (contract.minimumAudioRms !== undefined) {
+    assert.ok(
+      result.audio.rms >= contract.minimumAudioRms,
+      `${contract.game}: audio RMS ${result.audio.rms} is below the ` +
+        `${contract.minimumAudioRms} contract floor`,
+    );
+  }
+  for (const requirement of contract.shareRequirements ?? []) {
+    const activity = sharedActivity[requirement.share];
+    assert.ok(activity, `${contract.game}: required share "${requirement.share}" is missing`);
+    assert.ok(
+      activity.nonzero >= requirement.minimumNonzeroBytes,
+      `${contract.game}: share "${requirement.share}" has ${activity.nonzero} nonzero bytes ` +
+        `(minimum ${requirement.minimumNonzeroBytes})`,
+    );
+    if (requirement.maximumNonzeroBytes !== undefined) {
+      assert.ok(
+        activity.nonzero <= requirement.maximumNonzeroBytes,
+        `${contract.game}: share "${requirement.share}" has ${activity.nonzero} nonzero bytes ` +
+          `(maximum ${requirement.maximumNonzeroBytes})`,
+      );
+    }
+  }
   for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {
     const actual = requiredAudioCounts.get(index) ?? 0;
     const window = requirement.toFrame === undefined
       ? `after frame ${requirement.fromFrame}`
       : `from frame ${requirement.fromFrame} through ${requirement.toFrame}`;
+    const source = requirement.offset === undefined
+      ? requirement.method
+      : `${requirement.method} offset ${requirement.offset}`;
     assert.ok(
       actual >= requirement.minimumNonzeroWrites,
-      `${contract.game}: ${requirement.method} audio emitted ${actual} nonzero writes ` +
+      `${contract.game}: ${source} audio emitted ${actual} nonzero writes ` +
         `${window} (minimum ${requirement.minimumNonzeroWrites})`,
     );
     if (requirement.maximumNonzeroWrites !== undefined) {
       assert.ok(
         actual <= requirement.maximumNonzeroWrites,
-        `${contract.game}: ${requirement.method} audio emitted ${actual} nonzero writes ` +
+        `${contract.game}: ${source} audio emitted ${actual} nonzero writes ` +
           `${window} (maximum ${requirement.maximumNonzeroWrites})`,
       );
     }
@@ -318,8 +459,10 @@ export async function runGameAcceptance(
   // the host is, so checking it first let a loaded machine abort the run before
   // it ever compared hashes — hiding a real behavioural regression behind a
   // performance failure.
-  if (process.env.MAMEKIT_UPDATE_GOLDENS === '1') {
-    console.log(`${contract.game}:\n${JSON.stringify(result, null, 2)}`);
+  if (options.recording || process.env.MAMEKIT_UPDATE_GOLDENS === '1') {
+    if (!options.recording) {
+      console.log(`${contract.game}:\n${JSON.stringify(result, null, 2)}`);
+    }
   } else {
     assert.ok(contract.golden, `${contract.game}: no acceptance golden is recorded`);
     assert.deepEqual(result, contract.golden, `${contract.game}: generated behavior changed`);
@@ -338,7 +481,8 @@ function verifyInputBindings(
   input: KeyboardInput,
   target: EventTarget,
 ): void {
-  for (const code of new Set(contract.actions.map(action => action.code))) {
+  for (const code of new Set(contract.actions.flatMap(action =>
+    'code' in action ? [action.code] : []))) {
     const binding = config.bindings.find(candidate => candidate.keys.includes(code));
     assert.ok(binding, `${contract.game}: ${code} has no generated input binding`);
     const released = input.read(binding.port);

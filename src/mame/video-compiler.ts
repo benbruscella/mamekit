@@ -79,10 +79,37 @@ export function compileMameVideo(
   const screen = ast.findFunctionInHierarchy(screenClass, screenMethod)
     ?? ast.ast.units.flatMap(unit => unit.functions)
       .find(candidate => candidate.name === screenMethod);
-  const bitmap = screen && (
-    compilePackedPaletteBitmap(graph, ast, source, constants, screen) ??
-    compileDirectBitmap(graph, screenClass, screenMethod, screen)
-  );
+  if (
+    screen?.body.includes('video_update_common(bitmap, cliprect,') &&
+    source.includes('void taitosj_state::draw_layers()') &&
+    source.includes('m_gfxdecode->gfx(m_colorbank[0] & 0x08 ? 2 : 0)->transpen') &&
+    source.includes('void taitosj_state::draw_sprites(bitmap_ind16 &bitmap)') &&
+    source.includes('copyscrollbitmap_trans(bitmap, m_layer_bitmap[which]')
+  ) {
+    const handlers: GeneratedHandler[] = [];
+    addHandlerClosure(handlers, ast, [
+      `${screen.className}.${screen.name}`,
+      `${screen.className}.video_update_common`,
+      `${screen.className}.draw_layers`,
+      `${screen.className}.draw_sprites`,
+    ], constants);
+    return {
+      plan: {
+        gfx: [],
+        ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
+        tilemaps: [],
+        initialState: memberDefaults,
+        source: sourceRef(screen),
+      },
+      handlers,
+    };
+  }
+  const bitmap = (
+    screen && (
+      compilePackedPaletteBitmap(graph, ast, source, constants, screen) ??
+      compileDirectBitmap(graph, screenClass, screenMethod, screen)
+    )
+  ) ?? compileCrtcPackedBitmap(graph, ast, source, constants);
   if (bitmap) {
     const scale = Number(constants.GALAXIAN_XSCALE ?? 1);
     return {
@@ -93,15 +120,21 @@ export function compileMameVideo(
         initialState: memberDefaults,
         bitmap,
         ...(scale !== 1 ? { renderScale: { x: scale, y: 1 } } : {}),
-        source: sourceRef(screen),
+        source: bitmap.source,
       },
       handlers: [],
     };
   }
   const config = ast.findFunction(String(machine.props.cls), String(machine.props.name));
   if (!config) return fail(`missing config source ${String(machine.props.cls)}::${String(machine.props.name)}`);
-  const startMatch =
-    /MCFG_VIDEO_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/.exec(config.body);
+  const configFunctions = [...machineIds]
+    .map(id => graph.nodes.find(node => node.id === id))
+    .filter((node): node is KGNode => Boolean(node))
+    .map(node => ast.findFunction(String(node.props.cls), String(node.props.name)))
+    .filter((fn): fn is MameFunction => Boolean(fn));
+  const startMatch = configFunctions
+    .map(fn => /MCFG_VIDEO_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/.exec(fn.body))
+    .find((match): match is RegExpExecArray => Boolean(match));
   const start = startMatch
     ? ast.findFunction(startMatch[1]!, `video_start_${startMatch[2]}`)
     : ast.findFunctionInHierarchy(String(machine.props.cls), 'video_start');
@@ -128,6 +161,13 @@ export function compileMameVideo(
   if (start && !tilemaps.length) return fail(`video_start emitted no tilemaps`);
   const handlers: GeneratedHandler[] = [];
   const game = graph.nodes.find(node => node.label === 'Game');
+  const driverInit = ast.findFunctionInHierarchy(
+    String(machine.props.cls),
+    String(game?.props.init ?? ''),
+  );
+  const driverInitState = driverInit
+    ? initialState(driverInit.body, { ...constants, ...numericDefaults })
+    : {};
   const delegates = compileInitDelegates(
     ast,
     String(machine.props.cls),
@@ -139,6 +179,12 @@ export function compileMameVideo(
     ...Object.values(delegates).filter((target): target is string => target !== null),
   ];
   addHandlerClosure(handlers, ast, roots, constants);
+  const updateMode = handlers.some(handler =>
+    handler.body?.includes('cliprect.max_y - 1') &&
+    handler.body.includes('sprite') &&
+    handler.body.includes('transpen'))
+    ? 'scanline' as const
+    : undefined;
   const gfx = decodes.flatMap(decode => {
     const binding = decodeBindings.get(String(decode.props.name));
     return graph.edges
@@ -180,9 +226,13 @@ export function compileMameVideo(
   const palette = palettes.length
     ? undefined
     : (
-      compilePalette(graph, machineIds, ast, constants) ??
+      compilePalette(graph, machineIds, ast, source, constants) ??
       compileBuiltinPromPalette(graph, machineIds, mameSrc, constants)
     );
+  const pointerBindings = palette
+    ? sourceAssignedRegionPointers(ast, palette, constants)
+    : { bindings: {}, offsets: {} };
+  Object.assign(regionBindings, pointerBindings.bindings);
   // A palette_device with no init callback colors CPU-writable palette RAM
   // through the set_format converter named in the machine configuration.
   const ramPalette = palette || palettes.length
@@ -206,8 +256,12 @@ export function compileMameVideo(
 
   return {
     plan: {
+      ...(updateMode ? { updateMode } : {}),
       gfx,
       ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
+      ...(Object.keys(pointerBindings.offsets).length
+        ? { regionBindingOffsets: pointerBindings.offsets }
+        : {}),
       ...(palette ? { palette } : {}),
       ...(palettes.length ? { palettes } : {}),
       ...(ramPalette ? { ramPalette } : {}),
@@ -219,6 +273,7 @@ export function compileMameVideo(
         ...(start
           ? initialState(start.body, { ...constants, ...numericDefaults })
           : {}),
+        ...driverInitState,
       },
       ...(renderScale !== 1 ? { renderScale: { x: renderScale, y: 1 } } : {}),
       ...(Object.keys(delegates).length ? { delegates } : {}),
@@ -248,6 +303,41 @@ export function sourceRegionBindings(source: string): Record<string, string> {
     if (regionMembers.has(match[1]!)) bindings[match[1]!] = match[2]!;
   }
   return bindings;
+}
+
+/** Region pointers assigned by a palette callback after advancing a local PROM pointer. */
+function sourceAssignedRegionPointers(
+  ast: MameAstIndex,
+  palette: GeneratedPromPalettePlan,
+  constants: Record<string, number>,
+): { bindings: Record<string, string>; offsets: Record<string, number> } {
+  if (!palette.source) return { bindings: {}, offsets: {} };
+  const fn = ast.ast.units.flatMap(unit => unit.functions).find(candidate =>
+    candidate.span.file === palette.source!.file &&
+    candidate.span.line === palette.source!.line);
+  if (!fn) return { bindings: {}, offsets: {} };
+  const local = /(?:const\s+)?(?:u?int8_t|u8|char)\s*\*\s*(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)->base\(\)/.exec(
+    fn.body,
+  );
+  if (!local) return { bindings: {}, offsets: {} };
+  const [_, pointer, region] = local;
+  let offset = 0;
+  const bindings: Record<string, string> = {};
+  const offsets: Record<string, number> = {};
+  const events = [
+    ...fn.body.matchAll(new RegExp(
+      `\\b${pointer}\\s*\\+=\\s*([^;]+);|\\b(m_\\w+)\\s*=\\s*${pointer}\\s*;`,
+      'g',
+    )),
+  ];
+  for (const event of events) {
+    if (event[1]) offset += expressionNumber(event[1], constants);
+    if (event[2]) {
+      bindings[event[2]] = region!;
+      offsets[event[2]] = offset;
+    }
+  }
+  return { bindings, offsets };
 }
 
 function compilePackedPaletteBitmap(
@@ -303,6 +393,158 @@ function compilePackedPaletteBitmap(
   };
 }
 
+/**
+ * Lower the common MC6845 pattern where an update-row callback reads a packed
+ * framebuffer and selects a page of palette RAM. The geometry checks prove
+ * that MAME's MA/RA wiring is a contiguous 256-byte row before the simpler
+ * browser bitmap plan is emitted.
+ */
+function compileCrtcPackedBitmap(
+  graph: KnowledgeGraph,
+  ast: MameAstIndex,
+  source: string,
+  constants: Record<string, number>,
+): NonNullable<GeneratedVideoPlan['bitmap']> | undefined {
+  const crtc = graph.nodes.find(node =>
+    node.label === 'Device' && node.props.type === 'MC6845');
+  const config = ((crtc?.props.config as string[] | undefined) ?? []).join('\n');
+  const callback = /set_update_row_callback\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)\s*\)\s*\)/
+    .exec(config);
+  if (!callback) return undefined;
+  const declaration = new RegExp(
+    `MC6845_UPDATE_ROW\\s*\\(\\s*${callback[1]}::${callback[2]}\\s*\\)\\s*\\{`,
+  ).exec(source);
+  if (!declaration) return undefined;
+  const open = source.indexOf('{', declaration.index);
+  const close = matchingSourceBrace(source, open);
+  if (open < 0 || close < 0) return undefined;
+  const body = source.slice(open + 1, close);
+  const member = /\bpens\s*\[\s*(m_\w+)\s*\[\s*\([^;\]]*\boffs\b[^;\]]*\]\s*\]\s*\]/.exec(body)?.[1]
+    ?? /\bpens\s*\[\s*(m_\w+)\s*\[/.exec(body)?.[1];
+  const paletteBank = /pens\s*\(\s*\)\s*\[\s*(m_\w+)\s*<<\s*8\s*\]/.exec(body)?.[1];
+  const contiguousAddress =
+    /\(\s*\(\s*ma\s*<<\s*6\s*\)\s*&\s*0xf800\s*\)\s*\|\s*\(\s*\(\s*ra\s*<<\s*8\s*\)\s*&\s*0x0700\s*\)/i
+      .test(body);
+  const bytePixels = /x\s*<\s*x_count\s*\*\s*8/.test(body);
+  const charWidth = /set_char_width\s*\(\s*8\s*\)/.test(config);
+  if (!member || !paletteBank || !contiguousAddress || !bytePixels || !charWidth) {
+    return undefined;
+  }
+  const paletteRam =
+    compileRawRamPalette(graph, ast, source, constants) ??
+    compileLookupRamPalette(graph, ast);
+  if (!paletteRam || paletteRam.entries < 0x400) return undefined;
+  return {
+    member,
+    rowStart: 0,
+    rows: 256,
+    bytesPerRow: 256,
+    xOffset: 0,
+    lsbFirst: true,
+    bitsPerPixel: 8,
+    paletteRam,
+    paletteBankMember: paletteBank,
+    ...(/\boffs_xor\s*=\s*m_(\w+)\s*\?\s*0xffff/.test(body)
+      ? {
+          flipXMember: `m_${/\boffs_xor\s*=\s*(m_\w+)/.exec(body)?.[1]?.replace(/^m_/, '')}`,
+          flipYMember: `m_${/\boffs_xor\s*=\s*(m_\w+)/.exec(body)?.[1]?.replace(/^m_/, '')}`,
+        }
+      : {}),
+    black: 0xff000000,
+    white: 0xffffffff,
+    source: {
+      file: String(crtc?.props.sourceFile ?? graph.meta.driverFile),
+      line: Number(crtc?.props.sourceLine ?? 1),
+      column: 1,
+    },
+  };
+}
+
+function matchingSourceBrace(source: string, open: number): number {
+  let depth = 0;
+  let quote = '';
+  let escaped = false;
+  for (let index = open; index < source.length; index++) {
+    const char = source[index]!;
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === quote) quote = '';
+      continue;
+    }
+    if (char === '"' || char === '\'') quote = char;
+    else if (char === '{') depth++;
+    else if (char === '}' && --depth === 0) return index;
+  }
+  return -1;
+}
+
+function compileLookupRamPalette(
+  graph: KnowledgeGraph,
+  ast: MameAstIndex,
+): NonNullable<NonNullable<GeneratedVideoPlan['bitmap']>['paletteRam']> | undefined {
+  const palette = graph.nodes.find(node =>
+    node.label === 'Device' && node.props.type === 'PALETTE');
+  const config = ((palette?.props.config as string[] | undefined) ?? []).join('\n');
+  const declaration =
+    /PALETTE\s*\(\s*config\s*,\s*(m_\w+)(?:\s*,[^)]*)?\)[^;]*?set_format\s*\(([\s\S]+)\)/
+      .exec(config);
+  const callback = declaration && /(\w+)::(\w+)/.exec(declaration[2]!);
+  const entries = Number(declaration && splitMameArgs(declaration[2]!).at(-1));
+  if (!declaration || !callback || !Number.isInteger(entries) || entries <= 0) {
+    return undefined;
+  }
+  const fn = ast.findFunctionInHierarchy(callback[1]!, callback[2]!);
+  if (!fn) return undefined;
+  const table = /static\s+const\s+uint8_t\s+\w+\s*\[[^\]]+\]\s*=\s*\{([\s\S]*?)\}/
+    .exec(fn.body)?.[1]
+    ?.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, '')
+    .split(',')
+    .map(value => Number(value.trim()))
+    .filter(Number.isFinite);
+  const intensity =
+    /\bint(?:\s+const)?\s+intensity\s*=\s*\(\s*raw\s*>>\s*(\d+)\s*\)\s*&\s*(0x[\da-f]+|\d+)/i
+      .exec(fn.body);
+  if (!table?.length || !intensity) return undefined;
+  const channels: {
+    channel: 'r' | 'g' | 'b';
+    valueShift: number;
+    valueMask: number;
+    valueTableShift: number;
+  }[] = [];
+  let cursor = 0;
+  for (const channel of ['r', 'g', 'b'] as const) {
+    const segment = fn.body.slice(cursor);
+    const result = new RegExp(
+      `\\bbits\\s*=\\s*\\(\\s*raw\\s*>>\\s*(\\d+)\\s*\\)\\s*&\\s*(0x[\\da-f]+|\\d+)` +
+      `[\\s\\S]*?\\b${channel}\\s*=\\s*\\w+\\s*\\[\\s*\\(\\s*bits\\s*<<\\s*(\\d+)\\s*\\)\\s*\\|\\s*intensity\\s*\\]`,
+      'i',
+    ).exec(segment);
+    if (!result) return undefined;
+    channels.push({
+      channel,
+      valueShift: Number(result[1]),
+      valueMask: Number(result[2]),
+      valueTableShift: Number(result[3]),
+    });
+    cursor += result.index + result[0].length;
+  }
+  return {
+    member: declaration[1]!,
+    entries,
+    min: 0,
+    max: 255,
+    scaler: 1,
+    channels: [],
+    lookup: {
+      values: table,
+      intensityShift: Number(intensity[1]),
+      intensityMask: Number(intensity[2]),
+      channels,
+    },
+  };
+}
+
 function compileRawRamPalette(
   graph: KnowledgeGraph,
   ast: MameAstIndex,
@@ -318,7 +560,7 @@ function compileRawRamPalette(
   const palette = graph.nodes.find(node =>
     node.label === 'Device' && node.props.type === 'PALETTE');
   const config = ((palette?.props.config as string[] | undefined) ?? []).join('\n');
-  const declaration = /PALETTE\s*\(\s*config\s*,\s*(m_\w+)\s*\)[^;]*?set_format\s*\(([\s\S]+)\)/.exec(config);
+  const declaration = /PALETTE\s*\(\s*config\s*,\s*(m_\w+)(?:\s*,[^)]*)?\)[^;]*?set_format\s*\(([\s\S]+)\)/.exec(config);
   const callback = declaration && /(\w+)::(\w+)/.exec(declaration[2]!);
   const entries = Number(declaration && splitMameArgs(declaration[2]!).at(-1));
   if (!declaration || !callback || !Number.isInteger(entries) || entries <= 0) {
@@ -654,13 +896,13 @@ function compileResNetAllPalette(
   fn: MameFunction,
   constants: Record<string, number>,
 ): GeneratedPromPalettePlan | undefined {
-  const call = /compute_res_net_all\s*\(\s*\w+\s*,\s*(m_\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*\)/
+  const call = /compute_res_net_all\s*\(\s*\w+\s*,\s*(\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*\)/
     .exec(fn.body);
   if (!call) return undefined;
-  const [, regionMember, decodeName, netName] = call;
+  const [, regionSource, decodeName, netName] = call;
   const region = new RegExp(
-    `\\b${regionMember}\\s*\\(\\s*\\*this\\s*,\\s*"([^"]+)"\\s*\\)`,
-  ).exec(source)?.[1];
+    `\\b${regionSource}\\s*\\(\\s*\\*this\\s*,\\s*"([^"]+)"\\s*\\)`,
+  ).exec(source)?.[1] ?? /memregion\(\s*"([^"]+)"\s*\)/.exec(fn.body)?.[1];
   if (!region || !graph.nodes.some(node =>
     node.label === 'RomRegion' && node.props.tag === region)) return undefined;
 
@@ -690,26 +932,75 @@ function compileResNetAllPalette(
   ) return undefined;
 
   const channelRows = [...net.matchAll(
-    /\{\s*RES_NET_AMP_\w+\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*(\d+)\s*,\s*\{([^{}]+)\}\s*\}/g,
+    /\{\s*(RES_NET_AMP_\w+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*(\d+)\s*,\s*\{([^{}]+)\}\s*\}/g,
   )];
   if (channelRows.length < 3) return undefined;
   const channels = (['r', 'g', 'b'] as const).map((channel, index) => {
-    const mask = masks[index]!;
-    const bitCount = Math.max(1, 32 - Math.clz32(mask));
     const row = channelRows[index]!;
-    const count = Number(row[3]);
+    const count = Number(row[4]);
+    const networkResistances = splitMameArgs(row[5]!)
+      .slice(0, count)
+      .map(value => expressionNumber(value, constants));
+    const bits: number[] = [];
+    const channelOffsets: number[] = [];
+    const resistances: number[] = [];
+    for (let sourceIndex = index; sourceIndex < masks.length; sourceIndex += 3) {
+      const mask = masks[sourceIndex]!;
+      for (let outputBit = 0; outputBit < count; outputBit++) {
+        if (!(mask & (1 << outputBit))) continue;
+        bits.push(outputBit + shifts[sourceIndex]!);
+        channelOffsets.push(offsets[sourceIndex]!);
+        resistances.push(networkResistances[outputBit]!);
+      }
+    }
     return {
       channel,
-      bits: Array.from({ length: bitCount }, (_, bit) => bit + shifts[index]!),
-      offsets: Array.from({ length: bitCount }, () => offsets[index]!),
-      resistances: splitMameArgs(row[4]!)
-        .slice(0, count)
-        .map(value => expressionNumber(value, constants)),
-      pulldown: expressionNumber(row[2], constants),
-      pullup: expressionNumber(row[1], constants),
+      bits,
+      offsets: channelOffsets,
+      resistances,
+      pulldown: expressionNumber(row[3], constants),
+      pullup: expressionNumber(row[2], constants),
     };
   });
   const count = Math.max(0, end - start + 1);
+  const forceBlackMatch = /if\s*\(\s*\(\s*(\w+)\s*&\s*([^)]+?)\s*\)\s*==\s*([^)]+?)\s*\)[\s\S]*?compute_res_net\s*\([^,]+,[^,]+,\s*(\w+)\s*\)[\s\S]*?set_pen_color\s*\(\s*\1\s*,/m
+    .exec(fn.body);
+  let forceBlack: GeneratedPromPalettePlan['forceBlack'];
+  if (forceBlackMatch) {
+    const overrideNet = initializer('res_net_info', forceBlackMatch[4]!);
+    const zeroInputChannels = overrideNet
+      ? [...overrideNet.matchAll(
+        /\{\s*RES_NET_AMP_\w+\s*,\s*[^,]+\s*,\s*[^,]+\s*,\s*(\d+)\s*,/g,
+      )].slice(0, 3).every(row => Number(row[1]) === 0)
+      : false;
+    const mask = expressionNumber(forceBlackMatch[2]!, constants);
+    const value = expressionNumber(forceBlackMatch[3]!, constants);
+    if (zeroInputChannels && Number.isInteger(mask) && Number.isInteger(value)) {
+      forceBlack = { mask, value };
+    }
+  }
+  const exactResNet =
+    /RES_NET_VCC_5V/.test(net) &&
+    /RES_NET_VBIAS_5V/.test(net) &&
+    /RES_NET_VIN_(?:MB7052|TTL_OUT)/.test(net) &&
+    /RES_NET_MONITOR_SANYO_EZV20/.test(net) &&
+    channelRows.every((row, index) => channels[index]!.resistances.length === Number(row[4]));
+  const amplifiers = channelRows.map(row =>
+    row[1] === 'RES_NET_AMP_DARLINGTON'
+      ? 'darlington' as const
+      : row[1] === 'RES_NET_AMP_EMITTER'
+        ? 'emitter' as const
+        : 'none' as const);
+  const normalizeCall = /normalize_range\s*\(\s*([^,]+)\s*,\s*([^,)]+)(?:\s*,\s*([^,]+)\s*,\s*([^)]+))?\)/
+    .exec(fn.body);
+  const normalize = normalizeCall
+    ? {
+        start: expressionNumber(normalizeCall[1]!, constants),
+        end: expressionNumber(normalizeCall[2]!, constants),
+        lumMin: normalizeCall[3] ? expressionNumber(normalizeCall[3], constants) : 0,
+        lumMax: normalizeCall[4] ? expressionNumber(normalizeCall[4], constants) : 255,
+      }
+    : undefined;
   return {
     region,
     colorCount: count,
@@ -717,6 +1008,11 @@ function compileResNetAllPalette(
     max: 255,
     scaler: -1,
     channels,
+    ...(exactResNet ? {
+      resNet: { input: 'ttl' as const, monitor: 'sanyo' as const, amplifiers },
+    } : {}),
+    ...(normalize && Object.values(normalize).every(Number.isFinite) ? { normalize } : {}),
+    ...(forceBlack ? { forceBlack } : {}),
     lookupOffset: start,
     lookupCount: count,
     lookupMask: count - 1,
@@ -814,6 +1110,38 @@ function compileNamedPalette(
         lookupOffset: expressionAt(sourceVariable[2] ?? 'i', loop.start),
         lookupCount: Math.max(0, loop.end - loop.start),
       });
+    }
+    // Some dual lookup-PROM boards ground A7 and use the loop's high bit to
+    // select a second physical PROM. Expand that folded local address into
+    // affine banks the generated runtime can apply without re-parsing C++.
+    const folded = /\b\w+\s*=\s*\(\s*i\s*<<\s*\d+\s*&\s*(0x[\da-f]+|\d+)\s*\)\s*\|\s*\(\s*i\s*&\s*(0x[\da-f]+|\d+)\s*\)/i
+      .exec(fn.body);
+    if (folded && banks.length === 2) {
+      const high = Number(folded[1]);
+      const lowMask = Number(folded[2]);
+      const count = lowMask + 1;
+      const lookupBase = banks[0]!.lookupOffset ?? 0;
+      const penDeltas = [...fn.body.matchAll(
+        /\bset_pen_indirect\s*\(\s*\w+\s*(?:\|\s*(0x[\da-f]+|\d+))?/gi,
+      )].slice(0, banks.length).map(match => Number(match[1] ?? 0));
+      if (
+        Number.isInteger(high) && high > lowMask &&
+        Number.isInteger(count) && count > 0 &&
+        penDeltas.length === banks.length
+      ) {
+        const foldedBanks: GeneratedPromPalettePlan['banks'] = [];
+        for (const sourceBase of [0, high]) {
+          for (let index = 0; index < banks.length; index++) {
+            foldedBanks.push({
+              ...banks[index]!,
+              penOffset: sourceBase + penDeltas[index]!,
+              lookupOffset: lookupBase + sourceBase,
+              lookupCount: count,
+            });
+          }
+        }
+        banks.splice(0, banks.length, ...foldedBanks);
+      }
     }
     const fixedCall = new RegExp(
       `${member}->set_pen_indirect\\s*\\(([^;]+)\\)\\s*;`,
@@ -1131,6 +1459,7 @@ function compilePalette(
   graph: KnowledgeGraph,
   machineIds: Set<string>,
   ast: MameAstIndex,
+  source: string,
   constants: Record<string, number> = {},
 ): GeneratedPromPalettePlan | undefined {
   const deviceIds = new Set(graph.edges
@@ -1149,22 +1478,27 @@ function compilePalette(
     if (process.env.MAMEKIT_DEBUG_VIDEO === '1') console.error('video palette: source function missing', callback[0]);
     return undefined;
   }
+  const resNet = compileResNetAllPalette(graph, source, fn, constants);
+  if (resNet) return resNet;
   const body = fn.body;
   const region = /memregion\(\s*"([^"]+)"\s*\)/.exec(body)?.[1];
   const weightsCall = findCallArguments(body, 'compute_resistor_weights');
   if (!region) return undefined;
-  const channels = weightsCall
-    ? compileResistorChannels(body, weightsCall)
-    : compileFixedWeightChannels(body);
-  if (channels.length !== 3) {
-    if (process.env.MAMEKIT_DEBUG_VIDEO === '1') console.error('video palette: channels', channels.length);
-    return undefined;
-  }
   const loops = numericForLoops(body);
   const paletteLoop = loops.find(loop =>
     loop.body.includes('set_indirect_color') ||
     loop.body.includes('set_pen_color') ||
     /\bpalette_val\s*\[\s*i\s*\]\s*=\s*rgb_t/.test(loop.body));
+  const channels = weightsCall
+    ? compileResistorChannels(body, weightsCall)
+    : compileFixedWeightChannels(
+      paletteLoop?.body ?? body,
+      paletteLoop?.start ?? 0,
+    );
+  if (channels.length !== 3) {
+    if (process.env.MAMEKIT_DEBUG_VIDEO === '1') console.error('video palette: channels', channels.length);
+    return undefined;
+  }
   const lookupLoops = loops.filter(loop =>
     loop.body.includes('set_pen_indirect') || loop.body.includes('set_pen_color'));
   const lookupOffset = expressionNumber(/color_prom\s*\+=\s*([^;]+)/.exec(body)?.[1]);
@@ -1225,11 +1559,40 @@ function compilePalette(
         colorOr: expressionNumber(colorOrExpression),
         lookupOffset: usesPostIncrement
           ? currentPostIncrementOffset
-          : lookupOffset + expressionAt(lookupIndex ?? 'i', loop.start),
+          : postIncrementOffset + expressionAt(lookupIndex ?? 'i', loop.start),
         lookupCount: Math.max(0, loop.end - loop.start),
       }];
     });
   });
+  const folded = /\b\w+\s*=\s*\(\s*i\s*<<\s*\d+\s*&\s*(0x[\da-f]+|\d+)\s*\)\s*\|\s*\(\s*i\s*&\s*(0x[\da-f]+|\d+)\s*\)/i
+    .exec(lookupLoops.map(loop => loop.body).join('\n'));
+  if (folded && banks.length === 2) {
+    const high = Number(folded[1]);
+    const lowMask = Number(folded[2]);
+    const count = lowMask + 1;
+    const lookupBase = banks[0]!.lookupOffset ?? 0;
+    const penDeltas = [...body.matchAll(
+      /\bset_pen_indirect\s*\(\s*\w+\s*(?:\|\s*(0x[\da-f]+|\d+))?/gi,
+    )].slice(0, banks.length).map(match => Number(match[1] ?? 0));
+    if (
+      Number.isInteger(high) && high > lowMask &&
+      Number.isInteger(count) && count > 0 &&
+      penDeltas.length === banks.length
+    ) {
+      const foldedBanks: GeneratedPromPalettePlan['banks'] = [];
+      for (const sourceBase of [0, high]) {
+        for (let index = 0; index < banks.length; index++) {
+          foldedBanks.push({
+            ...banks[index]!,
+            penOffset: sourceBase + penDeltas[index]!,
+            lookupOffset: lookupBase + sourceBase,
+            lookupCount: count,
+          });
+        }
+      }
+      banks.splice(0, banks.length, ...foldedBanks);
+    }
+  }
   const palettePenCall = paletteLoop?.body.includes('set_pen_color')
     ? findCallArguments(paletteLoop.body, 'palette.set_pen_color')
     : undefined;
@@ -1258,6 +1621,19 @@ function compilePalette(
   }
   const args = weightsCall ? splitMameArgs(weightsCall) : [];
   const computedColors = compileComputedColorGroups(body, paletteLoop, loops);
+  const promColors = weightsCall ? [] : loops.flatMap(loop => {
+    if (loop === paletteLoop || !loop.body.includes('set_indirect_color')) return [];
+    if (!loop.body.includes('color_prom')) return [];
+    const call = findCallArguments(loop.body, 'palette.set_indirect_color') ??
+      findCallArguments(loop.body, 'set_indirect_color');
+    const groupChannels = compileFixedWeightChannels(loop.body, loop.start);
+    if (!call || groupChannels.length !== 3) return [];
+    return [{
+      base: expressionAt(splitMameArgs(call)[0] ?? '0', loop.start),
+      count: Math.max(0, loop.end - loop.start),
+      channels: groupChannels,
+    }];
+  });
   return {
     region,
     colorCount: direct
@@ -1268,6 +1644,7 @@ function compilePalette(
     scaler: weightsCall ? Number(args[2]) || -1 : 1,
     channels,
     ...(computedColors.length ? { computedColors } : {}),
+    ...(promColors.length ? { promColors } : {}),
     lookupOffset,
     lookupCount: banks[0]!.lookupCount ?? 0,
     lookupMask,
@@ -1499,16 +1876,17 @@ function parseResistorNetworks(body: string): Map<string, {
 
 function compileFixedWeightChannels(
   body: string,
+  indexValue = 0,
 ): GeneratedPromPalettePlan['channels'] {
   const bits = new Map<string, { offset: number; bit: number }>();
   const channels: GeneratedPromPalettePlan['channels'] = [];
   const sourceRe =
-    /\b(bit\d+)\s*=\s*BIT\(\s*color_prom\[\s*([^\]]+)\s*\]\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*([^;]+)/g;
+    /\b(bit\d+)\s*=\s*BIT\(\s*(?:color_prom\[\s*([^\]]+)\s*\]|\*\s*color_prom)\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*([^;]+)/g;
   let match: RegExpExecArray | null;
   while ((match = sourceRe.exec(body)) !== null) {
     if (match[1]) {
       bits.set(match[1], {
-        offset: expressionAt(match[2]!, 0),
+        offset: expressionAt(match[2] ?? '0', indexValue),
         bit: Number(match[3]),
       });
       continue;
@@ -1593,13 +1971,17 @@ function addHandler(
   if (handlers.some(handler => handler.ownerClass === fn.className && handler.method === fn.name)) {
     return;
   }
+  const executableBody = normalizeMameExecutionSource(fn.body)
+    // Container type spelling has no run-time behavior; handlers interact
+    // with the local through ordinary calls after declaration.
+    .replace(/\bstd::vector\s*<[^;{}>]+>\s+(\w+)\s*;/g, 'auto $1;');
   handlers.push({
     id: `handler:${fn.className}.${fn.name}`,
     ownerClass: fn.className,
     method: fn.name,
     parameters: fn.parameters.trim(),
     body: fn.body.trim(),
-    program: compileMameHandler(normalizeMameExecutionSource(fn.body)),
+    program: compileMameHandler(executableBody),
     constants: Object.fromEntries(
       Object.entries(constants).filter(([name]) => new RegExp(`\\b${name}\\b`).test(fn.body)),
     ),
@@ -1723,7 +2105,7 @@ function sourceMemberDefaults(
     if (value != null && Number.isFinite(value)) defaults[match[1]!] = value;
   }
   for (const match of source.matchAll(
-    /\b(?:bool|int|u?int(?:8|16|32)_t|u8|u16|u32)\s+(m_\w+)\s*\[\s*(\d+)\s*\]\s*\{\s*\}\s*;/g,
+    /\b(?:bool|int|u?int(?:8|16|32)_t|u8|u16|u32)\s+(m_\w+)\s*\[\s*(\d+)\s*\]\s*(?:=\s*)?\{\s*\}\s*;/g,
   )) {
     defaults[match[1]!] = new Array(Number(match[2])).fill(0);
   }

@@ -7,7 +7,7 @@
 // per-octave-band energy, RMS, and a coarse onset-rate (tempo proxy), so an
 // agent without ears can see EXACTLY how the mix differs from hardware.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve, join } from 'node:path';
 
@@ -17,6 +17,7 @@ if (!oursPath || !refPath) {
   process.exit(1);
 }
 const outDir = resolve(outArg ?? '.');
+mkdirSync(outDir, { recursive: true });
 
 function readWav(path) {
   const b = readFileSync(resolve(path));
@@ -37,6 +38,21 @@ function readWav(path) {
     let s = 0;
     for (let c = 0; c < fmt.ch; c++) s += data.readInt16LE((i * fmt.ch + c) * 2);
     out[i] = s / fmt.ch / 32768;
+  }
+  // MAME's wavwrite preserves the emulated board's positive DC bias while the
+  // browser output is AC-coupled. Remove that inaudible mismatch before FFT,
+  // band-energy and onset comparisons or DC leakage dominates every metric.
+  const cutoff = 20;
+  const rc = 1 / (2 * Math.PI * cutoff);
+  const alpha = rc / (rc + 1 / fmt.rate);
+  let previousInput = 0;
+  let previousOutput = 0;
+  for (let i = 0; i < out.length; i++) {
+    const input = out[i];
+    const output = alpha * (previousOutput + input - previousInput);
+    previousInput = input;
+    previousOutput = output;
+    out[i] = output;
   }
   return { rate: fmt.rate, samples: out };
 }

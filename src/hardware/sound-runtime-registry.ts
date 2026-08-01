@@ -6,7 +6,9 @@
 import { installAy8910Runtime } from './ay8910/runtime.ts';
 import { installYm2203Runtime } from './ym2203/runtime.ts';
 import { installNesRuntime } from './nes/runtime.ts';
+import { installSn76489Runtime } from './sn76489/runtime.ts';
 import {
+  deviceAliases,
   type SoundRuntimeContext,
   type SoundRuntimeHooks,
   type SoundRuntimeInstaller,
@@ -20,6 +22,7 @@ const INSTALLERS: Readonly<Record<string, SoundRuntimeInstaller>> = {
   ay8910: installAy8910Runtime,
   ym2203: installYm2203Runtime,
   nes: installNesRuntime,
+  sn76489: installSn76489Runtime,
 };
 
 export function installSoundRuntime(context: SoundRuntimeContext): SoundRuntimeHooks | undefined {
@@ -34,6 +37,24 @@ export function installSoundRuntime(context: SoundRuntimeContext): SoundRuntimeH
       (_address, offset, data) => {
         context.soundWrite(offset, data, context.fraction(), method);
       };
+    // A driver callback may reach the same sound device without a bus map,
+    // e.g. Qix's PIA handlers call m_discrete->write(node, data). Bind every
+    // source spelling emitted for the device member as well as the map key.
+    for (const alias of deviceAliases(context.board, context.sound.deviceTag)) {
+      context.calls[`${alias}.${method}`] = (...args: number[]) => {
+        const data = args.at(-1) ?? 0;
+        const rawOffset: unknown = args.length >= 2 ? args.at(-2) ?? 0 : 0;
+        const reference = rawOffset && typeof rawOffset === 'object' &&
+          'reference' in rawOffset
+          ? String((rawOffset as { reference: unknown }).reference)
+          : undefined;
+        const offset = reference
+          ? context.sound.writeOffsets?.[reference] ?? 0
+          : Number(rawOffset) || 0;
+        context.soundWrite(offset, data, context.fraction(), method);
+        return 0;
+      };
+    }
   }
   return undefined;
 }

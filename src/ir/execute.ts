@@ -95,9 +95,12 @@ const DEFAULT_CONSTANTS: Record<string, number> = {
   INPUT_LINE_IRQ0: 0,
   INPUT_LINE_NMI: -1,
   INPUT_LINE_RESET: -2,
+  INPUT_LINE_HALT: -3,
   M6801_IRQ1_LINE: 0,
   M6801_IS3_LINE: 2,
+  M6802_IRQ_LINE: 0,
   M6809_IRQ_LINE: 0,
+  M6809_FIRQ_LINE: 1,
   TILE_FLIPX: 1,
   TILE_FLIPY: 2,
   TILEMAP_FLIPX: 1,
@@ -403,7 +406,9 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     if (expression.operator === '&') return addressOf(expression.operand, context);
     const raw = evaluate(expression.operand, context);
     if (expression.operator === '*') {
-      return isGeneratedPointer(raw) ? pointerValue(raw, 0) : raw;
+      if (isGeneratedPointer(raw)) return pointerValue(raw, 0);
+      if (isIndexableMemory(raw)) return indexValue(raw, 0);
+      return raw;
     }
     if (expression.operator === '!') return truthy(raw) ? 0 : 1;
     const value = toNumber(raw);
@@ -479,7 +484,11 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
   if (expression.kind === 'member') {
     const object = evaluate(expression.object, context);
     if (isReference(object)) return reference(`${object.reference}.${expression.property}`);
-    if (object && typeof object === 'object' && expression.property in object) {
+    if (
+      object &&
+      (typeof object === 'object' || typeof object === 'function') &&
+      expression.property in object
+    ) {
       return (object as Record<string, unknown>)[expression.property];
     }
     return reference(expression.property);
@@ -585,6 +594,9 @@ function evaluateCall(
     if (['s16', 'int16_t'].includes(name)) return (toNumber(args[0]) << 16) >> 16;
     if (['u32', 'uint32_t'].includes(name)) return toNumber(args[0]) >>> 0;
     if (['s32', 'int32_t'].includes(name)) return toNumber(args[0]) | 0;
+    if (['u64', 'uint64_t', 's64', 'int64_t'].includes(name)) {
+      return Math.trunc(toNumber(args[0]));
+    }
     if (name === 'bool') return toNumber(args[0]) ? 1 : 0;
     const handler = context.bindings.calls?.[name];
     if (handler) return handler(...args.map(callArgument));
@@ -660,7 +672,7 @@ function evaluateCall(
       if (CACHE_ONLY_METHODS.has(method)) return 0;
       return reference(`${key}()`);
     }
-    if (object && typeof object === 'object') {
+    if (object && (typeof object === 'object' || typeof object === 'function')) {
       const args = expression.args.map(arg => evaluate(arg, context));
       const methodValue = (object as Record<string, unknown>)[method];
       if (typeof methodValue === 'function') return methodValue.apply(object, args);
@@ -732,6 +744,13 @@ function assign(
   }
   if (target.kind === 'unary' && target.operator === '*') {
     const pointer = evaluate(target.operand, context);
+    if (isIndexableMemory(pointer)) {
+      const current = indexValue(pointer, 0);
+      const next = assignmentValue(operator, current, value);
+      if (ArrayBuffer.isView(pointer)) (pointer as Uint8Array)[0] = toNumber(next);
+      else (pointer as unknown[])[0] = next;
+      return;
+    }
     if (!isGeneratedPointer(pointer)) {
       const received = pointer && typeof pointer === 'object'
         ? `object with keys ${Object.keys(pointer).join(', ') || '(none)'}`
@@ -828,6 +847,12 @@ function wrapValue(valueType: string | undefined, value: unknown): unknown {
   if (valueType === 'int16_t' || valueType === 's16') return (number << 16) >> 16;
   if (valueType === 'uint32_t' || valueType === 'u32') return number >>> 0;
   if (valueType === 'int32_t' || valueType === 's32') return number | 0;
+  if (
+    valueType === 'uint64_t' || valueType === 'u64' ||
+    valueType === 'int64_t' || valueType === 's64'
+  ) {
+    return Math.trunc(number);
+  }
   return number;
 }
 

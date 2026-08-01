@@ -11,6 +11,12 @@ artwork/
 /node_modules/
 /out/
 /dist/
+
+# Desktop MAME writes these relative to its working directory when diagnostic
+# runs use the default cfg_directory and snapshot_directory.
+/cfg/
+/snap/
+
 .DS_Store
 .playwright-mcp/
 .env

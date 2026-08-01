@@ -88,6 +88,7 @@ export function createGeneratedBoard(
 
 const INPUT_LINE_NMI = -1;
 const INPUT_LINE_RESET = -2;
+const INPUT_LINE_HALT = -3;
 
 /**
  * Apply MAME's special CPU input lines without confusing RESET with NMI.
@@ -112,8 +113,30 @@ export function applyGeneratedCpuInputLine(
     if (state !== 0) cpu.nmi();
     return;
   }
+  if (line === INPUT_LINE_HALT) {
+    setHeld(state !== 0);
+    return;
+  }
   if (line < 0) return;
-  cpu.setIrqLine(state !== 0, dataBus, state === 2);
+  if (line === 0) {
+    cpu.setIrqLine(state !== 0, dataBus, state === 2);
+  } else {
+    // CPUs such as the 6809 expose FIRQ as a distinct numbered input. Do not
+    // collapse every non-special line onto IRQ0.
+    cpu.setInputLine(line, state === 2 ? 1 : state);
+  }
+}
+
+/** Execute MAME device_execute_interface::pulse_input_line for driver callbacks. */
+export function pulseGeneratedCpuInputLine(cpu: Cpu, line: number): void {
+  if (line === INPUT_LINE_NMI) {
+    cpu.nmi();
+  } else if (line === INPUT_LINE_RESET) {
+    cpu.reset();
+  } else if (line >= 0) {
+    cpu.setInputLine(line, 1);
+    cpu.setInputLine(line, 0);
+  }
 }
 
 class IrBoard implements Board {
@@ -137,6 +160,7 @@ class IrBoard implements Board {
   private readonly frameRunner: GeneratedFrameRunner;
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
+  private currentLineFraction = 0;
   private soundRuntime?: SoundRuntimeHooks;
 
   constructor(
@@ -157,6 +181,15 @@ class IrBoard implements Board {
         if (!range.share) continue;
         this.shares[range.share] ??= new Uint8Array(range.end - range.start + 1);
       }
+    }
+    for (const initializer of machine.execution.initialShares ?? []) {
+      const share = this.shares[initializer.share];
+      if (!share) {
+        throw new Error(
+          `${machine.game}: initial share "${initializer.share}" is not mapped`,
+        );
+      }
+      share.set(initializer.bytes.slice(0, share.length));
     }
     for (const specification of machine.devices ?? []) {
       if (hasGeneratedDevice(specification.type)) {
@@ -272,6 +305,12 @@ class IrBoard implements Board {
     }
 
     const calls: NonNullable<GeneratedHandlerBindings['calls']> = {};
+    let runAutonomousNow = (): void => {};
+    calls['machine().scheduler().abort_timeslice'] = () => {
+      runAutonomousNow();
+      return 0;
+    };
+    calls['machine().scheduler().perfect_quantum'] = () => 0;
     this.bindings = { members: this.state, inputs, calls };
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
@@ -280,6 +319,7 @@ class IrBoard implements Board {
         tag,
         bytes,
         machine.video?.regionBindings,
+        machine.video?.regionBindingOffsets,
       );
     }
     for (const input of machine.execution.inputMembers ?? []) {
@@ -367,6 +407,19 @@ class IrBoard implements Board {
         bus.in = port => ioBus.read(port & mask);
         bus.out = (port, data) => ioBus.write(port & mask, data);
       }
+      const programSpace = {
+        read_byte: (address: number) => bus.read(address),
+        write_byte: (address: number, value: number) => bus.write(address, value),
+      };
+      const cpuMember = machine.devices?.find(device =>
+        device.tag === specification.tag)?.member;
+      for (const owner of [
+        specification.tag,
+        `m_${specification.tag}`,
+        cpuMember,
+      ].filter(Boolean) as string[]) {
+        calls[`${owner}.space`] = () => programSpace;
+      }
       const mask = specification.mask ?? 0xffff;
       const cpu = createCpu(type, {
         read: address => bus.read(address & mask),
@@ -377,6 +430,9 @@ class IrBoard implements Board {
         write: (address, data) => bus.write(address & mask, data),
         in: bus.in,
         out: bus.out,
+        timing: (elapsed, target) => {
+          this.currentLineFraction = target > 0 ? Math.min(1, elapsed / target) : 0;
+        },
         signal: (signal, state) => {
           const callbacks = machine.callbacks.filter(candidate =>
             candidate.ownerTag === specification.tag &&
@@ -498,16 +554,50 @@ class IrBoard implements Board {
         },
       }];
     });
+    // Standalone bus masters expose MAME's execute_run/m_icount pair but have
+    // no firmware host. The Intel 8257 on Donkey Kong is one such processor.
+    const autonomousProcessors = (machine.devices ?? []).flatMap(specification => {
+      if (
+        specification.hostTag ||
+        machine.execution.cpus.some(cpu => cpu.tag === specification.tag)
+      ) return [];
+      const device = this.devices.get(specification.tag);
+      if (!device?.methodNames().includes('execute_run')) return [];
+      return [{
+        tag: specification.tag,
+        clock: device.cycleClock(),
+        run: (cycles: number) => {
+          device.set('m_icount', cycles);
+          device.call('execute_run');
+          return cycles - device.get('m_icount');
+        },
+      }];
+    });
+    runAutonomousNow = () => {
+      // Drivers use abort_timeslice after asserting short DMA request pulses so
+      // the autonomous controller observes them before the CPU clears them.
+      // One generous local slice is bounded and covers a complete 8257 burst.
+      for (const processor of autonomousProcessors) processor.run(4096);
+    };
     // Machine latches drive reset/hold lines at power-on. Hosted processors
     // must be wired before these initial values are emitted.
     for (const callback of machine.callbacks) {
-      if (callback.signal !== 'q_out_cb' || callback.slot === undefined) continue;
+      if (
+        !['q_out_cb', 'write_cb'].includes(callback.signal) ||
+        callback.slot === undefined
+      ) continue;
       const source = this.devices.get(callback.ownerTag);
       if (!source) continue;
+      const member = callback.signal === 'q_out_cb' ? 'm_q' : 'm_value';
+      if (callback.signal === 'write_cb' && source.get(member) === 0) continue;
+      // A generated CPU resets during construction and may drive a latch
+      // before board-level device callbacks have been attached. MAME wires
+      // those callbacks in machine_config first, so replay the live latch
+      // output here to preserve the electrical state it would have observed.
       dispatchGeneratedCallback(
         machine,
         callback.id,
-        (source.get('m_q') >> callback.slot) & 1,
+        (source.get(member) >> callback.slot) & 1,
         this.effects,
       );
     }
@@ -537,6 +627,7 @@ class IrBoard implements Board {
           const executed = stalled + (cycles > stalled
             ? this.cpus.get(specification.tag)!.run(cycles - stalled)
             : 0);
+          this.currentLineFraction = 0;
           this.soundRuntime?.tickCpu?.(specification.tag, executed);
           this.cpuCycles.set(
             specification.tag,
@@ -544,7 +635,7 @@ class IrBoard implements Board {
           );
           return executed;
         },
-      })), ...hostedProcessors],
+      })), ...hostedProcessors, ...autonomousProcessors],
       onEvent: event => {
         if (machine.sound?.auxiliaryDevices?.some(device =>
           device.deviceTag === event.ownerTag)) {
@@ -560,6 +651,7 @@ class IrBoard implements Board {
       onLine: (line, phase, framebuffer) => {
         if (phase === 'before-processors') activeFramebuffer = framebuffer;
         this.currentLine = line;
+        this.currentLineFraction = 0;
         const seconds = 1 /
           (this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal);
         for (const device of this.devices.values()) device.tick(seconds);
@@ -701,10 +793,14 @@ class IrBoard implements Board {
       for (const range of map.ranges) {
         for (const [kind, key] of [['read', range.read], ['write', range.write]] as const) {
           if (!key) continue;
-          const split = key.indexOf('.');
-          if (split < 0) continue;
-          const tag = key.slice(0, split);
-          const method = key.slice(split + 1);
+          // MAME device tags may themselves contain dots (LS175.3D). Resolve
+          // against instantiated tags instead of treating the first dot as
+          // an unconditional tag/method delimiter.
+          const tag = [...this.devices.keys()]
+            .filter(candidate => key.startsWith(`${candidate}.`))
+            .sort((left, right) => right.length - left.length)[0];
+          if (!tag) continue;
+          const method = key.slice(tag.length + 1);
           const device = this.devices.get(tag);
           if (!device || !device.methodNames().includes(method)) continue;
           if (kind === 'read') {
@@ -974,7 +1070,8 @@ class IrBoard implements Board {
   }
 
   private soundFraction(): number {
-    return this.currentLine / this.machine.execution.screen.vtotal;
+    return (this.currentLine + this.currentLineFraction) /
+      this.machine.execution.screen.vtotal;
   }
 
   /**
@@ -983,21 +1080,24 @@ class IrBoard implements Board {
    * interpreted once, during generation, by src/ir/lower-connections.ts.
    */
   /** Execute a generated handler program, when one compiled for this key. */
-  private handlerExecutor(key: string): EffectExecutor | undefined {
+  private handlerExecutor(key: string, firstArgument?: unknown): EffectExecutor | undefined {
     const handler = this.machine.handlers?.find(candidate =>
       `${candidate.ownerClass}.${candidate.method}` === key &&
       candidate.program &&
       !candidate.program.diagnostics.length);
     if (!handler?.program) return undefined;
-    const firstParameter = /(\w+)\s*$/.exec(
-      (handler.parameters ?? '').split(',')[0]?.trim() ?? '',
-    )?.[1];
-    return state => {
-      return executeGeneratedMachineHandler(this.machine, handler, this.bindings, {
-        state,
-        data: state,
-        ...(firstParameter ? { [firstParameter]: state } : {}),
-      });
+    return (state, ...sourceArgs) => {
+      return executeGeneratedMachineHandler(
+        this.machine,
+        handler,
+        this.bindings,
+        generatedSignalHandlerArguments(
+          handler.parameters,
+          state,
+          firstArgument,
+          sourceArgs,
+        ),
+      );
     };
   }
 
@@ -1009,8 +1109,15 @@ class IrBoard implements Board {
         // create), so the target may not be instantiated yet at bind time.
         if (!this.machine.execution.cpus.some(cpu => cpu.tag === tag)) return undefined;
         if (line === 'nmi') {
-          // Only the NMI pin. Clearing it must not touch IRQ.
-          return state => { if (state) this.cpus.get(tag)?.nmi(); };
+          // A driver nmi_line_pulse callback is already an edge. A devcb
+          // set_inputline connection is a held pin and must reach the CPU as
+          // both assert and clear; the generated core then detects only the
+          // low-to-high transition. Treating every asserted callback as a
+          // pulse retriggered chained input mergers while their output had
+          // never gone low (notably Taito SJ's sound NMI circuit).
+          return delivery === 'pulse'
+            ? state => { if (state) this.cpus.get(tag)?.nmi(); }
+            : state => this.cpus.get(tag)?.setInputLine(INPUT_LINE_NMI, state ? 1 : 0);
         }
         if (line === 'reset') {
           return state => {
@@ -1018,7 +1125,26 @@ class IrBoard implements Board {
             if (state) this.cpus.get(tag)?.reset();
           };
         }
-        if (line === 'halt') return state => { this.cpuHeld.set(tag, Boolean(state)); };
+        if (line === 'halt') {
+          return state => {
+            const held = Boolean(state);
+            this.cpuHeld.set(tag, held);
+            // Z80 bus request is represented by MAME's HALT-class input line.
+            // The CPU's busack callback grants the requesting bus master; if
+            // that acknowledgement is never emitted, an 8257 remains parked
+            // in S0 and no DMA transfer can begin.
+            if (this.machine.callbacks.some(callback =>
+              callback.ownerTag === tag && callback.signal === 'busack_cb')) {
+              dispatchGeneratedCallbacks(
+                this.machine,
+                tag,
+                'busack_cb',
+                Number(held),
+                this.effects,
+              );
+            }
+          };
+        }
         // irq/firq. MAME's *_line_hold keeps the line asserted until the CPU
         // acknowledges it; assert and level leave it to the source to clear.
         return state => {
@@ -1028,7 +1154,10 @@ class IrBoard implements Board {
       deviceMethod: (tag, method, ownerClass) => {
         const device = this.devices.get(tag);
         if (device?.methodNames().includes(method)) {
-          return state => device.call(method, state);
+          return state => device.call(
+            method,
+            ...generatedDeviceCallbackArguments(device.parameters(method), state),
+          );
         }
         // A composite MAME device (timeplt_audio) is not instantiated; its
         // methods are the generated handlers for its class.
@@ -1041,8 +1170,29 @@ class IrBoard implements Board {
           this.bindings.calls?.[`m_${tag}.${method}`];
         return call ? state => { call(state); } : undefined;
       },
-      handler: key => {
-        const run = this.handlerExecutor(key);
+      handler: (key, deviceTag) => {
+        const cpuDevice = deviceTag
+          ? {
+              execute: () => ({
+                set_input_line: (line: number, state: number) => {
+                  const cpu = this.cpus.get(deviceTag);
+                  if (cpu) {
+                    applyGeneratedCpuInputLine(
+                      cpu,
+                      line,
+                      state,
+                      held => this.cpuHeld.set(deviceTag, held),
+                    );
+                  }
+                },
+                pulse_input_line: (line: number) => {
+                  const cpu = this.cpus.get(deviceTag);
+                  if (cpu) pulseGeneratedCpuInputLine(cpu, line);
+                },
+              }),
+            }
+          : undefined;
+        const run = this.handlerExecutor(key, cpuDevice);
         if (run) return run;
         // A driver method the board binds directly rather than lowering.
         const call = this.bindings.calls?.[key.split('.').at(-1)!];
@@ -1063,10 +1213,66 @@ class IrBoard implements Board {
           state,
           this.soundFraction(),
         ),
-      audioWrite: (tag, method) => state =>
-        sinks.soundWrite(0, state, this.soundFraction(), `${tag}.${method}`),
+      audioWrite: (tag, method) => {
+        const symbol = /^write_line_(.+)$/.exec(method)?.[1];
+        const offset = symbol
+          ? this.machine.sound?.writeOffsets?.[symbol] ?? 0
+          : 0;
+        return state =>
+          sinks.soundWrite(offset, state, this.soundFraction(), `${tag}.${method}`);
+      },
     };
   }
+}
+
+/**
+ * Adapt a devcb's value to the target device method signature.  MAME supplies
+ * offset zero when a one-value callback is bound to a conventional
+ * read/write(offs_t, data) handler; passing the value as the first argument
+ * silently turns it into the offset and drops the data.
+ */
+export function generatedDeviceCallbackArguments(
+  parameters: readonly string[],
+  state: number,
+): number[] {
+  if (!parameters.length) return [];
+  if (/\boffs_t\b/.test(parameters[0]!)) {
+    return parameters.length === 1 ? [0] : [0, state];
+  }
+  return [state];
+}
+
+export function generatedSignalHandlerArguments(
+  parameters: string | undefined,
+  state: number,
+  firstArgument?: unknown,
+  sourceArgs: readonly number[] = [],
+): Record<string, unknown> {
+  const declarations = (parameters ?? '')
+    .split(',')
+    .map(parameter => parameter.trim())
+    .filter(Boolean);
+  const args: Record<string, unknown> = { state, data: state };
+  for (const [index, declaration] of declarations.entries()) {
+    const name = /(\w+)\s*$/.exec(declaration)?.[1];
+    if (!name) continue;
+    if (index === 0 && firstArgument !== undefined) {
+      args[name] = firstArgument;
+    } else if (name === 'offset') {
+      args[name] = sourceArgs[0] ?? 0;
+    } else if (name === 'mem_mask') {
+      args[name] = sourceArgs.length >= 3
+        ? sourceArgs.at(-1)
+        : /\b(?:u?int)?32_t\b|\bu32\b/.test(declaration)
+          ? 0xffffffff
+          : /\b(?:u?int)?16_t\b|\bu16\b/.test(declaration)
+            ? 0xffff
+            : 0xff;
+    } else {
+      args[name] = state;
+    }
+  }
+  return args;
 }
 
 export function bindGeneratedDriverState(
@@ -1123,11 +1329,15 @@ export function bindGeneratedRegionState(
   tag: string,
   bytes: Uint8Array,
   bindings: Readonly<Record<string, string>> = {},
+  offsets: Readonly<Record<string, number>> = {},
 ): void {
   const leaf = tag.split(':').at(-1)!;
   state[`m_${leaf}`] ??= bytes;
   for (const [member, finderTag] of Object.entries(bindings)) {
-    if (finderTag === tag || finderTag === leaf) state[member] ??= bytes;
+    if (finderTag === tag || finderTag === leaf) {
+      const offset = Math.max(0, offsets[member] ?? 0);
+      state[member] ??= offset ? bytes.subarray(offset) : bytes;
+    }
   }
 }
 

@@ -36,6 +36,8 @@ const definition: GeneratedDeviceDefinition = {
     ),
     method('device_reset', '', 'm_byte = 7;'),
     method('write', 'uint8_t data', 'm_byte = data; m_q[1](data); return external(data);'),
+    method('slot0_unset', '', 'return m_q[0].isunset();'),
+    method('slot1_unset', '', 'return m_q[1].isunset();'),
     method('timer_tick', 'int param', 'm_count += param;'),
     method(
       'reschedule_tick',
@@ -79,7 +81,11 @@ assert.equal(device.arity('write'), 1);
 assert.deepEqual(device.signalNames(), ['q_out_cb']);
 
 const signals: number[] = [];
+assert.equal(device.call('slot0_unset'), 1);
+assert.equal(device.call('slot1_unset'), 1);
 device.on('q_out_cb', value => signals.push(value), 1);
+assert.equal(device.call('slot0_unset'), 1);
+assert.equal(device.call('slot1_unset'), 0);
 device.bindCall('external', value => value + 2);
 assert.equal(device.call('write', 0xff), 0x101);
 assert.equal(device.get('m_byte'), 0xff);
@@ -134,6 +140,8 @@ registerGeneratedDevice({
     method('bytes', '', 'return m_live.bytes();'),
     method('device_start', '', 'm_buffered.resize(bytes());'),
     method('buffer', '', 'return &m_buffered[0];'),
+    method('peek', '', 'return *m_live;'),
+    method('poke', 'uint8_t value', '*m_live = value;'),
     method(
       'copy',
       'uint32_t srcoffset = 0, uint32_t srclength = 0x7fffffff',
@@ -147,9 +155,12 @@ registerGeneratedDevice({
 const share = Uint8Array.from([9, 8, 7, 6]);
 const memoryDevice = createDevice('MEMORY_TEST', { tag: 'spriteram', shares: { spriteram: share } });
 assert.equal(memoryDevice.call('bytes'), 4);
+assert.equal(memoryDevice.call('peek'), 9);
+memoryDevice.call('poke', 0x5a);
+assert.equal(share[0], 0x5a, 'shared-pointer dereference assignment must write its first byte');
 memoryDevice.invoke('copy');
 const buffered = memoryDevice.invoke('buffer') as { source?: Uint8Array };
-assert.deepEqual([...(buffered.source ?? new Uint8Array(0))], [9, 8, 7, 6],
+assert.deepEqual([...(buffered.source ?? new Uint8Array(0))], [0x5a, 8, 7, 6],
   'the default srclength argument must copy the whole buffer');
 assert.throws(
   () => createDevice('MEMORY_TEST', { tag: 'missing', shares: {} }),

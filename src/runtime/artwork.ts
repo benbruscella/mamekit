@@ -26,6 +26,7 @@ export interface Artwork {
 
 interface LayoutView {
   name: string;
+  bounds?: ArtWindow;
   screen: ArtWindow;
   art: ArtWindow;
   file: string;
@@ -87,13 +88,28 @@ async function layArtwork(files: Map<string, Uint8Array>): Promise<Artwork | nul
     cx.drawImage(bmp, 0, 0);
     bmp = c;
   }
+  const artScaleX = bmp.width / view.art.w;
+  const artScaleY = bmp.height / view.art.h;
+  if (view.bounds) {
+    const c = document.createElement('canvas');
+    c.width = Math.round(view.bounds.w * artScaleX);
+    c.height = Math.round(view.bounds.h * artScaleY);
+    const cx = c.getContext('2d')!;
+    cx.drawImage(
+      bmp,
+      (view.art.x - view.bounds.x) * artScaleX,
+      (view.art.y - view.bounds.y) * artScaleY,
+    );
+    bmp = c;
+  }
   // screen bounds are in view coordinates; map into bitmap pixels
-  const sx = bmp.width / view.art.w, sy = bmp.height / view.art.h;
+  const sx = artScaleX, sy = artScaleY;
+  const origin = view.bounds ?? view.art;
   return {
     bmp,
     window: {
-      x: (view.screen.x - view.art.x) * sx,
-      y: (view.screen.y - view.art.y) * sy,
+      x: (view.screen.x - origin.x) * sx,
+      y: (view.screen.y - origin.y) * sy,
       w: view.screen.w * sx,
       h: view.screen.h * sy,
     },
@@ -122,6 +138,7 @@ export function parseArtworkLayout(source: string): LayoutView | null {
   for (const match of lay.matchAll(/<view\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/view>/g)) {
     const name = match[1];
     const body = match[2];
+    const bounds = layoutBounds(/^\s*<bounds\b[^>]*(?:\/>|>[\s\S]*?<\/bounds>)/.exec(body)?.[0]) ?? undefined;
     const screenTag = /<screen\b[^>]*>[\s\S]*?<\/screen>/.exec(body)?.[0];
     const screen = layoutBounds(screenTag);
     if (!screen?.w || !screen.h) continue;
@@ -129,9 +146,17 @@ export function parseArtworkLayout(source: string): LayoutView | null {
     let artTag: string | undefined;
     let artElement: string | undefined;
     for (const kind of ['bezel', 'backdrop'] as const) {
-      const legacy = new RegExp(
+      const legacy = [...body.matchAll(new RegExp(
         `<${kind}\\s+[^>]*element="([^"]+)"[^>]*>[\\s\\S]*?<\\/${kind}>`,
-      ).exec(body);
+        'g',
+      ))].sort((left, right) => {
+        const score = (candidate: RegExpMatchArray): number => {
+          const element = candidate[1] ?? '';
+          const file = images.get(element) ?? '';
+          return /bezel/i.test(element) || /bezel/i.test(file) ? 1 : 0;
+        };
+        return score(right) - score(left);
+      })[0];
       if (legacy) {
         artTag = legacy[0];
         artElement = legacy[1];
@@ -169,7 +194,7 @@ export function parseArtworkLayout(source: string): LayoutView | null {
     const rotate = Number(
       /<orientation\s+[^>]*rotate="(\d+)"/.exec(artTag ?? '')?.[1] ?? 0,
     );
-    views.push({ name, screen, art, file, rotate, tints });
+    views.push({ name, ...(bounds ? { bounds } : {}), screen, art, file, rotate, tints });
   }
   const viewScore = (view: LayoutView): number =>
     /bezel/i.test(view.name) ? 2 : /upright/i.test(view.name) ? 1 : 0;

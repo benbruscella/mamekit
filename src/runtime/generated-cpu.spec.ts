@@ -97,6 +97,17 @@ assert.deepEqual(writes, [[0x1235, 0x80]]);
 assert.deepEqual(outputs, [[0x45, 0x7f]]);
 assert.equal(cpu.run(8), 9, 'run must stop after whole source-derived instructions');
 
+const timing: [number, number][] = [];
+const timedCpu = createCpu('FiXtUrE', {
+  read: () => 0,
+  write: () => {},
+  in: () => 0,
+  out: () => {},
+  timing: (elapsed, target) => timing.push([elapsed, target]),
+});
+assert.equal(timedCpu.run(8), 9);
+assert.deepEqual(timing, [[0, 8], [3, 8], [6, 8], [8, 8]]);
+
 let acknowledgements = 0;
 registerGeneratedCpu(definition('lazy_irq', {
   step: compileMameHandler('return standard_irq_callback();'),

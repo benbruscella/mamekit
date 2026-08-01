@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { gameSubgraph, resolveMachineLifecycle } from './build.ts';
+import { fromHzExpression, gameSubgraph, resolveMachineLifecycle } from './build.ts';
 import type { KnowledgeGraph, KGNode } from './types.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 
@@ -19,6 +19,12 @@ const callback = (
     ...(slot === undefined ? {} : { slot }),
   },
 });
+
+assert.equal(
+  fromHzExpression('attotime::from_hz(12_MHz_XTAL / (2*4*16*16*10*16))'),
+  '12_MHz_XTAL / (2*4*16*16*10*16)',
+  'periodic IRQ frequency extraction must retain nested denominator parentheses',
+);
 
 const graph: KnowledgeGraph = {
   meta: {
@@ -125,6 +131,22 @@ assert.deepEqual(
     .map(fn => fn.name),
   ['machine_reset_common', 'machine_reset_test'],
   'machine reset call members must execute base-first',
+);
+
+const modernLifecycleAst = new MameAstIndex(parseMameAst([{
+  file: 'modern.cpp',
+  source: `
+void modern_state::machine_reset()
+{
+  m_mcu->set_input_line(INPUT_LINE_HALT, ASSERT_LINE);
+}
+`,
+}]));
+assert.deepEqual(
+  resolveMachineLifecycle(modernLifecycleAst, 'modern_state', 'modern', 'reset')
+    .map(fn => fn.name),
+  ['machine_reset'],
+  'modern virtual machine_reset overrides must apply to every selected machine config',
 );
 
 console.log('build.spec: derived callback shadowing and device patch composition passed');

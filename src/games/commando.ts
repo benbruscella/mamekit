@@ -39,11 +39,11 @@ export const commando: GameTestContract = {
       1800: { video: '764d21a0', state: 'e3dac5cd' },
     },
     audio: {
-      writes: 312_756,
-      nonzeroWrites: 167_224,
-      writeHash: '7e4bb5ef',
-      pcmHash: 'f254de76',
-      rms: 0.029187,
+      writes: 312756,
+      nonzeroWrites: 167224,
+      writeHash: 'e152a683',
+      pcmHash: '9cf5c89c',
+      rms: 0.029165,
     },
   },
 };

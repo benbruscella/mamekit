@@ -99,7 +99,10 @@ const bindings: EffectBindings = {
   handler: key => key === 'fixture_state.irq_w'
     ? state => states.push(state)
     : key === 'fixture_state.parallel_w'
-      ? state => parallel.push(state)
+      ? (state, ...sourceArgs) => {
+          parallel.push(state);
+          parallelSources.push(sourceArgs);
+        }
       : undefined,
   portRead: () => undefined,
   videoControl: () => undefined,
@@ -107,6 +110,7 @@ const bindings: EffectBindings = {
   audioWrite: () => undefined,
 };
 const parallel: number[] = [];
+const parallelSources: number[][] = [];
 
 // A connection the runtime cannot execute aborts construction. Silently
 // skipping one produced machines that booted and then behaved wrongly.
@@ -145,6 +149,7 @@ check('wiring reports the callbacks it bound', bound, ['callback:0', 'callback:1
 wireDeviceCallbacks(device, machine, 'mainlatch', 'parallel_out_cb', effects);
 listeners.get(0)?.(0, 0x33, 0x02);
 check('parallel callbacks forward data instead of access mask', parallel, [0x33]);
+check('device callbacks preserve their source offset/data/mask arguments', parallelSources, [[0, 0x33, 0x02]]);
 
 check(
   'an explicitly unconnected output binds to a no-op',

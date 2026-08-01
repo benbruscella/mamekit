@@ -5,14 +5,44 @@ import { executeGeneratedProgram } from './generated-handler.ts';
 import type { BoardIr } from '../ir/board.ts';
 import {
   createGeneratedTileInfoTarget,
+  decodeTaitoSjRamPixel,
   generatedDirectScreenShape,
   generatedScrollBand,
+  generatedTileGroupIndirectMask,
   generatedTileGroupTransparentMask,
   generatedTileMemoryIndex,
   GeneratedMameVideoPrimitives,
   GeneratedVideoRenderer,
+  taitoSjLayerScrollX,
+  taitoSjSpritePosition,
   type GeneratedVideoPrimitives,
 } from './generated-video.ts';
+
+const taitoSjRam = new Uint8Array(0x3000);
+// charlayout plane 0 at bit 32768 is the high pen bit; x offset 7 selects
+// the byte's least-significant mask under MAME's MSB-first bit numbering.
+taitoSjRam[4096] = 0x01;
+assert.equal(decodeTaitoSjRamPixel(taitoSjRam, 0, 0, 0, 0, false), 4);
+taitoSjRam[4096] = 0;
+taitoSjRam[2048] = 0x01;
+assert.equal(decodeTaitoSjRamPixel(taitoSjRam, 0, 0, 0, 0, false), 2);
+taitoSjRam[2048] = 0;
+taitoSjRam[0] = 0x01;
+assert.equal(decodeTaitoSjRamPixel(taitoSjRam, 0, 0, 0, 0, false), 1);
+
+assert.deepEqual(
+  [0, 1, 2].map(layer => taitoSjLayerScrollX(0x25, layer, false)),
+  [-24, -16, -16],
+  'Taito SJ unflipped layers retain their hardware pixel skew',
+);
+assert.deepEqual(
+  [0, 1, 2].map(layer => taitoSjLayerScrollX(0x25, layer, true)),
+  [40, 48, 48],
+  'Taito SJ flipped layers retain their hardware pixel skew',
+);
+assert.deepEqual(taitoSjSpritePosition(0, 0), { x: 255, y: 240, visible: false });
+assert.deepEqual(taitoSjSpritePosition(1, 241), { x: 0, y: 255, visible: false });
+assert.deepEqual(taitoSjSpritePosition(17, 16), { x: 16, y: 224, visible: true });
 
 assert.equal(
   generatedDirectScreenShape({
@@ -198,6 +228,21 @@ assert.equal(generatedTileGroupTransparentMask(splitPlan, 1, 0x10), 0x0f);
 assert.equal(generatedTileGroupTransparentMask(splitPlan, 1, 0x20), 0);
 assert.equal(generatedTileGroupTransparentMask(splitPlan, 1, 0x30), 0x0f);
 assert.equal(generatedTileGroupTransparentMask(splitPlan, 2, 0), undefined);
+let configuredGroupColor = -1;
+assert.equal(
+  generatedTileGroupIndirectMask({
+    indirectMask: (color, transparent) => {
+      configuredGroupColor = color;
+      return (color << 8) | transparent;
+    },
+  }, 7, 3),
+  0x703,
+);
+assert.equal(
+  configuredGroupColor,
+  7,
+  'configure_groups transparency must use tile group, not a palette-bank color',
+);
 const screenState: Record<string, unknown> = {};
 const videoRegion = Uint8Array.of(0x12, 0x34);
 const generatedPrimitives = new GeneratedMameVideoPrimitives(
@@ -451,4 +496,49 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
   assert.equal(palette.colors[0], 0xff7733aa);
 }
 
-console.log('generated-video.spec: 22 passed');
+// Packed-framebuffer machines such as Juno First still receive their palette
+// bytes through palette_device::write8; those writes must update the bitmap
+// palette rather than only the tile/sprite RAM-palette implementation.
+{
+  const bitmapMachine: BoardIr = {
+    ...machine,
+    video: {
+      gfx: [],
+      tilemaps: [],
+      initialState: {},
+      bitmap: {
+        member: 'm_videoram',
+        rowStart: 0,
+        rows: 1,
+        bytesPerRow: 1,
+        xOffset: 0,
+        lsbFirst: true,
+        bitsPerPixel: 4,
+        black: 0xff000000,
+        white: 0xffffffff,
+        paletteRam: {
+          member: 'm_palette',
+          entries: 1,
+          min: 0,
+          max: 255,
+          scaler: 1,
+          channels: [
+            { channel: 'r', bits: [0], resistances: [1], pulldown: 0, pullup: 0 },
+            { channel: 'g', bits: [1], resistances: [1], pulldown: 0, pullup: 0 },
+            { channel: 'b', bits: [2], resistances: [1], pulldown: 0, pullup: 0 },
+          ],
+        },
+      },
+    },
+  };
+  const state: Record<string, unknown> = {};
+  const primitives = new GeneratedMameVideoPrimitives(bitmapMachine, {}, state, {});
+  const palette = state.m_palette as { colors: Uint32Array };
+  assert.equal(palette.colors[0], 0xff000000);
+  primitives.writePaletteRam(0, 0x07);
+  assert.equal(palette.colors[0], 0xffffffff);
+  primitives.reset();
+  assert.equal(palette.colors[0], 0xff000000);
+}
+
+console.log('generated-video.spec: 23 passed');

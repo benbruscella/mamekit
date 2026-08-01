@@ -19,6 +19,7 @@ const INFRASTRUCTURE = new Set([
   'acceptance-harness.ts',
   'contracts.ts',
   'discovery.ts',
+  'record-goldens.ts',
   'test-support.ts',
   'types.ts',
 ]);

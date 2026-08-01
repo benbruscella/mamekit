@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import type { BoardIr } from '../ir/board.ts';
 import {
   applyGeneratedCpuInputLine,
+  pulseGeneratedCpuInputLine,
   bindGeneratedDriverState,
   bindGeneratedRegionState,
   bindGeneratedShareState,
   createGeneratedBoard,
+  generatedDeviceCallbackArguments,
+  generatedSignalHandlerArguments,
 } from './generated-board.ts';
 import { registerGeneratedCpu } from './generated-cpu.ts';
 
@@ -56,10 +59,59 @@ assert.equal(nmis, 0);
 assert.equal(held, true);
 applyGeneratedCpuInputLine(lineCpu, -2, 0, state => { held = state; });
 assert.equal(held, false);
+applyGeneratedCpuInputLine(lineCpu, -3, 1, state => { held = state; });
+assert.equal(held, true, 'INPUT_LINE_HALT must suspend the CPU');
+applyGeneratedCpuInputLine(lineCpu, -3, 0, state => { held = state; });
+assert.equal(held, false, 'clearing INPUT_LINE_HALT must resume the CPU');
 applyGeneratedCpuInputLine(lineCpu, -1, 1, state => { held = state; });
 assert.equal(nmis, 1);
 applyGeneratedCpuInputLine(lineCpu, 0, 2, state => { held = state; });
 assert.equal(irqs, 1);
+pulseGeneratedCpuInputLine(lineCpu, -1);
+assert.equal(nmis, 2, 'device.execute().pulse_input_line must deliver an NMI pulse');
+
+assert.deepEqual(
+  generatedSignalHandlerArguments(
+    'offs_t offset, uint8_t data, uint8_t mem_mask',
+    4,
+  ),
+  { state: 4, data: 4, offset: 0, mem_mask: 0xff },
+  'device write callbacks must receive MAME default offset and active mem_mask arguments',
+);
+assert.deepEqual(
+  generatedSignalHandlerArguments(
+    'offs_t offset, uint8_t data, uint8_t mem_mask',
+    0x7f,
+    undefined,
+    [0x6900, 0x7f, 0xff],
+  ),
+  { state: 0x7f, data: 0x7f, offset: 0x6900, mem_mask: 0xff },
+  'parallel callbacks must preserve offset while binding data to the emitted value',
+);
+assert.equal(
+  generatedSignalHandlerArguments('uint8_t data', 0x7f, undefined, [0x6900, 0x7f]).data,
+  0x7f,
+  'single-data handlers must not reinterpret a parallel callback offset as data',
+);
+const callbackDevice = {};
+assert.equal(
+  generatedSignalHandlerArguments('device_t &device', 1, callbackDevice).device,
+  callbackDevice,
+);
+assert.deepEqual(
+  generatedDeviceCallbackArguments(['offs_t offset', 'uint8_t data'], 0x7f),
+  [0, 0x7f],
+  'device callbacks must supply offset zero before latch write data',
+);
+assert.deepEqual(
+  generatedDeviceCallbackArguments(['offs_t offset'], 0x7f),
+  [0],
+  'device read callbacks must not reinterpret their signal value as an offset',
+);
+assert.deepEqual(
+  generatedDeviceCallbackArguments(['uint8_t data'], 0x7f),
+  [0x7f],
+);
 
 const driverState: Record<string, unknown> = {};
 const driverCalls: Record<string, (...args: number[]) => number | void> = {};
