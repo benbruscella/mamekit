@@ -93,6 +93,15 @@ check('a CPU input line lowers to the named pin', () => {
     }),
     { kind: 'cpu-line', tag: 'maincpu', line: 'irq', delivery: 'hold' },
   );
+  assert.deepEqual(
+    effect({
+      ownerTag: 'msm1',
+      signal: 'vck_callback',
+      targetTag: 'audiocpu',
+      inputLine: 'INPUT_LINE_NMI',
+    }),
+    { kind: 'cpu-line', tag: 'audiocpu', line: 'nmi', delivery: 'pulse' },
+  );
 });
 
 // MAME's driver interrupt generators act on the device the interrupt is

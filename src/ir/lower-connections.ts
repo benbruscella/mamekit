@@ -106,8 +106,11 @@ export function lowerCallbackEffect(
         tag: callback.targetTag,
         line,
         // MAME asserts these lines directly; the source holds them until
-        // the latch bit changes back.
-        delivery: callback.delivery ?? 'level',
+        // the latch bit changes back. The generated VCK schedule contains
+        // one active clock edge per event, so its NMI must be delivered as a
+        // pulse rather than remaining asserted after the first tick.
+        delivery: callback.delivery ??
+          (callback.signal === 'vck_callback' && line === 'nmi' ? 'pulse' : 'level'),
       };
     }
   }

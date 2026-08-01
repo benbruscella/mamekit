@@ -41,8 +41,8 @@ export const junofrst: GameTestContract = {
       writes: 46839,
       nonzeroWrites: 25882,
       writeHash: 'f47abbcb',
-      pcmHash: '195f2320',
-      rms: 0.201762,
+      pcmHash: 'fa548078',
+      rms: 0.20175,
     },
   },
 };

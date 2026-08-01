@@ -2513,6 +2513,7 @@ export class GeneratedAy8910Mixer {
         candidate.deviceTag === device.deviceTag);
       const methods = new Set([
         ...(definition?.writeMethods ?? []),
+        ...(device.core instanceof GeneratedMsm5205Core ? ['vck', 'vclk_w'] : []),
         ...(device.core instanceof GeneratedDac8Core ? ['reference_w'] : []),
       ]);
       for (const method of methods) {

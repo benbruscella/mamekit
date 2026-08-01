@@ -41,8 +41,8 @@ export const travrusa: GameTestContract = {
       writes: 421992,
       nonzeroWrites: 418145,
       writeHash: '0dd2700d',
-      pcmHash: '1c5ca07e',
-      rms: 0.05748,
+      pcmHash: '4e68cbce',
+      rms: 0.169532,
     },
   },
 };
