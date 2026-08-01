@@ -19,7 +19,7 @@ import type {
   GameTestContract,
 } from './types.ts';
 
-interface SoundWrite {
+export interface SoundWrite {
   offset: number;
   data: number;
   frac?: number;
