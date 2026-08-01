@@ -51,6 +51,8 @@ export interface GeneratedCallback {
   targetMethod?: string;
   targetPort?: string;
   inputLine?: string;
+  /** Constant line state supplied by MAME's set_inputline helper. */
+  delivery?: CpuLineDelivery;
   periodHz?: number;
   periodExpr?: string;
   scanlines?: number[];

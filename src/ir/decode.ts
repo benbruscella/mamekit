@@ -153,6 +153,13 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
     for (const field of ['targetTag', 'targetClass', 'targetMethod', 'targetPort', 'inputLine']) {
       reader.optionalString(callback[field], `${path}.${field}`, source);
     }
+    if (callback.delivery !== undefined && !DELIVERIES.has(callback.delivery as string)) {
+      reader.fail(
+        `${path}.delivery`,
+        `unknown delivery mode ${describe(callback.delivery)}`,
+        source,
+      );
+    }
     if (callback.transforms !== undefined) {
       for (const [position, transform] of reader.array(
         callback.transforms, `${path}.transforms`, source).entries()) {

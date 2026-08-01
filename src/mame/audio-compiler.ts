@@ -2430,6 +2430,11 @@ export class GeneratedAy8910Mixer {
     gain: number;
     core: GeneratedMsm5205Core | GeneratedDac8Core;
   }[];
+  private readonly auxiliaryWrites = new Map<string, {
+    core: GeneratedMsm5205Core | GeneratedDac8Core;
+    method: string;
+  }>();
+  private readonly timedWrites = new Set<string>();
   private readonly auxiliaryGainTotal: number;
   private readonly discreteMixer?: GeneratedDiscreteMixerPlanData;
   private readonly discreteValues = new Map<number, number>();
@@ -2503,6 +2508,19 @@ export class GeneratedAy8910Mixer {
               core: new GeneratedDac8Core(device.type === 'DAC_4BIT_R2R' ? 4 : 8),
             }]
           : []);
+    for (const device of this.auxiliary) {
+      const definition = auxiliaryDevices.find(candidate =>
+        candidate.deviceTag === device.deviceTag);
+      const methods = new Set([
+        ...(definition?.writeMethods ?? []),
+        ...(device.core instanceof GeneratedDac8Core ? ['reference_w'] : []),
+      ]);
+      for (const method of methods) {
+        const key = \`\${device.deviceTag}.\${method}\`;
+        this.auxiliaryWrites.set(key, { core: device.core, method });
+        if (device.core instanceof GeneratedDac8Core) this.timedWrites.add(key);
+      }
+    }
     this.auxiliaryGainTotal = this.auxiliary.reduce(
       (sum, device) => sum + device.gain,
       0,
@@ -2521,10 +2539,9 @@ export class GeneratedAy8910Mixer {
       this.discreteValues.set(offset, data);
       return;
     }
-    const auxiliaryWrite = /^([^.]+)\\.(\\w+)$/.exec(method ?? '');
+    const auxiliaryWrite = this.auxiliaryWrites.get(method ?? '');
     if (auxiliaryWrite) {
-      this.auxiliary.find(device =>
-        device.deviceTag === auxiliaryWrite[1])?.core.write(auxiliaryWrite[2]!, data);
+      auxiliaryWrite.core.write(auxiliaryWrite.method, data);
       return;
     }
     if (offset < 0) {
@@ -2554,21 +2571,14 @@ export class GeneratedAy8910Mixer {
   }
 
   isTimedWrite(method?: string): boolean {
-    const auxiliaryWrite = /^([^.]+)\.(\w+)$/.exec(method ?? '');
-    return Boolean(auxiliaryWrite && this.auxiliary.some(device =>
-      device.deviceTag === auxiliaryWrite[1] &&
-      device.core instanceof GeneratedDac8Core));
+    return this.timedWrites.has(method ?? '');
   }
 
   writeAt(offset: number, data: number, method: string | undefined, position: number): void {
-    const auxiliaryWrite = /^([^.]+)\.(\w+)$/.exec(method ?? '');
-    if (auxiliaryWrite) {
-      const device = this.auxiliary.find(candidate =>
-        candidate.deviceTag === auxiliaryWrite[1]);
-      if (device?.core instanceof GeneratedDac8Core) {
-        device.core.writeAt(auxiliaryWrite[2]!, data, position);
-        return;
-      }
+    const auxiliaryWrite = this.auxiliaryWrites.get(method ?? '');
+    if (auxiliaryWrite?.core instanceof GeneratedDac8Core) {
+      auxiliaryWrite.core.writeAt(auxiliaryWrite.method, data, position);
+      return;
     }
     this.write(offset, data, method);
   }

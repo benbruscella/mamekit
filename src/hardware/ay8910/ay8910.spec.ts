@@ -179,4 +179,19 @@ check('a four-bit R2R DAC uses the same routed auxiliary protocol', () => {
   assert.deepEqual(ctx.writes.at(-1), [0, 0x07, 'dac.write']);
 });
 
+check('a routed DAC reference ladder reaches the worklet', () => {
+  const sound: Sound = {
+    ...base,
+    auxiliaryDevices: [{
+      type: 'DAC_8BIT_R2R', deviceTag: 'dac', clock: 0, gain: 0.15,
+      target: 'speaker', writeMethods: ['data_w'],
+      referenceControl: { deviceTag: 'dacvol', member: 'm_dacvol' },
+    }],
+  };
+  const ctx = context(sound);
+  installAy8910Runtime(ctx);
+  (ctx.state.m_dacvol as { write(node: number, value: number): void }).write(1, 0x7f);
+  assert.deepEqual(ctx.writes.at(-1), [0, 0x7f, 'dac.reference_w']);
+});
+
 console.log(`ay8910.spec: ${passed} passed, 0 failed`);

@@ -85,6 +85,14 @@ check('a CPU input line lowers to the named pin', () => {
     effect({ targetTag: 'maincpu', inputLine: 'Z80_INPUT_LINE_BUSREQ' }),
     { kind: 'cpu-line', tag: 'maincpu', line: 'halt', delivery: 'level' },
   );
+  assert.deepEqual(
+    effect({
+      targetTag: 'maincpu',
+      inputLine: 'INPUT_LINE_IRQ0',
+      delivery: 'hold',
+    }),
+    { kind: 'cpu-line', tag: 'maincpu', line: 'irq', delivery: 'hold' },
+  );
 });
 
 // MAME's driver interrupt generators act on the device the interrupt is

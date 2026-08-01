@@ -92,6 +92,8 @@ export function lowerGeneratedMachine(
       if (props.targetMethod) callback.targetMethod = String(props.targetMethod);
       if (props.targetPort) callback.targetPort = String(props.targetPort);
       if (props.inputLine) callback.inputLine = String(props.inputLine);
+      const lineDelivery = /\b(HOLD|ASSERT|PULSE)_LINE\b/.exec(String(props.raw ?? ''))?.[1];
+      if (lineDelivery) callback.delivery = lineDelivery.toLowerCase() as 'hold' | 'assert' | 'pulse';
       if (props.periodHz !== undefined) callback.periodHz = Number(props.periodHz);
       if (props.periodExpr) callback.periodExpr = String(props.periodExpr);
       if (Array.isArray(props.scanlines)) callback.scanlines = props.scanlines.map(Number);
@@ -814,7 +816,10 @@ function lowerFrameEvents(
       });
       // MAME screen_vblank delegates see both edges; the falling edge lands
       // at vblank end (handlers like galaga's starfield config run on !state).
-      if (callback.signal === 'screen_vblank') {
+      if (
+        callback.signal === 'screen_vblank' &&
+        !(callback.operation === 'set_inputline' && callback.delivery)
+      ) {
         events.push({
           callbackId: callback.id,
           ownerTag: callback.ownerTag,

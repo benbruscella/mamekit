@@ -87,6 +87,28 @@ const graph: KnowledgeGraph = {
       periodHz: 36.62109375,
     },
   }, {
+    id: 'callback:vblank-hold',
+    label: 'Callback',
+    props: {
+      ownerTag: 'screen',
+      signal: 'screen_vblank',
+      operation: 'set_inputline',
+      targetTag: 'maincpu',
+      inputLine: 'INPUT_LINE_IRQ0',
+      raw: 'm_screen->screen_vblank().set_inputline(m_maincpu, INPUT_LINE_IRQ0, HOLD_LINE)',
+    },
+  }, {
+    id: 'callback:vblank-level',
+    label: 'Callback',
+    props: {
+      ownerTag: 'screen',
+      signal: 'screen_vblank',
+      operation: 'set_inputline',
+      targetTag: 'sub',
+      inputLine: 'INPUT_LINE_IRQ0',
+      raw: 'm_screen->screen_vblank().set_inputline(m_sub, INPUT_LINE_IRQ0)',
+    },
+  }, {
     id: 'handler:vector_r',
     label: 'Handler',
     props: {
@@ -147,6 +169,35 @@ if (
     ?.frequency !== 36.62109375
 ) {
   throw new Error('non-video-locked periodic interrupts must retain fractional frequency');
+}
+const heldVblankEvents = machine.execution.frameEvents.filter(
+  event => event.callbackId === 'callback:vblank-hold',
+);
+if (
+  heldVblankEvents.length !== 1 ||
+  heldVblankEvents[0]?.line !== 240 ||
+  heldVblankEvents[0]?.state !== 1
+) {
+  throw new Error('HOLD_LINE vblank callbacks must fire once rather than remain asserted');
+}
+const levelVblankEvents = machine.execution.frameEvents.filter(
+  event => event.callbackId === 'callback:vblank-level',
+);
+if (
+  levelVblankEvents.length !== 2 ||
+  levelVblankEvents[0]?.state !== 0 ||
+  levelVblankEvents[1]?.state !== 1
+) {
+  throw new Error('level-sensitive vblank callbacks must retain both edges');
+}
+const heldVblankConnection = machine.connections.find(
+  connection => connection.callbackId === 'callback:vblank-hold',
+);
+if (
+  heldVblankConnection?.effect.kind !== 'cpu-line' ||
+  heldVblankConnection.effect.delivery !== 'hold'
+) {
+  throw new Error('HOLD_LINE must lower to held CPU-line delivery');
 }
 if (machine.execution.cpus[0]?.interruptVectorWriters?.[0] !== 'test_state.vector_w') {
   throw new Error('interrupt-vector writer relation was not lowered from handler IR');
@@ -211,16 +262,36 @@ const defaultClockDacGraph: KnowledgeGraph = {
     id: 'route:dac',
     label: 'AudioRoute',
     props: { output: 'ALL_OUTPUTS', target: 'speaker', gain: 0.15 },
+  }, {
+    id: 'device:dacvol',
+    label: 'Device',
+    props: { type: 'DISCRETE', tag: 'dacvol' },
+  }, {
+    id: 'route:dacvol',
+    label: 'AudioRoute',
+    props: { output: '0', target: 'dac', input: 0, gain: 1 },
   }],
-  edges: [{ from: 'device:dac', to: 'route:dac', rel: 'HAS_AUDIO_ROUTE' }],
+  edges: [
+    { from: 'device:dac', to: 'route:dac', rel: 'HAS_AUDIO_ROUTE' },
+    { from: 'device:dacvol', to: 'route:dacvol', rel: 'HAS_AUDIO_ROUTE' },
+  ],
 };
 const defaultClockDac = lowerAuxiliaryAudioDevices(defaultClockDacGraph, [{
   id: 'device:dac',
   tag: 'dac',
   type: 'DAC_8BIT_R2R',
   member: 'm_dac',
+}, {
+  id: 'device:dacvol',
+  tag: 'dacvol',
+  type: 'DISCRETE',
+  member: 'm_dacvol',
 }]);
-if (defaultClockDac[0]?.clock !== 0 || defaultClockDac[0]?.member !== 'm_dac') {
+if (
+  defaultClockDac[0]?.clock !== 0 ||
+  defaultClockDac[0]?.member !== 'm_dac' ||
+  defaultClockDac[0]?.referenceControl?.member !== 'm_dacvol'
+) {
   throw new Error('clockless passive R2R DACs must lower as routed auxiliary streams');
 }
 

@@ -22,5 +22,10 @@ assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length))
 const audioIrq = graph.nodes.find(node =>
   node.label === 'Callback' && node.props.signal === 'set_periodic_int');
 assert.equal(audioIrq?.props.periodHz, 36.62109375);
+const videoIrq = graph.nodes.find(node =>
+  node.label === 'Callback' &&
+  node.props.signal === 'screen_vblank' &&
+  node.props.targetTag === 'maincpu');
+assert.match(String(videoIrq?.props.raw), /HOLD_LINE/);
 
-console.log('junglek.spec: dual-Z80, 36.621 Hz audio IRQ, collisions and Taito SJ video passed');
+console.log('junglek.spec: dual-Z80, held vblank IRQ, 36.621 Hz audio IRQ, collisions and Taito SJ video passed');
