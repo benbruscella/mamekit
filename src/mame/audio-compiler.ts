@@ -701,6 +701,14 @@ export interface GeneratedAy8910Plan {
   noiseTaps: [number, number];
   readMasks: number[];
   volumeTable: number[];
+  /** AY outputs tied together through their real shared resistor load. */
+  singleOutput: {
+    rDown: number;
+    rUp: number;
+    load: number;
+    resistances: number[];
+    zeroIsOff: boolean;
+  };
   filterTypes: {
     lowpass3r: number;
     lowpass: number;
@@ -1567,6 +1575,13 @@ export function compileAy8910(
     noiseTaps: [Number(noise[1]), Number(noise[2])],
     readMasks: splitMameArgs(masks[1]!).map(value => Number(value)),
     volumeTable,
+    singleOutput: {
+      rDown,
+      rUp,
+      load,
+      resistances: resistances.slice(0, levels),
+      zeroIsOff: true,
+    },
     filterTypes,
     sourceFiles: [cppFile, headerFile, filterCppFile, filterHeaderFile],
     source: {
@@ -2134,6 +2149,7 @@ export interface GeneratedAuxiliaryAudioDevice {
   target: string;
   targetInput?: number;
   writeMethods: string[];
+  referenceControl?: { deviceTag: string; member?: string };
 }
 
 interface GeneratedFilterState {
@@ -2163,6 +2179,7 @@ export class GeneratedAy8910Core {
   private envelopeAlternate = 0;
   private envelopeHolding = false;
   private readonly mixedSamples = [0, 0, 0];
+  private singleOutput = 0;
 
   constructor(clock: number) {
     this.nativeRate = clock / plan.clockDivider;
@@ -2235,14 +2252,37 @@ export class GeneratedAy8910Core {
     }
     const envelope = this.envelopePosition ^ this.envelopeAttack;
     const enable = this.regs[7];
+    let pullups = 0;
+    let conductance = 0;
+    let drivenConductance = 0;
     for (let channel = 0; channel < plan.channels; channel++) {
       const toneGate = this.toneOutput[channel] | ((enable >> channel) & 1);
       const noiseGate = (this.rng & 1) | ((enable >> (channel + 3)) & 1);
       const volume = this.regs[8 + channel];
-      const level = volume & 0x10 ? envelope : volume & 0x0f;
+      const envelopeEnabled = (volume & 0x10) !== 0;
+      const level = envelopeEnabled ? envelope : volume & 0x0f;
+      const gate = toneGate & noiseGate;
       const amplitude = plan.volumeTable[level] - plan.volumeTable[0];
-      output[channel] = toneGate & noiseGate ? amplitude : -amplitude;
+      output[channel] = gate ? amplitude : -amplitude;
+
+      // MAME's AY8910_SINGLE_OUTPUT does not average three independent
+      // streams: the physical pins share one resistor load. Reproduce its
+      // build_3D_table conductance equation from the source-derived values.
+      const tiedLevel = gate ? level : 0;
+      if (!plan.singleOutput.zeroIsOff || tiedLevel !== 0 || envelopeEnabled) pullups++;
+      const levelConductance = 1 / plan.singleOutput.resistances[tiedLevel];
+      conductance += levelConductance;
+      drivenConductance += levelConductance;
     }
+    const pullupConductance = pullups / plan.singleOutput.rUp;
+    this.singleOutput = (drivenConductance + pullupConductance) / (
+      conductance + pullupConductance +
+      plan.channels / plan.singleOutput.rDown + 1 / plan.singleOutput.load
+    );
+  }
+
+  sampleTiedOutput(): number {
+    return this.singleOutput;
   }
 
   sample(): number {
@@ -2328,6 +2368,10 @@ export class GeneratedDac8Core {
   private readonly mask: number;
   private readonly midpoint: number;
   private value: number;
+  private reference = 1;
+  private sampleCursor = 0;
+  private sampleIntegral = 0;
+  private integrating = false;
 
   constructor(bits = 8) {
     this.mask = (1 << bits) - 1;
@@ -2337,10 +2381,31 @@ export class GeneratedDac8Core {
 
   write(method: string, data: number): void {
     if (method === 'data_w' || method === 'write') this.value = data & this.mask;
+    else if (method === 'reference_w') this.reference = (data & 0xff) / 0xff;
+  }
+
+  beginSample(): void {
+    this.sampleCursor = 0;
+    this.sampleIntegral = 0;
+    this.integrating = true;
+  }
+
+  writeAt(method: string, data: number, position: number): void {
+    const clamped = Math.max(this.sampleCursor, Math.min(1, position));
+    this.sampleIntegral += this.currentSample() * (clamped - this.sampleCursor);
+    this.sampleCursor = clamped;
+    this.write(method, data);
   }
 
   sample(): number {
-    return (this.value - this.midpoint) / this.midpoint;
+    if (!this.integrating) return this.currentSample();
+    const result = this.sampleIntegral + this.currentSample() * (1 - this.sampleCursor);
+    this.integrating = false;
+    return result;
+  }
+
+  private currentSample(): number {
+    return (this.value - this.midpoint) / this.midpoint * this.reference;
   }
 }
 
@@ -2353,6 +2418,10 @@ export class GeneratedAy8910Mixer {
   private readonly antialias1: number[][];
   private readonly antialias2: number[][];
   private readonly antialiasK: number[];
+  private readonly singleSamples: number[];
+  private readonly singleSums: number[];
+  private readonly singleAntialias1: number[];
+  private readonly singleAntialias2: number[];
   private readonly routes: GeneratedAyRoute[];
   private readonly filters: GeneratedFilterState[];
   private readonly gainTotal: number;
@@ -2385,6 +2454,10 @@ export class GeneratedAy8910Mixer {
     this.sampleSums = this.cores.map(() => [0, 0, 0]);
     this.antialias1 = this.cores.map(() => [0, 0, 0]);
     this.antialias2 = this.cores.map(() => [0, 0, 0]);
+    this.singleSamples = this.cores.map(() => 0);
+    this.singleSums = this.cores.map(() => 0);
+    this.singleAntialias1 = this.cores.map(() => 0);
+    this.singleAntialias2 = this.cores.map(() => 0);
     this.antialiasK = this.cores.map(core =>
       core.nativeRate > outputRate
         ? 1 - Math.exp(-2 * Math.PI * outputRate * 0.4 / core.nativeRate)
@@ -2474,6 +2547,32 @@ export class GeneratedAy8910Mixer {
     this.cores[offset >> 4]?.write(offset & 0x0f, data);
   }
 
+  beginSample(): void {
+    for (const device of this.auxiliary) {
+      if (device.core instanceof GeneratedDac8Core) device.core.beginSample();
+    }
+  }
+
+  isTimedWrite(method?: string): boolean {
+    const auxiliaryWrite = /^([^.]+)\.(\w+)$/.exec(method ?? '');
+    return Boolean(auxiliaryWrite && this.auxiliary.some(device =>
+      device.deviceTag === auxiliaryWrite[1] &&
+      device.core instanceof GeneratedDac8Core));
+  }
+
+  writeAt(offset: number, data: number, method: string | undefined, position: number): void {
+    const auxiliaryWrite = /^([^.]+)\.(\w+)$/.exec(method ?? '');
+    if (auxiliaryWrite) {
+      const device = this.auxiliary.find(candidate =>
+        candidate.deviceTag === auxiliaryWrite[1]);
+      if (device?.core instanceof GeneratedDac8Core) {
+        device.core.writeAt(auxiliaryWrite[2]!, data, position);
+        return;
+      }
+    }
+    this.write(offset, data, method);
+  }
+
   sample(): number {
     if (this.muted) return 0;
     for (let chip = 0; chip < this.cores.length; chip++) {
@@ -2484,6 +2583,7 @@ export class GeneratedAy8910Mixer {
       const lowpass2 = this.antialias2[chip]!;
       const k = this.antialiasK[chip]!;
       sums.fill(0);
+      this.singleSums[chip] = 0;
       let nativeSamples = 0;
       this.phases[chip]! += core.nativeRate / this.outputRate;
       while (this.phases[chip]! >= 1) {
@@ -2494,12 +2594,18 @@ export class GeneratedAy8910Mixer {
           lowpass2[channel]! += (lowpass1[channel]! - lowpass2[channel]!) * k;
           sums[channel]! += lowpass2[channel]!;
         }
+        this.singleAntialias1[chip]! +=
+          (core.sampleTiedOutput() - this.singleAntialias1[chip]!) * k;
+        this.singleAntialias2[chip]! +=
+          (this.singleAntialias1[chip]! - this.singleAntialias2[chip]!) * k;
+        this.singleSums[chip]! += this.singleAntialias2[chip]!;
         nativeSamples++;
       }
       if (nativeSamples) {
         for (let channel = 0; channel < plan.channels; channel++) {
           this.channelSamples[chip]![channel] = sums[channel]! / nativeSamples;
         }
+        this.singleSamples[chip] = this.singleSums[chip]! / nativeSamples;
       }
     }
     if (this.discreteMixer) return this.sampleDiscreteMixer();
@@ -2507,7 +2613,7 @@ export class GeneratedAy8910Mixer {
     for (const route of this.routes) {
       const samples = this.channelSamples[route.chip];
       let value = route.channel === -1
-        ? (samples?.reduce((sum, sample) => sum + sample, 0) ?? 0) / plan.channels
+        ? this.singleSamples[route.chip] ?? 0
         : samples?.[route.channel] ?? 0;
       if (route.filter) value = this.filter(value, this.filters[route.filter.index]);
       mixed += value * route.gain;
@@ -2526,7 +2632,7 @@ export class GeneratedAy8910Mixer {
       const route = this.routes.find(candidate => candidate.targetInput === input.input);
       const samples = route ? this.channelSamples[route.chip] : undefined;
       const value = route?.channel === -1
-        ? (samples?.reduce((sum, sample) => sum + sample, 0) ?? 0) / plan.channels
+        ? this.singleSamples[route.chip] ?? 0
         : samples?.[route?.channel ?? -1] ?? 0;
       values.set(input.node, value * (route?.gain ?? 1) * input.gain + input.offset);
     }
@@ -2640,15 +2746,40 @@ export class GeneratedAy8910FrameRenderer {
     const count = Math.floor(this.sampleCarry);
     this.sampleCarry -= count;
     const output = new Float32Array(count);
-    let sampleIndex = 0;
-    for (const write of writes) {
-      const writeSample = Math.ceil(
-        Math.max(0, Math.min(1, write.frac ?? 0)) * count,
-      );
-      while (sampleIndex < writeSample) output[sampleIndex++] = this.mixer.sample();
+    let writeIndex = 0;
+    for (let sampleIndex = 0; sampleIndex < count; sampleIndex++) {
+      this.mixer.beginSample();
+      const deferred: GeneratedAyWrite[] = [];
+      while (writeIndex < writes.length) {
+        const write = writes[writeIndex]!;
+        const exactSample = Math.max(
+          0,
+          Math.min(count, (write.frac ?? 0) * count),
+        );
+        if (exactSample > sampleIndex + 1) break;
+        if (this.mixer.isTimedWrite(write.method)) {
+          this.mixer.writeAt(
+            write.offset,
+            write.data,
+            write.method,
+            exactSample - sampleIndex,
+          );
+        } else if (exactSample <= sampleIndex) {
+          this.mixer.write(write.offset, write.data, write.method);
+        } else {
+          deferred.push(write);
+        }
+        writeIndex++;
+      }
+      output[sampleIndex] = this.mixer.sample();
+      for (const write of deferred) {
+        this.mixer.write(write.offset, write.data, write.method);
+      }
+    }
+    while (writeIndex < writes.length) {
+      const write = writes[writeIndex++]!;
       this.mixer.write(write.offset, write.data, write.method);
     }
-    while (sampleIndex < count) output[sampleIndex++] = this.mixer.sample();
     return output;
   }
 }

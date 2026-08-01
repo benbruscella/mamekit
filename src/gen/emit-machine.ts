@@ -601,6 +601,14 @@ export function lowerAuxiliaryAudioDevices(
     const initialMode =
       /set_prescaler_selector\([^)]*::(\w+)\)/.exec(config)?.[1];
     const targetInput = Number(route.props.input);
+    const referenceDevice = devices.find(candidate => {
+      if (candidate.type !== 'DISCRETE') return false;
+      return graph.edges.some(edge => {
+        if (edge.from !== candidate.id || edge.rel !== 'HAS_AUDIO_ROUTE') return false;
+        const referenceRoute = byId.get(edge.to);
+        return referenceRoute?.props.target === device.tag;
+      });
+    });
     return [{
       type: device.type,
       deviceTag: device.tag,
@@ -611,6 +619,12 @@ export function lowerAuxiliaryAudioDevices(
       target: String(route.props.target),
       ...(Number.isInteger(targetInput) ? { targetInput } : {}),
       writeMethods,
+      ...(referenceDevice ? {
+        referenceControl: {
+          deviceTag: referenceDevice.tag,
+          ...(referenceDevice.member ? { member: referenceDevice.member } : {}),
+        },
+      } : {}),
     }];
   });
 }

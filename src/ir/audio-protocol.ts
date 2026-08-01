@@ -150,6 +150,11 @@ export interface GeneratedAuxiliaryAudioDevice {
   target: string;
   targetInput?: number;
   writeMethods: string[];
+  /** Discrete stream that drives this DAC's positive/negative references. */
+  referenceControl?: {
+    deviceTag: string;
+    member?: string;
+  };
 }
 /** Source-derived RP2A03 APU configuration carried by generated board IR. */
 export interface GeneratedNesApuPlan {
