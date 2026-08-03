@@ -6,6 +6,8 @@ import {
   compileMameMc6809,
   compileMameM6801U4,
   compileMameM6803,
+  compileMameM68000,
+  compileMameM6502,
   compileMameMcs48,
   compileMameRp2a03,
   compileMameZ80,
@@ -19,10 +21,13 @@ import {
 } from '../runtime/generated-cpu.ts';
 
 const i8039Definition = compileMameMcs48(process.env.MAME_SRC ?? '../mame', 'I8039');
+const i8035Definition = compileMameMcs48(process.env.MAME_SRC ?? '../mame', 'I8035');
 const mb8884Definition = compileMameMcs48(process.env.MAME_SRC ?? '../mame', 'MB8884');
+assert.equal(i8035Definition.type, 'I8035');
 assert.equal(i8039Definition.type, 'I8039');
 assert.equal(mb8884Definition.type, 'MB8884');
 assert.equal(i8039Definition.members.find(member => member.name === 'm_ram_size')?.initial, 128);
+assert.equal(i8035Definition.members.find(member => member.name === 'm_ram_size')?.initial, 64);
 assert.equal(mb8884Definition.members.find(member => member.name === 'm_ram_size')?.initial, 64);
 assert.equal(mb8884Definition.members.find(member => member.name === 'm_dataptr')?.values?.length, 64);
 
@@ -102,6 +107,31 @@ assert.equal(rp2a03.get('m_A'), 0x80);
 assert.equal(rp2a03.step(), 3);
 assert.equal(rp2a03Memory[0x10], 0x80);
 assert.ok(generatedCpuExecutableSource(rp2a03Definition).length > 100_000);
+
+const m6502Definition = compileMameM6502(process.env.MAME_SRC ?? '../mame');
+assert.equal(m6502Definition.type, 'M6502');
+assert.equal(m6502Definition.summary.compiledOpcodes, 256);
+assert.equal(m6502Definition.summary.diagnostics, 0);
+assert.ok(m6502Definition.sourceFiles.includes('src/devices/cpu/m6502/dm6502.lst'));
+clearGeneratedCpus();
+registerGeneratedCpu(m6502Definition);
+const m6502Memory = new Uint8Array(0x10000);
+// SED ; LDA #$45 ; ADC #$55 — NMOS decimal mode must produce BCD $00 + carry.
+m6502Memory.set([0xf8, 0xa9, 0x45, 0x69, 0x55], 0x8000);
+m6502Memory[0xfffc] = 0x00;
+m6502Memory[0xfffd] = 0x80;
+const m6502 = createCpu('M6502', {
+  read: address => m6502Memory[address]!,
+  write: (address, data) => { m6502Memory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+m6502.reset();
+m6502.step();
+m6502.step();
+m6502.step();
+assert.equal(m6502.get('m_A'), 0x00);
+assert.equal(m6502.get('m_P') & 1, 1);
 
 const i8080Definition = compileMameI8080(process.env.MAME_SRC ?? '../mame');
 assert.match(
@@ -273,6 +303,38 @@ m6802 = createCpu('M6802', {
 m6802.setIrqLine(true);
 for (let instruction = 0; instruction < 6; instruction++) m6802.step();
 assert.equal(m6802PiaReads, 1, 'M6802 CLI must execute the PIA read before resampling level IRQ');
+
+const m68000Definition = compileMameM68000(process.env.MAME_SRC ?? '../mame');
+assert.equal(m68000Definition.summary.opcodes, 1699);
+assert.equal(m68000Definition.summary.compiledOpcodes, 1699);
+assert.equal(m68000Definition.summary.diagnostics, 0);
+assert.equal(m68000Definition.addressMask, 0xffffff);
+const m68000Source = generatedCpuExecutableSource(m68000Definition);
+assert.ok(m68000Source.length > 1_000_000);
+assert.match(m68000Source, /address & 16777215/);
+clearGeneratedCpus();
+registerGeneratedCpu(m68000Definition);
+const m68000Memory = new Uint8Array(0x1100);
+const writeM68000Long = (address: number, value: number): void => {
+  m68000Memory[address] = value >>> 24;
+  m68000Memory[address + 1] = value >>> 16;
+  m68000Memory[address + 2] = value >>> 8;
+  m68000Memory[address + 3] = value;
+};
+writeM68000Long(0, 0x00002000);
+writeM68000Long(4, 0x00000100);
+// MOVEQ #5,D0; ADDQ.L #1,D0; MOVE.L D0,$00001000; BRA.S *
+m68000Memory.set([
+  0x70, 0x05, 0x52, 0x80, 0x23, 0xc0, 0x00, 0x00, 0x10, 0x00, 0x60, 0xfe,
+], 0x100);
+const m68000 = createCpu('M68000', {
+  read: address => m68000Memory[address] ?? 0,
+  write: (address, data) => { m68000Memory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+assert.deepEqual([m68000.step(), m68000.step(), m68000.step()], [4, 8, 20]);
+assert.deepEqual(Array.from(m68000Memory.slice(0x1000, 0x1004)), [0, 0, 0, 6]);
 
 const m6801u4Definition = compileMameM6801U4(process.env.MAME_SRC ?? '../mame');
 assert.equal(m6801u4Definition.type, 'M6801U4');

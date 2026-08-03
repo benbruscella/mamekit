@@ -38,10 +38,11 @@ const effect = (overrides: Partial<GeneratedCallback>): BoardEffect | undefined 
 
 check('devcb transforms lower to typed operations', () => {
   assert.deepEqual(
-    lowerTransforms(['invert', 'mask(0x0f)', 'rshift(4)', 'lshift(3)']),
+    lowerTransforms(['invert', 'mask(0x0f)', 'bit(5)', 'rshift(4)', 'lshift(3)']),
     [
       { kind: 'invert' },
       { kind: 'mask', value: 0x0f },
+      { kind: 'bit', bit: 5 },
       { kind: 'rshift', bits: 4 },
       { kind: 'lshift', bits: 3 },
     ],
@@ -51,7 +52,7 @@ check('devcb transforms lower to typed operations', () => {
 // lshift had no runtime implementation, so digdug's and galaga's 53xx K-port
 // MOD bits collapsed onto bit 0. An unmodelled transform must be visible.
 check('a transform with no lowering is reported, not dropped', () => {
-  assert.deepEqual(unknownTransforms(['invert', 'xor(3)']), ['xor(3)']);
+  assert.deepEqual(unknownTransforms(['invert', 'bit(2)', 'xor(3)']), ['xor(3)']);
   assert.deepEqual(unknownTransforms(['lshift(3)']), []);
 });
 
@@ -78,12 +79,28 @@ check('a CPU input line lowers to the named pin', () => {
     { kind: 'cpu-line', tag: 'maincpu', line: 'nmi', delivery: 'level' },
   );
   assert.deepEqual(
+    effect({ targetTag: 'audiocpu', inputLine: '0' }),
+    { kind: 'cpu-line', tag: 'audiocpu', line: 'irq', delivery: 'level' },
+  );
+  assert.deepEqual(
     effect({ targetTag: 'mcu', inputLine: 'M6801_IRQ1_LINE' }),
     { kind: 'cpu-line', tag: 'mcu', line: 'irq', delivery: 'level' },
   );
   assert.deepEqual(
+    effect({ targetTag: 'audiocpu', inputLine: 'M6502_IRQ_LINE' }),
+    { kind: 'cpu-line', tag: 'audiocpu', line: 'irq', delivery: 'level' },
+  );
+  assert.deepEqual(
+    effect({ targetTag: 'maincpu', inputLine: 'M68K_IRQ_5' }),
+    { kind: 'cpu-line', tag: 'maincpu', line: 'irq5', delivery: 'level' },
+  );
+  assert.deepEqual(
     effect({ targetTag: 'maincpu', inputLine: 'Z80_INPUT_LINE_BUSREQ' }),
     { kind: 'cpu-line', tag: 'maincpu', line: 'halt', delivery: 'level' },
+  );
+  assert.deepEqual(
+    effect({ targetTag: 'audiocpu', inputLine: 'Z80_INPUT_LINE_WAIT' }),
+    { kind: 'cpu-line', tag: 'audiocpu', line: 'halt', delivery: 'level' },
   );
   assert.deepEqual(
     effect({
@@ -113,6 +130,13 @@ check('a driver interrupt generator lowers to its pin and delivery mode', () => 
       context,
     ),
     { kind: 'cpu-line', tag: 'maincpu', line: 'irq', delivery: 'hold' },
+  );
+  assert.deepEqual(
+    lowerCallbackEffect(
+      callback({ ownerTag: 'maincpu', signal: 'set_vblank_int', targetMethod: 'irq4_line_hold' }),
+      context,
+    ),
+    { kind: 'cpu-line', tag: 'maincpu', line: 'irq4', delivery: 'hold' },
   );
   assert.deepEqual(
     lowerCallbackEffect(

@@ -54,12 +54,12 @@ const definition: GeneratedDeviceDefinition = {
             left: { kind: 'identifier', name: 'y' },
             right: { kind: 'identifier', name: 'LIMIT' },
           },
-          iterate: {
+          iterate: [{
             op: 'assign',
             target: { kind: 'identifier', name: 'y' },
             operator: '+=',
             value: { kind: 'number', value: 1 },
-          },
+          }],
           body: [{
             op: 'for',
             initialize: [{
@@ -74,12 +74,12 @@ const definition: GeneratedDeviceDefinition = {
               left: { kind: 'identifier', name: 'x' },
               right: { kind: 'identifier', name: 'LIMIT' },
             },
-            iterate: {
+            iterate: [{
               op: 'assign',
               target: { kind: 'identifier', name: 'x' },
               operator: '+=',
               value: { kind: 'number', value: 1 },
-            },
+            }],
             body: [{
               op: 'assign',
               target: { kind: 'identifier', name: 'm_total' },

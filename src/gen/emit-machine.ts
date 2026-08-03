@@ -1,6 +1,6 @@
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { KnowledgeGraph } from '../kg/types.ts';
+import type { KGNode, KnowledgeGraph } from '../kg/types.ts';
 import type {
   BoardIr,
   BoardSourceRef,
@@ -18,7 +18,7 @@ import type {
 /** MAME device input clocks converted to the instruction-cycle scheduler rate. */
 export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
   if (
-    type === 'mc6809' || type === 'm6801u4' || type === 'm6802' ||
+    type === 'konami' || type === 'mc6809' || type === 'm6801u4' || type === 'm6802' ||
     type === 'm6803' || type === 'nsc8105'
   ) return clock / 4;
   if (type === 'i8039' || type === 'mb8884') return clock / 15;
@@ -48,30 +48,59 @@ export function lowerGeneratedMachine(
   discretePlan?: GeneratedDiscreteDacPlan | GeneratedDiscreteEffectsPlan,
 ): BoardIr {
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
-  const tagCounts = new Map<string, number>();
-  for (const device of graph.nodes.filter(node => node.label === 'Device')) {
-    const tag = String(device.props.tag);
-    tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+  // A full source graph can contain sibling machine configurations that the
+  // selected game never calls. Walk only the selected config closure, carrying
+  // the host device tag through nested device_add_mconfig calls so internal
+  // tags retain MAME's `host:child` namespace.
+  const rootMachineId = graph.edges.find(edge =>
+    edge.from === `game:${game}` && edge.rel === 'USES_MACHINE')?.to;
+  if (!rootMachineId) throw new Error(`${game}: selected machine config is missing`);
+  const reachableDevices: Array<{ node: KGNode; tag: string; hostTag?: string }> = [];
+  const emittedTags = new Map<string, string>();
+  const queue: Array<{ id: string; hostTag?: string }> = [{ id: rootMachineId }];
+  const visitedConfigs = new Set<string>();
+  const visitedDevices = new Set<string>();
+  while (queue.length) {
+    const current = queue.shift()!;
+    const visitKey = `${current.id}\0${current.hostTag ?? ''}`;
+    if (visitedConfigs.has(visitKey)) continue;
+    visitedConfigs.add(visitKey);
+    for (const edge of graph.edges.filter(candidate =>
+      candidate.from === current.id && candidate.rel === 'HAS_DEVICE')) {
+      const node = byId.get(edge.to);
+      if (!node) continue;
+      const rawTag = String(node.props.tag);
+      const tag = current.hostTag && !rawTag.includes(':')
+        ? `${current.hostTag}:${rawTag}`
+        : rawTag;
+      const deviceKey = `${node.id}\0${tag}`;
+      if (!visitedDevices.has(deviceKey)) {
+        visitedDevices.add(deviceKey);
+        reachableDevices.push({ node, tag, ...(current.hostTag ? { hostTag: current.hostTag } : {}) });
+        emittedTags.set(node.id, tag);
+      }
+      for (const call of graph.edges.filter(candidate =>
+        candidate.from === node.id && candidate.rel === 'CALLS')) {
+        queue.push({ id: call.to, hostTag: tag });
+      }
+    }
+    for (const call of graph.edges.filter(candidate =>
+      candidate.from === current.id && candidate.rel === 'CALLS')) {
+      queue.push({ id: call.to, ...(current.hostTag ? { hostTag: current.hostTag } : {}) });
+    }
   }
-  const nestedHostTags = new Map<string, string>();
-  for (const device of graph.nodes.filter(node => node.label === 'Device')) {
-    const ownerConfig = graph.edges.find(edge =>
-      edge.rel === 'HAS_DEVICE' && edge.to === device.id);
-    if (!ownerConfig) continue;
-    const hostEdge = graph.edges.find(edge =>
-      edge.rel === 'CALLS' && edge.to === ownerConfig.from &&
-      byId.get(edge.from)?.label === 'Device');
-    const host = hostEdge && byId.get(hostEdge.from);
-    if (host?.props.tag) nestedHostTags.set(device.id, String(host.props.tag));
-  }
-  const emittedDeviceTag = (deviceId: string, rawTag: string): string => {
-    const hostTag = nestedHostTags.get(deviceId);
-    return hostTag && (tagCounts.get(rawTag) ?? 0) > 1
-      ? `${hostTag}:${rawTag}`
-      : rawTag;
+  const emittedDeviceTag = (deviceId: string, rawTag: string): string =>
+    emittedTags.get(deviceId) ?? rawTag;
+  const resolveReachableTag = (rawTag: string): string => {
+    const tags = [...new Set(emittedTags.values())];
+    if (tags.includes(rawTag)) return rawTag;
+    const matches = tags.filter(tag => tag.endsWith(`:${rawTag}`));
+    return matches.length === 1 ? matches[0]! : rawTag;
   };
   const callbacks: GeneratedCallback[] = graph.nodes
     .filter(node => node.label === 'Callback')
+    .filter(node => graph.edges.some(edge =>
+      edge.rel === 'HAS_CALLBACK' && edge.to === node.id && emittedTags.has(edge.from)))
     .map(node => {
       const props = node.props;
       const ownerDevice = graph.edges.find(edge =>
@@ -87,7 +116,13 @@ export function lowerGeneratedMachine(
       if (props.slot !== undefined && Number.isFinite(Number(props.slot))) {
         callback.slot = Number(props.slot);
       }
-      if (props.targetTag) callback.targetTag = String(props.targetTag);
+      if (props.targetTag) {
+        const targetDevice = graph.edges.find(edge =>
+          edge.from === node.id && edge.rel === 'TARGETS_DEVICE' && emittedTags.has(edge.to));
+        callback.targetTag = targetDevice
+          ? emittedTags.get(targetDevice.to)!
+          : resolveReachableTag(String(props.targetTag));
+      }
       if (props.targetClass) callback.targetClass = String(props.targetClass);
       if (props.targetMethod) callback.targetMethod = String(props.targetMethod);
       if (props.targetPort) callback.targetPort = String(props.targetPort);
@@ -100,6 +135,23 @@ export function lowerGeneratedMachine(
       if (props.scanlineStart !== undefined) callback.scanlineStart = Number(props.scanlineStart);
       if (props.scanlineIncrement !== undefined) {
         callback.scanlineIncrement = Number(props.scanlineIncrement);
+      }
+      if (callback.signal === 'configure_scanline') {
+        const handlerEdge = graph.edges.find(edge =>
+          edge.from === node.id && edge.rel === 'CALLS_HANDLER');
+        const handler = handlerEdge && graph.nodes.find(candidate => candidate.id === handlerEdge.to);
+        const body = String(handler?.props.sourceBody ?? '');
+        const gate = /\b(?:const\s+)?(?:u?int8_t|u8)\s+(\w+)\s*=\s*(m_\w+)\s*\[\s*\w+\s*&\s*(0x[\da-f]+|\d+)\s*\]/i.exec(body);
+        if (gate) {
+          const guarded = [...body.matchAll(new RegExp(
+            `\\bif\\s*\\(\\s*${gate[1]}\\s*&`,
+            'g',
+          ))].length;
+          const lineWrites = [...body.matchAll(/\bset_input_line(?:_and_vector)?\s*\(/g)].length;
+          if (guarded > 0 && guarded === lineWrites) {
+            callback.promGate = { member: gate[2]!, mask: Number(gate[3]) };
+          }
+        }
       }
       if (Array.isArray(props.transforms)) callback.transforms = props.transforms.map(String);
       if (props.sourceFile && props.sourceLine) {
@@ -119,13 +171,12 @@ export function lowerGeneratedMachine(
           ...(props.sourceColumn ? { column: Number(props.sourceColumn) } : {}),
         }
       : undefined;
-  const devices: GeneratedDevice[] = graph.nodes
-    .filter(node => node.label === 'Device')
-    .map(node => ({
+  const devices: GeneratedDevice[] = reachableDevices
+    .map(({ node, tag, hostTag }) => ({
       id: node.id,
-      tag: emittedDeviceTag(node.id, String(node.props.tag)),
+      tag,
       type: String(node.props.type),
-      ...(nestedHostTags.has(node.id) ? { hostTag: nestedHostTags.get(node.id) } : {}),
+      ...(hostTag ? { hostTag } : {}),
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
       ...(deviceCallbackHz(node.props) ? { callbackHz: deviceCallbackHz(node.props) } : {}),
@@ -235,6 +286,12 @@ export function lowerGeneratedMachine(
         ...(nesApu && cpu.type?.toLowerCase() === 'rp2a03'
           ? { ranges: mergeInternalRanges(cpu.ranges ?? [], nesApu) }
           : {}),
+        ...(cpu.mask === undefined && ['m68000', 'm68010'].includes(cpu.type?.toLowerCase() ?? '')
+          ? { mask: 0xffffff }
+          : {}),
+        ...(cpu.mask === undefined && ['i8088', 'v30'].includes(cpu.type?.toLowerCase() ?? '')
+          ? { mask: 0xfffff }
+          : {}),
         cycleClock: generatedCpuCycleClock(cpu.type, cpu.clock),
         ...(interruptVectorWriters.length ? { interruptVectorWriters } : {}),
         ...(deviceByTag.get(cpu.tag)?.source ? { source: deviceByTag.get(cpu.tag)!.source } : {}),
@@ -273,8 +330,10 @@ export function lowerGeneratedMachine(
   const soundDevice = devices.find(device => device.type === 'NAMCO_WSG');
   const nesCpu = nesApu && devices.find(device =>
     device.type === 'RP2A03' || device.type === 'RP2A03G');
-  const ayDevices = devices.filter(device => device.type === 'AY8910');
+  const ayDevices = devices.filter(device =>
+    ['AY8910', 'AY8912', 'YM2149'].includes(device.type));
   const ymDevices = devices.filter(device => device.type === 'YM2203');
+  const oplDevices = devices.filter(device => device.type === 'YM3526');
   const snDevices = devices.filter(device =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(device.type));
@@ -314,14 +373,14 @@ export function lowerGeneratedMachine(
           .map(callback => callback.targetMethod!))],
         controlOffset: -1,
       }
-    : ymDevices.length
+    : ymDevices.length || oplDevices.length
       ? {
           kind: 'ym2203',
-          deviceTag: ymDevices[0]!.tag,
+          deviceTag: (ymDevices[0] ?? oplDevices[0])!.tag,
           deviceTags: ymDevices.map(device => device.tag),
-          deviceType: 'YM2203',
+          deviceType: ymDevices.length ? 'YM2203' : 'YM3526',
           // ym2203_device maps a two-byte address/data port pair.
-          writeMethods: ['write'],
+          writeMethods: ymDevices.length ? ['write'] : [],
           enableMethods: [],
           controlOffset: -1,
           ...(lowerAudioRoutes(graph, ymDevices).length
@@ -356,6 +415,7 @@ export function lowerGeneratedMachine(
           ...(lowerAudioRoutes(graph, snDevices).length
             ? { routes: lowerAudioRoutes(graph, snDevices) }
             : {}),
+          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
         }
     : generatedSoundboard
       ? (() => {
@@ -477,6 +537,7 @@ function lowerMemoryBanks(
   }
   return [...byTag].map(([tag, nodes]) => {
     const entryOffsets: (number | null)[] = [];
+    const entryMembers: (string | null)[] = [];
     for (const node of nodes) {
       const startEntry = Number(node.props.startEntry);
       const entries = Number(node.props.entries);
@@ -484,17 +545,25 @@ function lowerMemoryBanks(
       const stride = Number(node.props.stride);
       for (let index = 0; index < entries; index++) {
         entryOffsets[startEntry + index] = offset + index * stride;
+        if (node.props.entryMember) {
+          entryMembers[startEntry + index] = String(node.props.entryMember);
+        }
       }
     }
     for (let index = 0; index < entryOffsets.length; index++) {
       entryOffsets[index] ??= null;
+      entryMembers[index] ??= null;
     }
     const first = nodes[0]!;
     return {
       tag,
       member: String(first.props.member),
-      region: String(first.props.region),
+      ...(first.props.region ? { region: String(first.props.region) } : {}),
+      ...(entryMembers.some(Boolean) ? { entryMembers } : {}),
       entryOffsets,
+      ...(first.props.dynamicShift !== undefined
+        ? { dynamicShift: Number(first.props.dynamicShift) }
+        : {}),
       ...(sourceRef(first.props) ? { source: sourceRef(first.props)! } : {}),
     };
   });
@@ -563,6 +632,7 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   DAC_4BIT_R2R: ['data_w', 'write'],
   DAC_8BIT_R2R: ['data_w', 'write'],
   MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
+  VLM5030: ['data_w', 'st', 'rst'],
   YM3526: ['write'],
 };
 
@@ -745,7 +815,7 @@ function visitOperations(
       visitOperations(operation.else ?? [], visit);
     } else if (operation.op === 'for') {
       visitOperations(operation.initialize, visit);
-      visitOperations([operation.iterate], visit);
+      visitOperations(operation.iterate, visit);
       visitOperations(operation.body, visit);
     } else if (operation.op === 'while' || operation.op === 'do-while') {
       visitOperations(operation.body, visit);

@@ -101,6 +101,18 @@ const DEFAULT_CONSTANTS: Record<string, number> = {
   M6802_IRQ_LINE: 0,
   M6809_IRQ_LINE: 0,
   M6809_FIRQ_LINE: 1,
+  KONAMI_IRQ_LINE: 0,
+  KONAMI_FIRQ_LINE: 1,
+  'm6502_device::IRQ_LINE': 0,
+  'm6502_device::NMI_LINE': -1,
+  M68K_IRQ_1: 1,
+  M68K_IRQ_2: 2,
+  M68K_IRQ_3: 3,
+  M68K_IRQ_4: 4,
+  M68K_IRQ_5: 5,
+  M68K_IRQ_6: 6,
+  M68K_IRQ_7: 7,
+  MCS48_INPUT_EA: 1,
   TILE_FLIPX: 1,
   TILE_FLIPY: 2,
   TILEMAP_FLIPX: 1,
@@ -350,7 +362,7 @@ function executeOperations(
         const result = executeOperations(operation.body, context);
         if (result.control === 'return') return result;
         if (result.control === 'break') break;
-        const iterated = executeOperations([operation.iterate], context);
+        const iterated = executeOperations(operation.iterate, context);
         if (iterated.control === 'return') return iterated;
         if (iterated.control === 'break') break;
       }
@@ -482,7 +494,8 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     );
   }
   if (expression.kind === 'member') {
-    const object = evaluate(expression.object, context);
+    const rawObject = evaluate(expression.object, context);
+    const object = isGeneratedPointer(rawObject) ? pointerValue(rawObject, 0) : rawObject;
     if (isReference(object)) return reference(`${object.reference}.${expression.property}`);
     if (
       object &&
@@ -632,7 +645,8 @@ function evaluateCall(
       const args = expression.args.map(arg => evaluate(arg, context));
       return direct(...args.map(callArgument));
     }
-    const object = evaluate(expression.callee.object, context);
+    const rawObject = evaluate(expression.callee.object, context);
+    const object = isGeneratedPointer(rawObject) ? pointerValue(rawObject, 0) : rawObject;
     const method = expression.callee.property;
     if (typeof object === 'number' && method === 'as_ticks') {
       const clock = Math.max(1, toNumber(evaluate(expression.args[0]!, context)));
@@ -643,6 +657,21 @@ function evaluateCall(
       const generated = context.bindings.referenceCalls?.[key];
       if (generated) {
         return generated(...generatedCallArguments(key, expression.args, context));
+      }
+      // A source-derived composite-device call retains its finder spelling
+      // (m_timeplt_audio->sh_irqtrigger_w), while the target handler is keyed
+      // by its declaring C++ class. emitSourceHandlerClosure only admits this
+      // cross-class dependency when the method is unique, so the method key is
+      // the safe bridge between those two source identities.
+      // Only device finders/members can denote another source-compiled
+      // component. Framework chains such as machine().bookkeeping() may share
+      // a method name with a driver wrapper; resolving those by name would
+      // call the wrapper recursively instead of the MAME service.
+      const generatedMethod = object.reference.startsWith('m_')
+        ? context.bindings.referenceCalls?.[method]
+        : undefined;
+      if (generatedMethod) {
+        return generatedMethod(...generatedCallArguments(method, expression.args, context));
       }
       const args = expression.args.map(arg => evaluate(arg, context));
       // MAME device finders expose target() when source code needs a nullable
@@ -762,7 +791,8 @@ function assign(
     return;
   }
   if (target.kind === 'member') {
-    const object = evaluate(target.object, context);
+    const rawObject = evaluate(target.object, context);
+    const object = isGeneratedPointer(rawObject) ? pointerValue(rawObject, 0) : rawObject;
     if (!object || typeof object !== 'object' || isReference(object)) {
       throw new Error(`generated member assignment has no object for "${target.property}"`);
     }

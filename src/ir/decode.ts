@@ -179,9 +179,12 @@ const EFFECT_KINDS = new Set([
   'cpu-line', 'device-method', 'handler', 'port-read',
   'video-control', 'audio-control', 'audio-write', 'unconnected',
 ]);
-const CPU_LINES = new Set(['irq', 'firq', 'nmi', 'reset', 'halt']);
+const CPU_LINES = new Set([
+  'irq', 'irq1', 'irq2', 'irq3', 'irq4', 'irq5', 'irq6', 'irq7',
+  'firq', 'nmi', 'reset', 'halt',
+]);
 const DELIVERIES = new Set(['hold', 'assert', 'pulse', 'level']);
-const TRANSFORM_KINDS = new Set(['invert', 'mask', 'rshift', 'lshift']);
+const TRANSFORM_KINDS = new Set(['invert', 'mask', 'bit', 'rshift', 'lshift']);
 
 /**
  * Connections are the executable wiring, so a malformed one is exactly what
@@ -243,6 +246,7 @@ function decodeConnections(reader: Reader, value: unknown): void {
         continue;
       }
       if (transformKind === 'mask') reader.number(transform.value, `${transformPath}.value`, source);
+      if (transformKind === 'bit') reader.number(transform.bit, `${transformPath}.bit`, source);
       if (transformKind === 'rshift' || transformKind === 'lshift') {
         reader.number(transform.bits, `${transformPath}.bits`, source);
       }
@@ -387,7 +391,14 @@ function decodeExecution(reader: Reader, value: unknown): void {
       const bank = reader.object(entry, path);
       const source = sourceOf(bank);
       reader.string(bank.tag, `${path}.tag`, source);
-      reader.string(bank.region, `${path}.region`, source);
+      reader.optionalString(bank.region, `${path}.region`, source);
+      reader.optionalNumber(bank.dynamicShift, `${path}.dynamicShift`, source);
+      if (bank.entryMembers !== undefined) {
+        for (const [position, member] of reader.array(
+          bank.entryMembers, `${path}.entryMembers`, source).entries()) {
+          if (member !== null) reader.string(member, `${path}.entryMembers[${position}]`, source);
+        }
+      }
       const offsets = reader.array(bank.entryOffsets, `${path}.entryOffsets`, source);
       if (!offsets.some(offset => typeof offset === 'number')) {
         reader.fail(`${path}.entryOffsets`, 'no bank entry is configured', source);

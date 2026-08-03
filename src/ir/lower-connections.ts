@@ -31,6 +31,14 @@ export interface ConnectionContext {
   auxiliaryAudio?: Map<string, Set<string>>;
 }
 
+/** Resolve an unqualified device tag emitted inside a composite machine. */
+function resolveScopedTag(tags: Set<string>, rawTag: string | undefined): string | undefined {
+  if (!rawTag) return undefined;
+  if (tags.has(rawTag)) return rawTag;
+  const matches = [...tags].filter(tag => tag.endsWith(`:${rawTag}`));
+  return matches.length === 1 ? matches[0] : undefined;
+}
+
 /**
  * MAME's driver_device interrupt generators. The method name encodes both the
  * pin and how it is driven, which is why the runtime was parsing it.
@@ -39,7 +47,11 @@ function driverInterruptGenerator(
   method: string | undefined,
 ): { line: CpuLine; delivery: CpuLineDelivery } | undefined {
   const irq = /^irq(\d)_line_(hold|assert)$/.exec(method ?? '');
-  if (irq) return { line: 'irq', delivery: irq[2] as CpuLineDelivery };
+  if (irq) {
+    const level = Number(irq[1]);
+    const line: CpuLine = level === 0 ? 'irq' : `irq${level}` as CpuLine;
+    return { line, delivery: irq[2] as CpuLineDelivery };
+  }
   const nmi = /^nmi_line_(pulse|assert)$/.exec(method ?? '');
   if (nmi) return { line: 'nmi', delivery: nmi[1] as CpuLineDelivery };
   return undefined;
@@ -47,16 +59,34 @@ function driverInterruptGenerator(
 
 /** MAME's device_execute_interface input line constants. */
 const CPU_INPUT_LINES: Record<string, CpuLine> = {
+  // Most single-IRQ CPU cores expose their first external interrupt as
+  // numeric line zero; MAME device callbacks commonly spell it directly.
+  '0': 'irq',
   INPUT_LINE_NMI: 'nmi',
   INPUT_LINE_RESET: 'reset',
   INPUT_LINE_HALT: 'halt',
   INPUT_LINE_IRQ0: 'irq',
   M6800_IRQ_LINE: 'irq',
+  M6502_IRQ_LINE: 'irq',
+  'm6502_device::IRQ_LINE': 'irq',
+  'm6502_device::NMI_LINE': 'nmi',
+  M6808_IRQ_LINE: 'irq',
   M6802_IRQ_LINE: 'irq',
   M6801_IRQ1_LINE: 'irq',
   M6809_IRQ_LINE: 'irq',
   M6809_FIRQ_LINE: 'firq',
+  KONAMI_IRQ_LINE: 'irq',
+  KONAMI_FIRQ_LINE: 'firq',
+  M68K_IRQ_1: 'irq1',
+  M68K_IRQ_2: 'irq2',
+  M68K_IRQ_3: 'irq3',
+  M68K_IRQ_4: 'irq4',
+  M68K_IRQ_5: 'irq5',
+  M68K_IRQ_6: 'irq6',
+  M68K_IRQ_7: 'irq7',
+  MCS48_INPUT_EA: 'irq1',
   Z80_INPUT_LINE_BUSREQ: 'halt',
+  Z80_INPUT_LINE_WAIT: 'halt',
 };
 
 /** MAME's flip_screen helpers on driver_device. */
@@ -71,6 +101,8 @@ export function lowerTransforms(transforms: string[] = []): BoardTransform[] {
     if (transform === 'invert') return [{ kind: 'invert' }];
     const mask = /^mask\((0x[\da-f]+|\d+)\)$/i.exec(transform);
     if (mask) return [{ kind: 'mask', value: Number(mask[1]) }];
+    const bit = /^bit\((\d+)\)$/.exec(transform);
+    if (bit) return [{ kind: 'bit', bit: Number(bit[1]) }];
     const right = /^rshift\((\d+)\)$/.exec(transform);
     if (right) return [{ kind: 'rshift', bits: Number(right[1]) }];
     const left = /^lshift\((\d+)\)$/.exec(transform);
@@ -83,6 +115,7 @@ export function lowerTransforms(transforms: string[] = []): BoardTransform[] {
 export function unknownTransforms(transforms: string[] = []): string[] {
   return transforms.filter(transform =>
     transform !== 'invert' &&
+    !/^bit\(\d+\)$/.test(transform) &&
     !/^mask\((0x[\da-f]+|\d+)\)$/i.test(transform) &&
     !/^rshift\((\d+)\)$/.test(transform) &&
     !/^lshift\((\d+)\)$/.test(transform));
@@ -100,10 +133,11 @@ export function lowerCallbackEffect(
   // An explicit CPU input line: mainlatch bit -> audiocpu RESET.
   if (callback.targetTag && callback.inputLine) {
     const line = CPU_INPUT_LINES[callback.inputLine];
-    if (line && context.cpuTags.has(callback.targetTag)) {
+    const tag = resolveScopedTag(context.cpuTags, callback.targetTag);
+    if (line && tag) {
       return {
         kind: 'cpu-line',
-        tag: callback.targetTag,
+        tag,
         line,
         // MAME asserts these lines directly; the source holds them until
         // the latch bit changes back. The generated VCK schedule contains
@@ -119,8 +153,9 @@ export function lowerCallbackEffect(
   // on — set_vblank_int, set_periodic_int and set_irq_acknowledge_callback all
   // name the owning CPU, not the callback's target tag.
   const generator = driverInterruptGenerator(callback.targetMethod);
-  if (generator && context.cpuTags.has(callback.ownerTag)) {
-    return { kind: 'cpu-line', tag: callback.ownerTag, ...generator };
+  const ownerCpuTag = resolveScopedTag(context.cpuTags, callback.ownerTag);
+  if (generator && ownerCpuTag) {
+    return { kind: 'cpu-line', tag: ownerCpuTag, ...generator };
   }
 
   if (callback.targetMethod && VIDEO_CONTROLS[callback.targetMethod]) {
@@ -185,8 +220,9 @@ export function lowerCallbackEffect(
     callback.targetMethod
   ) {
     const key = `${callback.targetClass}.${callback.targetMethod}`;
-    if (context.handlerKeys.has(key) && context.cpuTags.has(callback.ownerTag)) {
-      return { kind: 'handler', handler: key, deviceTag: callback.ownerTag };
+    const tag = resolveScopedTag(context.cpuTags, callback.ownerTag);
+    if (context.handlerKeys.has(key) && tag) {
+      return { kind: 'handler', handler: key, deviceTag: tag };
     }
   }
 
@@ -194,12 +230,13 @@ export function lowerCallbackEffect(
   if (
     callback.targetTag &&
     callback.targetMethod &&
-    context.deviceTags.has(callback.targetTag) &&
-    !context.cpuTags.has(callback.targetTag)
+    resolveScopedTag(context.deviceTags, callback.targetTag) &&
+    !resolveScopedTag(context.cpuTags, callback.targetTag)
   ) {
+    const tag = resolveScopedTag(context.deviceTags, callback.targetTag)!;
     return {
       kind: 'device-method',
-      tag: callback.targetTag,
+      tag,
       method: callback.targetMethod,
       ...(callback.targetClass ? { ownerClass: callback.targetClass } : {}),
     };
@@ -212,8 +249,9 @@ export function lowerCallbackEffect(
   }
 
   // A CPU-directed method with no input line (set_input_line wrappers).
-  if (callback.targetTag && callback.targetMethod && context.cpuTags.has(callback.targetTag)) {
-    return { kind: 'device-method', tag: callback.targetTag, method: callback.targetMethod };
+  if (callback.targetTag && callback.targetMethod) {
+    const tag = resolveScopedTag(context.cpuTags, callback.targetTag);
+    if (tag) return { kind: 'device-method', tag, method: callback.targetMethod };
   }
 
   return undefined;

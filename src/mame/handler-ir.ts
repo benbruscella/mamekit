@@ -10,8 +10,9 @@ interface Token {
 const TYPE_WORDS = new Set([
   'auto', 'bool', 'char', 'const', 'constexpr', 'double', 'int', 'offs_t', 'pen_t', 'static',
   'rectangle', 'rgb_t', 'tilemap_memory_index',
-  's8', 's16', 's32', 'u8', 'u16', 'u32',
-  'int8_t', 'int16_t', 'int32_t', 'uint8_t', 'uint16_t', 'uint32_t', 'unsigned',
+  's8', 's16', 's32', 's64', 'u8', 'u16', 'u32', 'u64',
+  'int8_t', 'int16_t', 'int32_t', 'int64_t',
+  'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'unsigned',
 ]);
 
 const BINARY_PRECEDENCE: Record<string, number> = {
@@ -45,7 +46,14 @@ const ASSIGNMENT_OPERATORS = new Set([
  * guess at their behavior.
  */
 export function compileMameHandler(body: string): GeneratedHandlerProgram {
-  const parser = new HandlerParser(tokenize(body));
+  // C++ pointer-to-member invocation has no distinct runtime value in the IR.
+  // Preserve it as a normal call through the member slot; the surrounding
+  // source null check still controls whether the call is reached.
+  const executable = body.replace(
+    /\(\s*this\s*->\s*\*\s*(m_\w+)\s*\)\s*\(/g,
+    '$1(',
+  );
+  const parser = new HandlerParser(tokenize(executable));
   return parser.parse();
 }
 
@@ -253,13 +261,15 @@ class HandlerParser {
       }
       initialize = operations;
     }
-    const condition = this.parseExpression();
-    if (!condition || !this.consume(';')) {
+    const condition = this.consume(';')
+      ? { kind: 'number' as const, value: 1 }
+      : this.parseExpression();
+    if (!condition || (this.tokens[this.index - 1]?.text !== ';' && !this.consume(';'))) {
       this.unsupportedStatement('invalid for condition');
       return undefined;
     }
-    const iterate = this.parseMutation(')');
-    if (!iterate) {
+    const iterate = this.parseMutationList(')');
+    if (!iterate?.length) {
       this.unsupportedStatement('invalid for iteration');
       return undefined;
     }

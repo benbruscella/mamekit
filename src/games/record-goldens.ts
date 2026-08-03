@@ -10,7 +10,12 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 export function replaceGolden(source: string, golden: GameAcceptanceGolden): string {
   const marker = '  golden: ';
   const markerAt = source.indexOf(marker);
-  if (markerAt < 0) throw new Error('game contract has no golden property');
+  if (markerAt < 0) {
+    const end = Math.max(source.lastIndexOf('\n});'), source.lastIndexOf('\n};'));
+    if (end < 0) throw new Error('game contract has no object terminator');
+    const rendered = renderGolden(golden).replace(/\n/g, '\n  ');
+    return `${source.slice(0, end)}\n  golden: ${rendered},${source.slice(end)}`;
+  }
   const start = source.indexOf('{', markerAt + marker.length);
   if (start < 0) throw new Error('game contract has a malformed golden property');
   const end = objectEnd(source, start);

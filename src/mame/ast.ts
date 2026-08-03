@@ -261,7 +261,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
       }
     }
     const templateParameters = classTemplateParameters(masked, cm.index);
-    classes.push({
+    const declaration: MameClass = {
       kind: 'class',
       name: cm[1],
       bases,
@@ -270,7 +270,47 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
       body: source.slice(braceStart + 1, braceEnd),
       span: span(cm.index, braceEnd + 1),
       bodySpan: span(braceStart + 1, braceEnd),
-    });
+    };
+    classes.push(declaration);
+
+    // Small accessors are commonly defined directly in MAME device headers
+    // (for example K005849 scroll RAM). They are executable source just like
+    // out-of-class definitions, so retain them in the same function AST.
+    const bodyStart = braceStart + 1;
+    const bodyMasked = masked.slice(bodyStart, braceEnd);
+    const inlineRe = /(?:^|[;:]\s*|\n\s*)(?:virtual\s+|inline\s+|static\s+|constexpr\s+)*(?:[\w:<>,~*&]+\s+)+(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
+    let im: RegExpExecArray | null;
+    while ((im = inlineRe.exec(bodyMasked)) !== null) {
+      const localBrace = bodyMasked.indexOf('{', im.index + im[0].length - 1);
+      if (localBrace < 0 || braceDepth(bodyMasked, localBrace) !== 0) continue;
+      const localEnd = matchPair(bodyMasked, localBrace, '{', '}');
+      if (localEnd < 0) continue;
+      const absoluteBrace = bodyStart + localBrace;
+      const absoluteEnd = bodyStart + localEnd;
+      const inlineStart = bodyStart + im.index + (im[0].startsWith('\n') ? 1 : 0);
+      functions.push({
+        kind: 'function',
+        className: declaration.name,
+        name: im[1]!,
+        parameters: source.slice(
+          masked.indexOf('(', bodyStart + im.index),
+          matchPair(masked, masked.indexOf('(', bodyStart + im.index), '(', ')') + 1,
+        ).slice(1, -1),
+        body: source.slice(absoluteBrace + 1, absoluteEnd),
+        statements: parseStatements(
+          file,
+          source,
+          masked,
+          absoluteBrace + 1,
+          absoluteEnd,
+          lineStarts,
+        ),
+        span: span(inlineStart, absoluteEnd + 1),
+        bodySpan: span(absoluteBrace + 1, absoluteEnd),
+      });
+      occupied.push([inlineStart, absoluteEnd + 1]);
+      inlineRe.lastIndex = localEnd + 1;
+    }
     classRe.lastIndex = braceEnd + 1;
   }
 
@@ -295,6 +335,15 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   }
 
   return { file, source, masked, macros, classes, functions };
+}
+
+function braceDepth(source: string, end: number): number {
+  let depth = 0;
+  for (let index = 0; index < end; index++) {
+    if (source[index] === '{') depth++;
+    else if (source[index] === '}') depth--;
+  }
+  return depth;
 }
 
 /** `template <typename Type>` immediately preceding a class declaration. */
@@ -408,6 +457,14 @@ export class MameAstIndex {
       if (found) return found;
     }
     return undefined;
+  }
+
+  /** Find a method only when its declaring class is unambiguous in the AST. */
+  findUniqueFunction(name: string): MameFunction | undefined {
+    const matches = this.ast.units
+      .flatMap(unit => unit.functions)
+      .filter(fn => fn.name === name);
+    return matches.length === 1 ? matches[0] : undefined;
   }
 
   findFunctionInHierarchy(className: string, name: string): MameFunction | undefined {

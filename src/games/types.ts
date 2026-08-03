@@ -42,7 +42,7 @@ export interface GameTestContract {
   machine: { className: string; name: string };
   romEnvironment: string;
   screen: { width: number; height: number };
-  soundKind: 'wsg' | 'ay8910' | 'discrete' | 'sn76489' | 'ym2203';
+  soundKind: 'wsg' | 'ay8910' | 'discrete' | 'sn76489' | 'ym2203' | 'none';
   frames: number;
   /** Minimum full-contract throughput, including video hashing and audio probing. */
   minimumFps: number;

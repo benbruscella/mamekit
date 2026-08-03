@@ -27,6 +27,7 @@ export function applyBoardTransforms(value: number, transforms: BoardTransform[]
     // extracts invert from line callbacks today, where the width is one bit.
     if (transform.kind === 'invert') result ^= 1;
     else if (transform.kind === 'mask') result &= transform.value;
+    else if (transform.kind === 'bit') result = (result >>> transform.bit) & 1;
     else if (transform.kind === 'rshift') result >>>= transform.bits;
     else if (transform.kind === 'lshift') result = (result << transform.bits) >>> 0;
   }

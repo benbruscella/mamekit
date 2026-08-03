@@ -76,6 +76,23 @@ check('class base parsed', hierarchy.ast.units[1].classes[0]?.bases, ['base_stat
 check('inherited function resolved',
   hierarchy.findFunctionInHierarchy('derived_state', 'bankselect_w')?.className,
   'base_state');
+
+const inline = parseMameSource('device.h', `
+class scroll_device : public device_t
+{
+public:
+  uint8_t scroll_r(offs_t offset) { return m_scroll[offset & 0x3f]; }
+  void scroll_w(offs_t offset, uint8_t data) { m_scroll[offset & 0x3f] = data; }
+private:
+  uint8_t m_scroll[0x40];
+};
+`);
+check('inline header methods are parsed', inline.functions.map(fn => [
+  fn.className, fn.name, fn.parameters, fn.body.trim(),
+]), [
+  ['scroll_device', 'scroll_r', 'offs_t offset', 'return m_scroll[offset & 0x3f];'],
+  ['scroll_device', 'scroll_w', 'offs_t offset, uint8_t data', 'm_scroll[offset & 0x3f] = data;'],
+]);
 check(
   'argument splitter preserves shift expressions',
   splitMameArgs('(i << 1) | 1, value >> 2'),

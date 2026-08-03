@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { splitMameArgs } from './ast.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
 import type { GeneratedYm3526Plan } from './opl-compiler.ts';
+import type { GeneratedMsm5205Plan } from './audio-compiler.ts';
 
 /**
  * Lower MAME's YM2203 (OPN) sound device.
@@ -557,6 +558,7 @@ export interface GeneratedYmRoute {
 export function generatedYm2203WorkletSource(
   plan: GeneratedYm2203Plan,
   ym3526Plan?: GeneratedYm3526Plan,
+  msm5205Plan?: GeneratedMsm5205Plan,
 ): string {
   return `// GENERATED from ${plan.source.file}:${plan.source.line}; do not edit.
 // The OPN FM engine, SSG engine, register bitfield map, die-extracted sine,
@@ -580,6 +582,18 @@ interface GeneratedYm3526Plan {
 // the way to never inside the dormant OPL class, breaking unrelated YM2203-only
 // targets such as Commando.
 const ym3526Plan = (${JSON.stringify(ym3526Plan ?? null, null, 2)}) as GeneratedYm3526Plan | null;
+const msmPlan = (${JSON.stringify(msm5205Plan ?? null, null, 2)}) as GeneratedMsm5205PlanData | null;
+
+interface GeneratedMsm5205PlanData {
+  indexShift: number[];
+  diffLookup: number[];
+  modes: Record<string, number>;
+  maximumStep: number;
+  minimumSignal: number;
+  maximumSignal: number;
+  sampleScale: number;
+  dacBits: number;
+}
 
 export interface GeneratedYmRoute {
   chip: number;
@@ -599,8 +613,10 @@ export interface GeneratedAuxiliaryAudioDevice {
   type: string;
   deviceTag: string;
   clock: number;
+  initialMode?: string;
   gain: number;
   target: string;
+  writeMethods?: string[];
 }
 
 interface Field {
@@ -1422,6 +1438,69 @@ export class GeneratedYm3526Chip {
   }
 }
 
+export class GeneratedMsm5205Core {
+  private data = 0;
+  private resetLine = false;
+  private bitwidth = 4;
+  private modeValue = 4;
+  private signal = 0;
+  private step = 0;
+
+  constructor(initialMode?: string) {
+    if (!msmPlan) throw new Error('MSM5205 plan was not emitted');
+    const mode = initialMode ? msmPlan.modes[initialMode] : undefined;
+    if (mode !== undefined) this.playmode(mode);
+  }
+
+  write(method: string, data: number): void {
+    if (method === 'data_w') {
+      this.data = this.bitwidth === 4 ? data & 0x0f : (data & 0x07) << 1;
+    } else if (method === 'reset_w') {
+      this.resetLine = data !== 0;
+    } else if (method === 'playmode_w') {
+      this.playmode(data);
+    } else if (method === 's1_w') {
+      this.playmode((this.modeValue & ~1) | (data ? 1 : 0));
+    } else if (method === 's2_w') {
+      this.playmode((this.modeValue & ~2) | (data ? 2 : 0));
+    } else if ((method === 'vck' || method === 'vclk_w') && data) {
+      this.clock();
+    }
+  }
+
+  sample(): number {
+    if (!msmPlan) return 0;
+    const mask = msmPlan.dacBits >= 12 ? 0 : (1 << (12 - msmPlan.dacBits)) - 1;
+    return (this.signal & ~mask) * msmPlan.sampleScale;
+  }
+
+  private playmode(data: number): void {
+    this.modeValue = data & 7;
+    this.bitwidth = data & 4 ? 4 : 3;
+  }
+
+  private clock(): void {
+    if (!msmPlan) return;
+    if (this.resetLine) {
+      this.signal = 0;
+      this.step = 0;
+      return;
+    }
+    const value = this.data & 15;
+    this.signal = Math.max(
+      msmPlan.minimumSignal,
+      Math.min(
+        msmPlan.maximumSignal,
+        this.signal + msmPlan.diffLookup[this.step * 16 + value]!,
+      ),
+    );
+    this.step = Math.max(
+      0,
+      Math.min(msmPlan.maximumStep, this.step + msmPlan.indexShift[value & 7]!),
+    );
+  }
+}
+
 /**
  * Hosts the machine's YM2203 bank, resampling each chip's native ymfm rate to
  * the host output rate and mixing the driver's add_route gains.
@@ -1430,6 +1509,15 @@ export class GeneratedYm2203Mixer {
   private readonly chips: GeneratedYm2203Chip[];
   private readonly oplChips: GeneratedYm3526Chip[];
   private readonly oplGains: number[];
+  private readonly msmChips: {
+    deviceTag: string;
+    gain: number;
+    core: GeneratedMsm5205Core;
+  }[];
+  private readonly msmWrites = new Map<string, {
+    core: GeneratedMsm5205Core;
+    method: string;
+  }>();
   private readonly routes: GeneratedYmRoute[];
   private readonly chipRate: number;
   private readonly outputRate: number;
@@ -1445,11 +1533,23 @@ export class GeneratedYm2203Mixer {
     routes?: GeneratedYmRoute[],
     auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[],
   ) {
-    this.chips = Array.from({ length: Math.max(1, chips) }, () => new GeneratedYm2203Chip());
+    this.chips = Array.from({ length: Math.max(0, chips) }, () => new GeneratedYm2203Chip());
     const oplDevices = (auxiliaryDevices ?? []).filter(device => device.type === 'YM3526');
     this.oplChips = oplDevices.map(device =>
       new GeneratedYm3526Chip(device.clock, outputRate));
     this.oplGains = oplDevices.map(device => device.gain);
+    const msmDevices = (auxiliaryDevices ?? []).filter(device => device.type === 'MSM5205');
+    this.msmChips = msmPlan ? msmDevices.map(device => ({
+      deviceTag: device.deviceTag,
+      gain: device.gain,
+      core: new GeneratedMsm5205Core(device.initialMode),
+    })) : [];
+    for (const device of this.msmChips) {
+      const definition = msmDevices.find(candidate => candidate.deviceTag === device.deviceTag);
+      for (const method of new Set([...(definition?.writeMethods ?? []), 'vck', 'vclk_w'])) {
+        this.msmWrites.set(device.deviceTag + '.' + method, { core: device.core, method });
+      }
+    }
     this.chipRate = clock / plan.sampleRateDivider;
     this.outputRate = outputRate;
     this.held = this.chips.map(() => new Int32Array(4));
@@ -1461,6 +1561,11 @@ export class GeneratedYm2203Mixer {
 
   /** Register writes arrive as chip * 2 + port, matching the generated board. */
   write(offset: number, data: number, method?: string): void {
+    const msm = this.msmWrites.get(method ?? '');
+    if (msm) {
+      msm.core.write(msm.method, data);
+      return;
+    }
     const primaryPorts = this.chips.length * 2;
     if (offset >= primaryPorts) {
       const opl = Math.floor((offset - primaryPorts) / 2);
@@ -1501,6 +1606,7 @@ export class GeneratedYm2203Mixer {
     for (let chip = 0; chip < this.oplChips.length; chip++) {
       output += this.oplChips[chip]!.sample() * this.oplGains[chip]!;
     }
+    for (const device of this.msmChips) output += device.core.sample() * device.gain;
     return Math.max(-1, Math.min(1, output));
   }
 

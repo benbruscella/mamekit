@@ -16,6 +16,8 @@ export const AY8910_ID = 'ay8910';
  */
 export const AY8910_MAME_TYPES = [
   'AY8910',
+  'AY8912',
+  'YM2149',
   'MSM5205',
   'DAC_4BIT_R2R',
   'DAC_8BIT_R2R',

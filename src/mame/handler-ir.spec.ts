@@ -259,6 +259,13 @@ assert.equal(
   'in_w_0',
 );
 
+const memberPointerCall = compileMameHandler(`
+  if (m_videomode_custom != nullptr)
+    (this->*m_videomode_custom)(data);
+`);
+assert.deepEqual(memberPointerCall.diagnostics, []);
+assert.equal(memberPointerCall.operations[0]?.op, 'if');
+
 // Driver handlers use unsized static string tables to select input ports.
 const staticArray = compileMameHandler(`
   static const char *const portnames[] = { "DSW0", "DSW1", "IN1", "IN2" };

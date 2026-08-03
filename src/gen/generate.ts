@@ -32,6 +32,7 @@ import {
 import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.ts';
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
+import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 import { artworkDir, romsDir } from '../paths.ts';
 import { cartArtIndex, type CartArt } from './cart-art.ts';
@@ -63,6 +64,18 @@ const KEYMAP: Record<string, string[]> = {
   IPT_JOYSTICK_RIGHT: ['ArrowRight'],
   IPT_JOYSTICK_UP: ['ArrowUp'],
   IPT_JOYSTICK_DOWN: ['ArrowDown'],
+  // MAME names the two physical sticks independently on twin-stick panels.
+  // Keep those keys distinct from the shared arrow-key joystick so a title
+  // that combines ordinary movement with a second firing stick (Tutankham)
+  // can drive both controls at once.
+  IPT_JOYSTICKLEFT_LEFT: ['KeyA'],
+  IPT_JOYSTICKLEFT_RIGHT: ['KeyD'],
+  IPT_JOYSTICKLEFT_UP: ['KeyW'],
+  IPT_JOYSTICKLEFT_DOWN: ['KeyS'],
+  IPT_JOYSTICKRIGHT_LEFT: ['KeyJ'],
+  IPT_JOYSTICKRIGHT_RIGHT: ['KeyL'],
+  IPT_JOYSTICKRIGHT_UP: ['KeyI'],
+  IPT_JOYSTICKRIGHT_DOWN: ['KeyK'],
   // NOTE: never bind Ctrl — macOS eats Ctrl+Arrow (Mission Control), which
   // force-releases left/right movement while firing (user directive)
   IPT_BUTTON1: ['Space', 'KeyX'],
@@ -205,19 +218,38 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const devices: KGNode[] = [];
   /** set_addrmap patches in chain order (most-derived config first) */
   const mapPatches: { space: string; tag: string; mapId: string }[] = [];
+  /** remove_addrmap operations in chain order (most-derived config first). */
+  const mapRemovals: { space: string; tag: string }[] = [];
+  const mapOperations: Array<
+    { kind: 'set'; mapId: string; space: string; tag: string } |
+    { kind: 'remove'; space: string; tag: string }
+  > = [];
   /** SOFTWARE_LIST declarations (consoles/computers) in chain order */
   const softlistNodes: KGNode[] = [];
   {
     const seen = new Set<string>();
-    const queue = [machine.id];
+    const queue: { id: string; hostTag?: string }[] = [{ id: machine.id }];
     while (queue.length) {
-      const id = queue.shift()!;
-      if (seen.has(id)) continue;
-      seen.add(id);
+      const { id, hostTag } = queue.shift()!;
+      const visitKey = `${id}\0${hostTag ?? ''}`;
+      if (seen.has(visitKey)) continue;
+      seen.add(visitKey);
       for (const d of g.out(id, 'HAS_DEVICE')) {
-        devices.push(d.node);
+        const rawTag = String(d.node.props.tag);
+        // Devices installed by a composite device's machine config live in
+        // that device's tag namespace in MAME, even when the graph reuses a
+        // single Device node and therefore cannot reveal the collision by
+        // counting declarations (for example Venture's two "pia" devices).
+        const tag = hostTag && !rawTag.includes(':') ? `${hostTag}:${rawTag}` : rawTag;
+        devices.push(tag === rawTag ? d.node : {
+          ...d.node,
+          props: { ...d.node.props, tag },
+        });
         // board-style devices carry a sub-machine (device_add_mconfig)
-        queue.push(...g.out(d.node.id, 'CALLS').map(c => c.node.id));
+        queue.push(...g.out(d.node.id, 'CALLS').map(c => ({
+          id: c.node.id,
+          hostTag: tag,
+        })));
       }
       for (const p of g.out(id, 'PATCHES_MAP')) {
         mapPatches.push({
@@ -225,9 +257,27 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           tag: String(p.edge.props?.deviceTag),
           mapId: p.node.id,
         });
+        mapOperations.push(Object.assign({ kind: 'set' as const, mapId: p.node.id }, {
+          space: String(p.edge.props?.space),
+          tag: String(p.edge.props?.deviceTag),
+        }));
+      }
+      const removedAddrMaps = g.node(id)?.props.removedAddrMaps;
+      for (const encoded of Array.isArray(removedAddrMaps)
+        ? removedAddrMaps.map(String)
+        : []) {
+        const separator = encoded.indexOf('=');
+        if (separator > 0) {
+          const removal = { tag: encoded.slice(0, separator), space: encoded.slice(separator + 1) };
+          mapRemovals.push(removal);
+          mapOperations.push(Object.assign({ kind: 'remove' as const }, removal));
+        }
       }
       softlistNodes.push(...g.out(id, 'HAS_SOFTLIST').map(s => s.node));
-      queue.push(...g.out(id, 'CALLS').map(c => c.node.id));
+      queue.push(...g.out(id, 'CALLS').map(c => ({
+        id: c.node.id,
+        ...(hostTag ? { hostTag } : {}),
+      })));
     }
   }
   const kind: 'console' | undefined = game.props.kind === 'console' ? 'console' : undefined;
@@ -238,7 +288,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', KONAMI1: 'konami1', I8039: 'i8039', MB8884: 'mb8884', I8080: 'i8080', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', RP2A03: 'rp2a03', RP2A03G: 'rp2a03' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177' };
   const cpuDevs = devices.filter(d => String(d.props.type) in CPU_TYPES);
   if (cpuDevs.length === 0) throw new Error('no supported CPU devices found in machine config');
 
@@ -297,8 +347,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     // overrides the map set at device instantiation
     const mapRefs = g.out(dev.id, 'HAS_MAP');
     const forSpace = (space: string): KGNode | undefined => {
-      const patch = mapPatches.find(p => p.tag === String(dev.props.tag) && p.space === space);
-      if (patch) return g.node(patch.mapId);
+      const operation = mapOperations.find(candidate =>
+        candidate.tag === String(dev.props.tag) && candidate.space === space);
+      if (operation?.kind === 'set') return g.node(operation.mapId);
+      if (operation?.kind === 'remove') return undefined;
       return mapRefs.find(m => (m.edge.props?.space ?? 'AS_PROGRAM') === space)?.node;
     };
     const programMap = forSpace('AS_PROGRAM');
@@ -348,12 +400,36 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
 
   const cpus = cpuDevs.map(d => {
     const maps = cpuMaps(d);
+    const installedHandlers = Array.isArray(game.props.installedHandlers)
+      ? game.props.installedHandlers.map(value => JSON.parse(String(value)) as {
+          space: string;
+          kind: 'read' | 'write';
+          start: number;
+          end: number;
+          className: string;
+          method: string;
+        })
+      : [];
+    const programInstalls = String(d.props.tag) === 'maincpu'
+      ? installedHandlers.filter(handler => handler.space === 'AS_PROGRAM')
+      : [];
     return {
       tag: String(d.props.tag),
       type: CPU_TYPES[String(d.props.type)],
       clock: Number(d.props.clock),
       region: maps.region ?? String(d.props.tag),
       ...maps,
+      ...(programInstalls.length ? {
+        ranges: [
+          ...maps.ranges,
+          ...programInstalls.map(handler => ({
+            start: handler.start,
+            end: handler.end,
+            kind: 'handler' as const,
+            [handler.kind]: `${handler.className}.${handler.method}`,
+          })),
+        ],
+      } : {}),
     };
   });
 
@@ -446,7 +522,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     wsg: Number(byTag.get('namco')?.props.clock ?? 96000),
   };
   // sound device -> runtime SoundCore kind (device-library mapping, not game-specific)
-  const ayChips = devices.filter(d => d.props.type === 'AY8910');
+  const ayChips = devices.filter(d =>
+    ['AY8910', 'AY8912', 'YM2149'].includes(String(d.props.type)));
   const ayRoutes = lowerAudioRoutes(
     graph,
     ayChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
@@ -464,6 +541,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     })),
   );
   const ymChips = devices.filter(d => d.props.type === 'YM2203');
+  const oplChips = devices.filter(d => d.props.type === 'YM3526');
   const snChips = devices.filter(d =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(String(d.props.type)));
@@ -478,7 +556,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     ? { kind: 'nes', clock: cpus[0].clock }
     : devices.some(d => d.props.type === 'NAMCO_WSG' || d.props.type === 'NAMCO')
     ? { kind: 'wsg', clock: Number(byTag.get('namco')?.props.clock ?? 96000), waveRegion: 'namco' }
-    : ymChips.length
+    : ymChips.length || oplChips.length
       ? (() => {
           const ymRoutes = lowerAudioRoutes(
             graph,
@@ -486,7 +564,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           );
           return {
             kind: 'ym2203',
-            clock: Number(ymChips[0].props.clock),
+            clock: Number((ymChips[0] ?? oplChips[0]).props.clock),
             chips: ymChips.length,
             ...(ymRoutes.length ? { routes: ymRoutes } : {}),
             ...(auxiliaryAudioDevices.length
@@ -644,6 +722,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         crc,
         ...(alts.length ? { alt: alts } : {}),
         ...(rom.props.reloadOffsets ? { reloadOffsets: rom.props.reloadOffsets as number[] } : {}),
+        ...(rom.props.groupSize ? { groupSize: Number(rom.props.groupSize) } : {}),
+        ...(rom.props.skip ? { skip: Number(rom.props.skip) } : {}),
+        ...(rom.props.reverse ? { reverse: true } : {}),
         ...(rom.props.continueSegments ? {
           continueSegments: chunkTriples(rom.props.continueSegments as number[]).map(
             ([offset, size, fileOffset]) => ({ offset, size, fileOffset }),
@@ -885,7 +966,18 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const romTransforms = Array.isArray(game.props.romTransforms)
     ? game.props.romTransforms.map(value =>
         JSON.parse(String(value)) as Record<string, unknown>)
-    : undefined;
+    : [];
+  for (const [index, device] of cpuDevs.entries()) {
+    const cpu = cpus[index]!;
+    if (!cpu.opcode) continue;
+    const transform = compileSegaZ80RomTransform(
+      opts.mameSrc,
+      String(device.props.type),
+      String(cpu.region),
+      String((cpu.opcode as { region: string }).region),
+    );
+    if (transform) romTransforms.push(transform as unknown as Record<string, unknown>);
+  }
   const initialShares = sourceNvramInitializers(devices, opts.mameSrc);
 
   const compiledVideo = compileMameVideo(graph, opts.mameSrc, machine.id);
@@ -912,7 +1004,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     sound,
     roms,
     ...(romPatches ? { romPatches } : {}),
-    ...(romTransforms ? { romTransforms } : {}),
+    ...(romTransforms.length ? { romTransforms } : {}),
     ...(cart ? { cart } : {}),
     bindings,
     dipDefaults,

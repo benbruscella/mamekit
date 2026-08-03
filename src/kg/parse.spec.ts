@@ -13,6 +13,7 @@ import {
   parseGfxLayouts,
   parseInitRomTransforms,
   parseInputPorts,
+  parseInstalledHandlers,
   parseMachineConfigs,
   parseMemberTags,
   parseMemoryBanks,
@@ -34,7 +35,90 @@ function eq(label: string, actual: unknown, expected: unknown): void {
   }
 }
 
+eq('driver-init address-space installs lower as executable map overrides',
+  parseInstalledHandlers(`
+    m_maincpu->space(AS_PROGRAM).install_write_handler(0x5004, 0x5004,
+      write8smo_delegate(*this, FUNC(board_state::protection_w)));
+    m_maincpu->space(AS_PROGRAM).install_read_handler(0x5080, 0x50bf,
+      read8sm_delegate(*this, FUNC(board_state::protection_r)));
+  `, {}), [
+    { space: 'AS_PROGRAM', kind: 'write', start: 0x5004, end: 0x5004,
+      className: 'board_state', method: 'protection_w' },
+    { space: 'AS_PROGRAM', kind: 'read', start: 0x5080, end: 0x50bf,
+      className: 'board_state', method: 'protection_r' },
+  ]);
+
+// --- machine config: inherited address-map removal --------------------------
+{
+  const [cfg] = parseMachineConfigs(`
+void system1_state::sys1pio(machine_config &config)
+{
+  sys1ppi(config);
+  config.device_remove("ppi8255");
+}
+`, {}, {});
+  eq('device_remove keeps the inherited device tag', cfg.removedDevices, [{
+    tag: 'ppi8255',
+    raw: 'config.device_remove("ppi8255")',
+  }]);
+}
+
+{
+  const [cfg] = parseMachineConfigs(`
+void pengo_state::pengou(machine_config &config)
+{
+  pengo(config);
+  m_maincpu->remove_addrmap(AS_OPCODES);
+}
+`, { m_maincpu: 'maincpu' }, {});
+  eq('remove_addrmap keeps the inherited device tag and space', cfg.removedAddrMaps, [{
+    tag: 'maincpu',
+    space: 'AS_OPCODES',
+    raw: 'm_maincpu->remove_addrmap(AS_OPCODES)',
+  }]);
+}
+
+{
+  const [cfg] = parseMachineConfigs(`
+void system1_state::upndown(machine_config &config)
+{
+  sys1ppi(config);
+  segacrpt_z80_device &z80(SEGA_315_5098(config.replace(), m_maincpu, MASTER_CLOCK / 5));
+  encrypted_sys1ppi_maps(config);
+  z80.set_decrypted_tag(":decrypted_opcodes");
+}
+`, { m_maincpu: 'maincpu' }, { MASTER_CLOCK: 15_468_480 });
+  eq('config.replace device patch', cfg?.devicePatches[0], {
+    tag: 'maincpu',
+    config: [
+      'segacrpt_z80_device &z80(SEGA_315_5098(config.replace(), m_maincpu, MASTER_CLOCK / 5))',
+      'z80.set_decrypted_tag(":decrypted_opcodes")',
+    ],
+    replacementType: 'SEGA_315_5098',
+    clock: 3_093_696,
+  });
+}
+
+{
+  const [cfg] = parseMachineConfigs(`
+void board_state::board(machine_config &config)
+{
+  Z80(config, ":audiocpu", 4000000);
+}
+`, {}, {});
+  eq('absolute MAME device tags normalize to their device and ROM name', cfg.devices[0]?.tag,
+    'audiocpu');
+}
+
 eq('expression bitwise precedence', evalExpr('(3 << 4) | (7 & 3) ^ 1'), 48 | (3 ^ 1));
+
+eq('memory-region finder configures a source-derived bank entry', parseMemoryBanks(`
+  m_bank1->configure_entry(0, m_maincpu_region->base() + 0x8000);
+`, { m_bank1: 'bank1', m_maincpu_region: 'maincpu' }, {}), [{
+  member: 'm_bank1', tag: 'bank1', startEntry: 0, entries: 1,
+  region: 'maincpu', offset: 0x8000, stride: 0,
+  raw: 'm_bank1->configure_entry(0, m_maincpu_region->base() + 0x8000)',
+}]);
 
 eq('service DIP keeps its source default and polarity', parseInputPorts(`
 INPUT_PORTS_START( board )
@@ -57,6 +141,18 @@ INPUT_PORTS_END
   kind: 'service',
   mask: 0x01,
   defaultValue: 0x01,
+  activeLow: true,
+});
+
+eq('PORT_SERVICE_NO_TOGGLE active-low token produces a released-high default', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("SERVICE")
+  PORT_SERVICE_NO_TOGGLE( 0x10, IP_ACTIVE_LOW )
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields[0], {
+  kind: 'service',
+  mask: 0x10,
+  defaultValue: 0x10,
   activeLow: true,
 });
 

@@ -36,9 +36,14 @@ const OPEN_BUS = 0x00;
 export class Bus {
   private readId = new Uint8Array(0x10000);
   private writeId = new Uint8Array(0x10000);
+  private highReadId = new Map<number, Uint8Array>();
+  private highWriteId = new Map<number, Uint8Array>();
+  private highReadBase = new Map<number, Uint32Array>();
+  private highWriteBase = new Map<number, Uint32Array>();
   private readFns: ReadHandler[] = [() => OPEN_BUS];
   private writeFns: WriteHandler[] = [() => { /* open bus */ }];
   private base = new Uint32Array(0x10000);  // range base addr per address (for offset calc)
+  private readonly addressMask: number;
   /** shared RAM blocks by tag, so the machine/video can alias them */
   shares: Record<string, Uint8Array>;
   /** Optional board-provided AS_OPCODES read path. */
@@ -46,6 +51,9 @@ export class Bus {
 
   constructor(ranges: RangeSpec[], rom: Uint8Array, registry: HandlerRegistry, shares: Record<string, Uint8Array> = {}) {
     this.shares = shares;
+    this.addressMask = ranges.some(range => (range.end | (range.mirror ?? 0)) > 0xffff)
+      ? 0xffffff
+      : 0xffff;
     for (const r of ranges) {
       const size = r.end - r.start + 1;
       let read: ReadHandler | null = null;
@@ -92,11 +100,38 @@ export class Bus {
       // apply the range at each mirror image; the stored base includes the
       // mirror bits so handler offsets are always relative to the range start
       for (let m = 0; ; m = (m - mirror) & mirror) {
-        const base = (r.start | m) & 0xffff;
+        const base = (r.start | m) & this.addressMask;
         for (let a = r.start; a <= r.end; a++) {
-          const ea = (a | m) & 0xffff;
-          if (read) { this.readId[ea] = readIdx; this.base[ea] = (this.base[ea] & 0xffff0000) | base; }
-          if (write) { this.writeId[ea] = writeIdx; this.base[ea] = (this.base[ea] & 0x0000ffff) | (base << 16); }
+          const ea = (a | m) & this.addressMask;
+          if (ea <= 0xffff) {
+            if (read) {
+              this.readId[ea] = readIdx;
+              this.base[ea] = (this.base[ea] & 0xffff0000) | base;
+            }
+            if (write) {
+              this.writeId[ea] = writeIdx;
+              this.base[ea] = (this.base[ea] & 0x0000ffff) | (base << 16);
+            }
+            continue;
+          }
+          const page = ea >>> 12;
+          const offset = ea & 0xfff;
+          if (read) {
+            const ids = this.highReadId.get(page) ?? new Uint8Array(0x1000);
+            const bases = this.highReadBase.get(page) ?? new Uint32Array(0x1000);
+            ids[offset] = readIdx;
+            bases[offset] = base;
+            this.highReadId.set(page, ids);
+            this.highReadBase.set(page, bases);
+          }
+          if (write) {
+            const ids = this.highWriteId.get(page) ?? new Uint8Array(0x1000);
+            const bases = this.highWriteBase.get(page) ?? new Uint32Array(0x1000);
+            ids[offset] = writeIdx;
+            bases[offset] = base;
+            this.highWriteId.set(page, ids);
+            this.highWriteBase.set(page, bases);
+          }
         }
         if (mirror === 0 || m === mirror) break;
       }
@@ -104,13 +139,28 @@ export class Bus {
   }
 
   read = (addr: number): number => {
-    addr &= 0xffff;
-    return this.readFns[this.readId[addr]](addr, addr - (this.base[addr] & 0xffff)) & 0xff;
+    addr &= this.addressMask;
+    if (addr <= 0xffff) {
+      return this.readFns[this.readId[addr]](addr, addr - (this.base[addr] & 0xffff)) & 0xff;
+    }
+    const page = addr >>> 12;
+    const offset = addr & 0xfff;
+    const id = this.highReadId.get(page)?.[offset] ?? 0;
+    const base = this.highReadBase.get(page)?.[offset] ?? 0;
+    return this.readFns[id](addr, addr - base) & 0xff;
   };
 
   write = (addr: number, data: number): void => {
-    addr &= 0xffff;
-    this.writeFns[this.writeId[addr]](addr, addr - (this.base[addr] >>> 16), data & 0xff);
+    addr &= this.addressMask;
+    if (addr <= 0xffff) {
+      this.writeFns[this.writeId[addr]](addr, addr - (this.base[addr] >>> 16), data & 0xff);
+      return;
+    }
+    const page = addr >>> 12;
+    const offset = addr & 0xfff;
+    const id = this.highWriteId.get(page)?.[offset] ?? 0;
+    const base = this.highWriteBase.get(page)?.[offset] ?? 0;
+    this.writeFns[id](addr, addr - base, data & 0xff);
   };
 
   /** io space: unused on this board family */

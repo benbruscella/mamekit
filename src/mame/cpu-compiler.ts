@@ -23,6 +23,9 @@ export interface GeneratedCpuMember {
   values?: number[];
   fields?: Record<string, 1 | 8 | 16 | 32>;
   initial?: number;
+  /** Little-endian overlapping word/byte register file (x86/NEC style). */
+  wordByteRegisters?: number;
+  z8000Registers?: boolean;
 }
 
 export interface GeneratedCpuMethod {
@@ -43,6 +46,8 @@ export interface GeneratedCpuOpcode {
 export interface GeneratedCpuDefinition {
   schemaVersion: 1;
   type: string;
+  /** Mask applied to program-space byte addresses (defaults to 16-bit). */
+  addressMask?: number;
   dialect: string;
   sourceFiles: string[];
   constants: Record<string, number>;
@@ -260,20 +265,33 @@ interface M6502OpcodeBlock {
  * MAME's own build instead of introducing a second opcode table.
  */
 export function compileMameRp2a03(mameSrc: string): GeneratedCpuDefinition {
+  return compileMameM6502Variant(mameSrc, 'RP2A03');
+}
+
+/** Compile the stock NMOS 6502 from MAME's common operation/dispatch lists. */
+export function compileMameM6502(mameSrc: string): GeneratedCpuDefinition {
+  return compileMameM6502Variant(mameSrc, 'M6502');
+}
+
+function compileMameM6502Variant(
+  mameSrc: string,
+  variant: 'M6502' | 'RP2A03',
+): GeneratedCpuDefinition {
   const cppFile = 'src/devices/cpu/m6502/m6502.cpp';
   const headerFile = 'src/devices/cpu/m6502/m6502.h';
   const variantFile = 'src/devices/cpu/m6502/rp2a03.cpp';
   const variantHeaderFile = 'src/devices/cpu/m6502/rp2a03.h';
   const operationsFile = 'src/devices/cpu/m6502/om6502.lst';
   const variantOperationsFile = 'src/devices/cpu/m6502/orp2a03.lst';
-  const dispatchFile = 'src/devices/cpu/m6502/drp2a03.lst';
+  const dispatchFile = variant === 'RP2A03'
+    ? 'src/devices/cpu/m6502/drp2a03.lst'
+    : 'src/devices/cpu/m6502/dm6502.lst';
   const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
   const header = readFileSync(join(mameSrc, headerFile), 'utf8');
   const operationsSource = readFileSync(join(mameSrc, operationsFile), 'utf8');
-  const variantOperationsSource = readFileSync(
-    join(mameSrc, variantOperationsFile),
-    'utf8',
-  );
+  const variantOperationsSource = variant === 'RP2A03'
+    ? readFileSync(join(mameSrc, variantOperationsFile), 'utf8')
+    : '';
   const dispatchSource = readFileSync(join(mameSrc, dispatchFile), 'utf8');
   const unit = parseMameSource(cppFile, cpp);
   const sourceMethods = unit.functions.filter(fn => fn.className === 'm6502_device');
@@ -317,10 +335,11 @@ export function compileMameRp2a03(mameSrc: string): GeneratedCpuDefinition {
   }
 
   const helperNames = [
-    'do_adc_nd',
-    'do_arr_nd',
+    ...(variant === 'RP2A03'
+      ? ['do_adc_nd', 'do_arr_nd', 'do_sbc_nd']
+      : ['do_adc', 'do_adc_d', 'do_adc_nd', 'do_arr', 'do_arr_d', 'do_arr_nd',
+          'do_sbc', 'do_sbc_d', 'do_sbc_nd']),
     'do_cmp',
-    'do_sbc_nd',
     'do_bit',
     'do_asl',
     'do_lsr',
@@ -332,7 +351,7 @@ export function compileMameRp2a03(mameSrc: string): GeneratedCpuDefinition {
   const methodByName = new Map(sourceMethods.map(method => [method.name, method]));
   const methods: GeneratedCpuMethod[] = helperNames.map(name => {
     const method = methodByName.get(name);
-    if (!method) throw new Error(`MAME RP2A03 source is missing ${name}()`);
+    if (!method) throw new Error(`MAME ${variant} source is missing ${name}()`);
     return {
       name,
       parameters: method.parameters,
@@ -398,7 +417,7 @@ export function compileMameRp2a03(mameSrc: string): GeneratedCpuDefinition {
       .replace(/\bm_PC\s*=\s*set_h\(m_PC,\s*ARG\(0xfffd\)\)\s*;/,
         'm_PC = set_h(m_PC, READ(0xfffd));'),
   );
-  const input = compileMameHandler(`
+  const input = compileMameHandler(variant === 'RP2A03' ? `
     if (inputnum == IRQ_LINE) {
       m_irq_state = state == ASSERT_LINE;
     } else if (inputnum == APU_IRQ_LINE) {
@@ -412,11 +431,19 @@ export function compileMameRp2a03(mameSrc: string): GeneratedCpuDefinition {
         m_P |= F_V;
       m_v_state = state == ASSERT_LINE;
     }
+  ` : `
+    if (inputnum == IRQ_LINE) {
+      m_irq_state = state == ASSERT_LINE;
+    } else if (inputnum == NMI_LINE) {
+      if (!m_nmi_state && state == ASSERT_LINE)
+        m_nmi_pending = true;
+      m_nmi_state = state == ASSERT_LINE;
+    }
   `);
   const service = compileMameHandler('');
   const fetch = compileMameHandler(`
     m_NPC = m_PC;
-    if (m_nmi_pending || ((m_irq_state || m_apu_irq_state) && !(m_P & F_I))) {
+    if (m_nmi_pending || ((m_irq_state${variant === 'RP2A03' ? ' || m_apu_irq_state' : ''}) && !(m_P & F_I))) {
       m_irq_taken = true;
       m_IR = 0;
     } else {
@@ -492,15 +519,14 @@ export function compileMameRp2a03(mameSrc: string): GeneratedCpuDefinition {
   ];
   return {
     schemaVersion: 1,
-    type: 'RP2A03',
+    type: variant,
     dialect: 'mame-m6502-operation-list',
     sourceFiles: [
       cppFile,
       headerFile,
-      variantFile,
-      variantHeaderFile,
+      ...(variant === 'RP2A03' ? [variantFile, variantHeaderFile] : []),
       operationsFile,
-      variantOperationsFile,
+      ...(variant === 'RP2A03' ? [variantOperationsFile] : []),
       dispatchFile,
     ],
     constants,
@@ -556,7 +582,7 @@ function parseM6502OpcodeBlocks(file: string, source: string): M6502OpcodeBlock[
  */
 export function compileMameMcs48(
   mameSrc: string,
-  variant: 'I8039' | 'MB8884' = 'I8039',
+  variant: 'I8035' | 'I8039' | 'MB8884' | 'M58715' = 'I8039',
 ): GeneratedCpuDefinition {
   const cppFile = 'src/devices/cpu/mcs48/mcs48.cpp';
   const headerFile = 'src/devices/cpu/mcs48/mcs48.h';
@@ -656,7 +682,13 @@ export function compileMameMcs48(
       ASSERT_LINE: 1,
     }),
   };
-  const variantClass = variant === 'MB8884' ? 'mb8884_device' : 'i8039_device';
+  const variantClass = variant === 'MB8884'
+    ? 'mb8884_device'
+    : variant === 'M58715'
+      ? 'm58715_device'
+    : variant === 'I8035'
+      ? 'i8035_device'
+      : 'i8039_device';
   const constructor = new RegExp(
     `${variantClass}::${variantClass}\\([^\\n]*\\)\\s*` +
     `:\\s*mcs48_cpu_device\\(([^\\n]+)\\)`,
@@ -742,6 +774,18 @@ export function compileMameMcs48(
  * executable source is a single 256-case `execute_one` switch.
  */
 export function compileMameI8080(mameSrc: string): GeneratedCpuDefinition {
+  return compileMameI808x(mameSrc, 'I8080');
+}
+
+/** Compile the 8085A variant from the same MAME switch core. */
+export function compileMameI8085A(mameSrc: string): GeneratedCpuDefinition {
+  return compileMameI808x(mameSrc, 'I8085A');
+}
+
+function compileMameI808x(
+  mameSrc: string,
+  variant: 'I8080' | 'I8085A',
+): GeneratedCpuDefinition {
   const cppFile = 'src/devices/cpu/i8085/i8085.cpp';
   const headerFile = 'src/devices/cpu/i8085/i8085.h';
   const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
@@ -781,10 +825,14 @@ export function compileMameI8080(mameSrc: string): GeneratedCpuDefinition {
       source: sourceRef(fn.span.file, fn.span.line),
     }));
   for (const name of ['ret_taken', 'jmp_taken', 'call_taken', 'is_8085']) {
-    const inline = inlineMethodForClass(header, name, name === 'ret_taken'
-      ? 'i8085a_cpu_device'
-      : 'i8080_cpu_device');
-    if (!inline) throw new Error(`MAME I8080 source is missing ${name} override`);
+    const inline = inlineMethodForClass(
+      header,
+      name,
+      variant === 'I8085A' || name === 'ret_taken'
+        ? 'i8085a_cpu_device'
+        : 'i8080_cpu_device',
+    );
+    if (!inline) throw new Error(`MAME ${variant} source is missing ${name} override`);
     methods.push({
       name,
       parameters: inline.parameters,
@@ -842,7 +890,7 @@ export function compileMameI8080(mameSrc: string): GeneratedCpuDefinition {
   const programs = [start, reset, input, step, ...methods.map(method => method.program)];
   return {
     schemaVersion: 1,
-    type: 'I8080',
+    type: variant,
     dialect: 'mame-cpp-switch',
     sourceFiles: [cppFile, headerFile],
     constants,
@@ -893,6 +941,512 @@ export function compileMameM6802(mameSrc: string): GeneratedCpuDefinition {
     tableClass: 'm6800_cpu_device',
     internal: 'm6802',
   });
+}
+
+/** M6808 uses the M6800 instruction core; only its on-chip RAM size differs. */
+export function compileMameM6808(mameSrc: string): GeneratedCpuDefinition {
+  const definition = compileMameM6802(mameSrc);
+  return { ...definition, type: 'M6808' };
+}
+
+/**
+ * Compile the original 24-bit Motorola 68000 from MAME's generated Musashi
+ * handler and decode tables.  MAME keeps one full-instruction function per
+ * decode state; the opcode table expands those states across all 65,536
+ * opcodes, so the emitted core retains the compact state dispatch rather than
+ * duplicating identical programs for every register encoding.
+ */
+export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
+  const operationsFile = 'src/devices/cpu/m68000/m68kops.cpp';
+  const headerFile = 'src/devices/cpu/m68000/m68kcpu.h';
+  const dataFile = 'src/devices/cpu/m68000/m68kcpu.cpp';
+  const operations = readFileSync(join(mameSrc, operationsFile), 'utf8');
+  const dataSource = readFileSync(join(mameSrc, dataFile), 'utf8');
+  const unit = parseMameSource(operationsFile, operations);
+  const functions = new Map(unit.functions
+    .filter(fn => fn.className === 'm68000_musashi_device')
+    .map(fn => [fn.name, fn]));
+
+  const handlerStart = operations.indexOf('m68k_handler_table[]');
+  const handlerEnd = operations.indexOf('const u16 m68000_musashi_device::m68k_state_illegal');
+  if (handlerStart < 0 || handlerEnd < 0) {
+    throw new Error('MAME M68000 source has no generated handler table');
+  }
+  const handlers = [...operations.slice(handlerStart, handlerEnd).matchAll(
+    /&m68000_musashi_device::(\w+)/g,
+  )].map(match => match[1]!);
+  const illegalState = Number(
+    /m68k_state_illegal\s*=\s*(\d+)/.exec(operations.slice(handlerEnd))?.[1],
+  );
+  if (!handlers.length || !Number.isInteger(illegalState) || !handlers[illegalState]) {
+    throw new Error('MAME M68000 generated handler table is incomplete');
+  }
+
+  const opcodeStart = operations.indexOf('m68k_opcode_table[]', handlerEnd);
+  if (opcodeStart < 0) throw new Error('MAME M68000 source has no opcode decode table');
+  const opcodeRows = [...operations.slice(opcodeStart).matchAll(
+    /\{\s*(0x[\da-f]+|\d+)\s*,\s*(0x[\da-f]+|\d+)\s*,\s*\{([^}]+)\}\s*\}/gi,
+  )].map(match => ({
+    match: Number(match[1]),
+    mask: Number(match[2]),
+    cycles: splitMameArgs(match[3]!).map(Number),
+  })).filter(row => row.mask !== 0);
+  if (opcodeRows.length !== handlers.length) {
+    throw new Error(
+      `MAME M68000 handler/decode tables disagree (${handlers.length}/${opcodeRows.length})`,
+    );
+  }
+
+  const states = new Array<number>(0x10000).fill(illegalState);
+  const stateCycles = new Array<number>(handlers.length).fill(4);
+  for (let state = 0; state < opcodeRows.length; state++) {
+    const row = opcodeRows[state]!;
+    const cycles = row.cycles[0]!;
+    if (cycles === 0xff) continue;
+    stateCycles[state] = cycles;
+    let extra = 0;
+    do {
+      states[(row.match | extra) & 0xffff] = state;
+      extra = ((extra | row.mask) + 1) & ~row.mask;
+    } while (extra);
+  }
+
+  const activeStates = [...new Set(states)].sort((left, right) => left - right);
+  const methods: GeneratedCpuMethod[] = activeStates.map(state => {
+    const name = handlers[state]!;
+    const fn = functions.get(name);
+    if (!fn) throw new Error(`MAME M68000 source is missing generated handler ${name}`);
+    return {
+      name,
+      parameters: '',
+      program: compileMameHandler(normalizeM68000Source(fn.body)),
+      source: sourceRef(operationsFile, fn.span.line),
+    };
+  });
+  methods.push(...m68000SupportMethods(operationsFile));
+
+  const opcodes = activeStates.map(state => ({
+    key: state.toString(16).padStart(4, '0'),
+    description: handlers[state],
+    dispatch: false,
+    program: compileMameHandler(`${handlers[state]}(); cycles += ${stateCycles[state]};`),
+    source: methods.find(method => method.name === handlers[state])!.source,
+  }));
+  const start = compileMameHandler('');
+  const reset = compileMameHandler(`
+    for (int index = 0; index < 16; index++) m_dar[index] = 0;
+    m_int_level = 0;
+    m_virq_state = 0;
+    m_hold_irq = 0;
+    m_int_mask = 0x0700;
+    m_s_flag = 4;
+    m_stopped = 0;
+    m_instr_mode = INSTRUCTION_YES;
+    m_run_mode = RUN_MODE_NORMAL;
+    m_dar[15] = m68ki_read_32(0);
+    m_sp[4] = m_dar[15];
+    m_pc = m68ki_read_32(4);
+    cycles = 132;
+  `);
+  const input = compileMameHandler(`
+    if (inputnum >= 1 && inputnum <= 7) {
+      if (state == CLEAR_LINE) {
+        m_virq_state &= ~(1 << inputnum);
+        m_hold_irq &= ~(1 << inputnum);
+      } else {
+        m_virq_state |= 1 << inputnum;
+        if (state == HOLD_LINE) m_hold_irq |= 1 << inputnum;
+      }
+      m_int_level = 0;
+      for (int level = 1; level <= 7; level++)
+        if (m_virq_state & (1 << level)) m_int_level = level << 8;
+    }
+  `);
+  const service = compileMameHandler(`
+    if ((m_int_level & 0x0700) > (m_int_mask & 0x0700)) {
+      m68ki_service_interrupt(m_int_level >> 8);
+      return;
+    }
+    if (m_stopped) { cycles += 4; return; }
+  `);
+  const fetch = compileMameHandler(`
+    m_ppc = m_pc;
+    m_ir = m68ki_read_imm_16();
+    m_ref = m_state[m_ir] << 8;
+  `);
+  const constants = {
+    CLEAR_LINE: 0,
+    ASSERT_LINE: 1,
+    HOLD_LINE: 2,
+    INPUT_LINE_NMI: -1,
+    CFLAG_SET: 0x100,
+    CFLAG_CLEAR: 0,
+    XFLAG_SET: 0x100,
+    XFLAG_CLEAR: 0,
+    VFLAG_SET: 0x80,
+    VFLAG_CLEAR: 0,
+    NFLAG_SET: 0x80,
+    NFLAG_CLEAR: 0,
+    ZFLAG_SET: 0,
+    ZFLAG_CLEAR: 0xffffffff,
+    INSTRUCTION_YES: 0,
+    RUN_MODE_NORMAL: 0,
+    SFLAG_SET: 4,
+    SFLAG_CLEAR: 0,
+    MFLAG_SET: 2,
+    MFLAG_CLEAR: 0,
+    STOP_LEVEL_STOP: 1,
+    EXCEPTION_ILLEGAL_INSTRUCTION: 4,
+    EXCEPTION_PRIVILEGE_VIOLATION: 8,
+    EXCEPTION_1010: 10,
+    EXCEPTION_1111: 11,
+  };
+  const shiftTable = (name: string): number[] => {
+    const body = new RegExp(`${name}\\[65\\]\\s*=\\s*\\{([\\s\\S]*?)\\};`)
+      .exec(dataSource)?.[1];
+    if (!body) throw new Error(`MAME M68000 source is missing ${name}`);
+    return [...body.matchAll(/0x[\da-f]+|\d+/gi)].map(match => Number(match[0]));
+  };
+  const members: GeneratedCpuMember[] = [
+    { name: 'm_dar', bits: 32, values: new Array(16).fill(0) },
+    { name: 'm_sp', bits: 32, values: new Array(7).fill(0) },
+    { name: 'm_state', bits: 16, values: states },
+    { name: 'm68ki_shift_8_table', bits: 8, values: shiftTable('m68ki_shift_8_table') },
+    { name: 'm68ki_shift_16_table', bits: 16, values: shiftTable('m68ki_shift_16_table') },
+    { name: 'm68ki_shift_32_table', bits: 32, values: shiftTable('m68ki_shift_32_table') },
+    ...[
+      'm_ppc', 'm_pc', 'm_ir', 'm_t1_flag', 'm_t0_flag', 'm_s_flag', 'm_m_flag',
+      'm_x_flag', 'm_n_flag', 'm_not_z_flag', 'm_v_flag', 'm_c_flag', 'm_int_mask',
+      'm_int_level', 'm_virq_state', 'm_stopped', 'm_ref',
+      'm_instr_mode', 'm_run_mode', 'm_hold_irq',
+    ].map(name => ({ name, bits: 32 as const })),
+    { name: 'cycles' },
+    { name: 'm_icount' },
+  ];
+  const programs = [
+    start, reset, input, service, fetch,
+    ...methods.map(method => method.program),
+    ...opcodes.map(opcode => opcode.program),
+  ];
+  return {
+    schemaVersion: 1,
+    type: 'M68000',
+    addressMask: 0xffffff,
+    dialect: 'mame-musashi-generated-handler-table',
+    sourceFiles: [operationsFile, headerFile, dataFile],
+    constants,
+    aliases: {},
+    members,
+    methods,
+    start,
+    reset,
+    input,
+    service,
+    fetch,
+    opcodes,
+    summary: {
+      opcodes: opcodes.length,
+      compiledOpcodes: opcodes.filter(opcode => !opcode.program.diagnostics.length).length,
+      methods: methods.length,
+      compiledMethods: methods.filter(method => !method.program.diagnostics.length).length,
+      diagnostics: programs.reduce((count, program) => count + program.diagnostics.length, 0),
+    },
+  };
+}
+
+function normalizeM68000Source(body: string): string {
+  // JavaScript numbers exactly represent the 33-bit intermediates used by
+  // ROXL/ROXR; keeping these locals unwrapped preserves that extra carry bit.
+  let source = body.replace(/\bu64\b/g, 'int');
+  const pointers = new Map<string, string>();
+  source = source.replace(
+    /\b(?:u32|uint32_t)\s*\*\s*(\w+)\s*=\s*&\s*([^;]+);/g,
+    (_match, name: string, target: string) => {
+      pointers.set(name, target.trim());
+      return '';
+    },
+  );
+  for (const [name, target] of pointers) {
+    source = source.replace(new RegExp(`\\*\\s*${name}\\b`, 'g'), `(${target})`);
+  }
+  return normalizeMameExecutionSource(source)
+    .replace(/\bDX\(\)/g, 'm_dar[(m_ir >> 9) & 7]')
+    .replace(/\bDY\(\)/g, 'm_dar[m_ir & 7]')
+    .replace(/\bAX\(\)/g, 'm_dar[8 + ((m_ir >> 9) & 7)]')
+    .replace(/\bAY\(\)/g, 'm_dar[8 + (m_ir & 7)]')
+    .replace(/\bREG_D\(\)/g, 'm_dar')
+    .replace(/\bREG_DA\(\)/g, 'm_dar')
+    .replace(/\bREG_A\(\)\s*\[([^\]]+)\]/g, 'm_dar[8 + ($1)]')
+    .replace(/\bREG_USP\(\)/g, 'm_sp[0]')
+    .replace(/\bREG_ISP\(\)/g, 'm_sp[4]')
+    .replace(/\bREG_MSP\(\)/g, 'm_sp[6]')
+    .replace(/\bREG_SP\(\)/g, 'm_dar[15]')
+    .replace(/\bm68ki_trace_t0\(\)\s*;/g, '')
+    .replace(/\bm68ki_trace_t1\(\)\s*;/g, '')
+    .replace(/\bm68ki_shift_cycles\([^)]*\)/g, '0');
+}
+
+function m68000SupportMethods(sourceFile: string): GeneratedCpuMethod[] {
+  const source = (name: string, parameters: string, body: string): GeneratedCpuMethod => ({
+    name,
+    parameters,
+    program: compileMameHandler(normalizeM68000Source(body)),
+    source: sourceRef(sourceFile, 1),
+  });
+  const methods: GeneratedCpuMethod[] = [
+    source('m68ki_read_8', 'u32 address', 'return READ(address);'),
+    source('m68ki_read_16', 'u32 address', 'return READ16BE(address);'),
+    source('m68ki_read_32', 'u32 address', 'return READ32BE(address);'),
+    source('m68ki_write_8', 'u32 address, u32 value', 'WRITE(address, value);'),
+    source('m68ki_write_16', 'u32 address, u32 value', 'WRITE16BE(address, value);'),
+    source('m68ki_write_32', 'u32 address, u32 value', 'WRITE32BE(address, value);'),
+    source('m68ki_write_32_pd', 'u32 address, u32 value', 'WRITE32BE(address, value);'),
+    source('m68ki_read_imm_8', '', 'return m68ki_read_imm_16() & 0xff;'),
+    source('m68ki_read_imm_16', '', 'u32 value = m68ki_read_16(m_pc); m_pc += 2; return value;'),
+    source('m68ki_read_imm_32', '', 'u32 value = m68ki_read_32(m_pc); m_pc += 4; return value;'),
+    source('OPER_I_8', '', 'return m68ki_read_imm_8();'),
+    source('OPER_I_16', '', 'return m68ki_read_imm_16();'),
+    source('OPER_I_32', '', 'return m68ki_read_imm_32();'),
+    source('MAKE_INT_8', 'u32 value', 'return s8(value);'),
+    source('MAKE_INT_16', 'u32 value', 'return s16(value);'),
+    source('MAKE_INT_32', 'u32 value', 'return s32(value);'),
+    source('MASK_OUT_ABOVE_8', 'u32 value', 'return value & 0xff;'),
+    source('MASK_OUT_ABOVE_16', 'u32 value', 'return value & 0xffff;'),
+    source('MASK_OUT_ABOVE_32', 'u32 value', 'return u32(value);'),
+    source('MASK_OUT_BELOW_8', 'u32 value', 'return value & ~0xff;'),
+    source('MASK_OUT_BELOW_16', 'u32 value', 'return value & ~0xffff;'),
+    source('GET_MSB_8', 'u32 value', 'return value & 0x80;'),
+    source('GET_MSB_16', 'u32 value', 'return value & 0x8000;'),
+    source('GET_MSB_32', 'u32 value', 'return value & 0x80000000;'),
+    source('CFLAG_8', 'u32 value', 'return value;'),
+    source('CFLAG_16', 'u32 value', 'return value >> 8;'),
+    source('CFLAG_ADD_32', 'u32 s, u32 d, u32 r', 'return ((s & d) | (~r & (s | d))) >> 23;'),
+    source('CFLAG_SUB_32', 'u32 s, u32 d, u32 r', 'return ((s & r) | (~d & (s | r))) >> 23;'),
+  ];
+  for (const bits of [8, 16, 32]) {
+    const shift = bits === 8 ? 0 : bits === 16 ? 8 : 24;
+    methods.push(
+      source(`NFLAG_${bits}`, 'u32 value', `return value >> ${shift};`),
+      source(`ZFLAG_${bits}`, 'u32 value', bits === 32 ? 'return u32(value);' : `return value & ${bits === 8 ? '0xff' : '0xffff'};`),
+      source(`VFLAG_ADD_${bits}`, 'u32 s, u32 d, u32 r', `return ((s ^ r) & (d ^ r)) >> ${shift};`),
+      source(`VFLAG_SUB_${bits}`, 'u32 s, u32 d, u32 r', `return ((s ^ d) & (r ^ d)) >> ${shift};`),
+    );
+  }
+  for (const [name, body] of Object.entries({
+    XFLAG_1: 'return (m_x_flag >> 8) & 1;',
+    NFLAG_1: 'return (m_n_flag >> 7) & 1;',
+    VFLAG_1: 'return (m_v_flag >> 7) & 1;',
+    ZFLAG_1: 'return !m_not_z_flag;',
+    CFLAG_1: 'return (m_c_flag >> 8) & 1;',
+    COND_CS: 'return m_c_flag & 0x100;',
+    COND_CC: 'return !(m_c_flag & 0x100);',
+    COND_VS: 'return m_v_flag & 0x80;',
+    COND_VC: 'return !(m_v_flag & 0x80);',
+    COND_NE: 'return m_not_z_flag;',
+    COND_EQ: 'return !m_not_z_flag;',
+    COND_MI: 'return m_n_flag & 0x80;',
+    COND_PL: 'return !(m_n_flag & 0x80);',
+    COND_LT: 'return (m_n_flag ^ m_v_flag) & 0x80;',
+    COND_GE: 'return !((m_n_flag ^ m_v_flag) & 0x80);',
+    COND_HI: 'return !(m_c_flag & 0x100) && m_not_z_flag;',
+    COND_LS: 'return (m_c_flag & 0x100) || !m_not_z_flag;',
+    COND_GT: 'return !((m_n_flag ^ m_v_flag) & 0x80) && m_not_z_flag;',
+    COND_LE: 'return ((m_n_flag ^ m_v_flag) & 0x80) || !m_not_z_flag;',
+    COND_XS: 'return m_x_flag & 0x100;',
+    COND_XC: 'return !(m_x_flag & 0x100);',
+  })) methods.push(source(name, '', body));
+
+  for (const [name, target] of Object.entries({
+    COND_NOT_CS: 'COND_CC', COND_NOT_CC: 'COND_CS',
+    COND_NOT_VS: 'COND_VC', COND_NOT_VC: 'COND_VS',
+    COND_NOT_NE: 'COND_EQ', COND_NOT_EQ: 'COND_NE',
+    COND_NOT_MI: 'COND_PL', COND_NOT_PL: 'COND_MI',
+    COND_NOT_LT: 'COND_GE', COND_NOT_GE: 'COND_LT',
+    COND_NOT_HI: 'COND_LS', COND_NOT_LS: 'COND_HI',
+    COND_NOT_GT: 'COND_LE', COND_NOT_LE: 'COND_GT',
+  })) methods.push(source(name, '', `return ${target}();`));
+
+  methods.push(
+    source('LOW_NIBBLE', 'u32 value', 'return value & 0x0f;'),
+    source('HIGH_NIBBLE', 'u32 value', 'return value & 0xf0;'),
+  );
+  for (const bits of [8, 9, 16, 17, 32]) {
+    const mask = bits === 32 ? '0xffffffff' : `0x${((2 ** bits) - 1).toString(16)}`;
+    methods.push(
+      source(
+        `ROL_${bits}`,
+        'u32 value, u32 count',
+        `count = count % ${bits}; return !count ? value & ${mask} : ` +
+          `((value << count) | (value >> (${bits} - count))) & ${mask};`,
+      ),
+      source(
+        `ROR_${bits}`,
+        'u32 value, u32 count',
+        `count = count % ${bits}; return !count ? value & ${mask} : ` +
+          `((value >> count) | (value << (${bits} - count))) & ${mask};`,
+      ),
+    );
+  }
+  // JavaScript numbers exactly preserve the 33-bit intermediates used here.
+  methods.push(
+    source('POW2', 'u32 count', 'int value = 1; while (count) { value *= 2; count--; } return value;'),
+    source(
+      'ROL_33_64',
+      'int value, u32 count',
+      'count = count % 33; if (!count) return value; return (value * POW2(count)) % 8589934592 + value / POW2(33 - count);',
+    ),
+    source(
+      'ROR_33_64',
+      'int value, u32 count',
+      'count = count % 33; if (!count) return value; return value / POW2(count) + (value % POW2(count)) * POW2(33 - count);',
+    ),
+  );
+
+  const addressRegister = (axis: 'X' | 'Y') => axis === 'X'
+    ? 'm_dar[8 + ((m_ir >> 9) & 7)]'
+    : 'm_dar[8 + (m_ir & 7)]';
+  for (const axis of ['X', 'Y'] as const) {
+    const register = addressRegister(axis);
+    methods.push(
+      source(`EA_A${axis}_AI_8`, '', `return ${register};`),
+      source(`EA_A${axis}_AI_16`, '', `return ${register};`),
+      source(`EA_A${axis}_AI_32`, '', `return ${register};`),
+      source(`EA_A${axis}_PI_8`, '', `u32 ea = ${register}; ${register} += 1; return ea;`),
+      source(`EA_A${axis}_PI_16`, '', `u32 ea = ${register}; ${register} += 2; return ea;`),
+      source(`EA_A${axis}_PI_32`, '', `u32 ea = ${register}; ${register} += 4; return ea;`),
+      source(`EA_A${axis}_PD_8`, '', `${register} -= 1; return ${register};`),
+      source(`EA_A${axis}_PD_16`, '', `${register} -= 2; return ${register};`),
+      source(`EA_A${axis}_PD_32`, '', `${register} -= 4; return ${register};`),
+      source(`EA_A${axis}_DI_8`, '', `return ${register} + MAKE_INT_16(m68ki_read_imm_16());`),
+      source(`EA_A${axis}_DI_16`, '', `return EA_A${axis}_DI_8();`),
+      source(`EA_A${axis}_DI_32`, '', `return EA_A${axis}_DI_8();`),
+      source(`EA_A${axis}_IX_8`, '', `return m68ki_get_ea_ix(${register});`),
+      source(`EA_A${axis}_IX_16`, '', `return EA_A${axis}_IX_8();`),
+      source(`EA_A${axis}_IX_32`, '', `return EA_A${axis}_IX_8();`),
+    );
+  }
+  methods.push(
+    source('EA_A7_PI_8', '', 'u32 ea = m_dar[15]; m_dar[15] += 2; return ea;'),
+    source('EA_A7_PD_8', '', 'm_dar[15] -= 2; return m_dar[15];'),
+    source('EA_AW_8', '', 'return MAKE_INT_16(m68ki_read_imm_16());'),
+    source('EA_AW_16', '', 'return EA_AW_8();'),
+    source('EA_AW_32', '', 'return EA_AW_8();'),
+    source('EA_AL_8', '', 'return m68ki_read_imm_32();'),
+    source('EA_AL_16', '', 'return EA_AL_8();'),
+    source('EA_AL_32', '', 'return EA_AL_8();'),
+    source('m68ki_get_ea_pcdi', '', 'u32 old_pc = m_pc; return old_pc + MAKE_INT_16(m68ki_read_imm_16());'),
+    source('m68ki_get_ea_pcix', '', 'return m68ki_get_ea_ix(m_pc);'),
+    source('m68ki_get_ea_ix', 'u32 base', `
+      u32 extension = m68ki_read_imm_16();
+      u32 index = m_dar[(extension >> 12) & 15];
+      if (!(extension & 0x0800)) index = MAKE_INT_16(index);
+      return base + index + MAKE_INT_8(extension);
+    `),
+    source('EA_PCDI_8', '', 'return m68ki_get_ea_pcdi();'),
+    source('EA_PCDI_16', '', 'return EA_PCDI_8();'),
+    source('EA_PCDI_32', '', 'return EA_PCDI_8();'),
+    source('EA_PCIX_8', '', 'return m68ki_get_ea_pcix();'),
+    source('EA_PCIX_16', '', 'return EA_PCIX_8();'),
+    source('EA_PCIX_32', '', 'return EA_PCIX_8();'),
+  );
+
+  const operands: [string, string, number][] = [];
+  for (const axis of ['Y', 'X']) {
+    for (const mode of ['AI', 'PI', 'PD', 'DI', 'IX']) {
+      for (const bits of [8, 16, 32]) operands.push([`A${axis}_${mode}`, `EA_A${axis}_${mode}_${bits}`, bits]);
+    }
+  }
+  operands.push(['A7_PI', 'EA_A7_PI_8', 8], ['A7_PD', 'EA_A7_PD_8', 8]);
+  for (const mode of ['AW', 'AL']) {
+    for (const bits of [8, 16, 32]) operands.push([mode, `EA_${mode}_${bits}`, bits]);
+  }
+  for (const mode of ['PCDI', 'PCIX']) {
+    for (const bits of [8, 16, 32]) operands.push([mode, `EA_${mode}_${bits}`, bits]);
+  }
+  for (const [name, ea, bits] of operands) {
+    const read = name.startsWith('PC') ? `m68ki_read_pcrel_${bits}` : `m68ki_read_${bits}`;
+    methods.push(source(`OPER_${name}_${bits}`, '', `u32 ea = ${ea}(); return ${read}(ea);`));
+  }
+  methods.push(
+    source('m68ki_read_pcrel_8', 'u32 address', 'return m68ki_read_8(address);'),
+    source('m68ki_read_pcrel_16', 'u32 address', 'return m68ki_read_16(address);'),
+    source('m68ki_read_pcrel_32', 'u32 address', 'return m68ki_read_32(address);'),
+  );
+
+  methods.push(
+    source('m68ki_push_32', 'u32 value', 'm_dar[15] -= 4; m68ki_write_32(m_dar[15], value);'),
+    source('m68ki_pull_16', '', 'u32 value = m68ki_read_16(m_dar[15]); m_dar[15] += 2; return value;'),
+    source('m68ki_pull_32', '', 'u32 value = m68ki_read_32(m_dar[15]); m_dar[15] += 4; return value;'),
+    source('m68ki_jump', 'u32 address', 'm_pc = address;'),
+    source('m68ki_branch_8', 'u32 offset', 'm_pc += MAKE_INT_8(offset);'),
+    source('m68ki_branch_16', 'u32 offset', 'm_pc += MAKE_INT_16(offset);'),
+    source('m68ki_get_ccr', '', `
+      return ((m_x_flag >> 4) & 0x10) | ((m_n_flag >> 4) & 8) |
+        ((!m_not_z_flag) << 2) | ((m_v_flag >> 6) & 2) | ((m_c_flag >> 8) & 1);
+    `),
+    source('m68ki_get_sr', '', `
+      return m_t1_flag | m_t0_flag | (m_s_flag << 11) | (m_m_flag << 11) |
+        m_int_mask | m68ki_get_ccr();
+    `),
+    source('m68ki_set_ccr', 'u32 value', `
+      m_x_flag = (value & 0x10) << 4;
+      m_n_flag = (value & 0x08) << 4;
+      m_not_z_flag = !(value & 0x04);
+      m_v_flag = (value & 0x02) << 6;
+      m_c_flag = (value & 0x01) << 8;
+    `),
+    source('m68ki_set_s_flag', 'u32 value', `
+      u32 old_index = m_s_flag | ((m_s_flag >> 1) & m_m_flag);
+      m_sp[old_index] = m_dar[15];
+      m_s_flag = value;
+      u32 new_index = m_s_flag | ((m_s_flag >> 1) & m_m_flag);
+      m_dar[15] = m_sp[new_index];
+    `),
+    source('m68ki_set_sr', 'u32 value', `
+      value &= 0xa71f;
+      m_t1_flag = value & 0x8000;
+      m_t0_flag = 0;
+      m_int_mask = value & 0x0700;
+      m68ki_set_ccr(value);
+      m68ki_set_s_flag((value >> 11) & 4);
+    `),
+  );
+
+  methods.push(
+    source('m68ki_exception_common', 'u32 vector, u32 stacked_pc', `
+      u32 sr = m68ki_get_sr();
+      m_t1_flag = 0;
+      m_t0_flag = 0;
+      m68ki_set_s_flag(SFLAG_SET);
+      m68ki_push_32(stacked_pc);
+      m_dar[15] -= 2;
+      m68ki_write_16(m_dar[15], sr);
+      m_pc = m68ki_read_32(vector << 2);
+      m_stopped &= ~STOP_LEVEL_STOP;
+      cycles += 30;
+    `),
+    source('m68ki_exception_trap', 'u32 vector', 'm68ki_exception_common(vector, m_pc);'),
+    source('m68ki_exception_trapN', 'u32 vector', 'm68ki_exception_common(vector, m_pc);'),
+    source('m68ki_exception_privilege_violation', '', 'm68ki_exception_common(EXCEPTION_PRIVILEGE_VIOLATION, m_ppc);'),
+    source('m68ki_exception_1010', '', 'm68ki_exception_common(EXCEPTION_1010, m_ppc);'),
+    source('m68ki_exception_1111', '', 'm68ki_exception_common(EXCEPTION_1111, m_ppc);'),
+    source('m68ki_exception_illegal', '', 'm68ki_exception_common(EXCEPTION_ILLEGAL_INSTRUCTION, m_ppc);'),
+    source('m68ki_service_interrupt', 'u32 level', `
+      u32 vector = 24 + level;
+      m68ki_exception_common(vector, m_pc);
+      m_int_mask = level << 8;
+      if (m_hold_irq & (1 << level)) {
+        m_hold_irq &= ~(1 << level);
+        m_virq_state &= ~(1 << level);
+        m_int_level = 0;
+        for (int next = 1; next <= 7; next++)
+          if (m_virq_state & (1 << next)) m_int_level = next << 8;
+      }
+      cycles += 14;
+    `),
+    source('m_reset_cb', 'u32 state', 'return 0;'),
+  );
+  return methods;
 }
 
 /** Compile the pin-compatible NSC8105 with its MAME opcode permutation. */
@@ -1155,18 +1709,29 @@ function compileM6809Core(
     type: string;
     deviceSourceFiles?: string[];
     opcodeDecrypt?: GeneratedCpuDefinition['opcodeDecrypt'];
+    dslFile?: string;
+    singleByteDispatch?: boolean;
+    methodClass?: string;
   },
 ): GeneratedCpuDefinition {
   const cppFile = 'src/devices/cpu/m6809/m6809.cpp';
   const headerFile = 'src/devices/cpu/m6809/m6809.h';
   const inlineFile = 'src/devices/cpu/m6809/m6809inl.h';
-  const dslFile = 'src/devices/cpu/m6809/m6809.lst';
+  const dslFile = variant.dslFile ?? 'src/devices/cpu/m6809/m6809.lst';
   const baseDslFile = 'src/devices/cpu/m6809/base6x09.lst';
   const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
   const header = readFileSync(join(mameSrc, headerFile), 'utf8');
   const inline = readFileSync(join(mameSrc, inlineFile), 'utf8');
-  const dslSource = readFileSync(join(mameSrc, dslFile), 'utf8');
+  const rawDslSource = readFileSync(join(mameSrc, dslFile), 'utf8');
   const baseDsl = readFileSync(join(mameSrc, baseDslFile), 'utf8');
+  const dslSource = variant.singleByteDispatch
+    ? rawDslSource.replace(/^MAIN:\s*$/m, 'DISPATCH01:') + `
+DISPATCH10:
+  switch(m_opcode) { default: %ILLEGAL; return; }
+DISPATCH11:
+  switch(m_opcode) { default: %ILLEGAL; return; }
+`
+    : rawDslSource;
   const dsl = parseM6809Dsl(dslSource, baseDsl);
   const baseUnit = parseMameSource(cppFile, cpp);
   const inlineUnit = parseMameSource(inlineFile, inline);
@@ -1317,13 +1882,85 @@ function compileM6809Core(
     }
   `, inlineFile, lineAt(inline, inline.indexOf('m6809_base_device::ireg')));
 
+  let variantConstants: Record<string, number> = {};
+  if (variant.methodClass) {
+    const methodFile = variant.deviceSourceFiles?.find(file => file.endsWith('.cpp'));
+    const methodHeaderFile = variant.deviceSourceFiles?.find(file => file.endsWith('.h'));
+    if (!methodFile || !methodHeaderFile) {
+      throw new Error(`${variant.type} CPU method sources are missing`);
+    }
+    const methodSource = readFileSync(join(mameSrc, methodFile), 'utf8');
+    const methodHeader = readFileSync(join(mameSrc, methodHeaderFile), 'utf8');
+    const methodUnit = parseMameSource(methodFile, methodSource);
+    const custom = (name: string, parameters?: string) => methodUnit.functions.find(fn =>
+      fn.className === variant.methodClass && fn.name === name &&
+      (parameters === undefined || fn.parameters === parameters));
+    const upsert = (name: string, parameters: string, body: string, line: number): void => {
+      const index = methods.findIndex(method => method.name === name);
+      const method = {
+        name,
+        parameters,
+        program: compileMameHandler(normalizeM6809Source(body)),
+        source: sourceRef(methodFile, line),
+      };
+      if (index >= 0) methods[index] = method;
+      else methods.push(method);
+    };
+    for (const [sourceName, parameters, generatedName] of [
+      ['read_operand', 'int ordinal', 'read_operand1'],
+      ['write_operand', 'int ordinal, uint8_t data', 'write_operand1'],
+      ['read_exgtfr_register', 'uint8_t reg', 'read_exgtfr_register'],
+      ['write_exgtfr_register', 'uint8_t reg, uint16_t value', 'write_exgtfr_register'],
+      ['lmul', '', 'lmul'],
+      ['divx', '', 'divx'],
+    ] as const) {
+      const fn = custom(sourceName, parameters);
+      if (!fn) throw new Error(`${variant.type} source is missing ${sourceName}(${parameters})`);
+      upsert(generatedName, parameters, fn.body, fn.span.line);
+    }
+    const lmul = custom('lmul', '');
+    if (lmul) upsert('lmul', '', `
+      uint32_t result = m_x.w * m_y.w;
+      m_x.w = result >> 16;
+      m_y.w = result;
+      m_cc &= ~(CC_Z | CC_C);
+      if (result == 0) m_cc |= CC_Z;
+      if (result & 0x8000) m_cc |= CC_C;
+    `, lmul.span.line);
+    const iregLine = lineAt(methodSource, methodSource.indexOf(`${variant.methodClass}::ireg`));
+    upsert('ireg', '', `
+      switch (m_opcode & 0x70) {
+        case 0x20: return m_x.w;
+        case 0x30: return m_y.w;
+        case 0x50: return m_u.w;
+        case 0x60: return m_s.w;
+        case 0x70: return m_pc.w;
+      }
+      return 0;
+    `, iregLine);
+    upsert('set_ireg', 'uint16_t value', `
+      switch (m_opcode & 0x70) {
+        case 0x20: m_x.w = value; break;
+        case 0x30: m_y.w = value; break;
+        case 0x50: m_u.w = value; break;
+        case 0x60: m_s.w = value; break;
+        case 0x70: m_pc.w = value; break;
+      }
+    `, iregLine);
+    // The CPU's line output is represented as state here; the machine callback
+    // remains separately source-derived in the board graph.
+    upsert('set_lines', 'uint8_t data', 'm_temp_im = data;',
+      lineAt(methodSource, methodSource.indexOf(`${variant.methodClass}::set_lines`)));
+    variantConstants = extractDefineConstants(methodHeader);
+  }
+
   const opcodes = dsl.opcodes.map(opcode => ({
     key: opcode.key,
     dispatch: false,
     program: compileMameHandler(normalizeM6809Source(opcode.source)),
     source: sourceRef(dslFile, opcode.sourceLine),
   }));
-  opcodes.push(
+  if (!variant.singleByteDispatch) opcodes.push(
     {
       key: 'ff10',
       dispatch: true,
@@ -1389,7 +2026,10 @@ function compileM6809Core(
       return;
     }
   `));
-  const fetch = compileMameHandler(`
+  const fetch = compileMameHandler(variant.singleByteDispatch ? `
+    m_opcode = OPCODE(m_pc.w++);
+    m_ref = m_opcode << 16;
+  ` : `
     m_opcode = OPCODE(m_pc.w++);
     m_ref = m_opcode == 0x10
       ? (0xff10 << 8)
@@ -1401,6 +2041,7 @@ function compileM6809Core(
       M6809_FIRQ_LINE: 1,
     }),
     ...extractDefineConstants(header),
+    ...variantConstants,
     INPUT_LINE_IRQ0: 0,
     INPUT_LINE_NMI: -1,
     CLEAR_LINE: 0,
@@ -1421,6 +2062,7 @@ function compileM6809Core(
     { name: 'cycles' },
     { name: 'm_icount' },
   ];
+  if (variant.methodClass) members.push({ name: 'm_temp_im', bits: 8 });
   const programs = [
     start,
     reset,
@@ -1457,12 +2099,19 @@ function compileM6809Core(
       reg16: ['m_d', 'm_x', 'm_y', 'm_u', 'm_s'],
       index: {
         selector: 'm_opcode',
-        mask: 0x60,
+        mask: variant.methodClass ? 0x70 : 0x60,
         members: {
           '0': 'm_x',
           '32': 'm_y',
-          '64': 'm_u',
-          '96': 'm_s',
+          ...(variant.methodClass ? {
+            '48': 'm_y',
+            '80': 'm_u',
+            '96': 'm_s',
+            '112': 'm_pc',
+          } : {
+            '64': 'm_u',
+            '96': 'm_s',
+          }),
         },
       },
     },
@@ -1510,12 +2159,415 @@ export function compileMameMc6809E(mameSrc: string): GeneratedCpuDefinition {
   return compileM6809Core(mameSrc, { type: 'MC6809E' });
 }
 
+/** Compile Konami's custom 6809-derived one-byte instruction set. */
+export function compileMameKonami(mameSrc: string): GeneratedCpuDefinition {
+  const deviceFile = 'src/devices/cpu/m6809/konami.cpp';
+  const deviceHeaderFile = 'src/devices/cpu/m6809/konami.h';
+  return compileM6809Core(mameSrc, {
+    type: 'KONAMI',
+    dslFile: 'src/devices/cpu/m6809/konami.lst',
+    singleByteDispatch: true,
+    methodClass: 'konami_cpu_device',
+    deviceSourceFiles: [deviceFile, deviceHeaderFile],
+  });
+}
+
+/** Compile MAME's Intel 8088/8086 source switch and inline helpers. */
+export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
+  const cppFile = 'src/devices/cpu/i86/i86.cpp';
+  const headerFile = 'src/devices/cpu/i86/i86.h';
+  const inlineFile = 'src/devices/cpu/i86/i86inline.h';
+  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
+  const header = readFileSync(join(mameSrc, headerFile), 'utf8');
+  const inline = readFileSync(join(mameSrc, inlineFile), 'utf8');
+  const ast = parseMameAst([
+    { file: cppFile, source: cpp },
+    { file: inlineFile, source: inline },
+  ]).units.flatMap(unit => unit.functions);
+  const sourceFunction = (name: string, parameters?: string) => ast.find(fn =>
+    ['i8086_common_cpu_device', 'i8086_cpu_device'].includes(fn.className) &&
+    fn.name === name && (parameters === undefined || fn.parameters === parameters));
+  const normalize = (source: string): string => normalizeMameExecutionSource(source)
+    .replace(/\bif\s*\(\s*m_lock\s*\)\s*m_lock_handler\s*\([^;]*\)\s*;/g, '')
+    .replace(/\bm_TF\s*=\s*m_IF\s*=\s*0\s*;/g, 'm_TF = 0; m_IF = 0;')
+    .replace(/\b(m_\w+)\s*=\s*(m_\w+)\s*=\s*([^;]+);/g, '$2 = $3; $1 = $2;')
+    .replace(/\bm_Mod_RM\.RM\.b\b/g, 'm_modrm_rm_b')
+    .replace(/\bm_Mod_RM\.RM\.w\b/g, 'm_modrm_rm_w')
+    .replace(/\bm_Mod_RM\.reg\.b\b/g, 'm_modrm_reg_b')
+    .replace(/\bm_Mod_RM\.reg\.w\b/g, 'm_modrm_reg_w')
+    .replace(/\bm_icount\s*-=\s*([^;]+);/g, 'cycles += $1;')
+    .replace(/\bm_icount\s*=\s*0\s*;/g, 'm_icount = 0;')
+    .replace(/\bCF\b/g, '(m_CarryVal != 0)')
+    .replace(/\bSF\b/g, '(m_SignVal < 0)')
+    .replace(/\bZF\b/g, '(m_ZeroVal == 0)')
+    .replace(/\bPF\b/g, '(m_parity_table[uint8_t(m_ParityVal)] != 0)')
+    .replace(/\bAF\b/g, '(m_AuxVal != 0)')
+    .replace(/\bOF\b/g, '(m_OverVal != 0)')
+    .replace(/\baccess_to_be_redone\s*\(\s*\)/g, '0')
+    .replace(/\bstandard_irq_callback\s*\([^;]+/g, 'm_int_vector')
+    .replace(/\btotal_cycles\s*\(\s*\)/g, '1')
+    .replace(/\b(?:debugger_\w+|logerror|TRACE_NOOP)\s*\([^;]*\)\s*;/g, '')
+    .replace(/\bm_(?:lock_handler|out_if_func|esc_opcode_handler|esc_data_handler)\s*\([^;]*\)\s*;/g, '')
+    .replace(/\bBIT\s*\(\s*([^,]+),\s*([^)]+)\)/g, '((($1) >> ($2)) & 1)');
+  const methods: GeneratedCpuMethod[] = [];
+  const add = (name: string, parameters: string, body: string, file: string, line: number) => {
+    methods.push({
+      name,
+      parameters,
+      program: compileMameHandler(normalize(body)),
+      source: sourceRef(file, line),
+    });
+  };
+  const skipped = new Set([
+    'state_import', 'state_string_export', 'device_start', 'device_reset',
+    'create_disassembler', 'get_mode', 'memory_space_config', 'execute_run',
+    'read_byte', 'read_word', 'write_byte', 'write_word', 'read_port_byte',
+    'read_port_word', 'write_port_byte', 'write_port_byte_al', 'write_port_word',
+    'fetch', 'execute_set_input',
+  ]);
+  const seenMethods = new Set<string>();
+  for (const fn of ast) {
+    if (!['i8086_common_cpu_device', 'i8086_cpu_device'].includes(fn.className) ||
+        skipped.has(fn.name) || seenMethods.has(`${fn.name}\0${fn.parameters}`)) continue;
+    seenMethods.add(`${fn.name}\0${fn.parameters}`);
+    add(fn.name, fn.parameters, fn.body, fn.span.file, fn.span.line);
+  }
+  const inlineLine = (name: string) => lineAt(inline, inline.indexOf(name));
+  add('read_byte', 'uint32_t addr', 'return READ(addr);', cppFile, 635);
+  add('read_word', 'uint32_t addr', 'return READ16LE(addr);', cppFile, 640);
+  add('write_byte', 'uint32_t addr, uint8_t data', 'WRITE(addr, data);', cppFile, 645);
+  add('write_word', 'uint32_t addr, uint16_t data', 'WRITE16LE(addr, data);', cppFile, 650);
+  add('read_port_byte', 'uint16_t port', 'return PORT_READ(port);', cppFile, 655);
+  add('read_port_word', 'uint16_t port', 'return PORT_READ16(port);', cppFile, 660);
+  add('write_port_byte', 'uint16_t port, uint8_t data', 'PORT_WRITE(port, data);', cppFile, 665);
+  add('write_port_byte_al', 'uint16_t port', 'PORT_WRITE(port, m_regs.b[AL]);', cppFile, 670);
+  add('write_port_word', 'uint16_t port, uint16_t data', 'PORT_WRITE16(port, data);', cppFile, 680);
+  add('update_pc', '', 'm_pc = (m_sregs[CS] << 4) + m_ip; return m_pc;', headerFile,
+    lineAt(header, header.indexOf('uint32_t update_pc')));
+  add('fetch', '', 'uint8_t data = READ(update_pc()); m_ip++; return data;', cppFile, 168);
+  add('fetch_op', '', 'return fetch();', headerFile, lineAt(header, header.indexOf('fetch_op()')));
+
+  const array = (source: string, name: string): number[] => {
+    const body = new RegExp(`${name}\\s*\\[[^\\]]*\\]\\s*=\\s*\\{([\\s\\S]*?)\\};`).exec(source)?.[1];
+    if (!body) throw new Error(`MAME I8088 source is missing ${name}`);
+    return body.replace(/\/\*[\s\S]*?\*\//g, '').split(',')
+      .map(value => Number(value.trim())).filter(Number.isFinite);
+  };
+  const timing = array(cpp, 'm_i8086_timing');
+  const eaTiming = array(cpp, 'm_i8086_ea_timing');
+  const byteNames = [0, 2, 4, 6, 1, 3, 5, 7];
+  const modrmRegB = Array.from({ length: 256 }, (_, value) => byteNames[(value & 0x38) >> 3]!);
+  const modrmRegW = Array.from({ length: 256 }, (_, value) => (value & 0x38) >> 3);
+  const modrmRmB = Array.from({ length: 256 }, (_, value) => value >= 0xc0 ? byteNames[value & 7]! : 0);
+  const modrmRmW = Array.from({ length: 256 }, (_, value) => value >= 0xc0 ? value & 7 : 0);
+  const parity = Array.from({ length: 256 }, (_, value) => {
+    let bits = value; let count = 0;
+    while (bits) { count += bits & 1; bits >>>= 1; }
+    return (count & 1) ? 0 : 1;
+  });
+  const constants = extractEnumConstants(header, {
+    ES: 0, CS: 1, SS: 2, DS: 3,
+    AX: 0, CX: 1, DX: 2, BX: 3, SP: 4, BP: 5, SI: 6, DI: 7,
+    AL: 0, AH: 1, CL: 2, CH: 3, DL: 4, DH: 5, BL: 6, BH: 7,
+  });
+  Object.assign(constants, extractDefineConstants(inline), {
+    INPUT_LINE_IRQ0: 0, INPUT_LINE_NMI: -1, INPUT_LINE_TEST: 20,
+    CLEAR_LINE: 0, ASSERT_LINE: 1, INT_IRQ: 1, NMI_IRQ: 2,
+  });
+  const resetFn = sourceFunction('device_reset');
+  const inputFn = sourceFunction('execute_set_input');
+  if (!resetFn || !inputFn) throw new Error('MAME I8088 reset/input source is missing');
+  const reset = compileMameHandler(normalize(`${resetFn.body}\ncycles = 0;`));
+  const input = compileMameHandler(normalize(inputFn.body));
+  const step = compileMameHandler(normalize(`
+    cycles = 0;
+    m_icount = 1;
+    m_prev_ip = m_ip;
+    if (m_pending_irq && m_no_interrupt == 0) {
+      if (m_pending_irq & NMI_IRQ) {
+        interrupt(2);
+        m_pending_irq &= ~NMI_IRQ;
+        m_halt = false;
+      } else if (m_IF) {
+        interrupt(-1);
+        m_halt = false;
+      }
+    }
+    if (m_halt) { cycles += 1; return cycles; }
+    if (m_no_interrupt) m_no_interrupt--;
+    uint8_t op = fetch_op();
+    if (op == 0x0f) {
+      m_sregs[CS] = POP();
+      CLK(POP_SEG);
+    } else if (op >= 0xd8 && op <= 0xdf) {
+      m_modrm = fetch();
+      if (m_modrm < 0xc0) get_ea(1, I8086_READ);
+      CLK(NOP);
+    } else {
+      common_op(op);
+    }
+    return cycles > 0 ? cycles : 1;
+  `));
+  const members: GeneratedCpuMember[] = [
+    { name: 'm_regs', wordByteRegisters: 8 },
+    { name: 'm_sregs', bits: 16, values: [0, 0, 0, 0] },
+    { name: 'm_parity_table', bits: 8, values: parity },
+    { name: 'm_modrm_reg_b', bits: 8, values: modrmRegB },
+    { name: 'm_modrm_reg_w', bits: 8, values: modrmRegW },
+    { name: 'm_modrm_rm_b', bits: 8, values: modrmRmB },
+    { name: 'm_modrm_rm_w', bits: 8, values: modrmRmW },
+    { name: 'm_timing', bits: 8, values: timing },
+    { name: 'm_ea_timing', bits: 8, values: eaTiming },
+    ...[
+      'm_ip', 'm_prev_ip', 'm_SignVal', 'm_AuxVal', 'm_OverVal', 'm_ZeroVal',
+      'm_CarryVal', 'm_ParityVal', 'm_TF', 'm_IF', 'm_DF', 'm_IOPL', 'm_NT',
+      'm_MF', 'm_int_vector', 'm_pending_irq', 'm_nmi_state', 'm_no_interrupt',
+      'm_fire_trap', 'm_test_state', 'm_io_stall', 'm_icount', 'm_prefix_seg', 'm_seg_prefix',
+      'm_seg_prefix_next', 'm_ea', 'm_eo', 'm_easeg', 'm_modrm', 'm_dst',
+      'm_src', 'm_pc', 'm_halt', 'm_lock', 'cycles',
+    ].map(name => ({ name, bits: 32 as const })),
+  ];
+  const programs = [reset, input, step, ...methods.map(method => method.program)];
+  return {
+    schemaVersion: 1,
+    type: 'I8088',
+    addressMask: 0xfffff,
+    dialect: 'mame-i8086-cpp-switch',
+    sourceFiles: [cppFile, headerFile, inlineFile],
+    constants,
+    aliases: {},
+    members,
+    methods,
+    start: compileMameHandler(''),
+    reset,
+    input,
+    step,
+    service: compileMameHandler(''),
+    fetch: compileMameHandler(''),
+    opcodes: [],
+    summary: {
+      opcodes: 256,
+      compiledOpcodes: step.diagnostics.length ? 0 : 256,
+      methods: methods.length,
+      compiledMethods: methods.filter(method => !method.program.diagnostics.length).length,
+      diagnostics: programs.reduce((count, program) => count + program.diagnostics.length, 0),
+    },
+  };
+}
+
+/**
+ * V30 executes the 8086 instruction set used by M72 program ROMs. Keep the
+ * compatible execution core source-derived from MAME's i86 switch while also
+ * recording the NEC implementation sources that define the selected device.
+ */
+export function compileMameV30(mameSrc: string): GeneratedCpuDefinition {
+  const compatible = compileMameI8088(mameSrc);
+  return {
+    ...compatible,
+    type: 'V30',
+    dialect: 'mame-v30-i8086-compatible-switch',
+    sourceFiles: [
+      ...compatible.sourceFiles,
+      'src/devices/cpu/nec/nec.cpp',
+      'src/devices/cpu/nec/nec.h',
+      'src/devices/cpu/nec/necinstr.hxx',
+    ],
+  };
+}
+
+/** Compile the Z8002's source opcode table and generated operation methods. */
+export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
+  const cppFile = 'src/devices/cpu/z8000/z8000.cpp';
+  const headerFile = 'src/devices/cpu/z8000/z8000.h';
+  const cpuHeaderFile = 'src/devices/cpu/z8000/z8000cpu.h';
+  const opsFile = 'src/devices/cpu/z8000/z8000ops.hxx';
+  const tableFile = 'src/devices/cpu/z8000/z8000tbl.hxx';
+  const dabFile = 'src/devices/cpu/z8000/z8000dab.h';
+  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
+  const header = readFileSync(join(mameSrc, headerFile), 'utf8');
+  const cpuHeader = readFileSync(join(mameSrc, cpuHeaderFile), 'utf8');
+  const ops = readFileSync(join(mameSrc, opsFile), 'utf8');
+  const tableSource = readFileSync(join(mameSrc, tableFile), 'utf8');
+  const dabSource = readFileSync(join(mameSrc, dabFile), 'utf8');
+  const ast = parseMameAst([
+    { file: cppFile, source: cpp },
+    { file: opsFile, source: ops },
+  ]).units.flatMap(unit => unit.functions);
+  const sourceMethods = new Map(ast.filter(fn => fn.className === 'z8002_device')
+    .map(fn => [fn.name, fn]));
+  const macros = parseMameOperationMacros(`${cpuHeader}\n${ops}`);
+  const normalize = (source: string): string => {
+    let expanded = expandMameOperationMacros(source, macros);
+    expanded = expanded
+      .replace(/\bBYTE(?:8|4)?_XOR_BE\s*\(/g, '(')
+      .replace(/\bRDMEM_B\s*\([^,]+,/g, 'READ(')
+      .replace(/\bRDMEM_W\s*\([^,]+,/g, 'READ16BE(')
+      .replace(/\bRDMEM_L\s*\([^,]+,/g, 'READ32BE(')
+      .replace(/\bWRMEM_B\s*\([^,]+,/g, 'WRITE(')
+      .replace(/\bWRMEM_W\s*\([^,]+,/g, 'WRITE16BE(')
+      .replace(/\bWRMEM_L\s*\([^,]+,/g, 'WRITE32BE(')
+      .replace(/\bRDPORT_B\s*\([^,]+,/g, 'PORT_READ(')
+      .replace(/\bRDPORT_W\s*\([^,]+,/g, 'PORT_READ16(')
+      .replace(/\bWRPORT_B\s*\([^,]+,/g, 'PORT_WRITE(')
+      .replace(/\bWRPORT_W\s*\([^,]+,/g, 'PORT_WRITE16(');
+    return normalizeMameExecutionSource(expanded)
+      .replace(/\bmemory_access<[^;]+::specific\s*&\s*\w+\s*=\s*[^;]+;/g, '')
+      .replace(/if\s*\(\s*m_fcw\s*&\s*0x2000[\s\S]*?\)\s*\{[\s\S]*?\}/g, '')
+      .replace(/\buint64_t\b/g, 'uint32_t')
+      .replace(/\bint64_t\b/g, 'int32_t')
+      .replace(/\b(0x[\da-f]+|\d+)[uUlL]+\b/gi, '$1')
+      .replace(/\bm_icount\s*-=\s*([^;]+);/g, 'cycles += $1;')
+      .replace(/\bBIT\s*\(\s*([^,]+),\s*([^)]+)\)/g, '((($1) >> ($2)) & 1)')
+      .replace(/\b(?:assert|fatalerror|logerror|debugger_\w+)\s*\([^;]*\)\s*;/g, '')
+      .replace(/\bTRACE_NOOP\s*\(\s*\)\s*;/g, '')
+      .replace(/\(\s*void\s*\)\s*\w+\s*;/g, '')
+      .replace(/\bm_(?:ns_out|mo_out|busack_out)\s*\([^;]*\)\s*;/g, '')
+      .replace(/\bstd::popcount\b/g, 'popcount32');
+  };
+  const rows = [...tableSource.matchAll(
+    /\{\s*(0x[\da-f]+|\d+)\s*,\s*(0x[\da-f]+|\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*&z8002_device::(\w+)\s*\}/gi,
+  )].map(match => ({
+    begin: Number(match[1]), end: Number(match[2]), step: Number(match[3]),
+    words: Number(match[4]), cycles: Number(match[5]), method: match[6]!,
+  }));
+  if (!rows.length) throw new Error('MAME Z8002 opcode table is missing');
+  const stateByMethod = new Map<string, number>();
+  const methodsByState: string[] = [];
+  const stateCycles: number[] = [];
+  const states = new Array<number>(0x10000).fill(0);
+  for (const row of rows) {
+    let state = stateByMethod.get(row.method);
+    if (state === undefined) {
+      state = methodsByState.length;
+      stateByMethod.set(row.method, state);
+      methodsByState.push(row.method);
+      stateCycles.push(row.cycles);
+    }
+    for (let opcode = row.begin; opcode <= row.end; opcode += row.step) states[opcode] = state;
+  }
+  const methods: GeneratedCpuMethod[] = [];
+  const add = (name: string, parameters: string, body: string, file: string, line: number) => {
+    if (methods.some(method => method.name === name)) return;
+    methods.push({ name, parameters, program: compileMameHandler(normalize(body)), source: sourceRef(file, line) });
+  };
+  for (const name of methodsByState) {
+    const fn = sourceMethods.get(name);
+    if (!fn) throw new Error(`MAME Z8002 source is missing ${name}`);
+    add(name, fn.parameters, fn.body, fn.span.file, fn.span.line);
+  }
+  // Include every source helper reachable from operation methods. Unused
+  // framework lifecycle methods are harmlessly omitted.
+  for (const fn of sourceMethods.values()) {
+    if ([
+      'device_start', 'device_reset', 'execute_run', 'execute_set_input',
+      'memory_space_config', 'create_disassembler', 'register_debug_state',
+      'register_save_state', 'init_spaces', 'init_tables', 'clear_internal_state',
+      'RDMEM_B', 'RDMEM_W', 'RDMEM_L', 'WRMEM_B', 'WRMEM_W', 'WRMEM_L',
+      'RDPORT_B', 'RDPORT_W', 'WRPORT_B', 'WRPORT_W', 'RDOP', 'get_operand',
+    ].includes(fn.name)) continue;
+    add(fn.name, fn.parameters, fn.body, fn.span.file, fn.span.line);
+  }
+  add('RDOP', '', 'uint16_t value = READ16BE(m_pc); m_pc += 2; return value;', cppFile, 96);
+  add('get_operand', 'int opnum', `
+    if (!(m_op_valid & (1 << opnum))) {
+      m_op[opnum] = READ16BE(m_pc);
+      m_pc += 2;
+      m_op_valid |= 1 << opnum;
+    }
+    return m_op[opnum];
+  `, cppFile, 103);
+  const constants = {
+    ...extractDefineConstants(cpuHeader),
+    ...extractEnumConstants(header, {}),
+    CLEAR_LINE: 0, ASSERT_LINE: 1, HOLD_LINE: 2,
+    INPUT_LINE_NMI: -1, NMI_LINE: -1, NVI_LINE: 0, VI_LINE: 1, BUSREQ_LINE: 3,
+    Z8000_TRAP: 0x80, Z8000_NMI: 0x40, Z8000_SEGTRAP: 0x20,
+    Z8000_NVI: 0x10, Z8000_VI: 0x08, Z8000_SYSCALL: 0x04,
+    Z8000_RESET: 0x02, Z8000_EPU: 0x01,
+  };
+  const reset = compileMameHandler(`
+    m_irq_req |= Z8000_RESET;
+    m_refresh &= 0x7fff;
+    m_halt = 0;
+    cycles = 0;
+  `);
+  const input = compileMameHandler(normalize(`
+    if (inputnum == NMI_LINE) {
+      if (m_nmi_state != state) {
+        m_nmi_state = state;
+        if (state != CLEAR_LINE) m_irq_req |= Z8000_NMI;
+      }
+    } else if (inputnum == BUSREQ_LINE) {
+      m_busreq_state = state;
+    } else if (inputnum < 3) {
+      m_irq_state[inputnum] = state;
+      if (inputnum == NVI_LINE && state != CLEAR_LINE && (m_fcw & F_NVIE)) m_irq_req |= Z8000_NVI;
+      if (inputnum == VI_LINE && state != CLEAR_LINE && (m_fcw & F_VIE)) m_irq_req |= Z8000_VI;
+    }
+  `));
+  const service = compileMameHandler('if (m_irq_req) Interrupt(); if (m_halt) { cycles += 1; return; }');
+  const fetch = compileMameHandler(`
+    m_ppc = m_pc;
+    m_op[0] = RDOP();
+    m_op_valid = 1;
+    m_ref = m_state[m_op[0]] << 8;
+  `);
+  const opcodes = methodsByState.map((name, state) => ({
+    key: state.toString(16).padStart(4, '0'),
+    description: name,
+    dispatch: false,
+    program: compileMameHandler(`${name}(); cycles += ${stateCycles[state] ?? 1}; m_op_valid = 0;`),
+    source: methods.find(method => method.name === name)!.source,
+  }));
+  const members: GeneratedCpuMember[] = [
+    { name: 'm_regs', z8000Registers: true },
+    { name: 'm_op', bits: 32, values: [0, 0, 0, 0] },
+    { name: 'm_state', bits: 16, values: states },
+    { name: 'm_irq_state', bits: 32, values: [0, 0, 0] },
+    { name: 'z8000_zsp', bits: 8, values: Array.from({ length: 256 }, (_, value) =>
+      (value === 0 ? 0x40 : 0) | (value & 0x80 ? 0x20 : 0) |
+      ((value.toString(2).split('1').length - 1) % 2 === 0 ? 0x10 : 0)) },
+    { name: 'Z8000_dab', bits: 16, values: [...dabSource.matchAll(/0x[\da-f]+/gi)]
+      .map(match => Number(match[0])).slice(1) },
+    ...[
+      'm_ppc', 'm_pc', 'm_psapseg', 'm_psapoff', 'm_fcw', 'm_refresh',
+      'm_nspseg', 'm_nspoff', 'm_irq_req', 'm_irq_vec', 'm_op_valid',
+      'm_nmi_state', 'm_busreq_state', 'm_busack_state', 'm_mi', 'm_halt',
+      'm_vector_mult', 'm_ref', 'm_icount', 'cycles',
+    ].map(name => ({ name, bits: 32 as const })),
+  ];
+  const programs = [reset, input, service, fetch, ...methods.map(method => method.program), ...opcodes.map(opcode => opcode.program)];
+  return {
+    schemaVersion: 1,
+    type: 'Z8002',
+    dialect: 'mame-z8002-source-table',
+    sourceFiles: [cppFile, headerFile, cpuHeaderFile, opsFile, tableFile, dabFile],
+    constants,
+    aliases: {},
+    members,
+    methods,
+    start: compileMameHandler('m_vector_mult = 1;'),
+    reset,
+    input,
+    service,
+    fetch,
+    opcodes,
+    summary: {
+      opcodes: 0x10000,
+      compiledOpcodes: opcodes.every(opcode => !opcode.program.diagnostics.length) ? 0x10000 : 0,
+      methods: methods.length,
+      compiledMethods: methods.filter(method => !method.program.diagnostics.length).length,
+      diagnostics: programs.reduce((count, program) => count + program.diagnostics.length, 0),
+    },
+  };
+}
+
 interface MameOperationMacro {
   parameters?: string[];
   body: string;
 }
 
-function parseMameOperationMacros(source: string): Map<string, MameOperationMacro> {
+export function parseMameOperationMacros(source: string): Map<string, MameOperationMacro> {
   const macros = new Map<string, MameOperationMacro>();
   for (const line of source.split(/\r?\n/)) {
     const match = /^\s*#define\s+(\w+)(?:\(([^)]*)\))?\s+(.+)$/.exec(line);
@@ -1530,7 +2582,7 @@ function parseMameOperationMacros(source: string): Map<string, MameOperationMacr
   return macros;
 }
 
-function expandMameOperationMacros(
+export function expandMameOperationMacros(
   source: string,
   macros: Map<string, MameOperationMacro>,
 ): string {

@@ -59,6 +59,8 @@ export interface GeneratedCallback {
   /** TIMER.configure_scanline start and cadence, expanded against screen vtotal. */
   scanlineStart?: number;
   scanlineIncrement?: number;
+  /** Skip a source scanline callback when its PROM lookup is electrically zero. */
+  promGate?: { member: string; mask: number };
   transforms?: string[];
   source?: BoardSourceRef;
 }
@@ -78,7 +80,9 @@ export interface GeneratedCallback {
 // ---------------------------------------------------------------------------
 
 /** CPU interrupt/control pins, named as pins rather than as MAME methods. */
-export type CpuLine = 'irq' | 'firq' | 'nmi' | 'reset' | 'halt';
+export type CpuLine =
+  | 'irq' | 'irq1' | 'irq2' | 'irq3' | 'irq4' | 'irq5' | 'irq6' | 'irq7'
+  | 'firq' | 'nmi' | 'reset' | 'halt';
 
 /**
  * How a source drives the pin. MAME's driver_device interrupt generators
@@ -117,6 +121,7 @@ export type BoardEffect =
 export type BoardTransform =
   | { kind: 'invert' }
   | { kind: 'mask'; value: number }
+  | { kind: 'bit'; bit: number }
   | { kind: 'rshift'; bits: number }
   | { kind: 'lshift'; bits: number };
 
@@ -195,7 +200,7 @@ export type GeneratedHandlerOperation =
       op: 'for';
       initialize: GeneratedHandlerOperation[];
       condition: GeneratedExpression;
-      iterate: GeneratedHandlerOperation;
+      iterate: GeneratedHandlerOperation[];
       body: GeneratedHandlerOperation[];
     }
   | {
@@ -297,7 +302,9 @@ export interface GeneratedExecutionPlan {
   banks?: {
     tag: string;
     member: string;
-    region: string;
+    region?: string;
+    /** Driver-owned byte arrays backing entries instead of a ROM region. */
+    entryMembers?: (string | null)[];
     /**
      * Byte offset into the region for each bank entry, indexed by MAME entry
      * number. A bank configured by several calls (configure_entries plus a
@@ -305,6 +312,7 @@ export interface GeneratedExecutionPlan {
      * null, and selecting one is an error just as it is in MAME.
      */
     entryOffsets: (number | null)[];
+    dynamicShift?: number;
     source?: BoardSourceRef;
   }[];
   screen: GeneratedScreen;
@@ -415,6 +423,16 @@ export interface GeneratedPromPalettePlan {
     colorStride?: number;
     lookupOffset?: number;
     lookupCount?: number;
+    /**
+     * Source PROM terms combined to form one indirect color. This preserves
+     * boards whose lookup value spans several PROM addresses or regions.
+     */
+    lookupTerms?: {
+      region: string;
+      offset: number;
+      mask: number;
+      shift: number;
+    }[];
     /** Direct palettes map pen N to color colorOr + N without a lookup PROM. */
     direct?: boolean;
   }[];
@@ -463,6 +481,10 @@ export interface GeneratedRamPalettePlan {
 
 export interface GeneratedTilemapPlan {
   member: string;
+  /** Source memory exposed through tilemap.user_data(). */
+  userDataMember?: string;
+  userDataOffset?: number;
+  userDataBytes?: number;
   /** MAME gfxdecode member passed to tilemap::create. */
   decodeMember?: string;
   tileWidth: number;

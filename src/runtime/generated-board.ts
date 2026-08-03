@@ -203,6 +203,8 @@ class IrBoard implements Board {
           },
           vpos: () => this.currentLine,
           hpos: () => 0,
+          height: () => Math.max(1, machine.execution.screen.vtotal),
+          frame_number: () => this.frameRunner?.frameCount ?? 0,
         };
         const device = createDevice(specification.type, {
           clock: specification.clock,
@@ -266,6 +268,21 @@ class IrBoard implements Board {
           }
         }
         this.devices.set(specification.tag, device);
+        if (specification.member) {
+          const indexed = /^(m_\w+)\[(\d+)\]$/.exec(specification.member);
+          if (indexed) {
+            const values = Array.isArray(this.state[indexed[1]!])
+              ? this.state[indexed[1]!] as unknown[]
+              : [];
+            values[Number(indexed[2])] = device;
+            this.state[indexed[1]!] = values;
+          } else {
+            // Required/optional device finders are pointer-like in driver
+            // handlers. Binding the live generated object preserves nullable
+            // tests and permits direct method calls through the source member.
+            this.state[specification.member] = device;
+          }
+        }
       }
     }
     for (const source of this.devices.values()) {
@@ -637,6 +654,12 @@ class IrBoard implements Board {
         },
       })), ...hostedProcessors, ...autonomousProcessors],
       onEvent: event => {
+        const callback = machine.callbacks.find(candidate => candidate.id === event.callbackId);
+        if (callback?.promGate && !generatedPromGateOpen(
+          callback.promGate,
+          event.state,
+          this.state,
+        )) return;
         if (machine.sound?.auxiliaryDevices?.some(device =>
           device.deviceTag === event.ownerTag)) {
           sinks.soundWrite(
@@ -1004,11 +1027,33 @@ class IrBoard implements Board {
     registry: HandlerRegistry,
   ): void {
     for (const bank of machine.execution.banks ?? []) {
-      const region = regions[bank.region];
-      if (!region) {
+      const region = bank.region ? regions[bank.region] : undefined;
+      if (bank.region && !region) {
         throw new Error(`${machine.game}: memory bank "${bank.tag}" has no region "${bank.region}"`);
       }
-      let base = bank.entryOffsets.find(value => value !== null) ?? 0;
+      const bankRange = machine.execution.cpus
+        .flatMap(cpu => cpu.ranges ?? [])
+        .find(range => range.read === `bank.${bank.tag}` || range.write === `bank.${bank.tag}`);
+      const entrySize = bankRange ? bankRange.end - bankRange.start + 1 : 0;
+      const ownedEntries = bank.entryMembers?.map((member, index) => {
+        if (!member) return undefined;
+        const bytes = new Uint8Array(entrySize);
+        const indexed = /^(\w+)\[(\d+)\]$/.exec(member);
+        if (indexed) {
+          const values = this.state[indexed[1]!] as unknown[] | undefined ?? [];
+          values[Number(indexed[2])] = bytes;
+          this.state[indexed[1]!] = values;
+        } else {
+          this.state[member] = bytes;
+        }
+        void index;
+        return bytes;
+      });
+      if (!region && !ownedEntries?.some(Boolean)) {
+        throw new Error(`${machine.game}: memory bank "${bank.tag}" has no backing storage`);
+      }
+      let entry = bank.entryOffsets.findIndex(value => value !== null);
+      if (entry < 0) entry = 0;
       const setEntry = (value: number): number => {
         const configured = bank.entryOffsets[value];
         if (configured === undefined || configured === null) {
@@ -1016,16 +1061,31 @@ class IrBoard implements Board {
             `${machine.game}: memory bank "${bank.tag}" selected invalid entry ${value}`,
           );
         }
-        base = configured;
+        entry = value;
         return value;
       };
       for (const alias of [bank.tag, `m_${bank.tag}`, bank.member]) {
         this.bindings.calls![`${alias}.set_entry`] = setEntry;
       }
-      registry.read[`bank.${bank.tag}`] = (_address, offset) => region[base + offset] ?? 0xff;
+      registry.read[`bank.${bank.tag}`] = (_address, offset) => {
+        const owned = ownedEntries?.[entry];
+        if (owned) return owned[offset] ?? 0xff;
+        const base = bank.dynamicShift !== undefined && region
+          ? 0x10000 + ((entry << bank.dynamicShift) & ((region.length - 0x10001) & 0x3ffff))
+          : bank.entryOffsets[entry] ?? 0;
+        return region?.[base + offset] ?? 0xff;
+      };
       registry.write[`bank.${bank.tag}`] = (_address, offset, data) => {
+        const owned = ownedEntries?.[entry];
+        if (owned) {
+          if (offset >= 0 && offset < owned.length) owned[offset] = data;
+          return;
+        }
+        const base = bank.dynamicShift !== undefined && region
+          ? 0x10000 + ((entry << bank.dynamicShift) & ((region.length - 0x10001) & 0x3ffff))
+          : bank.entryOffsets[entry] ?? 0;
         const index = base + offset;
-        if (index >= 0 && index < region.length) region[index] = data;
+        if (region && index >= 0 && index < region.length) region[index] = data;
       };
     }
   }
@@ -1145,7 +1205,18 @@ class IrBoard implements Board {
             }
           };
         }
-        // irq/firq. MAME's *_line_hold keeps the line asserted until the CPU
+        const numberedIrq = /^irq([1-7])$/.exec(line);
+        if (numberedIrq) {
+          const inputLine = Number(numberedIrq[1]);
+          return state => this.cpus.get(tag)?.setInputLine(
+            inputLine,
+            state ? (delivery === 'hold' ? 2 : 1) : 0,
+          );
+        }
+        if (line === 'firq') {
+          return state => this.cpus.get(tag)?.setInputLine(1, state ? 1 : 0);
+        }
+        // IRQ0. MAME's *_line_hold keeps the line asserted until the CPU
         // acknowledges it; assert and level leave it to the source to clear.
         return state => {
           this.cpus.get(tag)?.setIrqLine(state !== 0, 0xff, delivery === 'hold' && state !== 0);
@@ -1223,6 +1294,17 @@ class IrBoard implements Board {
       },
     };
   }
+}
+
+export function generatedPromGateOpen(
+  gate: { member: string; mask: number },
+  state: number,
+  members: Readonly<Record<string, unknown>>,
+): boolean {
+  const source = members[gate.member];
+  return ArrayBuffer.isView(source) && 'length' in source
+    ? Number((source as unknown as ArrayLike<number>)[state & gate.mask] ?? 0) !== 0
+    : true;
 }
 
 /**
@@ -1345,6 +1427,14 @@ function usedHandlers(
   machine: BoardIr,
   kind: 'read' | 'write',
 ): string[] {
-  return (machine.maps ?? []).flatMap(map =>
-    map.ranges.flatMap(range => range[kind] ? [range[kind]!] : []));
+  // BoardIR keeps every source map for provenance, including base maps that a
+  // derived machine composes and then overrides. Only the selected CPU plans
+  // are executable. Requiring handlers from every archival map made an
+  // overridden Donkey Kong latch (`ls175.3d`) block Donkey Kong Jr., whose
+  // effective map replaces it with `ls174.3d` at the same address.
+  return machine.execution.cpus.flatMap(cpu => [
+    ...(cpu.ranges ?? []),
+    ...(cpu.opcode?.ranges ?? []),
+    ...(cpu.io?.ranges ?? []),
+  ]).flatMap(range => range[kind] ? [range[kind]!] : []);
 }

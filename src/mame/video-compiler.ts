@@ -104,12 +104,24 @@ export function compileMameVideo(
       handlers,
     };
   }
-  const bitmap = (
-    screen && (
-      compilePackedPaletteBitmap(graph, ast, source, constants, screen) ??
-      compileDirectBitmap(graph, screenClass, screenMethod, screen)
-    )
-  ) ?? compileCrtcPackedBitmap(graph, ast, source, constants);
+  // A screen-update entry point may select between source-defined renderers
+  // (Tutankham dispatches to its Scramble and bootleg bitmap paths). Probe the
+  // directly called methods as well as the entry point; a bitmap plan is valid
+  // only when one of those source bodies proves the packed-memory geometry.
+  const bitmapCandidates = screen
+    ? [
+        screen,
+        ...calledSourceMethods(screen.body)
+          .map(name => ast.findFunctionInHierarchy(screen.className, name))
+          .filter((fn): fn is MameFunction => Boolean(fn)),
+      ]
+    : [];
+  const bitmap = bitmapCandidates
+    .map(candidate =>
+      compilePackedPaletteBitmap(graph, ast, source, constants, candidate) ??
+      compileDirectBitmap(graph, candidate.className, candidate.name, candidate))
+    .find((candidate): candidate is NonNullable<GeneratedVideoPlan['bitmap']> =>
+      Boolean(candidate)) ?? compileCrtcPackedBitmap(graph, ast, source, constants);
   if (bitmap) {
     const scale = Number(constants.GALAXIAN_XSCALE ?? 1);
     return {
@@ -136,7 +148,10 @@ export function compileMameVideo(
     .map(fn => /MCFG_VIDEO_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/.exec(fn.body))
     .find((match): match is RegExpExecArray => Boolean(match));
   const start = startMatch
-    ? ast.findFunction(startMatch[1]!, `video_start_${startMatch[2]}`)
+    // MCFG may spell the selected derived driver class even when the
+    // VIDEO_START_MEMBER implementation is inherited from its base class
+    // (pengo_state selects pacman_state::video_start_pacman).
+    ? ast.findFunctionInHierarchy(startMatch[1]!, `video_start_${startMatch[2]}`)
     : ast.findFunctionInHierarchy(String(machine.props.cls), 'video_start');
   if (!start && !screen) {
     return fail(`missing video_start and screen update for ${String(machine.props.cls)}`);
@@ -153,13 +168,6 @@ export function compileMameVideo(
     .reduce((scale, entry) => Math.max(scale, Number(entry.props.xscale ?? 1)), 1);
   const numericDefaults = numericState(memberDefaults);
   const configState = machineConfigInitialState(ast, source, config, constants);
-  const tilemaps = start
-    ? compileTilemaps(start, { ...constants, ...numericDefaults }, ast)
-      .filter((tilemap, index, all) =>
-        all.findIndex(candidate => candidate.member === tilemap.member) === index)
-    : [];
-  if (start && !tilemaps.length) return fail(`video_start emitted no tilemaps`);
-  const handlers: GeneratedHandler[] = [];
   const game = graph.nodes.find(node => node.label === 'Game');
   const driverInit = ast.findFunctionInHierarchy(
     String(machine.props.cls),
@@ -168,13 +176,42 @@ export function compileMameVideo(
   const driverInitState = driverInit
     ? initialState(driverInit.body, { ...constants, ...numericDefaults })
     : {};
+  const allocatedState = start
+    ? allocatedVideoState(ast, start, { ...constants, ...numericDefaults })
+    : {};
+  const tilemaps = start
+    ? compileTilemaps(
+        start,
+        { ...constants, ...numericDefaults, ...configState, ...driverInitState },
+        ast,
+      )
+      .filter((tilemap, index, all) =>
+        all.findIndex(candidate => candidate.member === tilemap.member) === index)
+    : [];
+  // Some boards allocate temporary bitmaps in video_start and render decoded
+  // gfx into them directly (Mat Mania is the common example).  A video_start
+  // with no tilemap is therefore still a valid source-derived video plan when
+  // the selected screen handler exists; the generated runtime supplies the
+  // temporary bitmap and copy primitives used by that handler.
+  if (start && !tilemaps.length && !screen) return fail(`video_start emitted no tilemaps`);
+  // FUNC() in an inherited video_start often names the selected derived
+  // state even though the TILE_GET_INFO implementation lives on its base.
+  // Store the declaring-class key used by the compiled handler registry.
+  const executableTilemaps = tilemaps.map(tilemap => ({
+    ...tilemap,
+    tileInfo: resolvedHandlerKey(ast, tilemap.tileInfo),
+    mapper: tilemap.mapper.startsWith('TILEMAP_SCAN_')
+      ? tilemap.mapper
+      : resolvedHandlerKey(ast, tilemap.mapper),
+  }));
+  const handlers: GeneratedHandler[] = [];
   const delegates = compileInitDelegates(
     ast,
     String(machine.props.cls),
     String(game?.props.init ?? ''),
   );
   const roots = [
-    ...tilemaps.flatMap(tilemap => [tilemap.mapper, tilemap.tileInfo]),
+    ...executableTilemaps.flatMap(tilemap => [tilemap.mapper, tilemap.tileInfo]),
     ...(screen ? [`${screen.className}.${screen.name}`] : []),
     ...Object.values(delegates).filter((target): target is string => target !== null),
   ];
@@ -265,7 +302,7 @@ export function compileMameVideo(
       ...(palette ? { palette } : {}),
       ...(palettes.length ? { palettes } : {}),
       ...(ramPalette ? { ramPalette } : {}),
-      tilemaps,
+      tilemaps: executableTilemaps,
       initialState: {
         ...arrayState(memberDefaults),
         ...(needsClassDefaults ? memberDefaults : {}),
@@ -273,6 +310,7 @@ export function compileMameVideo(
         ...(start
           ? initialState(start.body, { ...constants, ...numericDefaults })
           : {}),
+        ...allocatedState,
         ...driverInitState,
       },
       ...(renderScale !== 1 ? { renderScale: { x: renderScale, y: 1 } } : {}),
@@ -670,48 +708,75 @@ function compileTilemaps(
   const key = `${start.className}.${start.name}`;
   if (seen.has(key)) return [];
   seen.add(key);
+  const body = expandConstantTilemapLoops(start.body, values);
   const plans: GeneratedVideoPlan['tilemaps'] = [];
-  const createRe = /\b(m_\w+)\s*=\s*&?[^;]*?\.create\s*\(/g;
+  const createRe = /\b(m_\w+(?:\[\s*\d+\s*\])?)\s*=(?!=)\s*&?[^;]*?\.create\s*\(/g;
   let match: RegExpExecArray | null;
-  while ((match = createRe.exec(start.body)) !== null) {
-    const open = start.body.indexOf('(', match.index + match[0].length - 1);
-    const close = matchingPair(start.body, open, '(', ')');
+  while ((match = createRe.exec(body)) !== null) {
+    if (!constantTilemapBranchActive(body, match.index, values)) continue;
+    const open = body.indexOf('(', match.index + match[0].length - 1);
+    const close = matchingPair(body, open, '(', ')');
     if (close < 0) continue;
-    const args = splitMameArgs(start.body.slice(open + 1, close));
+    const args = splitMameArgs(body.slice(open + 1, close));
     const tileInfo = funcKey(args[1]);
     const mapper = funcKey(args[2]) ?? standardTilemapMapper(args[2]);
     if (!tileInfo || !mapper || args.length < 7) continue;
     const member = match[1]!;
-    const nextCreate = start.body.slice(close + 1).search(createRe);
-    const setupEnd = nextCreate < 0 ? start.body.length : close + 1 + nextCreate;
-    const setup = start.body.slice(close + 1, setupEnd);
+    const escapedMember = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const nextCreate = body.slice(close + 1).search(createRe);
+    const setupEnd = nextCreate < 0 ? body.length : close + 1 + nextCreate;
+    const setup = body.slice(close + 1, setupEnd);
     const scrollColumns = expressionNumber(
-      new RegExp(`${member}->set_scroll_cols\\s*\\(([^)]+)\\)`).exec(setup)?.[1],
+      new RegExp(`${escapedMember}->set_scroll_cols\\s*\\(([^)]+)\\)`).exec(body)?.[1],
       values,
     );
     const scrollRows = expressionNumber(
-      new RegExp(`${member}->set_scroll_rows\\s*\\(([^)]+)\\)`).exec(setup)?.[1],
+      new RegExp(`${escapedMember}->set_scroll_rows\\s*\\(([^)]+)\\)`).exec(body)?.[1],
       values,
     );
-    const scrollDx = tilemapScrollDelta(setup, member, 'x', values);
-    const scrollDy = tilemapScrollDelta(setup, member, 'y', values);
+    const scrollDx = tilemapScrollDelta(body, escapedMember, 'x', values);
+    const scrollDy = tilemapScrollDelta(body, escapedMember, 'y', values);
     const transparentExpression =
-      new RegExp(`${member}->set_transparent_pen\\s*\\(([^)]+)\\)`).exec(setup)?.[1]
-        ?? new RegExp(`${member}->set_transparent_pen\\s*\\(([^)]+)\\)`).exec(start.body)?.[1];
+      new RegExp(`${escapedMember}->set_transparent_pen\\s*\\(([^)]+)\\)`).exec(setup)?.[1]
+        ?? new RegExp(`${escapedMember}->set_transparent_pen\\s*\\(([^)]+)\\)`).exec(body)?.[1];
     const transparentPen = transparentExpression === undefined
       ? undefined
       : expressionNumber(transparentExpression, values);
     const transparentIndirectExpression = new RegExp(
-      `${member}->configure_groups\\s*\\([^,]+,\\s*([^)]+)\\)`,
+      `${escapedMember}->configure_groups\\s*\\([^,]+,\\s*([^)]+)\\)`,
     ).exec(setup)?.[1] ?? new RegExp(
-      `${member}->configure_groups\\s*\\([^,]+,\\s*([^)]+)\\)`,
-    ).exec(start.body)?.[1];
+      `${escapedMember}->configure_groups\\s*\\([^,]+,\\s*([^)]+)\\)`,
+    ).exec(body)?.[1];
     const transparentIndirect = transparentIndirectExpression === undefined
       ? undefined
       : expressionNumber(transparentIndirectExpression, values);
-    const transmasks = tilemapTransmasks(`${setup}\n${start.body}`, member, values);
+    const transmasks = tilemapTransmasks(`${setup}\n${body}`, escapedMember, values);
+    const userDataExpression = new RegExp(
+      `${escapedMember}->set_user_data\\s*\\(([^)]+(?:\\)[^)]*)?)\\)`,
+    ).exec(setup)?.[1];
+    const userDataMember = userDataExpression && /\b(m_\w+)\b/.exec(userDataExpression)?.[1];
+    const userDataOffset = userDataExpression
+      ? expressionNumber(
+          userDataExpression
+            .replace(new RegExp(`\\b${userDataMember}\\s*\\.\\s*get\\(\\)`), '0')
+            .replace(new RegExp(`\\b${userDataMember}\\b`), '0'),
+          values,
+        )
+      : undefined;
+    const tileInfoFunction = ast && tileInfo
+      ? ast.findFunctionInHierarchy(...splitHandlerKey(tileInfo))
+      : undefined;
+    const bytesPerTile = Number(
+      tileInfoFunction && /tile_index\s*\*\s*(\d+)/.exec(tileInfoFunction.body)?.[1] || 1,
+    );
     plans.push({
       member,
+      ...(userDataMember ? {
+        userDataMember,
+        userDataOffset: userDataOffset ?? 0,
+        userDataBytes:
+          expressionNumber(args[5], values) * expressionNumber(args[6], values) * bytesPerTile,
+      } : {}),
       ...(/\b(m_\w+)\b/.exec(args[0] ?? '')?.[1]
         ? { decodeMember: /\b(m_\w+)\b/.exec(args[0] ?? '')![1] }
         : {}),
@@ -760,6 +825,103 @@ function compileTilemaps(
     }
   }
   return plans;
+}
+
+/** Source-owned byte arrays allocated during video_start and its helpers. */
+function allocatedVideoState(
+  ast: MameAstIndex,
+  fn: MameFunction,
+  values: Record<string, number>,
+  seen = new Set<string>(),
+): Record<string, number[]> {
+  const key = `${fn.className}.${fn.name}:${JSON.stringify(values)}`;
+  if (seen.has(key)) return {};
+  seen.add(key);
+  const state: Record<string, number[]> = {};
+  for (const match of fn.body.matchAll(
+    /\b(m_\w+)\s*=\s*make_unique_clear\s*<[^>]*\[\]\s*>\s*\(([^)]+)\)/g,
+  )) {
+    const length = expressionNumber(match[2], values);
+    if (Number.isInteger(length) && length >= 0 && length <= 0x10_0000) {
+      state[match[1]!] = new Array(length).fill(0);
+    }
+  }
+  for (const call of fn.body.matchAll(/\b(\w+)\s*\(([^;()]*)\)\s*;/g)) {
+    const helper = ast.findFunctionInHierarchy(fn.className, call[1]!);
+    if (!helper || helper === fn) continue;
+    const parameters = splitMameArgs(helper.parameters)
+      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+      .filter((name): name is string => Boolean(name));
+    const args = splitMameArgs(call[2]!);
+    const helperValues = { ...values };
+    parameters.forEach((parameter, index) => {
+      helperValues[parameter] = expressionNumber(args[index], values);
+    });
+    Object.assign(state, allocatedVideoState(ast, helper, helperValues, seen));
+  }
+  return state;
+}
+
+/** Unroll constant video-start loops so tilemap finder arrays become plans. */
+function expandConstantTilemapLoops(
+  source: string,
+  values: Record<string, number>,
+): string {
+  let expanded = source;
+  const loop = /\bfor\s*\(\s*(?:int\s+)?(\w+)\s*=\s*([^;]+);\s*\1\s*<\s*([^;]+);\s*(?:\1\+\+|\+\+\1)\s*\)\s*\{/g;
+  for (;;) {
+    const match = loop.exec(expanded);
+    if (!match) break;
+    const open = expanded.indexOf('{', match.index + match[0].length - 1);
+    const close = matchingPair(expanded, open, '{', '}');
+    if (close < 0) break;
+    const start = expressionNumber(match[2], values);
+    const end = expressionNumber(match[3], values);
+    if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end - start > 64) {
+      loop.lastIndex = close + 1;
+      continue;
+    }
+    const block = expanded.slice(open + 1, close);
+    const variable = new RegExp(`\\b${match[1]}\\b`, 'g');
+    const replacement = Array.from({ length: end - start }, (_unused, index) =>
+      block.replace(variable, String(start + index))).join('\n');
+    expanded = expanded.slice(0, match.index) + replacement + expanded.slice(close + 1);
+    loop.lastIndex = 0;
+  }
+  return expanded;
+}
+
+/**
+ * MAME video_start methods sometimes select one of two tile callbacks from a
+ * driver-init constant. Ignore create calls in the inactive braced branch so
+ * one machine does not accidentally combine another sibling's tilemap.
+ */
+function constantTilemapBranchActive(
+  body: string,
+  position: number,
+  values: Record<string, number>,
+): boolean {
+  const branch = /\bif\s*\(\s*(m_\w+)\s*(==|!=)\s*(0x[\da-f]+|\d+)\s*\)\s*(?:\/\/[^\n]*\n\s*)?\{/gi;
+  let match: RegExpExecArray | null;
+  while ((match = branch.exec(body)) !== null) {
+    const live = values[match[1]!];
+    if (live === undefined) continue;
+    const open = body.indexOf('{', match.index + match[0].length - 1);
+    const close = matchingPair(body, open, '{', '}');
+    if (close < 0) continue;
+    const expected = Number(match[3]);
+    const condition = match[2] === '==' ? live === expected : live !== expected;
+    if (position > open && position < close && !condition) return false;
+    const tail = body.slice(close + 1);
+    const elseMatch = /^\s*else\s*(?:\/\/[^\n]*\n\s*)?\{/.exec(tail);
+    if (!elseMatch) continue;
+    const elseOpen = body.indexOf('{', close + 1 + elseMatch.index);
+    const elseClose = matchingPair(body, elseOpen, '{', '}');
+    if (elseClose >= 0 && position > elseOpen && position < elseClose && condition) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function tilemapTransmasks(
@@ -1478,17 +1640,72 @@ function compilePalette(
     if (process.env.MAMEKIT_DEBUG_VIDEO === '1') console.error('video palette: source function missing', callback[0]);
     return undefined;
   }
-  const resNet = compileResNetAllPalette(graph, source, fn, constants);
+  // Palette callbacks sometimes delegate RGB creation to a same-class helper
+  // and keep only the lookup-table loops in the configured callback (1942).
+  // Compile the source bodies together while retaining the callback's source
+  // identity for provenance.
+  const paletteHelpers = fn.statements
+    .flatMap(statement => statement.calls)
+    .map(call => ast.findFunctionInHierarchy(fn.className, call.name))
+    .filter((candidate): candidate is MameFunction => Boolean(
+      candidate && /set_(?:indirect_color|pen_color)/.test(candidate.body),
+    ));
+  const paletteFn: MameFunction = paletteHelpers.length
+    ? { ...fn, body: [...paletteHelpers.map(helper => helper.body), fn.body].join('\n') }
+    : fn;
+  const resNet = compileResNetAllPalette(graph, source, paletteFn, constants);
   if (resNet) return resNet;
-  const body = fn.body;
-  const region = /memregion\(\s*"([^"]+)"\s*\)/.exec(body)?.[1];
+  const body = paletteFn.body;
+  let region = /memregion\(\s*"([^"]+)"\s*\)/.exec(body)?.[1];
   const weightsCall = findCallArguments(body, 'compute_resistor_weights');
-  if (!region) return undefined;
   const loops = numericForLoops(body);
   const paletteLoop = loops.find(loop =>
     loop.body.includes('set_indirect_color') ||
     loop.body.includes('set_pen_color') ||
     /\bpalette_val\s*\[\s*i\s*\]\s*=\s*rgb_t/.test(loop.body));
+  // System 1 derives its 256 indirect colors entirely from the palette index
+  // when the optional PROM finder is absent, then CPU palette RAM selects one
+  // of those colors for each pen. Preserve that computed resistor network and
+  // initialize the pen table to color zero until paletteram_w runs.
+  if (!region) {
+    const computedColors = compileComputedColorGroups(body, paletteLoop, loops);
+    const carrier = graph.nodes.find(node =>
+      node.label === 'RomRegion' && typeof node.props.tag === 'string')?.props.tag;
+    const entries = expressionNumber(/\.set_entries\s*\(\s*([^,)]+)/.exec(raw)?.[1], constants);
+    if (!computedColors.length || !carrier || !entries) {
+      if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
+        console.error('video palette: computed-only output', {
+          computedColors: computedColors.length,
+          carrier,
+          entries,
+        });
+      }
+      return undefined;
+    }
+    region = String(carrier);
+    return {
+      region,
+      colorCount: 0,
+      min: 0,
+      max: 255,
+      scaler: -1,
+      channels: [],
+      computedColors,
+      lookupOffset: 0,
+      lookupCount: entries,
+      lookupMask: 0xff,
+      banks: [{
+        penOffset: 0,
+        colorOr: 0,
+        colorStride: 0,
+        lookupOffset: 0,
+        lookupCount: entries,
+        direct: true,
+      }],
+      transparentIndirect: 0,
+      source: sourceRef(fn),
+    };
+  }
   const channels = weightsCall
     ? compileResistorChannels(body, weightsCall)
     : compileFixedWeightChannels(
@@ -1510,11 +1727,17 @@ function compilePalette(
       ? Math.max(0, paletteLoop.end - paletteLoop.start)
       : 0
   );
+  const regionByVariable = new Map(
+    [...body.matchAll(
+      /\b(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)->base\(\)/g,
+    )].map(match => [match[1]!, match[2]!]),
+  );
   const banks: GeneratedPromPalettePlan['banks'] = lookupLoops.flatMap(loop => {
     const method = loop.body.includes('set_pen_indirect')
       ? 'palette.set_pen_indirect'
       : 'palette.set_pen_color';
-    return findCallArgumentLists(loop.body, method).flatMap(call => {
+    return findCallArgumentLists(loop.body, method).flatMap(
+      (call): GeneratedPromPalettePlan['banks'] => {
       const args = splitMameArgs(call);
       if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
         console.error('video palette: lookup loop', {
@@ -1529,11 +1752,20 @@ function compilePalette(
         ?? lookupExpression;
       const lookupIndex = /color_prom\[\s*([^\]]+)\s*\]/.exec(colorExpression)?.[1];
       const usesPostIncrement = /\*\s*color_prom\s*\+\+/.test(colorExpression);
+      const lookupTerms = compilePaletteLookupTerms(
+        colorExpression,
+        body,
+        loop.sourceOffset,
+        loop.start,
+        regionByVariable,
+        constants,
+      );
       // Identity mappings like set_pen_indirect(base + i, 32 + i) carry no
       // PROM lookup: the loop expressions fully describe pen and color steps.
       if (
         method === 'palette.set_pen_indirect' &&
-        !lookupIndex && !usesPostIncrement && !colorExpression.includes('color_prom')
+        !lookupIndex && !usesPostIncrement &&
+        !colorExpression.includes('color_prom') && !lookupTerms.length
       ) {
         const penOffset = expressionAt(args[0]!, loop.start);
         const penStride = expressionAt(args[0]!, loop.start + 1) - penOffset;
@@ -1551,16 +1783,35 @@ function compilePalette(
       }
       const currentPostIncrementOffset = postIncrementOffset;
       if (usesPostIncrement) postIncrementOffset += Math.max(0, loop.end - loop.start);
+      const scalarLookupExpression = lookupExpression.replace(
+        /\b\w+\s*\[[^\]]+\]/g,
+        'PROM',
+      );
+      const scalarColorExpression = colorExpression.replace(
+        /\b\w+\s*\[[^\]]+\]/g,
+        'PROM',
+      );
       const colorOrExpression =
-        /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(lookupExpression)?.[1]
-        ?? /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(colorExpression)?.[1];
+        /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(scalarLookupExpression)?.[1]
+        ?? /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(scalarColorExpression)?.[1]
+        // A direct set_pen_color may index a local palette array with the
+        // PROM value plus a bank base, e.g. palette_val[(prom & 0x0f)+0x10].
+        // Replacing the outer array access with PROM hides that base, so
+        // retain it from the source expression before falling back.
+        ?? /\bpalette_val\s*\[[^\]]*(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))\s*\]/i
+          .exec(colorExpression)?.[1]
+        ?? /(-?(?:0x[\da-f]+|\d+))\s*\|/i.exec(scalarLookupExpression)?.[1]
+        ?? /(-?(?:0x[\da-f]+|\d+))\s*\|/i.exec(scalarColorExpression)?.[1];
       return [{
-        penOffset: expressionAt(args[0]!, loop.start),
+        penOffset: paletteExpressionAt(
+          args[0]!, loop.start, body, loop.sourceOffset, constants,
+        ),
         colorOr: expressionNumber(colorOrExpression),
         lookupOffset: usesPostIncrement
           ? currentPostIncrementOffset
           : postIncrementOffset + expressionAt(lookupIndex ?? 'i', loop.start),
         lookupCount: Math.max(0, loop.end - loop.start),
+        ...(lookupTerms.length ? { lookupTerms } : {}),
       }];
     });
   });
@@ -1613,6 +1864,21 @@ function compilePalette(
       direct: true,
     });
   }
+  // Keep the established compact representation when a lookup is exactly the
+  // plan's default PROM region/offset/mask. lookupTerms is only needed when a
+  // bank selects another ROM or combines multiple PROM bitfields.
+  for (const bank of banks) {
+    const term = bank.lookupTerms?.length === 1 ? bank.lookupTerms[0] : undefined;
+    if (
+      term?.region === region &&
+      term.offset === bank.lookupOffset &&
+      term.mask === lookupMask &&
+      term.shift === 0
+    ) {
+      delete bank.lookupTerms;
+    }
+  }
+  if (!lookupMask && banks.some(bank => bank.lookupTerms?.length)) lookupMask = 0xff;
   if (!paletteLoop || !banks.length || !lookupMask) {
     if (process.env.MAMEKIT_DEBUG_VIDEO === '1') console.error('video palette: output', {
       paletteLoop: Boolean(paletteLoop), banks: banks.length, lookupMask, direct,
@@ -1767,7 +2033,11 @@ function compileComputedColorGroups(
   const networks = parseResistorNetworks(body);
   const groups: NonNullable<GeneratedPromPalettePlan['computedColors']> = [];
   for (const loop of loops) {
-    if (loop === paletteLoop || !loop.body.includes('set_indirect_color')) continue;
+    // A callback with mutually exclusive optional-PROM/direct-resistor paths
+    // can make the computed loop the first (paletteLoop) candidate. It is
+    // still a complete color group when it does not read the PROM.
+    if (!loop.body.includes('set_indirect_color')) continue;
+    if (loop === paletteLoop && loop.body.includes('color_prom')) continue;
     if (loop.body.includes('color_prom')) continue;
     const call = findCallArguments(loop.body, 'palette.set_indirect_color') ??
       findCallArguments(loop.body, 'set_indirect_color');
@@ -1784,8 +2054,21 @@ function compileComputedColorGroups(
     while ((match = channelRe.exec(loop.body)) !== null) {
       const candidate = networks.get(match[2]!);
       if (!candidate) continue;
-      const bits = [...match[3]!.matchAll(/BIT\(\s*i\s*,\s*(\d+)\s*\)/g)]
+      let bits = [...match[3]!.matchAll(/BIT\(\s*i\s*,\s*(\d+)\s*\)/g)]
         .map(bit => Number(bit[1]));
+      // Some callbacks assign BIT(i,n) to reused bit0/bit1/bit2 locals before
+      // combine_weights. Resolve the most recent assignment for each argument.
+      if (!bits.length) {
+        const prefix = loop.body.slice(0, match.index);
+        bits = splitMameArgs(match[3]!).flatMap(argument => {
+          const name = argument.trim();
+          const assignments = [...prefix.matchAll(
+            new RegExp(`\\b${name}\\s*=\\s*BIT\\(\\s*i\\s*,\\s*(\\d+)\\s*\\)`, 'g'),
+          )];
+          const bit = assignments.at(-1)?.[1];
+          return bit === undefined ? [] : [Number(bit)];
+        });
+      }
       if (!bits.length) continue;
       network = candidate;
       channels.push({
@@ -1901,6 +2184,21 @@ function compileFixedWeightChannels(
       bits: sources.map(source => source!.bit),
       offsets: sources.map(source => source!.offset),
       weights: terms.map(term => expressionNumber(term[1])),
+      resistances: [],
+      pulldown: 0,
+      pullup: 0,
+    });
+  }
+  // pal4bit is MAME's exact four-bit expansion helper (v -> vvvvvvvv).
+  // Represent it as the equivalent fixed contribution of each PROM bit.
+  for (const expanded of body.matchAll(
+    /(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*pal4bit\(\s*\w+\s*\[\s*([^\]]+)\s*\]\s*\)/g,
+  )) {
+    channels.push({
+      channel: expanded[1] as 'r' | 'g' | 'b',
+      bits: [0, 1, 2, 3],
+      offsets: [0, 1, 2, 3].map(() => expressionAt(expanded[2]!, indexValue)),
+      weights: [0x11, 0x22, 0x44, 0x88],
       resistances: [],
       pulldown: 0,
       pullup: 0,
@@ -2312,6 +2610,13 @@ function splitHandlerKey(key: string): [string, string] {
   return [key.slice(0, index), key.slice(index + 1)];
 }
 
+function resolvedHandlerKey(ast: MameAstIndex, key: string): string {
+  const [ownerClass, method] = splitHandlerKey(key);
+  if (!ownerClass || !method) return key;
+  const fn = ast.findFunctionInHierarchy(ownerClass, method);
+  return fn ? `${fn.className}.${fn.name}` : key;
+}
+
 function funcKey(value: string | undefined): string | undefined {
   const match = value && /FUNC\(\s*(\w+)::(\w+)\s*\)/.exec(value);
   return match ? `${match[1]}.${match[2]}` : undefined;
@@ -2366,12 +2671,66 @@ function expressionAt(source: string, index: number): number {
   return expressionNumber(source.replace(/\bi\b/g, String(index)));
 }
 
+/** Evaluate a loop expression after replaying numeric locals declared earlier. */
+function paletteExpressionAt(
+  source: string,
+  index: number,
+  body: string,
+  before: number,
+  constants: Record<string, number>,
+): number {
+  const values: Record<string, number> = { ...constants };
+  const prefix = body.slice(0, before);
+  const events = /\b(?:int|unsigned|u8|u16|u32|uint8_t|uint16_t|uint32_t)(?:\s+const)?\s+(\w+)\s*=\s*([^;]+);|\b(\w+)\s*\+=\s*([^;]+);/g;
+  let event: RegExpExecArray | null;
+  while ((event = events.exec(prefix)) !== null) {
+    const name = event[1] ?? event[3]!;
+    const expression = event[2] ?? event[4]!;
+    const value = evalExpr(substituteNumbers(expression.trim(), values));
+    if (value === null) continue;
+    values[name] = event[3] ? (values[name] ?? 0) + value : value;
+  }
+  return expressionNumber(source.replace(/\bi\b/g, String(index)), values);
+}
+
+function compilePaletteLookupTerms(
+  expression: string,
+  body: string,
+  before: number,
+  index: number,
+  regions: Map<string, string>,
+  constants: Record<string, number>,
+): NonNullable<GeneratedPromPalettePlan['banks'][number]['lookupTerms']> {
+  const terms: NonNullable<GeneratedPromPalettePlan['banks'][number]['lookupTerms']> = [];
+  const access = /\b(\w+)\s*\[\s*([^\]]+)\s*\]/g;
+  let match: RegExpExecArray | null;
+  while ((match = access.exec(expression)) !== null) {
+    const region = regions.get(match[1]!);
+    if (!region) continue;
+    const tail = expression.slice(access.lastIndex);
+    const operation = /^\s*(?:&\s*(-?(?:0x[\da-f]+|\d+)))?\s*\)*\s*(?:<<\s*(\d+))?/i.exec(tail);
+    const pointerAdvance = [...body.slice(0, before).matchAll(
+      new RegExp(`\\b${match[1]}\\s*\\+=\\s*([^;]+);`, 'g'),
+    )].reduce((total, advance) => total + expressionNumber(advance[1], constants), 0);
+    terms.push({
+      region,
+      offset: pointerAdvance + paletteExpressionAt(
+        match[2]!, index, body, before, constants,
+      ),
+      mask: expressionNumber(operation?.[1] ?? '0xff'),
+      shift: expressionNumber(operation?.[2] ?? '0'),
+    });
+  }
+  return terms;
+}
+
 function numericForLoops(source: string): {
   start: number;
   end: number;
   body: string;
+  sourceOffset: number;
 }[] {
-  const loops: { start: number; end: number; body: string }[] = [];
+  const loops: { start: number; end: number; body: string; sourceOffset: number }[] = [];
   const pattern =
     /for\s*\(\s*int\s+i\s*=\s*([^;]+)\s*;\s*i\s*<\s*([^;]+)\s*;\s*(?:i\+\+|\+\+i)\s*\)\s*\{/g;
   let match: RegExpExecArray | null;
@@ -2383,6 +2742,7 @@ function numericForLoops(source: string): {
       start: expressionNumber(match[1]),
       end: expressionNumber(match[2]),
       body: source.slice(open + 1, close),
+      sourceOffset: match.index,
     });
     pattern.lastIndex = close + 1;
   }
@@ -2394,9 +2754,10 @@ function numericForLoops(source: string): {
       start: expressionNumber(match[1]),
       end: expressionNumber(match[2]),
       body: match[3]!,
+      sourceOffset: match.index,
     });
   }
-  return loops;
+  return loops.sort((left, right) => left.sourceOffset - right.sourceOffset);
 }
 
 function sourceRef(fn: MameFunction): BoardSourceRef {

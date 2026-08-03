@@ -153,6 +153,23 @@ export function installYm2203Runtime(context: SoundRuntimeContext): SoundRuntime
   const primaryPorts = soundTags(sound).length * YM2203_PORTS_PER_CHIP;
   let oplChip = 0;
   for (const auxiliary of sound.auxiliaryDevices ?? []) {
+    if (auxiliary.type === 'MSM5205') {
+      const base = primaryPorts + oplChip * YM2203_PORTS_PER_CHIP;
+      for (const method of auxiliary.writeMethods) {
+        const write = (data: number): void => context.soundWrite(
+          base,
+          data,
+          context.fraction(),
+          `${auxiliary.deviceTag}.${method}`,
+        );
+        registry.write[`${auxiliary.deviceTag}.${method}`] =
+          (_address, _offset, data) => write(data);
+        for (const alias of deviceAliases(board, auxiliary.deviceTag)) {
+          calls[`${alias}.${method}`] = (...args) => write(Number(args.at(-1) ?? 0));
+        }
+      }
+      continue;
+    }
     if (auxiliary.type !== 'YM3526') continue;
     const timer = createTimer(auxiliary.deviceTag, 'opl', auxiliary.clock);
     const base = primaryPorts + oplChip++ * YM2203_PORTS_PER_CHIP;

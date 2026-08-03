@@ -339,7 +339,9 @@ function emitOperation(
       .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
       .map((part, index) => index > 0 && part.startsWith('let ') ? part.slice(4) : part)
       .join(', ');
-    const iterate = emitOperation(operation.iterate, context, 0).trim().replace(/;$/, '');
+    const iterate = operation.iterate
+      .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+      .join(', ');
     return [
       `${pad}for (${initialize}; ${emitExpression(operation.condition, context)}; ${iterate}) {`,
       emitOperations(operation.body, context, indentation + 2),
@@ -855,7 +857,7 @@ function visitOperations(
     ) {
       if (operation.op === 'for') visitOperations(operation.initialize, visit);
       visitOperations(operation.body, visit);
-      if (operation.op === 'for') visitOperations([operation.iterate], visit);
+      if (operation.op === 'for') visitOperations(operation.iterate, visit);
     } else if (operation.op === 'switch') {
       for (const entry of operation.cases) visitOperations(entry.body, visit);
     }

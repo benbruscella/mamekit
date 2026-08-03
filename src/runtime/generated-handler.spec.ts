@@ -154,6 +154,31 @@ const machine: BoardIr = {
 const registry = generatedHandlerRegistry(machine);
 assert.equal(registry.read['fixture_state.read']!(0, 0), 0xbf);
 
+const installedMachine: BoardIr = {
+  ...machine,
+  execution: {
+    ...machine.execution,
+    cpus: [{
+      tag: 'maincpu',
+      type: 'fixture',
+      clock: 1,
+      region: 'maincpu',
+      ranges: [{
+        start: 0x5000,
+        end: 0x50ff,
+        kind: 'handler',
+        read: 'fixture_state.read',
+      }],
+    }],
+  },
+  maps: [],
+};
+assert.equal(
+  generatedHandlerRegistry(installedMachine).read['fixture_state.read']!(0x5000, 0),
+  0xbf,
+  'driver-init handlers appended to the executable CPU map must be registered',
+);
+
 {
   const directCalls: string[] = [];
   const directRam = new Uint8Array(8);
@@ -340,6 +365,50 @@ wireGeneratedDevice(device, latchMachine, 'latch', 'q_out_cb', new Map([
 ]));
 q0?.(1);
 assert.equal(irqMask, 1);
+
+const compositeState: Record<string, unknown> = { m_last_irq_state: 0 };
+const compositeMachine: BoardIr = {
+  ...machine,
+  handlers: [{
+    id: 'handler:driver:sound_on_w',
+    ownerClass: 'driver_state',
+    method: 'sound_on_w',
+    program: compileMameHandler('m_audio->sh_irqtrigger_w(1);'),
+  }, {
+    id: 'handler:audio:sh_irqtrigger_w',
+    ownerClass: 'audio_device',
+    method: 'sh_irqtrigger_w',
+    parameters: 'int state',
+    program: compileMameHandler('m_last_irq_state = state;'),
+  }],
+};
+executeGeneratedMachineHandler(
+  compositeMachine,
+  compositeMachine.handlers![0]!,
+  { members: compositeState },
+  {},
+);
+assert.equal(
+  compositeState.m_last_irq_state,
+  1,
+  'a source handler may call a uniquely resolved method on a composed device member',
+);
+
+const frameworkSinkMachine: BoardIr = {
+  ...machine,
+  handlers: [{
+    id: 'handler:driver:coin_counter_w',
+    ownerClass: 'driver_state',
+    method: 'coin_counter_w',
+    program: compileMameHandler('machine().bookkeeping().coin_counter_w(0, state);'),
+  }],
+};
+assert.doesNotThrow(() => executeGeneratedMachineHandler(
+  frameworkSinkMachine,
+  frameworkSinkMachine.handlers![0]!,
+  {},
+  { state: 1 },
+), 'framework service calls must not resolve back to a source wrapper with the same method name');
 
 const filterCalls: number[][] = [];
 const filterMachine: BoardIr = {

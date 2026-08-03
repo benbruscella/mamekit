@@ -66,9 +66,27 @@ assert.equal(bus.shares.writeLatch![0], 0x93);
 assert.equal(bus.read(0x6000), 0, 'write-only shares must return open bus');
 assert.equal(bus.in(0), 0);
 
+const highWrites: Array<[number, number, number]> = [];
+const highBus = new Bus([
+  { start: 0x100000, end: 0x100003, kind: 'rom', romOffset: 0 },
+  { start: 0x200000, end: 0x200003, kind: 'ram', share: 'highWork' },
+  { start: 0xff0000, end: 0xff0001, kind: 'handler', write: 'highWrite' },
+], rom, {
+  read: {},
+  write: {
+    highWrite: (address, offset, data) => highWrites.push([address, offset, data]),
+  },
+});
+assert.equal(highBus.read(0x100002), 0x33);
+highBus.write(0x200003, 0xa5);
+assert.equal(highBus.read(0x200003), 0xa5);
+highBus.write(0xff0001, 0x1fe);
+assert.deepEqual(highWrites, [[0xff0001, 1, 0xfe]]);
+assert.equal(highBus.read(0xfe0000), 0);
+
 assert.throws(
   () => new Bus([{ start: 0, end: 0, kind: 'handler', read: 'missing' }], rom, { read: {}, write: {} }),
   /missing read handler/,
 );
 
-console.log('bus.spec: ROM, RAM, shares, mirrors, handlers and open bus passed');
+console.log('bus.spec: 16/24-bit ROM, RAM, shares, mirrors, handlers and open bus passed');

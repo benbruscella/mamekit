@@ -47,8 +47,16 @@ export function generatedHandlerRegistry(
     return matches.length === 1 ? matches[0] : undefined;
   };
 
-  for (const map of machine.maps ?? []) {
-    for (const range of map.ranges) {
+  const executableRanges = machine.execution.cpus.flatMap(cpu => [
+    ...(cpu.ranges ?? []),
+    ...(cpu.opcode?.ranges ?? []),
+    ...(cpu.io?.ranges ?? []),
+  ]);
+  for (const ranges of [
+    ...(machine.maps ?? []).map(map => map.ranges),
+    executableRanges,
+  ]) {
+    for (const range of ranges) {
       if (range.read) {
         const handler = resolve(range.read);
         if (handler?.program && !registry.read[range.read]) {

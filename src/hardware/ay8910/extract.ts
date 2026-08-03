@@ -16,9 +16,13 @@ import {
 } from './definition.ts';
 
 export function extractAy8910(input: CapabilityInput): CapabilityExtraction | undefined {
-  const ayEntry = input.entries.find(candidate => candidate.type === 'AY8910');
-  if (!ayEntry?.definition) return undefined;
-  const plan = compileAy8910(input.mameSource, ayEntry.definition as MameHardwareDefinition);
+  const ayEntries = input.entries.filter(candidate =>
+    ['AY8910', 'AY8912', 'YM2149'].includes(candidate.type) && candidate.definition);
+  if (!ayEntries.length) return undefined;
+  const plan = compileAy8910(
+    input.mameSource,
+    ayEntries[0]!.definition as MameHardwareDefinition,
+  );
 
   // The MSM5205 plan is embedded in the AY worklet, so it is lowered here
   // rather than as its own core.
@@ -45,12 +49,15 @@ export function extractAy8910(input: CapabilityInput): CapabilityExtraction | un
 
   return {
     executableTypes: [
-      'AY8910',
+      ...ayEntries.map(entry => entry.type),
       ...(msm5205 ? ['MSM5205'] : []),
       ...routedDacs,
     ],
     executable: {
-      AY8910: { kind: 'audio', artifact: AY8910_WORKLET_ARTIFACT },
+      ...Object.fromEntries(ayEntries.map(entry => [
+        entry.type,
+        { kind: 'audio' as const, artifact: AY8910_WORKLET_ARTIFACT },
+      ])),
       ...(msm5205 ? { MSM5205: { kind: 'audio' as const, artifact: MSM5205_IR_ARTIFACT } } : {}),
       ...Object.fromEntries(routedDacs.map(type => [
         type,

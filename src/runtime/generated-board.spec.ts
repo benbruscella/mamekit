@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import type { BoardIr } from '../ir/board.ts';
+import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   applyGeneratedCpuInputLine,
   pulseGeneratedCpuInputLine,
@@ -8,9 +9,14 @@ import {
   bindGeneratedShareState,
   createGeneratedBoard,
   generatedDeviceCallbackArguments,
+  generatedPromGateOpen,
   generatedSignalHandlerArguments,
 } from './generated-board.ts';
 import { registerGeneratedCpu } from './generated-cpu.ts';
+import {
+  registerGeneratedDevice,
+  type Device,
+} from './generated-device.ts';
 
 const state: Record<string, unknown> = {};
 const first = new Uint8Array(0x100);
@@ -77,6 +83,22 @@ assert.deepEqual(
   ),
   { state: 4, data: 4, offset: 0, mem_mask: 0xff },
   'device write callbacks must receive MAME default offset and active mem_mask arguments',
+);
+assert.equal(
+  generatedPromGateOpen(
+    { member: 'm_irqprom', mask: 0x03 },
+    5,
+    { m_irqprom: Uint8Array.of(0, 4, 0, 0) },
+  ),
+  true,
+);
+assert.equal(
+  generatedPromGateOpen(
+    { member: 'm_irqprom', mask: 0x03 },
+    6,
+    { m_irqprom: Uint8Array.of(0, 4, 0, 0) },
+  ),
+  false,
 );
 assert.deepEqual(
   generatedSignalHandlerArguments(
@@ -178,6 +200,19 @@ const opcodeMachine: BoardIr = {
     },
     frameEvents: [],
   },
+  maps: [{
+    id: 'map:base',
+    className: 'fixture_state',
+    name: 'overridden_base_map',
+    ranges: [{
+      id: 'range:base',
+      start: 0,
+      end: 0,
+      raw: 'map(0, 0).w("removed", FUNC(device::write))',
+      write: 'removed.write',
+      props: {},
+    }],
+  }],
 };
 const opcodeBoard = createGeneratedBoard(
   opcodeMachine,
@@ -199,6 +234,72 @@ const opcodeBoard = createGeneratedBoard(
 opcodeBoard.frame(new Uint32Array(1));
 assert.equal(programRead, 0x11);
 assert.equal(opcodeRead, 0x22, 'the generated board must preserve the AS_OPCODES bus');
+assert.ok(opcodeBoard, 'handlers in archival maps overridden by the CPU plan must not block startup');
+
+registerGeneratedDevice({
+  type: 'SCREEN_HOST_FIXTURE',
+  constants: {},
+  members: [
+    { name: 'm_height', valueType: 'int', bits: 32, initial: 0 },
+    { name: 'm_frame', valueType: 'int', bits: 32, initial: 0 },
+  ],
+  callbacks: [],
+  methods: [{
+    name: 'capture_screen',
+    parameters: '',
+    program: compileMameHandler(
+      'm_height = screen().height(); m_frame = screen().frame_number();',
+    ),
+  }],
+  start: 'capture_screen',
+  summary: { diagnostics: 0 },
+});
+const screenHostMachine: BoardIr = {
+  ...opcodeMachine,
+  game: 'screen-host-fixture',
+  devices: [{
+    id: 'device:screen-host-fixture',
+    tag: 'timing',
+    type: 'SCREEN_HOST_FIXTURE',
+  }],
+  execution: {
+    ...opcodeMachine.execution,
+    cpus: [{
+      tag: 'maincpu',
+      type: 'OPCODE_BUS_FIXTURE',
+      clock: 60,
+      region: 'maincpu',
+      ranges: [{ start: 0, end: 0, kind: 'rom' }],
+    }],
+    screen: {
+      ...opcodeMachine.execution.screen,
+      height: 224,
+      vtotal: 264,
+    },
+  },
+};
+const screenHostBoard = createGeneratedBoard(
+  screenHostMachine,
+  {
+    game: screenHostMachine.game,
+    family: 'fixture',
+    cpus: [],
+    ranges: [],
+    screen: { width: 1, height: 224, refresh: 60, vtotal: 264, vbstart: 240, rotate: 0 },
+    clocks: { namco06: 0, wsg: 0 },
+  },
+  { maincpu: Uint8Array.of(0) },
+  { read: () => 0xff },
+  { soundWrite: () => {} },
+);
+const timingDevice = (screenHostBoard as unknown as {
+  devices: Map<string, Device>;
+}).devices.get('timing')!;
+assert.equal(timingDevice.get('m_height'), 264, 'screen().height() must expose total scanlines');
+assert.equal(timingDevice.get('m_frame'), 0);
+screenHostBoard.frame(new Uint32Array(screenHostBoard.fbWidth * screenHostBoard.fbHeight));
+timingDevice.invoke('capture_screen');
+assert.equal(timingDevice.get('m_frame'), 1, 'screen().frame_number() must follow board frames');
 
 let cpuSignalRead = -1;
 let cpuHandlerSignalRead = -1;

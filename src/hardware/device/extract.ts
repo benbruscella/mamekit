@@ -26,6 +26,7 @@ string,
   I8257: compileI8257,
   INPUT_MERGER_ALL_HIGH: compileInputMerger,
   INPUT_MERGER_ANY_HIGH: compileInputMerger,
+  INPUT_MERGER_ANY_LOW: compileInputMerger,
   LATCH8: compileLatch8,
 };
 

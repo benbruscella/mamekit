@@ -4,6 +4,7 @@ import {
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
+import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
 
 interface DeviceMember {
   name: string;
@@ -219,6 +220,9 @@ export interface GeneratedMemoryBank {
 export function createDevice(type: string, options: GeneratedDeviceOptions = {}): Device {
   const definition = DEFINITIONS.get(type.toUpperCase());
   if (!definition) throw new Error(`generated device "${type}" was not registered`);
+  if (definition.type.toUpperCase() === 'Z80PIO') {
+    return new GeneratedZ80PioDevice(definition, options.clock ?? 0);
+  }
   return new IrDevice(definition, options.clock ?? 0, options);
 }
 

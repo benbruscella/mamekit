@@ -10,6 +10,7 @@ import {
   generatedScrollBand,
   generatedTileGroupIndirectMask,
   generatedTileGroupTransparentMask,
+  generatedTileCategoryMatches,
   generatedTileMemoryIndex,
   GeneratedMameVideoPrimitives,
   GeneratedVideoRenderer,
@@ -17,6 +18,14 @@ import {
   taitoSjSpritePosition,
   type GeneratedVideoPrimitives,
 } from './generated-video.ts';
+
+assert.equal(generatedTileCategoryMatches(1, 0), false);
+assert.equal(generatedTileCategoryMatches(1, 1), true);
+assert.equal(
+  generatedTileCategoryMatches(1, 0x200),
+  true,
+  'TILEMAP_DRAW_ALL_CATEGORIES must repaint category-one tiles in opaque passes',
+);
 
 const taitoSjRam = new Uint8Array(0x3000);
 // charlayout plane 0 at bit 32768 is the high pen bit; x offset 7 selects

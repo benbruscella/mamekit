@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
-import { fromHzExpression, gameSubgraph, resolveMachineLifecycle } from './build.ts';
+import {
+  attotimeFrequency,
+  fromHzExpression,
+  gameSubgraph,
+  resolveMachineLifecycle,
+} from './build.ts';
 import type { KnowledgeGraph, KGNode } from './types.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 
@@ -25,6 +30,14 @@ assert.equal(
   '12_MHz_XTAL / (2*4*16*16*10*16)',
   'periodic IRQ frequency extraction must retain nested denominator parentheses',
 );
+assert.equal(
+  attotimeFrequency(
+    'attotime::from_ticks(384 * 262 / 4, 12_MHz_XTAL / 2)',
+    { '12_MHz_XTAL': 12_000_000 },
+  ),
+  6_000_000 / 25_152,
+  'from_ticks periodic interrupts must lower to their source frequency',
+);
 
 const graph: KnowledgeGraph = {
   meta: {
@@ -40,6 +53,7 @@ const graph: KnowledgeGraph = {
       id: 'machine:derived',
       label: 'MachineConfig',
       props: {
+        removedDevices: ['ppi'],
         devicePatches: [
           JSON.stringify({
             tag: 'screen',
@@ -74,6 +88,11 @@ const graph: KnowledgeGraph = {
       label: 'Device',
       props: { type: 'SCREEN', tag: 'screen', config: [] },
     },
+    {
+      id: 'base-pio',
+      label: 'Device',
+      props: { type: 'I8255A', tag: 'ppi', config: [] },
+    },
     callback('derived-slot-0', 'latch', 'q_out_cb', 'set', 0),
     callback('derived-slot-1', 'latch', 'q_out_cb', 'set', 1),
     callback('derived-append-2', 'latch', 'q_out_cb', 'append', 2),
@@ -84,6 +103,7 @@ const graph: KnowledgeGraph = {
     { from: 'game:test', to: 'machine:derived', rel: 'USES_MACHINE' },
     { from: 'machine:derived', to: 'machine:base', rel: 'CALLS' },
     { from: 'machine:base', to: 'screen', rel: 'HAS_DEVICE' },
+    { from: 'machine:base', to: 'base-pio', rel: 'HAS_DEVICE' },
     { from: 'machine:derived', to: 'derived-slot-0', rel: 'HAS_CALLBACK' },
     { from: 'machine:derived', to: 'derived-slot-1', rel: 'HAS_CALLBACK' },
     { from: 'machine:derived', to: 'derived-append-2', rel: 'HAS_CALLBACK' },
@@ -110,6 +130,10 @@ assert.deepEqual(
   screen?.props.screenRaw,
   [6_000_000, 384, 0, 256, 264, 16, 240],
   'a callback-only derived patch must not mask base screen timing',
+);
+assert.ok(
+  !composed.nodes.some(node => node.id === 'base-pio'),
+  'a derived device_remove must remove the inherited device',
 );
 
 const lifecycleAst = new MameAstIndex(parseMameAst([{
