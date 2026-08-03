@@ -51,7 +51,6 @@ export function extractAy8910(input: CapabilityInput): CapabilityExtraction | un
     executableTypes: [
       ...ayEntries.map(entry => entry.type),
       ...(msm5205 ? ['MSM5205'] : []),
-      ...routedDacs,
     ],
     executable: {
       ...Object.fromEntries(ayEntries.map(entry => [
@@ -59,10 +58,6 @@ export function extractAy8910(input: CapabilityInput): CapabilityExtraction | un
         { kind: 'audio' as const, artifact: AY8910_WORKLET_ARTIFACT },
       ])),
       ...(msm5205 ? { MSM5205: { kind: 'audio' as const, artifact: MSM5205_IR_ARTIFACT } } : {}),
-      ...Object.fromEntries(routedDacs.map(type => [
-        type,
-        { kind: 'audio' as const, artifact: AY8910_WORKLET_ARTIFACT },
-      ])),
     },
     artifacts,
   };

@@ -43,6 +43,7 @@ export interface GeneratedHandlerBindings {
 }
 
 export interface GeneratedLValue {
+  readonly generatedLValue: true;
   get(): unknown;
   set(value: unknown): void;
 }
@@ -561,6 +562,12 @@ function evaluateCall(
       const blue = toNumber(args[2]) & 0xff;
       return (0xff000000 | blue << 16 | green << 8 | red) >>> 0;
     }
+    const paletteExpansion = /^pal([1-8])bit$/.exec(name);
+    if (paletteExpansion) {
+      const bits = Number(paletteExpansion[1]);
+      const maximum = (1 << bits) - 1;
+      return Math.round((toNumber(args[0]) & maximum) * 255 / maximum);
+    }
     if (name === 'assert' || name === 'static_assert') return 0;
     if (name === 'sizeof') {
       return typeByteWidth(generatedExpressionName(expression.args[0]!));
@@ -568,6 +575,10 @@ function evaluateCall(
     if (name === 'memcpy' || name === 'memmove') {
       copyGeneratedMemory(args[0], args[1], toNumber(args[2]));
       return args[0];
+    }
+    if (name === 'std::copy_n') {
+      copyGeneratedMemory(args[2], args[0], toNumber(args[1]));
+      return args[2];
     }
     if (name === 'memset') {
       fillGeneratedMemory(args[0], toNumber(args[1]), toNumber(args[2]));
@@ -611,6 +622,19 @@ function evaluateCall(
       return Math.trunc(toNumber(args[0]));
     }
     if (name === 'bool') return toNumber(args[0]) ? 1 : 0;
+    // The handler parser deliberately keeps C++ direct-initialization in its
+    // call-shaped form.  For inferred values and bitmap references this is an
+    // identity operation, not a call to a generated source handler.  Keeping
+    // the object intact is essential for declarations such as
+    // `bitmap_ind16 &bm(bitmap)` used by Popeye's renderer.
+    if (
+      name === 'auto' ||
+      name === 'bitmap_ind8' ||
+      name === 'bitmap_ind16' ||
+      name === 'bitmap_rgb32'
+    ) {
+      return args[0];
+    }
     const handler = context.bindings.calls?.[name];
     if (handler) return handler(...args.map(callArgument));
     const member = context.bindings.members?.[name];
@@ -716,7 +740,10 @@ function evaluateCall(
           resizeGeneratedMemory(expression.callee.object, toNumber(args[0]), context);
           return 0;
         }
-        if (method === 'target' || method === 'base' || method === 'get') return object;
+        if (
+          method === 'target' || method === 'base' || method === 'get' ||
+          method === 'begin'
+        ) return object;
       }
     }
   }
@@ -835,7 +862,19 @@ function assignCallResult(
       }
     }
   }
-  throw new Error('generated call-result assignment has no runtime binding');
+  const targetName = target.callee.kind === 'member'
+    ? `${generatedExpressionName(target.callee.object)}.${target.callee.property}`
+    : generatedExpressionName(target.callee);
+  const targetObject = target.callee.kind === 'member'
+    ? evaluate(target.callee.object, context)
+    : undefined;
+  const received = targetObject && typeof targetObject === 'object'
+    ? `object with keys ${Object.keys(targetObject).join(', ') || '(none)'}`
+    : `${typeof targetObject} ${String(targetObject)}`;
+  throw new Error(
+    `generated call-result assignment "${targetName}" has no runtime binding ` +
+      `(received ${received})`,
+  );
 }
 
 function assignmentValue(operator: string, current: unknown, value: unknown): unknown {
@@ -1084,8 +1123,7 @@ function isLValue(value: unknown): value is GeneratedLValue {
   return Boolean(
     value &&
     typeof value === 'object' &&
-    typeof (value as GeneratedLValue).get === 'function' &&
-    typeof (value as GeneratedLValue).set === 'function',
+    (value as Partial<GeneratedLValue>).generatedLValue === true,
   );
 }
 
@@ -1114,6 +1152,7 @@ function generatedCallArguments(
 
 function lValue(expression: GeneratedExpression, context: ExecutionContext): GeneratedLValue {
   return {
+    generatedLValue: true,
     get: () => evaluate(expression, context),
     set: value => assign(expression, '=', value, context),
   };

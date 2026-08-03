@@ -38,6 +38,9 @@ export interface RangeSpec {
   writeOnly?: boolean;
   /** The MAME write handler explicitly stores this shared RAM byte itself. */
   writeHandlerOwnsRam?: boolean;
+  /** MAME memory_view entry that conditionally overlays this range. */
+  viewTag?: string;
+  viewEntry?: number;
 }
 
 export interface GeneratedCallback {
@@ -316,7 +319,14 @@ export interface GeneratedExecutionPlan {
     source?: BoardSourceRef;
   }[];
   screen: GeneratedScreen;
-  customs?: { port: string; mask: number; member: string; handler?: string }[];
+  customs?: {
+    port: string;
+    mask: number;
+    member: string;
+    handler?: string;
+    source?: 'screen-vblank';
+    activeLow?: boolean;
+  }[];
   inputMembers?: { member: string; tags: string[] }[];
   frameEvents: GeneratedFrameEvent[];
   screenUpdate?: {
@@ -351,6 +361,16 @@ export interface GeneratedGfxEntry {
 }
 
 export interface GeneratedPromPalettePlan {
+  /**
+   * A source-defined palette that switches multiple PROM-backed resistor
+   * networks at runtime.  TNX1 hardware exposes background/text and sprite
+   * PROMs through one palette_device and selects their banks from DMA state.
+   */
+  dynamic?: {
+    kind: 'tnx1-banked';
+    colorRegion: string;
+    spriteRegion: string;
+  };
   region: string;
   /** Lookup PROM when it is separate from the RGB PROM. */
   lookupRegion?: string;
@@ -462,6 +482,8 @@ export interface GeneratedRamPalettePlan {
     bits: number;
     shift: number;
   }[];
+  /** Fixed pens established by a palette init callback alongside writable RAM. */
+  initialColors?: { pen: number; color: number }[];
   /** inverted_rgb_decoder complements the raw value before expansion. */
   inverted?: boolean;
   /**

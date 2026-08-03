@@ -13,6 +13,11 @@ export function isUnconnectedCallback(callback: GeneratedCallback): boolean {
   return callback.operation === 'set_nop';
 }
 
+/** Configuration selectors consumed by their owning subsystem, not signals. */
+export function isDeclarativeCallback(callback: GeneratedCallback): boolean {
+  return callback.signal === 'set_screen_update';
+}
+
 /**
  * The endpoint key a callback resolves to, or undefined when it names no
  * target at all. Mirrors the runtime's callbackTarget() so validation and
@@ -189,6 +194,7 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     }
   }
   for (const [index, callback] of board.callbacks.entries()) {
+    if (isDeclarativeCallback(callback)) continue;
     if ((connectionCounts.get(callback.id) ?? 0) !== 0) continue;
     fail(
       `callbacks[${index}].id`,
@@ -239,6 +245,7 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     );
   }
   for (const [index, custom] of (board.execution.customs ?? []).entries()) {
+    if (custom.source === 'screen-vblank') continue;
     const resolved = custom.handler
       ? handlerKeys.has(custom.handler)
       : handlerMethods.has(custom.member);

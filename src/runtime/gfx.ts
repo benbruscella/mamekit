@@ -34,7 +34,7 @@ export interface GfxSet {
   pixels: Uint8Array;
 }
 
-const RGN_FRAC_RE = /^RGN_FRAC\((\d+),(\d+)\)(?:\s*([+-])\s*(\d+))?$/;
+const RGN_FRAC_RE = /^RGN_FRAC\((\d+),(\d+)\)((?:\s*[+-]\s*\d+)*)$/;
 
 /** Resolve a layout offset (number, or "RGN_FRAC(a,b)" with optional "+n"/"-n") to bits. */
 function resolveOffset(value: number | string, regionBits: number): number {
@@ -45,9 +45,9 @@ function resolveOffset(value: number | string, regionBits: number): number {
   const den = Number(m[2]);
   if (den === 0) throw new Error(`gfx: RGN_FRAC denominator is 0 in "${value}"`);
   let bits = Math.floor((regionBits * num) / den);
-  if (m[3] !== undefined) {
-    const adj = Number(m[4]);
-    bits += m[3] === '-' ? -adj : adj;
+  for (const adjustment of m[3]!.matchAll(/([+-])\s*(\d+)/g)) {
+    const amount = Number(adjustment[2]);
+    bits += adjustment[1] === '-' ? -amount : amount;
   }
   return bits;
 }

@@ -5,5 +5,5 @@ export const panic = sourceTarget({
   driver: 'src/mame/universal/cosmic.cpp',
   machine: { className: 'cosmic_state', name: 'panic' },
   screen: { width: 256, height: 192 },
-  soundKind: 'none',
+  soundKind: 'dac',
 });

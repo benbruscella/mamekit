@@ -214,6 +214,15 @@ export interface ShellConfig {
 
 export type RomTransform =
   | {
+      kind: 'address-byte-bitswap';
+      region: string;
+      start: number;
+      end: number;
+      addressBits: number[];
+      addressXor: number;
+      dataBits: number[];
+    }
+  | {
       kind: 'conditional-byte-swap';
       region: string;
       indexMask: number;
@@ -249,6 +258,31 @@ export type RomTransform =
 
 export function applyRomTransforms(regions: Regions, transforms: readonly RomTransform[]): void {
   for (const transform of transforms) {
+    if (transform.kind === 'address-byte-bitswap') {
+      const region = regions[transform.region];
+      if (
+        !region || transform.start < 0 || transform.end < transform.start ||
+        transform.end > region.length || transform.addressBits.length !== 16 ||
+        transform.dataBits.length !== 8 || new Set(transform.addressBits).size !== 16 ||
+        new Set(transform.dataBits).size !== 8
+      ) {
+        throw new Error(`ROM address/data bitswap for "${transform.region}" is invalid`);
+      }
+      const source = region.slice();
+      const bitswap = (value: number, bits: readonly number[]) => bits.reduce(
+        (result, sourceBit, outputIndex) =>
+          result | (((value >>> sourceBit) & 1) << (bits.length - outputIndex - 1)),
+        0,
+      );
+      for (let index = transform.start; index < transform.end; index++) {
+        const address = bitswap(index, transform.addressBits) ^ transform.addressXor;
+        if (address < 0 || address >= source.length) {
+          throw new Error(`ROM address bitswap for "${transform.region}" reads ${address}`);
+        }
+        region[index] = bitswap(source[address]!, transform.dataBits);
+      }
+      continue;
+    }
     if (transform.kind === 'conditional-byte-swap') {
       const region = regions[transform.region];
       if (!region) throw new Error(`ROM transform has no region "${transform.region}"`);

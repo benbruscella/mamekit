@@ -104,6 +104,43 @@ export function compileMameVideo(
       handlers,
     };
   }
+  // Sega Vic Dual boards draw characters from CPU-writable character RAM and
+  // therefore intentionally have no GFXDECODE table. Preserve the source
+  // screen handler and its ROM-region binding so the runtime's source-shaped
+  // direct executor can reproduce that dynamic raster.
+  if (
+    screen?.body.includes('m_videoram[offs]') &&
+    screen.body.includes('m_characterram[offs]') &&
+    screen.body.includes('m_palette_bank << 3') &&
+    screen.body.includes('color_prom[offs]')
+  ) {
+    return {
+      plan: {
+        gfx: [],
+        ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
+        tilemaps: [],
+        initialState: memberDefaults,
+        source: sourceRef(screen),
+      },
+      handlers: [],
+    };
+  }
+  if (
+    screen?.body.includes('uint8_t const *const source = &m_videoram[y]') &&
+    screen.body.includes('source[(x / 2) * 256]') &&
+    screen.body.includes('m_palette->pen_color(m_paletteram[x])')
+  ) {
+    return {
+      plan: {
+        gfx: [],
+        ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
+        tilemaps: [],
+        initialState: memberDefaults,
+        source: sourceRef(screen),
+      },
+      handlers: [],
+    };
+  }
   // A screen-update entry point may select between source-defined renderers
   // (Tutankham dispatches to its Scramble and bootleg bitmap paths). Probe the
   // directly called methods as well as the entry point; a bitmap plan is valid
@@ -274,13 +311,20 @@ export function compileMameVideo(
   // through the set_format converter named in the machine configuration.
   const ramPalette = palette || palettes.length
     ? undefined
-    : compileSetFormatRamPalette(
-      graph,
-      machineIds,
-      mameSrc,
-      ast,
-      String(machine.props.cls),
-      constants,
+    : (
+      compileSetFormatRamPalette(
+        graph,
+        machineIds,
+        mameSrc,
+        ast,
+        String(machine.props.cls),
+        constants,
+      ) ?? compileHandlerRamPalette(
+        graph,
+        machineIds,
+        ast,
+        constants,
+      )
     );
   if (!palette && !ramPalette && palettes.length !== paletteMembers.length) {
     return fail(`palette callback did not lower`);
@@ -321,6 +365,101 @@ export function compileMameVideo(
     },
     handlers,
   };
+}
+
+/**
+ * Lower boards whose palette RAM handler supplies the extra address-wired
+ * color bit and then calls a palNbit-based color helper (Midway MCR is the
+ * canonical circuit). The executable handler remains authoritative for each
+ * write; this plan supplies the palette surface used by generated gfx.
+ */
+function compileHandlerRamPalette(
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+  ast: MameAstIndex,
+  constants: Record<string, number>,
+): GeneratedRamPalettePlan | undefined {
+  const deviceIds = new Set(graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
+    .map(edge => edge.to));
+  const devices = graph.nodes.filter(node =>
+    deviceIds.has(node.id) && node.label === 'Device' && node.props.type === 'PALETTE');
+  if (!devices.length) return undefined;
+  const raw = devices.flatMap(device =>
+    (device.props.config as string[] | undefined) ?? []).join('\n');
+  // A derived config can patch the base palette's entry count (Spy Hunter
+  // extends MCR's 64 RAM colors with four hard-wired alpha pens). Preserve
+  // the largest reachable declaration rather than the first base setter.
+  const entries = Math.max(0, ...[...raw.matchAll(/(?:\.|->)set_entries\s*\(\s*([^)]+)\)/g)]
+    .map(match => expressionNumber(match[1], constants)));
+  if (!entries) return undefined;
+
+  const initialColors: { pen: number; color: number }[] = [];
+  for (const callback of raw.matchAll(/\.set_init\s*\(\s*FUNC\(\s*(\w+)::(\w+)\s*\)\s*\)/g)) {
+    const fn = ast.findFunctionInHierarchy(callback[1]!, callback[2]!);
+    if (!fn) continue;
+    for (const call of findCallArgumentLists(fn.body, 'palette.set_pen_color')) {
+      const args = splitMameArgs(call);
+      if (args.length !== 2) continue;
+      const pen = expressionNumber(args[0], constants);
+      const rgb = findCallArguments(args[1]!, 'rgb_t');
+      if (!rgb) continue;
+      const components = splitMameArgs(rgb).map(component =>
+        expressionNumber(component, constants));
+      if (components.length !== 3) continue;
+      const [red, green, blue] = components;
+      initialColors.push({
+        pen,
+        color: (0xff000000 | (blue! & 0xff) << 16 | (green! & 0xff) << 8 | (red! & 0xff)) >>> 0,
+      });
+    }
+  }
+
+  const ranges = graph.nodes.filter(node =>
+    node.label === 'AddressRange' && typeof node.props.share === 'string');
+  for (const range of ranges) {
+    const write = graph.edges.find(edge => edge.from === range.id && edge.rel === 'WRITES');
+    const writeHandler = write && graph.nodes.find(node => node.id === write.to);
+    if (!writeHandler) continue;
+    const writeBody = String(writeHandler.props.sourceBody ?? '');
+    const helperName = /\b(\w+)\s*\(\s*offset\s*\/\s*2\s*,\s*data\s*\|\s*\(\s*\(\s*offset\s*&\s*1\s*\)\s*<<\s*\d+\s*\)\s*\)/
+      .exec(writeBody)?.[1];
+    if (!helperName || !writeBody.includes('m_paletteram[offset] = data')) continue;
+    const helper = graph.nodes.find(node =>
+      node.label === 'Handler' && node.props.method === helperName && node.props.sourceBody);
+    if (!helper) continue;
+    const helperBody = String(helper.props.sourceBody);
+    const colorCall = findCallArguments(helperBody, 'set_pen_color');
+    if (!colorCall) continue;
+    const colorArgs = splitMameArgs(colorCall);
+    if (colorArgs.length !== 4 || colorArgs[0]?.trim() !== 'index') continue;
+    const components = colorArgs.slice(1);
+    const channelNames = ['r', 'g', 'b'] as const;
+    const channels = components.map((component, index) => {
+      const match = /pal(\d+)bit\s*\(\s*data\s*>>\s*(\d+)\s*\)/.exec(component);
+      return match ? {
+        channel: channelNames[index]!,
+        bits: Number(match[1]),
+        shift: Number(match[2]),
+      } : undefined;
+    });
+    if (channels.some(channel => !channel)) continue;
+    return {
+      tag: String(range.props.share),
+      entries,
+      bytesPerEntry: 1,
+      channels: channels as GeneratedRamPalettePlan['channels'],
+      ...(initialColors.length ? { initialColors } : {}),
+      ...(helper.props.sourceFile ? {
+        source: {
+          file: String(helper.props.sourceFile),
+          line: Number(helper.props.sourceLine ?? 1),
+          column: Number(helper.props.sourceColumn ?? 1),
+        },
+      } : {}),
+    };
+  }
+  return undefined;
 }
 
 /**
@@ -841,6 +980,12 @@ function allocatedVideoState(
   for (const match of fn.body.matchAll(
     /\b(m_\w+)\s*=\s*make_unique_clear\s*<[^>]*\[\]\s*>\s*\(([^)]+)\)/g,
   )) {
+    const length = expressionNumber(match[2], values);
+    if (Number.isInteger(length) && length >= 0 && length <= 0x10_0000) {
+      state[match[1]!] = new Array(length).fill(0);
+    }
+  }
+  for (const match of fn.body.matchAll(/\b(m_\w+)\.resize\s*\(\s*([^)]+)\)/g)) {
     const length = expressionNumber(match[2], values);
     if (Number.isInteger(length) && length >= 0 && length <= 0x10_0000) {
       state[match[1]!] = new Array(length).fill(0);
@@ -1668,6 +1813,45 @@ function compilePalette(
   // of those colors for each pen. Preserve that computed resistor network and
   // initialize the pen table to color zero until paletteram_w runs.
   if (!region) {
+    const colorMember = /\buint8_t\s*\*\s*color_prom\s*=\s*(m_\w+)\s*\+\s*16\s*\*/
+      .exec(body)?.[1];
+    const spriteMember = /\buint8_t\s*\*\s*color_prom\s*=\s*(m_\w+)\s*\+\s*32\s*\*/
+      .exec(body)?.[1];
+    const memberRegion = (member: string | undefined): string | undefined => member
+      ? new RegExp(`${member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\(\\s*\\*this\\s*,\\s*"([^"]+)"`)
+        .exec(source)?.[1]
+      : undefined;
+    const colorRegion = memberRegion(colorMember);
+    const spriteRegion = memberRegion(spriteMember);
+    if (
+      colorRegion && spriteRegion &&
+      body.includes('m_palette_bank ^ m_palette_bank_cache') &&
+      body.includes('compute_res_net_all(rgb, color_prom, mb7051_decode_info') &&
+      body.includes('compute_res_net_all(rgb, color_prom, mb7052_decode_info') &&
+      body.includes('set_pen_colors(48, rgb)')
+    ) {
+      return {
+        dynamic: { kind: 'tnx1-banked', colorRegion, spriteRegion },
+        region: colorRegion,
+        colorCount: 0,
+        min: 0,
+        max: 255,
+        scaler: -1,
+        channels: [],
+        lookupOffset: 0,
+        lookupCount: 80,
+        lookupMask: 0xff,
+        banks: [{
+          penOffset: 0,
+          colorOr: 0,
+          lookupOffset: 0,
+          lookupCount: 80,
+          direct: true,
+        }],
+        transparentIndirect: 0,
+        source: sourceRef(fn),
+      };
+    }
     const computedColors = compileComputedColorGroups(body, paletteLoop, loops);
     const carrier = graph.nodes.find(node =>
       node.label === 'RomRegion' && typeof node.props.tag === 'string')?.props.tag;
@@ -2406,6 +2590,11 @@ function sourceMemberDefaults(
     /\b(?:bool|int|u?int(?:8|16|32)_t|u8|u16|u32)\s+(m_\w+)\s*\[\s*(\d+)\s*\]\s*(?:=\s*)?\{\s*\}\s*;/g,
   )) {
     defaults[match[1]!] = new Array(Number(match[2])).fill(0);
+  }
+  for (const match of source.matchAll(/(?:^|[:,])\s*(m_\w+)\s*\{\s*([^{}]+)\s*\}/gm)) {
+    const values = splitMameArgs(match[2]!).map(expression =>
+      expressionNumber(expression, { ...constants, ...numericState(defaults) }));
+    if (values.length && values.every(Number.isFinite)) defaults[match[1]!] = values;
   }
   return defaults;
 }

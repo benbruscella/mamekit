@@ -541,6 +541,9 @@ export interface AddressRangeDef {
   /** Explicit ROM region and byte offset from .region("tag", offset). */
   region?: string; regionOffset?: number;
   share?: string;
+  /** Entry-qualified memory_view mapping, e.g. m_rom_view[0](...). */
+  viewTag?: string;
+  viewEntry?: number;
   raw: string;
 }
 
@@ -570,8 +573,9 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
         if (mapProp[1] === 'unmap_value_high') unmapHigh = true;
         continue;
       }
-      if (!s.startsWith('map(')) continue;
-      const open = 3;
+      const viewCall = /^(m_\w+)\s*\[\s*(\d+)\s*\]\s*\(/.exec(s);
+      if (!s.startsWith('map(') && !viewCall) continue;
+      const open = s.indexOf('(');
       const close = matchParen(s, open);
       const [startS, endS] = splitArgs(s.slice(open + 1, close));
       const range: AddressRangeDef = {
@@ -579,6 +583,10 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
         end: evalExpr(endS) ?? 0,
         raw: s,
       };
+      if (viewCall) {
+        range.viewTag = viewCall[1];
+        range.viewEntry = Number(viewCall[2]);
+      }
       for (const { method, args } of parseChain(s.slice(close + 1))) {
         switch (method) {
           case 'rom': range.rom = true; break;

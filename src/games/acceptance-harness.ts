@@ -65,6 +65,12 @@ export interface GameAcceptanceOptions {
     number: number;
     framebuffer: Uint32Array;
     state: Readonly<Record<string, unknown>>;
+    /** Read-only shared-memory view for locating stalled generated machines. */
+    shares: Readonly<Record<string, Uint8Array>>;
+    /** Read-only register access for diagnosing interrupt/state transitions. */
+    cpus: ReadonlyMap<string, { get(name: string): number }>;
+    /** Read-only access to generated CPU buses for address-level diagnostics. */
+    buses: ReadonlyMap<string, { read(address: number): number }>;
     /** Sound writes emitted during this frame, before the probe consumes them. */
     writes: readonly SoundWrite[];
   }) => void;
@@ -197,6 +203,15 @@ export async function runGameAcceptance(
       state: (board as unknown as {
         state?: Record<string, unknown>;
       }).state ?? {},
+      shares: (board as unknown as {
+        shares?: Record<string, Uint8Array>;
+      }).shares ?? {},
+      cpus: (board as unknown as {
+        cpus?: Map<string, { get(name: string): number }>;
+      }).cpus ?? new Map(),
+      buses: (board as unknown as {
+        cpuBuses?: Map<string, { read(address: number): number }>;
+      }).cpuBuses ?? new Map(),
       writes: pendingWrites,
     });
     for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {

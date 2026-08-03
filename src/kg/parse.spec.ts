@@ -444,6 +444,19 @@ void seicross_state::mcu_map(address_map &map)
   eq('explicit ROM region offset', map.ranges[0]?.regionOffset, 0x20);
 }
 
+{
+  const [map] = parseAddressMaps(`
+void defender_state::main_map(address_map &map)
+{
+  map(0xc000, 0xcfff).view(m_rom_view);
+  m_rom_view[0](0xc000, 0xc00f).mirror(0x03e0).writeonly().share(m_paletteram);
+}
+`);
+  eq('memory-view entry tag', map.ranges[1]?.viewTag, 'm_rom_view');
+  eq('memory-view entry index', map.ranges[1]?.viewEntry, 0);
+  eq('memory-view entry share', map.ranges[1]?.share, 'paletteram');
+}
+
 // MAME array finders format their tags from a printf pattern and a starting
 // index; the machine config references elements by subscript while the address
 // map uses the formatted tag, so both spellings must resolve.

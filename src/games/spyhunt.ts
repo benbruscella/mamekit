@@ -6,4 +6,10 @@ export const spyhunt = sourceTarget({
   machine: { className: 'mcrsc_csd_state', name: 'spyhunt' },
   screen: { width: 512, height: 480 },
   soundKind: 'ay8910',
+  actions: [
+    { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 330, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 600, code: 'KeyZ', heldFrames: 120, releasedFrames: 20 },
+    { atFrame: 780, code: 'KeyC', heldFrames: 30, releasedFrames: 20 },
+  ],
 });

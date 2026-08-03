@@ -6,6 +6,7 @@ import type { BoardIr } from '../ir/board.ts';
 import {
   createGeneratedTileInfoTarget,
   decodeTaitoSjRamPixel,
+  decodeVicDualPixel,
   generatedDirectScreenShape,
   generatedScrollBand,
   generatedTileGroupIndirectMask,
@@ -16,6 +17,7 @@ import {
   GeneratedVideoRenderer,
   taitoSjLayerScrollX,
   taitoSjSpritePosition,
+  williamsPaletteColor,
   type GeneratedVideoPrimitives,
 } from './generated-video.ts';
 
@@ -52,6 +54,30 @@ assert.deepEqual(
 assert.deepEqual(taitoSjSpritePosition(0, 0), { x: 255, y: 240, visible: false });
 assert.deepEqual(taitoSjSpritePosition(1, 241), { x: 0, y: 255, visible: false });
 assert.deepEqual(taitoSjSpritePosition(17, 16), { x: 16, y: 224, visible: true });
+
+assert.equal(decodeVicDualPixel(0x80, 0xa2, 0), 0xff00ffff);
+assert.equal(decodeVicDualPixel(0x80, 0xa2, 1), 0xff00ff00);
+assert.equal(williamsPaletteColor(0), 0xff000000);
+assert.equal(williamsPaletteColor(0xff), 0xffffffff);
+
+assert.equal(
+  generatedDirectScreenShape({
+    execution: { screenUpdate: { handler: 'vicdual_state.screen_update_color' } },
+    handlers: [{
+      ownerClass: 'vicdual_state',
+      method: 'screen_update_color',
+      body: `
+        color_prom = m_proms->base();
+        char_code = m_videoram[offs];
+        video_data = m_characterram[offs];
+        offs = (char_code >> 5) | (m_palette_bank << 3);
+        back_pen = color_prom[offs];
+        pen = (video_data & 0x80) ? fore_pen : back_pen;
+      `,
+    }],
+  } as unknown as BoardIr),
+  'vicdual-character-ram',
+);
 
 assert.equal(
   generatedDirectScreenShape({
@@ -443,7 +469,7 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
       ramPalette: {
         tag: 'palette',
         extShare: 'palette_ext',
-        entries: 1,
+        entries: 2,
         bytesPerEntry: 2,
         channels: [
           { channel: 'r', bits: 4, shift: 12 },
@@ -454,6 +480,7 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
           { offset: 0, data: 0xf0 },
           { offset: 0, data: 0xff, ext: true },
         ],
+        initialColors: [{ pen: 1, color: 0xff332211 }],
       },
     },
   };
@@ -466,11 +493,13 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
   );
   const resetPalette = resetState.m_palette as { colors: Uint32Array };
   assert.equal(resetPalette.colors[0], 0xffffffff);
+  assert.equal(resetPalette.colors[1], 0xff332211);
   resetPrimitives.writePaletteRam(0, 0);
   resetPrimitives.writePaletteRam(0, 0, true);
   assert.equal(resetPalette.colors[0], 0xff000000);
   resetPrimitives.reset();
   assert.equal(resetPalette.colors[0], 0xffffffff);
+  assert.equal(resetPalette.colors[1], 0xff332211);
 }
 
 // Multi-byte palette RAM follows palette_device::set_endianness. Bubble Bobble

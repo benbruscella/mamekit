@@ -425,6 +425,8 @@ function decodeRanges(
     const end = reader.number(range.end, `${rangePath}.end`, source);
     reader.optionalNumber(range.mirror, `${rangePath}.mirror`, source);
     reader.optionalNumber(range.romOffset, `${rangePath}.romOffset`, source);
+    reader.optionalString(range.viewTag, `${rangePath}.viewTag`, source);
+    reader.optionalNumber(range.viewEntry, `${rangePath}.viewEntry`, source);
     if (end < start) {
       reader.fail(rangePath, `range ends (${hex(end)}) before it starts (${hex(start)})`, source);
     }

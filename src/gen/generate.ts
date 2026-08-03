@@ -33,6 +33,7 @@ import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.t
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
+import { compileDriverRomTransforms } from '../mame/driver-rom-compiler.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 import { artworkDir, romsDir } from '../paths.ts';
 import { cartArtIndex, type CartArt } from './cart-art.ts';
@@ -302,12 +303,25 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     return [...called, ...own];
   };
 
-  const handlerKey = (h: { edge: { props?: Record<string, unknown> }; node: KGNode }) => {
-    const tag = h.edge.props?.deviceTag;
+  const handlerKey = (
+    h: { edge: { props?: Record<string, unknown> }; node: KGNode },
+    ownerTag?: string,
+  ) => {
+    const rawTag = h.edge.props?.deviceTag;
+    let tag = rawTag === undefined ? undefined : String(rawTag);
+    if (tag && ownerTag?.includes(':') && !tag.includes(':')) {
+      const namespace = ownerTag.slice(0, ownerTag.lastIndexOf(':'));
+      const scoped = `${namespace}:${tag}`;
+      if (byTag.has(scoped)) tag = scoped;
+    }
+    if (tag && !byTag.has(tag)) {
+      const matches = [...byTag.keys()].filter(candidate => candidate.endsWith(`:${tag}`));
+      if (matches.length === 1) tag = matches[0];
+    }
     const owner = tag ?? String(h.node.props.ownerClass);
     return `${owner}.${h.node.props.method}`;
   };
-  const rangeSpec = (r: KGNode) => {
+  const rangeSpec = (r: KGNode, ownerTag?: string) => {
     const reads = g.out(r.id, 'READS');
     const writes = g.out(r.id, 'WRITES');
     const spec: Record<string, unknown> = {
@@ -322,11 +336,13 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     if (r.props.mirror) spec.mirror = Number(r.props.mirror);
     if (r.props.regionOffset !== undefined) spec.romOffset = Number(r.props.regionOffset);
     if (r.props.share) spec.share = String(r.props.share);
+    if (r.props.viewTag) spec.viewTag = String(r.props.viewTag);
+    if (r.props.viewEntry !== undefined) spec.viewEntry = Number(r.props.viewEntry);
     if (r.props.readonly || r.props.nopw) spec.readOnly = true;
     if (r.props.writeonly || r.props.nopr) spec.writeOnly = true;
-    if (reads[0]) spec.read = handlerKey(reads[0]);
+    if (reads[0]) spec.read = handlerKey(reads[0], ownerTag);
     if (writes[0]) {
-      spec.write = handlerKey(writes[0]);
+      spec.write = handlerKey(writes[0], ownerTag);
       const sourceBody = String(writes[0].node.props.sourceBody ?? '');
       if (handlerOwnsSharedRam(sourceBody, String(r.props.share ?? ''))) {
         spec.writeHandlerOwnsRam = true;
@@ -359,7 +375,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     }
     const rangeNodes = programMap ? collectRanges(programMap.id) : [];
     const ranges = programMap
-      ? rangeNodes.map(rangeSpec)
+      ? rangeNodes.map(range => rangeSpec(range, String(dev.props.tag)))
       : [{ start: 0xf000, end: 0xffff, kind: 'rom', romOffset: 0 }];
     const explicitRegions = [...new Set(
       rangeNodes
@@ -374,7 +390,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     const opcodeMap = forSpace('AS_OPCODES');
     let opcode: Record<string, unknown> | undefined;
     if (opcodeMap) {
-      const opcodeRanges = collectRanges(opcodeMap.id).map(rangeSpec);
+      const opcodeRanges = collectRanges(opcodeMap.id)
+        .map(range => rangeSpec(range, String(dev.props.tag)));
       opcode = {
         ranges: opcodeRanges,
         region: opcodeRanges.find(range => range.share)?.share ?? String(dev.props.tag),
@@ -386,7 +403,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     const ioMap = forSpace('AS_IO');
     let io: Record<string, unknown> | undefined;
     if (ioMap) {
-      io = { ranges: collectRanges(ioMap.id).map(rangeSpec) };
+      io = {
+        ranges: collectRanges(ioMap.id)
+          .map(range => rangeSpec(range, String(dev.props.tag))),
+      };
       if (ioMap.props.globalMask !== undefined) io.globalMask = Number(ioMap.props.globalMask);
     }
     return {
@@ -545,6 +565,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const snChips = devices.filter(d =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(String(d.props.type)));
+  const dacChips = devices.filter(d =>
+    ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533']
+      .includes(String(d.props.type)));
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
         const type = String(device.props.type);
@@ -595,6 +618,19 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
                 ...(snRoutes.length ? { routes: snRoutes } : {}),
               };
             })()
+          : dacChips.length
+            ? {
+                kind: 'dac',
+                clock: cpus.find(cpu => /sound|audio/.test(cpu.tag))?.clock ?? cpus[0].clock,
+                chips: dacChips.length,
+                routes: lowerAudioRoutes(
+                  graph,
+                  dacChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
+                ),
+                ...(auxiliaryAudioDevices.length
+                  ? { auxiliaryDevices: auxiliaryAudioDevices }
+                  : {}),
+              }
         : discreteDevice
           ? {
               kind: 'discrete',
@@ -706,9 +742,29 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       }
     }
   }
+  const parentGame = g.out(`game:${opts.game}`, 'CLONE_OF')[0]?.node;
+  const biosRomSet = parentGame && String(parentGame.props.flags ?? '').includes('MACHINE_IS_BIOS_ROOT')
+    ? g.out(parentGame.id, 'USES_ROMSET')[0]?.node
+    : undefined;
+  const inheritedBiosSet = (region: KGNode): string | undefined => {
+    if (!biosRomSet) return undefined;
+    const parentRegion = g.out(biosRomSet.id, 'HAS_REGION')
+      .map(edge => edge.node)
+      .find(candidate => candidate.props.tag === region.props.tag);
+    if (!parentRegion) return undefined;
+    const parentLoads = g.out(parentRegion.id, 'LOADS').map(edge => edge.node);
+    const loads = g.out(region.id, 'LOADS').map(edge => edge.node);
+    if (!loads.length || !loads.every(load => parentLoads.some(parent =>
+      parent.props.file === load.props.file &&
+      parent.props.crc === load.props.crc &&
+      parent.props.offset === load.props.offset &&
+      parent.props.size === load.props.size))) return undefined;
+    return String(biosRomSet.props.name);
+  };
   const roms = g.out(romset.id, 'HAS_REGION').map(({ node: region }) => ({
     region: String(region.props.tag),
     size: Number(region.props.size),
+    ...(inheritedBiosSet(region) ? { romSet: inheritedBiosSet(region) } : {}),
     ...(String(region.props.flags).includes('ROMREGION_ERASEFF') ? { fill: 0xff } : {}),
     ...(String(region.props.flags).includes('ROMREGION_INVERT') ? { invert: true } : {}),
     loads: g.out(region.id, 'LOADS').map(({ node: rom }) => {
@@ -814,7 +870,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const portSpecs: { tag: string; init: number }[] = [];
   const bindings: unknown[] = [];
   const dipDefaults: unknown[] = [];
-  const customs: { port: string; mask: number; member: string; handler?: string }[] = [];
+  const customs: NonNullable<BoardConfig['customs']> = [];
   for (const port of ports) {
     const tag = port.tag;
     let init = 0;
@@ -838,14 +894,30 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         // member (invaders reads CONTP1 into IN0/IN1/IN2 bits 4-6) — emit
         // the wiring fact for the board's member table
         const custom = mods
-          .map(modifier => /PORT_CUSTOM_MEMBER\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)/.exec(modifier))
+          .map(modifier => /PORT_(?:CUSTOM_MEMBER|READ_LINE_MEMBER)\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)(?:\s*<\s*(\d+)\s*>)?/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
         if (type === 'IPT_CUSTOM' && custom) {
+          const method = custom[3] === undefined
+            ? custom[2]!
+            : `${custom[2]}_${Number(custom[3])}`;
           customs.push({
             port: tag,
             mask,
-            member: custom[2]!,
-            handler: `${custom[1]}.${custom[2]}`,
+            member: method,
+            handler: `${custom[1]}.${method}`,
+          });
+          continue;
+        }
+        const deviceLine = mods
+          .map(modifier => /PORT_READ_LINE_DEVICE_MEMBER\s*\(\s*"([^"]+)"\s*,\s*FUNC\s*\(\s*screen_device::vblank/.exec(modifier))
+          .find((match): match is RegExpExecArray => Boolean(match));
+        if (type === 'IPT_CUSTOM' && deviceLine) {
+          customs.push({
+            port: tag,
+            mask,
+            member: 'vblank',
+            source: 'screen-vblank',
+            activeLow,
           });
           continue;
         }
@@ -967,6 +1039,12 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     ? game.props.romTransforms.map(value =>
         JSON.parse(String(value)) as Record<string, unknown>)
     : [];
+  romTransforms.push(...compileDriverRomTransforms(
+    opts.mameSrc,
+    String(graph.meta.driverFile),
+    String(game.props.cls),
+    Object.fromEntries(roms.map(region => [region.region, region.size])),
+  ) as unknown as Record<string, unknown>[]);
   for (const [index, device] of cpuDevs.entries()) {
     const cpu = cpus[index]!;
     if (!cpu.opcode) continue;

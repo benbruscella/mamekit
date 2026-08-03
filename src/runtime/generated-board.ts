@@ -375,7 +375,7 @@ class IrBoard implements Board {
 
     // Bound before any CPU exists: a generated CPU may emit a signal from its
     // own constructor, and every connection must already be executable.
-    this.effects = bindBoardEffects(machine, this.effectBindings(sinks));
+    this.effects = bindBoardEffects(machine, this.effectBindings(sinks, registry));
 
     for (const specification of machine.execution.cpus) {
       const type = specification.type ?? 'Z80';
@@ -402,6 +402,13 @@ class IrBoard implements Board {
         this.shares,
       );
       this.cpuBuses.set(specification.tag, bus);
+      for (const viewTag of new Set(
+        (specification.ranges ?? []).flatMap(range => range.viewTag ? [range.viewTag] : []),
+      )) {
+        const select = (entry: number) => bus.selectView(viewTag, entry);
+        this.bindings.calls![`${viewTag}.select`] = select;
+        this.bindings.calls![`${viewTag.replace(/^m_/, '')}.select`] = select;
+      }
       if (specification.opcode) {
         const opcodeRom = regions[specification.opcode.region];
         if (!opcodeRom) {
@@ -464,7 +471,10 @@ class IrBoard implements Board {
             }
             const value = effect.reads
               ? effect.run(0)
-              : effect.run(applyBoardTransforms(state, effect.transforms));
+              : effect.run(
+                  applyBoardTransforms(state, effect.transforms),
+                  state,
+                );
             if (value !== undefined) {
               result = effect.reads
                 ? applyBoardTransforms(Number(value) || 0, effect.transforms)
@@ -946,6 +956,16 @@ class IrBoard implements Board {
       registry.read[key] = (address, offset) => {
         let value = base(address, offset);
         for (const custom of customs) {
+          if (custom.source === 'screen-vblank') {
+            const { vbstart, vbend = 0 } = this.machine.execution.screen;
+            const inVblank = vbstart > vbend
+              ? this.currentLine >= vbstart || this.currentLine < vbend
+              : this.currentLine >= vbstart && this.currentLine < vbend;
+            const line = custom.activeLow ? Number(!inVblank) : Number(inVblank);
+            const shift = trailingZeroBits(custom.mask);
+            value = (value & ~custom.mask) | ((line << shift) & custom.mask);
+            continue;
+          }
           const handler = machine.handlers?.find(candidate =>
             custom.handler
               ? `${candidate.ownerClass}.${candidate.method}` === custom.handler
@@ -1118,6 +1138,18 @@ class IrBoard implements Board {
         executeGeneratedCallbackHandler(machine, callbackId, this.bindings),
       dispatch: (ownerTag, signal, value) =>
         void dispatchGeneratedCallbacks(machine, ownerTag, signal, value, this.effects),
+      readSignal: (ownerTag, signal) => {
+        for (const callback of machine.callbacks) {
+          if (callback.ownerTag !== ownerTag || callback.signal !== signal) continue;
+          const effect = this.effects.get(callback.id);
+          if (!effect) continue;
+          const value = effect.run(0);
+          if (value !== undefined) {
+            return applyBoardTransforms(Number(value) || 0, effect.transforms);
+          }
+        }
+        return undefined;
+      },
       readProgram: (cpuTag, address) => this.cpuBuses.get(cpuTag)?.read(address) ?? 0xff,
       stallCpu: (cpuTag, cycles) => {
         this.cpuStalls.set(cpuTag, (this.cpuStalls.get(cpuTag) ?? 0) + cycles);
@@ -1161,7 +1193,7 @@ class IrBoard implements Board {
     };
   }
 
-  private effectBindings(sinks: BoardSinks): EffectBindings {
+  private effectBindings(sinks: BoardSinks, registry: HandlerRegistry): EffectBindings {
     return {
       cpuLine: (tag, line, delivery) => {
         // Validated against the IR, not the live map: a generated CPU can fire
@@ -1269,7 +1301,8 @@ class IrBoard implements Board {
         const call = this.bindings.calls?.[key.split('.').at(-1)!];
         return call ? state => { call(state); } : undefined;
       },
-      portRead: port => () => this.bindings.inputs?.read(port) ?? 0xff,
+      portRead: port => () =>
+        registry.read[`port.${port}`]?.(0, 0) ?? this.bindings.inputs?.read(port) ?? 0xff,
       videoControl: control => {
         const setter = control === 'flip-screen'
           ? this.bindings.calls?.flip_screen_set

@@ -7,6 +7,7 @@ import { installAy8910Runtime } from './ay8910/runtime.ts';
 import { installYm2203Runtime } from './ym2203/runtime.ts';
 import { installNesRuntime } from './nes/runtime.ts';
 import { installSn76489Runtime } from './sn76489/runtime.ts';
+import { installDacRuntime } from './dac/runtime.ts';
 import {
   deviceAliases,
   type SoundRuntimeContext,
@@ -23,6 +24,7 @@ const INSTALLERS: Readonly<Record<string, SoundRuntimeInstaller>> = {
   ym2203: installYm2203Runtime,
   nes: installNesRuntime,
   sn76489: installSn76489Runtime,
+  dac: installDacRuntime,
 };
 
 export function installSoundRuntime(context: SoundRuntimeContext): SoundRuntimeHooks | undefined {

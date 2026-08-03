@@ -91,25 +91,38 @@ export function lowerGeneratedMachine(
   }
   const emittedDeviceTag = (deviceId: string, rawTag: string): string =>
     emittedTags.get(deviceId) ?? rawTag;
+  const reachableConfigIds = new Set(
+    [...visitedConfigs].map(key => key.slice(0, key.indexOf('\0'))),
+  );
   const resolveReachableTag = (rawTag: string): string => {
     const tags = [...new Set(emittedTags.values())];
     if (tags.includes(rawTag)) return rawTag;
     const matches = tags.filter(tag => tag.endsWith(`:${rawTag}`));
     return matches.length === 1 ? matches[0]! : rawTag;
   };
+  const reachableHandlerKey = (
+    edge: KnowledgeGraph['edges'][number],
+    handler: KnowledgeGraph['nodes'][number] | undefined,
+  ): string => {
+    const key = handlerKey(edge, handler);
+    if (!edge.props?.deviceTag || !handler) return key;
+    return `${resolveReachableTag(String(edge.props.deviceTag))}.${String(handler.props.method)}`;
+  };
   const callbacks: GeneratedCallback[] = graph.nodes
     .filter(node => node.label === 'Callback')
     .filter(node => graph.edges.some(edge =>
-      edge.rel === 'HAS_CALLBACK' && edge.to === node.id && emittedTags.has(edge.from)))
+      edge.rel === 'HAS_CALLBACK' &&
+      edge.to === node.id &&
+      (emittedTags.has(edge.from) || reachableConfigIds.has(edge.from))))
     .map(node => {
       const props = node.props;
       const ownerDevice = graph.edges.find(edge =>
         edge.rel === 'HAS_CALLBACK' && edge.to === node.id);
       const callback: GeneratedCallback = {
         id: node.id,
-        ownerTag: ownerDevice
+        ownerTag: ownerDevice && emittedTags.has(ownerDevice.from)
           ? emittedDeviceTag(ownerDevice.from, String(props.ownerTag))
-          : String(props.ownerTag),
+          : resolveReachableTag(String(props.ownerTag)),
         signal: String(props.signal),
         operation: String(props.operation),
       };
@@ -237,8 +250,8 @@ export function lowerGeneratedMachine(
             start: Number(range!.props.start),
             end: Number(range!.props.end),
             raw: String(range!.props.raw),
-            ...(read ? { read: handlerKey(read, byId.get(read.to)) } : {}),
-            ...(write ? { write: handlerKey(write, byId.get(write.to)) } : {}),
+            ...(read ? { read: reachableHandlerKey(read, byId.get(read.to)) } : {}),
+            ...(write ? { write: reachableHandlerKey(write, byId.get(write.to)) } : {}),
             props: range!.props,
             ...(sourceRef(range!.props) ? { source: sourceRef(range!.props) } : {}),
           };
@@ -337,6 +350,8 @@ export function lowerGeneratedMachine(
   const snDevices = devices.filter(device =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(device.type));
+  const dacDevices = devices.filter(device =>
+    ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533'].includes(device.type));
   const discreteDevice = devices.find(device => device.type === 'DISCRETE');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
@@ -417,6 +432,20 @@ export function lowerGeneratedMachine(
             : {}),
           ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
         }
+    : dacDevices.length
+      ? {
+          kind: 'dac',
+          deviceTag: dacDevices[0]!.tag,
+          deviceTags: dacDevices.map(device => device.tag),
+          deviceType: dacDevices[0]!.type,
+          writeMethods: ['data_w', 'write'],
+          enableMethods: [],
+          controlOffset: -1,
+          ...(lowerAudioRoutes(graph, dacDevices).length
+            ? { routes: lowerAudioRoutes(graph, dacDevices) }
+            : {}),
+          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
+        }
     : generatedSoundboard
       ? (() => {
           const writeMethods = [...new Set(maps.flatMap(map => map.ranges)
@@ -443,13 +472,17 @@ export function lowerGeneratedMachine(
             ...(discretePlan?.inputNodes ? { writeOffsets: discretePlan.inputNodes } : {}),
           }
         : undefined;
-  const lowered = lowerConnections(callbacks, {
+  // set_screen_update selects the renderer entry point; it is consumed by
+  // GeneratedVideoRenderer and is not a devcb signal dispatched at runtime.
+  const effectCallbacks = callbacks.filter(callback => callback.signal !== 'set_screen_update');
+  const lowered = lowerConnections(effectCallbacks, {
     cpuTags: new Set(execution.cpus.map(cpu => cpu.tag)),
     deviceTags: new Set(devices.map(device => device.tag)),
     handlerKeys: new Set(handlers.map(handler => `${handler.ownerClass}.${handler.method}`)),
     ...(sound
       ? {
           soundTag: sound.deviceTag,
+          soundWriteMethods: new Set(sound.writeMethods),
           soundEnableMethods: new Set(sound.enableMethods),
           soundControlOffset: sound.controlOffset,
           auxiliaryAudio: new Map(
@@ -634,6 +667,7 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
   VLM5030: ['data_w', 'st', 'rst'],
   YM3526: ['write'],
+  HC55516: ['digit_w', 'clock_w'],
 };
 
 /**
@@ -656,7 +690,7 @@ export function lowerAuxiliaryAudioDevices(
     const writeMethods = AUXILIARY_AUDIO_METHODS[device.type];
     const clock = Number.isFinite(device.clock)
       ? device.clock!
-      : device.type === 'DAC_4BIT_R2R' || device.type === 'DAC_8BIT_R2R'
+      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'HC55516'].includes(device.type)
         ? 0
         : undefined;
     if (!writeMethods || clock === undefined) return [];

@@ -36,6 +36,8 @@ export interface SoundRuntimeContext {
   runCallbackHandler(callbackId: string): number | undefined;
   /** Deliver a device signal through the board's typed effects. */
   dispatch(ownerTag: string, signal: string, value: number): void;
+  /** Pull a value from a read callback through the same typed connection. */
+  readSignal(ownerTag: string, signal: string): number | undefined;
   /** Read the live generated program bus, used by integrated DMA sound units. */
   readProgram(cpuTag: string, address: number): number;
   /** Charge cycles stolen by an integrated peripheral to its owning CPU. */

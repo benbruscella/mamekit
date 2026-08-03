@@ -21,12 +21,21 @@ const bus = new Bus([
   { start: 0x4000, end: 0x4001, kind: 'ram', share: 'palette', write: 'paletteWrite' },
   { start: 0x5000, end: 0x5000, kind: 'ram', share: 'latched', readOnly: true },
   { start: 0x6000, end: 0x6000, kind: 'ram', share: 'writeLatch', writeOnly: true },
+  {
+    start: 0x7000,
+    end: 0x7000,
+    kind: 'ram',
+    share: 'outputLatch',
+    writeOnly: true,
+    read: 'inputPort',
+  },
 ], rom, {
   read: {
     read: (address, offset) => {
       reads.push([address, offset]);
       return 0x1ff;
     },
+    inputPort: () => 0xa5,
   },
   write: {
     write: (address, offset, data) => writes.push([address, offset, data]),
@@ -64,7 +73,24 @@ assert.equal(bus.read(0x5000), 0x7c, 'read-only shares must ignore CPU writes');
 bus.write(0x6000, 0x93);
 assert.equal(bus.shares.writeLatch![0], 0x93);
 assert.equal(bus.read(0x6000), 0, 'write-only shares must return open bus');
+bus.write(0x7000, 0x3c);
+assert.equal(bus.shares.outputLatch?.[0], 0x3c);
+assert.equal(bus.read(0x7000), 0xa5, 'split input/output ranges must preserve the read handler');
 assert.equal(bus.in(0), 0);
+
+const viewBus = new Bus([
+  { start: 0x8000, end: 0x8000, kind: 'rom', romOffset: 0 },
+  { start: 0x8000, end: 0x8000, kind: 'ram', share: 'view0', viewTag: 'm_view', viewEntry: 0 },
+  { start: 0x8000, end: 0x8000, kind: 'ram', share: 'view1', viewTag: 'm_view', viewEntry: 1 },
+], rom, { read: {}, write: {} });
+viewBus.write(0x8000, 0x44);
+assert.equal(viewBus.read(0x8000), 0x44);
+viewBus.selectView('m_view', 1);
+assert.equal(viewBus.read(0x8000), 0);
+viewBus.write(0x8000, 0x55);
+assert.equal(viewBus.read(0x8000), 0x55);
+viewBus.selectView('m_view', 2);
+assert.equal(viewBus.read(0x8000), 0x11, 'unmapped view entry exposes the base map');
 
 const highWrites: Array<[number, number, number]> = [];
 const highBus = new Bus([

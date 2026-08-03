@@ -441,6 +441,10 @@ class IrCpu implements Cpu {
       prog_w: value => Number(this.bus.signal?.('prog_out_cb', value & 1) ?? 0),
       m_out_inte_func: state => this.bus.signal?.('out_inte_func', state) ?? 0,
       m_out_sod_func: state => this.bus.signal?.('out_sod_func', state) ?? 0,
+      m_refresh_cb: state => this.bus.signal?.('refresh_cb', state) ?? 0,
+      m_nomreq_cb: state => this.bus.signal?.('nomreq_cb', state) ?? 0,
+      m_halt_cb: state => this.bus.signal?.('halt_cb', state) ?? 0,
+      m_busack_cb: state => this.bus.signal?.('busack_cb', state) ?? 0,
       standard_irq_callback: () => this.acknowledgeIrq(),
       daisy_get_irq_device: () => 0,
       daisy_chain_present: () => 0,
@@ -652,8 +656,8 @@ function isLValue(value: GeneratedCallArgument): value is GeneratedLValue {
   return Boolean(
     value &&
     typeof value === 'object' &&
-    'get' in value &&
-    'set' in value,
+    'generatedLValue' in value &&
+    value.generatedLValue === true,
   );
 }
 

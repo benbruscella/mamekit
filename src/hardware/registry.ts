@@ -59,6 +59,13 @@ import {
   SN76489_PORTS,
 } from './sn76489/definition.ts';
 import { extractSn76489 } from './sn76489/extract.ts';
+import {
+  DAC_ID,
+  DAC_MAME_TYPES,
+  DAC_MASTER_GAIN,
+  DAC_PORTS,
+} from './dac/definition.ts';
+import { extractDac } from './dac/extract.ts';
 
 export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
   // CPUs — one capability over every generated core.
@@ -110,6 +117,13 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     ports: SN76489_PORTS,
     extract: extractSn76489,
     masterGain: SN76489_MASTER_GAIN,
+  },
+  {
+    id: DAC_ID,
+    mameTypes: DAC_MAME_TYPES,
+    ports: DAC_PORTS,
+    extract: extractDac,
+    masterGain: DAC_MASTER_GAIN,
   },
   // Recognised by shape: their MAME classes are named per driver.
   {

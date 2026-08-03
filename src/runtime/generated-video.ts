@@ -415,6 +415,7 @@ interface GeneratedPaletteDevice {
   transpen_mask(gfx: GeneratedGfxElement, color: number, transparent: number): number;
   black_pen(): number;
   pens(): Uint32Array;
+  set_pen_color?(pen: number, colorOrRed: number, green?: number, blue?: number): void;
 }
 
 /**
@@ -448,6 +449,9 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
     for (let pen = 0; pen < this.plan.entries; pen++) this.update(pen);
     for (const write of this.plan.resetWrites ?? []) {
       this.write(write.offset, write.data, Boolean(write.ext));
+    }
+    for (const entry of this.plan.initialColors ?? []) {
+      this.set_pen_color(entry.pen, entry.color);
     }
   }
 
@@ -503,6 +507,14 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
 
   pens(): Uint32Array {
     return this.colors;
+  }
+
+  /** palette_device::set_pen_color overloads used by driver-owned RAM writers. */
+  set_pen_color(pen: number, colorOrRed: number, green?: number, blue?: number): void {
+    if (pen < 0 || pen >= this.colors.length) return;
+    this.colors[pen] = green === undefined || blue === undefined
+      ? colorOrRed >>> 0
+      : packRgb(colorOrRed, green, blue);
   }
 }
 
@@ -714,6 +726,81 @@ class GeneratedPalette implements GeneratedPaletteDevice {
     const color = indirect & 0xffff;
     this.indirect[pen] = color;
     this.colors[pen] = this.indirectColors[color] ?? 0xff000000;
+  }
+}
+
+/** TNX1's DMA-selected background/text/sprite PROM resistor networks. */
+class GeneratedTnx1Palette implements GeneratedPaletteDevice {
+  readonly colors = new Uint32Array(80);
+  private readonly colorProm: Uint8Array;
+  private readonly spriteProm: Uint8Array;
+  private bank = -1;
+
+  constructor(
+    plan: NonNullable<GeneratedPromPalettePlan['dynamic']>,
+    regions: Regions,
+  ) {
+    const colorProm = regions[plan.colorRegion];
+    const spriteProm = regions[plan.spriteRegion];
+    if (!colorProm || !spriteProm) {
+      throw new Error(
+        `generated TNX1 palette: missing ROM region "${!colorProm ? plan.colorRegion : plan.spriteRegion}"`,
+      );
+    }
+    this.colorProm = colorProm;
+    this.spriteProm = spriteProm;
+    this.colors.fill(0xff000000);
+  }
+
+  sync(state: Record<string, unknown>): void {
+    const bank = Number(state.m_palette_bank ?? 0) & 0x0f;
+    if (bank === this.bank) return;
+    this.bank = bank;
+    const colorBank = (bank & 0x08) ? 16 : 0;
+    for (let index = 0; index < 16; index++) {
+      this.colors[index] = this.decode(
+        this.colorProm[colorBank + index] ?? 0,
+        [1200, 680, 470],
+        [680, 470],
+      );
+      const text = this.colorProm[32 + colorBank + index] ?? 0;
+      this.colors[16 + index * 2] = 0xff000000;
+      this.colors[17 + index * 2] = this.decode(
+        text,
+        [1000, 470, 220],
+        [470, 220],
+      );
+    }
+    const spriteBank = (bank & 0x07) * 32;
+    for (let index = 0; index < 32; index++) {
+      const address = spriteBank + index;
+      const aliased = (address & 0x3f) | ((address & 0x20) << 1);
+      this.colors[48 + index] = this.decode(
+        this.spriteProm[aliased] ?? 0,
+        [1000, 470, 220],
+        [470, 220],
+      );
+    }
+  }
+
+  private decode(value: number, rgbResistors: number[], blueResistors: number[]): number {
+    return packRgb(
+      computeMameTtlSanyoResNet(value & 0x07, rgbResistors, 470, 0, 'darlington'),
+      computeMameTtlSanyoResNet((value >>> 3) & 0x07, rgbResistors, 470, 0, 'darlington'),
+      computeMameTtlSanyoResNet((value >>> 6) & 0x03, blueResistors, 680, 0, 'darlington'),
+    );
+  }
+
+  transpen_mask(_gfx: GeneratedGfxElement, _color: number, transparent: number): number {
+    return 1 << transparent;
+  }
+
+  black_pen(): number {
+    return 0;
+  }
+
+  pens(): Uint32Array {
+    return this.colors;
   }
 }
 
@@ -1280,8 +1367,11 @@ type GeneratedDirectScreenShape =
   | 'dkong-scanline-sprites'
   | 'galaxian-no-bullets'
   | 'system1-prom-mixer'
+  | 'tnx1-banked-raster'
   | 'timeplt'
-  | 'taitosj-layered-char-ram';
+  | 'taitosj-layered-char-ram'
+  | 'vicdual-character-ram'
+  | 'williams-column-bitmap';
 
 /**
  * Select direct executors by the generated MAME routine structure. Keeping the
@@ -1295,6 +1385,38 @@ export function generatedDirectScreenShape(
   const screen = machine.handlers?.find(handler =>
     `${handler.ownerClass}.${handler.method}` === screenKey);
   const body = screen?.body ?? '';
+  if (
+    body.includes('uint8_t const *const source = &m_videoram[y]') &&
+    body.includes('source[(x / 2) * 256]') &&
+    body.includes('m_palette->pen_color(m_paletteram[x])')
+  ) {
+    return 'williams-column-bitmap';
+  }
+  if (
+    body.includes('m_videoram[offs]') &&
+    body.includes('m_characterram[offs]') &&
+    body.includes('m_palette_bank << 3') &&
+    body.includes('m_proms->base()') &&
+    body.includes('video_data & 0x80')
+  ) {
+    return 'vicdual-character-ram';
+  }
+  if (
+    body.includes('const auto ilmode(m_io_mconf->read())') &&
+    body.includes('draw_background(bm, cliprect)') &&
+    body.includes('draw_sprites(bm, cliprect)') &&
+    body.includes('m_fg_tilemap->draw(screen, bm, cliprect, 0, 0)') &&
+    machine.handlers?.some(handler =>
+      handler.method === 'draw_background' &&
+      handler.body?.includes('uint16_t rovi = (flip_screen() ? (y / 2) ^ 0xff : (y / 2))') &&
+      handler.body.includes('m_background_ram[BIT(rovi, 8)')) &&
+    machine.handlers?.some(handler =>
+      handler.method === 'draw_sprites' &&
+      handler.body?.includes('for (int offs = 4; offs < m_dmasource.bytes(); offs += 4)') &&
+      handler.body.includes('attributes[m_sprite_ram[offs] >> 2]'))
+  ) {
+    return 'tnx1-banked-raster';
+  }
   if (
     body.includes('bitmap_ind16 *bgpixmaps[4]') &&
     body.includes('bgpixmaps[0] = bgpixmaps[1] = bgpixmaps[2] = bgpixmaps[3]') &&
@@ -1410,6 +1532,46 @@ export function decodeTaitoSjRamPixel(
   return value;
 }
 
+const VICDUAL_COLORS = new Uint32Array([
+  0xff000000,
+  0xff00ff00,
+  0xffff0000,
+  0xffffff00,
+  0xff0000ff,
+  0xff00ffff,
+  0xffff00ff,
+  0xffffffff,
+]);
+
+/** Decode a packed RGB32 pixel from the Vic Dual foreground/background PROM. */
+export function decodeVicDualPixel(
+  characterLine: number,
+  colorProm: number,
+  x: number,
+): number {
+  const color = characterLine & (0x80 >>> (x & 7))
+    ? (colorProm >>> 5) & 7
+    : (colorProm >>> 1) & 7;
+  return VICDUAL_COLORS[color]!;
+}
+
+/** Williams' 256-entry 3:3:2 resistor palette. */
+export function williamsPaletteColor(value: number): number {
+  const weighted = (bits: number[], resistances: number[]): number => {
+    const conductance = resistances.map(resistance => 1 / resistance);
+    const total = conductance.reduce((sum, item) => sum + item, 0);
+    return Math.round(bits.reduce(
+      (sum, bit, index) => sum + Number(Boolean(value & (1 << bit))) * conductance[index]!,
+      0,
+    ) * 255 / total);
+  };
+  return packRgb(
+    weighted([0, 1, 2], [1200, 560, 330]),
+    weighted([3, 4, 5], [1200, 560, 330]),
+    weighted([6, 7], [560, 330]),
+  );
+}
+
 /** Taito SJ's layer shifters include a different fixed pixel skew per plane. */
 export function taitoSjLayerScrollX(
   raw: number,
@@ -1493,7 +1655,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       state[lfsr.member] = values;
     }
     if (machine.video?.palette) {
-      this.palettes.set('m_palette', new GeneratedPalette(machine.video.palette, regions));
+      this.palettes.set(
+        'm_palette',
+        machine.video.palette.dynamic?.kind === 'tnx1-banked'
+          ? new GeneratedTnx1Palette(machine.video.palette.dynamic, regions)
+          : new GeneratedPalette(machine.video.palette, regions),
+      );
     }
     if (machine.video?.ramPalette) {
       this.ramPalette = new GeneratedRamPalette(machine.video.ramPalette);
@@ -1833,6 +2000,9 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     if (this.directScreenShape === 'system1-prom-mixer') {
       return this.drawSystem1(bitmap, cliprect);
     }
+    if (this.directScreenShape === 'tnx1-banked-raster') {
+      return this.drawTnx1(screen, bitmap, cliprect);
+    }
     if (this.directScreenShape === 'galaxian-no-bullets') {
       const background = this.bindings.referenceCalls?.m_draw_background_ptr;
       if (!background) return false;
@@ -1889,7 +2059,194 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     if (this.directScreenShape === 'taitosj-layered-char-ram') {
       return this.drawTaitoSj(bitmap, cliprect);
     }
+    if (this.directScreenShape === 'vicdual-character-ram') {
+      return this.drawVicDual(bitmap, cliprect);
+    }
+    if (this.directScreenShape === 'williams-column-bitmap') {
+      return this.drawWilliams(bitmap, cliprect);
+    }
     return false;
+  }
+
+  private drawWilliams(bitmap: BitmapTarget, cliprect: GeneratedRectangle): boolean {
+    const videoRaw = this.state.m_videoram;
+    const paletteRaw = this.state.m_paletteram;
+    if (!ArrayBuffer.isView(videoRaw) || !ArrayBuffer.isView(paletteRaw)) return false;
+    const video = videoRaw as Uint8Array;
+    const palette = paletteRaw as Uint8Array;
+    const firstX = cliprect.min_x & ~1;
+    for (let y = cliprect.min_y; y <= cliprect.max_y; y++) {
+      for (let x = firstX; x <= cliprect.max_x; x += 2) {
+        const pixels = video[y + (x >>> 1) * 256] ?? 0;
+        bitmap['pix='](y, x, williamsPaletteColor(palette[pixels >>> 4] ?? 0));
+        bitmap['pix='](y, x + 1, williamsPaletteColor(palette[pixels & 0x0f] ?? 0));
+      }
+    }
+    return true;
+  }
+
+  private drawVicDual(bitmap: BitmapTarget, cliprect: GeneratedRectangle): boolean {
+    const direct = bitmap.direct;
+    const videoRaw = this.state.m_videoram;
+    const characterRaw = this.state.m_characterram;
+    const promRaw = this.state.m_proms;
+    if (
+      !direct ||
+      !ArrayBuffer.isView(videoRaw) ||
+      !ArrayBuffer.isView(characterRaw) ||
+      !ArrayBuffer.isView(promRaw)
+    ) return false;
+    const video = videoRaw as Uint8Array;
+    const characters = characterRaw as Uint8Array;
+    const prom = promRaw as Uint8Array;
+    const paletteBank = Number(this.state.m_palette_bank ?? 0) & 1;
+    const firstY = Math.max(cliprect.min_y, direct.scaledYOffset);
+    const lastY = Math.min(
+      cliprect.max_y,
+      direct.scaledYOffset + direct.height * direct.yScale - 1,
+    );
+    for (let hardwareY = firstY; hardwareY <= lastY; hardwareY++) {
+      const sourceY = Math.floor(hardwareY / direct.yScale);
+      const outputY = Math.floor((hardwareY - direct.scaledYOffset) / direct.yScale);
+      if (hardwareY % direct.yScale) continue;
+      const row = (sourceY >>> 3) << 5;
+      const line = sourceY & 7;
+      for (let sourceX = 0; sourceX < 256; sourceX++) {
+        const character = video[row | (sourceX >>> 3)] ?? 0;
+        const characterLine = characters[(character << 3) | line] ?? 0;
+        const colorProm = prom[(character >>> 5) | (paletteBank << 3)] ?? 0;
+        const outputX = sourceX - Math.floor(direct.scaledXOffset / direct.xScale);
+        if (outputX < 0 || outputX >= direct.width) continue;
+        direct.pixels[outputY * direct.width + outputX] =
+          decodeVicDualPixel(characterLine, colorProm, sourceX);
+      }
+    }
+    return true;
+  }
+
+  /** Execute TNX1's banked background, scanline sprite and foreground mixer. */
+  private drawTnx1(
+    screen: { visible_area(): GeneratedRectangle },
+    bitmap: BitmapTarget,
+    cliprect: GeneratedRectangle,
+  ): boolean {
+    const backgroundRaw = this.state.m_background_ram;
+    const spriteRaw = this.state.m_sprite_ram;
+    const dmaRaw = this.state.m_dmasource;
+    const scrollRaw = this.state.m_background_scroll;
+    const spriteBitmap = this.state.m_sprite_bitmap;
+    const tilemap = this.state.m_fg_tilemap as GeneratedTilemap | undefined;
+    const gfx = this.gfx[1];
+    const storage = (value: unknown): value is ArrayLike<number> =>
+      ArrayBuffer.isView(value) || Array.isArray(value);
+    if (
+      !storage(backgroundRaw) || !storage(spriteRaw) || !storage(dmaRaw) ||
+      !storage(scrollRaw) || !(spriteBitmap instanceof GeneratedIndexedBitmap) ||
+      !tilemap || !gfx
+    ) return false;
+
+    (this.palette as GeneratedTnx1Palette | undefined)?.sync?.(this.state);
+    const io = this.state.m_io_mconf as { read?: () => number } | undefined;
+    const interlaceMode = Number(io?.read?.() ?? 0);
+    const fields = this.state.m_bitmap;
+    const field = Number(this.state.m_field ?? 0) & 1;
+    const composed = interlaceMode === 0
+      ? bitmap
+      : Array.isArray(fields) && fields[field] instanceof GeneratedIndexedBitmap
+        ? fields[field] as GeneratedIndexedBitmap
+        : bitmap;
+    const flipped = Boolean(this.state.__flip_screen);
+    const scrollX = Number(scrollRaw[0] ?? 0);
+    const scrollY = Number(scrollRaw[1] ?? 0);
+    const scrollHigh = Number(scrollRaw[2] ?? 0) & 1;
+
+    for (let y = cliprect.min_y; y <= cliprect.max_y; y++) {
+      const row = ((flipped ? ((y >>> 1) ^ 0xff) : y >>> 1) + scrollY) & 0x1ff;
+      const rowBase = row & 0x100 ? ((row >>> 2) & 0x3f) << 6 : 0;
+      for (let x = cliprect.min_x; x <= cliprect.max_x; x++) {
+        const column = 0x38 + (x >>> 1) + scrollX + (scrollHigh << 8);
+        const shift = column & 0x100 ? 4 : 0;
+        composed['pix='](
+          y,
+          x,
+          ((backgroundRaw[rowBase | ((column >>> 2) & 0x3f)] ?? 0) >>> shift) & 0x0f,
+        );
+      }
+    }
+
+    const attributes = Array.from({ length: 64 }, () => ({
+      row: 0,
+      sx: 0,
+      color: 0,
+      code: 0,
+      flipX: 0,
+      flipY: 0,
+    }));
+    const decoded = gfx.decoded;
+    const dmaLength = Number(dmaRaw.length ?? 0);
+    for (let y = cliprect.min_y; y <= cliprect.max_y; y++) {
+      spriteBitmap.pixels.fill(0, y * spriteBitmap.width, (y + 1) * spriteBitmap.width);
+      for (const attribute of attributes) attribute.color = 0;
+      for (let offset = 4; offset < dmaLength; offset += 4) {
+        let spriteY = 0x200 - Number(spriteRaw[offset + 1] ?? 0) * 2;
+        let row = y - spriteY;
+        if (flipped) {
+          spriteY ^= 0x1ff;
+          row = spriteY - y;
+        }
+        if (row < 0 || row >= 16) continue;
+        const slot = (Number(spriteRaw[offset] ?? 0) >>> 2) & 0x3f;
+        const attribute = attributes[slot]!;
+        const flags = Number(spriteRaw[offset + 3] ?? 0);
+        attribute.sx = Number(spriteRaw[offset] ?? 0) * 2;
+        attribute.row = row;
+        attribute.code = (
+          (Number(spriteRaw[offset + 2] ?? 0) & 0x7f) +
+          ((flags & 0x10) << 3) +
+          ((flags & 0x04) << 6)
+        ) ^ 0x1ff;
+        attribute.color = flags & 0x07;
+        attribute.flipX = Number(spriteRaw[offset + 2] ?? 0) & 0x80 ? 0x0f : 0;
+        attribute.flipY = flags & 0x08 ? 0x0f : 0;
+      }
+      for (const attribute of attributes) {
+        if (!attribute.color) continue;
+        const element = modulo(attribute.code, decoded.count);
+        const sourceBase = element * decoded.width * decoded.height +
+          (attribute.row ^ attribute.flipY) * decoded.width;
+        for (let x = 0; x < 16; x++) {
+          let pixelX = attribute.sx + x - 6;
+          if (pixelX < 0 || pixelX >= 512) continue;
+          if (flipped) pixelX ^= 0x1ff;
+          const pen = decoded.pixels[sourceBase + (x ^ attribute.flipX)] ?? 0;
+          spriteBitmap['pix='](
+            y,
+            pixelX,
+            pen ? gfx.entry.colorBase + attribute.color * gfx.granularity + pen : 0,
+          );
+        }
+      }
+      for (let x = cliprect.min_x; x <= cliprect.max_x; x++) {
+        const pen = spriteBitmap.pix(y, x);
+        if (pen) composed['pix='](y, x, pen);
+      }
+    }
+    tilemap.draw(screen, composed, cliprect, 0, 0);
+
+    if (composed !== bitmap) {
+      const previous = Array.isArray(fields) ? fields[field ^ 1] : undefined;
+      for (let y = cliprect.min_y; y <= cliprect.max_y; y++) {
+        for (let x = cliprect.min_x; x <= cliprect.max_x; x++) {
+          const pen = interlaceMode === 1 && (y & 1) === field
+            ? 0
+            : interlaceMode === 2 && (y & 1) === field && previous instanceof GeneratedIndexedBitmap
+              ? previous.pix(y, x)
+              : (composed as GeneratedIndexedBitmap).pix(y, x);
+          bitmap['pix='](y, x, pen);
+        }
+      }
+    }
+    return true;
   }
 
   /** Execute Sega System 1's source-defined sprite/collision/PROM mixer. */
@@ -1904,7 +2261,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const spriteCollide = this.state.m_sprite_collide;
     if (
       !Array.isArray(pages) || !(pages[0] instanceof GeneratedTilemap) ||
-      !(pages[1] instanceof GeneratedTilemap) || !ArrayBuffer.isView(video) ||
+      !(pages[1] instanceof GeneratedTilemap) ||
+      !(ArrayBuffer.isView(video) || Array.isArray(video)) ||
       !ArrayBuffer.isView(sprites) || !ArrayBuffer.isView(spriteRom) ||
       !ArrayBuffer.isView(lookup) || !(spriteBitmap instanceof GeneratedIndexedBitmap) ||
       !Array.isArray(mixCollide) || !Array.isArray(spriteCollide)
@@ -1914,7 +2272,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       bitmap.fill(0, cliprect);
       return true;
     }
-    const videoRam = video as Uint8Array;
+    const videoRam = video as ArrayLike<number>;
     const spriteRam = sprites as Uint8Array;
     const spriteBytes = spriteRom as Uint8Array;
     const lookupProm = lookup as Uint8Array;
@@ -2363,6 +2721,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       }
       return;
     }
+    (this.palette as GeneratedTnx1Palette | undefined)?.sync?.(this.state);
     const colors = this.palette?.colors;
     if (!colors) return;
     const end = Math.min(frame.length, pens.length, start + count);

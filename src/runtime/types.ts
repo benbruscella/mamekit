@@ -70,7 +70,14 @@ export interface BoardConfig {
   initialShares?: { share: string; bytes: number[] }[];
   /** IPT_CUSTOM port bits synthesized by a named driver member (the board
    * implements members by name; invaders_in1_control_r reads CONTP1) */
-  customs?: { port: string; mask: number; member: string; handler?: string }[];
+  customs?: {
+    port: string;
+    mask: number;
+    member: string;
+    handler?: string;
+    source?: 'screen-vblank';
+    activeLow?: boolean;
+  }[];
   screen: {
     width: number;
     height: number;

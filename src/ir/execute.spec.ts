@@ -50,6 +50,25 @@ check('members are read and written through the bindings', () => {
   assert.equal(members.m_irq_mask, 1);
 });
 
+check('device finders with get/set methods remain pointer-like objects', () => {
+  const device = { get: () => 0, set: (_name: string, _value: number) => {} };
+  assert.equal(
+    executeGeneratedHandler(
+      program([{
+        op: 'return',
+        value: {
+          kind: 'binary',
+          operator: '!=',
+          left: { kind: 'identifier', name: 'm_device' },
+          right: { kind: 'number', value: 0 },
+        },
+      }]),
+      { members: { m_device: device } },
+    ),
+    1,
+  );
+});
+
 check('a program that falls off the end returns nothing', () => {
   assert.deepEqual(executeGeneratedProgram(program([]), {}), { returned: false });
 });
@@ -98,6 +117,51 @@ check('64-bit function-style casts preserve timer divisors', () => {
     ),
     15_744,
   );
+});
+
+check('direct-initialized bitmap references preserve their runtime object', () => {
+  const bitmap = { 'pix=': () => {} };
+  assert.deepEqual(
+    executeGeneratedProgram(
+      program([{
+        op: 'return',
+        value: {
+          kind: 'call',
+          callee: { kind: 'identifier', name: 'bitmap_ind16' },
+          args: [{
+            kind: 'call',
+            callee: { kind: 'identifier', name: 'auto' },
+            args: [{ kind: 'identifier', name: 'bitmap' }],
+          }],
+        },
+      }]),
+      {},
+      { bitmap },
+    ),
+    { returned: true, value: bitmap },
+  );
+});
+
+check('std::copy_n copies between source memory containers', () => {
+  const source = Uint8Array.of(4, 5, 6, 7);
+  const destination = new Array(4).fill(0);
+  executeGeneratedHandler(
+    program([{
+      op: 'call',
+      expression: {
+        kind: 'call',
+        callee: { kind: 'identifier', name: 'std::copy_n' },
+        args: [
+          { kind: 'identifier', name: 'source' },
+          { kind: 'number', value: 3 },
+          { kind: 'identifier', name: 'destination' },
+        ],
+      },
+    }]),
+    {},
+    { source, destination },
+  );
+  assert.deepEqual(destination, [4, 5, 6, 0]);
 });
 
 // A program with diagnostics never lowered cleanly. Running it anyway would

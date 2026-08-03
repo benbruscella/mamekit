@@ -23,6 +23,8 @@ export interface ConnectionContext {
   handlerKeys: Set<string>;
   /** Device tag owning the generated sound backend, when the board has one. */
   soundTag?: string;
+  /** Register/data methods implemented by the primary generated sound core. */
+  soundWriteMethods?: Set<string>;
   /** Sound methods MAME wires as enables, from the generated sound binding. */
   soundEnableMethods?: Set<string>;
   /** Register offset the sound backend uses for its enable control. */
@@ -184,6 +186,15 @@ export function lowerCallbackEffect(
         ? { offset: context.soundControlOffset }
         : {}),
     };
+  }
+
+  if (
+    callback.targetTag &&
+    callback.targetMethod &&
+    callback.targetTag === context.soundTag &&
+    context.soundWriteMethods?.has(callback.targetMethod)
+  ) {
+    return { kind: 'audio-write', tag: callback.targetTag, method: callback.targetMethod };
   }
 
   // A secondary audio stream device: the board never instantiates it, so the

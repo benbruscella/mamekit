@@ -18,6 +18,8 @@ export interface RangeSpec {
   writeOnly?: boolean;
   /** The MAME write handler explicitly stores this shared RAM byte itself. */
   writeHandlerOwnsRam?: boolean;
+  viewTag?: string;
+  viewEntry?: number;
 }
 
 export type ReadHandler = (addr: number, offset: number) => number;
@@ -43,6 +45,14 @@ export class Bus {
   private readFns: ReadHandler[] = [() => OPEN_BUS];
   private writeFns: WriteHandler[] = [() => { /* open bus */ }];
   private base = new Uint32Array(0x10000);  // range base addr per address (for offset calc)
+  private readonly viewMappings: {
+    tag: string; entry: number; start: number; end: number; mirror: number;
+    readIdx: number; writeIdx: number; read: boolean; write: boolean;
+  }[] = [];
+  private readonly activeViews = new Map<string, number>();
+  private baseReadId?: Uint8Array;
+  private baseWriteId?: Uint8Array;
+  private baseAddresses?: Uint32Array;
   private readonly addressMask: number;
   /** shared RAM blocks by tag, so the machine/video can alias them */
   shares: Record<string, Uint8Array>;
@@ -76,6 +86,14 @@ export class Bus {
             ? h
             : (a, off, d) => { bytes[off] = d; h(a, off, d); };
         }
+        // MAME permits different mappings for the two directions in one
+        // fluent range, for example `.portr("IN0").writeonly().share(...)`.
+        // The share owns writes there, while reads must still reach IN0.
+        if (r.read) {
+          const h = registry.read[r.read];
+          if (!h) throw new Error(`missing read handler: ${r.read}`);
+          read = h;
+        }
       }
       if (r.kind === 'handler' || (r.kind !== 'ram' && (r.read || r.write))) {
         if (r.read) {
@@ -89,14 +107,32 @@ export class Bus {
           write = h;
         }
       }
-      if (r.writeOnly) read = null;
-      if (r.readOnly) write = null;
+      if (r.writeOnly && !r.read) read = null;
+      if (r.readOnly && !r.write) write = null;
 
       const readIdx = read ? this.readFns.push(read) - 1 : 0;
       const writeIdx = write ? this.writeFns.push(write) - 1 : 0;
       if (readIdx > 255 || writeIdx > 255) throw new Error('too many bus handlers');
 
       const mirror = r.mirror ?? 0;
+      if (r.viewTag) {
+        if (r.end > 0xffff || (r.end | mirror) > 0xffff) {
+          throw new Error(`memory view ${r.viewTag} exceeds the 16-bit generated bus`);
+        }
+        this.viewMappings.push({
+          tag: r.viewTag,
+          entry: r.viewEntry ?? 0,
+          start: r.start,
+          end: r.end,
+          mirror,
+          readIdx,
+          writeIdx,
+          read: Boolean(read),
+          write: Boolean(write),
+        });
+        if (!this.activeViews.has(r.viewTag)) this.activeViews.set(r.viewTag, 0);
+        continue;
+      }
       // apply the range at each mirror image; the stored base includes the
       // mirror bits so handler offsets are always relative to the range start
       for (let m = 0; ; m = (m - mirror) & mirror) {
@@ -134,6 +170,43 @@ export class Bus {
           }
         }
         if (mirror === 0 || m === mirror) break;
+      }
+    }
+    this.baseReadId = this.readId.slice();
+    this.baseWriteId = this.writeId.slice();
+    this.baseAddresses = this.base.slice();
+    this.rebuildViews();
+  }
+
+  /** Select a MAME memory_view entry and atomically refresh its address overlays. */
+  selectView(tag: string, entry: number): number {
+    if (!this.activeViews.has(tag)) return entry;
+    this.activeViews.set(tag, entry);
+    this.rebuildViews();
+    return entry;
+  }
+
+  private rebuildViews(): void {
+    if (!this.baseReadId || !this.baseWriteId || !this.baseAddresses) return;
+    this.readId.set(this.baseReadId);
+    this.writeId.set(this.baseWriteId);
+    this.base.set(this.baseAddresses);
+    for (const mapping of this.viewMappings) {
+      if (this.activeViews.get(mapping.tag) !== mapping.entry) continue;
+      for (let mirror = 0; ; mirror = (mirror - mapping.mirror) & mapping.mirror) {
+        const rangeBase = mapping.start | mirror;
+        for (let address = mapping.start; address <= mapping.end; address++) {
+          const effective = address | mirror;
+          if (mapping.read) {
+            this.readId[effective] = mapping.readIdx;
+            this.base[effective] = (this.base[effective] & 0xffff0000) | rangeBase;
+          }
+          if (mapping.write) {
+            this.writeId[effective] = mapping.writeIdx;
+            this.base[effective] = (this.base[effective] & 0x0000ffff) | (rangeBase << 16);
+          }
+        }
+        if (mapping.mirror === 0 || mirror === mapping.mirror) break;
       }
     }
   }

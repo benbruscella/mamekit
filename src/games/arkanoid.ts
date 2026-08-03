@@ -5,5 +5,10 @@ export const arkanoid = sourceTarget({
   driver: 'src/mame/taito/arkanoid.cpp',
   machine: { className: 'arkanoid_state', name: 'arkanoid' },
   screen: { width: 256, height: 224 },
-  soundKind: 'none',
+  soundKind: 'ay8910',
+  actions: [
+    { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 330, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 780, code: 'Space', heldFrames: 30, releasedFrames: 20 },
+  ],
 });

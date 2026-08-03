@@ -63,6 +63,7 @@ SoundRuntimeContext & { writes: [number, number, string | undefined][] } {
     callDevice: () => undefined,
     runCallbackHandler: () => undefined,
     dispatch: () => {},
+    readSignal: () => undefined,
     readProgram: () => 0xff,
     stallCpu: () => {},
     setCpuInputLine: () => {},

@@ -203,6 +203,11 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
       INPUT_LINE_NMI: -1,
     }),
     ...extractConstexprConstants(header),
+    // z80make.py emits these as per-run locals based on whether a devcb is
+    // configured. The generated bus safely ignores an unbound signal, so
+    // keeping both paths enabled preserves configured refresh/nomreq pins.
+    refresh_en: 1,
+    nomreq_en: 1,
   };
   const aliases = extractAliases(aliasesSource, header);
   const initializers = extractConstructorInitializers(cpp, 'z80_device');

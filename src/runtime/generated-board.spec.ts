@@ -362,6 +362,17 @@ const signalMachine: BoardIr = {
       }],
       diagnostics: [],
     },
+  }, {
+    id: 'handler:fixture_state.custom_r',
+    ownerClass: 'fixture_state',
+    method: 'custom_r',
+    program: {
+      operations: [{
+        op: 'return',
+        value: { kind: 'number', value: 1 },
+      }],
+      diagnostics: [],
+    },
   }],
   execution: {
     ...opcodeMachine.execution,
@@ -381,15 +392,22 @@ const signalBoard = createGeneratedBoard(
     family: 'fixture',
     cpus: [],
     ranges: [],
+    customs: [{
+      port: 'IN0', mask: 0x80, member: 'custom_r', handler: 'fixture_state.custom_r',
+    }],
     screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 1, rotate: 0 },
     clocks: { namco06: 0, wsg: 0 },
   },
   { mcu: Uint8Array.of(0) },
-  { read: port => port === 'IN0' ? 0xa5 : 0xff },
+  { read: port => port === 'IN0' ? 0x25 : 0xff },
   { soundWrite: () => {} },
 );
 signalBoard.frame(new Uint32Array(1));
-assert.equal(cpuSignalRead, 0xa5, 'CPU input callbacks must return the bound port value');
+assert.equal(
+  cpuSignalRead,
+  0xa5,
+  'CPU input callbacks must return the port value after synthesized custom fields',
+);
 assert.equal(
   cpuHandlerSignalRead,
   0x5a,

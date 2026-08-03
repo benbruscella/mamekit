@@ -286,6 +286,8 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         if (r[flag]) props[flag] = true;
       }
       if (r.share) props.share = r.share;
+      if (r.viewTag) props.viewTag = r.viewTag;
+      if (r.viewEntry !== undefined) props.viewEntry = r.viewEntry;
       if (r.portRead) props.portRead = r.portRead;
       if (r.portWrite) props.portWrite = r.portWrite;
       if (r.bankRead) props.bankRead = memberTags[`m_${r.bankRead}`] ?? r.bankRead;
@@ -327,6 +329,58 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     }
     return machineConfigs.find(candidate => candidate.cls === cfg.cls && candidate.name === callee)
       ?? cfgByName.get(callee);
+  };
+  const virtualMethod = (className: string, method: string): boolean => {
+    const seen = new Set<string>();
+    const visit = (candidate: string): boolean => {
+      if (seen.has(candidate)) return false;
+      seen.add(candidate);
+      const declaration = ast.ast.units
+        .flatMap(unit => unit.classes)
+        .find(cls => cls.name === candidate);
+      if (!declaration) return false;
+      const escaped = method.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const declaredVirtual = new RegExp(
+        `(?:\\bvirtual\\s+[^;{}]*\\b${escaped}\\s*\\(` +
+        `|\\b${escaped}\\s*\\([^;{}]*\\)[^;{}]*(?:override|final)\\b)`,
+      ).test(declaration.body);
+      return declaredVirtual || declaration.bases.some(base =>
+        visit(base.split('::').at(-1)!));
+    };
+    return visit(className);
+  };
+  const inheritedVirtualMapPatches = (cfg: (typeof machineConfigs)[number]) => {
+    const patches: { tag: string; space: string; mapId: string }[] = [];
+    const seenConfigs = new Set<string>();
+    const seenPatches = new Set<string>();
+    const visit = (current: (typeof machineConfigs)[number]): void => {
+      const configKey = `${current.cls}.${current.name}`;
+      if (seenConfigs.has(configKey)) return;
+      seenConfigs.add(configKey);
+      for (const device of current.devices) {
+        for (const [space, mapName] of Object.entries(device.addrMaps)) {
+          const declared = resolveMap(current.cls, mapName);
+          if (!declared || !virtualMethod(declared.cls, declared.name)) continue;
+          const effective = ast.findFunctionInHierarchy(cfg.cls, declared.name);
+          const target = effective && resolveMap(effective.className, effective.name);
+          if (!target || target.cls === declared.cls) continue;
+          const key = `${device.tag}\0${space}`;
+          if (seenPatches.has(key)) continue;
+          seenPatches.add(key);
+          patches.push({
+            tag: device.tag,
+            space,
+            mapId: `map:${target.cls}.${target.name}`,
+          });
+        }
+      }
+      for (const callee of current.calls) {
+        const target = resolveConfig(current, callee);
+        if (target) visit(target);
+      }
+    };
+    visit(cfg);
+    return patches;
   };
 
   // Clock resolution: a device instantiated with no clock runs at its
@@ -506,6 +560,20 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         if (!target) continue;
         g.edge(cfgId, `map:${target.cls}.${target.name}`, 'PATCHES_MAP', { space, deviceTag: patch.tag });
       }
+    }
+    // A set_addrmap callback is a C++ member-function delegate. When the
+    // referenced map is virtual, MAME dispatches it on the selected driver
+    // object even if the device was installed by a called base config. Model
+    // that implicit dispatch as the same per-config patch used by an explicit
+    // derived set_addrmap call (Popeye's tpp2_state moves RAM from $8000 to
+    // $8800 this way).
+    for (const patch of inheritedVirtualMapPatches(cfg)) {
+      if (cfg.patches.some(explicit =>
+        explicit.tag === patch.tag && explicit.addrMaps[patch.space] !== undefined)) continue;
+      g.edge(cfgId, patch.mapId, 'PATCHES_MAP', {
+        space: patch.space,
+        deviceTag: patch.tag,
+      });
     }
     for (const patch of cfg.gfxDecodePatches) {
       g.edge(cfgId, `gfxdecode:${patch.name}`, 'DECODES', {
@@ -890,15 +958,25 @@ function emitInputPorts(
       g.node('PortField', fid, props);
       g.edge(portId, fid, 'HAS_FIELD');
       const custom = f.modifiers
-        ?.map(modifier => /PORT_CUSTOM_MEMBER\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(modifier))
+        ?.map(modifier => /PORT_(?:CUSTOM_MEMBER|READ_LINE_MEMBER)\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)(?:\s*<\s*(\d+)\s*>)?\s*\)/.exec(modifier))
         .find((match): match is RegExpExecArray => Boolean(match));
       if (custom && context) {
+        // MAME commonly binds a function-template specialization directly to
+        // an input bit (for example zaxxon_coin_r<0>). Give each
+        // specialization its own generated handler and make the template
+        // argument available to the source compiler as a constant.
+        const templateArgument = custom[3] === undefined ? undefined : Number(custom[3]);
+        const method = templateArgument === undefined
+          ? custom[2]!
+          : `${custom[2]}_${templateArgument}`;
         const handlerId = emitSourceHandlerClosure(
           g,
           context.ast,
           custom[1]!,
-          custom[2]!,
-          context.constants,
+          method,
+          templateArgument === undefined
+            ? context.constants
+            : { ...context.constants, Num: templateArgument },
           source,
         );
         g.edge(fid, handlerId, 'CALLS_HANDLER');
@@ -1157,8 +1235,12 @@ function handlerProps(
   fallbackSource?: SourceSpan,
   inline?: { inlineParameters?: string; inlineBody?: string },
 ): Record<string, PropValue> {
-  const sourceName = method.replace(/_\d+$/, '');
-  const fn = ast.findFunctionInHierarchy(ownerClass, sourceName);
+  // A numeric suffix is our encoding for a bound function-template argument,
+  // but it can also be part of a literal MAME method name (clock_14024). An
+  // exact definition must therefore win before attempting specialization.
+  const exactFunction = ast.findFunctionInHierarchy(ownerClass, method);
+  const sourceName = exactFunction ? method : method.replace(/_-?\d+$/, '');
+  const fn = exactFunction ?? ast.findFunctionInHierarchy(ownerClass, sourceName);
   let body = inline?.inlineBody ?? fn?.body;
   if (body && fn) {
     const source = ast.ast.units.map(unit => unit.source).join('\n');
@@ -1213,8 +1295,9 @@ function emitSourceHandlerClosure(
   fallbackSource?: SourceSpan,
   visited = new Set<string>(),
 ): string {
-  const sourceName = method.replace(/_\d+$/, '');
-  const fn = ast.findFunctionInHierarchy(ownerClass, sourceName);
+  const exactFunction = ast.findFunctionInHierarchy(ownerClass, method);
+  const sourceName = exactFunction ? method : method.replace(/_-?\d+$/, '');
+  const fn = exactFunction ?? ast.findFunctionInHierarchy(ownerClass, sourceName);
   const handlerId = `handler:${ownerClass}.${method}`;
   if (visited.has(handlerId)) return handlerId;
   visited.add(handlerId);

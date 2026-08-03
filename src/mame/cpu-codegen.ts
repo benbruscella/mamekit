@@ -960,6 +960,9 @@ function emitCall(
     return `(this.bus.signal?.('irqack_cb', ${args[0] ?? '0'}) ?? 0)`;
   }
   if (name === 'm_irqack_cb.bind') return '0';
+  if (/^m_\w+_cb$/.test(name)) {
+    return `(this.bus.signal?.(${JSON.stringify(name.slice(2))}, ${args[0] ?? '0'}) ?? 0)`;
+  }
   if (name === 'LOG' || name === 'LOGMASKED' || name === 'logerror') return '0';
   if (name === 'total_cycles') return '1';
 

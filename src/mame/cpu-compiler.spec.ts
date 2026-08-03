@@ -48,18 +48,26 @@ assert.match(
   /this\.generatedService\(\)/,
   'generated CPUs must preserve each family\'s instruction-boundary IRQ service',
 );
+assert.match(
+  generatedCpuExecutableSource(definition),
+  /bus\.signal\?\.\("refresh_cb",/,
+  'Z80 refresh output must reach the machine-config callback',
+);
 
 clearGeneratedCpus();
 registerGeneratedCpu(definition);
 const memory = new Uint8Array(0x10000);
 memory.set([0x3e, 0x7f, 0xc6, 0x01, 0xcb, 0x07]);
+const z80Signals: Array<[string, number]> = [];
 const cpu = createCpu('Z80', {
   read: address => memory[address]!,
   write: (address, data) => { memory[address] = data; },
   in: () => 0xff,
   out: () => {},
+  signal: (name, value) => { z80Signals.push([name, value]); return 0; },
 });
 assert.equal(cpu.step(), 7);
+assert.equal(z80Signals.some(([name]) => name === 'refresh_cb'), true);
 assert.equal(cpu.get('A'), 0x7f);
 assert.equal(cpu.step(), 7);
 assert.equal(cpu.get('A'), 0x80);
