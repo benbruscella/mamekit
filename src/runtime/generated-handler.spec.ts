@@ -394,6 +394,35 @@ assert.equal(
   'a source handler may call a uniquely resolved method on a composed device member',
 );
 
+const concreteDeviceState: Record<string, unknown> = {};
+const concreteDeviceMachine: BoardIr = {
+  ...machine,
+  devices: [{ id: 'device:dac', tag: 'dac', type: 'AD7533', member: 'm_dac' }],
+  handlers: [{
+    id: 'handler:csd:porta_w',
+    ownerClass: 'csd_device',
+    method: 'porta_w',
+    program: compileMameHandler('m_dac->write(data);'),
+  }, {
+    id: 'handler:ssio:write',
+    ownerClass: 'ssio_device',
+    method: 'write',
+    parameters: 'uint8_t data',
+    program: compileMameHandler('m_wrong_source_handler = data;'),
+  }],
+};
+executeGeneratedMachineHandler(
+  concreteDeviceMachine,
+  concreteDeviceMachine.handlers![0]!,
+  { members: concreteDeviceState },
+  { data: 0x5a },
+);
+assert.equal(
+  concreteDeviceState.m_wrong_source_handler,
+  undefined,
+  'a concrete hardware finder must not fall back to an unrelated source method',
+);
+
 const frameworkSinkMachine: BoardIr = {
   ...machine,
   handlers: [{

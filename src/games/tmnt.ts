@@ -5,7 +5,7 @@ export const tmnt = sourceTarget({
   driver: 'src/mame/konami/tmnt.cpp',
   machine: { className: 'tmnt_state', name: 'tmnt' },
   screen: { width: 320, height: 224 },
-  soundKind: 'none',
+  soundKind: 'ym2151',
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 600, code: 'ArrowRight', heldFrames: 120, releasedFrames: 20 },

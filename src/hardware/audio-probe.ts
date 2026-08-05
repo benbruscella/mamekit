@@ -29,6 +29,7 @@ export interface AudioProbeContext {
     clock?: number;
     chips?: number;
     waveRegion?: string;
+    sampleRegion?: string;
     routes?: unknown;
     auxiliary?: unknown;
     auxiliaryDevices?: unknown;

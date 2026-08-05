@@ -145,12 +145,12 @@ function makeWriteHandler(
   if (directVideoRamWrite) return directVideoRamWrite;
   const directObjectRamWrite = makeDirectObjectRamWrite(handler, bindings);
   if (directObjectRamWrite) return directObjectRamWrite;
-  return (addr, offset, data) => {
+  return (addr, offset, data, memMask) => {
     executeGeneratedMachineHandler(
       machine,
       handler,
       bindings,
-      { addr, offset, data, state: data },
+      { addr, offset, data, state: data, ...(memMask !== undefined ? { mem_mask: memMask } : {}) },
     );
   };
 }

@@ -214,7 +214,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   }
 
   // --- rom sets ---
-  for (const set of parseRomSets(combined)) {
+  for (const set of parseRomSets(combined, consts)) {
     const setId = `romset:${set.name}`;
     const setSource = ast.findMacro('ROM_START', 0, set.name)?.span;
     g.node('RomSet', setId, { name: set.name, ...spanProps(setSource) });
@@ -258,8 +258,12 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   const mapByName = new Map(maps.map(m => [m.name, m]));
   // same-class match first: different state classes in one driver file can
   // reuse map names (m52_state::main_map vs alpha1v_state::main_map)
-  const resolveMap = (cls: string, name: string) =>
-    maps.find(m => m.cls === cls && m.name === name) ?? mapByName.get(name);
+  const resolveMap = (cls: string, name: string) => {
+    const qualified = /^(\w+)::(\w+)$/.exec(name);
+    return qualified
+      ? maps.find(m => m.cls === qualified[1] && m.name === qualified[2])
+      : maps.find(m => m.cls === cls && m.name === name) ?? mapByName.get(name);
+  };
   for (const map of maps) {
     const mapId = `map:${map.cls}.${map.name}`;
     const mapFunction = ast.findFunction(map.cls, map.name);
@@ -400,8 +404,8 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (!devCls || dev.clock === null) continue;
       const sub = machineConfigs.find(c => c.cls === devCls && c.name === 'device_add_mconfig');
       for (const sd of sub?.devices ?? []) {
-        const dm = sd.clockExpr && /^DERIVED_CLOCK\(\s*(\d+)\s*,\s*(\d+)\s*\)$/.exec(sd.clockExpr);
-        if (dm) { sd.clock = (dev.clock * Number(dm[1])) / Number(dm[2]); delete sd.clockExpr; }
+        const clock = derivedDeviceClock(sd.clockExpr, dev.clock, consts);
+        if (clock !== undefined) { sd.clock = clock; delete sd.clockExpr; }
       }
     }
   }
@@ -643,7 +647,17 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         });
         g.edge(devId, routeId, 'HAS_AUDIO_ROUTE');
       }
-      emitCallbacks(g, ast, cfgFunction, devId, dev.tag, dev.config, memberTags, consts);
+      emitCallbacks(
+        g,
+        ast,
+        cfgFunction,
+        devId,
+        dev.tag,
+        dev.config,
+        memberTags,
+        consts,
+        dev.clock ?? undefined,
+      );
       // board-style devices (IREM_M52_SOUNDC_AUDIO...) carry their own
       // sub-machine in device_add_mconfig — link so the subgraph walk
       // reaches the M6803/AY8910s/MSM5205 inside
@@ -735,6 +749,21 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     ...(license ? { license } : {}),
     ...(copyrightHolders ? { copyrightHolders } : {}),
   });
+}
+
+/** Evaluate MAME DERIVED_CLOCK numerator/denominator expressions. */
+export function derivedDeviceClock(
+  expression: string | undefined,
+  parentClock: number,
+  constants: Record<string, number> = {},
+): number | undefined {
+  const match = expression && /^DERIVED_CLOCK\(\s*([^,]+)\s*,\s*([^)]+)\s*\)$/.exec(expression);
+  if (!match) return undefined;
+  const numerator = evalExpr(match[1]!, constants);
+  const denominator = evalExpr(match[2]!, constants);
+  return numerator !== null && denominator !== null && denominator !== 0
+    ? parentClock * numerator / denominator
+    : undefined;
 }
 
 /**
@@ -986,7 +1015,7 @@ function emitInputPorts(
   }
 }
 
-function parseIoportMembers(
+export function parseIoportMembers(
   source: string,
   stringConstants: Record<string, string>,
 ): Record<string, string[]> {
@@ -1001,7 +1030,7 @@ function parseIoportMembers(
   for (const [member, size] of sizes) {
     const initializer = new RegExp(
       `\\b${member}\\s*\\(\\s*\\*this\\s*,\\s*("[^"]+"|\\w+)` +
-      `(?:\\s*,\\s*(\\d+)(?:U|UL|ULL)?)?\\s*\\)`,
+      `(?:\\s*,\\s*((?:\\d+)(?:ULL|UL|U)?|'[^']'))?\\s*\\)`,
     ).exec(source);
     if (!initializer) continue;
     const expression = initializer[1]!;
@@ -1009,10 +1038,18 @@ function parseIoportMembers(
       ? expression.slice(1, -1)
       : stringConstants[expression];
     if (!pattern) continue;
-    const start = Number(initializer[2] ?? 0);
+    const startToken = initializer[2] ?? '0';
+    const start = startToken.startsWith("'")
+      ? startToken.charCodeAt(1)
+      : Number.parseInt(startToken, 10);
     members[member] = pattern.includes('%u')
       ? Array.from({ length: size }, (_, index) => pattern.replace('%u', String(start + index)))
-      : [pattern];
+      : pattern.includes('%c')
+        ? Array.from(
+            { length: size },
+            (_, index) => pattern.replace('%c', String.fromCharCode(start + index)),
+          )
+        : [pattern];
   }
   return members;
 }
@@ -1074,7 +1111,11 @@ export function fromHzExpression(value: string): string | undefined {
 export function attotimeFrequency(
   value: string,
   constants: Record<string, number> = {},
+  deviceClock?: number,
 ): number | undefined {
+  if (deviceClock !== undefined && Number.isFinite(deviceClock)) {
+    value = value.replace(/\bclock\s*\(\s*\)/g, String(deviceClock));
+  }
   const hzExpression = fromHzExpression(value);
   if (hzExpression) return evalExpr(hzExpression, constants) ?? undefined;
   const ticks = /\bfrom_ticks\s*\(\s*([^,]+)\s*,\s*([^)]+)\)/.exec(value);
@@ -1095,6 +1136,7 @@ function emitCallbacks(
   config: string[],
   memberTags: Record<string, string>,
   constants: Record<string, number>,
+  deviceClock?: number,
 ): void {
   let callbackIndex = 0;
   const configPrefix = devId.slice(0, devId.lastIndexOf('/') + 1);
@@ -1152,7 +1194,7 @@ function emitCallbacks(
           ).exec(cfgFunction?.body ?? '')?.[1]
         : undefined;
       const period = localPeriod ?? periodArg;
-      const hz = period ? attotimeFrequency(period, constants) : undefined;
+      const hz = period ? attotimeFrequency(period, constants, deviceClock) : undefined;
       if (hz !== undefined) props.periodHz = hz;
       if (period) props.periodExpr = period;
     }

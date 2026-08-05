@@ -432,7 +432,10 @@ function expandRomMacros(source: string, initial: string): string {
   return expanded;
 }
 
-export function parseRomSets(src: string): RomSetDef[] {
+export function parseRomSets(
+  src: string,
+  consts: Record<string, number> = parseDefines(src),
+): RomSetDef[] {
   const out: RomSetDef[] = [];
   const re = /ROM_START\(\s*(\w+)\s*\)([\s\S]*?)ROM_END/g;
   let m: RegExpExecArray | null;
@@ -452,7 +455,7 @@ export function parseRomSets(src: string): RomSetDef[] {
       const statement = sm[1]!;
       if (statement.startsWith('ROM_REGION')) {
           region = {
-            size: evalExpr(args[0]) ?? 0,
+            size: evalExpr(args[0], consts) ?? 0,
             tag: unquote(args[1]),
             flags: args[2] ?? '',
             loads: [],
@@ -467,8 +470,8 @@ export function parseRomSets(src: string): RomSetDef[] {
           const sha1 = /SHA1\(([0-9a-fA-F]+)\)/.exec(flags);
           lastLoad = {
             file: unquote(args[0]),
-            offset: evalExpr(args[1]) ?? 0,
-            size: evalExpr(args[2]) ?? 0,
+            offset: evalExpr(args[1], consts) ?? 0,
+            size: evalExpr(args[2], consts) ?? 0,
             crc: crc ? crc[1] : '',
             sha1: sha1 ? sha1[1] : '',
             reloadOffsets: [],
@@ -494,18 +497,18 @@ export function parseRomSets(src: string): RomSetDef[] {
           region.loads.push(lastLoad);
           fileOffset = lastLoad.size;
       } else if (statement === 'ROM_RELOAD') {
-          if (lastLoad) lastLoad.reloadOffsets.push(evalExpr(args[0]) ?? 0);
+          if (lastLoad) lastLoad.reloadOffsets.push(evalExpr(args[0], consts) ?? 0);
       } else if (statement === 'ROM_CONTINUE') {
           if (!lastLoad) break;
-          const size = evalExpr(args[1]) ?? 0;
+          const size = evalExpr(args[1], consts) ?? 0;
           lastLoad.continueSegments.push({
-            offset: evalExpr(args[0]) ?? 0,
+            offset: evalExpr(args[0], consts) ?? 0,
             size,
             fileOffset,
           });
           fileOffset += size;
       } else if (statement === 'ROM_IGNORE') {
-          fileOffset += evalExpr(args[0]) ?? 0;
+          fileOffset += evalExpr(args[0], consts) ?? 0;
       }
     }
     out.push(set);
@@ -556,7 +559,10 @@ export interface AddressMapDef {
 }
 
 export function parseAddressMaps(src: string): AddressMapDef[] {
-  const fns = extractFunctionBody(src, /void\s+(\w+)::(\w+)\(address_map\s*&\s*map\)/g);
+  const fns = extractFunctionBody(
+    src,
+    /void\s+(\w+)::(\w+)\(address_map\s*&\s*map(?:\s*,[^)]*)?\)/g,
+  );
   return fns.map(({ cls, name, body }) => {
     const ranges: AddressRangeDef[] = [];
     const calls: string[] = [];
@@ -565,8 +571,11 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
     for (const stmt of splitStatements(body)) {
       const s = stmt.trim();
       // composition: galaxian_map(address_map &map) { galaxian_map_base(map); ... }
-      const call = /^(\w+)\(\s*map\s*\)$/.exec(s);
-      if (call) { calls.push(call[1]); continue; }
+      const call = /^(?:(\w+)::)?(\w+)\(\s*map(?:\s*,[\s\S]*)?\)$/.exec(s);
+      if (call) {
+        calls.push(call[1] ? `${call[1]}::${call[2]}` : call[2]!);
+        continue;
+      }
       const mapProp = /^map\.(\w+)\s*\(([^)]*)\)$/.exec(s);
       if (mapProp) {
         if (mapProp[1] === 'global_mask') globalMask = evalExpr(mapProp[2]) ?? undefined;
@@ -1160,7 +1169,11 @@ export function parseMachineConfigs(
           continue;
         }
         const refRaw = args[1] ?? dm[3];
-        const clockRaw = args.length > 2 ? args.slice(2).join(', ') : undefined;
+        // Device macros may carry constructor configuration after the clock
+        // (OKIM6295(..., clock, PIN7_HIGH)).  Only the third argument is the
+        // clock expression; folding later arguments into it leaves otherwise
+        // evaluable clocks unresolved.
+        const clockRaw = args.length > 2 ? args[2] : undefined;
         const ref = refRaw.trim();
         const dev: DeviceDef = {
           type,
@@ -1175,9 +1188,8 @@ export function parseMachineConfigs(
         byRef.set(dev.tag, dev);
         if (ref.startsWith('"')) byRef.set(unquote(ref), dev);
         // GFXDECODE(config, m_gfxdecode, m_palette, gfx_galaga)
-        if (type === 'GFXDECODE' && clockRaw) {
-          const parts = splitArgs(clockRaw);
-          dev.gfxDecodeName = parts[parts.length - 1]?.trim();
+        if (type === 'GFXDECODE' && args.length > 2) {
+          dev.gfxDecodeName = args[args.length - 1]?.trim();
         }
         // slot device with an options table + quoted default:
         // NES_CONTROL_PORT(config, m_ctrl1, nes_control_port1_devices, "joypad")

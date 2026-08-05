@@ -207,6 +207,7 @@ export function lowerGeneratedMachine(
   const handlers: GeneratedHandler[] = graph.nodes
     .filter(node => node.label === 'Handler')
     .map(node => {
+      const hasSourceBody = typeof node.props.sourceBody === 'string';
       const constants = Object.fromEntries(
         (Array.isArray(node.props.sourceConstants) ? node.props.sourceConstants : [])
           .map(entry => /^([^=]+)=(-?(?:\d+(?:\.\d+)?|Infinity))$/.exec(String(entry)))
@@ -218,9 +219,9 @@ export function lowerGeneratedMachine(
         ownerClass: String(node.props.ownerClass),
         method: String(node.props.method),
         ...(node.props.sourceParameters ? { parameters: String(node.props.sourceParameters) } : {}),
-        ...(node.props.sourceBody ? { body: String(node.props.sourceBody) } : {}),
+        ...(hasSourceBody ? { body: String(node.props.sourceBody) } : {}),
         ...(Object.keys(constants).length ? { constants } : {}),
-        ...(node.props.sourceBody ? {
+        ...(hasSourceBody ? {
           program: compileMameHandler(normalizeMameExecutionSource(String(node.props.sourceBody))),
         } : {}),
         ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
@@ -274,7 +275,8 @@ export function lowerGeneratedMachine(
       if (separator < 1) continue;
       inputMembers.set(
         encoded.slice(0, separator),
-        encoded.slice(separator + 1).split(',').filter(Boolean),
+        encoded.slice(separator + 1).split(',').filter(Boolean)
+          .map(tag => resolveInputPortTag(graph, tag)),
       );
     }
   }
@@ -286,6 +288,7 @@ export function lowerGeneratedMachine(
   const resetHandlers = Array.isArray(selectedMachine?.props.resetHandlers)
     ? selectedMachine.props.resetHandlers.map(String)
     : [];
+  const shareBindings = lowerShareBindings(graph);
   const execution: GeneratedExecutionPlan = {
     cpus: board.cpus.map(cpu => {
       const interruptVectorWriters = inferInterruptVectorWriters(
@@ -294,6 +297,17 @@ export function lowerGeneratedMachine(
         callbacks,
         handlers,
       );
+      const interruptMixer = deviceByTag.get(cpu.tag)?.configuration?.find(
+        configuration => configuration.method === 'set_interrupt_mixer',
+      )?.args[0];
+      const cpuDeviceId = deviceByTag.get(cpu.tag)?.id;
+      const cpuSpaceMapId = graph.edges.find(edge =>
+        edge.from === cpuDeviceId &&
+        edge.rel === 'HAS_MAP' &&
+        String(edge.props?.space ?? '').includes('AS_CPU_SPACE'),
+      )?.to;
+      const interruptAcknowledge = maps.find(map => map.id === cpuSpaceMapId)
+        ?.ranges.find(range => range.read)?.read;
       return {
         ...cpu,
         ...(nesApu && cpu.type?.toLowerCase() === 'rp2a03'
@@ -306,11 +320,16 @@ export function lowerGeneratedMachine(
           ? { mask: 0xfffff }
           : {}),
         cycleClock: generatedCpuCycleClock(cpu.type, cpu.clock),
+        ...(interruptMixer !== undefined
+          ? { interruptMixer: Boolean(interruptMixer) }
+          : {}),
+        ...(interruptAcknowledge ? { interruptAcknowledge } : {}),
         ...(interruptVectorWriters.length ? { interruptVectorWriters } : {}),
         ...(deviceByTag.get(cpu.tag)?.source ? { source: deviceByTag.get(cpu.tag)!.source } : {}),
       };
     }),
     ...(board.initialShares?.length ? { initialShares: board.initialShares } : {}),
+    ...(shareBindings.length ? { shareBindings } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(graph.nodes.some(node => node.label === 'MemoryBank') ? {
       banks: lowerMemoryBanks(graph, sourceRef),
@@ -323,6 +342,7 @@ export function lowerGeneratedMachine(
     ...(inputMembers.size ? {
       inputMembers: [...inputMembers].map(([member, tags]) => ({ member, tags })),
     } : {}),
+    ...(board.inputLatches?.length ? { inputLatches: board.inputLatches } : {}),
     frameEvents: lowerFrameEvents(
       callbacks,
       devices,
@@ -340,18 +360,22 @@ export function lowerGeneratedMachine(
       },
     } : {}),
   };
-  const soundDevice = devices.find(device => device.type === 'NAMCO_WSG');
+  const soundDevice = devices.find(device =>
+    device.type === 'NAMCO_WSG' || device.type === 'POLEPOS_WSG');
   const nesCpu = nesApu && devices.find(device =>
     device.type === 'RP2A03' || device.type === 'RP2A03G');
   const ayDevices = devices.filter(device =>
     ['AY8910', 'AY8912', 'YM2149'].includes(device.type));
   const ymDevices = devices.filter(device => device.type === 'YM2203');
+  const opmDevices = devices.filter(device => device.type === 'YM2151');
   const oplDevices = devices.filter(device => device.type === 'YM3526');
   const snDevices = devices.filter(device =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(device.type));
   const dacDevices = devices.filter(device =>
     ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533'].includes(device.type));
+  const sampleDevices = devices.filter(device => device.type === 'SAMPLES');
+  const berzerkSound = devices.find(device => device.type === 'EXIDY');
   const discreteDevice = devices.find(device => device.type === 'DISCRETE');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
@@ -387,7 +411,22 @@ export function lowerGeneratedMachine(
           .filter(callback => callback.targetTag === soundDevice.tag && callback.targetMethod)
           .map(callback => callback.targetMethod!))],
         controlOffset: -1,
+        ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
       }
+    : opmDevices.length
+      ? {
+          kind: 'ym2151',
+          deviceTag: opmDevices[0]!.tag,
+          deviceTags: opmDevices.map(device => device.tag),
+          deviceType: 'YM2151',
+          writeMethods: ['write'],
+          enableMethods: [],
+          controlOffset: -1,
+          ...(lowerAudioRoutes(graph, opmDevices).length
+            ? { routes: lowerAudioRoutes(graph, opmDevices) }
+            : {}),
+          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
+        }
     : ymDevices.length || oplDevices.length
       ? {
           kind: 'ym2203',
@@ -445,6 +484,25 @@ export function lowerGeneratedMachine(
             ? { routes: lowerAudioRoutes(graph, dacDevices) }
             : {}),
           ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
+        }
+    : berzerkSound
+      ? {
+          kind: 'berzerk',
+          deviceTag: berzerkSound.tag,
+          deviceType: 'EXIDY',
+          writeMethods: ['sh6840_w', 'sfxctrl_w'],
+          enableMethods: [],
+          controlOffset: -1,
+        }
+    : sampleDevices.length
+      ? {
+          kind: 'samples',
+          deviceTag: sampleDevices[0]!.tag,
+          deviceTags: sampleDevices.map(device => device.tag),
+          deviceType: 'SAMPLES',
+          writeMethods: ['start', 'stop', 'set_volume'],
+          enableMethods: [],
+          controlOffset: -1,
         }
     : generatedSoundboard
       ? (() => {
@@ -517,6 +575,68 @@ export function lowerGeneratedMachine(
     ...(compiledVideo ? { video: compiledVideo.plan } : {}),
     ...(sound ? { sound } : {}),
   };
+}
+
+/** Resolve a composite device's local port tag against the generated machine. */
+export function resolveInputPortTag(graph: KnowledgeGraph, rawTag: string): string {
+  const tags = graph.nodes
+    .filter(node => node.label === 'Port')
+    .map(node => String(node.props.tag ?? node.props.name ?? ''))
+    .filter(Boolean);
+  if (tags.includes(rawTag)) return rawTag;
+  const matches = [...new Set(tags.filter(tag => tag.endsWith(`:${rawTag}`)))];
+  return matches.length === 1 ? matches[0]! : rawTag;
+}
+
+/**
+ * Recover non-conventional required_shared_ptr names from the source handler
+ * attached to a shared address range. Most shares use m_<tag>; boards such as
+ * Spy Hunter deliberately bind m_spyhunt_alpharam to "spyhunt_alpha".
+ */
+export function lowerShareBindings(
+  graph: KnowledgeGraph,
+): NonNullable<GeneratedExecutionPlan['shareBindings']> {
+  const byId = new Map(graph.nodes.map(node => [node.id, node]));
+  const bindings = new Map<string, string>();
+  const wordShares = new Set<string>();
+  for (const range of graph.nodes.filter(node =>
+    node.label === 'AddressRange' && typeof node.props.share === 'string')) {
+    const share = String(range.props.share);
+    for (const edge of graph.edges.filter(candidate =>
+      candidate.from === range.id && ['READS', 'WRITES'].includes(candidate.rel))) {
+      const handler = byId.get(edge.to);
+      const body = String(handler?.props.sourceBody ?? '');
+      if (
+        body.includes('COMBINE_DATA') ||
+        /\b(?:u16|uint16_t)\s+(?:data|mem_mask)\b/.test(
+          String(handler?.props.sourceParameters ?? ''),
+        )
+      ) {
+        wordShares.add(share);
+      }
+      const combinedMembers = [
+        ...body.matchAll(/\bCOMBINE_DATA\s*\(\s*&\s*(m_\w+)\s*\[/g),
+      ].map(match => match[1]!);
+      const writtenMembers = new Set(combinedMembers.length
+        ? combinedMembers
+        : [...body.matchAll(/\b(m_\w+)\s*\[[^\]]+\]\s*(?:[|&^+\-]?=)/g)]
+          .map(match => match[1]!));
+      if (!writtenMembers.size) {
+        const referenced = [...new Set(
+          [...body.matchAll(/\b(m_\w+)\s*\[/g)].map(match => match[1]!),
+        )];
+        if (referenced.length === 1) writtenMembers.add(referenced[0]!);
+      }
+      for (const member of writtenMembers) {
+        bindings.set(`${share}\0${member}`, share);
+      }
+    }
+  }
+  return [...bindings].map(([key, share]) => ({
+    share,
+    member: key.slice(key.indexOf('\0') + 1),
+    ...(wordShares.has(share) ? { bits: 16 as const } : {}),
+  }));
 }
 
 export function inferredMemberIndexRank(
@@ -668,6 +788,8 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   VLM5030: ['data_w', 'st', 'rst'],
   YM3526: ['write'],
   HC55516: ['digit_w', 'clock_w'],
+  POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
+  OKIM6295: ['write', 'set_pin7'],
 };
 
 /**
@@ -705,7 +827,10 @@ export function lowerAuxiliaryAudioDevices(
       ? sourceDevice.props.config.map(String).join('\n')
       : '';
     const initialMode =
-      /set_prescaler_selector\([^)]*::(\w+)\)/.exec(config)?.[1];
+      /set_prescaler_selector\([^)]*::(\w+)\)/.exec(config)?.[1] ??
+      (device.type === 'OKIM6295'
+        ? /okim6295_device::(PIN7_(?:HIGH|LOW))/.exec(config)?.[1]
+        : undefined);
     const targetInput = Number(route.props.input);
     const referenceDevice = devices.find(candidate => {
       if (candidate.type !== 'DISCRETE') return false;

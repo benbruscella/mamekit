@@ -124,7 +124,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   const functions: MameFunction[] = [];
   const occupied: [number, number][] = [];
   const functionRe =
-    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(\w+)(?:\s*<[^<>();{}]*>)?::(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
+    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(?:[*&]+\s*)?(\w+)(?:\s*<[^<>();{}]*>)?::(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
   let fm: RegExpExecArray | null;
   while ((fm = functionRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', fm.index + fm[0].length - 1);

@@ -93,6 +93,17 @@ check('inline header methods are parsed', inline.functions.map(fn => [
   ['scroll_device', 'scroll_r', 'offs_t offset', 'return m_scroll[offset & 0x3f];'],
   ['scroll_device', 'scroll_w', 'offs_t offset, uint8_t data', 'm_scroll[offset & 0x3f] = data;'],
 ]);
+const pointerReturn = parseMameSource('video.cpp', `
+inline uint16_t *video_state::video_base(int offset)
+{
+  return &m_videoram[offset];
+}
+`);
+check('out-of-class pointer-return helper is parsed', pointerReturn.functions.map(fn => [
+  fn.className, fn.name, fn.parameters, fn.body.trim(),
+]), [[
+  'video_state', 'video_base', 'int offset', 'return &m_videoram[offset];',
+]]);
 check(
   'argument splitter preserves shift expressions',
   splitMameArgs('(i << 1) | 1, value >> 2'),

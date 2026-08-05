@@ -4,7 +4,10 @@ type SourceTarget = Pick<
   GameTestContract,
   'game' | 'driver' | 'machine' | 'screen' | 'soundKind' | 'golden'
 >;
-type SourceTargetOptions = SourceTarget & Pick<Partial<GameTestContract>, 'actions'>;
+type SourceTargetOptions = SourceTarget & Pick<
+  Partial<GameTestContract>,
+  'actions' | 'minimumFps'
+>;
 
 /**
  * Standard real-ROM acceptance schedule for a newly source-enabled arcade
@@ -17,7 +20,7 @@ export function sourceTarget(target: SourceTargetOptions): GameTestContract {
     category: 'arcade',
     romEnvironment: `MAMEKIT_${target.game.toUpperCase()}_ROM`,
     frames: 1200,
-    minimumFps: 10,
+    minimumFps: target.minimumFps ?? 10,
     checkpoints: [1, 60, 180, 300, 600, 900, 1200],
     actions: target.actions ?? [
       { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },

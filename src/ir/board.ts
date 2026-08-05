@@ -255,6 +255,10 @@ export interface GeneratedExecutionCpu {
   clock: number;
   /** Effective instruction-cycle clock after a MAME device's internal divider. */
   cycleClock?: number;
+  /** Whether a 68000 exposes logical IRQ levels instead of its three physical IPL pins. */
+  interruptMixer?: boolean;
+  /** Source handler mapped in the CPU's interrupt-acknowledge address space. */
+  interruptAcknowledge?: string;
   region: string;
   ranges?: RangeSpec[];
   mask?: number;
@@ -300,6 +304,8 @@ export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
   /** Source-defined power-on contents for battery-backed/shared RAM. */
   initialShares?: { share: string; bytes: number[] }[];
+  /** Source member names that alias an address-map memory share. */
+  shareBindings?: { share: string; member: string; bits?: 8 | 16 }[];
   /** Driver lifecycle handlers executed in source-derived base-first order. */
   resetHandlers?: string[];
   banks?: {
@@ -328,6 +334,15 @@ export interface GeneratedExecutionPlan {
     activeLow?: boolean;
   }[];
   inputMembers?: { member: string; tags: string[] }[];
+  /** Source PORT_CHANGED_MEMBER handlers that latch an asserted input bit. */
+  inputLatches?: {
+    port: string;
+    mask: number;
+    activeLow: boolean;
+    stateMember: string;
+    index: number;
+    handler: string;
+  }[];
   frameEvents: GeneratedFrameEvent[];
   screenUpdate?: {
     handler: string;
@@ -421,6 +436,16 @@ export interface GeneratedPromPalettePlan {
       pulldown: number;
       pullup: number;
     }[];
+  }[];
+  /**
+   * Indirect-color sections computed entirely from the palette index with
+   * fixed MAME helpers/expressions (for example pal1bit and conditional
+   * resistor pulls). Values are packed in the runtime's native RGBA word
+   * order and do not depend on a PROM byte.
+   */
+  indexedColors?: {
+    base: number;
+    colors: number[];
   }[];
   /**
    * Additional indirect-color sections read from a different range of the
@@ -600,7 +625,7 @@ export interface GeneratedVideoPlan {
   /** Palette RAM decoded by a MAME set_format converter instead of a PROM. */
   ramPalette?: GeneratedRamPalettePlan;
   tilemaps: GeneratedTilemapPlan[];
-  initialState: Record<string, number | number[]>;
+  initialState: Record<string, unknown>;
   /** MAME may render at a hardware sub-pixel scale (Galaxian uses 3x horizontally). */
   renderScale?: { x: number; y: number };
   /** Driver-init delegate member -> selected MAME method, or null when explicitly cleared. */

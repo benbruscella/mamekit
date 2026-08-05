@@ -5,5 +5,5 @@ export const berzerk = sourceTarget({
   driver: 'src/mame/stern/berzerk.cpp',
   machine: { className: 'berzerk_state', name: 'berzerk' },
   screen: { width: 256, height: 224 },
-  soundKind: 'none',
+  soundKind: 'berzerk',
 });

@@ -13,6 +13,8 @@ import type { BoardIr } from '../ir/board.ts';
 
 export interface SoundRuntimeContext {
   board: BoardIr;
+  /** Loaded ROMs for sound devices with a device-local sample region. */
+  regions?: Record<string, Uint8Array>;
   /** The board's generated sound binding; never undefined when this runs. */
   sound: NonNullable<BoardIr['sound']>;
   /** Bus handler slots, keyed as MAME's "<tag>.<method>". */

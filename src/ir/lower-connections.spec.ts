@@ -95,6 +95,10 @@ check('a CPU input line lowers to the named pin', () => {
     { kind: 'cpu-line', tag: 'maincpu', line: 'irq5', delivery: 'level' },
   );
   assert.deepEqual(
+    effect({ targetTag: 'maincpu', inputLine: 'M68K_IRQ_IPL1' }),
+    { kind: 'cpu-line', tag: 'maincpu', line: 'irq1', delivery: 'level' },
+  );
+  assert.deepEqual(
     effect({ targetTag: 'maincpu', inputLine: 'Z80_INPUT_LINE_BUSREQ' }),
     { kind: 'cpu-line', tag: 'maincpu', line: 'halt', delivery: 'level' },
   );

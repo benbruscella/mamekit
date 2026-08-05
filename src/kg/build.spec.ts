@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import {
   attotimeFrequency,
+  derivedDeviceClock,
   fromHzExpression,
   gameSubgraph,
+  parseIoportMembers,
   resolveMachineLifecycle,
 } from './build.ts';
 import type { KnowledgeGraph, KGNode } from './types.ts';
@@ -31,12 +33,37 @@ assert.equal(
   'periodic IRQ frequency extraction must retain nested denominator parentheses',
 );
 assert.equal(
+  derivedDeviceClock('DERIVED_CLOCK(1, 2*4)', 16_000_000),
+  2_000_000,
+  'derived device clocks must accept arithmetic in their divider',
+);
+assert.equal(
+  attotimeFrequency('attotime::from_hz(clock() / (2*16*10))', {}, 2_000_000),
+  6_250,
+  'periodic callbacks may derive their frequency from the configured device clock',
+);
+assert.equal(
   attotimeFrequency(
     'attotime::from_ticks(384 * 262 / 4, 12_MHz_XTAL / 2)',
     { '12_MHz_XTAL': 12_000_000 },
   ),
   6_000_000 / 25_152,
   'from_ticks periodic interrupts must lower to their source frequency',
+);
+assert.deepEqual(
+  parseIoportMembers(`
+    required_ioport_array<4> m_io_in;
+    optional_ioport_array<3> m_dsw;
+    test_state::test_state()
+      : m_io_in(*this, "IN%u", 0U)
+      , m_dsw(*this, "DSW%c", 'A')
+    { }
+  `, {}),
+  {
+    m_io_in: ['IN0', 'IN1', 'IN2', 'IN3'],
+    m_dsw: ['DSWA', 'DSWB', 'DSWC'],
+  },
+  'ioport finder arrays must expand numeric and character tag patterns',
 );
 
 const graph: KnowledgeGraph = {

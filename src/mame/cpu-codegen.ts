@@ -220,9 +220,10 @@ ${step}
     this.generatedInput(-1, 0);
   }
 
-  private acknowledgeIrq(): number {
+  private acknowledgeIrq(level = 0): number {
     const source = this.irqData;
-    const data = typeof source === 'function' ? source() : source;
+    const data = this.bus.acknowledge?.(level) ??
+      (typeof source === 'function' ? source() : source);
     if (this.irqHold) {
       this.irqHold = false;
       this.setIrqLine(false);
@@ -955,7 +956,9 @@ function emitCall(
     return `(this.bus.signal?.(${JSON.stringify(name.slice(2))}, ` +
       `${args[0] ?? '0'}) ?? 0)`;
   }
-  if (name === 'standard_irq_callback') return 'this.acknowledgeIrq()';
+  if (name === 'standard_irq_callback') {
+    return `this.acknowledgeIrq(${args[0] ?? '0'})`;
+  }
   if (name === 'm_irqack_cb') {
     return `(this.bus.signal?.('irqack_cb', ${args[0] ?? '0'}) ?? 0)`;
   }

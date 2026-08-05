@@ -5,10 +5,12 @@ import {
   applyGeneratedCpuInputLine,
   pulseGeneratedCpuInputLine,
   bindGeneratedDriverState,
+  bindGeneratedInputState,
   bindGeneratedRegionState,
   bindGeneratedShareState,
   createGeneratedBoard,
   generatedDeviceCallbackArguments,
+  generatedCpuMemberBindings,
   generatedPromGateOpen,
   generatedSignalHandlerArguments,
 } from './generated-board.ts';
@@ -24,11 +26,37 @@ const second = new Uint8Array(0x100);
 
 bindGeneratedShareState(state, 'spriteram[0]', first);
 bindGeneratedShareState(state, 'spriteram[1]', second);
+bindGeneratedShareState(state, 'spyhunt_alpha', first, ['m_spyhunt_alpharam']);
 
 assert.equal(state['m_spriteram[0]'], first);
 assert.equal(state['m_spriteram[1]'], second);
 assert.deepEqual(state.m_spriteram, [first, second]);
 assert.equal((first as Uint8Array & { bytes(): number }).bytes(), 0x100);
+assert.equal(state.m_spyhunt_alpharam, first);
+
+const inputState: Record<string, unknown> = {};
+bindGeneratedInputState(inputState, [{
+  member: 'm_ports',
+  tags: ['ssio:IP0', 'ssio:IP1'],
+}], {
+  read: tag => tag === 'ssio:IP0' ? 0xfe : 0xfb,
+});
+const inputFinders = inputState.m_ports as {
+  read(): number;
+  read_safe(fallback?: number): number;
+}[];
+assert.equal(inputFinders[0]!.read_safe(), 0xfe);
+assert.equal(inputFinders[1]!.read(), 0xfb);
+
+let scopedCpuLine = '';
+const scopedBindings = generatedCpuMemberBindings({
+  calls: {
+    'm_maincpu.set_input_line': () => { scopedCpuLine = 'maincpu'; },
+    'm_ssio:cpu.set_input_line': () => { scopedCpuLine = 'ssio:cpu'; },
+  },
+}, 'ssio:cpu');
+scopedBindings.calls?.['m_cpu.set_input_line']?.(0, 1);
+assert.equal(scopedCpuLine, 'ssio:cpu');
 
 const regionState: Record<string, unknown> = {};
 const irqProm = Uint8Array.of(2, 6, 1, 5);

@@ -8,6 +8,10 @@ import { installYm2203Runtime } from './ym2203/runtime.ts';
 import { installNesRuntime } from './nes/runtime.ts';
 import { installSn76489Runtime } from './sn76489/runtime.ts';
 import { installDacRuntime } from './dac/runtime.ts';
+import { installNamcoWsgRuntime } from './namco-wsg/runtime.ts';
+import { installSamplesRuntime } from './samples/runtime.ts';
+import { installYm2151Runtime } from './ym2151/runtime.ts';
+import { installBerzerkSoundRuntime } from './berzerk-sound/runtime.ts';
 import {
   deviceAliases,
   type SoundRuntimeContext,
@@ -20,11 +24,15 @@ import {
  * to the sink by method name, which is what the generated worklets expect.
  */
 const INSTALLERS: Readonly<Record<string, SoundRuntimeInstaller>> = {
+  wsg: installNamcoWsgRuntime,
   ay8910: installAy8910Runtime,
   ym2203: installYm2203Runtime,
   nes: installNesRuntime,
   sn76489: installSn76489Runtime,
   dac: installDacRuntime,
+  samples: installSamplesRuntime,
+  ym2151: installYm2151Runtime,
+  berzerk: installBerzerkSoundRuntime,
 };
 
 export function installSoundRuntime(context: SoundRuntimeContext): SoundRuntimeHooks | undefined {

@@ -6,6 +6,8 @@ export interface RangeSpec {
   start: number;
   end: number;
   mirror?: number;
+  /** Address bits decoded into the handler offset rather than mirrored away. */
+  select?: number;
   /** Byte offset in the supplied ROM corresponding to this range's start. */
   romOffset?: number;
   kind: 'rom' | 'ram' | 'handler' | 'nop';
@@ -23,7 +25,7 @@ export interface RangeSpec {
 }
 
 export type ReadHandler = (addr: number, offset: number) => number;
-export type WriteHandler = (addr: number, offset: number, data: number) => void;
+export type WriteHandler = (addr: number, offset: number, data: number, memMask?: number) => void;
 
 export interface HandlerRegistry {
   read: Record<string, ReadHandler>;
@@ -34,6 +36,20 @@ export interface HandlerRegistry {
 // unmap_value_high must carry that choice explicitly in generated IR rather
 // than making every NOP/unmapped range read high.
 const OPEN_BUS = 0x00;
+
+function wordReadHandler(handler: ReadHandler): ReadHandler {
+  return (address, offset) => {
+    const value = handler(address, offset >>> 1) & 0xffff;
+    return address & 1 ? value & 0xff : value >>> 8;
+  };
+}
+
+function wordWriteHandler(handler: WriteHandler): WriteHandler {
+  return (address, offset, data) => {
+    if (address & 1) handler(address, offset >>> 1, data & 0xff, 0x00ff);
+    else handler(address, offset >>> 1, (data & 0xff) << 8, 0xff00);
+  };
+}
 
 export class Bus {
   private readId = new Uint8Array(0x10000);
@@ -59,7 +75,13 @@ export class Bus {
   /** Optional board-provided AS_OPCODES read path. */
   readOpcode?: (addr: number) => number;
 
-  constructor(ranges: RangeSpec[], rom: Uint8Array, registry: HandlerRegistry, shares: Record<string, Uint8Array> = {}) {
+  constructor(
+    ranges: RangeSpec[],
+    rom: Uint8Array,
+    registry: HandlerRegistry,
+    shares: Record<string, Uint8Array> = {},
+    dataWidth: 8 | 16 = 8,
+  ) {
     this.shares = shares;
     this.addressMask = ranges.some(range => (range.end | (range.mirror ?? 0)) > 0xffff)
       ? 0xffffff
@@ -76,15 +98,28 @@ export class Bus {
         const bytes = r.share
           ? (this.shares[r.share] ??= new Uint8Array(size))
           : new Uint8Array(size);
-        read = (_a, off) => bytes[off];
-        write = (_a, off, d) => { bytes[off] = d; };
+        if (dataWidth === 16) {
+          const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
+          read = (_a, off) => off & 1 ? words[off >>> 1]! : words[off >>> 1]! >>> 8;
+          write = (_a, off, d) => {
+            const index = off >>> 1;
+            words[index] = off & 1
+              ? (words[index]! & 0xff00) | (d & 0xff)
+              : (words[index]! & 0x00ff) | ((d & 0xff) << 8);
+          };
+        } else {
+          read = (_a, off) => bytes[off];
+          write = (_a, off, d) => { bytes[off] = d; };
+        }
         // a RAM range may still have a write handler override (e.g. videoram_w)
         if (r.write) {
           const h = registry.write[r.write];
           if (!h) throw new Error(`missing write handler: ${r.write}`);
+          const adapted = dataWidth === 16 ? wordWriteHandler(h) : h;
+          const ramWrite = write!;
           write = r.writeHandlerOwnsRam
-            ? h
-            : (a, off, d) => { bytes[off] = d; h(a, off, d); };
+            ? adapted
+            : (a, off, d) => { ramWrite(a, off, d); adapted(a, off, d); };
         }
         // MAME permits different mappings for the two directions in one
         // fluent range, for example `.portr("IN0").writeonly().share(...)`.
@@ -92,19 +127,19 @@ export class Bus {
         if (r.read) {
           const h = registry.read[r.read];
           if (!h) throw new Error(`missing read handler: ${r.read}`);
-          read = h;
+          read = dataWidth === 16 ? wordReadHandler(h) : h;
         }
       }
       if (r.kind === 'handler' || (r.kind !== 'ram' && (r.read || r.write))) {
         if (r.read) {
           const h = registry.read[r.read];
           if (!h) throw new Error(`missing read handler: ${r.read}`);
-          read = h;
+          read = dataWidth === 16 ? wordReadHandler(h) : h;
         }
         if (r.write) {
           const h = registry.write[r.write];
           if (!h) throw new Error(`missing write handler: ${r.write}`);
-          write = h;
+          write = dataWidth === 16 ? wordWriteHandler(h) : h;
         }
       }
       if (r.writeOnly && !r.read) read = null;
@@ -133,41 +168,46 @@ export class Bus {
         if (!this.activeViews.has(r.viewTag)) this.activeViews.set(r.viewTag, 0);
         continue;
       }
-      // apply the range at each mirror image; the stored base includes the
-      // mirror bits so handler offsets are always relative to the range start
+      // Apply the range at every mirror/select image. Mirror bits disappear
+      // from the handler offset; select bits remain (MAME's `.select(mask)`),
+      // which is how sparsely decoded control latches receive high offset bits.
       for (let m = 0; ; m = (m - mirror) & mirror) {
-        const base = (r.start | m) & this.addressMask;
-        for (let a = r.start; a <= r.end; a++) {
-          const ea = (a | m) & this.addressMask;
-          if (ea <= 0xffff) {
+        const select = r.select ?? 0;
+        for (let s = 0; ; s = (s - select) & select) {
+          const base = (r.start | m) & this.addressMask;
+          for (let a = r.start; a <= r.end; a++) {
+            const ea = (a | m | s) & this.addressMask;
+            if (ea <= 0xffff) {
+              if (read) {
+                this.readId[ea] = readIdx;
+                this.base[ea] = (this.base[ea] & 0xffff0000) | base;
+              }
+              if (write) {
+                this.writeId[ea] = writeIdx;
+                this.base[ea] = (this.base[ea] & 0x0000ffff) | (base << 16);
+              }
+              continue;
+            }
+            const page = ea >>> 12;
+            const offset = ea & 0xfff;
             if (read) {
-              this.readId[ea] = readIdx;
-              this.base[ea] = (this.base[ea] & 0xffff0000) | base;
+              const ids = this.highReadId.get(page) ?? new Uint8Array(0x1000);
+              const bases = this.highReadBase.get(page) ?? new Uint32Array(0x1000);
+              ids[offset] = readIdx;
+              bases[offset] = base;
+              this.highReadId.set(page, ids);
+              this.highReadBase.set(page, bases);
             }
             if (write) {
-              this.writeId[ea] = writeIdx;
-              this.base[ea] = (this.base[ea] & 0x0000ffff) | (base << 16);
+              const ids = this.highWriteId.get(page) ?? new Uint8Array(0x1000);
+              const bases = this.highWriteBase.get(page) ?? new Uint32Array(0x1000);
+              ids[offset] = writeIdx;
+              bases[offset] = base;
+              this.highWriteId.set(page, ids);
+              this.highWriteBase.set(page, bases);
             }
-            continue;
           }
-          const page = ea >>> 12;
-          const offset = ea & 0xfff;
-          if (read) {
-            const ids = this.highReadId.get(page) ?? new Uint8Array(0x1000);
-            const bases = this.highReadBase.get(page) ?? new Uint32Array(0x1000);
-            ids[offset] = readIdx;
-            bases[offset] = base;
-            this.highReadId.set(page, ids);
-            this.highReadBase.set(page, bases);
-          }
-          if (write) {
-            const ids = this.highWriteId.get(page) ?? new Uint8Array(0x1000);
-            const bases = this.highWriteBase.get(page) ?? new Uint32Array(0x1000);
-            ids[offset] = writeIdx;
-            bases[offset] = base;
-            this.highWriteId.set(page, ids);
-            this.highWriteBase.set(page, bases);
-          }
+          if (select === 0 || s === select) break;
         }
         if (mirror === 0 || m === mirror) break;
       }

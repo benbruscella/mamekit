@@ -5,7 +5,7 @@ export const gauntlet = sourceTarget({
   driver: 'src/mame/atari/gauntlet.cpp',
   machine: { className: 'gauntlet_state', name: 'gauntlet' },
   screen: { width: 336, height: 240 },
-  soundKind: 'none',
+  soundKind: 'ym2151',
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 600, code: 'ArrowRight', heldFrames: 120, releasedFrames: 20 },

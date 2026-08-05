@@ -5,5 +5,5 @@ export const rtype = sourceTarget({
   driver: 'src/mame/irem/m72.cpp',
   machine: { className: 'm72_state', name: 'rtype' },
   screen: { width: 384, height: 256 },
-  soundKind: 'none',
+  soundKind: 'ym2151',
 });

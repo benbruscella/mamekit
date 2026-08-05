@@ -35,6 +35,16 @@ check('handler arguments are readable as locals', () => {
   );
 });
 
+check('68000 physical IPL line aliases retain their interrupt levels', () => {
+  assert.equal(
+    executeGeneratedHandler(
+      program([{ op: 'return', value: { kind: 'identifier', name: 'M68K_IRQ_IPL1' } }]),
+      {},
+    ),
+    1,
+  );
+});
+
 check('members are read and written through the bindings', () => {
   const members: Record<string, unknown> = { m_irq_mask: 0 };
   executeGeneratedHandler(
@@ -48,6 +58,47 @@ check('members are read and written through the bindings', () => {
     { state: 1 },
   );
   assert.equal(members.m_irq_mask, 1);
+});
+
+check('source member arrays are zero-initialized lazily on indexed writes', () => {
+  const members: Record<string, unknown> = {};
+  executeGeneratedHandler(
+    program([{
+      op: 'assign',
+      target: {
+        kind: 'index',
+        object: { kind: 'identifier', name: 'm_data' },
+        index: { kind: 'number', value: 2 },
+      },
+      operator: '=',
+      value: { kind: 'number', value: 0x5a },
+    }]),
+    { members },
+  );
+  assert.equal((members.m_data as number[])[0] ?? 0, 0);
+  assert.equal((members.m_data as number[])[2], 0x5a);
+});
+
+check('nested source member arrays are materialized on indexed writes', () => {
+  const members: Record<string, unknown> = {};
+  executeGeneratedHandler(
+    program([{
+      op: 'assign',
+      target: {
+        kind: 'index',
+        object: {
+          kind: 'index',
+          object: { kind: 'identifier', name: 'm_duty_cycle' },
+          index: { kind: 'number', value: 1 },
+        },
+        index: { kind: 'number', value: 2 },
+      },
+      operator: '=',
+      value: { kind: 'number', value: 7 },
+    }]),
+    { members },
+  );
+  assert.equal((members.m_duty_cycle as number[][])[1]![2], 7);
 });
 
 check('device finders with get/set methods remain pointer-like objects', () => {

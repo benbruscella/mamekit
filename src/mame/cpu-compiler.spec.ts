@@ -220,7 +220,7 @@ const irqAckSource = generatedCpuExecutableSource({
 });
 assert.match(irqAckSource, /bus\.signal\?\.\('irqack_cb', 1\)/);
 assert.equal(
-  irqAckSource.match(/this\.acknowledgeIrq\(\)/g)?.length,
+  irqAckSource.match(/this\.acknowledgeIrq\(0\)/g)?.length,
   1,
   'only standard_irq_callback may consume the interrupt vector',
 );
@@ -320,9 +320,11 @@ assert.equal(m68000Definition.addressMask, 0xffffff);
 const m68000Source = generatedCpuExecutableSource(m68000Definition);
 assert.ok(m68000Source.length > 1_000_000);
 assert.match(m68000Source, /address & 16777215/);
+assert.match(m68000Source, /this\.bus\.acknowledge\?\.\(level\)/);
 clearGeneratedCpus();
 registerGeneratedCpu(m68000Definition);
-const m68000Memory = new Uint8Array(0x1100);
+const m68000Memory = new Uint8Array(0x3000);
+let m68000AcknowledgeLevel = 0;
 const writeM68000Long = (address: number, value: number): void => {
   m68000Memory[address] = value >>> 24;
   m68000Memory[address + 1] = value >>> 16;
@@ -340,9 +342,59 @@ const m68000 = createCpu('M68000', {
   write: (address, data) => { m68000Memory[address] = data; },
   in: () => 0xff,
   out: () => {},
+  acknowledge: level => {
+    m68000AcknowledgeLevel = level;
+    return 24 + level;
+  },
 });
 assert.deepEqual([m68000.step(), m68000.step(), m68000.step()], [4, 8, 20]);
 assert.deepEqual(Array.from(m68000Memory.slice(0x1000, 0x1004)), [0, 0, 0, 6]);
+
+// TRAP #0 dispatches through exception vector 32, not reset vector 0.
+writeM68000Long(0x80, 0x00000200);
+m68000Memory.set([0x4e, 0x40], 0x100);
+m68000Memory.set([0x4e, 0x71], 0x200);
+m68000.reset();
+m68000.step();
+assert.equal(m68000.get('m_pc'), 0x200);
+assert.deepEqual(Array.from(m68000Memory.slice(0x1ffc, 0x2000)), [0, 0, 1, 2]);
+
+// With MAME's virtual interrupt mixer disabled, IPL1 is physical bit 1 and
+// therefore requests autovector level 2 (vector 26).
+writeM68000Long(26 * 4, 0x00000300);
+m68000Memory.set([0x4e, 0x73], 0x300); // RTE
+m68000.set('m_interrupt_mixer', 0);
+m68000.set('m_int_mask', 0);
+m68000.setInputLine(1, 1);
+m68000.step();
+assert.equal(m68000.get('m_pc'), 0x300);
+assert.equal(m68000AcknowledgeLevel, 2);
+m68000.setInputLine(1, 0);
+m68000.step();
+assert.equal(m68000.get('m_pc'), 0x200, 'M68000 RTE must resume the interrupted PC');
+
+// Ghouls bounds its RAM test with CMPA.L A1,A0 / BLS. The branch is taken
+// while A0 is at or below the inclusive end address, then falls through.
+writeM68000Long(4, 0x00000400);
+m68000Memory.set([
+  0x20, 0x7c, 0x00, 0x00, 0x10, 0x02, // MOVEA.L #$1002,A0
+  0x22, 0x7c, 0x00, 0x00, 0x10, 0x01, // MOVEA.L #$1001,A1
+  0xb1, 0xc9,                         // CMPA.L A1,A0
+  0x63, 0x04,                         // BLS.S $416
+  0x70, 0x01,                         // MOVEQ #1,D0
+  0x60, 0x02,                         // BRA.S $418
+  0x70, 0x00,                         // MOVEQ #0,D0
+  0x4e, 0x71,                         // NOP
+], 0x400);
+m68000.reset();
+for (let instruction = 0; instruction < 4; instruction++) m68000.step();
+assert.equal(m68000.get('m_pc'), 0x410, 'CMPA.L must leave A0>A1 as unsigned higher');
+m68000.step();
+assert.equal(m68000.get('m_pc'), 0x412, 'BLS must not branch when A0>A1');
+m68000Memory[0x405] = 0x00; // A0=$1000, now unsigned-lower than A1
+m68000.reset();
+for (let instruction = 0; instruction < 4; instruction++) m68000.step();
+assert.equal(m68000.get('m_pc'), 0x414, 'BLS must branch when A0<A1');
 
 const m6801u4Definition = compileMameM6801U4(process.env.MAME_SRC ?? '../mame');
 assert.equal(m6801u4Definition.type, 'M6801U4');

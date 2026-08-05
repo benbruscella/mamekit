@@ -595,6 +595,7 @@ class GeneratedPalette implements GeneratedPaletteDevice {
     const coreCount = Math.max(
       plan.colorCount,
       ...(plan.computedColors ?? []).map(group => group.base + group.count),
+      ...(plan.indexedColors ?? []).map(group => group.base + group.colors.length),
       ...(plan.promColors ?? []).map(group => group.base + group.count),
     );
     const core = new Uint32Array(coreCount);
@@ -631,6 +632,9 @@ class GeneratedPalette implements GeneratedPaletteDevice {
         : packRgb(rgb.r, rgb.g, rgb.b);
     }
     if (plan.normalize) normalizePaletteRange(core, plan.normalize);
+    for (const group of plan.indexedColors ?? []) {
+      core.set(Uint32Array.from(group.colors, color => color >>> 0), group.base);
+    }
     // Computed sections derive each channel from bits of the color index
     // through their own resistor network (05xx star colors and kin).
     for (const group of plan.computedColors ?? []) {
@@ -1364,6 +1368,7 @@ export function generatedScrollBand(
 
 type GeneratedDirectScreenShape =
   | 'bublbobl-object-columns'
+  | 'cosmic-bitmap-sprites'
   | 'dkong-scanline-sprites'
   | 'galaxian-no-bullets'
   | 'system1-prom-mixer'
@@ -1385,6 +1390,20 @@ export function generatedDirectScreenShape(
   const screen = machine.handlers?.find(handler =>
     `${handler.ownerClass}.${handler.method}` === screenKey);
   const body = screen?.body ?? '';
+  if (
+    body.includes('draw_bitmap(bitmap, cliprect)') &&
+    body.includes('draw_sprites(bitmap, cliprect, 0x07, 1)') &&
+    machine.handlers?.some(handler =>
+      handler.method === 'draw_bitmap' &&
+      handler.body?.includes('for (offs_t offs = 0; offs < m_videoram.bytes(); offs++)') &&
+      handler.body.includes('(this->*m_map_color)(x, y)')) &&
+    machine.handlers?.some(handler =>
+      handler.method === 'draw_sprites' &&
+      handler.body?.includes('for (offs = m_spriteram.bytes() - 4;offs >= 0;offs -= 4)') &&
+      handler.body.includes('m_gfxdecode->gfx(1)->transpen'))
+  ) {
+    return 'cosmic-bitmap-sprites';
+  }
   if (
     body.includes('uint8_t const *const source = &m_videoram[y]') &&
     body.includes('source[(x / 2) * 256]') &&
@@ -1997,6 +2016,9 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       }
       return true;
     }
+    if (this.directScreenShape === 'cosmic-bitmap-sprites') {
+      return this.drawCosmicBitmapSprites(bitmap, cliprect);
+    }
     if (this.directScreenShape === 'system1-prom-mixer') {
       return this.drawSystem1(bitmap, cliprect);
     }
@@ -2066,6 +2088,70 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       return this.drawWilliams(bitmap, cliprect);
     }
     return false;
+  }
+
+  /** Execute Cosmic/Panic's color-PROM bitmap and two-size sprite pipeline. */
+  private drawCosmicBitmapSprites(
+    bitmap: BitmapTarget,
+    cliprect: GeneratedRectangle,
+  ): boolean {
+    const videoRaw = this.state.m_videoram;
+    const spriteRaw = this.state.m_spriteram;
+    const mapRaw = this.state.m_user1;
+    const gfx16 = this.gfx[0];
+    const gfx32 = this.gfx[1];
+    if (
+      !ArrayBuffer.isView(videoRaw) || !ArrayBuffer.isView(spriteRaw) ||
+      !ArrayBuffer.isView(mapRaw) || !gfx16 || !gfx32
+    ) return false;
+    const video = videoRaw as Uint8Array;
+    const sprites = spriteRaw as Uint8Array;
+    const map = mapRaw as Uint8Array;
+    const registersRaw = this.state.m_color_registers;
+    const registers = Array.isArray(registersRaw) || ArrayBuffer.isView(registersRaw)
+      ? registersRaw as ArrayLike<number>
+      : [];
+    const color0 = Number(registers[0] ?? 0) & 1;
+    const color1 = Number(registers[1] ?? 0) & 1;
+    const color2 = Number(registers[2] ?? 0) & 1;
+    const flipped = Boolean(this.state.__flip_screen);
+    bitmap.fill(0, cliprect);
+    for (let offset = 0; offset < video.length; offset++) {
+      let data = video[offset] ?? 0;
+      let x = (offset << 3) & 0xff;
+      const y = offset >>> 5;
+      const mapOffset = (color0 << 9) | (color2 << 10) | ((x >>> 4) << 5) | (y >>> 3);
+      const rawPen = map[mapOffset] ?? 0;
+      const pen = (color1 ? rawPen >>> 4 : rawPen) & 0x0f;
+      for (let bit = 0; bit < 8; bit++) {
+        if (data & 0x80) {
+          bitmap['pix='](flipped ? 255 - y : y, flipped ? 255 - x : x, pen);
+        }
+        x = (x + 1) & 0xff;
+        data = (data << 1) & 0xff;
+      }
+    }
+    for (let offset = sprites.length - 4; offset >= 0; offset -= 4) {
+      const attributes = sprites[offset] ?? 0;
+      if (!attributes) continue;
+      let code = (~attributes) & 0x3f;
+      const colorAttributes = sprites[offset + 3] ?? 0;
+      const color = (~colorAttributes) & 0x07;
+      code |= (colorAttributes & 0x08) << 3;
+      const gfx = attributes & 0x80 ? gfx16 : gfx32;
+      gfx.transpen(
+        bitmap,
+        cliprect,
+        attributes & 0x80 ? code : code >>> 2,
+        color,
+        0,
+        (~attributes) & 0x40,
+        256 - (sprites[offset + 2] ?? 0),
+        sprites[offset + 1] ?? 0,
+        0,
+      );
+    }
+    return true;
   }
 
   private drawWilliams(bitmap: BitmapTarget, cliprect: GeneratedRectangle): boolean {

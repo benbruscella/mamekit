@@ -1063,8 +1063,12 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
         if (state == HOLD_LINE) m_hold_irq |= 1 << inputnum;
       }
       m_int_level = 0;
-      for (int level = 1; level <= 7; level++)
-        if (m_virq_state & (1 << level)) m_int_level = level << 8;
+      if (m_interrupt_mixer) {
+        for (int level = 1; level <= 7; level++)
+          if (m_virq_state & (1 << level)) m_int_level = level << 8;
+      } else {
+        m_int_level = m_virq_state << 8;
+      }
     }
   `);
   const service = compileMameHandler(`
@@ -1101,10 +1105,23 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
     MFLAG_SET: 2,
     MFLAG_CLEAR: 0,
     STOP_LEVEL_STOP: 1,
+    EXCEPTION_RESET: 0,
+    EXCEPTION_BUS_ERROR: 2,
+    EXCEPTION_ADDRESS_ERROR: 3,
     EXCEPTION_ILLEGAL_INSTRUCTION: 4,
+    EXCEPTION_ZERO_DIVIDE: 5,
+    EXCEPTION_CHK: 6,
+    EXCEPTION_TRAPV: 7,
     EXCEPTION_PRIVILEGE_VIOLATION: 8,
+    EXCEPTION_TRACE: 9,
     EXCEPTION_1010: 10,
     EXCEPTION_1111: 11,
+    EXCEPTION_FORMAT_ERROR: 14,
+    EXCEPTION_UNINITIALIZED_INTERRUPT: 15,
+    EXCEPTION_SPURIOUS_INTERRUPT: 24,
+    EXCEPTION_INTERRUPT_AUTOVECTOR: 24,
+    EXCEPTION_TRAP_BASE: 32,
+    EXCEPTION_MMU_CONFIGURATION: 56,
   };
   const shiftTable = (name: string): number[] => {
     const body = new RegExp(`${name}\\[65\\]\\s*=\\s*\\{([\\s\\S]*?)\\};`)
@@ -1115,6 +1132,7 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
   const members: GeneratedCpuMember[] = [
     { name: 'm_dar', bits: 32, values: new Array(16).fill(0) },
     { name: 'm_sp', bits: 32, values: new Array(7).fill(0) },
+    { name: 'm_interrupt_mixer', bits: 1, initial: 1 },
     { name: 'm_state', bits: 16, values: states },
     { name: 'm68ki_shift_8_table', bits: 8, values: shiftTable('m68ki_shift_8_table') },
     { name: 'm68ki_shift_16_table', bits: 16, values: shiftTable('m68ki_shift_16_table') },
@@ -1437,15 +1455,20 @@ function m68000SupportMethods(sourceFile: string): GeneratedCpuMethod[] {
     source('m68ki_exception_1111', '', 'm68ki_exception_common(EXCEPTION_1111, m_ppc);'),
     source('m68ki_exception_illegal', '', 'm68ki_exception_common(EXCEPTION_ILLEGAL_INSTRUCTION, m_ppc);'),
     source('m68ki_service_interrupt', 'u32 level', `
-      u32 vector = 24 + level;
+      u32 vector = standard_irq_callback(level, m_pc);
+      if (vector == 0xff) vector = 24 + level;
       m68ki_exception_common(vector, m_pc);
       m_int_mask = level << 8;
       if (m_hold_irq & (1 << level)) {
         m_hold_irq &= ~(1 << level);
         m_virq_state &= ~(1 << level);
         m_int_level = 0;
-        for (int next = 1; next <= 7; next++)
-          if (m_virq_state & (1 << next)) m_int_level = next << 8;
+        if (m_interrupt_mixer) {
+          for (int next = 1; next <= 7; next++)
+            if (m_virq_state & (1 << next)) m_int_level = next << 8;
+        } else {
+          m_int_level = m_virq_state << 8;
+        }
       }
       cycles += 14;
     `),

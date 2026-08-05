@@ -32,6 +32,7 @@ export const DEVICE_MAME_TYPES = [
   'LATCH8',
   'MB14241',
   'MB8844',
+  'MOS6532',
   'OUTPUT_LATCH',
   'PIC8259',
   'RST_NEG_BUFFER',
@@ -47,6 +48,7 @@ export const DEVICE_MAME_TYPES = [
   'NAMCO_06XX',
   'NAMCO_54XX',
   'PIA6821',
+  'PIT8253',
   'STARFIELD_05XX',
   'MC6845',
   // Protocol devices: MAME models these as an MCU running firmware, and

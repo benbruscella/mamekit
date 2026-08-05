@@ -162,6 +162,8 @@ class IrBoard implements Board {
   private currentLine = 0;
   private currentLineFraction = 0;
   private soundRuntime?: SoundRuntimeHooks;
+  private readonly inputs: InputPorts;
+  private readonly inputLatchPrevious = new Map<string, boolean>();
 
   constructor(
     machine: BoardIr,
@@ -171,6 +173,7 @@ class IrBoard implements Board {
     sinks: BoardSinks,
   ) {
     this.machine = machine;
+    this.inputs = inputs;
     this.fbWidth = machine.execution.screen.width;
     this.fbHeight = machine.execution.screen.height;
 
@@ -328,6 +331,7 @@ class IrBoard implements Board {
       return 0;
     };
     calls['machine().scheduler().perfect_quantum'] = () => 0;
+    calls['m68000_base_device::autovector'] = level => 24 + level;
     this.bindings = { members: this.state, inputs, calls };
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
@@ -339,10 +343,7 @@ class IrBoard implements Board {
         machine.video?.regionBindingOffsets,
       );
     }
-    for (const input of machine.execution.inputMembers ?? []) {
-      const ports = input.tags.map(tag => ({ read: () => inputs.read(tag) }));
-      this.state[input.member] = ports.length === 1 ? ports[0] : ports;
-    }
+    bindGeneratedInputState(this.state, machine.execution.inputMembers ?? [], inputs);
     const screen = machine.devices?.find(device => device.type === 'SCREEN');
     for (const owner of [screen?.tag, screen?.member].filter(Boolean) as string[]) {
       calls[`${owner}.vpos`] = () => this.currentLine;
@@ -368,7 +369,7 @@ class IrBoard implements Board {
     };
     this.installDeviceHandlers(machine, registry);
     this.installGeneratedDeviceBuses(machine, registry);
-    this.soundRuntime = this.installGeneratedSoundHandlers(machine, sinks, registry);
+    this.soundRuntime = this.installGeneratedSoundHandlers(machine, regions, sinks, registry);
     this.installMemoryBanks(machine, regions, registry);
     this.installDeclarativeHandlers(machine, config, inputs, registry);
     this.installInterruptVectorWriters(machine, registry);
@@ -400,6 +401,7 @@ class IrBoard implements Board {
         rom,
         registry,
         this.shares,
+        ['m68000', 'm68010'].includes(type.toLowerCase()) ? 16 : 8,
       );
       this.cpuBuses.set(specification.tag, bus);
       for (const viewTag of new Set(
@@ -454,6 +456,12 @@ class IrBoard implements Board {
         write: (address, data) => bus.write(address & mask, data),
         in: bus.in,
         out: bus.out,
+        ...(specification.interruptAcknowledge ? {
+          acknowledge: (level: number) => registry.read[specification.interruptAcknowledge!]?.(
+            0xfffff0 | (level << 1),
+            Math.max(0, level - 1),
+          ) ?? 0xff,
+        } : {}),
         timing: (elapsed, target) => {
           this.currentLineFraction = target > 0 ? Math.min(1, elapsed / target) : 0;
         },
@@ -484,6 +492,9 @@ class IrBoard implements Board {
           return result ?? 0;
         },
       });
+      if (specification.interruptMixer !== undefined) {
+        cpu.set('m_interrupt_mixer', Number(specification.interruptMixer));
+      }
       this.cpus.set(specification.tag, cpu);
       this.cpuCycles.set(specification.tag, 0);
       this.cpuStalls.set(specification.tag, 0);
@@ -545,7 +556,16 @@ class IrBoard implements Board {
       }
     }
     for (const [tag, bytes] of Object.entries(this.shares)) {
-      bindGeneratedShareState(this.state, tag, bytes);
+      bindGeneratedShareState(
+        this.state,
+        tag,
+        bytes,
+        machine.execution.shareBindings
+          ?.filter(binding => binding.share === tag)
+          .map(binding => binding.member),
+        machine.execution.shareBindings
+          ?.find(binding => binding.share === tag)?.bits,
+      );
     }
 
     for (const [tag, device] of this.devices) {
@@ -769,7 +789,27 @@ class IrBoard implements Board {
   }
 
   frame(framebuffer: Uint32Array): void {
+    this.pollInputLatches();
     this.frameRunner.frame(framebuffer);
+  }
+
+  /** Apply source-declared PORT_CHANGED_MEMBER rising-edge latch handlers. */
+  private pollInputLatches(): void {
+    for (const latch of this.machine.execution.inputLatches ?? []) {
+      const key = `${latch.port}:${latch.mask}:${latch.handler}`;
+      const raw = this.inputs.read(latch.port);
+      const asserted = latch.activeLow
+        ? (raw & latch.mask) === 0
+        : (raw & latch.mask) !== 0;
+      const previous = this.inputLatchPrevious.get(key) ?? false;
+      if (asserted && !previous) {
+        const state = this.state[latch.stateMember];
+        if (Array.isArray(state) || ArrayBuffer.isView(state)) {
+          (state as unknown as { [index: number]: number })[latch.index] = 1;
+        }
+      }
+      this.inputLatchPrevious.set(key, asserted);
+    }
   }
 
   reset(): void {
@@ -781,6 +821,7 @@ class IrBoard implements Board {
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
     this.frameRunner.reset();
     this.soundRuntime?.reset?.();
+    this.inputLatchPrevious.clear();
     this.currentLine = 0;
     this.runMachineReset();
   }
@@ -822,8 +863,13 @@ class IrBoard implements Board {
     machine: BoardIr,
     registry: HandlerRegistry,
   ): void {
-    for (const map of machine.maps ?? []) {
-      for (const range of map.ranges) {
+    // Use the executable CPU maps here rather than the raw source-map list.
+    // Composite-device maps are hosted/prefixed while execution is lowered
+    // ("pia.read" in a child map becomes "soundbd:pia.read"). The raw map is
+    // retained for provenance and cannot identify which concrete nested
+    // instance owns an otherwise identical local device tag.
+    for (const cpu of machine.execution.cpus) {
+      for (const range of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])]) {
         for (const [kind, key] of [['read', range.read], ['write', range.write]] as const) {
           if (!key) continue;
           // MAME device tags may themselves contain dots (LS175.3D). Resolve
@@ -843,8 +889,8 @@ class IrBoard implements Board {
             registry.write[key] = (_address, offset, data) => {
               const parameters = device.parameters(method);
               if (parameters[0]?.includes('address_space')) {
-                const cpuTag = machine.execution.cpus.find(cpu =>
-                  cpu.ranges?.some(candidate =>
+                const cpuTag = machine.execution.cpus.find(candidateCpu =>
+                  [...(candidateCpu.ranges ?? []), ...(candidateCpu.io?.ranges ?? [])].some(candidate =>
                     candidate.start === range.start &&
                     candidate.end === range.end &&
                     candidate.write === key))?.tag ??
@@ -1116,12 +1162,14 @@ class IrBoard implements Board {
    */
   private installGeneratedSoundHandlers(
     machine: BoardIr,
+    regions: Regions,
     sinks: BoardSinks,
     registry: HandlerRegistry,
   ): SoundRuntimeHooks | undefined {
     if (!machine.sound) return undefined;
     return installSoundRuntime({
       board: machine,
+      regions,
       sound: machine.sound,
       registry,
       calls: this.bindings.calls!,
@@ -1172,17 +1220,24 @@ class IrBoard implements Board {
    * interpreted once, during generation, by src/ir/lower-connections.ts.
    */
   /** Execute a generated handler program, when one compiled for this key. */
-  private handlerExecutor(key: string, firstArgument?: unknown): EffectExecutor | undefined {
+  private handlerExecutor(
+    key: string,
+    firstArgument?: unknown,
+    scopedCpuTag?: string,
+  ): EffectExecutor | undefined {
     const handler = this.machine.handlers?.find(candidate =>
       `${candidate.ownerClass}.${candidate.method}` === key &&
       candidate.program &&
       !candidate.program.diagnostics.length);
     if (!handler?.program) return undefined;
+    const bindings = scopedCpuTag
+      ? generatedCpuMemberBindings(this.bindings, scopedCpuTag)
+      : this.bindings;
     return (state, ...sourceArgs) => {
       return executeGeneratedMachineHandler(
         this.machine,
         handler,
-        this.bindings,
+        bindings,
         generatedSignalHandlerArguments(
           handler.parameters,
           state,
@@ -1295,7 +1350,7 @@ class IrBoard implements Board {
               }),
             }
           : undefined;
-        const run = this.handlerExecutor(key, cpuDevice);
+        const run = this.handlerExecutor(key, cpuDevice, deviceTag);
         if (run) return run;
         // A driver method the board binds directly rather than lowering.
         const call = this.bindings.calls?.[key.split('.').at(-1)!];
@@ -1327,6 +1382,24 @@ class IrBoard implements Board {
       },
     };
   }
+}
+
+/** Scope a composite device's conventional m_cpu finder to its hosted CPU. */
+export function generatedCpuMemberBindings(
+  bindings: GeneratedHandlerBindings,
+  cpuTag: string,
+): GeneratedHandlerBindings {
+  const calls = { ...bindings.calls };
+  for (const method of [
+    'set_input_line',
+    'set_input_line_and_vector',
+    'pulse_input_line',
+    'total_cycles',
+  ]) {
+    calls[`m_cpu.${method}`] = (...args: number[]) =>
+      bindings.calls?.[`m_${cpuTag}.${method}`]?.(...args) ?? 0;
+  }
+  return { ...bindings, calls };
 }
 
 export function generatedPromGateOpen(
@@ -1409,6 +1482,21 @@ export function bindGeneratedDriverState(
   calls.flip_screen_y_set = value => set('y', value);
 }
 
+/** Bind required/optional_ioport finders with both MAME read entry points. */
+export function bindGeneratedInputState(
+  state: Record<string, unknown>,
+  members: readonly { member: string; tags: string[] }[],
+  inputs: InputPorts,
+): void {
+  for (const input of members) {
+    const ports = input.tags.map(tag => ({
+      read: () => inputs.read(tag),
+      read_safe: (_fallback = 0xff) => inputs.read(tag),
+    }));
+    state[input.member] = ports.length === 1 ? ports[0] : ports;
+  }
+}
+
 function trailingZeroBits(value: number): number {
   if (!value) return 0;
   let count = 0;
@@ -1420,12 +1508,18 @@ export function bindGeneratedShareState(
   state: Record<string, unknown>,
   tag: string,
   bytes: Uint8Array,
+  aliases: readonly string[] = [],
+  bits: 8 | 16 = 8,
 ): void {
   Object.defineProperty(bytes, 'bytes', {
     value: () => bytes.length,
     configurable: true,
   });
-  state[`m_${tag}`] = bytes;
+  const boundMemory = bits === 16
+    ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1)
+    : bytes;
+  state[`m_${tag}`] = boundMemory;
+  for (const member of aliases) state[member] = boundMemory;
   const indexed = /^(.+)\[(\d+)\]$/.exec(tag);
   if (!indexed) return;
   const member = `m_${indexed[1]}`;

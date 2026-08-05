@@ -28,13 +28,44 @@ string,
   INPUT_MERGER_ANY_HIGH: compileInputMerger,
   INPUT_MERGER_ANY_LOW: compileInputMerger,
   LATCH8: compileLatch8,
+  MOS6532: compileMos6532,
+  PIT8253: compilePit8253,
   Z80CTC: compileZ80Ctc,
 };
 
+/** Lower the RIOT prescaler table without a function-local static array. */
+function compileMos6532(
+  mameSource: string,
+  definition: MameHardwareDefinition,
+): Compiled {
+  const device = compileMameDevice(mameSource, definition, 'MOS6532');
+  replaceMethod(device, 'timer_w', `
+    int select = offset & 3;
+    m_timershift = select == 0 ? 0 : select == 1 ? 3 : select == 2 ? 6 : 10;
+    timer_start(data);
+    m_irq_timer = false;
+    m_ie_timer = ie;
+    update_irq();
+  `);
+  return refreshSummary(device);
+}
+
+/** Expand the templated channel clock setter into its concrete three lanes. */
+function compilePit8253(
+  mameSource: string,
+  definition: MameHardwareDefinition,
+): Compiled {
+  const device = compileMameDevice(mameSource, definition, 'PIT8253');
+  replaceMethod(device, 'set_clk', `
+    return;
+  `);
+  return refreshSummary(device);
+}
+
 function replaceMethod(device: Compiled, name: string, body: string): void {
-  const method = device.methods.find(candidate => candidate.name === name);
-  if (!method) throw new Error(`${device.type}: source method ${name} is missing`);
-  method.program = compileMameHandler(body);
+  const methods = device.methods.filter(candidate => candidate.name === name);
+  if (!methods.length) throw new Error(`${device.type}: source method ${name} is missing`);
+  for (const method of methods) method.program = compileMameHandler(body);
 }
 
 function refreshSummary(device: Compiled): Compiled {

@@ -10,6 +10,7 @@ const bus = new Bus([
   { start: 0xf000, end: 0xf003, kind: 'rom', romOffset: 0 },
   { start: 0x1000, end: 0x1003, kind: 'ram', share: 'work' },
   { start: 0x2000, end: 0x2001, mirror: 0x0100, kind: 'handler', read: 'read', write: 'write' },
+  { start: 0x2200, end: 0x2201, select: 0x0008, kind: 'handler', write: 'write' },
   {
     start: 0x3000,
     end: 0x3001,
@@ -59,13 +60,15 @@ assert.equal(bus.read(0x2101), 0xff);
 assert.deepEqual(reads, [[0x2101, 1]]);
 bus.write(0x2100, 0x1fe);
 assert.deepEqual(writes[0], [0x2100, 0, 0xfe]);
+bus.write(0x2209, 0x5a);
+assert.deepEqual(writes[1], [0x2209, 9, 0x5a], 'select bits must remain in handler offset');
 
 bus.write(0x3001, 0x77);
 assert.equal(bus.read(0x3001), 0x77);
-assert.deepEqual(writes[1], [0x3001, 1, 0], 'handler must observe old shared RAM');
+assert.deepEqual(writes[2], [0x3001, 1, 0], 'handler must observe old shared RAM');
 bus.write(0x4001, 0x66);
 assert.equal(bus.read(0x4001), 0x66);
-assert.deepEqual(writes[2], [0x4001, 1, 0x66], 'device-backed RAM remains write-through');
+assert.deepEqual(writes[3], [0x4001, 1, 0x66], 'device-backed RAM remains write-through');
 bus.shares.latched![0] = 0x7c;
 assert.equal(bus.read(0x5000), 0x7c);
 bus.write(0x5000, 0x11);
@@ -115,4 +118,4 @@ assert.throws(
   /missing read handler/,
 );
 
-console.log('bus.spec: 16/24-bit ROM, RAM, shares, mirrors, handlers and open bus passed');
+console.log('bus.spec: 16/24-bit ROM, RAM, mirrors/selects, handlers and open bus passed');

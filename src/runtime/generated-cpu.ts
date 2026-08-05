@@ -13,6 +13,8 @@ export interface CpuBus {
   write(address: number, data: number): void;
   in(port: number): number;
   out(port: number, data: number): void;
+  /** Optional source-derived interrupt-acknowledge address-space read. */
+  acknowledge?(level: number): number;
   signal?(name: string, state: number): number | void;
   /** Instruction boundary within the current scheduler slice. */
   timing?(elapsedCycles: number, targetCycles: number): void;
@@ -445,7 +447,8 @@ class IrCpu implements Cpu {
       m_nomreq_cb: state => this.bus.signal?.('nomreq_cb', state) ?? 0,
       m_halt_cb: state => this.bus.signal?.('halt_cb', state) ?? 0,
       m_busack_cb: state => this.bus.signal?.('busack_cb', state) ?? 0,
-      standard_irq_callback: () => this.acknowledgeIrq(),
+      standard_irq_callback: (...args) =>
+        this.bus.acknowledge?.(Number(args[0]) || 0) ?? this.acknowledgeIrq(),
       daisy_get_irq_device: () => 0,
       daisy_chain_present: () => 0,
       daisy_update_irq_state: () => 0,

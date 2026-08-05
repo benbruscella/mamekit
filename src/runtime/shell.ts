@@ -59,6 +59,8 @@ export interface SoundSpec {
   clock?: number;
   /** rom region holding the wavetable (wsg only) */
   waveRegion?: string;
+  /** optional source-device sample ROM mixed by the primary worklet */
+  sampleRegion?: string;
   /** number of sound chips (ay8910: gyruss has 5) */
   chips?: number;
   /** Per-output routes lowered from MAME add_route calls. */
@@ -497,6 +499,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
         sampleRate: clock,
         clock,
         waveRom: cfg.sound.waveRegion ? regions[cfg.sound.waveRegion] : undefined,
+        sampleRom: cfg.sound.sampleRegion ? regions[cfg.sound.sampleRegion] : undefined,
         chips: cfg.sound.chips,
         routes: cfg.sound.routes,
         auxiliary: cfg.sound.auxiliary,

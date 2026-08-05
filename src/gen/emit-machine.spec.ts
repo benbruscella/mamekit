@@ -5,6 +5,7 @@ import {
   lowerAudioRoutes,
   lowerAuxiliaryAudioDevices,
   lowerGeneratedMachine,
+  resolveInputPortTag,
 } from './emit-machine.ts';
 
 for (const type of ['m6802', 'm6803', 'nsc8105', 'm6801u4', 'mc6809']) {
@@ -186,6 +187,17 @@ const graph: KnowledgeGraph = {
     { from: 'callback:vblank-level', to: 'device:sub', rel: 'TARGETS_DEVICE' },
   ],
 };
+
+if (resolveInputPortTag({
+  ...graph,
+  nodes: [...graph.nodes, {
+    id: 'port:ssio:IP0',
+    label: 'Port',
+    props: { tag: 'ssio:IP0' },
+  }],
+}, 'IP0') !== 'ssio:IP0') {
+  throw new Error('composite input member tags must resolve to their hosted port');
+}
 
 const board: BoardConfig = {
   family: 'test',

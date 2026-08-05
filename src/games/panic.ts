@@ -6,4 +6,28 @@ export const panic = sourceTarget({
   machine: { className: 'cosmic_state', name: 'panic' },
   screen: { width: 256, height: 192 },
   soundKind: 'dac',
+  golden: {
+    regions: {
+      gfx1: '613f6077',
+      maincpu: 'eac022b2',
+      proms: '35d43d2f',
+      user1: '7da0b321',
+    },
+    checkpoints: {
+      1: { video: '6087f1e5', state: '9816df37' },
+      60: { video: '7c352156', state: 'af3a981c' },
+      180: { video: '46a419c9', state: 'eea5f667' },
+      300: { video: '1236025c', state: '982a33c8' },
+      600: { video: '2019d643', state: '8ed3a35d' },
+      900: { video: 'ab7b492d', state: 'db8a9538' },
+      1200: { video: 'e73caa97', state: 'dd6fefb1' },
+    },
+    audio: {
+      writes: 189,
+      nonzeroWrites: 0,
+      writeHash: '72a9c878',
+      pcmHash: 'e8fce038',
+      rms: 1,
+    },
+  },
 });

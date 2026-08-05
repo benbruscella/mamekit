@@ -20,6 +20,7 @@ const sound = {
 
 installSoundRuntime({
   board,
+  regions: {},
   sound,
   registry: { read: {}, write: {} },
   calls,

@@ -206,6 +206,11 @@ export function compileMameVideo(
   const numericDefaults = numericState(memberDefaults);
   const configState = machineConfigInitialState(ast, source, config, constants);
   const game = graph.nodes.find(node => node.label === 'Game');
+  const boardSpecificState = compileCps1GameConfig(
+    source,
+    String(game?.props.name ?? ''),
+    constants,
+  );
   const driverInit = ast.findFunctionInHierarchy(
     String(machine.props.cls),
     String(game?.props.init ?? ''),
@@ -324,6 +329,11 @@ export function compileMameVideo(
         machineIds,
         ast,
         constants,
+      ) ?? compileDriverManagedPalette(
+        graph,
+        machineIds,
+        source,
+        constants,
       )
     );
   if (!palette && !ramPalette && palettes.length !== paletteMembers.length) {
@@ -356,6 +366,7 @@ export function compileMameVideo(
           : {}),
         ...allocatedState,
         ...driverInitState,
+        ...boardSpecificState,
       },
       ...(renderScale !== 1 ? { renderScale: { x: renderScale, y: 1 } } : {}),
       ...(Object.keys(delegates).length ? { delegates } : {}),
@@ -364,6 +375,127 @@ export function compileMameVideo(
       source: sourceRef(start ?? screen!),
     },
     handlers,
+  };
+}
+
+function compileCps1GameConfig(
+  source: string,
+  game: string,
+  constants: Record<string, number>,
+): Record<string, unknown> {
+  if (!game || !source.includes('static const struct CPS1config cps1_config_table[]')) {
+    return {};
+  }
+  const row = source.split('\n').find(line =>
+    new RegExp(`^\\s*\\{\\s*"${game.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"\\s*,`)
+      .test(line));
+  if (!row) return {};
+  const start = row.indexOf('{');
+  const end = row.lastIndexOf('}');
+  if (start < 0 || end <= start) return {};
+  const entry = splitMameArgs(row.slice(start + 1, end));
+  const cpsbName = entry[1]?.trim();
+  const mapperName = entry[2]?.trim();
+  if (!cpsbName || !mapperName) return {};
+
+  const macro = new RegExp(`^\\s*#define\\s+${cpsbName}\\s+(.+)$`, 'm').exec(source)?.[1]
+    ?.replace(/__not_applicable__/g, '-1,-1,-1,-1,-1,-1,-1');
+  const mapper = new RegExp(`^\\s*#define\\s+${mapperName}\\s+(.+)$`, 'm')
+    .exec(source)?.[1];
+  if (!macro || !mapper) return {};
+  const fields = splitMameArgs(macro);
+  const mapperFields = splitMameArgs(mapper);
+  if (fields.length < 13 || mapperFields.length < 2) return {};
+  const number = (value: string | undefined): number => {
+    if (!value) return 0;
+    const evaluated = evalExpr(value.trim(), constants);
+    return typeof evaluated === 'number' && Number.isFinite(evaluated)
+      ? evaluated
+      : Number(value) || 0;
+  };
+  const array = (value: string | undefined): number[] => {
+    const body = value?.trim().replace(/^\{/, '').replace(/\}$/, '') ?? '';
+    return splitMameArgs(body).map(number);
+  };
+  const tableName = mapperFields[1]!.trim();
+  const tableBody = new RegExp(
+    `static\\s+const\\s+struct\\s+gfx_range\\s+${tableName}\\s*\\[\\s*\\]\\s*=\\s*\\{([\\s\\S]*?)\\n\\};`,
+  ).exec(source)?.[1] ?? '';
+  const bankMapper = [...tableBody.matchAll(/\{([^{}]+)\}/g)]
+    .map(match => splitMameArgs(match[1]!))
+    .filter(values => values.length >= 1)
+    .map(values => ({
+      type: number(values[0]),
+      start: number(values[1]),
+      end: number(values[2]),
+      bank: number(values[3]),
+    }));
+
+  return {
+    m_game_config: {
+      name: game,
+      cpsb_addr: number(fields[0]),
+      cpsb_value: number(fields[1]),
+      mult_factor1: number(fields[2]),
+      mult_factor2: number(fields[3]),
+      mult_result_lo: number(fields[4]),
+      mult_result_hi: number(fields[5]),
+      unknown1: number(fields[6]),
+      unknown2: number(fields[7]),
+      unknown3: number(fields[8]),
+      layer_control: number(fields[9]),
+      priority: array(fields[10]),
+      palette_control: number(fields[11]),
+      layer_enable_mask: array(fields[12]),
+      bank_sizes: array(mapperFields[0]),
+      bank_mapper: bankMapper,
+      in2_addr: number(entry[3]),
+      in3_addr: number(entry[4]),
+      out2_addr: number(entry[5]),
+      bootleg_kludge: number(entry[6]),
+    },
+  };
+}
+
+/**
+ * Some boards allocate a plain palette_device and rebuild its pens directly
+ * from board video RAM during screen update.  There is no set_format callback
+ * to lower: the source-compiled set_pen_color calls are the converter.  Emit
+ * the writable palette surface they target and let those handlers own colors.
+ */
+function compileDriverManagedPalette(
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+  source: string,
+  constants: Record<string, number>,
+): GeneratedRamPalettePlan | undefined {
+  if (!/m_palette\s*->\s*set_pen_color\s*\(/.test(source)) return undefined;
+  const deviceIds = new Set(graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
+    .map(edge => edge.to));
+  const palette = graph.nodes.find(node =>
+    deviceIds.has(node.id) && node.label === 'Device' && node.props.type === 'PALETTE');
+  if (!palette) return undefined;
+  const raw = ((palette.props.config as string[] | undefined) ?? []).join('\n');
+  const entries = Math.max(0, ...[...raw.matchAll(/(?:\.|->)set_entries\s*\(\s*([^)]+)\)/g)]
+    .map(match => expressionNumber(match[1], constants)));
+  if (!entries) return undefined;
+  return {
+    tag: String(palette.props.tag),
+    entries,
+    bytesPerEntry: 2,
+    channels: [
+      { channel: 'r', bits: 4, shift: 8 },
+      { channel: 'g', bits: 4, shift: 4 },
+      { channel: 'b', bits: 4, shift: 0 },
+    ],
+    ...(palette.props.sourceFile ? {
+      source: {
+        file: String(palette.props.sourceFile),
+        line: Number(palette.props.sourceLine ?? 1),
+        column: Number(palette.props.sourceColumn ?? 1),
+      },
+    } : {}),
   };
 }
 
@@ -1223,7 +1355,9 @@ function compileResNetAllPalette(
   const decode = initializer('res_net_decode_info', decodeName!);
   const net = initializer('res_net_info', netName!);
   if (!decode || !net) return undefined;
-  const decodeText = decode.replace(/\/\*[\s\S]*?\*\//g, '');
+  const decodeText = decode
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
   const scalarPrefix = /^\s*([^,]+),\s*([^,]+),\s*([^,]+),/.exec(decodeText);
   const arrays = [...decodeText.matchAll(/\{([^{}]+)\}/g)]
     .map(match => splitMameArgs(match[1]!).map(value => expressionNumber(value, constants)));
@@ -1896,7 +2030,8 @@ function compilePalette(
       paletteLoop?.body ?? body,
       paletteLoop?.start ?? 0,
     );
-  if (channels.length !== 3) {
+  const indexedColors = compileIndexedColorGroups(loops, constants);
+  if (channels.length !== 3 && !indexedColors.length) {
     if (process.env.MAMEKIT_DEBUG_VIDEO === '1') console.error('video palette: channels', channels.length);
     return undefined;
   }
@@ -2093,6 +2228,7 @@ function compilePalette(
     max: weightsCall ? expressionNumber(args[1], constants) : 255,
     scaler: weightsCall ? Number(args[2]) || -1 : 1,
     channels,
+    ...(indexedColors.length ? { indexedColors } : {}),
     ...(computedColors.length ? { computedColors } : {}),
     ...(promColors.length ? { promColors } : {}),
     lookupOffset,
@@ -2102,6 +2238,103 @@ function compilePalette(
     transparentIndirect: 0,
     source: sourceRef(fn),
   };
+}
+
+/**
+ * Lower palette loops whose RGB values are functions of the loop index rather
+ * than PROM data. This covers TTL palettes expressed with MAME's palNbit
+ * helpers, including conditional pulls such as Cosmic/Panic's 2/3 blue level.
+ */
+function compileIndexedColorGroups(
+  loops: { start: number; end: number; body: string }[],
+  constants: Record<string, number>,
+): NonNullable<GeneratedPromPalettePlan['indexedColors']> {
+  return loops.flatMap(loop => {
+    if (!loop.body.includes('set_indirect_color') || loop.body.includes('color_prom')) return [];
+    const call = findCallArguments(loop.body, 'palette.set_indirect_color') ??
+      findCallArguments(loop.body, 'set_indirect_color');
+    if (!call) return [];
+    const args = splitMameArgs(call);
+    const rgb = /rgb_t\s*\(([^)]*)\)/.exec(args[1] ?? '');
+    if (!rgb) return [];
+    const channelExpressions = splitMameArgs(rgb[1]!);
+    if (channelExpressions.length !== 3) return [];
+    const declarations = [...loop.body.matchAll(
+      /\b(?:int|unsigned|u8|u16|u32|uint8_t|uint16_t|uint32_t)(?:\s+const)?\s+(\w+)\s*=\s*([^;]+);/g,
+    )].map(match => ({ name: match[1]!, expression: match[2]! }));
+    const colors: number[] = [];
+    for (let index = loop.start; index < loop.end; index++) {
+      const values: Record<string, number> = { ...constants, i: index };
+      for (const declaration of declarations) {
+        const value = evaluateIndexedPaletteExpression(declaration.expression, values);
+        if (value === null) return [];
+        values[declaration.name] = value;
+      }
+      const channels = channelExpressions.map(expression =>
+        evaluateIndexedPaletteExpression(expression, values));
+      if (channels.some(value => value === null)) return [];
+      colors.push(packRgb(channels[0]!, channels[1]!, channels[2]!));
+    }
+    const base = paletteExpressionAt(args[0] ?? '0', loop.start, loop.body, 0, constants);
+    return [{ base, colors }];
+  });
+}
+
+function evaluateIndexedPaletteExpression(
+  expression: string,
+  values: Record<string, number>,
+): number | null {
+  let source = expression.trim();
+  while (source.startsWith('(') && matchingPair(source, 0, '(', ')') === source.length - 1) {
+    source = source.slice(1, -1).trim();
+  }
+  const question = topLevelOperator(source, '?');
+  if (question >= 0) {
+    const colon = topLevelOperator(source, ':', question + 1);
+    if (colon < 0) return null;
+    const condition = source.slice(0, question).trim().replace(/^\((.*)\)$/s, '$1');
+    const comparison = /^(.*?)\s*(==|!=)\s*(.*?)$/.exec(condition);
+    if (!comparison) return null;
+    const left = evaluateIndexedPaletteExpression(comparison[1]!, values);
+    const right = evaluateIndexedPaletteExpression(comparison[3]!, values);
+    if (left === null || right === null) return null;
+    const matched = comparison[2] === '==' ? left === right : left !== right;
+    return evaluateIndexedPaletteExpression(
+      source.slice(matched ? question + 1 : colon + 1, matched ? colon : undefined),
+      values,
+    );
+  }
+  let changed = true;
+  while (changed) {
+    changed = false;
+    source = source.replace(/pal([1-8])bit\s*\(([^()]*)\)/g, (_match, width, inner) => {
+      const value = evaluateIndexedPaletteExpression(inner, values);
+      if (value === null) return _match;
+      changed = true;
+      const bits = Number(width);
+      const mask = (1 << bits) - 1;
+      const raw = value & mask;
+      let expanded = 0;
+      for (let filled = 0; filled < 8;) {
+        const take = Math.min(bits, 8 - filled);
+        expanded = ((expanded << take) | (raw >>> (bits - take))) & 0xff;
+        filled += take;
+      }
+      return String(expanded);
+    });
+  }
+  return evalExpr(substituteNumbers(source, values));
+}
+
+function topLevelOperator(source: string, operator: string, start = 0): number {
+  let depth = 0;
+  for (let index = start; index < source.length; index++) {
+    const char = source[index];
+    if (char === '(' || char === '[' || char === '{') depth++;
+    else if (char === ')' || char === ']' || char === '}') depth--;
+    else if (char === operator && depth === 0) return index;
+  }
+  return -1;
 }
 
 /**

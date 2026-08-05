@@ -37,6 +37,21 @@ assert.equal(plan.internalRate, 192_000);
 assert.equal(plan.voices, 3);
 assert.equal(plan.registerCount, 0x20);
 
+const poleposPlan = compileNamcoWsg(mameSrc, {
+  ...definition,
+  type: 'POLEPOS_WSG',
+  className: 'polepos_wsg_device',
+});
+assert.equal(poleposPlan.voices, 8);
+assert.equal(poleposPlan.registerCount, 0x40);
+assert.equal(poleposPlan.writeMethod, 'polepos_sound_w');
+assert.equal(poleposPlan.readMethod, 'polepos_sound_r');
+assert.equal(poleposPlan.engine?.outputRate, 24_000);
+assert.equal(poleposPlan.engine?.filters.length, 3);
+assert.deepEqual(poleposPlan.engine?.volumeTable, [
+  0.28, 0.36, 0.48, 0.56, 0.73, 0.81, 0.93, 1.01,
+]);
+
 const source = generatedNamcoWsgWorkletSource(plan)
   .replace(
     "import { executeGeneratedProgram } from '../../core/generated-handler.js';",

@@ -457,6 +457,27 @@ void defender_state::main_map(address_map &map)
   eq('memory-view entry share', map.ranges[1]?.share, 'paletteram');
 }
 
+{
+  const maps = parseAddressMaps(`
+void driver_state::io_map(address_map &map)
+{
+  midway_ssio_device::ssio_input_ports(map, "ssio");
+}
+void midway_ssio_device::ssio_input_ports(address_map &map, const char *ssio)
+{
+  map(0x00, 0x04).r(ssio, FUNC(midway_ssio_device::ioport_read));
+}
+`);
+  eq('qualified address-map helper call', maps[0]?.calls, [
+    'midway_ssio_device::ssio_input_ports',
+  ]);
+  eq('address-map helper with tag parameter', maps[1]?.ranges[0]?.read, {
+    method: 'ioport_read',
+    deviceClass: 'midway_ssio_device',
+    deviceRef: 'ssio',
+  });
+}
+
 // MAME array finders format their tags from a printf pattern and a starting
 // index; the machine config references elements by subscript while the address
 // map uses the formatted tag, so both spellings must resolve.

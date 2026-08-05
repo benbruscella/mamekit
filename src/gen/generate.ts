@@ -334,6 +334,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           : 'handler',
     };
     if (r.props.mirror) spec.mirror = Number(r.props.mirror);
+    const select = /\.select\s*\(\s*(0x[\da-f]+|\d+)\s*\)/i.exec(String(r.props.raw ?? ''));
+    if (select) spec.select = Number(select[1]);
     if (r.props.regionOffset !== undefined) spec.romOffset = Number(r.props.regionOffset);
     if (r.props.share) spec.share = String(r.props.share);
     if (r.props.viewTag) spec.viewTag = String(r.props.viewTag);
@@ -561,6 +563,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     })),
   );
   const ymChips = devices.filter(d => d.props.type === 'YM2203');
+  const opmChips = devices.filter(d => d.props.type === 'YM2151');
   const oplChips = devices.filter(d => d.props.type === 'YM3526');
   const snChips = devices.filter(d =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
@@ -568,6 +571,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const dacChips = devices.filter(d =>
     ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533']
       .includes(String(d.props.type)));
+  const sampleChips = devices.filter(d => d.props.type === 'SAMPLES');
+  const berzerkSound = devices.find(d => d.props.type === 'EXIDY');
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
         const type = String(device.props.type);
@@ -577,8 +582,38 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const sound = devices.some(d => String(d.props.type).startsWith('RP2A03'))
     // the NES APU lives on the CPU die — the RP2A03 is its own sound device
     ? { kind: 'nes', clock: cpus[0].clock }
-    : devices.some(d => d.props.type === 'NAMCO_WSG' || d.props.type === 'NAMCO')
-    ? { kind: 'wsg', clock: Number(byTag.get('namco')?.props.clock ?? 96000), waveRegion: 'namco' }
+    : devices.some(d => ['NAMCO_WSG', 'POLEPOS_WSG', 'NAMCO'].includes(String(d.props.type)))
+    ? {
+        kind: 'wsg',
+        clock: Number(byTag.get('namco')?.props.clock ?? 96000),
+        waveRegion: 'namco',
+        ...(devices.some(device => device.props.type === 'POLEPOS_SOUND')
+          ? { sampleRegion: 'engine', worklet: 'polepos-wsg' }
+          : {}),
+        ...(auxiliaryAudioDevices.length ? { auxiliaryDevices: auxiliaryAudioDevices } : {}),
+      }
+    : opmChips.length
+      ? {
+          kind: 'ym2151',
+          clock: Number(opmChips[0]!.props.clock),
+          chips: opmChips.length,
+          ...(lowerAudioRoutes(
+            graph,
+            opmChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
+          ).length ? {
+              routes: lowerAudioRoutes(
+                graph,
+                opmChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
+              ),
+            } : {}),
+          ...(auxiliaryAudioDevices.length
+            ? { auxiliaryDevices: auxiliaryAudioDevices }
+            : {}),
+          ...(auxiliaryAudioDevices.some(device => device.type === 'OKIM6295')
+            ? { sampleRegion: auxiliaryAudioDevices.find(device =>
+                device.type === 'OKIM6295')!.deviceTag }
+            : {}),
+        }
     : ymChips.length || oplChips.length
       ? (() => {
           const ymRoutes = lowerAudioRoutes(
@@ -631,6 +666,14 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
                   ? { auxiliaryDevices: auxiliaryAudioDevices }
                   : {}),
               }
+        : berzerkSound
+          ? { kind: 'berzerk', clock: cpus[0].clock }
+        : sampleChips.length
+          ? {
+              kind: 'samples',
+              clock: cpus[0].clock,
+              chips: sampleChips.length,
+            }
         : discreteDevice
           ? {
               kind: 'discrete',
@@ -688,7 +731,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       }
     }
   }
-  if (sound.kind === 'wsg' && discreteNetlist) {
+  if (
+    sound.kind === 'wsg' &&
+    discreteNetlist &&
+    !devices.some(device => device.props.type === 'POLEPOS_WSG')
+  ) {
     Object.assign(sound, {
       auxiliary: compileNamco54Discrete(
         opts.mameSrc,
@@ -871,6 +918,32 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const bindings: unknown[] = [];
   const dipDefaults: unknown[] = [];
   const customs: NonNullable<BoardConfig['customs']> = [];
+  const inputLatches: NonNullable<BoardConfig['inputLatches']> = [];
+  const changedLatchMembers = new Map<string, string | undefined>();
+  const changedLatchMember = (className: string, method: string): string | undefined => {
+    const key = `${className}.${method}`;
+    if (changedLatchMembers.has(key)) return changedLatchMembers.get(key);
+    for (const sourceNode of graph.nodes.filter(node => node.label === 'SourceFile')) {
+      const path = join(opts.mameSrc, String(sourceNode.props.path));
+      if (!existsSync(path)) continue;
+      const source = readFileSync(path, 'utf8');
+      const marker = `INPUT_CHANGED_MEMBER(${className}::${method})`;
+      const start = source.indexOf(marker);
+      if (start < 0) continue;
+      // PORT_CHANGED_MEMBER supplies newval and param.  Preserve the common
+      // hardware shape where a rising switch edge sets one indexed latch;
+      // its separate output-latch callback remains source-compiled and owns
+      // clearing that state.
+      const body = source.slice(start, start + 800);
+      const match = /\bnewval\b[\s\S]{0,300}?\b(m_\w+)\s*\[\s*param\s*\]\s*=\s*(?:1|true)\s*;/.exec(body);
+      if (match) {
+        changedLatchMembers.set(key, match[1]);
+        return match[1];
+      }
+    }
+    changedLatchMembers.set(key, undefined);
+    return undefined;
+  };
   for (const port of ports) {
     const tag = port.tag;
     let init = 0;
@@ -890,6 +963,22 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         if (activeLow) init |= mask; // released = bit set; active-high released = bit clear
         const type = String(f.props.type ?? '');
         const mods = (f.props.modifiers as string[] | undefined) ?? [];
+        const changed = mods
+          .map(modifier => /PORT_CHANGED_MEMBER\s*\([^,]+,\s*FUNC\s*\(\s*(\w+)::(\w+)/.exec(modifier))
+          .find((match): match is RegExpExecArray => Boolean(match));
+        if (changed) {
+          const stateMember = changedLatchMember(changed[1]!, changed[2]!);
+          if (stateMember && mask > 0 && (mask & (mask - 1)) === 0) {
+            inputLatches.push({
+              port: tag,
+              mask,
+              activeLow,
+              stateMember,
+              index: Math.log2(mask),
+              handler: `${changed[1]}.${changed[2]}`,
+            });
+          }
+        }
         // IPT_CUSTOM bits are synthesized from other ports by a named driver
         // member (invaders reads CONTP1 into IN0/IN1/IN2 bits 4-6) — emit
         // the wiring fact for the board's member table
@@ -1075,6 +1164,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       ...(io ? { io } : {}),
       ...(initialShares.length ? { initialShares } : {}),
       ...(customs.length ? { customs } : {}),
+      ...(inputLatches.length ? { inputLatches } : {}),
       screen,
       clocks,
       videoMode: compiledVideo?.plan.bitmap ? 'bitmap' : 'handler',
