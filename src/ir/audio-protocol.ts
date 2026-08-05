@@ -132,8 +132,8 @@ export interface GeneratedDiscreteEffectsPlan {
      */
     network?: 'dkong-stomp' | 'dkong-jump' | 'dkong-walk';
   }[];
-  /** Run the source circuit's final resistor mixer and amplifier stages. */
-  outputNetwork?: 'dkong2b';
+  /** Run a board-specific source circuit that cannot be reduced to generic voices. */
+  outputNetwork?: 'dkong2b' | 'asteroid';
   dischargeNode?: number;
   /** RC decay applied to the DAC when the active-low discharge gate closes. */
   dischargeRelease?: number;

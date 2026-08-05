@@ -53,6 +53,52 @@ assert.ok(Math.max(...released.slice(-480).map(Math.abs)) < 0.001);
 
 console.log('discrete-effects.spec: sustained gates hold until their latch releases');
 
+const asteroidPlan: GeneratedDiscreteEffectsPlan = {
+  schemaVersion: 1,
+  type: 'DISCRETE_EFFECTS',
+  inputNodes: {
+    ASTEROID_SAUCER_SND_EN: 1,
+    ASTEROID_SAUCER_FIRE_EN: 2,
+    ASTEROID_SAUCER_SEL: 3,
+    ASTEROID_THRUST_EN: 4,
+    ASTEROID_SHIP_FIRE_EN: 5,
+    ASTEROID_LIFE_EN: 6,
+    ASTEROID_NOISE_RESET: 7,
+    ASTEROID_THUMP_EN: 8,
+    ASTEROID_THUMP_DATA: 9,
+    ASTEROID_EXPLODE_DATA: 10,
+    ASTEROID_EXPLODE_PITCH: 11,
+  },
+  dac: { node: -1, gain: 0, filterFrequency: 2_000, q: 0.707 },
+  voices: [],
+  outputNetwork: 'asteroid',
+  outputGain: 1,
+  source: { file: 'asteroid_a.cpp', line: 74, netlist: 'asteroid_discrete' },
+};
+const asteroidCore = new GeneratedDiscreteAudioCore(48_000, 1, asteroidPlan);
+asteroidCore.write(5, 1);
+const asteroidShot = Array.from({ length: 12_000 }, () => asteroidCore.sample());
+const crossings = (samples: number[]): number => samples.slice(1).reduce(
+  (count, value, index) => count + Number((value >= 0) !== (samples[index]! >= 0)),
+  0,
+);
+assert.ok(crossings(asteroidShot.slice(0, 2_400)) >
+  crossings(asteroidShot.slice(-2_400)) * 1.5);
+
+asteroidCore.write(5, 0);
+asteroidCore.write(11, 12);
+asteroidCore.write(10, 15);
+const asteroidExplosion = Array.from({ length: 9_600 }, () => asteroidCore.sample());
+const rms = (samples: number[]): number => Math.sqrt(
+  samples.reduce((sum, value) => sum + value * value, 0) / samples.length,
+);
+assert.ok(rms(asteroidExplosion) > 0.02);
+asteroidCore.write(10, 0);
+const asteroidExplosionTail = Array.from({ length: 4_800 }, () => asteroidCore.sample());
+assert.ok(rms(asteroidExplosionTail.slice(-480)) < 0.001);
+
+console.log('discrete-effects.spec: Asteroids fire sweeps down and explosion follows noise volume');
+
 const vcoPlan: GeneratedDiscreteEffectsPlan = {
   ...plan,
   voices: [{

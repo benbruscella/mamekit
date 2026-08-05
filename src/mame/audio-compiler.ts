@@ -552,7 +552,10 @@ export function compileDiscreteEffects(
       inputNodes,
       dac: { node: -1, gain: 0, filterFrequency: 2_000, q: 0.707 },
       voices,
-      outputGain: 1.5,
+      ...(netlist === 'asteroid_discrete'
+        ? { outputNetwork: 'asteroid' as const }
+        : {}),
+      outputGain: netlist === 'asteroid_discrete' ? 1 : 1.5,
       source: {
         file,
         line: source.slice(0, marker.index).split('\n').length,

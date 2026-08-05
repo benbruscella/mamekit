@@ -32,8 +32,8 @@ export const asteroid = sourceTarget({
       writes: 1981,
       nonzeroWrites: 1042,
       writeHash: 'd725ac56',
-      pcmHash: 'b6942f5b',
-      rms: 0.037314,
+      pcmHash: '50cb76b4',
+      rms: 0.046664,
     },
   },
 });
