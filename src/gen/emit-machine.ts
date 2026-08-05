@@ -288,6 +288,9 @@ export function lowerGeneratedMachine(
   const resetHandlers = Array.isArray(selectedMachine?.props.resetHandlers)
     ? selectedMachine.props.resetHandlers.map(String)
     : [];
+  const startHandlers = Array.isArray(selectedMachine?.props.startHandlers)
+    ? selectedMachine.props.startHandlers.map(String)
+    : [];
   const shareBindings = lowerShareBindings(graph);
   const execution: GeneratedExecutionPlan = {
     cpus: board.cpus.map(cpu => {
@@ -330,6 +333,7 @@ export function lowerGeneratedMachine(
     }),
     ...(board.initialShares?.length ? { initialShares: board.initialShares } : {}),
     ...(shareBindings.length ? { shareBindings } : {}),
+    ...(startHandlers.length ? { startHandlers } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(graph.nodes.some(node => node.label === 'MemoryBank') ? {
       banks: lowerMemoryBanks(graph, sourceRef),

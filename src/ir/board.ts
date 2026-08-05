@@ -307,6 +307,7 @@ export interface GeneratedExecutionPlan {
   /** Source member names that alias an address-map memory share. */
   shareBindings?: { share: string; member: string; bits?: 8 | 16 }[];
   /** Driver lifecycle handlers executed in source-derived base-first order. */
+  startHandlers?: string[];
   resetHandlers?: string[];
   banks?: {
     tag: string;

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   attotimeFrequency,
   derivedDeviceClock,
+  evaluateTimerScanlines,
   fromHzExpression,
   gameSubgraph,
   parseIoportMembers,
@@ -9,6 +10,32 @@ import {
 } from './build.ts';
 import type { KnowledgeGraph, KGNode } from './types.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
+
+const timerAst = new MameAstIndex(parseMameAst([{
+  file: 'timer.cpp',
+  source: `
+    static const uint8_t trigger_lines[2] = { 128, 256 };
+    void test_state::start_irq_timer() {
+      m_irq_timer->adjust(m_screen->time_until_pos(trigger_lines[0]));
+    }
+    void test_state::machine_reset() { start_irq_timer(); }
+    TIMER_CALLBACK_MEMBER(test_state::irq_callback) {
+      int next = (param + 1) % 2;
+      m_irq_timer->adjust(m_screen->time_until_pos(trigger_lines[next]), next);
+    }
+  `,
+}]));
+assert.deepEqual(
+  evaluateTimerScanlines(
+    timerAst,
+    timerAst.findFunction('test_state', 'irq_callback')!,
+    timerAst.findFunction('test_state', 'machine_reset')!,
+    'm_irq_timer',
+    {},
+  ),
+  [128, 256],
+  'driver timers retain their scheduled param when a reset helper starts the chain',
+);
 
 const callback = (
   id: string,

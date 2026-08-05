@@ -7,6 +7,7 @@ const regions = assembleRegions(
     { region: 'eraseff', size: 4, fill: 0xff, loads: [] },
     { region: 'erase00', size: 4, fill: 0x00, loads: [] },
     { region: 'inverted', size: 4, invert: true, loads: [] },
+    { region: 'socket', size: 4, fills: [{ offset: 2, size: 2, value: 0xff }], loads: [] },
   ],
   new Map(),
   () => {},
@@ -15,6 +16,7 @@ const regions = assembleRegions(
 assert.deepEqual([...regions.eraseff!], [0xff, 0xff, 0xff, 0xff]);
 assert.deepEqual([...regions.erase00!], [0x00, 0x00, 0x00, 0x00]);
 assert.deepEqual([...regions.inverted!], [0xff, 0xff, 0xff, 0xff]);
+assert.deepEqual([...regions.socket!], [0x00, 0x00, 0xff, 0xff]);
 
 const splitFile = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
 const splitRegions = assembleRegions(

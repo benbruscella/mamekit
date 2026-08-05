@@ -825,6 +825,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     ...(inheritedBiosSet(region) ? { romSet: inheritedBiosSet(region) } : {}),
     ...(String(region.props.flags).includes('ROMREGION_ERASEFF') ? { fill: 0xff } : {}),
     ...(String(region.props.flags).includes('ROMREGION_INVERT') ? { invert: true } : {}),
+    ...(region.props.fills ? {
+      fills: chunkTriples(region.props.fills as number[]).map(
+        ([offset, size, value]) => ({ offset, size, value }),
+      ),
+    } : {}),
     loads: g.out(region.id, 'LOADS').map(({ node: rom }) => {
       const crc = String(rom.props.crc);
       const alts = (altSlots.get(`${region.props.tag}/${rom.props.offset}/${rom.props.size}`) ?? [])

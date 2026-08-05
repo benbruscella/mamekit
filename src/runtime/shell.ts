@@ -36,6 +36,8 @@ export interface RomRegionSpec {
   fill?: number;
   /** MAME ROMREGION_INVERT complements every byte after the region is loaded. */
   invert?: boolean;
+  /** Source ROM_FILL directives applied after physical chips are loaded. */
+  fills?: { offset: number; size: number; value: number }[];
   /**
    * MAME device short name owning this region's ROMs, when they come from a
    * device set rather than the game set. MAME commonised device ROMs so one
@@ -634,6 +636,11 @@ export function assembleRegions(
         copyRomLoad(bytes, f, segment.fileOffset, segment.size, segment.offset, load);
       }
       for (const ro of load.reloadOffsets ?? []) copyRomLoad(bytes, f, 0, load.size, ro, load);
+    }
+    for (const fill of spec.fills ?? []) {
+      const start = Math.max(0, fill.offset);
+      const end = Math.min(bytes.length, fill.offset + fill.size);
+      bytes.fill(fill.value & 0xff, start, end);
     }
     if (spec.invert) {
       for (let index = 0; index < bytes.length; index++) bytes[index] ^= 0xff;

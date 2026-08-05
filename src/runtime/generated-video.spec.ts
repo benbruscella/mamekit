@@ -62,6 +62,24 @@ assert.equal(williamsPaletteColor(0xff), 0xffffffff);
 
 assert.equal(
   generatedDirectScreenShape({
+    execution: { screenUpdate: { handler: 'berzerk_state.screen_update' } },
+    handlers: [{
+      ownerClass: 'berzerk_state',
+      method: 'screen_update',
+      body: `
+        for (int offs = 0; offs < m_videoram.bytes(); offs++) {
+          uint8_t color = m_colorram[((offs >> 2) & 0x07e0) | (offs & 0x001f)];
+          rgb_t pen = (data & 0x80) ? pens[color >> 4] : rgb_t::black();
+          rgb_t pen = (data & 0x80) ? pens[color & 0x0f] : rgb_t::black();
+        }
+      `,
+    }],
+  } as unknown as BoardIr),
+  'berzerk-color-bitmap',
+);
+
+assert.equal(
+  generatedDirectScreenShape({
     execution: { screenUpdate: { handler: 'vicdual_state.screen_update_color' } },
     handlers: [{
       ownerClass: 'vicdual_state',

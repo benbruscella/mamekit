@@ -194,6 +194,14 @@ ROM_END
   ['tiles.bin'],
 ]);
 
+eq('ROM_FILL preserves an explicitly erased socket', parseRomSets(`
+ROM_START( board )
+  ROM_REGION( 0x4000, "maincpu", 0 )
+  ROM_LOAD( "program.bin", 0, 0x3800, CRC(11111111) )
+  ROM_FILL( 0x3800, 0x0800, 0xff )
+ROM_END
+`)[0]?.regions[0]?.fills, [{ offset: 0x3800, size: 0x0800, value: 0xff }]);
+
 {
   const regions = parseRomSets(`
 ROM_START( splitgfx )

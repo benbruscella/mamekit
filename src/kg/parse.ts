@@ -363,6 +363,7 @@ export interface RomLoad {
 }
 export interface RomRegionDef {
   tag: string; size: number; flags: string; loads: RomLoad[];
+  fills: { offset: number; size: number; value: number }[];
 }
 export interface RomSetDef { name: string; regions: RomRegionDef[]; }
 
@@ -459,6 +460,7 @@ export function parseRomSets(
             tag: unquote(args[1]),
             flags: args[2] ?? '',
             loads: [],
+            fills: [],
           };
           set.regions.push(region);
           lastLoad = null;
@@ -509,6 +511,13 @@ export function parseRomSets(
           fileOffset += size;
       } else if (statement === 'ROM_IGNORE') {
           fileOffset += evalExpr(args[0], consts) ?? 0;
+      } else if (statement === 'ROM_FILL') {
+          if (!region) break;
+          region.fills.push({
+            offset: evalExpr(args[0], consts) ?? 0,
+            size: evalExpr(args[1], consts) ?? 0,
+            value: evalExpr(args[2], consts) ?? 0,
+          });
       }
     }
     out.push(set);

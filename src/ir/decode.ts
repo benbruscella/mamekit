@@ -357,12 +357,14 @@ function decodeExecution(reader: Reader, value: unknown): void {
     }
   }
 
-  if (execution.resetHandlers !== undefined) {
-    for (const [index, handler] of reader.array(
-      execution.resetHandlers,
-      'execution.resetHandlers',
-    ).entries()) {
-      reader.string(handler, `execution.resetHandlers[${index}]`);
+  for (const field of ['startHandlers', 'resetHandlers'] as const) {
+    if (execution[field] !== undefined) {
+      for (const [index, handler] of reader.array(
+        execution[field],
+        `execution.${field}`,
+      ).entries()) {
+        reader.string(handler, `execution.${field}[${index}]`);
+      }
     }
   }
 

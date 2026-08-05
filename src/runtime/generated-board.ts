@@ -755,6 +755,7 @@ class IrBoard implements Board {
       },
       video,
     });
+    this.runMachineLifecycle('startHandlers');
     this.runMachineReset();
   }
 
@@ -872,12 +873,16 @@ class IrBoard implements Board {
 
   /** Execute MAME's selected MACHINE_RESET_MEMBER chain, base first. */
   private runMachineReset(): void {
-    for (const key of this.machine.execution.resetHandlers ?? []) {
+    this.runMachineLifecycle('resetHandlers');
+  }
+
+  private runMachineLifecycle(field: 'startHandlers' | 'resetHandlers'): void {
+    for (const key of this.machine.execution[field] ?? []) {
       const handler = this.machine.handlers?.find(candidate =>
         `${candidate.ownerClass}.${candidate.method}` === key);
       if (!handler?.program || handler.program.diagnostics.length) {
         throw new Error(
-          `${this.machine.game}: machine reset handler "${key}" is not executable`,
+          `${this.machine.game}: machine lifecycle handler "${key}" is not executable`,
         );
       }
       executeGeneratedMachineHandler(this.machine, handler, this.bindings, {});

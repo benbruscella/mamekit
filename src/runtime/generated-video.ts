@@ -1368,6 +1368,7 @@ export function generatedScrollBand(
 }
 
 type GeneratedDirectScreenShape =
+  | 'berzerk-color-bitmap'
   | 'bublbobl-object-columns'
   | 'cosmic-bitmap-sprites'
   | 'dkong-scanline-sprites'
@@ -1391,6 +1392,14 @@ export function generatedDirectScreenShape(
   const screen = machine.handlers?.find(handler =>
     `${handler.ownerClass}.${handler.method}` === screenKey);
   const body = screen?.body ?? '';
+  if (
+    body.includes('for (int offs = 0; offs < m_videoram.bytes(); offs++)') &&
+    body.includes('m_colorram[((offs >> 2) & 0x07e0) | (offs & 0x001f)]') &&
+    body.includes('rgb_t pen = (data & 0x80) ? pens[color >> 4]') &&
+    body.includes('rgb_t pen = (data & 0x80) ? pens[color & 0x0f]')
+  ) {
+    return 'berzerk-color-bitmap';
+  }
   if (
     body.includes('draw_bitmap(bitmap, cliprect)') &&
     body.includes('draw_sprites(bitmap, cliprect, 0x07, 1)') &&
@@ -1936,6 +1945,44 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         }
         lastX = x;
         lastY = y;
+      }
+      return true;
+    }
+    if (this.directScreenShape === 'berzerk-color-bitmap' && bitmap.direct) {
+      const videoRaw = this.state.m_videoram;
+      const colorRaw = this.state.m_colorram;
+      if (!ArrayBuffer.isView(videoRaw) || !ArrayBuffer.isView(colorRaw)) return false;
+      const video = videoRaw as Uint8Array;
+      const colors = colorRaw as Uint8Array;
+      const pixels = bitmap.direct.pixels;
+      pixels.fill(0xff000000);
+      const dim = 108;
+      const pens = Array.from({ length: 16 }, (_unused, color) => {
+        const intensity = color & 8 ? 255 : dim;
+        return packRgb(
+          color & 1 ? intensity : 0,
+          color & 2 ? intensity : 0,
+          color & 4 ? intensity : 0,
+        );
+      });
+      const firstRow = this.machine.execution.screen.yOffset ?? 0;
+      const outputRows = bitmap.direct.height;
+      for (let outputY = 0; outputY < outputRows; outputY++) {
+        const sourceRow = outputY + firstRow;
+        const rowOffset = sourceRow << 5;
+        const outputOffset = outputY * bitmap.direct.width;
+        for (let byte = 0; byte < 32; byte++) {
+          const offset = rowOffset + byte;
+          const data = video[offset] ?? 0;
+          if (!data) continue;
+          const color = colors[((offset >>> 2) & 0x07e0) | (offset & 0x001f)] ?? 0;
+          for (let bit = 0; bit < 8; bit++) {
+            if (data & (0x80 >>> bit)) {
+              pixels[outputOffset + (byte << 3) + bit] =
+                pens[bit < 4 ? color >>> 4 : color & 0x0f]!;
+            }
+          }
+        }
       }
       return true;
     }

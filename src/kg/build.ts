@@ -224,6 +224,9 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       const regionSource = ast.findMacro('ROM_REGION', 1, region.tag)?.span;
       g.node('RomRegion', regId, {
         tag: region.tag, size: region.size, flags: region.flags,
+        ...(region.fills.length ? {
+          fills: region.fills.flatMap(fill => [fill.offset, fill.size, fill.value]),
+        } : {}),
         ...spanProps(regionSource),
       });
       g.edge(setId, regId, 'HAS_REGION');
@@ -419,11 +422,14 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       'reset',
     );
     const resetHandlers = resetFunctions.map(fn => `${fn.className}.${fn.name}`);
+    const videoStart = ast.findFunctionInHierarchy(cfg.cls, 'video_start');
+    const startHandlers = videoStart ? [`${videoStart.className}.${videoStart.name}`] : [];
     g.node('MachineConfig', cfgId, {
       cls: cfg.cls,
       name: cfg.name,
       calls: cfg.calls,
       ...(resetHandlers.length ? { resetHandlers } : {}),
+      ...(startHandlers.length ? { startHandlers } : {}),
       ...(cfg.devicePatches.length
         ? { devicePatches: cfg.devicePatches.map(patch => JSON.stringify(patch)) }
         : {}),
@@ -448,6 +454,17 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       );
       g.edge(cfgId, handlerId, 'CALLS_HANDLER');
     }
+    if (videoStart) {
+      const handlerId = emitSourceHandlerClosure(
+        g,
+        ast,
+        videoStart.className,
+        videoStart.name,
+        consts,
+        videoStart.span,
+      );
+      g.edge(cfgId, handlerId, 'CALLS_HANDLER');
+    }
     for (const callback of g.nodes.values()) {
       if (callback.label !== 'Callback' || callback.props.signal !== 'timer') continue;
       const targetClass = String(callback.props.targetClass ?? '');
@@ -460,7 +477,6 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (target) g.edge(cfgId, `machine:${target.cls}.${target.name}`, 'CALLS');
     }
     const machineStart = ast.findFunctionInHierarchy(cfg.cls, 'machine_start');
-    const videoStart = ast.findFunctionInHierarchy(cfg.cls, 'video_start');
     const bankRoots = [
       ...(machineStart ? [machineStart] : []),
       ...(videoStart ? [videoStart] : []),
@@ -832,7 +848,11 @@ function emitSourceTimerCallbacks(
     const callback = ast.findFunctionInHierarchy(allocation.ownerClass, allocation.method);
     const reset = functions.find(fn =>
       /(?:machine_reset|reset)$/.test(fn.name) &&
-      fn.body.includes(`${allocation.timer}->adjust`));
+      functionClosureContains(
+        ast,
+        fn,
+        body => body.includes(`${allocation.timer}->adjust`),
+      ));
     if (!callback || !reset) continue;
     const scanlines = evaluateTimerScanlines(
       ast,
@@ -867,6 +887,29 @@ function emitSourceTimerCallbacks(
   }
 }
 
+function functionClosureContains(
+  ast: MameAstIndex,
+  root: MameFunction,
+  predicate: (body: string) => boolean,
+): boolean {
+  const pending = [root];
+  const visited = new Set<string>();
+  while (pending.length) {
+    const fn = pending.shift()!;
+    const key = `${fn.className}.${fn.name}`;
+    if (visited.has(key)) continue;
+    visited.add(key);
+    if (predicate(fn.body)) return true;
+    for (const statement of fn.statements) {
+      for (const call of statement.calls) {
+        const target = ast.findFunctionInHierarchy(fn.className, call.name);
+        if (target) pending.push(target);
+      }
+    }
+  }
+  return false;
+}
+
 export function evaluateTimerScanlines(
   ast: MameAstIndex,
   callback: MameFunction,
@@ -884,12 +927,14 @@ export function evaluateTimerScanlines(
   );
   let currentLine = 0;
   let adjustedLine: number | undefined;
+  let adjustedParam = 0;
   const calls: Record<string, (...args: number[]) => unknown> = {
     'm_screen.vpos': () => currentLine,
     'm_screen.time_until_pos': line => line,
     'machine().time': () => 0,
     [`${timer}.adjust`]: (...args) => {
-      adjustedLine = args.length > 1 ? args.at(-1) : args[0];
+      adjustedLine = args[0];
+      adjustedParam = args.length > 1 ? Number(args[1]) : 0;
     },
     'm_maincpu.set_input_line': () => 0,
     'm_subcpu2.pulse_input_line': () => 0,
@@ -919,6 +964,17 @@ export function evaluateTimerScanlines(
     members: {
       m_int_enable: 1,
       m_sub2_nmi_mask: 0,
+      ...Object.fromEntries(ast.ast.units.flatMap(unit =>
+        [...unit.source.matchAll(
+          /\b(?:static\s+)?const\s+(?:u?int(?:8|16|32)_t|u(?:8|16|32)|int)\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]*)\}/g,
+        )].map(match => [
+          match[1]!,
+          match[2]!.split(',').map(value => {
+            const expression = value.trim();
+            return evalExpr(expression, constants) ?? Number(expression);
+          }),
+        ]),
+      )),
     },
     calls,
   };
@@ -929,14 +985,16 @@ export function evaluateTimerScanlines(
   executeGeneratedHandler(resetProgram, bindings);
   if (!Number.isFinite(adjustedLine)) return [];
   currentLine = Math.trunc(adjustedLine!);
+  let currentParam = adjustedParam;
   const lines: number[] = [];
   for (let iteration = 0; iteration < 32; iteration++) {
     if (lines.includes(currentLine)) break;
     lines.push(currentLine);
     adjustedLine = undefined;
-    executeGeneratedHandler(callbackProgram, bindings, { param: currentLine });
+    executeGeneratedHandler(callbackProgram, bindings, { param: currentParam });
     if (!Number.isFinite(adjustedLine)) return [];
     currentLine = Math.trunc(adjustedLine!);
+    currentParam = adjustedParam;
   }
   return lines.length > 1 ? lines : [];
 }
