@@ -122,6 +122,8 @@ export interface GeneratedDiscreteEffectsPlan {
     release: number;
     gain: number;
     activeLow: boolean;
+    /** The source oscillator remains audible while its logic gate is held. */
+    sustain?: boolean;
     /** RCDISC_MODULATED networks respond to both latch transitions. */
     triggerEdge?: 'active' | 'both';
     /**

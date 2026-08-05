@@ -79,6 +79,42 @@ export function compileMameVideo(
   const screen = ast.findFunctionInHierarchy(screenClass, screenMethod)
     ?? ast.ast.units.flatMap(unit => unit.functions)
       .find(candidate => candidate.name === screenMethod);
+  if (screenClass === 'vector_device' && screenMethod === 'screen_update') {
+    const dvg = /\bDVG\s*\(\s*config\s*,\s*(m_\w+)[^)]*\)[\s\S]*?\1\s*->\s*set_memory\s*\([^,]+,[^,]+,\s*(0x[\da-f]+|\d+)\s*\)/i
+      .exec(source);
+    if (dvg) {
+      let doneInput: NonNullable<GeneratedVideoPlan['vector']>['doneInput'];
+      for (const port of source.matchAll(
+        /PORT_START\s*\(\s*"([^"]+)"\s*\)([\s\S]*?)(?=PORT_START\s*\(|INPUT_PORTS_END)/g,
+      )) {
+        const done = /PORT_BIT\s*\(\s*(0x[\da-f]+|\d+)\s*,\s*(IP_ACTIVE_LOW|IP_ACTIVE_HIGH)[^)]*\)\s*PORT_READ_LINE_DEVICE_MEMBER\s*\(\s*"dvg"\s*,\s*FUNC\s*\(\s*dvg_device::done_r\s*\)\s*\)/i
+          .exec(port[2]!);
+        if (!done) continue;
+        doneInput = {
+          port: port[1]!,
+          mask: Number(done[1]),
+          activeLow: done[2] === 'IP_ACTIVE_LOW',
+        };
+        break;
+      }
+      const config = ast.findFunction(String(machine.props.cls), String(machine.props.name));
+      return {
+        plan: {
+          gfx: [],
+          tilemaps: [],
+          initialState: memberDefaults,
+          vector: {
+            type: 'DVG',
+            memoryBase: Number(dvg[2]),
+            coordinateBits: 10,
+            ...(doneInput ? { doneInput } : {}),
+          },
+          ...(config ? { source: sourceRef(config) } : {}),
+        },
+        handlers: [],
+      };
+    }
+  }
   if (
     screen?.body.includes('video_update_common(bitmap, cliprect,') &&
     source.includes('void taitosj_state::draw_layers()') &&

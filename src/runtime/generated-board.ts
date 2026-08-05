@@ -332,7 +332,45 @@ class IrBoard implements Board {
     };
     calls['machine().scheduler().perfect_quantum'] = () => 0;
     calls['m68000_base_device::autovector'] = level => 24 + level;
-    this.bindings = { members: this.state, inputs, calls };
+    const generatedInputs: InputPorts = {
+      read: port => {
+        let value = inputs.read(port);
+        for (const custom of machine.execution.customs?.filter(entry =>
+          entry.port === port) ?? []) {
+          let line = 0;
+          if (custom.source === 'screen-vblank') {
+            const { vbstart, vbend = 0 } = machine.execution.screen;
+            const inVblank = vbstart > vbend
+              ? this.currentLine >= vbstart || this.currentLine < vbend
+              : this.currentLine >= vbstart && this.currentLine < vbend;
+            line = custom.activeLow ? Number(!inVblank) : Number(inVblank);
+          } else {
+            const handler = machine.handlers?.find(candidate =>
+              custom.handler
+                ? `${candidate.ownerClass}.${candidate.method}` === custom.handler
+                : candidate.method === custom.member);
+            if (handler?.program && !handler.program.diagnostics.length) {
+              line = Number(executeGeneratedMachineHandler(
+                machine,
+                handler,
+                this.bindings,
+                {},
+              ) ?? 0);
+            }
+          }
+          const shift = trailingZeroBits(custom.mask);
+          value = (value & ~custom.mask) | ((line << shift) & custom.mask);
+        }
+        const done = machine.video?.vector?.doneInput;
+        if (done?.port === port) {
+          // This DVG executor consumes the display list synchronously, so the
+          // source custom input observes the generator in its completed state.
+          value = done.activeLow ? value & ~done.mask : value | done.mask;
+        }
+        return value;
+      },
+    };
+    this.bindings = { members: this.state, inputs: generatedInputs, calls };
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
       bindGeneratedRegionState(
@@ -368,6 +406,11 @@ class IrBoard implements Board {
       write: { ...sourceHandlers.write },
     };
     this.installDeviceHandlers(machine, registry);
+    if (machine.video?.vector?.type === 'DVG') {
+      registry.write['dvg.go_w'] = () => {};
+      registry.write['dvg.reset_w'] = () => {};
+      calls['m_dvg.reset_w'] = () => 0;
+    }
     this.installGeneratedDeviceBuses(machine, registry);
     this.soundRuntime = this.installGeneratedSoundHandlers(machine, regions, sinks, registry);
     this.installMemoryBanks(machine, regions, registry);
@@ -659,6 +702,7 @@ class IrBoard implements Board {
         line => {
           if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line);
         },
+        address => this.cpuBuses.get(machine.execution.cpus[0]?.tag ?? '')?.read(address) ?? 0,
       );
       video = new GeneratedVideoRenderer(machine, primitives);
     }
@@ -1103,7 +1147,10 @@ class IrBoard implements Board {
       const entrySize = bankRange ? bankRange.end - bankRange.start + 1 : 0;
       const ownedEntries = bank.entryMembers?.map((member, index) => {
         if (!member) return undefined;
-        const bytes = new Uint8Array(entrySize);
+        const existing = this.state[member];
+        const bytes = existing instanceof Uint8Array
+          ? existing
+          : new Uint8Array(entrySize);
         const indexed = /^(\w+)\[(\d+)\]$/.exec(member);
         if (indexed) {
           const values = this.state[indexed[1]!] as unknown[] | undefined ?? [];

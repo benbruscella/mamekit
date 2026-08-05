@@ -473,6 +473,94 @@ export function compileDiscreteEffects(
     }
   };
 
+  // Atari's DVG-era boards use sustained logic-gated oscillators and noise
+  // alongside transient fire circuits. Lower that source topology into the
+  // same executable effects protocol used by other analog boards.
+  const cleanedBody = body.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  const logicCalls = callArgs(cleanedBody, 'DISCRETE_INPUT_LOGIC');
+  if (
+    logicCalls.length >= 6 &&
+    /\bDISCRETE_555_CC\s*\(/.test(body) &&
+    /\bDISCRETE_LFSR_NOISE\s*\(/.test(body) &&
+    /\bDISCRETE_(?:ADDER\d+|MIXER\d+)\s*\(/.test(body)
+  ) {
+    const logicSymbols = logicCalls
+      .map(args => symbolName(args[0]))
+      .filter((value): value is string => Boolean(value));
+    const inputNodes: Record<string, number> = {};
+    for (const [name] of macros) {
+      const resolved = node(name);
+      if (resolved !== undefined && (
+        logicSymbols.some(symbol => node(symbol) === resolved) ||
+        callArgs(cleanedBody, 'DISCRETE_INPUT_DATA').some(args => node(args[0]) === resolved) ||
+        callArgs(cleanedBody, 'DISCRETE_INPUTX_DATA').some(args => node(args[0]) === resolved) ||
+        callArgs(cleanedBody, 'DISCRETE_INPUT_PULSE').some(args => node(args[0]) === resolved)
+      )) inputNodes[name] = resolved;
+    }
+    const lfsr = callArgs(body, 'DISCRETE_LFSR_NOISE')[0];
+    const noiseFrequency = analog(lfsr?.[3]);
+    const voices = logicSymbols.flatMap(symbol => {
+      const symbolNode = node(symbol);
+      if (symbolNode === undefined) return [];
+      const squareFixed = callArgs(body, 'DISCRETE_SQUAREWFIX')
+        .find(args => node(args[1]) === symbolNode);
+      const square = callArgs(body, 'DISCRETE_SQUAREWAVE')
+        .find(args => node(args[1]) === symbolNode);
+      const triangle = callArgs(body, 'DISCRETE_TRIANGLEWAVE')
+        .find(args => node(args[1]) === symbolNode);
+      const timer = callArgs(body, 'DISCRETE_555_CC')
+        .find(args => node(args[1]) === symbolNode);
+      const noiseGate = callArgs(body, 'DISCRETE_MULTIPLY')
+        .find(args => node(args[1]) === symbolNode || node(args[2]) === symbolNode);
+      if (!squareFixed && !square && !triangle && !timer && !noiseGate) return [];
+      const rampNode = node(square?.[2]);
+      const ramp = rampNode === undefined ? undefined : callArgs(body, 'DISCRETE_RAMP')
+        .find(args => node(args[0]) === rampNode);
+      const frequency = squareFixed
+        ? analog(squareFixed[2])
+        : ramp
+          ? analog(ramp[4])
+          : triangle && Number.isFinite(analog(triangle[2]))
+            ? analog(triangle[2])
+            : timer
+              ? 45
+              : Number.isFinite(noiseFrequency)
+                ? noiseFrequency
+                : 12_000;
+      const rawGain = squareFixed
+        ? analog(squareFixed[3])
+        : triangle
+          ? analog(triangle[3])
+          : noiseGate
+            ? 600
+            : 53;
+      const transient = Boolean(square || timer);
+      return [{
+        node: symbolNode,
+        mode: noiseGate ? 'noise' as const : 'tone' as const,
+        frequency: Number.isFinite(frequency) && frequency > 0 ? frequency : 750,
+        release: transient ? 0.28 : 0.12,
+        gain: Number.isFinite(rawGain) ? Math.min(0.5, Math.abs(rawGain) / 1_000) : 0.05,
+        activeLow: false,
+        ...(!transient ? { sustain: true } : {}),
+      }];
+    });
+    const marker = markerPattern.exec(source)!;
+    return {
+      schemaVersion: 1,
+      type: 'DISCRETE_EFFECTS',
+      inputNodes,
+      dac: { node: -1, gain: 0, filterFrequency: 2_000, q: 0.707 },
+      voices,
+      outputGain: 1.5,
+      source: {
+        file,
+        line: source.slice(0, marker.index).split('\n').length,
+        netlist,
+      },
+    };
+  }
+
   const inputCalls = callArgs(
     body.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''),
     'DISCRETE_INPUT_NOT',

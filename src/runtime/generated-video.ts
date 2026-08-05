@@ -7,6 +7,7 @@ import {
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
 import { decodeGfx, type GfxSet } from './gfx.ts';
+import { executeDvgDisplayList } from '../hardware/vector/dvg.ts';
 
 export interface GeneratedVideoPrimitives extends VideoRenderer {
   generatedVideoBindings(frame: Uint32Array): GeneratedHandlerBindings;
@@ -1630,6 +1631,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private readonly gfxByDecode = new Map<string, GeneratedGfxElement[]>();
   private readonly bindings: GeneratedHandlerBindings;
   private readonly directScreenShape?: GeneratedDirectScreenShape;
+  private readonly memoryRead?: (address: number) => number;
 
   constructor(
     machine: BoardIr,
@@ -1637,9 +1639,11 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     state: Record<string, unknown>,
     bindings: GeneratedHandlerBindings,
     updatePartial?: (line: number) => void,
+    memoryRead?: (address: number) => number,
   ) {
     this.machine = machine;
     this.state = state;
+    this.memoryRead = memoryRead;
     this.width = machine.execution.screen.width;
     this.height = machine.execution.screen.height;
     for (const [tag, bytes] of Object.entries(regions)) {
@@ -1909,6 +1913,32 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     cliprect: GeneratedRectangle,
   ): boolean {
     if (handler !== this.machine.execution.screenUpdate?.handler) return false;
+    const vector = this.machine.video?.vector;
+    if (vector?.type === 'DVG' && this.memoryRead && bitmap.direct) {
+      bitmap.fill(0xff000000);
+      const points = executeDvgDisplayList(this.memoryRead, vector);
+      const pixels = bitmap.direct.pixels;
+      const width = bitmap.direct.width;
+      const height = bitmap.direct.height;
+      const center = 1 << (vector.coordinateBits - 1);
+      const xOffset = this.machine.execution.screen.xOffset ?? 0;
+      const yOffset = this.machine.execution.screen.yOffset ?? 0;
+      let lastX = 0;
+      let lastY = 0;
+      for (const point of points) {
+        const x = Math.round(xOffset + point.x - center);
+        const y = Math.round(yOffset + center - point.y);
+        if (point.intensity > 0) {
+          drawAdditiveVectorLine(
+            pixels, width, height, lastX, lastY, x, y,
+            Math.min(255, point.intensity << 4),
+          );
+        }
+        lastX = x;
+        lastY = y;
+      }
+      return true;
+    }
     if (this.directScreenShape === 'dkong-scanline-sprites') {
       const tilemap = this.state.m_bg_tilemap as GeneratedTilemap | undefined;
       const spriteRam = this.state.m_sprite_ram;
@@ -3132,6 +3162,52 @@ function normalizePaletteRange(
 
 function packRgb(red: number, green: number, blue: number): number {
   return (0xff000000 | (blue << 16) | (green << 8) | red) >>> 0;
+}
+
+function drawAdditiveVectorLine(
+  pixels: Uint32Array,
+  width: number,
+  height: number,
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+  intensity: number,
+): void {
+  const add = (x: number, y: number, level: number): void => {
+    if (x < 0 || x >= width || y < 0 || y >= height) return;
+    const index = y * width + x;
+    const previous = pixels[index] ?? 0xff000000;
+    const red = Math.min(255, (previous & 0xff) + level);
+    const green = Math.min(255, ((previous >>> 8) & 0xff) + level);
+    const blue = Math.min(255, ((previous >>> 16) & 0xff) + level);
+    pixels[index] = packRgb(red, green, blue);
+  };
+  let x = fromX;
+  let y = fromY;
+  const deltaX = Math.abs(toX - fromX);
+  const deltaY = Math.abs(toY - fromY);
+  const stepX = fromX < toX ? 1 : -1;
+  const stepY = fromY < toY ? 1 : -1;
+  let error = deltaX - deltaY;
+  const glow = Math.max(1, intensity >>> 3);
+  for (;;) {
+    add(x, y, intensity);
+    add(x - 1, y, glow);
+    add(x + 1, y, glow);
+    add(x, y - 1, glow);
+    add(x, y + 1, glow);
+    if (x === toX && y === toY) break;
+    const twice = error * 2;
+    if (twice > -deltaY) {
+      error -= deltaY;
+      x += stepX;
+    }
+    if (twice < deltaX) {
+      error += deltaX;
+      y += stepY;
+    }
+  }
 }
 
 function modulo(value: number, modulus: number): number {

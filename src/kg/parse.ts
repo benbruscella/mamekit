@@ -612,6 +612,12 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
           case 'portw': range.portWrite = unquote(args[0]); break;
           case 'bankr': range.bankRead = unquote(args[0]).replace(/^m_/, ''); break;
           case 'bankw': range.bankWrite = unquote(args[0]).replace(/^m_/, ''); break;
+          case 'bankrw': {
+            const bank = unquote(args[0]).replace(/^m_/, '');
+            range.bankRead = bank;
+            range.bankWrite = bank;
+            break;
+          }
           case 'region':
             range.region = unquote(args[0]);
             range.regionOffset = evalExpr(args[1] ?? '0') ?? 0;
@@ -891,7 +897,7 @@ export function parseMemoryBanks(
       memberTags,
       consts,
     );
-    const owned = /^((?:m_\w+)\s*\[\s*(\d+)\s*\])\.get\(\)$/.exec(
+    const owned = /^(m_\w+(?:\s*\[\s*(\d+)\s*\])?)(?:\.get\(\))?$/.exec(
       args[plural ? 2 : 1]!.trim(),
     );
     const startEntry = evalExpr(args[0]!, consts);
@@ -906,7 +912,7 @@ export function parseMemoryBanks(
       entries,
       ...(source ? { region: source.region, offset: source.offset } : {
         entryMember: owned![1]!.replace(/\s+/g, ''),
-        offset: Number(owned![2]),
+        offset: Number(owned![2] ?? 0),
       }),
       stride,
       raw: body.slice(match.index, close + 1).trim(),

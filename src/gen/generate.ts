@@ -99,6 +99,17 @@ const KEYMAP: Record<string, string[]> = {
 // convention. Keep these local: swapping the global X/Z mapping would silently
 // change every established game and the NES pad.
 const GAME_KEYMAP: Record<string, Record<string, string[]>> = {
+  asteroid: {
+    // Asteroids numbers its buttons by schematic input rather than by role.
+    // Keep the cabinet controls intuitive while avoiding macOS-reserved
+    // Ctrl+Arrow combinations: rotate on arrows, fire/thrust on X/Z, and
+    // hyperspace on Space.
+    IPT_BUTTON1: ['ArrowLeft'],
+    IPT_BUTTON2: ['ArrowRight'],
+    IPT_BUTTON3: ['KeyX'],
+    IPT_BUTTON4: ['KeyZ'],
+    IPT_BUTTON5: ['Space'],
+  },
   bankp: {
     IPT_BUTTON1: ['KeyZ'],
     IPT_BUTTON2: ['KeyX'],
@@ -1167,7 +1178,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       ...(inputLatches.length ? { inputLatches } : {}),
       screen,
       clocks,
-      videoMode: compiledVideo?.plan.bitmap ? 'bitmap' : 'handler',
+      videoMode: compiledVideo?.plan.bitmap
+        ? 'bitmap'
+        : compiledVideo?.plan.vector
+          ? 'vector'
+          : 'handler',
     },
     sound,
     roms,

@@ -35,6 +35,24 @@ assert.ok(Math.max(...retriggered.map(Math.abs)) > 0.3);
 
 console.log('discrete-effects.spec: RC effects decay while held and retrigger on a new edge');
 
+const sustainedPlan: GeneratedDiscreteEffectsPlan = {
+  ...plan,
+  voices: [{
+    ...plan.voices[0]!,
+    activeLow: false,
+    sustain: true,
+  }],
+};
+const sustainedCore = new GeneratedDiscreteAudioCore(48_000, 1, sustainedPlan);
+sustainedCore.write(1, 1);
+const sustained = Array.from({ length: 9_600 }, () => sustainedCore.sample());
+assert.ok(Math.max(...sustained.slice(-480).map(Math.abs)) > 0.3);
+sustainedCore.write(1, 0);
+const released = Array.from({ length: 9_600 }, () => sustainedCore.sample());
+assert.ok(Math.max(...released.slice(-480).map(Math.abs)) < 0.001);
+
+console.log('discrete-effects.spec: sustained gates hold until their latch releases');
+
 const vcoPlan: GeneratedDiscreteEffectsPlan = {
   ...plan,
   voices: [{

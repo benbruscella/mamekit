@@ -31,7 +31,7 @@ export interface RuntimeConfigShape {
     cpus: RuntimeCpu[];
     ranges: RuntimeRange[];
     io?: { ranges: RuntimeRange[] };
-    videoMode?: 'handler' | 'bitmap';
+    videoMode?: 'handler' | 'bitmap' | 'vector';
   };
 }
 
@@ -291,6 +291,7 @@ export function buildRuntimeReport(
   // renderer and therefore do not require the configured device screen-update
   // method to appear as a driver handler.
   const screenUpdateCompiled = config.board.videoMode === 'bitmap' ||
+    config.board.videoMode === 'vector' ||
     Boolean(screenProgram && screenProgram.diagnostics.length === 0);
 
   return {
@@ -323,7 +324,8 @@ export function buildRuntimeReport(
       frameCallbacks,
       ...(screenUpdate ? { screenUpdate } : {}),
       screenUpdateCompiled,
-      screenUpdateDiagnostics: config.board.videoMode === 'bitmap'
+      screenUpdateDiagnostics: config.board.videoMode === 'bitmap' ||
+        config.board.videoMode === 'vector'
         ? []
         : screenProgram?.diagnostics ?? ['screen-update source method not found'],
     },

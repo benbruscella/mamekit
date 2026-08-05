@@ -650,6 +650,17 @@ export interface GeneratedVideoPlan {
     };
   };
   bitmap?: GeneratedBitmapPlan;
+  /** Atari Digital Vector Generator display list executed from the CPU bus. */
+  vector?: {
+    type: 'DVG';
+    memoryBase: number;
+    coordinateBits: number;
+    doneInput?: {
+      port: string;
+      mask: number;
+      activeLow: boolean;
+    };
+  };
   source?: BoardSourceRef;
 }
 

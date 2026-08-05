@@ -119,7 +119,8 @@ export class GeneratedDiscreteAudioCore {
       // These gates feed RCDISC/RCDISC_MODULATED one-shots in the source
       // netlist.  A held latch starts the transient once; it does not sustain
       // the oscillator at full volume indefinitely.
-      this.envelope[index] *= Math.exp(-1 / releaseSamples);
+      if (voice.sustain && this.active[index]) this.envelope[index] = 1;
+      else this.envelope[index] *= Math.exp(-1 / releaseSamples);
       if (this.envelope[index] < 1e-5) this.envelope[index] = 0;
       let signal: number;
       if (voice.mode === 'noise') {

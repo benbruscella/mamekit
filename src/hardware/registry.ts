@@ -99,6 +99,8 @@ import {
   BERZERK_SOUND_PORTS,
 } from './berzerk-sound/definition.ts';
 import { extractBerzerkSound } from './berzerk-sound/extract.ts';
+import { VECTOR_ID, VECTOR_MAME_TYPES, VECTOR_PORTS } from './vector/definition.ts';
+import { extractVector } from './vector/extract.ts';
 
 export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
   // CPUs — one capability over every generated core.
@@ -114,6 +116,12 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: DEVICE_MAME_TYPES,
     ports: DEVICE_PORTS,
     extract: extractDevices,
+  },
+  {
+    id: VECTOR_ID,
+    mameTypes: VECTOR_MAME_TYPES,
+    ports: VECTOR_PORTS,
+    extract: extractVector,
   },
   {
     id: NES_ID,
