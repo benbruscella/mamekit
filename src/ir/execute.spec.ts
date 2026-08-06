@@ -215,6 +215,40 @@ check('std::copy_n copies between source memory containers', () => {
   assert.deepEqual(destination, [4, 5, 6, 0]);
 });
 
+check('finite hardware initialization loops may exceed 65536 iterations', () => {
+  assert.equal(
+    executeGeneratedHandler(
+      program([
+        {
+          op: 'for',
+          initialize: [{
+            op: 'declare',
+            name: 'i',
+            valueType: 'int',
+            value: { kind: 'number', value: 0 },
+          }],
+          condition: {
+            kind: 'binary',
+            operator: '<',
+            left: { kind: 'identifier', name: 'i' },
+            right: { kind: 'number', value: 131_071 },
+          },
+          iterate: [{
+            op: 'assign',
+            target: { kind: 'identifier', name: 'i' },
+            operator: '+=',
+            value: { kind: 'number', value: 1 },
+          }],
+          body: [],
+        },
+        { op: 'return', value: { kind: 'identifier', name: 'i' } },
+      ]),
+      {},
+    ),
+    131_071,
+  );
+});
+
 // A program with diagnostics never lowered cleanly. Running it anyway would
 // execute a partial translation of the MAME source.
 check('a program with compiler diagnostics refuses to run', () => {

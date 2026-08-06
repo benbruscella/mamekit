@@ -87,6 +87,7 @@ const MACHINE_CALL_CACHE = new WeakMap<
   WeakMap<GeneratedHandlerBindings, Map<string, PreparedMachineCalls>>
 >();
 const MACHINE_CALL_STACK: string[] = [];
+const GENERATED_LOOP_ITERATION_LIMIT = 1_048_576;
 
 function generatedLoopLimitError(kind: string, context: ExecutionContext): Error {
   const callPath = MACHINE_CALL_STACK.length > 0
@@ -97,7 +98,7 @@ function generatedLoopLimitError(kind: string, context: ExecutionContext): Error
     .map(([name, value]) => `${name}=${String(value)}`)
     .join(', ');
   return new Error(
-    `generated handler ${kind} loop exceeded 65536 iterations${callPath}`
+    `generated handler ${kind} loop exceeded ${GENERATED_LOOP_ITERATION_LIMIT} iterations${callPath}`
       + (locals ? ` (${locals})` : ''),
   );
 }
@@ -386,7 +387,7 @@ function executeOperations(
       if (initialized.control) return initialized;
       let iterations = 0;
       while (truthy(evaluate(operation.condition, context))) {
-        if (++iterations > 65_536) throw generatedLoopLimitError('for', context);
+        if (++iterations > GENERATED_LOOP_ITERATION_LIMIT) throw generatedLoopLimitError('for', context);
         const result = executeOperations(operation.body, context);
         if (result.control === 'return') return result;
         if (result.control === 'break') break;
@@ -397,7 +398,7 @@ function executeOperations(
     } else if (operation.op === 'while') {
       let iterations = 0;
       while (truthy(evaluate(operation.condition, context))) {
-        if (++iterations > 65_536) throw generatedLoopLimitError('while', context);
+        if (++iterations > GENERATED_LOOP_ITERATION_LIMIT) throw generatedLoopLimitError('while', context);
         const result = executeOperations(operation.body, context);
         if (result.control === 'return') return result;
         if (result.control === 'break') break;
@@ -405,7 +406,7 @@ function executeOperations(
     } else if (operation.op === 'do-while') {
       let iterations = 0;
       do {
-        if (++iterations > 65_536) throw generatedLoopLimitError('do-while', context);
+        if (++iterations > GENERATED_LOOP_ITERATION_LIMIT) throw generatedLoopLimitError('do-while', context);
         const result = executeOperations(operation.body, context);
         if (result.control === 'return') return result;
         if (result.control === 'break') break;

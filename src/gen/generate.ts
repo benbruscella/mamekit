@@ -489,6 +489,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     const ioInstalls = String(d.props.tag) === 'maincpu'
       ? installedHandlers.filter(handler => handler.space === 'AS_IO')
       : [];
+    const existingIoRanges = Array.isArray(maps.io?.ranges) ? maps.io.ranges : [];
     return {
       tag: String(d.props.tag),
       type: CPU_TYPES[String(d.props.type)],
@@ -511,7 +512,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         io: {
           ...(maps.io ?? {}),
           ranges: [
-            ...(maps.io?.ranges ?? []),
+            ...existingIoRanges,
             ...ioInstalls.map(handler => ({
               start: handler.start,
               end: handler.end,
