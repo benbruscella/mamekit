@@ -29,9 +29,78 @@ string,
   INPUT_MERGER_ANY_LOW: compileInputMerger,
   LATCH8: compileLatch8,
   MOS6532: compileMos6532,
+  NEOGEO_SPRITE_OPTIMZIED: compileNeogeoSprite,
   PIT8253: compilePit8253,
   Z80CTC: compileZ80Ctc,
 };
+
+/** Lower the standard Neo Geo fixed layer without the two later-game banking
+ * lookup tables. Metal Slug uses FIX_BANKTYPE_STD; sprite drawing itself stays
+ * the source-compiled neosprite implementation. */
+function compileNeogeoSprite(
+  mameSource: string,
+  definition: MameHardwareDefinition,
+): Compiled {
+  const device = compileMameDevice(mameSource, definition, 'NEOGEO_SPRITE_OPTIMZIED');
+  const runtimeMembers: [string, string][] = [
+    ['m_auto_animation_counter', 'u8'],
+    ['m_auto_animation_disabled', 'bool'],
+    ['m_fixed_layer_source', 'u8'],
+    ['m_region_fixed', 'u8*'],
+    ['m_region_fixedbios', 'memory_region*'],
+    ['m_region_fixed_size', 'u32'],
+    ['m_region_sprites', 'u8*'],
+    ['m_sprite_gfx_address_mask', 'u32'],
+    ['m_videoram_drawsource', 'u16*'],
+    ['m_pens', 'pen_t*'],
+  ];
+  for (const [name, valueType] of runtimeMembers) {
+    if (!device.members.some(member => member.name === name)) {
+      device.members.push({ name, valueType });
+    }
+  }
+  replaceMethod(device, 'draw_fixed_layer', `
+    u8* gfx_base = m_fixed_layer_source ? m_region_fixed : m_region_fixedbios->base();
+    u32 addr_mask = (m_fixed_layer_source ? m_region_fixed_size : m_region_fixedbios->bytes()) - 1;
+    u16* video_data = &m_videoram_drawsource[0x7000 | (scanline >> 3)];
+    u32* pixel_addr = &bitmap.pix(scanline, NEOGEO_HBEND);
+    for (int x = 0; x < 40; x++) {
+      u16 code_and_palette = *video_data;
+      u16 code = code_and_palette & 0x0fff;
+      int gfx_offset = ((code << 5) | (scanline & 0x07)) & addr_mask;
+      pen_t* char_pens = &m_pens[(code_and_palette >> 12) << m_bppshift];
+      draw_fixed_layer_2pixels(pixel_addr, gfx_offset + 0x10, gfx_base, char_pens);
+      draw_fixed_layer_2pixels(pixel_addr, gfx_offset + 0x18, gfx_base, char_pens);
+      draw_fixed_layer_2pixels(pixel_addr, gfx_offset + 0x00, gfx_base, char_pens);
+      draw_fixed_layer_2pixels(pixel_addr, gfx_offset + 0x08, gfx_base, char_pens);
+      video_data = video_data + 0x20;
+    }
+  `);
+  // Keep the optimized device's board-visible behavior while drawing from the
+  // raw sprite ROM. This is the reference implementation in the same MAME
+  // source and avoids requiring the host to manufacture MAME's private cache.
+  replaceMethod(device, 'draw_pixel', `
+    u8* src = m_region_sprites + (((romaddr & ~0xff) >> 1) | (((romaddr & 0x8) ^ 0x8) << 3) | ((romaddr & 0xf0) >> 2));
+    int x = romaddr & 0x7;
+    u8 gfx = (BIT(src[0x3], x) << 3) |
+      (BIT(src[0x1], x) << 2) |
+      (BIT(src[0x2], x) << 1) |
+      BIT(src[0x0], x);
+    if (gfx) *dst = line_pens[gfx];
+  `);
+  replaceMethod(device, 'device_reset', `
+    start_sprite_line_timer();
+    start_auto_animation_timer();
+  `);
+  // draw_fixed_layer is repaired above after the generic compiler selected
+  // hot methods, so include it explicitly alongside the sprite scanline path.
+  device.hotMethods = [...new Set([
+    ...(device.hotMethods ?? []),
+    'draw_fixed_layer',
+    'draw_sprites',
+  ])];
+  return refreshSummary(device);
+}
 
 /** Lower the RIOT prescaler table without a function-local static array. */
 function compileMos6532(

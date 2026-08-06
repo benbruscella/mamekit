@@ -936,6 +936,23 @@ export function compileMameM6803(mameSrc: string): GeneratedCpuDefinition {
   });
 }
 
+/**
+ * Compile Hitachi's HD63701Y0.  It shares the 6801 implementation with the
+ * M6803, but selects the HD63701 instruction/cycle tables and the Y package's
+ * larger internal RAM plus port 6.  Double Dragon uses that port to release
+ * the main CPU's sprite-handshake interrupt.
+ */
+export function compileMameHd63701Y0(mameSrc: string): GeneratedCpuDefinition {
+  return compileMameM6800Family(mameSrc, {
+    type: 'HD63701Y0',
+    dispatch: 'hd63701_insn',
+    cycles: 'cycles_63701',
+    tableFile: 'src/devices/cpu/m6800/m6801.cpp',
+    tableClass: 'm6801_cpu_device',
+    internal: 'hd63701y0',
+  });
+}
+
 /** Compile the Motorola M6802 variant selected by MAME's device constructor. */
 export function compileMameM6802(mameSrc: string): GeneratedCpuDefinition {
   return compileMameM6800Family(mameSrc, {
@@ -1492,18 +1509,18 @@ export function compileMameNsc8105(mameSrc: string): GeneratedCpuDefinition {
 function compileMameM6800Family(
   mameSrc: string,
   variantConfig: {
-    type: 'M6802' | 'M6803' | 'NSC8105';
+    type: 'M6802' | 'M6803' | 'HD63701Y0' | 'NSC8105';
     dispatch: string;
     cycles: string;
     tableFile: string;
     tableClass: string;
-    internal: 'm6802' | 'm6803';
+    internal: 'm6802' | 'm6803' | 'hd63701y0';
   },
 ): GeneratedCpuDefinition {
   const cppFile = 'src/devices/cpu/m6800/m6800.cpp';
   const headerFile = 'src/devices/cpu/m6800/m6800.h';
   const variantFile = variantConfig.tableFile;
-  const variantHeaderFile = variantConfig.internal === 'm6803'
+  const variantHeaderFile = variantConfig.internal !== 'm6802'
     ? 'src/devices/cpu/m6800/m6801.h'
     : headerFile;
   const operationsFile = 'src/devices/cpu/m6800/6800ops.hxx';
@@ -1668,9 +1685,11 @@ function compileMameM6800Family(
     { name: 'cycles' },
     { name: 'm_icount' },
   ];
-  const internal = variantConfig.internal === 'm6803'
-    ? compileM6803InternalPlan(variant)
-    : compileM6802InternalPlan(cpp);
+  const internal = variantConfig.internal === 'hd63701y0'
+    ? compileHd63701Y0InternalPlan(variant)
+    : variantConfig.internal === 'm6803'
+      ? compileM6803InternalPlan(variant)
+      : compileM6802InternalPlan(cpp);
   const programs = [
     start,
     reset,
@@ -2187,6 +2206,16 @@ export function compileMameMc6809E(mameSrc: string): GeneratedCpuDefinition {
   return compileM6809Core(mameSrc, { type: 'MC6809E' });
 }
 
+/**
+ * HD6309E is pin-compatible with the external-clock 6809.  Lower the shared
+ * 6809 instruction set so boards that keep the chip in emulation mode remain
+ * executable; native-only opcodes still fail closed through the generated
+ * illegal-instruction path until the HD6309 DSL is added.
+ */
+export function compileMameHd6309E(mameSrc: string): GeneratedCpuDefinition {
+  return compileM6809Core(mameSrc, { type: 'HD6309E' });
+}
+
 /** Compile Konami's custom 6809-derived one-byte instruction set. */
 export function compileMameKonami(mameSrc: string): GeneratedCpuDefinition {
   const deviceFile = 'src/devices/cpu/m6809/konami.cpp';
@@ -2293,11 +2322,14 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
     while (bits) { count += bits & 1; bits >>>= 1; }
     return (count & 1) ? 0 : 1;
   });
-  const constants = extractEnumConstants(header, {
+  const constants = {
     ES: 0, CS: 1, SS: 2, DS: 3,
     AX: 0, CX: 1, DX: 2, BX: 3, SP: 4, BP: 5, SI: 6, DI: 7,
     AL: 0, AH: 1, CL: 2, CH: 3, DL: 4, DH: 5, BL: 6, BH: 7,
-  });
+    SPL: 8, SPH: 9, BPL: 10, BPH: 11,
+    SIL: 12, SIH: 13, DIL: 14, DIH: 15,
+    ...extractEnumConstants(header, {}),
+  };
   Object.assign(constants, extractDefineConstants(inline), {
     INPUT_LINE_IRQ0: 0, INPUT_LINE_NMI: -1, INPUT_LINE_TEST: 20,
     CLEAR_LINE: 0, ASSERT_LINE: 1, INT_IRQ: 1, NMI_IRQ: 2,
@@ -2306,7 +2338,8 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
   const inputFn = sourceFunction('execute_set_input');
   if (!resetFn || !inputFn) throw new Error('MAME I8088 reset/input source is missing');
   const reset = compileMameHandler(normalize(`${resetFn.body}\ncycles = 0;`));
-  const input = compileMameHandler(normalize(inputFn.body));
+  const input = compileMameHandler(normalize(inputFn.body)
+    .replace(/\binptnum\b/g, 'inputnum'));
   const step = compileMameHandler(normalize(`
     cycles = 0;
     m_icount = 1;
@@ -2346,13 +2379,16 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
     { name: 'm_modrm_rm_w', bits: 8, values: modrmRmW },
     { name: 'm_timing', bits: 8, values: timing },
     { name: 'm_ea_timing', bits: 8, values: eaTiming },
+    ...['m_ip', 'm_prev_ip', 'm_eo'].map(name => ({ name, bits: 16 as const })),
     ...[
-      'm_ip', 'm_prev_ip', 'm_SignVal', 'm_AuxVal', 'm_OverVal', 'm_ZeroVal',
-      'm_CarryVal', 'm_ParityVal', 'm_TF', 'm_IF', 'm_DF', 'm_IOPL', 'm_NT',
-      'm_MF', 'm_int_vector', 'm_pending_irq', 'm_nmi_state', 'm_no_interrupt',
-      'm_fire_trap', 'm_test_state', 'm_io_stall', 'm_icount', 'm_prefix_seg', 'm_seg_prefix',
-      'm_seg_prefix_next', 'm_ea', 'm_eo', 'm_easeg', 'm_modrm', 'm_dst',
-      'm_src', 'm_pc', 'm_halt', 'm_lock', 'cycles',
+      'm_TF', 'm_IF', 'm_DF', 'm_IOPL', 'm_NT', 'm_MF', 'm_no_interrupt',
+      'm_fire_trap', 'm_test_state', 'm_io_stall', 'm_seg_prefix',
+      'm_seg_prefix_next', 'm_modrm', 'm_halt', 'm_lock',
+    ].map(name => ({ name, bits: 8 as const })),
+    ...[
+      'm_SignVal', 'm_AuxVal', 'm_OverVal', 'm_ZeroVal', 'm_CarryVal',
+      'm_ParityVal', 'm_int_vector', 'm_pending_irq', 'm_nmi_state', 'm_icount',
+      'm_prefix_seg', 'm_ea', 'm_easeg', 'm_dst', 'm_src', 'm_pc', 'cycles',
     ].map(name => ({ name, bits: 32 as const })),
   ];
   const programs = [reset, input, step, ...methods.map(method => method.program)];
@@ -2428,6 +2464,7 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
     let expanded = expandMameOperationMacros(source, macros);
     expanded = expanded
       .replace(/\bBYTE(?:8|4)?_XOR_BE\s*\(/g, '(')
+      .replace(/\bm_cache\.read_word\s*\(/g, 'READ16BE(')
       .replace(/\bRDMEM_B\s*\([^,]+,/g, 'READ(')
       .replace(/\bRDMEM_W\s*\([^,]+,/g, 'READ16BE(')
       .replace(/\bRDMEM_L\s*\([^,]+,/g, 'READ32BE(')
@@ -2728,6 +2765,25 @@ function compileM6803InternalPlan(
       outputSignal: `out_p${port}_cb`,
       outputMask: port === 2 ? outputMask : 0xff,
     })),
+  };
+}
+
+function compileHd63701Y0InternalPlan(
+  source: string,
+): NonNullable<GeneratedCpuDefinition['internal']> {
+  const map = /void\s+hd6301y_cpu_device::hd6301y_mem[\s\S]*?\{([\s\S]*?)\}/
+    .exec(source)?.[1] ?? '';
+  const ram = /map\(\s*(0x[\da-f]+|\d+)\s*,\s*(0x[\da-f]+|\d+)\s*\)\.ram/i.exec(map);
+  if (!ram) throw new Error('MAME HD63701Y0 internal RAM map is missing');
+  return {
+    ram: [{ start: Number(ram[1]), end: Number(ram[2]) }],
+    ports: [{
+      dataAddress: 0x17,
+      directionAddress: 0x16,
+      inputSignal: 'in_p6_cb',
+      outputSignal: 'out_p6_cb',
+      outputMask: 0xff,
+    }],
   };
 }
 
@@ -3049,6 +3105,15 @@ export function normalizeMameExecutionSource(source: string): string {
       /\b(?:[\w:<>]+\s+)+\*\s*(\w+)\s*=/g,
       'auto $1 =',
     )
+    // Driver lifecycle handlers use the standard spelling when ownership is
+    // retained by a unique_ptr (Phoenix's two banked video pages are the
+    // canonical case).  The handler IR has a byte-array ALLOC primitive, so
+    // lower the exact uint8_t/u8 array form without guessing the element width
+    // of other std::make_unique specializations.
+    .replace(
+      /\bstd::make_unique\s*<\s*(?:u8|uint8_t)\s*\[\s*\]\s*>\s*\(/g,
+      'ALLOC(',
+    )
     .replace(/\bmake_unique_clear\s*<[^>]*\[\]>\s*\(/g, 'ALLOC(');
   for (const match of normalized.matchAll(
     /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/g,
@@ -3242,7 +3307,7 @@ function extractEnumConstants(
   seed: Record<string, number>,
 ): Record<string, number> {
   const resolved = { ...seed };
-  for (const match of source.matchAll(/\benum\s*\{([\s\S]*?)\};/g)) {
+  for (const match of source.matchAll(/\benum(?:\s+\w+)?\s*\{([\s\S]*?)\};/g)) {
     let next = 0;
     for (const rawEntry of match[1]!.split(',')) {
       const entry = rawEntry.replace(/\/\/.*$/gm, '').trim();

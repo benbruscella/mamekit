@@ -18,7 +18,9 @@ import {
 } from './definition.ts';
 
 export function extractYm2203(input: CapabilityInput): CapabilityExtraction | undefined {
-  const entry = input.entries.find(candidate => candidate.type === 'YM2203');
+  const opnEntries = input.entries.filter(candidate =>
+    candidate.type === 'YM2203' || candidate.type === 'YM2610');
+  const entry = opnEntries.find(candidate => candidate.type === 'YM2203') ?? opnEntries[0];
   const ym3526Entry = input.entries.find(candidate => candidate.type === 'YM3526');
   if (!entry?.definition && !ym3526Entry?.definition) return undefined;
   // No definition means the closure saw the type but could not parse its MAME
@@ -43,13 +45,14 @@ export function extractYm2203(input: CapabilityInput): CapabilityExtraction | un
     : undefined;
   return {
     executableTypes: [
-      ...(entry?.definition ? ['YM2203'] : []),
+      ...opnEntries.filter(candidate => candidate.definition).map(candidate => candidate.type),
       ...(ym3526Plan ? ['YM3526'] : []),
     ],
     executable: {
-      ...(entry?.definition
-        ? { YM2203: { kind: 'audio' as const, artifact: YM2203_WORKLET_ARTIFACT } }
-        : {}),
+      ...Object.fromEntries(opnEntries.filter(candidate => candidate.definition).map(candidate => [
+        candidate.type,
+        { kind: 'audio' as const, artifact: YM2203_WORKLET_ARTIFACT },
+      ])),
       ...(ym3526Plan
         ? { YM3526: { kind: 'audio' as const, artifact: YM2203_WORKLET_ARTIFACT } }
         : {}),

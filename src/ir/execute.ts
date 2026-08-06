@@ -88,6 +88,20 @@ const MACHINE_CALL_CACHE = new WeakMap<
 >();
 const MACHINE_CALL_STACK: string[] = [];
 
+function generatedLoopLimitError(kind: string, context: ExecutionContext): Error {
+  const callPath = MACHINE_CALL_STACK.length > 0
+    ? ` in ${MACHINE_CALL_STACK.join(' -> ')}`
+    : '';
+  const locals = Object.entries(context.locals)
+    .filter(([, value]) => typeof value === 'number' || typeof value === 'boolean')
+    .map(([name, value]) => `${name}=${String(value)}`)
+    .join(', ');
+  return new Error(
+    `generated handler ${kind} loop exceeded 65536 iterations${callPath}`
+      + (locals ? ` (${locals})` : ''),
+  );
+}
+
 const DEFAULT_CONSTANTS: Record<string, number> = {
   ASSERT_LINE: 1,
   CLEAR_LINE: 0,
@@ -372,7 +386,7 @@ function executeOperations(
       if (initialized.control) return initialized;
       let iterations = 0;
       while (truthy(evaluate(operation.condition, context))) {
-        if (++iterations > 65_536) throw new Error('generated handler loop exceeded 65536 iterations');
+        if (++iterations > 65_536) throw generatedLoopLimitError('for', context);
         const result = executeOperations(operation.body, context);
         if (result.control === 'return') return result;
         if (result.control === 'break') break;
@@ -383,7 +397,7 @@ function executeOperations(
     } else if (operation.op === 'while') {
       let iterations = 0;
       while (truthy(evaluate(operation.condition, context))) {
-        if (++iterations > 65_536) throw new Error('generated handler loop exceeded 65536 iterations');
+        if (++iterations > 65_536) throw generatedLoopLimitError('while', context);
         const result = executeOperations(operation.body, context);
         if (result.control === 'return') return result;
         if (result.control === 'break') break;
@@ -391,7 +405,7 @@ function executeOperations(
     } else if (operation.op === 'do-while') {
       let iterations = 0;
       do {
-        if (++iterations > 65_536) throw new Error('generated handler loop exceeded 65536 iterations');
+        if (++iterations > 65_536) throw generatedLoopLimitError('do-while', context);
         const result = executeOperations(operation.body, context);
         if (result.control === 'return') return result;
         if (result.control === 'break') break;
@@ -432,7 +446,10 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
       return toNumber(context.locals.mem_mask) & 0xff00 ? 1 : 0;
     }
     const constant = context.bindings.constants?.[expression.name] ?? DEFAULT_CONSTANTS[expression.name];
-    return constant ?? reference(expression.name);
+    if (constant !== undefined) return constant;
+    return context.bindings.concreteDeviceMembers?.has(expression.name)
+      ? { reference: expression.name, resolved: true }
+      : reference(expression.name);
   }
   if (expression.kind === 'unary') {
     if (expression.operator === '&') return addressOf(expression.operand, context);
@@ -505,6 +522,12 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     if (expression.operator === '/' && isAttotimeExpression(expression.left, context)) {
       return left / right;
     }
+    if (
+      expression.operator === '/' &&
+      (isFloatingExpression(expression.left) || isFloatingExpression(expression.right))
+    ) {
+      return left / right;
+    }
     return binary(expression.operator, left, right);
   }
   if (expression.kind === 'conditional') {
@@ -532,6 +555,22 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     return indexValue(object, index);
   }
   return evaluateCall(expression, context);
+}
+
+function isFloatingExpression(expression: GeneratedExpression): boolean {
+  if (expression.kind === 'number') return Boolean(expression.floating);
+  if (expression.kind === 'cast') {
+    return /\b(?:float|double)\b/.test(expression.valueType) ||
+      isFloatingExpression(expression.operand);
+  }
+  if (expression.kind === 'unary') return isFloatingExpression(expression.operand);
+  if (expression.kind === 'binary') {
+    return isFloatingExpression(expression.left) || isFloatingExpression(expression.right);
+  }
+  if (expression.kind === 'conditional') {
+    return isFloatingExpression(expression.whenTrue) || isFloatingExpression(expression.whenFalse);
+  }
+  return false;
 }
 
 function evaluateCall(
@@ -1041,7 +1080,7 @@ function indexValue(object: unknown, index: number): unknown {
   return 0;
 }
 
-function addressOf(expression: GeneratedExpression, context: ExecutionContext): GeneratedPointer {
+function addressOf(expression: GeneratedExpression, context: ExecutionContext): unknown {
   if (expression.kind === 'index') {
     const source = evaluate(expression.object, context);
     const offset = toNumber(evaluate(expression.index, context));
@@ -1051,6 +1090,18 @@ function addressOf(expression: GeneratedExpression, context: ExecutionContext): 
   }
   if (expression.kind === 'call' && expression.callee.kind === 'member') {
     const object = evaluate(expression.callee.object, context);
+    const directName = isReference(object)
+      ? `${object.reference}.${expression.callee.property}`
+      : `${generatedExpressionName(expression.callee.object)}.${expression.callee.property}`;
+    const direct = context.bindings.calls?.[directName];
+    if (direct) {
+      const args = expression.args.map(argument => evaluate(argument, context));
+      const result = direct(...args.map(callArgument));
+      // MAME factory methods such as tilemap_manager::create return a
+      // reference. Taking its address produces the live composed object, not
+      // a pointer wrapper around an unresolved call expression.
+      if (result && (typeof result === 'object' || typeof result === 'function')) return result;
+    }
     const reference = object && typeof object === 'object'
       ? (object as Record<string, unknown>)[`${expression.callee.property}&`]
       : undefined;

@@ -81,6 +81,29 @@ assert.equal(bus.shares.outputLatch?.[0], 0x3c);
 assert.equal(bus.read(0x7000), 0xa5, 'split input/output ranges must preserve the read handler');
 assert.equal(bus.in(0), 0);
 
+const regionBus = new Bus([
+  { start: 0x0000, end: 0x0001, kind: 'rom', romOffset: 0 },
+  { start: 0x8000, end: 0x8001, kind: 'rom', region: 'cart', romOffset: 0 },
+], rom, { read: {}, write: {} }, {}, 8, {
+  cart: Uint8Array.of(0xaa, 0xbb),
+});
+assert.deepEqual(
+  [regionBus.read(0x0000), regionBus.read(0x8000), regionBus.read(0x8001)],
+  [0x11, 0xaa, 0xbb],
+  'each ROM range must read from its declared region',
+);
+assert.throws(
+  () => new Bus(
+    [{ start: 0, end: 0, kind: 'rom', region: 'missing' }],
+    rom,
+    { read: {}, write: {} },
+    {},
+    8,
+    {},
+  ),
+  /missing ROM region: missing/,
+);
+
 const viewBus = new Bus([
   { start: 0x8000, end: 0x8000, kind: 'rom', romOffset: 0 },
   { start: 0x8000, end: 0x8000, kind: 'ram', share: 'view0', viewTag: 'm_view', viewEntry: 0 },
@@ -113,9 +136,41 @@ highBus.write(0xff0001, 0x1fe);
 assert.deepEqual(highWrites, [[0xff0001, 1, 0xfe]]);
 assert.equal(highBus.read(0xfe0000), 0);
 
+const wordWrites: Array<[number, number, number, number | undefined]> = [];
+let wordValue = 0;
+const wordBus = new Bus([
+  { start: 0x100000, end: 0x100003, kind: 'ram', share: 'wordRam' },
+  {
+    start: 0x400000,
+    end: 0x400003,
+    mirror: 0x002000,
+    kind: 'handler',
+    read: 'wordRead',
+    write: 'wordWrite',
+  },
+], rom, {
+  read: { wordRead: () => wordValue },
+  write: {
+    wordWrite: (address, offset, data, memMask) => {
+      wordWrites.push([address, offset, data, memMask]);
+      wordValue = data;
+    },
+  },
+}, {}, 16);
+wordBus.write16be(0x100000, 0x55aa);
+assert.equal(wordBus.read16be(0x100000), 0x55aa);
+assert.deepEqual([wordBus.read(0x100000), wordBus.read(0x100001)], [0x55, 0xaa]);
+wordBus.write16be(0x402002, 0xa55a);
+assert.deepEqual(
+  wordWrites,
+  [[0x402002, 1, 0xa55a, 0xffff]],
+  'a 68000 word transaction must reach a 16-bit mirrored handler atomically',
+);
+assert.equal(wordBus.read16be(0x402002), 0xa55a);
+
 assert.throws(
   () => new Bus([{ start: 0, end: 0, kind: 'handler', read: 'missing' }], rom, { read: {}, write: {} }),
   /missing read handler/,
 );
 
-console.log('bus.spec: 16/24-bit ROM, RAM, mirrors/selects, handlers and open bus passed');
+console.log('bus.spec: byte/word ROM, RAM, mirrors/selects, handlers and open bus passed');

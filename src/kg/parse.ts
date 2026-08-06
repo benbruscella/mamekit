@@ -394,10 +394,6 @@ function expandRomMacros(source: string, initial: string): string {
   for (const match of source.matchAll(definitions)) {
     const body = match[3]!.replace(/\\\r?\n/g, '\n').trim();
     if (!/\bROM_[A-Z0-9_]+\b/.test(body)) continue;
-    // This expands dozens of selectable system BIOS alternatives. The clone
-    // parent ROM set already carries those; cartridge helper macros only need
-    // their own fixed/audio/zoom regions here.
-    if (match[1] === 'NEOGEO_BIOS') continue;
     macros.set(match[1]!, {
       ...(match[2] !== undefined
         ? { parameters: match[2].split(',').map(parameter => parameter.trim()) }
@@ -467,7 +463,18 @@ export function parseRomSets(
           fileOffset = 0;
       } else if (statement.startsWith('ROM_LOAD') || statement === 'ROMX_LOAD') {
           if (!region) break;
-          const flags = args[3] ?? '';
+          const flags = statement === 'ROMX_LOAD'
+            ? args.slice(3).join(' | ')
+            : args[3] ?? '';
+          // ROM_SYSTEM_BIOS index zero is MAME's default unless a machine
+          // declares another default. Loading every selectable BIOS in source
+          // order would overwrite the real default with the final alternative.
+          const bios = /ROM_BIOS\(\s*([^)]+)\s*\)/.exec(flags);
+          if (bios && (evalExpr(bios[1]!, consts) ?? 0) !== 0) {
+            lastLoad = null;
+            fileOffset = 0;
+            continue;
+          }
           const crc = /CRC\(([0-9a-fA-F]+)\)/.exec(flags);
           const sha1 = /SHA1\(([0-9a-fA-F]+)\)/.exec(flags);
           lastLoad = {
@@ -841,6 +848,7 @@ export interface InstalledHandlerDef {
   kind: 'read' | 'write';
   start: number;
   end: number;
+  mirror?: number;
   className: string;
   method: string;
 }
@@ -857,19 +865,37 @@ export function parseInstalledHandlers(
   consts: Record<string, number>,
 ): InstalledHandlerDef[] {
   const installed: InstalledHandlerDef[] = [];
-  const pattern = /\bspace\s*\(\s*(AS_\w+)\s*\)\s*\.\s*install_(read|write)_handler\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,[^;]*?FUNC\s*\(\s*(\w+)::(\w+)\s*\)/g;
-  for (const match of body.matchAll(pattern)) {
-    const start = evalExpr(match[3]!, consts);
-    const end = evalExpr(match[4]!, consts);
+  const spaces = new Map<string, string>();
+  for (const declaration of body.matchAll(
+    /\baddress_space\s*&\s*(\w+)\s*\([^;]*?(?:->|\.)\s*space\s*\(\s*(AS_\w+)\s*\)\s*\)\s*;/g,
+  )) spaces.set(declaration[1]!, declaration[2]!);
+  const pattern = /\b(space\s*\(\s*(AS_\w+)\s*\)|(\w+))\s*\.\s*install_(read|write)_handler\s*\(/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(body)) !== null) {
+    const open = body.indexOf('(', match.index + match[0]!.lastIndexOf('install_'));
+    const close = matchParen(body, open);
+    if (close < 0) continue;
+    const args = splitArgs(body.slice(open + 1, close));
+    const callback = /FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(body.slice(open + 1, close));
+    const space = match[2] ?? spaces.get(match[3]!);
+    if (!space || !callback || args.length < 3) continue;
+    const start = evalExpr(args[0]!, consts);
+    const end = evalExpr(args[1]!, consts);
     if (start === null || end === null) continue;
+    // The long install overload is (start, end, mask, mirror, select,
+    // delegate). Preserve the mirror so dynamically installed board I/O is
+    // decoded over the same address window as MAME.
+    const mirror = args.length >= 6 ? evalExpr(args[3]!, consts) : null;
     installed.push({
-      space: match[1]!,
-      kind: match[2]! as 'read' | 'write',
+      space,
+      kind: match[4]! as 'read' | 'write',
       start,
       end,
-      className: match[5]!,
-      method: match[6]!,
+      ...(mirror !== null && mirror !== 0 ? { mirror } : {}),
+      className: callback[1]!,
+      method: callback[2]!,
     });
+    pattern.lastIndex = close + 1;
   }
   return installed;
 }
@@ -900,12 +926,20 @@ export function parseMemoryBanks(
     const plural = match[3] === 'entries';
     const args = splitArgs(body.slice(open + 1, close));
     if (args.length !== (plural ? 4 : 2)) continue;
-    const source = regionPointer(
+    let source = regionPointer(
       args[plural ? 2 : 1]!,
       regionAliases,
       memberTags,
       consts,
     );
+    // Neo Geo's audio main bank deliberately spans two ROM regions: entry 0
+    // is the SM1 audio BIOS when present, entry 1 is the cartridge M1 ROM.
+    // A conditional pointer expression otherwise resolves through its `ROM`
+    // fallback and silently starts the Z80 on the wrong firmware.
+    if (/m_region_audiobios[^?]*\?[^:]*m_region_audiobios\s*->\s*base\s*\(\s*\)/
+      .test(args[plural ? 2 : 1]!)) {
+      source = { region: 'audiobios', offset: 0 };
+    }
     const owned = /^(m_\w+(?:\s*\[\s*(\d+)\s*\])?)(?:\.get\(\))?$/.exec(
       args[plural ? 2 : 1]!.trim(),
     );
@@ -1206,10 +1240,27 @@ export function parseMachineConfigs(
         if (type === 'GFXDECODE' && args.length > 2) {
           dev.gfxDecodeName = args[args.length - 1]?.trim();
         }
-        // slot device with an options table + quoted default:
-        // NES_CONTROL_PORT(config, m_ctrl1, nes_control_port1_devices, "joypad")
-        if (args.length >= 4 && /_devices$/.test(args[2].trim()) && args[3].trim().startsWith('"')) {
-          dev.slotOptions = args[2].trim();
+        // Slot device with an options table + quoted default.  Most option
+        // tables use a *_devices name (NES), but MAME also uses board-specific
+        // names such as neogeo_arc_edge.  Verify the third argument against an
+        // actual device_slot_interface function instead of relying on naming.
+        //
+        //   NES_CONTROL_PORT(..., nes_control_port1_devices, "joypad")
+        //   NEOGEO_CTRL_EDGE_CONNECTOR(..., neogeo_arc_edge, "joy", false)
+        const slotOptions = args[2]?.trim() ?? '';
+        const hasSlotOptions = slotOptions.length > 0 && new RegExp(
+          `\\b(?:void\\s+)?${slotOptions}\\s*\\(\\s*device_slot_interface\\s*&`,
+        ).test(src);
+        if (
+          args.length >= 4
+          && (
+            /_devices$/.test(slotOptions)
+            || hasSlotOptions
+            || /(?:_PORT|_CONNECTOR)$/.test(type)
+          )
+          && args[3].trim().startsWith('"')
+        ) {
+          dev.slotOptions = slotOptions;
           dev.slotDefault = unquote(args[3]);
           dev.clock = null;
           delete dev.clockExpr;

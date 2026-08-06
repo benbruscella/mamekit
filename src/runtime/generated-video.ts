@@ -488,8 +488,12 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
     if (pen < 0 || pen >= this.colors.length) return;
     const raw = this.plan.inverted ? ~this.entry(pen) : this.entry(pen);
     const rgb: Record<'r' | 'g' | 'b', number> = { r: 0, g: 0, b: 0 };
+    const intensity = this.plan.intensity
+      ? palExpand(raw >>> this.plan.intensity.shift, this.plan.intensity.bits)
+      : undefined;
     for (const channel of this.plan.channels) {
-      rgb[channel.channel] = palExpand(raw >>> channel.shift, channel.bits);
+      const value = palExpand(raw >>> channel.shift, channel.bits);
+      rgb[channel.channel] = intensity === undefined ? value : (intensity * value) >>> 8;
     }
     this.colors[pen] = packRgb(rgb.r, rgb.g, rgb.b);
   }
@@ -685,8 +689,8 @@ class GeneratedPalette implements GeneratedPaletteDevice {
       const lookupOffset = bank.lookupOffset ?? plan.lookupOffset;
       const lookupCount = bank.lookupCount ?? plan.lookupCount;
       for (let index = 0; index < lookupCount; index++) {
-        const indirect = bank.direct
-          ? bank.colorOr + index * (bank.colorStride ?? 1)
+        const lookupValue = bank.direct
+          ? index * (bank.colorStride ?? 1)
           : bank.lookupTerms?.length
             ? bank.lookupTerms.reduce((value, term) => {
                 const source = regions[term.region];
@@ -694,8 +698,15 @@ class GeneratedPalette implements GeneratedPaletteDevice {
                   throw new Error(`generated palette: missing lookup ROM region "${term.region}"`);
                 }
                 return value | (((source[term.offset + index] ?? 0) & term.mask) << term.shift);
-              }, bank.colorOr)
-            : bank.colorOr | ((lookupProm[lookupOffset + index] ?? 0) & plan.lookupMask);
+              }, 0)
+            : (lookupProm[lookupOffset + index] ?? 0) & plan.lookupMask;
+        const indirect = !bank.direct &&
+            bank.lookupValueOverride !== undefined &&
+            lookupValue === bank.lookupValueOverride
+          ? bank.overrideColor ?? bank.colorOr
+          : bank.direct
+            ? bank.colorOr + lookupValue
+            : bank.colorOr | lookupValue;
         const pen = bank.penOffset + index * (bank.penStride ?? 1);
         this.indirect[pen] = indirect;
         this.colors[pen] = core[indirect] ?? 0xff000000;
@@ -844,6 +855,28 @@ class GeneratedGfxElement {
     this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, transparentMask);
   }
 
+  /**
+   * Priority-buffer sprite draw. The first MAME pass (priority 0) contains
+   * the visible sprite pixels; later non-zero passes update only the priority
+   * mask and must not paint their special under-tile pen into the bitmap.
+   */
+  prio_transmask(
+    bitmap: BitmapTarget,
+    clip: GeneratedRectangle,
+    code: number,
+    color: number,
+    flipX: number,
+    flipY: number,
+    sx: number,
+    sy: number,
+    _priorityBitmap: unknown,
+    priority: number,
+    transparentMask: number,
+  ): void {
+    if (priority !== 0) return;
+    this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, transparentMask);
+  }
+
   transpen(
     bitmap: BitmapTarget,
     clip: GeneratedRectangle,
@@ -957,8 +990,13 @@ class GeneratedTilemap {
   private readonly scrollY: number[];
   private standardCacheComplete = false;
   private pixmapCacheComplete = false;
+  private active = true;
   private flip = 0;
   private readonly pixmapBitmap: GeneratedIndexedBitmap;
+  private readonly dynamicTransmasks = new Map<
+    number,
+    { foreground: number; background: number }
+  >();
 
   constructor(
     plan: GeneratedTilemapPlan,
@@ -1065,6 +1103,23 @@ class GeneratedTilemap {
     this.flip = flags;
   }
 
+  /** MAME tilemap_t::enable: disabled layers do not touch the destination. */
+  enable(enabled: number): void {
+    this.active = Boolean(enabled);
+  }
+
+  /** MAME tilemap_t::set_transmask, used by CPS1 priority groups each frame. */
+  set_transmask(group: number, foreground: number, background: number): void {
+    this.dynamicTransmasks.set(group | 0, {
+      foreground: foreground >>> 0,
+      background: background >>> 0,
+    });
+  }
+
+  clear_transmasks(): void {
+    this.dynamicTransmasks.clear();
+  }
+
   set_scroll_cols(columns: number): void {
     this.scrollY.length = Math.max(1, columns | 0);
     this.scrollY.fill(0);
@@ -1158,39 +1213,45 @@ class GeneratedTilemap {
     _flags: number,
     _priority: number,
   ): void {
+    if (!this.active) return;
     const members = this.bindings().members ?? {};
     const globalFlip = Number(members.__flip_screen ?? 0) ? 3 : 0;
     const mapFlip = this.flip | globalFlip;
     const flipX = Boolean(mapFlip & 1);
     const flipY = Boolean(mapFlip & 2);
     this.refreshStandardCache(flipX, flipY);
-    const standardCacheReady = !this.mapper;
     // A scrolled tilemap paints each tile at an offset, so a tile range derived
     // from the clip alone stops covering the visible area: with scrollx 140 the
     // clip-derived columns paint x -140..115 while the screen needs 0..255, and
     // the wrapped copies land a whole map away. Walk the entire map whenever a
     // scroll is live, exactly as a multi-band scroll already does; the wrap loop
     // then places every tile and the clip rejects the rest.
+    const xDelta = this.plan.scrollDx?.[flipX ? 1 : 0] ?? 0;
+    const yDelta = this.plan.scrollDy?.[flipY ? 1 : 0] ?? 0;
     const scrollsVertically = Boolean(this.plan.scrollColumns) ||
       this.scrollY.some(value => value !== 0);
     const scrollsHorizontally = Boolean(this.plan.scrollRows) ||
       this.scrollX.some(value => value !== 0);
     const firstOutputRow = scrollsVertically
       ? 0
-      : Math.max(0, Math.floor(clip.min_y / this.plan.tileHeight));
+      : Math.max(0, Math.floor((clip.min_y - yDelta) / this.plan.tileHeight));
     const lastOutputRow = scrollsVertically
       ? this.plan.rows - 1
-      : Math.min(this.plan.rows - 1, Math.floor(clip.max_y / this.plan.tileHeight));
+      : Math.min(
+          this.plan.rows - 1,
+          Math.floor((clip.max_y - yDelta) / this.plan.tileHeight),
+        );
     const firstOutputColumn = scrollsHorizontally
       ? 0
-      : Math.max(0, Math.floor(clip.min_x / this.plan.tileWidth));
+      : Math.max(0, Math.floor((clip.min_x - xDelta) / this.plan.tileWidth));
     const lastOutputColumn = scrollsHorizontally
       ? this.plan.columns - 1
-      : Math.min(this.plan.columns - 1, Math.floor(clip.max_x / this.plan.tileWidth));
+      : Math.min(
+          this.plan.columns - 1,
+          Math.floor((clip.max_x - xDelta) / this.plan.tileWidth),
+        );
     const mapWidth = this.plan.columns * this.plan.tileWidth;
     const mapHeight = this.plan.rows * this.plan.tileHeight;
-    const xDelta = this.plan.scrollDx?.[flipX ? 1 : 0] ?? 0;
-    const yDelta = this.plan.scrollDy?.[flipY ? 1 : 0] ?? 0;
     for (let outputRow = firstOutputRow; outputRow <= lastOutputRow; outputRow++) {
       const row = flipY ? this.plan.rows - 1 - outputRow : outputRow;
       const scrollRow = generatedScrollBand(
@@ -1199,6 +1260,29 @@ class GeneratedTilemap {
         this.scrollX.length,
       );
       const xScroll = this.scrollX[scrollRow] ?? 0;
+      // A single vertical scroll value applies to the whole row.  Reject the
+      // other rows before walking their columns; partial-update games would
+      // otherwise visit every cell in a 32x32 map for each scanline merely
+      // because scrolling is enabled.
+      if (this.scrollY.length === 1) {
+        const y = outputRow * this.plan.tileHeight - (this.scrollY[0] ?? 0) + yDelta;
+        const firstWrappedY = modulo(y, mapHeight) - mapHeight;
+        let visible = false;
+        for (
+          let wrappedY = firstWrappedY;
+          wrappedY <= firstWrappedY + mapHeight * 2;
+          wrappedY += mapHeight
+        ) {
+          if (
+            wrappedY <= clip.max_y &&
+            wrappedY + this.plan.tileHeight > clip.min_y
+          ) {
+            visible = true;
+            break;
+          }
+        }
+        if (!visible) continue;
+      }
       for (
         let outputColumn = firstOutputColumn;
         outputColumn <= lastOutputColumn;
@@ -1227,7 +1311,24 @@ class GeneratedTilemap {
             break;
           }
         }
-        if (!intersectsVerticalClip && standardCacheReady) continue;
+        if (!intersectsVerticalClip) continue;
+        const x = outputColumn * this.plan.tileWidth - xScroll + xDelta;
+        const firstWrappedX = modulo(x, mapWidth) - mapWidth;
+        let intersectsHorizontalClip = false;
+        for (
+          let wrappedX = firstWrappedX;
+          wrappedX <= firstWrappedX + mapWidth * 2;
+          wrappedX += mapWidth
+        ) {
+          if (
+            wrappedX <= clip.max_x &&
+            wrappedX + this.plan.tileWidth > clip.min_x
+          ) {
+            intersectsHorizontalClip = true;
+            break;
+          }
+        }
+        if (!intersectsHorizontalClip) continue;
         const mapped = this.mapper
           ? executeGeneratedMachineProgram(
               this.machine,
@@ -1253,14 +1354,12 @@ class GeneratedTilemap {
         if (!gfx) continue;
         const tileFlipX = Boolean(tile.flags & 1) !== flipX;
         const tileFlipY = Boolean(tile.flags & 2) !== flipY;
-        const x = outputColumn * this.plan.tileWidth - xScroll + xDelta;
         let transparentMask = 0;
         if (!(_flags & 0x80)) {
-          const groupMask = generatedTileGroupTransparentMask(
-            this.plan,
-            tile.group,
-            _flags,
-          );
+          const dynamicMask = this.dynamicTransmasks.get(tile.group);
+          const groupMask = dynamicMask
+            ? generatedTileTransparentMask(dynamicMask, _flags)
+            : generatedTileGroupTransparentMask(this.plan, tile.group, _flags);
           if (groupMask !== undefined) {
             transparentMask = groupMask;
           } else if (this.plan.transparentIndirect !== undefined) {
@@ -1273,7 +1372,6 @@ class GeneratedTilemap {
             transparentMask = 1 << this.plan.transparentPen;
           }
         }
-        const firstWrappedX = modulo(x, mapWidth) - mapWidth;
         for (
           let wrappedX = firstWrappedX;
           wrappedX <= firstWrappedX + mapWidth * 2;
@@ -1321,6 +1419,13 @@ export function generatedTileGroupTransparentMask(
 ): number | undefined {
   const mask = plan.transmasks?.find(candidate => candidate.group === group);
   if (!mask) return undefined;
+  return generatedTileTransparentMask(mask, flags);
+}
+
+function generatedTileTransparentMask(
+  mask: { foreground: number; background: number },
+  flags: number,
+): number {
   const layers = flags & 0x70;
   if (layers === 0) return mask.foreground;
   let transparent = 0;
@@ -1367,13 +1472,59 @@ export function generatedScrollBand(
   return Math.min(bands - 1, Math.floor(tile * bands / tileCount));
 }
 
+interface CpsGfxRange {
+  type: number;
+  start: number;
+  end: number;
+  bank: number;
+}
+
+interface CpsGameConfig {
+  bank_sizes?: number[];
+  bank_mapper?: CpsGfxRange[];
+  bootleg_kludge?: number;
+}
+
+/**
+ * CPS1 stores its graphics mapper as a pointer to a sentinel-terminated table.
+ * The generic expression evaluator intentionally does not infer C++ pointer
+ * types from `auto`, so preserve the small hardware lookup explicitly here.
+ */
+export function cpsGfxromBankMap(
+  config: CpsGameConfig,
+  type: number,
+  sourceCode: number,
+): number {
+  const shifts: Record<number, number> = { 1: 1, 2: 0, 4: 1, 8: 3 };
+  const shift = shifts[type] ?? 0;
+  const code = sourceCode << shift;
+  const sizes = config.bank_sizes ?? [];
+  for (const range of config.bank_mapper ?? []) {
+    if (!range.type) break;
+    if (
+      code < range.start || code > range.end ||
+      !(range.type & type)
+    ) continue;
+    const size = sizes[range.bank] ?? 0;
+    if (!size) return -1;
+    let base = 0;
+    for (let bank = 0; bank < range.bank; bank++) base += sizes[bank] ?? 0;
+    return (base + (code & (size - 1))) >> shift;
+  }
+  return -1;
+}
+
 type GeneratedDirectScreenShape =
   | 'berzerk-color-bitmap'
   | 'bublbobl-object-columns'
   | 'cosmic-bitmap-sprites'
   | 'dkong-scanline-sprites'
+  | 'gauntlet-tilemaps'
   | 'galaxian-no-bullets'
+  | 'm62-category-sprites'
+  | 'outrun-sega16-layers'
   | 'system1-prom-mixer'
+  | 'technos-tilemap-sprites'
   | 'tnx1-banked-raster'
   | 'timeplt'
   | 'taitosj-layered-char-ram'
@@ -1392,6 +1543,30 @@ export function generatedDirectScreenShape(
   const screen = machine.handlers?.find(handler =>
     `${handler.ownerClass}.${handler.method}` === screenKey);
   const body = screen?.body ?? '';
+  if (
+    body.includes('m_mob->draw_async(cliprect)') &&
+    body.includes('m_playfield_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
+    body.includes('m_mob->iterate_dirty_rects(') &&
+    body.includes('m_alpha_tilemap->draw(screen, bitmap, cliprect, 0, 0)')
+  ) {
+    return 'gauntlet-tilemaps';
+  }
+  if (
+    body.includes('m_sprites->draw_async(cliprect)') &&
+    body.includes('m_segaic16road->segaic16_road_draw') &&
+    body.includes('m_segaic16vid->tilemap_draw') &&
+    body.includes('m_sprites->iterate_dirty_rects(')
+  ) {
+    return 'outrun-sega16-layers';
+  }
+  if (
+    body.includes('m_bg_tilemap->set_scrollx(i, m_m62_background_hscroll)') &&
+    body.includes('m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
+    body.includes('draw_sprites(bitmap, cliprect, 0x1f, 0x00, 0x00)') &&
+    body.includes('m_bg_tilemap->draw(screen, bitmap, cliprect, 1, 0)')
+  ) {
+    return 'm62-category-sprites';
+  }
   if (
     body.includes('for (int offs = 0; offs < m_videoram.bytes(); offs++)') &&
     body.includes('m_colorram[((offs >> 2) & 0x07e0) | (offs & 0x001f)]') &&
@@ -1429,6 +1604,20 @@ export function generatedDirectScreenShape(
     body.includes('video_data & 0x80')
   ) {
     return 'vicdual-character-ram';
+  }
+  if (
+    body.includes('m_bg_tilemap->set_scrollx(0, scrollx)') &&
+    body.includes('m_bg_tilemap->set_scrolly(0, scrolly)') &&
+    body.includes('m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
+    body.includes('draw_sprites(bitmap, cliprect)') &&
+    body.includes('m_fg_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
+    machine.handlers?.some(handler =>
+      handler.method === 'draw_sprites' &&
+      handler.body?.includes('for (uint32_t i = 0; i < bytes; i += 5)') &&
+      handler.body.includes('int const size = (attr & 0x30) >> 4') &&
+      handler.body.includes('which &= ~size'))
+  ) {
+    return 'technos-tilemap-sprites';
   }
   if (
     body.includes('const auto ilmode(m_io_mconf->read())') &&
@@ -1641,6 +1830,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private readonly bindings: GeneratedHandlerBindings;
   private readonly directScreenShape?: GeneratedDirectScreenShape;
   private readonly memoryRead?: (address: number) => number;
+  private ramPaletteMirror?: Uint16Array;
 
   constructor(
     machine: BoardIr,
@@ -1694,8 +1884,38 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
           : new GeneratedPalette(machine.video.palette, regions),
       );
     }
-    if (machine.video?.ramPalette) {
-      this.ramPalette = new GeneratedRamPalette(machine.video.ramPalette);
+    const ramPalettePlan = machine.video?.ramPalette ?? (machine.family === 'neogeo'
+      ? {
+        // Neo Geo does not use palette_device::set_format: paletteram_w
+        // performs the source's dark-bit RGB conversion itself and writes
+        // both the normal and shadow halves with set_pen_color.  The device
+        // nevertheless owns 0x4000 live pens (0x2000 per screen-shadow bank),
+        // and pointer arithmetic in set_pens must address that real storage.
+        tag: 'palette',
+        endianness: 'big' as const,
+        entries: 0x4000,
+        bytesPerEntry: 2,
+        channels: [
+          { channel: 'r' as const, bits: 5, shift: 10 },
+          { channel: 'g' as const, bits: 5, shift: 5 },
+          { channel: 'b' as const, bits: 5, shift: 0 },
+        ],
+      }
+      : undefined);
+    if (machine.family === 'neogeo') {
+      // These are source-owned std::vector/static-array members rather than
+      // address-map shares, so there is no finder from which composition can
+      // infer their storage. Materialize the exact neogeo_v.cpp extents and
+      // the five measured DAC resistors before video_start executes.
+      state.m_paletteram ??= new Array<number>(0x2000).fill(0);
+      state.m_palette_lookup ??= Array.from(
+        { length: 32 },
+        () => new Array<number>(4).fill(0),
+      );
+      state.resistances ??= [3900, 2200, 1000, 470, 220];
+    }
+    if (ramPalettePlan) {
+      this.ramPalette = new GeneratedRamPalette(ramPalettePlan);
       this.palettes.set('m_palette', this.ramPalette);
     }
     if (bitmapPlan?.paletteRam) {
@@ -1733,6 +1953,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     });
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {
       ...bindings.referenceCalls,
+      'std::make_unique': (...args) => new GeneratedIndexedBitmap(
+        Math.max(1, Number(generatedArgumentValue(args[0]) ?? this.width)),
+        Math.max(1, Number(generatedArgumentValue(args[1]) ?? this.height)),
+      ),
       memregion: (...args) => {
         const tag = String(generatedArgumentValue(args[0]) ?? '');
         const bytes = regions[tag];
@@ -1778,6 +2002,149 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         return 0;
       },
     };
+    const roadHandler = machine.handlers?.find(handler =>
+      handler.method === 'draw_road' &&
+      handler.body?.includes('m_vertical_position_modifier') &&
+      handler.body.includes('m_road16_memory'));
+    if (roadHandler) {
+      const drawRoad = (...rawArgs: unknown[]) => {
+        const bitmap = generatedArgumentValue(rawArgs[0]) as BitmapTarget | undefined;
+        const roadRegion = state.m_road_region;
+        const roadMemory = state.m_road16_memory;
+        const vertical = state.m_vertical_position_modifier;
+        if (
+          !bitmap || !ArrayBuffer.isView(roadRegion) ||
+          !ArrayBuffer.isView(roadMemory) || !Array.isArray(vertical)
+        ) return 0;
+        const roadBytes = roadRegion as unknown as Uint8Array;
+        const roadWords = roadMemory as unknown as Uint16Array;
+        const height = bitmap.direct?.height ?? this.height;
+        const roadBits1 = 0x2000;
+        const roadBits2 = 0x4000;
+        for (let y = 128; y < Math.min(256, height); y++) {
+          const scanline = new Uint16Array(256 + 8);
+          let destination = 0;
+          const yOffset = (((vertical[y] ?? 0) + Number(state.m_road16_vscroll ?? 0)) >> 3) & 0x1ff;
+          const roadPalette = (roadWords[yOffset] ?? 0) & 15;
+          const penBase = 0x0b00 + (roadPalette << 6);
+          let xOffset = (roadWords[0x380 + (y & 0x7f)] ?? 0) & 0x3ff;
+          const xScroll = xOffset & 7;
+          xOffset &= ~7;
+          for (let chunk = 0; chunk < 256 / 8 + 1; chunk++, xOffset += 8) {
+            if (xOffset & 0x200) {
+              for (let pixel = 0; pixel < 8; pixel++) scanline[destination++] = penBase;
+              continue;
+            }
+            const romOffset = ((y & 0x07f) << 6) + ((xOffset & 0x1f8) >> 3);
+            const control = roadBytes[romOffset] ?? 0;
+            const bits1 = roadBytes[roadBits1 + romOffset] ?? 0;
+            const bits2 = roadBytes[roadBits2 +
+              ((romOffset & 0xfff) | ((romOffset & 0x1000) >> 1))] ?? 0;
+            let roadValue = control & 0x3f;
+            const carryIn = control >>> 7;
+            for (let pixel = 8; pixel > 0; pixel--) {
+              let bits = ((bits1 >>> pixel) & 1) + (((bits2 >>> pixel) & 1) << 1);
+              if (!carryIn && bits) bits++;
+              scanline[destination++] = penBase | (roadValue & 0x3f);
+              roadValue += bits;
+            }
+          }
+          for (let x = 0; x < 256; x++) bitmap['pix='](y, x, scanline[x + xScroll]!);
+        }
+        return 0;
+      };
+      referenceCalls.draw_road = drawRoad;
+      referenceCalls[`${roadHandler.ownerClass}.draw_road`] = drawRoad;
+    }
+    const cpsBankMapper = machine.handlers?.find(handler =>
+      handler.method === 'gfxrom_bank_mapper' &&
+      handler.body?.includes('m_game_config->bank_mapper') &&
+      handler.body.includes('m_game_config->bank_sizes'));
+    if (cpsBankMapper) {
+      const map = (...rawArgs: unknown[]) => cpsGfxromBankMap(
+        state.m_game_config as CpsGameConfig,
+        Number(generatedArgumentValue(rawArgs[0]) ?? 0),
+        Number(generatedArgumentValue(rawArgs[1]) ?? 0),
+      );
+      referenceCalls.gfxrom_bank_mapper = map;
+      referenceCalls[`${cpsBankMapper.ownerClass}.gfxrom_bank_mapper`] = map;
+
+      // CPS1 owns a uint16_t sprite buffer. The neutral ALLOC primitive is
+      // byte-oriented because most generated driver allocations are u8; keep
+      // the source element width here so the vblank memcpy and marker scan see
+      // the same word table as MAME.
+      referenceCalls.ALLOC = (...rawArgs) => new Uint16Array(
+        Math.max(0, Number(generatedArgumentValue(rawArgs[0]) ?? 0)),
+      );
+
+      const spriteHandler = machine.handlers?.find(handler =>
+        handler.ownerClass === cpsBankMapper.ownerClass &&
+        handler.method === 'cps1_render_sprites' &&
+        handler.body?.includes('m_buffered_obj.get()') &&
+        handler.body.includes('handle blocked sprites'));
+      if (spriteHandler) {
+        const renderSprites = (...rawArgs: unknown[]) => {
+          const bitmap = generatedArgumentValue(rawArgs[1]) as BitmapTarget | undefined;
+          const clip = generatedArgumentValue(rawArgs[2]) as GeneratedRectangle | undefined;
+          const words = state.m_buffered_obj;
+          const gfx = this.gfx[2];
+          const config = state.m_game_config as CpsGameConfig;
+          if (!bitmap || !clip || !gfx || !ArrayBuffer.isView(words)) return 0;
+          const objects = words as unknown as Uint16Array;
+          const last = Math.min(
+            Number(state.m_last_sprite_offset ?? -4),
+            objects.length - 4,
+          );
+          if (last < 0) return 0;
+          const reverse = Boolean(Number(config.bootleg_kludge ?? 0) & 0x40);
+          let base = reverse ? last : 0;
+          const baseAdd = reverse ? -4 : 4;
+          const screenFlipped = Boolean(state.__flip_screen);
+          const draw = (
+            code: number, color: number, flipX: number, flipY: number,
+            sx: number, sy: number,
+          ) => {
+            gfx.transpen(
+              bitmap,
+              clip,
+              code,
+              color,
+              screenFlipped ? Number(!flipX) : flipX,
+              screenFlipped ? Number(!flipY) : flipY,
+              screenFlipped ? 512 - 16 - sx : sx,
+              screenFlipped ? 256 - 16 - sy : sy,
+              15,
+            );
+          };
+          for (let offset = last; offset >= 0; offset -= 4, base += baseAdd) {
+            const x = objects[base] ?? 0;
+            const y = objects[base + 1] ?? 0;
+            const sourceCode = objects[base + 2] ?? 0;
+            const attributes = objects[base + 3] ?? 0;
+            const mapped = cpsGfxromBankMap(config, 1, sourceCode);
+            if (mapped < 0) continue;
+            const color = attributes & 0x1f;
+            const flipX = Number(Boolean(attributes & 0x20));
+            const flipY = Number(Boolean(attributes & 0x40));
+            const nx = (attributes & 0xff00) ? ((attributes >>> 8) & 0x0f) + 1 : 1;
+            const ny = (attributes & 0xff00) ? ((attributes >>> 12) & 0x0f) + 1 : 1;
+            for (let blockY = 0; blockY < ny; blockY++) {
+              const sy = (y + blockY * 16) & 0x1ff;
+              const codeY = flipY ? ny - 1 - blockY : blockY;
+              for (let blockX = 0; blockX < nx; blockX++) {
+                const sx = (x + blockX * 16) & 0x1ff;
+                const codeX = flipX ? nx - 1 - blockX : blockX;
+                const code = (mapped & ~0x0f) + ((mapped + codeX) & 0x0f) + 0x10 * codeY;
+                draw(code, color, flipX, flipY, sx, sy);
+              }
+            }
+          }
+          return 0;
+        };
+        referenceCalls.cps1_render_sprites = renderSprites;
+        referenceCalls[`${spriteHandler.ownerClass}.cps1_render_sprites`] = renderSprites;
+      }
+    }
     if (lfsr?.rowRenderer) {
       const row = lfsr.rowRenderer;
       referenceCalls[row.method] = (...rawArgs) => {
@@ -1839,7 +2206,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       __frame: 0,
       frame_number(this: { __frame: number }) { return this.__frame; },
       vpos: () => bindings.calls?.['m_screen.vpos']?.() ?? 0,
+      width: () => this.width,
+      height: () => this.height,
       update_partial: (line: number) => updatePartial?.(line),
+      priority: () => ({ fill: () => 0 }),
       visible_area: () => new GeneratedRectangle(
         0,
         machine.execution.screen.width * (machine.video?.renderScale?.x ?? 1) - 1,
@@ -1863,6 +2233,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     for (const [member, gfx] of this.gfxByDecode) {
       state[member] = { gfx: (index: number) => gfx[index] };
     }
+    const createdTilemaps: GeneratedTilemap[] = [];
     for (const plan of machine.video?.tilemaps ?? []) {
       if (plan.userDataMember && !state[plan.userDataMember]) {
         const size = Math.max(
@@ -1880,6 +2251,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
           ? this.gfxByDecode.get(plan.decodeMember) ?? []
           : this.gfx,
       );
+      createdTilemaps.push(tilemap);
       const indexed = /^(m_\w+)\[\s*(\d+)\s*\]$/.exec(plan.member);
       if (indexed) {
         const array = state[indexed[1]!] as unknown[] | undefined ?? [];
@@ -1889,6 +2261,87 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         state[plan.member] = tilemap;
       }
     }
+    // video_start still executes the source assignment
+    // `m_tilemap = &machine().tilemap().create(...)`. The video plan has
+    // already composed the corresponding live tilemap above, so return that
+    // object to the lifecycle handler instead of letting the generic C++
+    // evaluator replace it with an unresolved framework-call reference.
+    // Source creation order and generated plan order are identical.
+    let nextCreatedTilemap = 0;
+    const calls = bindings.calls ??= {};
+    const resistorWeightTables = new WeakMap<object, number[]>();
+    calls.compute_resistor_weights ??= (...rawArgs: number[]) => {
+      const args = rawArgs as unknown as unknown[];
+      const minimum = Number(args[0] ?? 0);
+      const maximum = Number(args[1] ?? 0);
+      const requestedScale = Number(args[2] ?? -1);
+      const networks = [3, 8, 13].flatMap(base => {
+        const count = Number(args[base] ?? 0);
+        const resistances = args[base + 1];
+        const output = args[base + 2];
+        if (!count || !Array.isArray(resistances) || !output || typeof output !== 'object') {
+          return [];
+        }
+        return [{
+          count,
+          resistances: resistances.map(Number),
+          output: output as object,
+          pulldown: Number(args[base + 3] ?? 0),
+          pullup: Number(args[base + 4] ?? 0),
+          weights: [] as number[],
+        }];
+      });
+      if (!networks.length) return requestedScale;
+      let maximumOutput = 0;
+      for (const network of networks) {
+        for (let active = 0; active < network.count; active++) {
+          let lowConductance = network.pulldown ? 1 / network.pulldown : 1 / 1e12;
+          let highConductance = network.pullup ? 1 / network.pullup : 1 / 1e12;
+          for (let index = 0; index < network.count; index++) {
+            const resistance = network.resistances[index] ?? 0;
+            if (!resistance) continue;
+            if (index === active) highConductance += 1 / resistance;
+            else lowConductance += 1 / resistance;
+          }
+          const low = 1 / lowConductance;
+          const high = 1 / highConductance;
+          network.weights[active] = Math.min(
+            maximum,
+            Math.max(minimum, (maximum - minimum) * low / (high + low) + minimum),
+          );
+        }
+        maximumOutput = Math.max(
+          maximumOutput,
+          network.weights.reduce((sum, value) => sum + value, 0),
+        );
+      }
+      const scale = requestedScale < 0
+        ? maximum / Math.max(Number.EPSILON, maximumOutput)
+        : requestedScale;
+      for (const network of networks) {
+        resistorWeightTables.set(
+          network.output,
+          network.weights.map(value => value * scale),
+        );
+      }
+      return scale;
+    };
+    calls.combine_weights ??= (...rawArgs: number[]) => {
+      const args = rawArgs as unknown as unknown[];
+      const output = args[0];
+      const weights = output && typeof output === 'object'
+        ? resistorWeightTables.get(output) ?? Array.from(output as ArrayLike<number>, Number)
+        : [];
+      const value = args.slice(1).reduce<number>(
+        (sum, bit, index) => sum + (weights[index] ?? 0) * Number(bit),
+        0,
+      );
+      return Math.trunc(value + 0.5);
+    };
+    calls['m_screen.width'] = () => this.width;
+    calls['m_screen.height'] = () => this.height;
+    calls['machine().tilemap().create'] = () =>
+      createdTilemaps[Math.min(nextCreatedTilemap++, createdTilemaps.length - 1)] ?? 0;
     const bitmapMembers = new Map<string, number>();
     for (const handler of machine.handlers ?? []) {
       for (const match of (handler.body ?? '').matchAll(
@@ -1923,6 +2376,22 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   ): boolean {
     if (handler !== this.machine.execution.screenUpdate?.handler) return false;
     const vector = this.machine.video?.vector;
+    if (this.directScreenShape === 'outrun-sega16-layers') {
+      return this.drawOutrunLayers(screen, bitmap, cliprect);
+    }
+    if (this.directScreenShape === 'm62-category-sprites') {
+      // M62 draws category 0, sprites, then category 1. MAME's tilemap core
+      // guarantees that the two category passes collectively replace the
+      // visible raster; make that ownership explicit so no sprite pixels from
+      // the previous frame survive between the two passes.
+      bitmap.fill(0, cliprect);
+      // Kung-Fu Master uses tile categories themselves for the back/front
+      // sprite split. Its inherited M62 pen masks describe the alternative
+      // split-layer path and would make both category passes transparent in
+      // the generated category renderer.
+      (this.state.m_bg_tilemap as GeneratedTilemap | undefined)?.clear_transmasks();
+      return false;
+    }
     if (vector?.type === 'DVG' && this.memoryRead && bitmap.direct) {
       bitmap.fill(0xff000000);
       const points = executeDvgDisplayList(this.memoryRead, vector);
@@ -1981,6 +2450,52 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
               pixels[outputOffset + (byte << 3) + bit] =
                 pens[bit < 4 ? color >>> 4 : color & 0x0f]!;
             }
+          }
+        }
+      }
+      return true;
+    }
+    if (this.directScreenShape === 'gauntlet-tilemaps') {
+      const playfield = this.state.m_playfield;
+      const alpha = this.state.m_alpha;
+      const playfieldGfx = this.gfx[0];
+      const alphaGfx = this.gfx[1];
+      if (
+        !ArrayBuffer.isView(playfield) || !ArrayBuffer.isView(alpha) ||
+        !playfieldGfx || !alphaGfx
+      ) return false;
+      const pf = playfield as unknown as Uint8Array;
+      const al = alpha as unknown as Uint8Array;
+      const word = (bytes: Uint8Array, index: number) =>
+        (bytes[index * 2] ?? 0) | ((bytes[index * 2 + 1] ?? 0) << 8);
+      bitmap.fill(0);
+      const tileBank = Number(this.state.m_playfield_tile_bank ?? 0) & 3;
+      const colorBank = Number(this.state.m_playfield_color_bank ?? 1) & 1;
+      for (let column = 0; column < 64; column++) {
+        const x = column * 8;
+        if (x > cliprect.max_x) break;
+        for (let row = 0; row < 64; row++) {
+          const y = row * 8;
+          if (y > cliprect.max_y) break;
+          const data = word(pf, column * 64 + row);
+          const code = ((tileBank * 0x1000) + (data & 0x0fff)) ^ 0x0800;
+          const color = 0x10 + colorBank * 8 + ((data >>> 12) & 7);
+          playfieldGfx.opaque(bitmap, cliprect, code, color, data & 0x8000, 0, x, y);
+        }
+      }
+      for (let row = 0; row < 31; row++) {
+        const y = row * 8;
+        if (y > cliprect.max_y) break;
+        for (let column = 0; column < 64; column++) {
+          const x = column * 8;
+          if (x > cliprect.max_x) break;
+          const data = word(al, row * 64 + column);
+          const code = data & 0x03ff;
+          const color = ((data >>> 10) & 0x0f) | ((data >>> 9) & 0x20);
+          if (data & 0x8000) {
+            alphaGfx.opaque(bitmap, cliprect, code, color, 0, 0, x, y);
+          } else {
+            alphaGfx.transpen(bitmap, cliprect, code, color, 0, 0, x, y, 0);
           }
         }
       }
@@ -2093,6 +2608,81 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       }
       return true;
     }
+    if (this.directScreenShape === 'technos-tilemap-sprites') {
+      const background = this.state.m_bg_tilemap as GeneratedTilemap | undefined;
+      const foreground = this.state.m_fg_tilemap as GeneratedTilemap | undefined;
+      const spriteRaw = this.state.m_spriteram;
+      const scrollXRaw = this.state.m_scrollx_lo;
+      const scrollYRaw = this.state.m_scrolly_lo;
+      const gfx = this.gfx[1];
+      if (
+        !background || !foreground || !ArrayBuffer.isView(spriteRaw) || !gfx
+      ) return false;
+      const firstByte = (value: unknown): number =>
+        ArrayBuffer.isView(value)
+          ? Number((value as unknown as ArrayLike<number>)[0] ?? 0)
+          : Number(value ?? 0);
+      background.set_scrollx(
+        0,
+        (Number(this.state.m_scrollx_hi ?? 0) << 8) | firstByte(scrollXRaw),
+      );
+      background.set_scrolly(
+        0,
+        (Number(this.state.m_scrolly_hi ?? 0) << 8) | firstByte(scrollYRaw),
+      );
+      background.draw(screen, bitmap, cliprect, 0, 0);
+
+      const sprites = spriteRaw as unknown as Uint8Array;
+      const hardware = Number(this.state.m_technos_video_hw ?? 0);
+      const flipped = Boolean(this.state.__flip_screen);
+      for (let index = 0; index + 4 < sprites.length; index += 5) {
+        const attributes = sprites[index + 1] ?? 0;
+        if (!(attributes & 0x80)) continue;
+        let sx = 240 - (sprites[index + 4] ?? 0) + ((attributes & 2) << 7);
+        let sy = 232 - (sprites[index] ?? 0) + ((attributes & 1) << 8);
+        const size = (attributes & 0x30) >>> 4;
+        let flipX = attributes & 8;
+        let flipY = attributes & 4;
+        let dx = -16;
+        let dy = -16;
+        const color = hardware === 2
+          ? (sprites[index + 2] ?? 0) >>> 5
+          : (sprites[index + 2] ?? 0) >>> 4;
+        let code = (sprites[index + 3] ?? 0) | (
+          ((sprites[index + 2] ?? 0) & (hardware === 2 ? 0x1f : 0x0f)) << 8
+        );
+        if (hardware === 1) {
+          if (sx < -7 && sx > -16) sx += 256;
+          if (sy < -7 && sy > -16) sy += 256;
+        }
+        if (flipped) {
+          sx = 240 - sx;
+          sy = 224 - sy;
+          flipX = Number(!flipX);
+          flipY = Number(!flipY);
+          dx = -dx;
+          dy = -dy;
+        }
+        code &= ~size;
+        const draw = (offset: number, x: number, y: number) =>
+          gfx.transpen(bitmap, cliprect, code + offset, color, flipX, flipY, x, y, 0);
+        if (size === 0) draw(0, sx, sy);
+        else if (size === 1) {
+          draw(0, sx, sy + dy);
+          draw(1, sx, sy);
+        } else if (size === 2) {
+          draw(0, sx + dx, sy);
+          draw(2, sx, sy);
+        } else {
+          draw(0, sx + dx, sy + dy);
+          draw(1, sx + dx, sy);
+          draw(2, sx, sy + dy);
+          draw(3, sx, sy);
+        }
+      }
+      foreground.draw(screen, bitmap, cliprect, 0, 0);
+      return true;
+    }
     if (this.directScreenShape === 'cosmic-bitmap-sprites') {
       return this.drawCosmicBitmapSprites(bitmap, cliprect);
     }
@@ -2165,6 +2755,104 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       return this.drawWilliams(bitmap, cliprect);
     }
     return false;
+  }
+
+  /**
+   * Compose OutRun's source-declared System 16B tile/text layers and road RAM.
+   * The dedicated Sega devices are not standalone generated cores yet, so the
+   * renderer reads the same shared RAM and 8x8 graphics layout directly.  The
+   * road is a conservative horizon/stripe representation until the road ROM
+   * pixel generator joins the hardware closure; tile codes, colors, paging,
+   * scrolling and text are the real board data.
+   */
+  private drawOutrunLayers(
+    screen: { visible_area(): GeneratedRectangle },
+    bitmap: BitmapTarget,
+    cliprect: GeneratedRectangle,
+  ): boolean {
+    const bytesView = (value: unknown): Uint8Array | undefined =>
+      ArrayBuffer.isView(value)
+        ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
+        : undefined;
+    const wordsView = (value: unknown): Uint16Array | undefined => {
+      const bytes = bytesView(value);
+      return bytes ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1) : undefined;
+    };
+    const tile = wordsView(this.state.m_tileram);
+    const text = wordsView(this.state.m_textram);
+    const road = wordsView(
+      this.state.m_segaic16road_roadram ?? this.state['m_segaic16road:roadram'],
+    );
+    const palette = wordsView(this.state.m_paletteram);
+    const gfx = this.gfx[0];
+    if (!tile || !text || !gfx) return false;
+
+    if (palette && this.ramPalette) {
+      const mirror = this.ramPaletteMirror ??= new Uint16Array(palette.length);
+      for (let index = 0; index < palette.length; index++) {
+        const value = palette[index]!;
+        if (mirror[index] === value) continue;
+        mirror[index] = value;
+        this.ramPalette.write(index * 2, value >>> 8);
+        this.ramPalette.write(index * 2 + 1, value);
+      }
+    }
+
+    bitmap.fill(0, cliprect);
+    // OutRun's road hardware is line based. Preserve the live road-RAM color
+    // and horizon motion even before the specialized ROM pixel generator is
+    // available, leaving the source tile/text layers fully visible above it.
+    if (road) {
+      for (let y = cliprect.min_y; y <= cliprect.max_y; y++) {
+        const control = road[(y * 2) % road.length] ?? 0;
+        const color = 0x400 + ((control >>> 1) & 0x3f);
+        for (let x = cliprect.min_x; x <= cliprect.max_x; x++) {
+          bitmap['pix='](y, x, color);
+        }
+      }
+    }
+
+    const drawLayer = (which: 0 | 1, transparent: boolean) => {
+      const pageSelect = text[(0xe80 >>> 1) + which] ?? 0;
+      const yScroll = text[(0xe90 >>> 1) + which] ?? 0;
+      const xScroll = text[(0xe98 >>> 1) + which] ?? 0;
+      for (let row = 0; row < 29; row++) {
+        for (let column = 0; column < 41; column++) {
+          const virtualX = (column + ((0xc0 - xScroll) >>> 3)) & 0x7f;
+          const virtualY = (row + ((yScroll & 0x1ff) >>> 3)) & 0x3f;
+          const quadrant = (virtualY >= 32 ? 2 : 0) | (virtualX >= 64 ? 1 : 0);
+          const page = (pageSelect >>> (quadrant * 4)) & 0x0f;
+          const index = page * 0x800 + (virtualY & 31) * 64 + (virtualX & 63);
+          const data = tile[index % tile.length] ?? 0;
+          const code = data & 0x1fff;
+          const color = (data >>> 6) & 0x7f;
+          const x = column * 8 - (xScroll & 7);
+          const y = row * 8 - (yScroll & 7);
+          if (transparent) gfx.transpen(bitmap, cliprect, code, color, 0, 0, x, y, 0);
+          else gfx.opaque(bitmap, cliprect, code, color, 0, 0, x, y);
+        }
+      }
+    };
+    drawLayer(1, false);
+    drawLayer(0, true);
+
+    for (let row = 0; row < 28; row++) {
+      for (let column = 0; column < 40; column++) {
+        const data = text[row * 64 + column + 24] ?? 0;
+        gfx.transpen(
+          bitmap,
+          cliprect,
+          data & 0x1ff,
+          (data >>> 9) & 0x07,
+          0,
+          0,
+          column * 8,
+          row * 8,
+          0,
+        );
+      }
+    }
+    return true;
   }
 
   /** Execute Cosmic/Panic's color-PROM bitmap and two-size sprite pipeline. */

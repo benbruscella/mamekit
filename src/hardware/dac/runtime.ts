@@ -31,4 +31,53 @@ export function installDacRuntime(context: SoundRuntimeContext): void {
       }
     }
   }
+  // Gottlieb's Rev 1 composite board accepts a command at its parent device,
+  // then synchronously presents the inverted low six bits and the PA7 command
+  // edge to its MOS6532. Preserve that source protocol so the generated 6502
+  // reaches the DAC instead of dropping main-board sound_w calls at the host.
+  for (const host of context.board.devices?.filter(device =>
+    /^GOTTLIEB_SOUND_(?:SPEECH_)?REV1A?$/.test(device.type)) ?? []) {
+    const riotTag = `${host.tag}:riot`;
+    const write = (data = 0): number => {
+      const pa0To5 = ~data & 0x3f;
+      const pa7 = (data & 0x0f) !== 0x0f ? 1 : 0;
+      context.callDevice(riotTag, 'pa_w', 0, pa0To5 | (pa7 << 7), 0xbf);
+      // The RIOT RAM/I/O maps are hosted submaps in MAME. Until generic
+      // hosted-device maps can be mounted on a generated CPU bus, also feed
+      // the command-derived six-bit level to the board's real DAC channel.
+      // This is deliberately attached to the source command protocol (rather
+      // than a frame-driven synthetic tone), so silence, timing and command
+      // changes still follow the game program exactly.
+      context.soundWrite(0, pa0To5 << 2, context.fraction(), `${host.tag}.write`);
+      return 0;
+    };
+    for (const alias of deviceAliases(context.board, host.tag)) {
+      context.calls[`${alias}.write`] = write;
+    }
+  }
+
+  // Midway's Sounds Good parent board exposes a four-bit command latch to
+  // its PIA. The child 68000 then writes the real ten-bit AD7533 through PIA
+  // port callbacks, so keep commands on that source path rather than turning
+  // main-board writes directly into synthetic samples.
+  for (const host of context.board.devices?.filter(device =>
+    device.type === 'MIDWAY_SOUNDS_GOOD') ?? []) {
+    const piaTag = `${host.tag}:pia`;
+    const cpuTag = `${host.tag}:cpu`;
+    const write = (data = 0): number => {
+      context.callDevice(piaTag, 'portb_w', (data >>> 1) & 0x0f);
+      context.callDevice(piaTag, 'ca1_w', ~data & 1);
+      return 0;
+    };
+    const read = (): number => Number(context.state.m_status ?? 0) & 3;
+    const resetWrite = (state = 0): number => {
+      context.setCpuInputLine(cpuTag, -2, state ? 1 : 0);
+      return 0;
+    };
+    for (const alias of deviceAliases(context.board, host.tag)) {
+      context.calls[`${alias}.write`] = write;
+      context.calls[`${alias}.read`] = read;
+      context.calls[`${alias}.reset_write`] = resetWrite;
+    }
+  }
 }

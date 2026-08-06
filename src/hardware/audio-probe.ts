@@ -25,6 +25,7 @@ export interface AudioProbeContext {
   /** Generated sound configuration for the target. */
   sound: {
     kind: string;
+    deviceType?: string;
     worklet?: string;
     clock?: number;
     chips?: number;

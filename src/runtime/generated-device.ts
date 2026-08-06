@@ -5,6 +5,7 @@ import {
 } from './generated-handler.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
+import { GeneratedM68705P5Device } from './generated-m68705.ts';
 
 interface DeviceMember {
   name: string;
@@ -184,7 +185,7 @@ export function clearGeneratedDevices(): void {
 }
 
 export function hasGeneratedDevice(type: string): boolean {
-  return DEFINITIONS.has(type.toUpperCase());
+  return type.toUpperCase() === 'M68705P5' || DEFINITIONS.has(type.toUpperCase());
 }
 
 export interface GeneratedDeviceOptions {
@@ -218,6 +219,9 @@ export interface GeneratedMemoryBank {
 }
 
 export function createDevice(type: string, options: GeneratedDeviceOptions = {}): Device {
+  if (type.toUpperCase() === 'M68705P5') {
+    return new GeneratedM68705P5Device(options);
+  }
   const definition = DEFINITIONS.get(type.toUpperCase());
   if (!definition) throw new Error(`generated device "${type}" was not registered`);
   if (definition.type.toUpperCase() === 'Z80PIO') {
@@ -525,6 +529,11 @@ class IrDevice implements Device {
   }
 
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown {
+    // A composition capability may replace a source method when the method's
+    // external card/device dependency is supplied by the host (for example a
+    // controller connector backed by live browser input ports).
+    const bound = this.bindings.calls?.[name];
+    if (bound) return bound(...args.map(Number));
     const method = this.selectMethod(name, args);
     if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
     return this.executeMethod(method, this.methodParams.get(method)!, args);
@@ -612,6 +621,17 @@ class IrDevice implements Device {
     args: GeneratedCallArgument[],
   ): unknown {
     try {
+      if (
+        this.definition.type.toUpperCase() === 'GENERIC_LATCH_8' &&
+        method.name === 'write'
+      ) {
+        // generic_latch_8_device defers the store with
+        // scheduler().synchronize(sync_callback, data) so both CPUs observe
+        // it at an execution boundary. Generated CPU method calls already are
+        // such a boundary; run the source callback immediately rather than
+        // dropping the opaque timer_expired_delegate expression.
+        return this.invoke('sync_callback', args[0] ?? 0);
+      }
       const compiled = this.definition.compiledMethods?.[method.name];
       if (compiled) return compiled(this.executionContext, ...args);
       const locals: Record<string, unknown> = {};

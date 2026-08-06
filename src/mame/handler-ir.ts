@@ -451,8 +451,9 @@ class HandlerParser {
           this.unsupportedStatement(`invalid array declaration of "${name.text}"`);
           return declarations;
         }
-        if (this.consume('=')) {
-          if (!this.consume('{')) {
+        const directListInitializer = this.consume('{');
+        if (directListInitializer || this.consume('=')) {
+          if (!directListInitializer && !this.consume('{')) {
             this.unsupportedStatement(`invalid array initializer of "${name.text}"`);
             return declarations;
           }
@@ -461,10 +462,14 @@ class HandlerParser {
             this.unsupportedStatement(`invalid array initializer of "${name.text}"`);
             return declarations;
           }
-          value = {
+          value = values.length ? {
             kind: 'call',
             callee: { kind: 'identifier', name: 'ARRAY' },
             args: values,
+          } : {
+            kind: 'call',
+            callee: { kind: 'identifier', name: 'ALLOC' },
+            args: [length ?? { kind: 'number', value: 0 }],
           };
         } else {
           value = {
@@ -697,7 +702,13 @@ class HandlerParser {
 
   private parsePrimary(): GeneratedExpression | undefined {
     const token = this.take();
-    if (token.kind === 'number') return { kind: 'number', value: parseNumber(token.text) };
+    if (token.kind === 'number') {
+      return {
+        kind: 'number',
+        value: parseNumber(token.text),
+        ...(isFloatingNumberLiteral(token.text) ? { floating: true } : {}),
+      };
+    }
     if (token.kind === 'string') return { kind: 'string', value: unquote(token.text) };
     if (token.kind === 'identifier') {
       if (token.text === 'true') return { kind: 'number', value: 1 };
@@ -817,6 +828,11 @@ function parseNumber(text: string): number {
   // C octal literal: leading zero followed by octal digits only.
   if (/^0[0-7]+$/.test(normalized)) return Number.parseInt(normalized, 8);
   return Number(normalized);
+}
+
+function isFloatingNumberLiteral(text: string): boolean {
+  if (/^0[xX]|^0[bB]/.test(text)) return false;
+  return text.includes('.') || /[eEfF]/.test(text);
 }
 
 function unquote(text: string): string {

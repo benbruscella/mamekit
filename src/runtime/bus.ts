@@ -6,6 +6,8 @@ export interface RangeSpec {
   start: number;
   end: number;
   mirror?: number;
+  /** ROM region supplying this range when it differs from the primary ROM. */
+  region?: string;
   /** Address bits decoded into the handler offset rather than mirrored away. */
   select?: number;
   /** Byte offset in the supplied ROM corresponding to this range's start. */
@@ -26,6 +28,8 @@ export interface RangeSpec {
 
 export type ReadHandler = (addr: number, offset: number) => number;
 export type WriteHandler = (addr: number, offset: number, data: number, memMask?: number) => void;
+type WordReadHandler = (addr: number, offset: number) => number;
+type WordWriteHandler = (addr: number, offset: number, data: number) => void;
 
 export interface HandlerRegistry {
   read: Record<string, ReadHandler>;
@@ -60,6 +64,8 @@ export class Bus {
   private highWriteBase = new Map<number, Uint32Array>();
   private readFns: ReadHandler[] = [() => OPEN_BUS];
   private writeFns: WriteHandler[] = [() => { /* open bus */ }];
+  private readonly wordReadFns = new Map<number, WordReadHandler>();
+  private readonly wordWriteFns = new Map<number, WordWriteHandler>();
   private base = new Uint32Array(0x10000);  // range base addr per address (for offset calc)
   private readonly viewMappings: {
     tag: string; entry: number; start: number; end: number; mirror: number;
@@ -81,6 +87,7 @@ export class Bus {
     registry: HandlerRegistry,
     shares: Record<string, Uint8Array> = {},
     dataWidth: 8 | 16 = 8,
+    regions?: Readonly<Record<string, Uint8Array>>,
   ) {
     this.shares = shares;
     this.addressMask = ranges.some(range => (range.end | (range.mirror ?? 0)) > 0xffff)
@@ -90,10 +97,14 @@ export class Bus {
       const size = r.end - r.start + 1;
       let read: ReadHandler | null = null;
       let write: WriteHandler | null = null;
+      let wordRead: WordReadHandler | null = null;
+      let wordWrite: WordWriteHandler | null = null;
 
       if (r.kind === 'rom') {
+        const rangeRom = r.region ? regions?.[r.region] : rom;
+        if (!rangeRom) throw new Error(`missing ROM region: ${r.region}`);
         // offset-based so mirror images read the same region bytes
-        read = (_a, off) => rom[(r.romOffset ?? r.start) + off];
+        read = (_a, off) => rangeRom[(r.romOffset ?? r.start) + off];
       } else if (r.kind === 'ram') {
         const bytes = r.share
           ? (this.shares[r.share] ??= new Uint8Array(size))
@@ -107,6 +118,8 @@ export class Bus {
               ? (words[index]! & 0xff00) | (d & 0xff)
               : (words[index]! & 0x00ff) | ((d & 0xff) << 8);
           };
+          wordRead = (_a, off) => words[off >>> 1]!;
+          wordWrite = (_a, off, data) => { words[off >>> 1] = data & 0xffff; };
         } else {
           read = (_a, off) => bytes[off];
           write = (_a, off, d) => { bytes[off] = d; };
@@ -117,9 +130,20 @@ export class Bus {
           if (!h) throw new Error(`missing write handler: ${r.write}`);
           const adapted = dataWidth === 16 ? wordWriteHandler(h) : h;
           const ramWrite = write!;
+          const ramWordWrite = wordWrite;
           write = r.writeHandlerOwnsRam
             ? adapted
             : (a, off, d) => { ramWrite(a, off, d); adapted(a, off, d); };
+          if (dataWidth === 16) {
+            const handlerWordWrite: WordWriteHandler = (a, off, data) =>
+              h(a, off >>> 1, data & 0xffff, 0xffff);
+            wordWrite = r.writeHandlerOwnsRam
+              ? handlerWordWrite
+              : (a, off, data) => {
+                ramWordWrite!(a, off, data);
+                handlerWordWrite(a, off, data);
+              };
+          }
         }
         // MAME permits different mappings for the two directions in one
         // fluent range, for example `.portr("IN0").writeonly().share(...)`.
@@ -128,6 +152,7 @@ export class Bus {
           const h = registry.read[r.read];
           if (!h) throw new Error(`missing read handler: ${r.read}`);
           read = dataWidth === 16 ? wordReadHandler(h) : h;
+          if (dataWidth === 16) wordRead = (a, off) => h(a, off >>> 1) & 0xffff;
         }
       }
       if (r.kind === 'handler' || (r.kind !== 'ram' && (r.read || r.write))) {
@@ -135,11 +160,15 @@ export class Bus {
           const h = registry.read[r.read];
           if (!h) throw new Error(`missing read handler: ${r.read}`);
           read = dataWidth === 16 ? wordReadHandler(h) : h;
+          if (dataWidth === 16) wordRead = (a, off) => h(a, off >>> 1) & 0xffff;
         }
         if (r.write) {
           const h = registry.write[r.write];
           if (!h) throw new Error(`missing write handler: ${r.write}`);
           write = dataWidth === 16 ? wordWriteHandler(h) : h;
+          if (dataWidth === 16) {
+            wordWrite = (a, off, data) => h(a, off >>> 1, data & 0xffff, 0xffff);
+          }
         }
       }
       if (r.writeOnly && !r.read) read = null;
@@ -147,6 +176,8 @@ export class Bus {
 
       const readIdx = read ? this.readFns.push(read) - 1 : 0;
       const writeIdx = write ? this.writeFns.push(write) - 1 : 0;
+      if (wordRead && readIdx) this.wordReadFns.set(readIdx, wordRead);
+      if (wordWrite && writeIdx) this.wordWriteFns.set(writeIdx, wordWrite);
       if (readIdx > 255 || writeIdx > 255) throw new Error('too many bus handlers');
 
       const mirror = r.mirror ?? 0;
@@ -263,6 +294,18 @@ export class Bus {
     return this.readFns[id](addr, addr - base) & 0xff;
   };
 
+  read16be = (addr: number): number => {
+    addr &= this.addressMask;
+    const mapping = this.wordMapping(addr, false);
+    const next = this.wordMapping((addr + 1) & this.addressMask, false);
+    const direct = mapping && next && mapping.id === next.id && mapping.base === next.base
+      ? this.wordReadFns.get(mapping.id)
+      : undefined;
+    return direct
+      ? direct(addr, addr - mapping!.base) & 0xffff
+      : ((this.read(addr) << 8) | this.read(addr + 1)) & 0xffff;
+  };
+
   write = (addr: number, data: number): void => {
     addr &= this.addressMask;
     if (addr <= 0xffff) {
@@ -275,6 +318,36 @@ export class Bus {
     const base = this.highWriteBase.get(page)?.[offset] ?? 0;
     this.writeFns[id](addr, addr - base, data & 0xff);
   };
+
+  write16be = (addr: number, data: number): void => {
+    addr &= this.addressMask;
+    const mapping = this.wordMapping(addr, true);
+    const next = this.wordMapping((addr + 1) & this.addressMask, true);
+    const direct = mapping && next && mapping.id === next.id && mapping.base === next.base
+      ? this.wordWriteFns.get(mapping.id)
+      : undefined;
+    if (direct) {
+      direct(addr, addr - mapping!.base, data & 0xffff);
+      return;
+    }
+    this.write(addr, data >>> 8);
+    this.write(addr + 1, data);
+  };
+
+  private wordMapping(addr: number, write: boolean): { id: number; base: number } | undefined {
+    if (addr <= 0xffff) {
+      return {
+        id: write ? this.writeId[addr]! : this.readId[addr]!,
+        base: write ? this.base[addr]! >>> 16 : this.base[addr]! & 0xffff,
+      };
+    }
+    const page = addr >>> 12;
+    const offset = addr & 0xfff;
+    return {
+      id: (write ? this.highWriteId : this.highReadId).get(page)?.[offset] ?? 0,
+      base: (write ? this.highWriteBase : this.highReadBase).get(page)?.[offset] ?? 0,
+    };
+  }
 
   /** io space: unused on this board family */
   in = (_port: number): number => OPEN_BUS;

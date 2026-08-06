@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   compileMameI8080,
+  compileMameI8088,
   compileMameKonami1,
   compileMameM6802,
   compileMameMc6809,
@@ -10,6 +11,7 @@ import {
   compileMameM6502,
   compileMameMcs48,
   compileMameRp2a03,
+  compileMameZ8002,
   compileMameZ80,
 } from './cpu-compiler.ts';
 import { generatedCpuExecutableSource } from './cpu-codegen.ts';
@@ -74,6 +76,52 @@ assert.equal(cpu.get('A'), 0x80);
 assert.equal(cpu.invoke('get_f'), 0x94);
 assert.equal(cpu.step(), 8);
 assert.equal(cpu.get('A'), 0x01);
+
+// Z8002 absolute operands are fetched through MAME's opcode cache. They must
+// still read the immediate word from the program bus after source lowering;
+// Pole Position relies on this for its sub-CPU boot and mailbox service loop.
+const z8002Definition = compileMameZ8002(process.env.MAME_SRC ?? '../mame');
+assert.equal(z8002Definition.summary.diagnostics, 0);
+clearGeneratedCpus();
+registerGeneratedCpu(z8002Definition);
+const z8002Memory = new Uint8Array(0x10000);
+z8002Memory.set([0x33, 0x5c], 0x0100);
+const z8002 = createCpu('Z8002', {
+  read: address => z8002Memory[address]!,
+  write: (address, data) => { z8002Memory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+z8002.set('m_pc', 0x0100);
+z8002.set('m_op_valid', 1);
+assert.equal(z8002.invoke('get_addr_operand', 1), 0x335c);
+assert.equal(z8002.get('m_pc'), 0x0102);
+registerGeneratedCpu(definition);
+
+// Gottlieb's 8088 boards mirror a 16-bit map into the CPU's 20-bit physical
+// space. Reset must still put CS at FFFF so the first fetch reaches FFFF0
+// (and therefore the board's FFF0 ROM window after its global mask).
+const i8088Definition = compileMameI8088(process.env.MAME_SRC ?? '../mame');
+assert.equal(i8088Definition.constants.ES, 0);
+assert.equal(i8088Definition.constants.CS, 1);
+assert.equal(i8088Definition.constants.SS, 2);
+assert.equal(i8088Definition.constants.DS, 3);
+clearGeneratedCpus();
+registerGeneratedCpu(i8088Definition);
+const i8088 = createCpu('I8088', {
+  read: () => 0x90,
+  write: () => {},
+  in: () => 0xff,
+  out: () => {},
+});
+i8088.reset();
+assert.equal(i8088.invoke('update_pc'), 0xffff0);
+i8088.set('m_ip', 0xffff);
+i8088.invoke('fetch');
+assert.equal(i8088.get('m_ip'), 0);
+i8088.setInputLine(-1, 1);
+assert.equal(i8088.get('m_pending_irq') & 2, 2);
+registerGeneratedCpu(definition);
 
 // Boards with an AS_OPCODES map fetch instructions from the separate bus
 // while instruction arguments and ordinary data reads stay on program space.
@@ -321,6 +369,16 @@ const m68000Source = generatedCpuExecutableSource(m68000Definition);
 assert.ok(m68000Source.length > 1_000_000);
 assert.match(m68000Source, /address & 16777215/);
 assert.match(m68000Source, /this\.bus\.acknowledge\?\.\(level\)/);
+assert.match(
+  m68000Source,
+  /this\.bus\.read16be\?\.\(/,
+  'generated 68000 word and long reads must preserve atomic 16-bit bus handlers',
+);
+assert.match(
+  m68000Source,
+  /this\.bus\.write16be\(/,
+  'generated 68000 word and long writes must preserve atomic 16-bit bus handlers',
+);
 clearGeneratedCpus();
 registerGeneratedCpu(m68000Definition);
 const m68000Memory = new Uint8Array(0x3000);

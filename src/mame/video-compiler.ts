@@ -65,7 +65,13 @@ export function compileMameVideo(
   // MAME's tilemap framework header is part of the vocabulary driver video code
   // uses: TILEMAP_DRAW_LAYERn, TILE_FLIPYX and kin are declared there, not in
   // the driver. Driver constants take precedence over framework ones.
-  const constants = {
+  const constants: Record<string, number> = {
+    // Device input-line constants live in the emulator framework rather than
+    // most driver translation units, but driver-init methods assign them to
+    // board state (for example Double Dragon selects NMI for its sprite CPU).
+    INPUT_LINE_NMI: -1,
+    INPUT_LINE_RESET: -2,
+    INPUT_LINE_IRQ0: 0,
     ...sourceNumericConstants(readFileSync(join(mameSrc, TILEMAP_FRAMEWORK_HEADER), 'utf8')),
     ...sourceNumericConstants(source),
   };
@@ -252,11 +258,12 @@ export function compileMameVideo(
     String(game?.props.init ?? ''),
   );
   const driverInitState = driverInit
-    ? initialState(driverInit.body, { ...constants, ...numericDefaults })
+    ? methodInitialState(ast, driverInit, { ...constants, ...numericDefaults })
     : {};
   const allocatedState = start
     ? allocatedVideoState(ast, start, { ...constants, ...numericDefaults })
     : {};
+  const lifecycleArrays = start ? staticNumericArrays(start.body, constants) : {};
   const tilemaps = start
     ? compileTilemaps(
         start,
@@ -400,6 +407,7 @@ export function compileMameVideo(
         ...(start
           ? initialState(start.body, { ...constants, ...numericDefaults })
           : {}),
+        ...lifecycleArrays,
         ...allocatedState,
         ...driverInitState,
         ...boardSpecificState,
@@ -1819,11 +1827,13 @@ function compileSetFormatRamPalette(
     .exec(overload[1]!);
   if (!decoder) return fail(`set_format(${overloadType}) is not a standard rgb decoder`);
   const template = splitMameArgs(decoder[3]!).map(value => Number(value.trim()));
-  if (template.length !== 6 || template.some(value => !Number.isFinite(value))) {
+  const irgb = decoder[2] === 'standard_i';
+  if ((irgb ? template.length !== 8 : template.length !== 6) ||
+    template.some(value => !Number.isFinite(value))) {
     return fail(`unsupported rgb decoder template <${decoder[3]}>`);
   }
   const inverted = decoder[2] === 'inverted';
-  if (!inverted && decoder[2] !== 'standard') {
+  if (!inverted && decoder[2] !== 'standard' && !irgb) {
     return fail(`unsupported rgb decoder kind ${decoder[2]}`);
   }
   const configuredEndianness =
@@ -1854,9 +1864,10 @@ function compileSetFormatRamPalette(
     bytesPerEntry: Number(decoder[1]),
     channels: (['r', 'g', 'b'] as const).map((channel, index) => ({
       channel,
-      bits: template[index]!,
-      shift: template[index + 3]!,
+      bits: template[index + (irgb ? 1 : 0)]!,
+      shift: template[index + (irgb ? 5 : 3)]!,
     })),
+    ...(irgb ? { intensity: { bits: template[0]!, shift: template[4]! } } : {}),
     ...(inverted ? { inverted: true } : {}),
     ...(reset?.writes.length ? {
       resetWrites: reset.writes,
@@ -2105,16 +2116,25 @@ function compilePalette(
       const lookupExpression = args[1] ?? '';
       const colorExpression = /ctabentry\s*=\s*([^;]+)/.exec(loop.body)?.[1]
         ?? lookupExpression;
-      const lookupIndex = /color_prom\[\s*([^\]]+)\s*\]/.exec(colorExpression)?.[1];
+      const expandedColorExpression = expandPaletteLoopLocals(
+        colorExpression,
+        loop.body,
+      );
+      const lookupIndex = /color_prom\[\s*([^\]]+)\s*\]/
+        .exec(expandedColorExpression)?.[1];
       const usesPostIncrement = /\*\s*color_prom\s*\+\+/.test(colorExpression);
       const lookupTerms = compilePaletteLookupTerms(
-        colorExpression,
+        expandedColorExpression,
         body,
         loop.sourceOffset,
         loop.start,
         regionByVariable,
         constants,
-      );
+      ).filter((term, index, all) => all.findIndex(candidate =>
+        candidate.region === term.region &&
+        candidate.offset === term.offset &&
+        candidate.mask === term.mask &&
+        candidate.shift === term.shift) === index);
       // Identity mappings like set_pen_indirect(base + i, 32 + i) carry no
       // PROM lookup: the loop expressions fully describe pen and color steps.
       if (
@@ -2146,9 +2166,15 @@ function compilePalette(
         /\b\w+\s*\[[^\]]+\]/g,
         'PROM',
       );
+      const expandedScalarColorExpression = expandedColorExpression.replace(
+        /\b\w+\s*\[[^\]]+\]/g,
+        'PROM',
+      );
       const colorOrExpression =
         /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(scalarLookupExpression)?.[1]
         ?? /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(scalarColorExpression)?.[1]
+        ?? /(-?(?:0x[\da-f]+|\d+))\s*(?:\||\+)\s*\(*PROM\b/i
+          .exec(expandedScalarColorExpression)?.[1]
         // A direct set_pen_color may index a local palette array with the
         // PROM value plus a bank base, e.g. palette_val[(prom & 0x0f)+0x10].
         // Replacing the outer array access with PROM hides that base, so
@@ -2157,6 +2183,12 @@ function compilePalette(
           .exec(colorExpression)?.[1]
         ?? /(-?(?:0x[\da-f]+|\d+))\s*\|/i.exec(scalarLookupExpression)?.[1]
         ?? /(-?(?:0x[\da-f]+|\d+))\s*\|/i.exec(scalarColorExpression)?.[1];
+      const lookupOverride = new RegExp(
+        `(?:PROM|\\w+\\s*\\[[^\\]]+\\])\\)*\\s*!=\\s*` +
+        `(-?(?:0x[\\da-f]+|\\d+))[\\s\\S]*?:\\s*` +
+        `(-?(?:0x[\\da-f]+|\\d+))`,
+        'i',
+      ).exec(expandedScalarColorExpression);
       return [{
         penOffset: paletteExpressionAt(
           args[0]!, loop.start, body, loop.sourceOffset, constants,
@@ -2167,6 +2199,10 @@ function compilePalette(
           : postIncrementOffset + expressionAt(lookupIndex ?? 'i', loop.start),
         lookupCount: Math.max(0, loop.end - loop.start),
         ...(lookupTerms.length ? { lookupTerms } : {}),
+        ...(lookupOverride ? {
+          lookupValueOverride: expressionNumber(lookupOverride[1]),
+          overrideColor: expressionNumber(lookupOverride[2]),
+        } : {}),
       }];
     });
   });
@@ -2274,6 +2310,31 @@ function compilePalette(
     transparentIndirect: 0,
     source: sourceRef(fn),
   };
+}
+
+/** Inline simple per-loop aliases before extracting PROM lookup expressions. */
+function expandPaletteLoopLocals(expression: string, loopBody: string): string {
+  let expanded = expression;
+  const declarations = [...loopBody.matchAll(
+    /\b(?:int|unsigned|u8|u16|u32|uint8_t|uint16_t|uint32_t)(?:\s+const)?\s+(\w+)\s*=\s*([^;]+);/g,
+  )];
+  // A declaration can depend on an earlier alias; a few reverse passes are
+  // sufficient for the straight-line palette loops used by MAME drivers.
+  for (let pass = 0; pass < declarations.length + 1; pass++) {
+    let changed = false;
+    for (const declaration of declarations) {
+      const name = declaration[1]!;
+      if (!new RegExp(`\\b${name}\\b`).test(expanded)) continue;
+      const next = expanded.replace(
+        new RegExp(`\\b${name}\\b`, 'g'),
+        `(${declaration[2]!.trim()})`,
+      );
+      changed ||= next !== expanded;
+      expanded = next;
+    }
+    if (!changed) break;
+  }
+  return expanded;
 }
 
 /**
@@ -2722,7 +2783,7 @@ function addHandler(
   if (handlers.some(handler => handler.ownerClass === fn.className && handler.method === fn.name)) {
     return;
   }
-  const executableBody = normalizeMameExecutionSource(fn.body)
+  const executableBody = normalizeMameExecutionSource(lowerSequentialArrayPointers(fn.body))
     // Container type spelling has no run-time behavior; handlers interact
     // with the local through ordinary calls after declaration.
     .replace(/\bstd::vector\s*<[^;{}>]+>\s+(\w+)\s*;/g, 'auto $1;');
@@ -2738,6 +2799,24 @@ function addHandler(
     ),
     source: sourceRef(fn),
   });
+}
+
+/** Lower a local C array's advancing pointer to an explicit array index. */
+function lowerSequentialArrayPointers(source: string): string {
+  let lowered = source;
+  for (const match of source.matchAll(
+    /\b(?:u?int(?:8|16|32)_t|pen_t)\s*\*\s*(\w+)\s*=\s*(\w+)\s*;/g,
+  )) {
+    const pointer = match[1]!;
+    const array = match[2]!;
+    if (!new RegExp(`\\b${array}\\s*\\[`).test(source)) continue;
+    const dereference = new RegExp(`\\*\\s*${pointer}\\s*\\+\\+`, 'g');
+    if (!dereference.test(source)) continue;
+    lowered = lowered
+      .replace(match[0], `int ${pointer} = 0;`)
+      .replace(dereference, `${array}[${pointer}++]`);
+  }
+  return lowered;
 }
 
 function addHandlerClosure(
@@ -2851,12 +2930,13 @@ function sourceMemberDefaults(
       ...numericState(defaults),
     })
       .replace(/\bfalse\b/g, '0')
-      .replace(/\btrue\b/g, '1');
+      .replace(/\btrue\b/g, '1')
+      .replace(/\b(0x[\da-f]+|\d+)[uUlL]+\b/gi, '$1');
     const value = evalExpr(expression);
     if (value != null && Number.isFinite(value)) defaults[match[1]!] = value;
   }
   for (const match of source.matchAll(
-    /\b(?:bool|int|u?int(?:8|16|32)_t|u8|u16|u32)\s+(m_\w+)\s*\[\s*(\d+)\s*\]\s*(?:=\s*)?\{\s*\}\s*;/g,
+    /\b(?:bool|double|int|u?int(?:8|16|32)_t|u8|u16|u32)\s+(m_\w+)\s*\[\s*(\d+)\s*\]\s*(?:=\s*)?\{\s*\}\s*;/g,
   )) {
     defaults[match[1]!] = new Array(Number(match[2])).fill(0);
   }
@@ -2866,6 +2946,20 @@ function sourceMemberDefaults(
     if (values.length && values.every(Number.isFinite)) defaults[match[1]!] = values;
   }
   return defaults;
+}
+
+function staticNumericArrays(
+  body: string,
+  constants: Record<string, number>,
+): Record<string, number[]> {
+  const arrays: Record<string, number[]> = {};
+  for (const match of body.matchAll(
+    /\bstatic\s+const\s+(?:double|int|u?int(?:8|16|32)_t|u8|u16|u32)\s+(\w+)\s*\[\s*\d+\s*\]\s*=\s*\{([^{}]*)\}\s*;/g,
+  )) {
+    const values = splitMameArgs(match[2]!).map(value => expressionNumber(value, constants));
+    if (values.length && values.every(Number.isFinite)) arrays[match[1]!] = values;
+  }
+  return arrays;
 }
 
 function substituteNumbers(source: string, values: Record<string, number>): string {
@@ -2982,10 +3076,35 @@ function initialState(
   for (const match of body.matchAll(/\b(m_\w+)\s*=\s*([^;]+)\s*;/g)) {
     const expression = substituteNumbers(match[2]!, { ...values, ...state })
       .replace(/\bfalse\b/g, '0')
-      .replace(/\btrue\b/g, '1');
+      .replace(/\btrue\b/g, '1')
+      .replace(/\b(0x[\da-f]+|\d+)[uUlL]+\b/gi, '$1');
     const value = evalExpr(expression);
     if (value != null && Number.isFinite(value)) state[match[1]!] = value;
   }
+  return state;
+}
+
+/** Apply no-argument driver-init helpers before the selected init's writes. */
+function methodInitialState(
+  ast: MameAstIndex,
+  method: MameFunction,
+  values: Record<string, number>,
+  seen = new Set<string>(),
+): Record<string, number> {
+  const key = `${method.className}.${method.name}`;
+  if (seen.has(key)) return {};
+  seen.add(key);
+  const state: Record<string, number> = {};
+  for (const call of method.body.matchAll(/\b(\w+)\s*\(\s*\)\s*;/g)) {
+    const helper = ast.findFunctionInHierarchy(method.className, call[1]!);
+    if (!helper) continue;
+    Object.assign(state, methodInitialState(ast, helper, { ...values, ...state }, seen));
+  }
+  const expandedAssignments = method.body.replace(
+    /\b(m_\w+)\s*=\s*(m_\w+)\s*=\s*([^;]+);/g,
+    '$2 = $3; $1 = $2;',
+  );
+  Object.assign(state, initialState(expandedAssignments, { ...values, ...state }));
   return state;
 }
 

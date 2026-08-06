@@ -183,6 +183,22 @@ const floatDivision = compileMameHandler('return 0.6 / 3;');
 assert.deepEqual(floatDivision.diagnostics, []);
 assert.ok(Math.abs((executeGeneratedHandler(floatDivision, {}) as number) - 0.2) < 1e-12);
 
+const integralFloatDivision = compileMameHandler('return 1 / 7.0;');
+assert.deepEqual(integralFloatDivision.diagnostics, []);
+assert.ok(Math.abs((executeGeneratedHandler(integralFloatDivision, {}) as number) - 1 / 7) < 1e-12);
+
+const createdTilemap = { mark_tile_dirty: (_offset: number) => {} };
+const tilemapCreation = compileMameHandler(
+  'm_bg_tilemap = &machine().tilemap().create(m_gfxdecode);',
+);
+assert.deepEqual(tilemapCreation.diagnostics, []);
+const tilemapMembers: Record<string, unknown> = {};
+executeGeneratedHandler(tilemapCreation, {
+  members: tilemapMembers,
+  calls: { 'machine().tilemap().create': () => createdTilemap },
+});
+assert.equal(tilemapMembers.m_bg_tilemap, createdTilemap);
+
 const rcDivision = compileMameHandler('return 1 / (RES_K(47) * CAP_U(1));');
 assert.deepEqual(rcDivision.diagnostics, []);
 assert.ok(Math.abs((executeGeneratedHandler(rcDivision, {}) as number) - 21.2765957) < 1e-4);

@@ -75,7 +75,7 @@ export interface BoardConfig {
     mask: number;
     member: string;
     handler?: string;
-    source?: 'screen-vblank';
+    source?: 'screen-vblank' | 'rtc-tp' | 'rtc-data';
     activeLow?: boolean;
   }[];
   /**

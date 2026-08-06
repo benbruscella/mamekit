@@ -10,7 +10,7 @@ export const phoenix = sourceTarget({
     regions: {
       bgtiles: 'efb4ace4',
       fgtiles: 'bda75c7d',
-      maincpu: '857ed7c9',
+      maincpu: 'fbdeb026',
       proms: '3895ff77',
     },
     checkpoints: {

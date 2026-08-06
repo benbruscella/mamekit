@@ -218,6 +218,7 @@ function supportsMethod(
     ...definition.timers.map(timer => timer.member),
   ]);
   const constants = new Set(Object.keys(definition.constants));
+  const callees = calledIdentifiers(method.program.operations);
   let supported = true;
   visitOperations(method.program.operations, operation => {
     visitOperationExpressions(operation, expression => {
@@ -226,6 +227,7 @@ function supportsMethod(
         supported = locals.has(expression.name) ||
           members.has(expression.name) ||
           constants.has(expression.name) ||
+          callees.has(expression.name) ||
           ['true', 'false', 'nullptr', 'g_profiler',
             'attotime::zero', 'attotime::never'].includes(expression.name) ||
           expression.name.startsWith('PROFILER_');
@@ -274,7 +276,7 @@ function emitMethod(
     pointerSafeIndex: Boolean(definition.hotMethods?.length),
     typescript,
   };
-  collectLocals(method.program.operations, context.locals);
+  collectLocals(method.program.operations, context);
   const annotation = typescript ? ': any' : '';
   const args = parameters.map(parameter => `${parameter.name}${annotation}`).join(', ');
   const returned = returnedReference ? `\n    return ${returnedReference};` : '';
@@ -525,9 +527,24 @@ function emitCall(
     if (name === 'ALLOC' || name === 'make_unique_clear') {
       return `new Uint8Array(Math.max(0, Number(${args[0] ?? '0'})))`;
     }
+    if (name === 'sizeof') {
+      const valueType = expression.args[0]
+        ? expressionValueType(expression.args[0], context)
+        : undefined;
+      const bytes = /(?:u?int64_t|[us]64|double)/.test(valueType ?? '') ? 8
+        : /(?:u?int32_t|[us]32|float|offs_t|pen_t)/.test(valueType ?? '') ? 4
+        : /(?:u?int16_t|[us]16)/.test(valueType ?? '') ? 2
+        : 1;
+      return String(bytes);
+    }
     if (name === 'memset') {
       const target = args[0] ?? '0';
-      return `((${target}).fill(${args[1] ?? '0'}, 0, ${args[2] ?? '0'}), ${target})`;
+      const value = args[1] ?? '0';
+      const bytes = args[2] ?? '0';
+      return `(() => { const target = ${target}; const bytes = Number(${bytes}); ` +
+        `if (target?.generatedPointer) { const width = target.source.BYTES_PER_ELEMENT ?? 1; ` +
+        `target.source.fill(${value}, target.offset, target.offset + Math.ceil(bytes / width)); ` +
+        `return target; } target.fill(${value}, 0, bytes); return target; })()`;
     }
     if (name === 'pen_color') {
       return `(runtime.palette[${args[0] ?? '0'}] ?? 0xff000000)`;
@@ -825,10 +842,14 @@ function parseParameters(parameters: string): { name: string; valueType: string 
 
 function collectLocals(
   operations: GeneratedHandlerOperation[],
-  locals: Map<string, string | undefined>,
+  context: EmitContext,
 ): void {
   visitOperations(operations, operation => {
-    if (operation.op === 'declare') locals.set(operation.name, operation.valueType);
+    if (operation.op !== 'declare') return;
+    const inferred = operation.valueType === 'auto' && operation.value
+      ? expressionValueType(operation.value, context)
+      : undefined;
+    context.locals.set(operation.name, inferred ?? operation.valueType);
   });
 }
 

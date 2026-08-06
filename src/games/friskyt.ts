@@ -36,8 +36,8 @@ export const friskyt: GameTestContract = {
     },
     audio: {
       writes: 144145,
-      nonzeroWrites: 143676,
-      writeHash: '0a564845',
+      nonzeroWrites: 143804,
+      writeHash: '283818cf',
       pcmHash: '39cf4f7b',
       rms: 0.076998,
     },

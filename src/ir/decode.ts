@@ -394,6 +394,12 @@ function decodeExecution(reader: Reader, value: unknown): void {
       const source = sourceOf(bank);
       reader.string(bank.tag, `${path}.tag`, source);
       reader.optionalString(bank.region, `${path}.region`, source);
+      if (bank.entryRegions !== undefined) {
+        for (const [position, region] of reader.array(
+          bank.entryRegions, `${path}.entryRegions`, source).entries()) {
+          if (region !== null) reader.string(region, `${path}.entryRegions[${position}]`, source);
+        }
+      }
       reader.optionalNumber(bank.dynamicShift, `${path}.dynamicShift`, source);
       if (bank.entryMembers !== undefined) {
         for (const [position, member] of reader.array(
@@ -426,6 +432,7 @@ function decodeRanges(
     const start = reader.number(range.start, `${rangePath}.start`, source);
     const end = reader.number(range.end, `${rangePath}.end`, source);
     reader.optionalNumber(range.mirror, `${rangePath}.mirror`, source);
+    reader.optionalString(range.region, `${rangePath}.region`, source);
     reader.optionalNumber(range.romOffset, `${rangePath}.romOffset`, source);
     reader.optionalString(range.viewTag, `${rangePath}.viewTag`, source);
     reader.optionalNumber(range.viewEntry, `${rangePath}.viewEntry`, source);

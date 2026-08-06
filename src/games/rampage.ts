@@ -8,6 +8,7 @@ export const rampage = sourceTarget({
   soundKind: 'dac',
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 330, code: 'KeyZ', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 600, code: 'ArrowRight', heldFrames: 120, releasedFrames: 20 },
     { atFrame: 780, code: 'Space', heldFrames: 30, releasedFrames: 20 },
   ],

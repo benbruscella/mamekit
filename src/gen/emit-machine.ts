@@ -340,6 +340,12 @@ export function lowerGeneratedMachine(
     } : {}),
     screen: {
       ...board.screen,
+      // Neo Geo's LSPC sprite-line timer requests one partial update per
+      // scanline, and both sprite/fixed renderers intentionally draw only the
+      // clip's first line. Timer-allocated callbacks are not frame events yet,
+      // so schedule that same one-line cadence directly; a frame-end partial
+      // call would render only the first visible line.
+      ...(family === 'neogeo' ? { updateMode: 'scanline' as const } : {}),
       ...(deviceByTag.get('screen')?.source ? { source: deviceByTag.get('screen')!.source } : {}),
     },
     ...(board.customs?.length ? { customs: board.customs } : {}),
@@ -370,14 +376,16 @@ export function lowerGeneratedMachine(
     device.type === 'RP2A03' || device.type === 'RP2A03G');
   const ayDevices = devices.filter(device =>
     ['AY8910', 'AY8912', 'YM2149'].includes(device.type));
-  const ymDevices = devices.filter(device => device.type === 'YM2203');
+  const ymDevices = devices.filter(device =>
+    device.type === 'YM2203' || device.type === 'YM2610');
   const opmDevices = devices.filter(device => device.type === 'YM2151');
   const oplDevices = devices.filter(device => device.type === 'YM3526');
   const snDevices = devices.filter(device =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(device.type));
   const dacDevices = devices.filter(device =>
-    ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533'].includes(device.type));
+    ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
+      'NETLIST_INT_INPUT'].includes(device.type));
   const sampleDevices = devices.filter(device => device.type === 'SAMPLES');
   const berzerkSound = devices.find(device => device.type === 'EXIDY');
   const discreteDevice = devices.find(device => device.type === 'DISCRETE');
@@ -436,7 +444,7 @@ export function lowerGeneratedMachine(
           kind: 'ym2203',
           deviceTag: (ymDevices[0] ?? oplDevices[0])!.tag,
           deviceTags: ymDevices.map(device => device.tag),
-          deviceType: ymDevices.length ? 'YM2203' : 'YM3526',
+          deviceType: ymDevices.length ? ymDevices[0]!.type : 'YM3526',
           // ym2203_device maps a two-byte address/data port pair.
           writeMethods: ymDevices.length ? ['write'] : [],
           enableMethods: [],
@@ -695,6 +703,7 @@ function lowerMemoryBanks(
   return [...byTag].map(([tag, nodes]) => {
     const entryOffsets: (number | null)[] = [];
     const entryMembers: (string | null)[] = [];
+    const entryRegions: (string | null)[] = [];
     for (const node of nodes) {
       const startEntry = Number(node.props.startEntry);
       const entries = Number(node.props.entries);
@@ -702,6 +711,9 @@ function lowerMemoryBanks(
       const stride = Number(node.props.stride);
       for (let index = 0; index < entries; index++) {
         entryOffsets[startEntry + index] = offset + index * stride;
+        entryRegions[startEntry + index] = node.props.region
+          ? String(node.props.region)
+          : null;
         if (node.props.entryMember) {
           entryMembers[startEntry + index] = String(node.props.entryMember);
         }
@@ -710,12 +722,16 @@ function lowerMemoryBanks(
     for (let index = 0; index < entryOffsets.length; index++) {
       entryOffsets[index] ??= null;
       entryMembers[index] ??= null;
+      entryRegions[index] ??= null;
     }
     const first = nodes[0]!;
     return {
       tag,
       member: String(first.props.member),
       ...(first.props.region ? { region: String(first.props.region) } : {}),
+      ...(new Set(entryRegions.filter(Boolean)).size > 1
+        ? { entryRegions }
+        : {}),
       ...(entryMembers.some(Boolean) ? { entryMembers } : {}),
       entryOffsets,
       ...(first.props.dynamicShift !== undefined
@@ -748,7 +764,7 @@ export function lowerAudioRoutes(
       const targetInput = Number(node.props.input);
       const rawOutput = String(node.props.output);
       const outputChannels = rawOutput === 'ALL_OUTPUTS'
-        ? sourceDevice?.props.type === 'YM2203'
+        ? sourceDevice?.props.type === 'YM2203' || sourceDevice?.props.type === 'YM2610'
           ? [0, 1, 2, 3]
           : singleOutput
             ? [-1]

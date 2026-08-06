@@ -33,7 +33,7 @@ export interface SoundRuntimeContext {
   /** Position within the current video frame, so writes keep their timing. */
   fraction(): number;
   /** Call a method on an instantiated generated device, if it has one. */
-  callDevice(tag: string, method: string): number | undefined;
+  callDevice(tag: string, method: string, ...args: number[]): number | undefined;
   /** Run a callback's generated handler, for device ports read back. */
   runCallbackHandler(callbackId: string): number | undefined;
   /** Deliver a device signal through the board's typed effects. */

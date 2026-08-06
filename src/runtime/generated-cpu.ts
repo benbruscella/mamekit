@@ -8,9 +8,13 @@ import type { GeneratedHandlerProgram } from '../ir/board.ts';
 
 export interface CpuBus {
   read(address: number): number;
+  /** Atomic big-endian word access for native 16-bit address-map handlers. */
+  read16be?(address: number): number;
   /** AS_OPCODES fetch when the board maps encrypted opcodes separately. */
   readOpcode?(address: number): number;
   write(address: number, data: number): void;
+  /** Atomic big-endian word access for native 16-bit address-map handlers. */
+  write16be?(address: number, data: number): void;
   in(port: number): number;
   out(port: number, data: number): void;
   /** Optional source-derived interrupt-acknowledge address-space read. */
@@ -343,8 +347,9 @@ class IrCpu implements Cpu {
         }
         return this.readMemory(address);
       },
-      READ16BE: address =>
-        ((this.readMemory(address) << 8) | this.readMemory(address + 1)) & 0xffff,
+      READ16BE: address => this.bus.read16be && !this.definition.internal
+        ? this.bus.read16be(address & this.addressMask)
+        : ((this.readMemory(address) << 8) | this.readMemory(address + 1)) & 0xffff,
       READ32BE: address => (
         (this.readMemory(address) << 24) |
         (this.readMemory(address + 1) << 16) |
@@ -371,6 +376,10 @@ class IrCpu implements Cpu {
         return 0;
       },
       WRITE16BE: (address, value) => {
+        if (this.bus.write16be && !this.definition.internal) {
+          this.bus.write16be(address & this.addressMask, value & 0xffff);
+          return 0;
+        }
         this.writeMemory(address, value >>> 8);
         this.writeMemory(address + 1, value);
         return 0;

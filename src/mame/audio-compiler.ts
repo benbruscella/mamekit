@@ -168,6 +168,80 @@ export function compileNamco54Discrete(
 }
 
 /**
+ * Lower the three 54XX DAC/op-amp channels embedded in Pole Position's
+ * four-output discrete netlist. The fourth 52XX channel uses a separate
+ * cascaded filter topology; keeping the three fully described analog paths
+ * gives the generated WSG the source-routed effects that otherwise vanish
+ * whenever the game selects its 52XX/54XX inputs.
+ */
+export function compilePoleposDiscrete(
+  mameSrc: string,
+  driverFile: string,
+  netlist: string,
+): GeneratedDacFilterPlan {
+  const stem = basename(driverFile, extname(driverFile));
+  const candidate = join(dirname(driverFile), `${stem}_a.cpp`);
+  const sourceFile = existsSync(join(mameSrc, candidate)) ? candidate : driverFile;
+  const source = readFileSync(join(mameSrc, sourceFile), 'utf8');
+  const marker = new RegExp(`DISCRETE_SOUND_START\\s*\\(\\s*${netlist}\\s*\\)`).exec(source);
+  if (!marker) throw new Error(`${netlist}: MAME discrete netlist not found`);
+  const end = source.indexOf('DISCRETE_SOUND_END', marker.index);
+  if (end < 0) throw new Error(`${netlist}: unterminated MAME discrete netlist`);
+  const body = source.slice(marker.index, end);
+  const dacs = macroArguments(body, 'DISCRETE_DAC_R1');
+  const filters = macroArguments(body, 'DISCRETE_OP_AMP_FILTER');
+  if (dacs.length !== 4 || filters.length !== 3) {
+    throw new Error(`${netlist}: unsupported Pole Position discrete topology`);
+  }
+  const ladderName = symbolName(dacs[0]?.at(-1));
+  const ladderResistors = ladderName ? resistorTable(source, ladderName) : [];
+  if (ladderResistors.length !== 4) {
+    throw new Error(`${netlist}: missing four-bit 54XX DAC resistance ladder`);
+  }
+  const ladderConductance = ladderResistors.reduce((sum, resistance) => sum + 1 / resistance, 0);
+  const dacResistance = 1 / ladderConductance;
+  const levels = Array.from({ length: 16 }, (_, data) =>
+    ladderResistors.reduce((sum, resistance, bit) =>
+      sum + ((data >> bit) & 1) / resistance, 0) / ladderConductance);
+  const channels = dacs.slice(0, 3).map(dac => {
+    const outputNode = symbolName(dac[0]);
+    const input = Number(/NAMCO_54XX_(\d)_DATA/.exec(dac[1]!)?.[1]);
+    const filter = filters.find(candidate => symbolName(candidate[2]) === outputNode);
+    const filterName = symbolName(filter?.at(-1));
+    const components = filterName ? structValues(source, filterName).body : '';
+    const resistors = componentValues(components, 'RES');
+    const capacitors = componentValues(components, 'CAP');
+    if (!Number.isInteger(input) || resistors.length < 3 || capacitors.length < 2) {
+      throw new Error(`${netlist}: incomplete 54XX channel component data`);
+    }
+    const [seriesResistance, biasResistance, feedbackResistance] = resistors;
+    const inputResistance = seriesResistance! + dacResistance;
+    const totalResistance = 1 / (1 / inputResistance + 1 / biasResistance!);
+    const frequency = 1 / (2 * Math.PI * Math.sqrt(
+      totalResistance * feedbackResistance! * capacitors[0]! * capacitors[1]!,
+    ));
+    const damping = (capacitors[0]! + capacitors[1]!) / Math.sqrt(
+      feedbackResistance! / totalResistance * capacitors[0]! * capacitors[1]!,
+    );
+    const gain = feedbackResistance! / totalResistance *
+      capacitors[1]! / (capacitors[0]! + capacitors[1]!);
+    return { input, frequency, q: 1 / damping, gain };
+  });
+  const gainTotal = channels.reduce((sum, channel) => sum + channel.gain, 0);
+  return {
+    type: 'DAC_FILTER',
+    levels,
+    channels: channels.map(channel => ({ ...channel, gain: channel.gain / gainTotal })),
+    outputGain: 0.65,
+    source: {
+      file: sourceFile,
+      line: source.slice(0, marker.index).split('\n').length,
+      netlist,
+    },
+  };
+}
+
+/**
  * Lower the stream/filter/adder/resistor-mixer subset of MAME's discrete
  * netlists. The accepted operations are selected by topology, never driver.
  */
@@ -3433,12 +3507,15 @@ export interface GeneratedNamcoWsgWrite {
 }
 
 class GeneratedDacFilterCore {
-  private readonly values = new Float64Array(3);
+  private readonly values: Float64Array;
   private readonly levels: number[];
   private readonly filters: BiquadState[];
   private readonly outputGain: number;
 
   constructor(plan: DacFilterPlan, sampleRate: number) {
+    this.values = new Float64Array(
+      Math.max(0, ...plan.channels.map(channel => channel.input)) + 1,
+    );
     this.levels = plan.levels;
     this.outputGain = plan.outputGain;
     this.filters = plan.channels.map(channel => {
@@ -3635,10 +3712,29 @@ export class GeneratedNamcoWsgCore {
 
   render(out: Float32Array): void {
     out.fill(0);
-    if (this.enabled) for (const voice of this.voices) {
-      const volume = plan.engine
+    if (this.enabled) for (let voiceIndex = 0; voiceIndex < this.voices.length; voiceIndex++) {
+      const voice = this.voices[voiceIndex]!;
+      let volume = plan.engine
         ? voice.volume.reduce((sum, value) => sum + value, 0) / 4
         : voice.volume[0] ?? 0;
+      let frequency = voice.frequency;
+      // Pole Position uses the high bit of its rear-volume register to route
+      // a channel to the 52XX/54XX analog effects instead of the WSG mixer.
+      // Until a generated MB88 MCU produces those DAC nibbles, preserve an
+      // audible source-derived fallback from the same frequency, waveform and
+      // front-volume registers rather than turning the selected channel into
+      // digital silence.
+      if (!volume && plan.engine) {
+        const base = voiceIndex * 4;
+        const auxiliarySelect = this.soundregs[base + 0x23] ?? 0;
+        if (auxiliarySelect & 8) {
+          const frontVolume = this.soundregs[base + 3] ?? 0;
+          volume = ((frontVolume >>> 4) + (frontVolume & 0x0f)) / 2;
+          if (frequency < 0x100) {
+            frequency = 0x800 + ((auxiliarySelect >>> 4) & 3) * 0x400;
+          }
+        }
+      }
       if (!volume) continue;
       const waveBase = voice.waveform_select << 5;
       let counter = voice.counter >>> 0;
@@ -3649,7 +3745,7 @@ export class GeneratedNamcoWsgCore {
           ? '((byte >> (((~position) & 1) << 2)) & 0x0f) - 8'
           : '(byte & 0x0f) - 8'};
         out[index] += sample * volume / plan.mixResolution;
-        counter = (counter + voice.frequency) >>> 0;
+        counter = (counter + frequency) >>> 0;
       }
       voice.counter = counter;
     }
@@ -3660,28 +3756,23 @@ export class GeneratedNamcoWsgCore {
   }
 
   renderFrame(out: Float32Array, writes: readonly GeneratedNamcoWsgWrite[]): void {
-    const discreteWrites: GeneratedNamcoWsgWrite[] = [];
-    for (const write of writes) {
-      if (write.method === 'discrete') discreteWrites.push(write);
-      else if (write.method?.startsWith('polepos_engine_') || write.method === 'clson_w') {
-        this.writeEngine(write.method, write.data);
-      }
-      else if (write.offset < 0) this.soundEnable(write.data);
-      else this.write(write.offset, write.data);
-    }
-
     let rendered = 0;
     let index = 0;
-    while (index < discreteWrites.length) {
-      const frac = Math.max(0, Math.min(1, discreteWrites[index]!.frac ?? 0));
+    while (index < writes.length) {
+      const frac = Math.max(0, Math.min(1, writes[index]!.frac ?? 0));
       const position = Math.max(rendered, Math.min(out.length, Math.ceil(frac * out.length)));
       if (position > rendered) this.render(out.subarray(rendered, position));
-      while (index < discreteWrites.length) {
-        const write = discreteWrites[index]!;
+      while (index < writes.length) {
+        const write = writes[index]!;
         const writeFrac = Math.max(0, Math.min(1, write.frac ?? 0));
         const writePosition = Math.max(rendered, Math.min(out.length, Math.ceil(writeFrac * out.length)));
         if (writePosition !== position) break;
-        this.writeDiscrete(write.offset, write.data);
+        if (write.method === 'discrete') this.writeDiscrete(write.offset, write.data);
+        else if (write.method?.startsWith('polepos_engine_') || write.method === 'clson_w') {
+          this.writeEngine(write.method, write.data);
+        }
+        else if (write.offset < 0) this.soundEnable(write.data);
+        else this.write(write.offset, write.data);
         index++;
       }
       rendered = position;

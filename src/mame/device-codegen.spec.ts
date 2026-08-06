@@ -267,7 +267,7 @@ const pointerAdditionDefinition: GeneratedDeviceDefinition = {
     parameters: '',
     source: { file: 'src/devices/test.cpp', line: 9 },
     program: compileMameHandler(`
-      uint8_t *base_ptr = &m_bytes[0];
+      auto base_ptr = &m_bytes[0];
       uint8_t *page_ptr = base_ptr + 2;
       return page_ptr[0];
     `),

@@ -247,7 +247,7 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     );
   }
   for (const [index, custom] of (board.execution.customs ?? []).entries()) {
-    if (custom.source === 'screen-vblank') continue;
+    if (custom.source === 'screen-vblank' || custom.source === 'rtc-tp' || custom.source === 'rtc-data') continue;
     const resolved = custom.handler
       ? handlerKeys.has(custom.handler)
       : handlerMethods.has(custom.member);

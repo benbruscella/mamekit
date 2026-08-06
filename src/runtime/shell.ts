@@ -56,6 +56,8 @@ export function isDumpedRom(load: RomLoad): boolean {
 export interface SoundSpec {
   /** Generic SoundCore/AudioWorklet processor kind. */
   kind: string;
+  /** Concrete MAME chip hosted by a shared worklet family (YM2203/YM2610). */
+  deviceType?: string;
   /** Generated worklet artifact stem when several MAME devices share a processor kind. */
   worklet?: string;
   clock?: number;
@@ -499,6 +501,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     void audio.start(
       {
         sampleRate: clock,
+        deviceType: cfg.sound.deviceType,
         clock,
         waveRom: cfg.sound.waveRegion ? regions[cfg.sound.waveRegion] : undefined,
         sampleRom: cfg.sound.sampleRegion ? regions[cfg.sound.sampleRegion] : undefined,
@@ -534,7 +537,6 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   let last = performance.now();
   let frames = 0;
   let fpsWindowStart = last;
-
   const tick = (now: number) => {
     if (input.debug && now - last > 50) {
       console.log(`[stall] ${Math.round(now - last)}ms between frames at ${Math.round(now)}`);

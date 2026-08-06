@@ -17,7 +17,6 @@ assert.deepEqual([...regions.eraseff!], [0xff, 0xff, 0xff, 0xff]);
 assert.deepEqual([...regions.erase00!], [0x00, 0x00, 0x00, 0x00]);
 assert.deepEqual([...regions.inverted!], [0xff, 0xff, 0xff, 0xff]);
 assert.deepEqual([...regions.socket!], [0x00, 0x00, 0xff, 0xff]);
-
 const splitFile = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
 const splitRegions = assembleRegions(
   [{

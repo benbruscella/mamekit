@@ -87,6 +87,25 @@ check('port writes land in the chip\'s port pair', () => {
   assert.equal(ctx.registry.read['ym1.read']!(0, 1), 0x0f);
 });
 
+check('YM2610 preserves both address/data banks', () => {
+  const ctx = context();
+  ctx.sound = { ...sound, deviceTags: ['ym1'], deviceType: 'YM2610' };
+  ctx.board.sound = ctx.sound;
+  ctx.board.devices = [
+    { id: 'a', tag: 'ym1', type: 'YM2610', member: 'm_ym1', clock: 1 },
+  ];
+  installYm2203Runtime(ctx);
+  for (let offset = 0; offset < 4; offset++) {
+    ctx.registry.write['ym1.write']!(0, offset, 0x20 + offset);
+  }
+  assert.deepEqual(ctx.writes, [
+    [0, 0x20, 'write'],
+    [1, 0x21, 'write'],
+    [2, 0x22, 'write'],
+    [3, 0x23, 'write'],
+  ]);
+});
+
 check('a reset reaches the chip through its generated device port', () => {
   const ctx = context();
   installYm2203Runtime(ctx);

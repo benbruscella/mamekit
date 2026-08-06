@@ -830,6 +830,11 @@ function emitCall(
   }
   if (name === 'READ16BE') {
     const address = `(${args[0] ?? '0'})`;
+    if (!context.definition.internal) {
+      return `(this.bus.read16be?.(${address} & ${addressMask}) ?? ` +
+        `(((this.readMemory(${address}) & 0xff) << 8) | ` +
+        `(this.readMemory(${address} + 1) & 0xff)))`;
+    }
     return `(((this.readMemory(${address}) & 0xff) << 8) | ` +
       `(this.readMemory(${address} + 1) & 0xff))`;
   }
@@ -840,6 +845,16 @@ function emitCall(
   }
   if (name === 'READ32BE') {
     const address = `(${args[0] ?? '0'})`;
+    if (!context.definition.internal) {
+      const high = `(this.bus.read16be?.(${address} & ${addressMask}) ?? ` +
+        `(((this.readMemory(${address}) & 0xff) << 8) | ` +
+        `(this.readMemory(${address} + 1) & 0xff)))`;
+      const lowAddress = `(${address} + 2)`;
+      const low = `(this.bus.read16be?.(${lowAddress} & ${addressMask}) ?? ` +
+        `(((this.readMemory(${lowAddress}) & 0xff) << 8) | ` +
+        `(this.readMemory(${lowAddress} + 1) & 0xff)))`;
+      return `(((${high} << 16) | ${low}) >>> 0)`;
+    }
     return `((((this.readMemory(${address}) & 0xff) << 24) | ` +
       `((this.readMemory(${address} + 1) & 0xff) << 16) | ` +
       `((this.readMemory(${address} + 2) & 0xff) << 8) | ` +
@@ -859,6 +874,12 @@ function emitCall(
   if (name === 'WRITE16BE') {
     const address = `(${args[0] ?? '0'})`;
     const value = `(${args[1] ?? '0'})`;
+    if (!context.definition.internal) {
+      return `(this.bus.write16be ` +
+        `? (this.bus.write16be(${address} & ${addressMask}, ${value} & 0xffff), 0) ` +
+        `: (this.writeMemory(${address}, ${value} >>> 8), ` +
+        `this.writeMemory(${address} + 1, ${value}), 0))`;
+    }
     return `(this.writeMemory(${address}, ${value} >>> 8), ` +
       `this.writeMemory(${address} + 1, ${value}), 0)`;
   }
@@ -871,6 +892,15 @@ function emitCall(
   if (name === 'WRITE32BE') {
     const address = `(${args[0] ?? '0'})`;
     const value = `(${args[1] ?? '0'})`;
+    if (!context.definition.internal) {
+      return `(this.bus.write16be ` +
+        `? (this.bus.write16be(${address} & ${addressMask}, (${value} >>> 16) & 0xffff), ` +
+        `this.bus.write16be((${address} + 2) & ${addressMask}, ${value} & 0xffff), 0) ` +
+        `: (this.writeMemory(${address}, ${value} >>> 24), ` +
+        `this.writeMemory(${address} + 1, ${value} >>> 16), ` +
+        `this.writeMemory(${address} + 2, ${value} >>> 8), ` +
+        `this.writeMemory(${address} + 3, ${value}), 0))`;
+    }
     return `(this.writeMemory(${address}, ${value} >>> 24), ` +
       `this.writeMemory(${address} + 1, ${value} >>> 16), ` +
       `this.writeMemory(${address} + 2, ${value} >>> 8), ` +

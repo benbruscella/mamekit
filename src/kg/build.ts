@@ -299,7 +299,13 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (r.portWrite) props.portWrite = r.portWrite;
       if (r.bankRead) props.bankRead = memberTags[`m_${r.bankRead}`] ?? r.bankRead;
       if (r.bankWrite) props.bankWrite = memberTags[`m_${r.bankWrite}`] ?? r.bankWrite;
-      if (r.region) props.region = r.region;
+      if (r.region) {
+        // Address maps may name a required/optional_region_ptr member rather
+        // than a literal tag: `.region(m_soundrom, 0)`. Resolve it through the
+        // driver's finder declarations so the executable CPU consumes the
+        // actual ROM region (`soundrom`), not the C++ member spelling.
+        props.region = (memberTags[r.region] ?? r.region).replace(/^:/, '');
+      }
       if (r.regionOffset !== undefined) props.regionOffset = r.regionOffset;
       g.node('AddressRange', rangeId, props);
       g.edge(mapId, rangeId, 'HAS_RANGE');
@@ -415,6 +421,10 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   for (const cfg of machineConfigs) {
     const cfgId = `machine:${cfg.cls}.${cfg.name}`;
     const cfgFunction = ast.findFunction(cfg.cls, cfg.name);
+    const machineStart = ast.findFunctionInHierarchy(cfg.cls, 'machine_start');
+    const installedHandlers = machineStart
+      ? parseInstalledHandlers(machineStart.body, consts)
+      : [];
     const resetFunctions = resolveMachineLifecycle(
       ast,
       cfg.cls,
@@ -422,7 +432,15 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       'reset',
     );
     const resetHandlers = resetFunctions.map(fn => `${fn.className}.${fn.name}`);
-    const videoStart = ast.findFunctionInHierarchy(cfg.cls, 'video_start');
+    const videoStartOverride = [...cfg.raw.matchAll(
+      /MCFG_VIDEO_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/g,
+    )].at(-1);
+    const videoStart = videoStartOverride
+      ? ast.findFunctionInHierarchy(
+          videoStartOverride[1]!,
+          `video_start_${videoStartOverride[2]}`,
+        )
+      : ast.findFunctionInHierarchy(cfg.cls, 'video_start');
     const startHandlers = videoStart ? [`${videoStart.className}.${videoStart.name}`] : [];
     g.node('MachineConfig', cfgId, {
       cls: cfg.cls,
@@ -430,6 +448,9 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       calls: cfg.calls,
       ...(resetHandlers.length ? { resetHandlers } : {}),
       ...(startHandlers.length ? { startHandlers } : {}),
+      ...(installedHandlers.length
+        ? { installedHandlers: installedHandlers.map(handler => JSON.stringify(handler)) }
+        : {}),
       ...(cfg.devicePatches.length
         ? { devicePatches: cfg.devicePatches.map(patch => JSON.stringify(patch)) }
         : {}),
@@ -465,6 +486,18 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       );
       g.edge(cfgId, handlerId, 'CALLS_HANDLER');
     }
+    for (const installed of installedHandlers) {
+      const handlerId = emitSourceHandlerClosure(
+        g,
+        ast,
+        installed.className,
+        installed.method,
+        consts,
+        machineStart?.span,
+      );
+      annotateInputHandlerClosure(g, handlerId, ioportMembers, textMacros.strings);
+      g.edge(cfgId, handlerId, 'CALLS_HANDLER');
+    }
     for (const callback of g.nodes.values()) {
       if (callback.label !== 'Callback' || callback.props.signal !== 'timer') continue;
       const targetClass = String(callback.props.targetClass ?? '');
@@ -476,7 +509,6 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       const target = resolveConfig(cfg, callee);
       if (target) g.edge(cfgId, `machine:${target.cls}.${target.name}`, 'CALLS');
     }
-    const machineStart = ast.findFunctionInHierarchy(cfg.cls, 'machine_start');
     const bankRoots = [
       ...(machineStart ? [machineStart] : []),
       ...(videoStart ? [videoStart] : []),
@@ -1410,13 +1442,27 @@ function emitSourceHandlerClosure(
   ));
   if (!fn) return handlerId;
 
-  for (const call of fn.statements.flatMap(statement => statement.calls)) {
+  const callNames = new Set(
+    fn.statements.flatMap(statement => statement.calls).map(call => call.name),
+  );
+  // The statement index records calls on the statement itself, but nested
+  // switch/if bodies can contain source helpers that are not surfaced there.
+  // Those helpers are still part of the executable closure (Neo Geo's
+  // video_register_w -> acknowledge_interrupt path is one example). Scan
+  // unqualified call syntax as a conservative supplement; AST lookup below
+  // rejects keywords, macros and unrelated functions.
+  for (const match of fn.body.matchAll(/\b([A-Za-z_]\w*)\s*(?:<[^;{}()]+>)?\s*\(/g)) {
+    const before = match.index ? fn.body[match.index - 1] : '';
+    if (before === '.' || before === '>' || before === ':') continue;
+    callNames.add(match[1]!);
+  }
+  for (const callName of callNames) {
     // Calls through a required_device member may enter a composed device
     // class (tutankhm_state::sound_on_w ->
     // timeplt_audio_device::sh_irqtrigger_w). Preserve that source method when
     // its declaration is unambiguous; ordinary same-class calls still win.
-    const dependency: MameFunction | undefined = ast.findFunctionInHierarchy(fn.className, call.name)
-      ?? ast.findUniqueFunction(call.name);
+    const dependency: MameFunction | undefined = ast.findFunctionInHierarchy(fn.className, callName)
+      ?? ast.findUniqueFunction(callName);
     if (!dependency || dependency === fn) continue;
     const dependencyId = emitSourceHandlerClosure(
       g,
@@ -1486,10 +1532,13 @@ function resolveSlotInputs(
       let deviceType: string | undefined;
       for (const f of files) {
         const src = readFileSync(join(dir, f), 'utf8');
-        if (!src.includes(`void ${slotOptions}(device_slot_interface`)) continue;
+        const optionFunction = new RegExp(
+          `void\\s+${slotOptions}\\s*\\(\\s*device_slot_interface\\s*&[^)]*\\)\\s*\\{([\\s\\S]*?)\\}`,
+        ).exec(src);
+        if (!optionFunction) continue;
         const m = new RegExp(
           `option_add(?:_internal)?\\(\\s*"${slotDefault}"\\s*,\\s*(\\w+)\\s*\\)`,
-        ).exec(src);
+        ).exec(optionFunction[1]!);
         if (m) { deviceType = m[1]; break; }
       }
       if (!deviceType) continue;

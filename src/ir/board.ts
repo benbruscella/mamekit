@@ -24,6 +24,8 @@ export interface RangeSpec {
   start: number;
   end: number;
   mirror?: number;
+  /** ROM region supplying this range when it differs from the CPU's primary region. */
+  region?: string;
   /** Byte offset in the ROM region corresponding to this range's start. */
   romOffset?: number;
   kind: 'rom' | 'ram' | 'handler' | 'nop';
@@ -168,7 +170,7 @@ export interface GeneratedHandler {
 }
 
 export type GeneratedExpression =
-  | { kind: 'number'; value: number }
+  | { kind: 'number'; value: number; floating?: boolean }
   | { kind: 'string'; value: string }
   | { kind: 'identifier'; name: string }
   | { kind: 'unary'; operator: string; operand: GeneratedExpression }
@@ -313,6 +315,8 @@ export interface GeneratedExecutionPlan {
     tag: string;
     member: string;
     region?: string;
+    /** Per-entry ROM region when one hardware bank spans several devices. */
+    entryRegions?: (string | null)[];
     /** Driver-owned byte arrays backing entries instead of a ROM region. */
     entryMembers?: (string | null)[];
     /**
@@ -331,7 +335,7 @@ export interface GeneratedExecutionPlan {
     mask: number;
     member: string;
     handler?: string;
-    source?: 'screen-vblank';
+    source?: 'screen-vblank' | 'rtc-tp' | 'rtc-data';
     activeLow?: boolean;
   }[];
   inputMembers?: { member: string; tags: string[] }[];
@@ -479,6 +483,13 @@ export interface GeneratedPromPalettePlan {
       mask: number;
       shift: number;
     }[];
+    /**
+     * A lookup PROM value that maps to a fixed indirect color instead of the
+     * bank's normal colorOr mapping.  Pole Position's PROMs use value 15 as a
+     * shared transparent color across otherwise distinct palette banks.
+     */
+    lookupValueOverride?: number;
+    overrideColor?: number;
     /** Direct palettes map pen N to color colorOr + N without a lookup PROM. */
     direct?: boolean;
   }[];
@@ -508,6 +519,8 @@ export interface GeneratedRamPalettePlan {
     bits: number;
     shift: number;
   }[];
+  /** Optional intensity field used by MAME's standard_irgb_decoder. */
+  intensity?: { bits: number; shift: number };
   /** Fixed pens established by a palette init callback alongside writable RAM. */
   initialColors?: { pen: number; color: number }[];
   /** inverted_rgb_decoder complements the raw value before expansion. */
