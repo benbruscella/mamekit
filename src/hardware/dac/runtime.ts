@@ -31,6 +31,27 @@ export function installDacRuntime(context: SoundRuntimeContext): void {
       }
     }
   }
+
+  // Williams' first-generation sound board receives the main-board PIA's
+  // command on PIA 2 port B and uses CB1 as its interrupt strobe.  MAME routes
+  // this through deferred_snd_cmd_w<2>; retain that protocol at the generated
+  // CPU boundary because the C++ template argument is not part of FUNC's
+  // callable name in handler IR.  The sound CPU still reads the real PIA and
+  // produces every DAC byte itself.
+  const williamsCommand = context.board.callbacks.find(callback =>
+    callback.signal === 'writepb_handler' &&
+    callback.targetClass === 'williams_state' &&
+    callback.targetMethod === 'snd_cmd_w');
+  if (williamsCommand && context.board.devices?.some(device =>
+    device.tag === 'pia_2' && device.type === 'PIA6821')) {
+    const write = (data = 0): number => {
+      const command = (data | 0xc0) & 0xff;
+      context.callDevice('pia_2', 'portb_w', command);
+      context.callDevice('pia_2', 'cb1_w', command === 0xff ? 0 : 1);
+      return 0;
+    };
+    context.calls['williams_state.snd_cmd_w'] = write;
+  }
   // Gottlieb's Rev 1 composite board accepts a command at its parent device,
   // then synchronously presents the inverted low six bits and the PA7 command
   // edge to its MOS6532. Preserve that source protocol so the generated 6502

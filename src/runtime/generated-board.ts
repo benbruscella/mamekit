@@ -183,6 +183,8 @@ class IrBoard implements Board {
   private frameSound?: () => void;
   private readonly inputs: InputPorts;
   private readonly inputLatchPrevious = new Map<string, boolean>();
+  private vicdualCoinPrevious = false;
+  private vicdualCoinFrames = 0;
   private neoGeoRtc?: {
     command: number;
     mode: number;
@@ -587,7 +589,23 @@ class IrBoard implements Board {
       // Neo Geo's first 128 bytes are a live vector mux.  The source address
       // map handler must sit above the BIOS ROM's initial overlay so the MVS
       // system latch can switch IRQ vectors to the cartridge at handoff.
-      const ranges = machine.game === 'outrun' && specification.tag === 'maincpu'
+      const ranges = machine.game === 'defender' && specification.tag === 'maincpu' && regions.banked
+        ? [
+            ...sourceRanges,
+            ...Array.from(
+              { length: Math.min(9, Math.floor(regions.banked.length / 0x1000)) },
+              (_unused, bank) => ({
+                start: 0xc000,
+                end: 0xcfff,
+                kind: 'rom' as const,
+                region: 'banked',
+                romOffset: bank * 0x1000,
+                viewTag: 'm_rom_view',
+                viewEntry: bank + 1,
+              }),
+            ),
+          ]
+        : machine.game === 'outrun' && specification.tag === 'maincpu'
         ? [
             // The 315-5195 starts with every bank overlaid at zero, then the
             // boot ROM programs its live windows.  Keep the extracted RAM
@@ -1154,6 +1172,25 @@ class IrBoard implements Board {
       }
       this.inputLatchPrevious.set(key, asserted);
     }
+    // Sega Vic Dual coin hardware does not expose the switch directly to the
+    // CPU. A rising edge resets the Z80; the restarted program asserts a
+    // separate status latch, and a 70 ms monostable clears it. Preserve that
+    // source-declared protocol for boards whose input map reads coin_status_r.
+    if (this.machine.execution.customs?.some(custom =>
+      custom.handler?.endsWith('.coin_status_r'))) {
+      const asserted = (this.inputs.read('COIN') & 0x01) !== 0;
+      if (asserted && !this.vicdualCoinPrevious) {
+        this.cpus.get('maincpu')?.reset();
+        this.vicdualCoinFrames = Math.max(
+          1,
+          Math.ceil(this.machine.execution.screen.refresh * 0.070),
+        );
+      }
+      this.vicdualCoinPrevious = asserted;
+      if (this.vicdualCoinFrames > 0 && --this.vicdualCoinFrames === 0) {
+        this.state.m_coin_status = 0;
+      }
+    }
   }
 
   reset(): void {
@@ -1171,6 +1208,8 @@ class IrBoard implements Board {
     for (const reset of this.peripheralResets) reset();
     this.boardSpecificReset?.();
     this.inputLatchPrevious.clear();
+    this.vicdualCoinPrevious = false;
+    this.vicdualCoinFrames = 0;
     this.currentLine = 0;
     this.runMachineReset();
   }
@@ -2766,6 +2805,12 @@ class IrBoard implements Board {
         return undefined;
       },
       handler: (key, deviceTag) => {
+        // Capability runtimes may supply an exact driver-handler bridge when
+        // source syntax cannot preserve a C++ template specialization (for
+        // example Williams deferred_snd_cmd_w<2>).  Prefer only the qualified
+        // key here; ordinary generated handlers continue through source IR.
+        const exactCall = this.bindings.calls?.[key];
+        if (exactCall) return state => { exactCall(state); };
         const cpuDevice = deviceTag
           ? {
               execute: () => ({

@@ -91,6 +91,10 @@ const KEYMAP: Record<string, string[]> = {
   IPT_SERVICE2: ['Digit8'],
   IPT_SERVICE3: ['Digit7'],
   IPT_SERVICE4: ['Digit0'],
+  // Cabinet operator buttons used by first-boot audits (Defender's ADVANCE
+  // and HIGH SCORE RESET are the common case).
+  IPT_SERVICE: ['F2'],
+  IPT_MEMORY_RESET: ['F3'],
   // console pads (nes joypad: A=IPT_BUTTON2 -> KeyZ, B=IPT_BUTTON1 -> KeyX/Space)
   IPT_START: ['Enter'],
   IPT_SELECT: ['ShiftRight'],
@@ -767,7 +771,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
                 ...(snRoutes.length ? { routes: snRoutes } : {}),
               };
             })()
-          : dacChips.length
+          : dacChips.length && !(sampleChips.length && dacChips.every(device =>
+              device.props.type === 'DAC_1BIT'))
             ? {
                 kind: 'dac',
                 clock: cpus.find(cpu => /sound|audio/.test(cpu.tag))?.clock ?? cpus[0].clock,
@@ -1183,7 +1188,14 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         if (mods.includes('PORT_COCKTAIL')) continue;  // player-2 cocktail path: unbound
         if (mods.includes('PORT_PLAYER(2)')) continue; // don't double-bind P1 keys
         const keys = inputKeys(opts.game, type);
-        if (keys) bindings.push({ port: tag, mask, keys, label: type, activeLow });
+        if (keys) bindings.push({
+          port: tag,
+          mask,
+          keys,
+          label: type,
+          activeLow,
+          ...(mods.includes('PORT_TOGGLE') ? { toggle: true } : {}),
+        });
       }
     }
     portSpecs.push({ tag, init });
@@ -1214,7 +1226,14 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           const keys = inputKeys(opts.game, type);
           if (!keys) continue;
           const named = mods.map(m => /PORT_NAME\("(?:%p )?([^"]+)"\)/.exec(m)?.[1]).find(Boolean);
-          bindings.push({ port: tag, mask, keys, label: named ?? type, activeLow });
+          bindings.push({
+            port: tag,
+            mask,
+            keys,
+            label: named ?? type,
+            activeLow,
+            ...(mods.includes('PORT_TOGGLE') ? { toggle: true } : {}),
+          });
         }
         portSpecs.push({ tag, init });
       }

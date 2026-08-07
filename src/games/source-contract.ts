@@ -6,7 +6,7 @@ type SourceTarget = Pick<
 >;
 type SourceTargetOptions = SourceTarget & Pick<
   Partial<GameTestContract>,
-  'actions' | 'minimumFps'
+  'actions' | 'minimumFps' | 'minimumAudioRms' | 'audioRequirements'
 >;
 
 /**

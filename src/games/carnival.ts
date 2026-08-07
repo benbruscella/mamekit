@@ -6,6 +6,15 @@ export const carnival = sourceTarget({
   machine: { className: 'carnival_state', name: 'carnival' },
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
+  minimumAudioRms: 0.05,
+  actions: [
+    // Vic Dual resets the main CPU on a coin edge. Let that real reset and
+    // 70 ms coin-status window finish before asking the restarted game to run.
+    { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 300 },
+    { atFrame: 700, code: 'Digit1', heldFrames: 10, releasedFrames: 100 },
+    { atFrame: 900, code: 'ArrowRight', heldFrames: 120, releasedFrames: 20 },
+    { atFrame: 1100, code: 'Space', heldFrames: 30, releasedFrames: 20 },
+  ],
   golden: {
     regions: {
       audiocpu: '0dbaa2b0',
@@ -14,20 +23,20 @@ export const carnival = sourceTarget({
       user1: '9617d796',
     },
     checkpoints: {
-      1: { video: 'f7e6ac81', state: '56e415a5' },
-      60: { video: '04aa26ef', state: '4bdc02d0' },
-      180: { video: '348ccc14', state: 'd024f0ab' },
-      300: { video: '348ccc14', state: 'fd2b24b1' },
-      600: { video: '348ccc14', state: '76559d02' },
-      900: { video: '348ccc14', state: 'fedd77b8' },
-      1200: { video: '348ccc14', state: '0476c626' },
+      1: { video: 'f7e6ac81', state: '53144964' },
+      60: { video: '04aa26ef', state: 'c4a5bfe7' },
+      180: { video: '9e5f1048', state: 'b441e2a1' },
+      300: { video: 'c7518618', state: '95b8fb32' },
+      600: { video: '9de6e110', state: '1a950d77' },
+      900: { video: 'e242c62e', state: '839e2470' },
+      1200: { video: 'dbb60f93', state: '46ce2077' },
     },
     audio: {
-      writes: 11863,
-      nonzeroWrites: 7246,
-      writeHash: 'f1ae42f6',
-      pcmHash: 'b0818880',
-      rms: 0.220024,
+      writes: 190,
+      nonzeroWrites: 102,
+      writeHash: '10a65cf9',
+      pcmHash: 'fddf6000',
+      rms: 0.109835,
     },
   },
 });

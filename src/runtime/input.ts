@@ -29,13 +29,15 @@ export interface FieldBinding {
   label: string;
   /** true (default) = pressed clears bits; false = pressed sets bits */
   activeLow?: boolean;
+  /** Maintained cabinet switch: each keydown flips it and keyup leaves it set. */
+  toggle?: boolean;
 }
 
 export interface DipDefault { port: string; mask: number; value: number; name: string }
 
 export interface PortSpec { tag: string; init: number }
 
-interface Field { port: string; mask: number; activeLow: boolean; label: string }
+interface Field { port: string; mask: number; activeLow: boolean; label: string; toggle: boolean }
 
 const OPPOSITE_SUFFIX: Record<string, string> = { _LEFT: '_RIGHT', _RIGHT: '_LEFT', _UP: '_DOWN', _DOWN: '_UP' };
 
@@ -45,6 +47,8 @@ export class KeyboardInput implements InputPorts {
   private byKey = new Map<string, Field[]>();
   /** physically-held state per field ("port:mask"), for SOCD restore */
   private held = new Map<string, boolean>();
+  private toggled = new Map<string, boolean>();
+  private fields: Field[] = [];
   /** opposite joystick direction per field id (LEFT<->RIGHT, UP<->DOWN) */
   private opposite = new Map<string, Field>();
   /** when true, every key event + resulting port bytes go to the console */
@@ -55,7 +59,13 @@ export class KeyboardInput implements InputPorts {
     for (const p of ports) { this.init[p.tag] = p.init; this.state[p.tag] = p.init; }
     const fields: Field[] = [];
     for (const b of bindings) {
-      const f: Field = { port: b.port, mask: b.mask, activeLow: b.activeLow !== false, label: b.label };
+      const f: Field = {
+        port: b.port,
+        mask: b.mask,
+        activeLow: b.activeLow !== false,
+        label: b.label,
+        toggle: b.toggle === true,
+      };
       fields.push(f);
       for (const key of b.keys) {
         let list = this.byKey.get(key);
@@ -63,6 +73,7 @@ export class KeyboardInput implements InputPorts {
         list.push(f);
       }
     }
+    this.fields = fields;
     // SOCD pairs: opposite joystick directions on the same port. Arcade sticks
     // can never assert both, so game code ignores one — with a keyboard,
     // overlapping opposite arrows is routine and the newest press must win.
@@ -106,6 +117,13 @@ export class KeyboardInput implements InputPorts {
     ev.preventDefault();
     if (ev.repeat) return; // auto-repeat carries no new information
     for (const h of hits) {
+      if (h.toggle) {
+        if (!down) continue;
+        const active = !(this.toggled.get(this.fid(h)) ?? false);
+        this.toggled.set(this.fid(h), active);
+        this.apply(h, active);
+        continue;
+      }
       this.held.set(this.fid(h), down);
       const opp = this.opposite.get(this.fid(h));
       this.apply(h, down);
@@ -130,6 +148,9 @@ export class KeyboardInput implements InputPorts {
   releaseAll(): void {
     for (const tag of Object.keys(this.state)) this.state[tag] = this.init[tag];
     this.held.clear();
+    for (const field of this.fields) {
+      if (field.toggle && this.toggled.get(this.fid(field))) this.apply(field, true);
+    }
   }
 
   read(tag: string): number {

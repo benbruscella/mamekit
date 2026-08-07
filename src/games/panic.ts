@@ -5,7 +5,8 @@ export const panic = sourceTarget({
   driver: 'src/mame/universal/cosmic.cpp',
   machine: { className: 'cosmic_state', name: 'panic' },
   screen: { width: 256, height: 192 },
-  soundKind: 'dac',
+  soundKind: 'samples',
+  minimumAudioRms: 0.02,
   golden: {
     regions: {
       gfx1: '613f6077',
@@ -23,11 +24,11 @@ export const panic = sourceTarget({
       1200: { video: 'e73caa97', state: 'dd6fefb1' },
     },
     audio: {
-      writes: 189,
+      writes: 623,
       nonzeroWrites: 0,
-      writeHash: '72a9c878',
-      pcmHash: 'e8fce038',
-      rms: 1,
+      writeHash: '6a543a17',
+      pcmHash: '50645216',
+      rms: 0.066605,
     },
   },
 });

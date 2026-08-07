@@ -19,9 +19,9 @@ import type {
 export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
   if (
     type === 'konami' || type === 'mc6809' || type === 'm6801u4' || type === 'm6802' ||
-    type === 'm6803' || type === 'nsc8105'
+    type === 'm6803' || type === 'm6808' || type === 'nsc8105'
   ) return clock / 4;
-  if (type === 'i8039' || type === 'mb8884') return clock / 15;
+  if (type === 'i8035' || type === 'i8039' || type === 'mb8884') return clock / 15;
   return clock;
 }
 import type {
@@ -483,7 +483,8 @@ export function lowerGeneratedMachine(
             : {}),
           ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
         }
-    : dacDevices.length
+    : dacDevices.length && !(sampleDevices.length && dacDevices.every(device =>
+        device.type === 'DAC_1BIT'))
       ? {
           kind: 'dac',
           deviceTag: dacDevices[0]!.tag,

@@ -514,6 +514,11 @@ function verifyInputBindings(
       : released | binding.mask;
     assert.equal(pressed, expected, `${contract.game}: ${code} did not reach ${binding.port}`);
     key(target, 'keyup', code);
+    if (binding.toggle) {
+      assert.equal(input.read(binding.port), expected);
+      key(target, 'keydown', code);
+      key(target, 'keyup', code);
+    }
     assert.equal(input.read(binding.port), released);
   }
 }
