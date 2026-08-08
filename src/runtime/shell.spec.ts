@@ -7,6 +7,7 @@ const regions = assembleRegions(
     { region: 'eraseff', size: 4, fill: 0xff, loads: [] },
     { region: 'erase00', size: 4, fill: 0x00, loads: [] },
     { region: 'inverted', size: 4, invert: true, loads: [] },
+    { region: 'socket', size: 4, fills: [{ offset: 2, size: 2, value: 0xff }], loads: [] },
   ],
   new Map(),
   () => {},
@@ -15,7 +16,7 @@ const regions = assembleRegions(
 assert.deepEqual([...regions.eraseff!], [0xff, 0xff, 0xff, 0xff]);
 assert.deepEqual([...regions.erase00!], [0x00, 0x00, 0x00, 0x00]);
 assert.deepEqual([...regions.inverted!], [0xff, 0xff, 0xff, 0xff]);
-
+assert.deepEqual([...regions.socket!], [0x00, 0x00, 0xff, 0xff]);
 const splitFile = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
 const splitRegions = assembleRegions(
   [{
@@ -50,6 +51,36 @@ const invertedLoad = assembleRegions(
   () => {},
 );
 assert.deepEqual([...invertedLoad.gfx1!], [0xff, 0xaa, 0x55, 0x00]);
+
+const interleaved = assembleRegions(
+  [{
+    region: 'maincpu',
+    size: 8,
+    loads: [
+      { file: 'even.bin', offset: 0, size: 4, crc: 'b63cfbcd', skip: 1 },
+      { file: 'odd.bin', offset: 1, size: 4, crc: '538d4d69', skip: 1 },
+    ],
+  }],
+  new Map([
+    ['even.bin', Uint8Array.from([0x10, 0x20, 0x30, 0x40])],
+    ['odd.bin', Uint8Array.from([0x11, 0x21, 0x31, 0x41])],
+  ]),
+  () => {},
+);
+assert.deepEqual([...interleaved.maincpu!], [0x10, 0x11, 0x20, 0x21, 0x30, 0x31, 0x40, 0x41]);
+
+const wordSwapped = assembleRegions(
+  [{
+    region: 'words',
+    size: 4,
+    loads: [{
+      file: 'words.bin', offset: 0, size: 4, crc: 'f626d399', groupSize: 2, reverse: true,
+    }],
+  }],
+  new Map([['words.bin', Uint8Array.from([1, 2, 3, 4])]]),
+  () => {},
+);
+assert.deepEqual([...wordSwapped.words!], [2, 1, 4, 3]);
 
 const transformed = { gfx1: Uint8Array.from({ length: 32 }, (_, index) => index) };
 applyRomTransforms(transformed, [{

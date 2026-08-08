@@ -14,12 +14,40 @@ import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
   parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
-  parseInitPatches, parseInitRomTransforms, parseTextMacros, parseMemoryBanks, evalExpr,
+  parseInitPatches, parseInitRomTransforms, parseInstalledHandlers, parseTextMacros, parseMemoryBanks, evalExpr,
   parseEnumConstants,
   type InputPortsDef,
 } from './parse.ts';
 
 const VERSION = '0.1.0';
+
+/** Body of legacy MACHINE_START_MEMBER(cls, name) selected by a config macro. */
+function machineStartMemberBody(source: string, className: string, name: string): string | undefined {
+  const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const declaration = new RegExp(
+    `MACHINE_START_MEMBER\\s*\\(\\s*${escape(className)}\\s*,\\s*${escape(name)}\\s*\\)`,
+  ).exec(source);
+  if (!declaration) return undefined;
+  const open = source.indexOf('{', declaration.index + declaration[0].length);
+  if (open < 0) return undefined;
+  let depth = 1;
+  let quote = '';
+  for (let index = open + 1; index < source.length; index++) {
+    const character = source[index]!;
+    if (quote) {
+      if (character === '\\') index++;
+      else if (character === quote) quote = '';
+      continue;
+    }
+    if (character === '"' || character === "'") {
+      quote = character;
+      continue;
+    }
+    if (character === '{') depth++;
+    else if (character === '}' && --depth === 0) return source.slice(open + 1, index);
+  }
+  return undefined;
+}
 
 /**
  * Build the knowledge graph for one MAME driver file (plus its .h header and
@@ -142,6 +170,10 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     const source = ast.findAnyMacro(
       ['GAME', 'GAMEX', 'GAMEL', 'CONS', 'SYST', 'COMP'], 1, gm.name,
     )?.span;
+    const initFunction = ast.findFunctionInHierarchy(gm.cls, gm.init);
+    const installedHandlers = initFunction
+      ? parseInstalledHandlers(initFunction.body, consts)
+      : [];
     g.node('Game', id, {
       name: gm.name, year: gm.year, company: gm.company, fullname: gm.fullname,
       monitor: gm.monitor, cls: gm.cls, init: gm.init, flags: gm.flags,
@@ -155,6 +187,9 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       ...(initRomTransforms[gm.init]
         ? { romTransforms: initRomTransforms[gm.init].map(transform => JSON.stringify(transform)) }
         : {}),
+      ...(installedHandlers.length
+        ? { installedHandlers: installedHandlers.map(handler => JSON.stringify(handler)) }
+        : {}),
       // compat (CONS/SYST/COMP arg 4) is a software-compatibility group, NOT
       // a clone relationship — famicom is compat with nes but its own machine
       ...(gm.compat !== '0' ? { compat: gm.compat } : {}),
@@ -164,10 +199,22 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     g.edge(id, `machine:${gm.cls}.${gm.machine}`, 'USES_MACHINE');
     g.edge(id, `inputs:${gm.input}`, 'USES_INPUTS');
     g.edge(id, `romset:${gm.name}`, 'USES_ROMSET');
+    for (const installed of installedHandlers) {
+      const handlerId = emitSourceHandlerClosure(
+        g,
+        ast,
+        installed.className,
+        installed.method,
+        consts,
+        initFunction?.span,
+      );
+      annotateInputHandlerClosure(g, handlerId, ioportMembers, textMacros.strings);
+      g.edge(id, handlerId, 'CALLS_HANDLER');
+    }
   }
 
   // --- rom sets ---
-  for (const set of parseRomSets(combined)) {
+  for (const set of parseRomSets(combined, consts)) {
     const setId = `romset:${set.name}`;
     const setSource = ast.findMacro('ROM_START', 0, set.name)?.span;
     g.node('RomSet', setId, { name: set.name, ...spanProps(setSource) });
@@ -177,6 +224,9 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       const regionSource = ast.findMacro('ROM_REGION', 1, region.tag)?.span;
       g.node('RomRegion', regId, {
         tag: region.tag, size: region.size, flags: region.flags,
+        ...(region.fills.length ? {
+          fills: region.fills.flatMap(fill => [fill.offset, fill.size, fill.value]),
+        } : {}),
         ...spanProps(regionSource),
       });
       g.edge(setId, regId, 'HAS_REGION');
@@ -189,6 +239,9 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
           ...spanProps(ast.findMacro('ROM_LOAD', 0, load.file)?.span),
         };
         if (load.reloadOffsets.length) props.reloadOffsets = load.reloadOffsets;
+        if (load.groupSize !== undefined) props.groupSize = load.groupSize;
+        if (load.skip !== undefined) props.skip = load.skip;
+        if (load.reverse) props.reverse = true;
         if (load.continueSegments.length) {
           props.continueSegments = load.continueSegments.flatMap(segment => [
             segment.offset,
@@ -208,8 +261,12 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   const mapByName = new Map(maps.map(m => [m.name, m]));
   // same-class match first: different state classes in one driver file can
   // reuse map names (m52_state::main_map vs alpha1v_state::main_map)
-  const resolveMap = (cls: string, name: string) =>
-    maps.find(m => m.cls === cls && m.name === name) ?? mapByName.get(name);
+  const resolveMap = (cls: string, name: string) => {
+    const qualified = /^(\w+)::(\w+)$/.exec(name);
+    return qualified
+      ? maps.find(m => m.cls === qualified[1] && m.name === qualified[2])
+      : maps.find(m => m.cls === cls && m.name === name) ?? mapByName.get(name);
+  };
   for (const map of maps) {
     const mapId = `map:${map.cls}.${map.name}`;
     const mapFunction = ast.findFunction(map.cls, map.name);
@@ -236,11 +293,19 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         if (r[flag]) props[flag] = true;
       }
       if (r.share) props.share = r.share;
+      if (r.viewTag) props.viewTag = r.viewTag;
+      if (r.viewEntry !== undefined) props.viewEntry = r.viewEntry;
       if (r.portRead) props.portRead = r.portRead;
       if (r.portWrite) props.portWrite = r.portWrite;
       if (r.bankRead) props.bankRead = memberTags[`m_${r.bankRead}`] ?? r.bankRead;
       if (r.bankWrite) props.bankWrite = memberTags[`m_${r.bankWrite}`] ?? r.bankWrite;
-      if (r.region) props.region = r.region;
+      if (r.region) {
+        // Address maps may name a required/optional_region_ptr member rather
+        // than a literal tag: `.region(m_soundrom, 0)`. Resolve it through the
+        // driver's finder declarations so the executable CPU consumes the
+        // actual ROM region (`soundrom`), not the C++ member spelling.
+        props.region = (memberTags[r.region] ?? r.region).replace(/^:/, '');
+      }
       if (r.regionOffset !== undefined) props.regionOffset = r.regionOffset;
       g.node('AddressRange', rangeId, props);
       g.edge(mapId, rangeId, 'HAS_RANGE');
@@ -268,6 +333,68 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   const gfxDecodes = parseGfxDecodes(combined, consts);
   const machineConfigs = parseMachineConfigs(combined, memberTags, consts);
   const cfgByName = new Map(machineConfigs.map(c => [c.name, c]));
+  const resolveConfig = (cfg: (typeof machineConfigs)[number], callee: string) => {
+    const qualified = /^(\w+)::(\w+)$/.exec(callee);
+    if (qualified) {
+      const resolved = ast.findFunctionInHierarchy(qualified[1]!, qualified[2]!);
+      return machineConfigs.find(candidate => candidate.cls === resolved?.className
+        && candidate.name === resolved?.name);
+    }
+    return machineConfigs.find(candidate => candidate.cls === cfg.cls && candidate.name === callee)
+      ?? cfgByName.get(callee);
+  };
+  const virtualMethod = (className: string, method: string): boolean => {
+    const seen = new Set<string>();
+    const visit = (candidate: string): boolean => {
+      if (seen.has(candidate)) return false;
+      seen.add(candidate);
+      const declaration = ast.ast.units
+        .flatMap(unit => unit.classes)
+        .find(cls => cls.name === candidate);
+      if (!declaration) return false;
+      const escaped = method.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const declaredVirtual = new RegExp(
+        `(?:\\bvirtual\\s+[^;{}]*\\b${escaped}\\s*\\(` +
+        `|\\b${escaped}\\s*\\([^;{}]*\\)[^;{}]*(?:override|final)\\b)`,
+      ).test(declaration.body);
+      return declaredVirtual || declaration.bases.some(base =>
+        visit(base.split('::').at(-1)!));
+    };
+    return visit(className);
+  };
+  const inheritedVirtualMapPatches = (cfg: (typeof machineConfigs)[number]) => {
+    const patches: { tag: string; space: string; mapId: string }[] = [];
+    const seenConfigs = new Set<string>();
+    const seenPatches = new Set<string>();
+    const visit = (current: (typeof machineConfigs)[number]): void => {
+      const configKey = `${current.cls}.${current.name}`;
+      if (seenConfigs.has(configKey)) return;
+      seenConfigs.add(configKey);
+      for (const device of current.devices) {
+        for (const [space, mapName] of Object.entries(device.addrMaps)) {
+          const declared = resolveMap(current.cls, mapName);
+          if (!declared || !virtualMethod(declared.cls, declared.name)) continue;
+          const effective = ast.findFunctionInHierarchy(cfg.cls, declared.name);
+          const target = effective && resolveMap(effective.className, effective.name);
+          if (!target || target.cls === declared.cls) continue;
+          const key = `${device.tag}\0${space}`;
+          if (seenPatches.has(key)) continue;
+          seenPatches.add(key);
+          patches.push({
+            tag: device.tag,
+            space,
+            mapId: `map:${target.cls}.${target.name}`,
+          });
+        }
+      }
+      for (const callee of current.calls) {
+        const target = resolveConfig(current, callee);
+        if (target) visit(target);
+      }
+    };
+    visit(cfg);
+    return patches;
+  };
 
   // Clock resolution: a device instantiated with no clock runs at its
   // constructor default (timeplt_a.h: `uint32_t clock = 14'318'181`), and
@@ -286,14 +413,18 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (!devCls || dev.clock === null) continue;
       const sub = machineConfigs.find(c => c.cls === devCls && c.name === 'device_add_mconfig');
       for (const sd of sub?.devices ?? []) {
-        const dm = sd.clockExpr && /^DERIVED_CLOCK\(\s*(\d+)\s*,\s*(\d+)\s*\)$/.exec(sd.clockExpr);
-        if (dm) { sd.clock = (dev.clock * Number(dm[1])) / Number(dm[2]); delete sd.clockExpr; }
+        const clock = derivedDeviceClock(sd.clockExpr, dev.clock, consts);
+        if (clock !== undefined) { sd.clock = clock; delete sd.clockExpr; }
       }
     }
   }
   for (const cfg of machineConfigs) {
     const cfgId = `machine:${cfg.cls}.${cfg.name}`;
     const cfgFunction = ast.findFunction(cfg.cls, cfg.name);
+    const machineStart = ast.findFunctionInHierarchy(cfg.cls, 'machine_start');
+    const installedHandlers = machineStart
+      ? parseInstalledHandlers(machineStart.body, consts)
+      : [];
     const resetFunctions = resolveMachineLifecycle(
       ast,
       cfg.cls,
@@ -301,13 +432,34 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       'reset',
     );
     const resetHandlers = resetFunctions.map(fn => `${fn.className}.${fn.name}`);
+    const videoStartOverride = [...cfg.raw.matchAll(
+      /MCFG_VIDEO_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/g,
+    )].at(-1);
+    const videoStart = videoStartOverride
+      ? ast.findFunctionInHierarchy(
+          videoStartOverride[1]!,
+          `video_start_${videoStartOverride[2]}`,
+        )
+      : ast.findFunctionInHierarchy(cfg.cls, 'video_start');
+    const startHandlers = videoStart ? [`${videoStart.className}.${videoStart.name}`] : [];
     g.node('MachineConfig', cfgId, {
       cls: cfg.cls,
       name: cfg.name,
       calls: cfg.calls,
       ...(resetHandlers.length ? { resetHandlers } : {}),
+      ...(startHandlers.length ? { startHandlers } : {}),
+      ...(installedHandlers.length
+        ? { installedHandlers: installedHandlers.map(handler => JSON.stringify(handler)) }
+        : {}),
       ...(cfg.devicePatches.length
         ? { devicePatches: cfg.devicePatches.map(patch => JSON.stringify(patch)) }
+        : {}),
+      ...(cfg.removedAddrMaps.length
+        ? { removedAddrMaps: cfg.removedAddrMaps.map(removal =>
+            `${removal.tag}=${removal.space}`) }
+        : {}),
+      ...(cfg.removedDevices.length
+        ? { removedDevices: cfg.removedDevices.map(removal => removal.tag) }
         : {}),
       ...spanProps(cfgFunction?.span),
     });
@@ -323,6 +475,29 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       );
       g.edge(cfgId, handlerId, 'CALLS_HANDLER');
     }
+    if (videoStart) {
+      const handlerId = emitSourceHandlerClosure(
+        g,
+        ast,
+        videoStart.className,
+        videoStart.name,
+        consts,
+        videoStart.span,
+      );
+      g.edge(cfgId, handlerId, 'CALLS_HANDLER');
+    }
+    for (const installed of installedHandlers) {
+      const handlerId = emitSourceHandlerClosure(
+        g,
+        ast,
+        installed.className,
+        installed.method,
+        consts,
+        machineStart?.span,
+      );
+      annotateInputHandlerClosure(g, handlerId, ioportMembers, textMacros.strings);
+      g.edge(cfgId, handlerId, 'CALLS_HANDLER');
+    }
     for (const callback of g.nodes.values()) {
       if (callback.label !== 'Callback' || callback.props.signal !== 'timer') continue;
       const targetClass = String(callback.props.targetClass ?? '');
@@ -331,12 +506,12 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (resolved?.className === targetClass) g.edge(cfgId, callback.id, 'HAS_CALLBACK');
     }
     for (const callee of cfg.calls) {
-      const target = cfgByName.get(callee);
+      const target = resolveConfig(cfg, callee);
       if (target) g.edge(cfgId, `machine:${target.cls}.${target.name}`, 'CALLS');
     }
-    const machineStart = ast.findFunctionInHierarchy(cfg.cls, 'machine_start');
     const bankRoots = [
       ...(machineStart ? [machineStart] : []),
+      ...(videoStart ? [videoStart] : []),
       ...games
         .filter(game => game.cls === cfg.cls && game.machine === cfg.name)
         .flatMap(game => {
@@ -353,13 +528,49 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       if (seenBankFunctions.has(key)) continue;
       seenBankFunctions.add(key);
       bankFunctions.push(fn);
-      for (const call of fn.statements.flatMap(statement => statement.calls)) {
-        const target = ast.findFunctionInHierarchy(cfg.cls, call.name);
-        if (target) pendingBankFunctions.push(target);
+      const discoveredCalls = new Set<string>();
+      for (const statement of fn.statements) {
+        for (const call of statement.calls) {
+          const qualified = new RegExp(`\\b(\\w+)::${call.name}\\b`).exec(statement.text)?.[1];
+          const target = qualified
+            ? ast.findFunction(qualified, call.name)
+            : ast.findFunctionInHierarchy(fn.className, call.name);
+          if (target) {
+            discoveredCalls.add(`${target.className}.${target.name}`);
+            pendingBankFunctions.push(target);
+          }
+        }
+      }
+      // The statement AST intentionally keeps compound statements opaque. Bank
+      // setup is commonly nested in an if/switch (Neo Geo's set_slot_idx is a
+      // prominent example), so also discover source-local method calls from the
+      // complete body. Resolution against the class hierarchy filters ordinary
+      // language and device calls out of this traversal.
+      for (const call of fn.body.matchAll(/\b(?:(\w+)::)?(\w+)\s*\(/g)) {
+        const target = call[1]
+          ? ast.findFunction(call[1], call[2]!)
+          : ast.findFunctionInHierarchy(fn.className, call[2]!);
+        if (!target || discoveredCalls.has(`${target.className}.${target.name}`)) continue;
+        discoveredCalls.add(`${target.className}.${target.name}`);
+        pendingBankFunctions.push(target);
       }
     }
-    const bankSources = bankFunctions.flatMap(fn =>
-      parseMemoryBanks(fn.body, memberTags, consts).map(bank => ({ bank, source: fn.span })));
+    const overrideBankSources = [...cfg.raw.matchAll(
+      /MCFG_MACHINE_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/g,
+    )].flatMap(match => {
+      const body = machineStartMemberBody(combined, match[1]!, match[2]!);
+      return body
+        ? parseMemoryBanks(body, memberTags, consts).map(bank => ({
+            bank,
+            source: cfgFunction?.span,
+          }))
+        : [];
+    });
+    const bankSources = [
+      ...bankFunctions.flatMap(fn =>
+        parseMemoryBanks(fn.body, memberTags, consts).map(bank => ({ bank, source: fn.span }))),
+      ...overrideBankSources,
+    ];
     for (const [index, { bank, source }] of bankSources.entries()) {
       // One node per configure call: a bank's entries may be placed by several.
       const window = bankSources.filter(other => other.bank.tag === bank.tag).length > 1
@@ -371,9 +582,11 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         member: bank.member,
         startEntry: bank.startEntry,
         entries: bank.entries,
-        region: bank.region,
+        ...(bank.region ? { region: bank.region } : {}),
+        ...(bank.entryMember ? { entryMember: bank.entryMember } : {}),
         offset: bank.offset,
         stride: bank.stride,
+        ...(bank.dynamicShift !== undefined ? { dynamicShift: bank.dynamicShift } : {}),
         raw: bank.raw,
         ...spanProps(source),
       });
@@ -399,6 +612,20 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         if (!target) continue;
         g.edge(cfgId, `map:${target.cls}.${target.name}`, 'PATCHES_MAP', { space, deviceTag: patch.tag });
       }
+    }
+    // A set_addrmap callback is a C++ member-function delegate. When the
+    // referenced map is virtual, MAME dispatches it on the selected driver
+    // object even if the device was installed by a called base config. Model
+    // that implicit dispatch as the same per-config patch used by an explicit
+    // derived set_addrmap call (Popeye's tpp2_state moves RAM from $8000 to
+    // $8800 this way).
+    for (const patch of inheritedVirtualMapPatches(cfg)) {
+      if (cfg.patches.some(explicit =>
+        explicit.tag === patch.tag && explicit.addrMaps[patch.space] !== undefined)) continue;
+      g.edge(cfgId, patch.mapId, 'PATCHES_MAP', {
+        space: patch.space,
+        deviceTag: patch.tag,
+      });
     }
     for (const patch of cfg.gfxDecodePatches) {
       g.edge(cfgId, `gfxdecode:${patch.name}`, 'DECODES', {
@@ -468,7 +695,17 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         });
         g.edge(devId, routeId, 'HAS_AUDIO_ROUTE');
       }
-      emitCallbacks(g, ast, cfgFunction, devId, dev.tag, dev.config, memberTags, consts);
+      emitCallbacks(
+        g,
+        ast,
+        cfgFunction,
+        devId,
+        dev.tag,
+        dev.config,
+        memberTags,
+        consts,
+        dev.clock ?? undefined,
+      );
       // board-style devices (IREM_M52_SOUNDC_AUDIO...) carry their own
       // sub-machine in device_add_mconfig — link so the subgraph walk
       // reaches the M6803/AY8910s/MSM5205 inside
@@ -562,6 +799,21 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   });
 }
 
+/** Evaluate MAME DERIVED_CLOCK numerator/denominator expressions. */
+export function derivedDeviceClock(
+  expression: string | undefined,
+  parentClock: number,
+  constants: Record<string, number> = {},
+): number | undefined {
+  const match = expression && /^DERIVED_CLOCK\(\s*([^,]+)\s*,\s*([^)]+)\s*\)$/.exec(expression);
+  if (!match) return undefined;
+  const numerator = evalExpr(match[1]!, constants);
+  const denominator = evalExpr(match[2]!, constants);
+  return numerator !== null && denominator !== null && denominator !== 0
+    ? parentClock * numerator / denominator
+    : undefined;
+}
+
 /**
  * Resolve a legacy MAME lifecycle override in base-first execution order.
  *
@@ -628,7 +880,11 @@ function emitSourceTimerCallbacks(
     const callback = ast.findFunctionInHierarchy(allocation.ownerClass, allocation.method);
     const reset = functions.find(fn =>
       /(?:machine_reset|reset)$/.test(fn.name) &&
-      fn.body.includes(`${allocation.timer}->adjust`));
+      functionClosureContains(
+        ast,
+        fn,
+        body => body.includes(`${allocation.timer}->adjust`),
+      ));
     if (!callback || !reset) continue;
     const scanlines = evaluateTimerScanlines(
       ast,
@@ -663,6 +919,29 @@ function emitSourceTimerCallbacks(
   }
 }
 
+function functionClosureContains(
+  ast: MameAstIndex,
+  root: MameFunction,
+  predicate: (body: string) => boolean,
+): boolean {
+  const pending = [root];
+  const visited = new Set<string>();
+  while (pending.length) {
+    const fn = pending.shift()!;
+    const key = `${fn.className}.${fn.name}`;
+    if (visited.has(key)) continue;
+    visited.add(key);
+    if (predicate(fn.body)) return true;
+    for (const statement of fn.statements) {
+      for (const call of statement.calls) {
+        const target = ast.findFunctionInHierarchy(fn.className, call.name);
+        if (target) pending.push(target);
+      }
+    }
+  }
+  return false;
+}
+
 export function evaluateTimerScanlines(
   ast: MameAstIndex,
   callback: MameFunction,
@@ -680,12 +959,14 @@ export function evaluateTimerScanlines(
   );
   let currentLine = 0;
   let adjustedLine: number | undefined;
+  let adjustedParam = 0;
   const calls: Record<string, (...args: number[]) => unknown> = {
     'm_screen.vpos': () => currentLine,
     'm_screen.time_until_pos': line => line,
     'machine().time': () => 0,
     [`${timer}.adjust`]: (...args) => {
-      adjustedLine = args.length > 1 ? args.at(-1) : args[0];
+      adjustedLine = args[0];
+      adjustedParam = args.length > 1 ? Number(args[1]) : 0;
     },
     'm_maincpu.set_input_line': () => 0,
     'm_subcpu2.pulse_input_line': () => 0,
@@ -715,6 +996,17 @@ export function evaluateTimerScanlines(
     members: {
       m_int_enable: 1,
       m_sub2_nmi_mask: 0,
+      ...Object.fromEntries(ast.ast.units.flatMap(unit =>
+        [...unit.source.matchAll(
+          /\b(?:static\s+)?const\s+(?:u?int(?:8|16|32)_t|u(?:8|16|32)|int)\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]*)\}/g,
+        )].map(match => [
+          match[1]!,
+          match[2]!.split(',').map(value => {
+            const expression = value.trim();
+            return evalExpr(expression, constants) ?? Number(expression);
+          }),
+        ]),
+      )),
     },
     calls,
   };
@@ -725,14 +1017,16 @@ export function evaluateTimerScanlines(
   executeGeneratedHandler(resetProgram, bindings);
   if (!Number.isFinite(adjustedLine)) return [];
   currentLine = Math.trunc(adjustedLine!);
+  let currentParam = adjustedParam;
   const lines: number[] = [];
   for (let iteration = 0; iteration < 32; iteration++) {
     if (lines.includes(currentLine)) break;
     lines.push(currentLine);
     adjustedLine = undefined;
-    executeGeneratedHandler(callbackProgram, bindings, { param: currentLine });
+    executeGeneratedHandler(callbackProgram, bindings, { param: currentParam });
     if (!Number.isFinite(adjustedLine)) return [];
     currentLine = Math.trunc(adjustedLine!);
+    currentParam = adjustedParam;
   }
   return lines.length > 1 ? lines : [];
 }
@@ -755,8 +1049,17 @@ function emitInputPorts(
   for (const include of inp.includes ?? []) {
     g.edge(inpId, `inputs:${include}`, 'INCLUDES_PORTS');
   }
+  const portOccurrences = new Map<string, number>();
   for (const port of inp.ports) {
-    const portId = `${inpId}/${port.tag}`;
+    // A source block may PORT_START a tag and later PORT_MODIFY the same tag.
+    // Keep both declarations as ordered graph facts so the generator can
+    // apply the modifier mask-by-mask. Reusing the bare tag ID here caused
+    // the modifier's f0/f1/... nodes to overwrite unrelated base controls.
+    const occurrence = portOccurrences.get(port.tag) ?? 0;
+    portOccurrences.set(port.tag, occurrence + 1);
+    const portId = occurrence === 0
+      ? `${inpId}/${port.tag}`
+      : `${inpId}/${port.tag}#${occurrence}`;
     g.node('Port', portId, { tag: port.tag, modify: port.modify ?? false });
     g.edge(inpId, portId, 'HAS_PORT');
     port.fields.forEach((f, i) => {
@@ -774,15 +1077,25 @@ function emitInputPorts(
       g.node('PortField', fid, props);
       g.edge(portId, fid, 'HAS_FIELD');
       const custom = f.modifiers
-        ?.map(modifier => /PORT_CUSTOM_MEMBER\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(modifier))
+        ?.map(modifier => /PORT_(?:CUSTOM_MEMBER|READ_LINE_MEMBER)\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)(?:\s*<\s*(\d+)\s*>)?\s*\)/.exec(modifier))
         .find((match): match is RegExpExecArray => Boolean(match));
       if (custom && context) {
+        // MAME commonly binds a function-template specialization directly to
+        // an input bit (for example zaxxon_coin_r<0>). Give each
+        // specialization its own generated handler and make the template
+        // argument available to the source compiler as a constant.
+        const templateArgument = custom[3] === undefined ? undefined : Number(custom[3]);
+        const method = templateArgument === undefined
+          ? custom[2]!
+          : `${custom[2]}_${templateArgument}`;
         const handlerId = emitSourceHandlerClosure(
           g,
           context.ast,
           custom[1]!,
-          custom[2]!,
-          context.constants,
+          method,
+          templateArgument === undefined
+            ? context.constants
+            : { ...context.constants, Num: templateArgument },
           source,
         );
         g.edge(fid, handlerId, 'CALLS_HANDLER');
@@ -792,7 +1105,7 @@ function emitInputPorts(
   }
 }
 
-function parseIoportMembers(
+export function parseIoportMembers(
   source: string,
   stringConstants: Record<string, string>,
 ): Record<string, string[]> {
@@ -807,7 +1120,7 @@ function parseIoportMembers(
   for (const [member, size] of sizes) {
     const initializer = new RegExp(
       `\\b${member}\\s*\\(\\s*\\*this\\s*,\\s*("[^"]+"|\\w+)` +
-      `(?:\\s*,\\s*(\\d+)(?:U|UL|ULL)?)?\\s*\\)`,
+      `(?:\\s*,\\s*((?:\\d+)(?:ULL|UL|U)?|'[^']'))?\\s*\\)`,
     ).exec(source);
     if (!initializer) continue;
     const expression = initializer[1]!;
@@ -815,10 +1128,18 @@ function parseIoportMembers(
       ? expression.slice(1, -1)
       : stringConstants[expression];
     if (!pattern) continue;
-    const start = Number(initializer[2] ?? 0);
+    const startToken = initializer[2] ?? '0';
+    const start = startToken.startsWith("'")
+      ? startToken.charCodeAt(1)
+      : Number.parseInt(startToken, 10);
     members[member] = pattern.includes('%u')
       ? Array.from({ length: size }, (_, index) => pattern.replace('%u', String(start + index)))
-      : [pattern];
+      : pattern.includes('%c')
+        ? Array.from(
+            { length: size },
+            (_, index) => pattern.replace('%c', String.fromCharCode(start + index)),
+          )
+        : [pattern];
   }
   return members;
 }
@@ -876,6 +1197,26 @@ export function fromHzExpression(value: string): string | undefined {
   return undefined;
 }
 
+/** Resolve the frequency represented by the common attotime constructors. */
+export function attotimeFrequency(
+  value: string,
+  constants: Record<string, number> = {},
+  deviceClock?: number,
+): number | undefined {
+  if (deviceClock !== undefined && Number.isFinite(deviceClock)) {
+    value = value.replace(/\bclock\s*\(\s*\)/g, String(deviceClock));
+  }
+  const hzExpression = fromHzExpression(value);
+  if (hzExpression) return evalExpr(hzExpression, constants) ?? undefined;
+  const ticks = /\bfrom_ticks\s*\(\s*([^,]+)\s*,\s*([^)]+)\)/.exec(value);
+  if (!ticks) return undefined;
+  const count = evalExpr(ticks[1]!, constants);
+  const clock = evalExpr(ticks[2]!, constants);
+  return count !== null && count > 0 && clock !== null
+    ? clock / count
+    : undefined;
+}
+
 function emitCallbacks(
   g: GraphBuilder,
   ast: MameAstIndex,
@@ -885,6 +1226,7 @@ function emitCallbacks(
   config: string[],
   memberTags: Record<string, string>,
   constants: Record<string, number>,
+  deviceClock?: number,
 ): void {
   let callbackIndex = 0;
   const configPrefix = devId.slice(0, devId.lastIndexOf('/') + 1);
@@ -924,7 +1266,9 @@ function emitCallbacks(
     const callbackId = `${devId}/callback:${callbackOwner}:${callbackIndex++}`;
     const props: Record<string, PropValue> = {
       signal: signal.name,
-      operation: operation.name,
+      operation: operation.name === 'append' && raw.includes('perfect_quantum(')
+        ? 'set_nop'
+        : operation.name,
       raw,
       ownerTag: deviceTag,
       ...spanProps(source),
@@ -932,10 +1276,16 @@ function emitCallbacks(
     if (signal.templateArgs.length) props.slot = signal.templateArgs.join(',');
     if (transforms.length) props.transforms = transforms;
     if (operation.name === 'set_periodic_int') {
-      const period = operation.args.find(arg => arg.includes('from_hz'));
-      const hzExpr = period ? fromHzExpression(period) : undefined;
-      const hz = hzExpr ? evalExpr(hzExpr, constants) : null;
-      if (hz !== null) props.periodHz = hz;
+      const periodArg = operation.args.find(arg => arg.includes('from_'))
+        ?? operation.args.at(-1);
+      const localPeriod = periodArg && /^\w+$/.test(periodArg.trim())
+        ? new RegExp(
+            `\\b(?:const\\s+)?attotime\\s+${periodArg.trim()}\\s*=\\s*([^;]+);`,
+          ).exec(cfgFunction?.body ?? '')?.[1]
+        : undefined;
+      const period = localPeriod ?? periodArg;
+      const hz = period ? attotimeFrequency(period, constants, deviceClock) : undefined;
+      if (hz !== undefined) props.periodHz = hz;
       if (period) props.periodExpr = period;
     }
     if (operation.name === 'configure_scanline') {
@@ -958,9 +1308,11 @@ function emitCallbacks(
     if (quotedTarget) props.targetTag = quotedTarget;
     if (operation.name === 'set_ioport' && quotedTarget) props.targetPort = quotedTarget;
     if (operation.name.includes('inputline')) {
-      const line = operation.args.find(arg =>
-        /^(?:INPUT_LINE_[A-Z0-9_]+|[A-Z][A-Z0-9_]*_INPUT_LINE_[A-Z0-9_]+|[A-Z][A-Z0-9_]*_LINE|\d+)$/
-          .test(arg.trim()));
+      const line = operation.args.find(arg => {
+        const value = arg.trim();
+        if (['ASSERT_LINE', 'CLEAR_LINE', 'HOLD_LINE', 'PULSE_LINE'].includes(value)) return false;
+        return /^(?:INPUT_LINE_[A-Z0-9_]+|M68K_IRQ_[1-7]|[A-Z][A-Z0-9_]*_INPUT_(?:LINE_)?[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:IRQ\d*|FIRQ\d*|NMI|RESET)_LINE|\w+::(?:IRQ\d*|FIRQ\d*|NMI|RESET)_LINE|\d+)$/.test(value);
+      });
       if (line) props.inputLine = line.trim();
     }
     if (operation.name === 'set_maincpu') {
@@ -1015,8 +1367,12 @@ function handlerProps(
   fallbackSource?: SourceSpan,
   inline?: { inlineParameters?: string; inlineBody?: string },
 ): Record<string, PropValue> {
-  const sourceName = method.replace(/_\d+$/, '');
-  const fn = ast.findFunctionInHierarchy(ownerClass, sourceName);
+  // A numeric suffix is our encoding for a bound function-template argument,
+  // but it can also be part of a literal MAME method name (clock_14024). An
+  // exact definition must therefore win before attempting specialization.
+  const exactFunction = ast.findFunctionInHierarchy(ownerClass, method);
+  const sourceName = exactFunction ? method : method.replace(/_-?\d+$/, '');
+  const fn = exactFunction ?? ast.findFunctionInHierarchy(ownerClass, sourceName);
   let body = inline?.inlineBody ?? fn?.body;
   if (body && fn) {
     const source = ast.ast.units.map(unit => unit.source).join('\n');
@@ -1071,8 +1427,9 @@ function emitSourceHandlerClosure(
   fallbackSource?: SourceSpan,
   visited = new Set<string>(),
 ): string {
-  const sourceName = method.replace(/_\d+$/, '');
-  const fn = ast.findFunctionInHierarchy(ownerClass, sourceName);
+  const exactFunction = ast.findFunctionInHierarchy(ownerClass, method);
+  const sourceName = exactFunction ? method : method.replace(/_-?\d+$/, '');
+  const fn = exactFunction ?? ast.findFunctionInHierarchy(ownerClass, sourceName);
   const handlerId = `handler:${ownerClass}.${method}`;
   if (visited.has(handlerId)) return handlerId;
   visited.add(handlerId);
@@ -1085,8 +1442,27 @@ function emitSourceHandlerClosure(
   ));
   if (!fn) return handlerId;
 
-  for (const call of fn.statements.flatMap(statement => statement.calls)) {
-    const dependency = ast.findFunctionInHierarchy(fn.className, call.name);
+  const callNames = new Set(
+    fn.statements.flatMap(statement => statement.calls).map(call => call.name),
+  );
+  // The statement index records calls on the statement itself, but nested
+  // switch/if bodies can contain source helpers that are not surfaced there.
+  // Those helpers are still part of the executable closure (Neo Geo's
+  // video_register_w -> acknowledge_interrupt path is one example). Scan
+  // unqualified call syntax as a conservative supplement; AST lookup below
+  // rejects keywords, macros and unrelated functions.
+  for (const match of fn.body.matchAll(/\b([A-Za-z_]\w*)\s*(?:<[^;{}()]+>)?\s*\(/g)) {
+    const before = match.index ? fn.body[match.index - 1] : '';
+    if (before === '.' || before === '>' || before === ':') continue;
+    callNames.add(match[1]!);
+  }
+  for (const callName of callNames) {
+    // Calls through a required_device member may enter a composed device
+    // class (tutankhm_state::sound_on_w ->
+    // timeplt_audio_device::sh_irqtrigger_w). Preserve that source method when
+    // its declaration is unambiguous; ordinary same-class calls still win.
+    const dependency: MameFunction | undefined = ast.findFunctionInHierarchy(fn.className, callName)
+      ?? ast.findUniqueFunction(callName);
     if (!dependency || dependency === fn) continue;
     const dependencyId = emitSourceHandlerClosure(
       g,
@@ -1156,10 +1532,13 @@ function resolveSlotInputs(
       let deviceType: string | undefined;
       for (const f of files) {
         const src = readFileSync(join(dir, f), 'utf8');
-        if (!src.includes(`void ${slotOptions}(device_slot_interface`)) continue;
+        const optionFunction = new RegExp(
+          `void\\s+${slotOptions}\\s*\\(\\s*device_slot_interface\\s*&[^)]*\\)\\s*\\{([\\s\\S]*?)\\}`,
+        ).exec(src);
+        if (!optionFunction) continue;
         const m = new RegExp(
           `option_add(?:_internal)?\\(\\s*"${slotDefault}"\\s*,\\s*(\\w+)\\s*\\)`,
-        ).exec(src);
+        ).exec(optionFunction[1]!);
         if (m) { deviceType = m[1]; break; }
       }
       if (!deviceType) continue;
@@ -1217,12 +1596,20 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
     list.push(e);
   }
   const keepEdges: typeof graph.edges = [];
-  const queue = [`game:${game}`];
+  const rootGameId = `game:${game}`;
+  const queue = [rootGameId];
   while (queue.length) {
     const id = queue.shift()!;
     if (out.has(id) || !byId.has(id)) continue;
     out.set(id, true);
     for (const e of outEdges.get(id) ?? []) {
+      // A clone inherits the parent's ROM set, but its own GAME declaration
+      // selects the effective machine and inputs. Pulling the parent machine
+      // as well gave Neo Geo one-slot carts six-slot controller devices.
+      if (
+        id !== rootGameId && id.startsWith('game:') &&
+        !['DEFINED_IN', 'USES_ROMSET', 'CLONE_OF'].includes(e.rel)
+      ) continue;
       keepEdges.push(e);
       queue.push(e.to);
     }
@@ -1263,6 +1650,7 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
       const patch = JSON.parse(value) as {
         tag: string;
         config: string[];
+        replacementType?: string;
         clock?: number;
         screenRaw?: {
           pixclock: number; htotal: number; hbend: number; hbstart: number;
@@ -1277,6 +1665,7 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
         node.label === 'Device' &&
         String(node.props.tag) === patch.tag);
       if (!device) continue;
+      if (patch.replacementType) device.props.type = patch.replacementType;
       if (patch.clock !== undefined && !patchedClocks.has(patch.tag)) {
         device.props.clock = patch.clock;
         patchedClocks.add(patch.tag);
@@ -1298,6 +1687,34 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
         : [];
       device.props.config = [...raw, ...patch.config];
     }
+  }
+
+  // Apply device_remove from most-derived to base.  Only devices declared by
+  // the removing config or one of its callees are affected, so a device with
+  // the same tag re-added by a still-more-derived config remains present.
+  const removedDeviceIds = new Set<string>();
+  for (const [configIndex, configId] of configOrder.entries()) {
+    const config = nodes.find(node => node.id === configId);
+    const removedTags = Array.isArray(config?.props.removedDevices)
+      ? config.props.removedDevices.map(String)
+      : [];
+    if (!removedTags.length) continue;
+    const affectedConfigs = new Set(configOrder.slice(configIndex));
+    for (const edge of edges) {
+      if (
+        edge.rel !== 'HAS_DEVICE' ||
+        !affectedConfigs.has(edge.from)
+      ) continue;
+      const device = nodes.find(node => node.id === edge.to);
+      if (
+        device?.label === 'Device' &&
+        removedTags.includes(String(device.props.tag))
+      ) removedDeviceIds.add(device.id);
+    }
+  }
+  if (removedDeviceIds.size) {
+    edges = edges.filter(edge =>
+      !removedDeviceIds.has(edge.from) && !removedDeviceIds.has(edge.to));
   }
 
   // A setter in the derived config replaces the same callback binding from a
@@ -1334,7 +1751,8 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
 
   return {
     meta: graph.meta,
-    nodes: nodes.filter(node => !shadowedCallbacks.has(node.id)),
+    nodes: nodes.filter(node =>
+      !shadowedCallbacks.has(node.id) && !removedDeviceIds.has(node.id)),
     edges,
   };
 }

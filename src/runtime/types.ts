@@ -70,7 +70,27 @@ export interface BoardConfig {
   initialShares?: { share: string; bytes: number[] }[];
   /** IPT_CUSTOM port bits synthesized by a named driver member (the board
    * implements members by name; invaders_in1_control_r reads CONTP1) */
-  customs?: { port: string; mask: number; member: string; handler?: string }[];
+  customs?: {
+    port: string;
+    mask: number;
+    member: string;
+    handler?: string;
+    source?: 'screen-vblank' | 'rtc-tp' | 'rtc-data';
+    activeLow?: boolean;
+  }[];
+  /**
+   * Edge-triggered input bits whose MAME PORT_CHANGED_MEMBER handler latches
+   * the assertion into driver state.  Zaxxon uses this circuit for its three
+   * debounced coin/service inputs rather than reading the switches directly.
+   */
+  inputLatches?: {
+    port: string;
+    mask: number;
+    activeLow: boolean;
+    stateMember: string;
+    index: number;
+    handler: string;
+  }[];
   screen: {
     width: number;
     height: number;

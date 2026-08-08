@@ -32,6 +32,8 @@ assert.deepEqual(
 assert.equal(definitions[0]?.sourceLine, 3);
 
 for (const type of [
+  'EEPROM_ER5911_8BIT',
+  'FILTER_BIQUAD',
   'NETLIST_LOGIC_INPUT',
   'NETLIST_SOUND',
   'NETLIST_STREAM_INPUT',
@@ -125,4 +127,4 @@ assert.ok(executable.has('SOUND_BOARD'));
 assert.ok(executable.has('CABINET'));
 assert.ok(!executable.has('INCOMPLETE_BOARD'));
 
-console.log('hardware.spec: 12 passed');
+console.log('hardware.spec: 14 passed');

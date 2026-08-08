@@ -183,6 +183,22 @@ const floatDivision = compileMameHandler('return 0.6 / 3;');
 assert.deepEqual(floatDivision.diagnostics, []);
 assert.ok(Math.abs((executeGeneratedHandler(floatDivision, {}) as number) - 0.2) < 1e-12);
 
+const integralFloatDivision = compileMameHandler('return 1 / 7.0;');
+assert.deepEqual(integralFloatDivision.diagnostics, []);
+assert.ok(Math.abs((executeGeneratedHandler(integralFloatDivision, {}) as number) - 1 / 7) < 1e-12);
+
+const createdTilemap = { mark_tile_dirty: (_offset: number) => {} };
+const tilemapCreation = compileMameHandler(
+  'm_bg_tilemap = &machine().tilemap().create(m_gfxdecode);',
+);
+assert.deepEqual(tilemapCreation.diagnostics, []);
+const tilemapMembers: Record<string, unknown> = {};
+executeGeneratedHandler(tilemapCreation, {
+  members: tilemapMembers,
+  calls: { 'machine().tilemap().create': () => createdTilemap },
+});
+assert.equal(tilemapMembers.m_bg_tilemap, createdTilemap);
+
 const rcDivision = compileMameHandler('return 1 / (RES_K(47) * CAP_U(1));');
 assert.deepEqual(rcDivision.diagnostics, []);
 assert.ok(Math.abs((executeGeneratedHandler(rcDivision, {}) as number) - 21.2765957) < 1e-4);
@@ -259,6 +275,13 @@ assert.equal(
   'in_w_0',
 );
 
+const memberPointerCall = compileMameHandler(`
+  if (m_videomode_custom != nullptr)
+    (this->*m_videomode_custom)(data);
+`);
+assert.deepEqual(memberPointerCall.diagnostics, []);
+assert.equal(memberPointerCall.operations[0]?.op, 'if');
+
 // Driver handlers use unsized static string tables to select input ports.
 const staticArray = compileMameHandler(`
   static const char *const portnames[] = { "DSW0", "DSW1", "IN1", "IN2" };
@@ -267,4 +290,18 @@ const staticArray = compileMameHandler(`
 assert.deepEqual(staticArray.diagnostics, []);
 assert.equal(executeGeneratedProgram(staticArray, {}, { address: 6 }).value, 'IN1');
 
-console.log('handler-ir.spec: 37 passed');
+const reinterpretedSpriteRam = compileMameHandler(`
+  u16 *const spriteram16 = reinterpret_cast<u16 *>(m_spriteram8->live());
+  return spriteram16[0];
+`);
+assert.deepEqual(reinterpretedSpriteRam.diagnostics, []);
+assert.equal(executeGeneratedProgram(reinterpretedSpriteRam, {
+  calls: { 'm_spriteram8.live': () => Uint8Array.of(0x34, 0x12) },
+}).value, 0x1234);
+
+const crystalClock = compileMameHandler(`
+  m_timer->adjust(attotime::from_ticks(256, 24_MHz_XTAL / 4));
+`);
+assert.deepEqual(crystalClock.diagnostics, []);
+
+console.log('handler-ir.spec: 40 passed');

@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { BoardIr } from '../ir/board.ts';
 import { decodeBoardIr } from '../ir/decode.ts';
 import { validateBoardIr } from '../ir/validate.ts';
+import { generatedDirectScreenShape } from '../runtime/generated-video.ts';
 import { buildClosureFailures } from './build-manifest.ts';
 import { gameDataPath, generatedGameOutputs } from './output-layout.ts';
 
@@ -301,10 +302,14 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
     const screenUpdate = machine.execution?.screenUpdate;
     if (!screenUpdate) {
       failures.push(`${target}: no generated screen-update plan`);
-    } else if (machine.video?.bitmap) {
-      // Direct-framebuffer boards are rendered by the generated bitmap plan.
-      // Their configured screen callback may belong to a device (for example
-      // Qix's MC6845) rather than a source handler on the driver state.
+    } else if (
+      machine.video?.bitmap ||
+      machine.video?.vector ||
+      generatedDirectScreenShape(machine)
+    ) {
+      // Direct framebuffer/vector boards are rendered by their generated
+      // hardware plan. Source-shaped direct renderers likewise execute the
+      // callback without requiring the generic handler compiler to lower it.
       screenUpdates++;
     } else {
       const handler = handlers.get(screenUpdate.handler);

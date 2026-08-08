@@ -17,11 +17,13 @@ export async function createNamcoWsgProbe(
     join(
       context.outRoot,
       'runtime/generated',
-      NAMCO_WSG_WORKLET_ARTIFACT.replace(/\.ts$/, '.js'),
+      (context.sound.worklet
+        ? `audio/${context.sound.worklet}-worklet.ts`
+        : NAMCO_WSG_WORKLET_ARTIFACT).replace(/\.ts$/, '.js'),
     ),
   ).href) as {
     GeneratedNamcoWsgCore: new (
-      waveRom: Uint8Array, clock: number, auxiliary?: unknown,
+      waveRom: Uint8Array, clock: number, auxiliary?: unknown, sampleRom?: Uint8Array,
     ) => WsgCore;
     GeneratedNamcoWsgFrameRenderer: new (
       core: WsgCore, refresh: number,
@@ -34,6 +36,7 @@ export async function createNamcoWsgProbe(
     waveRom,
     context.sound.clock ?? 96_000,
     context.sound.auxiliary,
+    context.sound.sampleRegion ? context.regions[context.sound.sampleRegion] : undefined,
   );
   return new module.GeneratedNamcoWsgFrameRenderer(core, context.refresh);
 }

@@ -65,6 +65,14 @@ export interface GameAcceptanceOptions {
     number: number;
     framebuffer: Uint32Array;
     state: Readonly<Record<string, unknown>>;
+    /** Read-only shared-memory view for locating stalled generated machines. */
+    shares: Readonly<Record<string, Uint8Array>>;
+    /** Read-only register access for diagnosing interrupt/state transitions. */
+    cpus: ReadonlyMap<string, { get(name: string): number }>;
+    /** Read-only access to generated CPU buses for address-level diagnostics. */
+    buses: ReadonlyMap<string, { read(address: number): number }>;
+    /** Read-only generated-device state for latch/line diagnostics. */
+    devices: ReadonlyMap<string, { get(name: string): number }>;
     /** Sound writes emitted during this frame, before the probe consumes them. */
     writes: readonly SoundWrite[];
   }) => void;
@@ -197,6 +205,18 @@ export async function runGameAcceptance(
       state: (board as unknown as {
         state?: Record<string, unknown>;
       }).state ?? {},
+      shares: (board as unknown as {
+        shares?: Record<string, Uint8Array>;
+      }).shares ?? {},
+      cpus: (board as unknown as {
+        cpus?: Map<string, { get(name: string): number }>;
+      }).cpus ?? new Map(),
+      buses: (board as unknown as {
+        cpuBuses?: Map<string, { read(address: number): number }>;
+      }).cpuBuses ?? new Map(),
+      devices: (board as unknown as {
+        devices?: Map<string, { get(name: string): number }>;
+      }).devices ?? new Map(),
       writes: pendingWrites,
     });
     for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {
@@ -322,7 +342,8 @@ export async function runGameAcceptance(
       Object.fromEntries(
         ['m_a_input_overrides_output_mask', 'm_ddr_a', 'm_ctl_a', 'm_out_a',
           'm_ddr_b', 'm_ctl_b', 'm_out_b', 'm_in_ca1', 'm_out_ca2',
-          'm_irq_a1', 'm_irq_a_state', 'm_state']
+          'm_irq_a1', 'm_irq_a_state', 'm_state', 'm_latched_value',
+          'm_latch_written']
           .map(name => [name, device.get(name)]),
       ),
     ]),
@@ -493,6 +514,11 @@ function verifyInputBindings(
       : released | binding.mask;
     assert.equal(pressed, expected, `${contract.game}: ${code} did not reach ${binding.port}`);
     key(target, 'keyup', code);
+    if (binding.toggle) {
+      assert.equal(input.read(binding.port), expected);
+      key(target, 'keydown', code);
+      key(target, 'keyup', code);
+    }
     assert.equal(input.read(binding.port), released);
   }
 }

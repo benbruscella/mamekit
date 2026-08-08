@@ -1,13 +1,17 @@
 import assert from 'node:assert/strict';
 import {
   compileMameI8080,
+  compileMameI8088,
   compileMameKonami1,
   compileMameM6802,
   compileMameMc6809,
   compileMameM6801U4,
   compileMameM6803,
+  compileMameM68000,
+  compileMameM6502,
   compileMameMcs48,
   compileMameRp2a03,
+  compileMameZ8002,
   compileMameZ80,
 } from './cpu-compiler.ts';
 import { generatedCpuExecutableSource } from './cpu-codegen.ts';
@@ -19,10 +23,13 @@ import {
 } from '../runtime/generated-cpu.ts';
 
 const i8039Definition = compileMameMcs48(process.env.MAME_SRC ?? '../mame', 'I8039');
+const i8035Definition = compileMameMcs48(process.env.MAME_SRC ?? '../mame', 'I8035');
 const mb8884Definition = compileMameMcs48(process.env.MAME_SRC ?? '../mame', 'MB8884');
+assert.equal(i8035Definition.type, 'I8035');
 assert.equal(i8039Definition.type, 'I8039');
 assert.equal(mb8884Definition.type, 'MB8884');
 assert.equal(i8039Definition.members.find(member => member.name === 'm_ram_size')?.initial, 128);
+assert.equal(i8035Definition.members.find(member => member.name === 'm_ram_size')?.initial, 64);
 assert.equal(mb8884Definition.members.find(member => member.name === 'm_ram_size')?.initial, 64);
 assert.equal(mb8884Definition.members.find(member => member.name === 'm_dataptr')?.values?.length, 64);
 
@@ -43,24 +50,78 @@ assert.match(
   /this\.generatedService\(\)/,
   'generated CPUs must preserve each family\'s instruction-boundary IRQ service',
 );
+assert.match(
+  generatedCpuExecutableSource(definition),
+  /bus\.signal\?\.\("refresh_cb",/,
+  'Z80 refresh output must reach the machine-config callback',
+);
 
 clearGeneratedCpus();
 registerGeneratedCpu(definition);
 const memory = new Uint8Array(0x10000);
 memory.set([0x3e, 0x7f, 0xc6, 0x01, 0xcb, 0x07]);
+const z80Signals: Array<[string, number]> = [];
 const cpu = createCpu('Z80', {
   read: address => memory[address]!,
   write: (address, data) => { memory[address] = data; },
   in: () => 0xff,
   out: () => {},
+  signal: (name, value) => { z80Signals.push([name, value]); return 0; },
 });
 assert.equal(cpu.step(), 7);
+assert.equal(z80Signals.some(([name]) => name === 'refresh_cb'), true);
 assert.equal(cpu.get('A'), 0x7f);
 assert.equal(cpu.step(), 7);
 assert.equal(cpu.get('A'), 0x80);
 assert.equal(cpu.invoke('get_f'), 0x94);
 assert.equal(cpu.step(), 8);
 assert.equal(cpu.get('A'), 0x01);
+
+// Z8002 absolute operands are fetched through MAME's opcode cache. They must
+// still read the immediate word from the program bus after source lowering;
+// Pole Position relies on this for its sub-CPU boot and mailbox service loop.
+const z8002Definition = compileMameZ8002(process.env.MAME_SRC ?? '../mame');
+assert.equal(z8002Definition.summary.diagnostics, 0);
+clearGeneratedCpus();
+registerGeneratedCpu(z8002Definition);
+const z8002Memory = new Uint8Array(0x10000);
+z8002Memory.set([0x33, 0x5c], 0x0100);
+const z8002 = createCpu('Z8002', {
+  read: address => z8002Memory[address]!,
+  write: (address, data) => { z8002Memory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+z8002.set('m_pc', 0x0100);
+z8002.set('m_op_valid', 1);
+assert.equal(z8002.invoke('get_addr_operand', 1), 0x335c);
+assert.equal(z8002.get('m_pc'), 0x0102);
+registerGeneratedCpu(definition);
+
+// Gottlieb's 8088 boards mirror a 16-bit map into the CPU's 20-bit physical
+// space. Reset must still put CS at FFFF so the first fetch reaches FFFF0
+// (and therefore the board's FFF0 ROM window after its global mask).
+const i8088Definition = compileMameI8088(process.env.MAME_SRC ?? '../mame');
+assert.equal(i8088Definition.constants.ES, 0);
+assert.equal(i8088Definition.constants.CS, 1);
+assert.equal(i8088Definition.constants.SS, 2);
+assert.equal(i8088Definition.constants.DS, 3);
+clearGeneratedCpus();
+registerGeneratedCpu(i8088Definition);
+const i8088 = createCpu('I8088', {
+  read: () => 0x90,
+  write: () => {},
+  in: () => 0xff,
+  out: () => {},
+});
+i8088.reset();
+assert.equal(i8088.invoke('update_pc'), 0xffff0);
+i8088.set('m_ip', 0xffff);
+i8088.invoke('fetch');
+assert.equal(i8088.get('m_ip'), 0);
+i8088.setInputLine(-1, 1);
+assert.equal(i8088.get('m_pending_irq') & 2, 2);
+registerGeneratedCpu(definition);
 
 // Boards with an AS_OPCODES map fetch instructions from the separate bus
 // while instruction arguments and ordinary data reads stay on program space.
@@ -102,6 +163,31 @@ assert.equal(rp2a03.get('m_A'), 0x80);
 assert.equal(rp2a03.step(), 3);
 assert.equal(rp2a03Memory[0x10], 0x80);
 assert.ok(generatedCpuExecutableSource(rp2a03Definition).length > 100_000);
+
+const m6502Definition = compileMameM6502(process.env.MAME_SRC ?? '../mame');
+assert.equal(m6502Definition.type, 'M6502');
+assert.equal(m6502Definition.summary.compiledOpcodes, 256);
+assert.equal(m6502Definition.summary.diagnostics, 0);
+assert.ok(m6502Definition.sourceFiles.includes('src/devices/cpu/m6502/dm6502.lst'));
+clearGeneratedCpus();
+registerGeneratedCpu(m6502Definition);
+const m6502Memory = new Uint8Array(0x10000);
+// SED ; LDA #$45 ; ADC #$55 — NMOS decimal mode must produce BCD $00 + carry.
+m6502Memory.set([0xf8, 0xa9, 0x45, 0x69, 0x55], 0x8000);
+m6502Memory[0xfffc] = 0x00;
+m6502Memory[0xfffd] = 0x80;
+const m6502 = createCpu('M6502', {
+  read: address => m6502Memory[address]!,
+  write: (address, data) => { m6502Memory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+m6502.reset();
+m6502.step();
+m6502.step();
+m6502.step();
+assert.equal(m6502.get('m_A'), 0x00);
+assert.equal(m6502.get('m_P') & 1, 1);
 
 const i8080Definition = compileMameI8080(process.env.MAME_SRC ?? '../mame');
 assert.match(
@@ -182,7 +268,7 @@ const irqAckSource = generatedCpuExecutableSource({
 });
 assert.match(irqAckSource, /bus\.signal\?\.\('irqack_cb', 1\)/);
 assert.equal(
-  irqAckSource.match(/this\.acknowledgeIrq\(\)/g)?.length,
+  irqAckSource.match(/this\.acknowledgeIrq\(0\)/g)?.length,
   1,
   'only standard_irq_callback may consume the interrupt vector',
 );
@@ -273,6 +359,100 @@ m6802 = createCpu('M6802', {
 m6802.setIrqLine(true);
 for (let instruction = 0; instruction < 6; instruction++) m6802.step();
 assert.equal(m6802PiaReads, 1, 'M6802 CLI must execute the PIA read before resampling level IRQ');
+
+const m68000Definition = compileMameM68000(process.env.MAME_SRC ?? '../mame');
+assert.equal(m68000Definition.summary.opcodes, 1699);
+assert.equal(m68000Definition.summary.compiledOpcodes, 1699);
+assert.equal(m68000Definition.summary.diagnostics, 0);
+assert.equal(m68000Definition.addressMask, 0xffffff);
+const m68000Source = generatedCpuExecutableSource(m68000Definition);
+assert.ok(m68000Source.length > 1_000_000);
+assert.match(m68000Source, /address & 16777215/);
+assert.match(m68000Source, /this\.bus\.acknowledge\?\.\(level\)/);
+assert.match(
+  m68000Source,
+  /this\.bus\.read16be\?\.\(/,
+  'generated 68000 word and long reads must preserve atomic 16-bit bus handlers',
+);
+assert.match(
+  m68000Source,
+  /this\.bus\.write16be\(/,
+  'generated 68000 word and long writes must preserve atomic 16-bit bus handlers',
+);
+clearGeneratedCpus();
+registerGeneratedCpu(m68000Definition);
+const m68000Memory = new Uint8Array(0x3000);
+let m68000AcknowledgeLevel = 0;
+const writeM68000Long = (address: number, value: number): void => {
+  m68000Memory[address] = value >>> 24;
+  m68000Memory[address + 1] = value >>> 16;
+  m68000Memory[address + 2] = value >>> 8;
+  m68000Memory[address + 3] = value;
+};
+writeM68000Long(0, 0x00002000);
+writeM68000Long(4, 0x00000100);
+// MOVEQ #5,D0; ADDQ.L #1,D0; MOVE.L D0,$00001000; BRA.S *
+m68000Memory.set([
+  0x70, 0x05, 0x52, 0x80, 0x23, 0xc0, 0x00, 0x00, 0x10, 0x00, 0x60, 0xfe,
+], 0x100);
+const m68000 = createCpu('M68000', {
+  read: address => m68000Memory[address] ?? 0,
+  write: (address, data) => { m68000Memory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+  acknowledge: level => {
+    m68000AcknowledgeLevel = level;
+    return 24 + level;
+  },
+});
+assert.deepEqual([m68000.step(), m68000.step(), m68000.step()], [4, 8, 20]);
+assert.deepEqual(Array.from(m68000Memory.slice(0x1000, 0x1004)), [0, 0, 0, 6]);
+
+// TRAP #0 dispatches through exception vector 32, not reset vector 0.
+writeM68000Long(0x80, 0x00000200);
+m68000Memory.set([0x4e, 0x40], 0x100);
+m68000Memory.set([0x4e, 0x71], 0x200);
+m68000.reset();
+m68000.step();
+assert.equal(m68000.get('m_pc'), 0x200);
+assert.deepEqual(Array.from(m68000Memory.slice(0x1ffc, 0x2000)), [0, 0, 1, 2]);
+
+// With MAME's virtual interrupt mixer disabled, IPL1 is physical bit 1 and
+// therefore requests autovector level 2 (vector 26).
+writeM68000Long(26 * 4, 0x00000300);
+m68000Memory.set([0x4e, 0x73], 0x300); // RTE
+m68000.set('m_interrupt_mixer', 0);
+m68000.set('m_int_mask', 0);
+m68000.setInputLine(1, 1);
+m68000.step();
+assert.equal(m68000.get('m_pc'), 0x300);
+assert.equal(m68000AcknowledgeLevel, 2);
+m68000.setInputLine(1, 0);
+m68000.step();
+assert.equal(m68000.get('m_pc'), 0x200, 'M68000 RTE must resume the interrupted PC');
+
+// Ghouls bounds its RAM test with CMPA.L A1,A0 / BLS. The branch is taken
+// while A0 is at or below the inclusive end address, then falls through.
+writeM68000Long(4, 0x00000400);
+m68000Memory.set([
+  0x20, 0x7c, 0x00, 0x00, 0x10, 0x02, // MOVEA.L #$1002,A0
+  0x22, 0x7c, 0x00, 0x00, 0x10, 0x01, // MOVEA.L #$1001,A1
+  0xb1, 0xc9,                         // CMPA.L A1,A0
+  0x63, 0x04,                         // BLS.S $416
+  0x70, 0x01,                         // MOVEQ #1,D0
+  0x60, 0x02,                         // BRA.S $418
+  0x70, 0x00,                         // MOVEQ #0,D0
+  0x4e, 0x71,                         // NOP
+], 0x400);
+m68000.reset();
+for (let instruction = 0; instruction < 4; instruction++) m68000.step();
+assert.equal(m68000.get('m_pc'), 0x410, 'CMPA.L must leave A0>A1 as unsigned higher');
+m68000.step();
+assert.equal(m68000.get('m_pc'), 0x412, 'BLS must not branch when A0>A1');
+m68000Memory[0x405] = 0x00; // A0=$1000, now unsigned-lower than A1
+m68000.reset();
+for (let instruction = 0; instruction < 4; instruction++) m68000.step();
+assert.equal(m68000.get('m_pc'), 0x414, 'BLS must branch when A0<A1');
 
 const m6801u4Definition = compileMameM6801U4(process.env.MAME_SRC ?? '../mame');
 assert.equal(m6801u4Definition.type, 'M6801U4');

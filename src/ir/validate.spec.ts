@@ -139,6 +139,28 @@ check('a callback with no connection is rejected before runtime', () => {
   assert.match(messages(ir), /callback "c0" has no executable connection/);
 });
 
+check('a screen-update selector needs no dispatched connection', () => {
+  const ir = board({
+    devices: [
+      { id: 'device:maincpu', tag: 'maincpu', type: 'Z80' },
+      { id: 'device:screen', tag: 'screen', type: 'SCREEN' },
+    ],
+    callbacks: [{
+      id: 'screen-update', ownerTag: 'screen', signal: 'set_screen_update',
+      operation: 'set_screen_update', targetClass: 'fixture_state',
+      targetMethod: 'screen_update',
+    }],
+    handlers: [{
+      id: 'handler:screen', ownerClass: 'fixture_state', method: 'screen_update',
+    }],
+    execution: {
+      ...board().execution,
+      screenUpdate: { handler: 'fixture_state.screen_update' },
+    },
+  });
+  assert.deepEqual(validateBoardIr(ir), []);
+});
+
 check('a connection naming an unknown callback is rejected', () => {
   const ir = board({
     connections: [{ callbackId: 'ghost', effect: { kind: 'unconnected' }, transforms: [] }],

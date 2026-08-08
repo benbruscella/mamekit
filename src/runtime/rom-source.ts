@@ -5,11 +5,9 @@
 // never disagree about where a dump lives.
 //
 // Two sources are tried in order:
-//   1. the public mirror bucket directly, which works only where the origin is
-//      allowed — DreamObjects sends no CORS headers, so a browser fetch of it
-//      is normally blocked;
-//   2. the dev server's same-origin /romsearch/ proxy (src/serve.ts), which
-//      covers localhost.
+//   1. the same-origin /romsearch/ proxy (src/serve.ts), avoiding a guaranteed
+//      noisy CORS failure on localhost;
+//   2. the public mirror bucket directly for origins where it is allowed.
 // A miss is not an error: every caller falls back to the visitor dropping their
 // own legally obtained dump.
 
@@ -24,7 +22,7 @@ export function encodeRomKey(key: string): string {
 /** The sources to try for one key, in order. */
 export function romSourceUrls(key: string): string[] {
   const encoded = encodeRomKey(key);
-  return [`${ROM_BUCKET_BASE}/${encoded}`, `/romsearch/${encoded}`];
+  return [`/romsearch/${encoded}`, `${ROM_BUCKET_BASE}/${encoded}`];
 }
 
 /** Fetch bytes for a bucket key, or null when no source had it. */

@@ -53,6 +53,25 @@ export class GeneratedDiscreteAudioCore {
   private dkongStompEnvelope = 0;
   private dkongStompIntegrateCap = 0;
   private dkongStompVce = 0;
+  private readonly nodeValues = new Uint8Array(256);
+  private asteroidLfsr = 0;
+  private asteroidNoisePhase = 0;
+  private asteroidNoise = 1;
+  private asteroidExplosionPhase = 0;
+  private asteroidExplosionSample = 0;
+  private asteroidExplosionLowpass = 0;
+  private asteroidThrustInput = 0;
+  private asteroidThrustFast = 0;
+  private asteroidThrustSlow = 0;
+  private asteroidThumpPhase = 0;
+  private asteroidThumpFilter = 0;
+  private asteroidSaucerWarblePhase = 0;
+  private asteroidSaucerPhase = 0;
+  private asteroidShipFirePhase = 0;
+  private asteroidShipFireAge = 0;
+  private asteroidSaucerFirePhase = 0;
+  private asteroidSaucerFireAge = 0;
+  private asteroidLifePhase = 0;
 
   constructor(
     outputRate: number,
@@ -82,6 +101,25 @@ export class GeneratedDiscreteAudioCore {
   write(offset: number, data: number): void {
     const plan = this.plan;
     if (!plan) return;
+    if (offset >= 0 && offset < this.nodeValues.length) {
+      const previous = this.nodeValues[offset]!;
+      this.nodeValues[offset] = data & 0xff;
+      if (plan.outputNetwork === 'asteroid') {
+        if (offset === 5 && !previous && data) {
+          this.asteroidShipFireAge = 0;
+          this.asteroidShipFirePhase = 0;
+        } else if (offset === 2 && !previous && data) {
+          this.asteroidSaucerFireAge = 0;
+          this.asteroidSaucerFirePhase = 0;
+        } else if (offset === 8 && !previous && data) {
+          this.asteroidThumpPhase = 0;
+        } else if (offset === 7) {
+          // DISCRETE_INPUT_PULSE resets the 16-bit XNOR feedback chain.
+          this.asteroidLfsr = 0;
+          this.asteroidNoise = 1;
+        }
+      }
+    }
     if (offset === plan.dac.node) {
       this.dac = data & 0xff;
       return;
@@ -109,6 +147,9 @@ export class GeneratedDiscreteAudioCore {
   sample(): number {
     const plan = this.plan;
     if (!plan) return 0;
+    if (plan.outputNetwork === 'asteroid') {
+      return this.sampleAsteroidOutput() * plan.outputGain;
+    }
     let mixed = 0;
     let dkongStomp = 0;
     let dkongJump = 0;
@@ -119,7 +160,8 @@ export class GeneratedDiscreteAudioCore {
       // These gates feed RCDISC/RCDISC_MODULATED one-shots in the source
       // netlist.  A held latch starts the transient once; it does not sustain
       // the oscillator at full volume indefinitely.
-      this.envelope[index] *= Math.exp(-1 / releaseSamples);
+      if (voice.sustain && this.active[index]) this.envelope[index] = 1;
+      else this.envelope[index] *= Math.exp(-1 / releaseSamples);
       if (this.envelope[index] < 1e-5) this.envelope[index] = 0;
       let signal: number;
       if (voice.mode === 'noise') {
@@ -265,6 +307,132 @@ export class GeneratedDiscreteAudioCore {
     }
     mixed += dacOutput;
     return Math.max(-1, Math.min(1, mixed * plan.outputGain));
+  }
+
+  /**
+   * Asteroids' seven-effect analog board.  The node numbers and constants are
+   * taken from asteroid_discrete: two swept fire VCOs, the 12 kHz XNOR noise
+   * chain used by explosion/thrust, the thump 555, saucer warble and life tone.
+   */
+  private sampleAsteroidOutput(): number {
+    const dt = 1 / this.outputRate;
+
+    // NODE_20: 16-bit XNOR LFSR clocked at 12 kHz.  Explosion samples this at
+    // a pitch-dependent rate; thrust uses the live noise stream.
+    this.asteroidNoisePhase += 12_000 / this.outputRate;
+    while (this.asteroidNoisePhase >= 1) {
+      this.asteroidNoisePhase--;
+      const bit6 = (this.asteroidLfsr >>> 6) & 1;
+      const bit14 = (this.asteroidLfsr >>> 14) & 1;
+      const feedback = (bit6 ^ bit14) ^ 1;
+      this.asteroidLfsr = ((this.asteroidLfsr << 1) | feedback) & 0xffff;
+      this.asteroidNoise = feedback ? 1 : -1;
+    }
+
+    let mix = 0;
+
+    // NODE_25: ship fire starts at 820 Hz, falls to 110 Hz over 280 ms, and
+    // loses most of its amplitude through the 8.1k/10u discharge network.
+    if (this.nodeValues[5]) {
+      const frequency = Math.max(
+        110,
+        820 - ((820 - 110) / 0.28) * this.asteroidShipFireAge,
+      );
+      const amplitude = (7 + 46 * Math.exp(-this.asteroidShipFireAge / 0.081)) / 53;
+      const duty = Math.min(0.95, (4_500 / frequency + 67) / 100);
+      const step = frequency / this.outputRate;
+      this.asteroidShipFirePhase = (this.asteroidShipFirePhase + step) % 1;
+      mix += bandLimitedPulse(this.asteroidShipFirePhase, step, duty) *
+        amplitude * (53 / 1_909.2);
+      this.asteroidShipFireAge += dt;
+    }
+
+    // NODE_24: the saucer projectile has a much shallower 830-to-630 Hz fall
+    // and a 300 ms amplitude discharge.
+    if (this.nodeValues[2]) {
+      const frequency = Math.max(
+        630,
+        830 - ((830 - 630) / 0.28) * this.asteroidSaucerFireAge,
+      );
+      const amplitude = (7 + 42.5 * Math.exp(-this.asteroidSaucerFireAge / 0.3)) / 49.5;
+      const duty = Math.min(0.95, (4_500 / frequency + 67) / 100);
+      const step = frequency / this.outputRate;
+      this.asteroidSaucerFirePhase = (this.asteroidSaucerFirePhase + step) % 1;
+      mix += bandLimitedPulse(this.asteroidSaucerFirePhase, step, duty) *
+        amplitude * (49.5 / 1_909.2);
+      this.asteroidSaucerFireAge += dt;
+    }
+
+    // NODE_26: pitch selects a divider of the 12 kHz source.  The held LFSR
+    // sample is multiplied by the ROM's 4-bit volume envelope and then passes
+    // through the source 3042-ohm/1u low-pass, producing the heavy rumble.
+    const explosionPitch = this.nodeValues[11] || 12;
+    this.asteroidExplosionPhase += (12_000 / explosionPitch) / this.outputRate;
+    while (this.asteroidExplosionPhase >= 1) {
+      this.asteroidExplosionPhase--;
+      this.asteroidExplosionSample = this.asteroidNoise;
+    }
+    const explosionTarget = this.asteroidExplosionSample *
+      (this.nodeValues[10]! / 15);
+    this.asteroidExplosionLowpass += (
+      explosionTarget - this.asteroidExplosionLowpass
+    ) * rcCharge(dt, 3_042 * 1e-6);
+    mix += this.asteroidExplosionLowpass * (1_000 / 1_909.2);
+
+    // NODE_27: the same LFSR through the board's low/band/low filter chain.
+    // The two-pole approximation preserves the narrow low-frequency rocket
+    // rumble without leaking raw 12 kHz noise into the output.
+    this.asteroidThrustInput += (this.asteroidNoise - this.asteroidThrustInput) *
+      rcCharge(dt, 2_200 * 1e-6);
+    this.asteroidThrustFast += (
+      this.asteroidThrustInput - this.asteroidThrustFast
+    ) * onePoleCoefficient(160, this.outputRate);
+    this.asteroidThrustSlow += (
+      this.asteroidThrustInput - this.asteroidThrustSlow
+    ) * onePoleCoefficient(45, this.outputRate);
+    if (this.nodeValues[4]) {
+      mix += (this.asteroidThrustFast - this.asteroidThrustSlow) *
+        (600 / 1_909.2) * 2.4;
+    }
+
+    // NODE_21: 4-bit DAC controls the heartbeat 555; NODE_32 smooths its
+    // square wave with the source 3.3k/0.1u RC.
+    if (this.nodeValues[8]) {
+      const frequency = 38 + (this.nodeValues[9]! & 0x0f) * 2.7;
+      this.asteroidThumpPhase = (this.asteroidThumpPhase +
+        frequency / this.outputRate) % 1;
+      const thump = this.asteroidThumpPhase < 0.5 ? 1 : -1;
+      this.asteroidThumpFilter += (thump - this.asteroidThumpFilter) *
+        rcCharge(dt, 3_300 * 0.1e-6);
+      mix += this.asteroidThumpFilter * (131.6 / 1_909.2);
+    }
+
+    // NODE_22: slow triangle modulates the higher-frequency saucer VCO.
+    if (this.nodeValues[1]) {
+      const select = this.nodeValues[3] ? 1 : 0;
+      const warbleRate = select ? 5.75 : 8.25;
+      this.asteroidSaucerWarblePhase = (
+        this.asteroidSaucerWarblePhase + warbleRate / this.outputRate
+      ) % 1;
+      const warble = 1 - 4 * Math.abs(this.asteroidSaucerWarblePhase - 0.5);
+      const frequency = 1_210 + 460 * warble - select * 250;
+      this.asteroidSaucerPhase = (
+        this.asteroidSaucerPhase + frequency / this.outputRate
+      ) % 1;
+      const saucer = 1 - 4 * Math.abs(this.asteroidSaucerPhase - 0.5);
+      mix += saucer * (76.1 / 1_909.2);
+    }
+
+    if (this.nodeValues[6]) {
+      const step = 3_000 / this.outputRate;
+      this.asteroidLifePhase = (this.asteroidLifePhase + step) % 1;
+      mix += bandLimitedPulse(this.asteroidLifePhase, step, 0.5) *
+        (100 / 1_909.2);
+    }
+
+    // asteroid_sound routes the discrete board at gain 1.4.  Leave headroom
+    // for overlapping thrust/explosion/saucer effects before hard clipping.
+    return Math.max(-1, Math.min(1, mix * 1.4));
   }
 
   /**
@@ -674,6 +842,17 @@ function polyBlep(phase: number, step: number): number {
     return value * value + value + value + 1;
   }
   return 0;
+}
+
+function bandLimitedPulse(phase: number, step: number, duty: number): number {
+  let value = phase < duty ? 1 : -1;
+  value += polyBlep(phase, step);
+  value -= polyBlep((phase - duty + 1) % 1, step);
+  return value;
+}
+
+function onePoleCoefficient(frequency: number, outputRate: number): number {
+  return 1 - Math.exp(-2 * Math.PI * frequency / outputRate);
 }
 
 export class GeneratedDiscreteAudioFrameRenderer {

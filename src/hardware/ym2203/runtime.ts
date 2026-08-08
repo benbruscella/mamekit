@@ -15,7 +15,7 @@ interface YmTimerState {
   kind: YmTimerKind;
   clock: number;
   ownerCpu: string;
-  address: number;
+  addresses: [number, number];
   registers: Uint8Array;
   status: number;
   irq: boolean;
@@ -84,8 +84,8 @@ export function installYm2203Runtime(context: SoundRuntimeContext): SoundRuntime
       kind,
       clock: Math.max(1, clock),
       ownerCpu: cpuFor(tag),
-      address: 0,
-      registers: new Uint8Array(0x100),
+      addresses: [0, 0],
+      registers: new Uint8Array(0x200),
       status: 0,
       irq: false,
       remaining: [Infinity, Infinity],
@@ -94,14 +94,16 @@ export function installYm2203Runtime(context: SoundRuntimeContext): SoundRuntime
     return timer;
   };
   const writeTimer = (timer: YmTimerState, offset: number, data: number): void => {
+    const bank = (offset >>> 1) & 1;
     if ((offset & 1) === 0) {
-      timer.address = data & 0xff;
+      timer.addresses[bank] = data & 0xff;
       return;
     }
-    timer.registers[timer.address] = data & 0xff;
+    const address = timer.addresses[bank] + bank * 0x100;
+    timer.registers[address] = data & 0xff;
     if (
-      (timer.kind === 'opn' && timer.address === 0x27) ||
-      (timer.kind === 'opl' && timer.address === 0x04)
+      (timer.kind === 'opn' && address === 0x27) ||
+      (timer.kind === 'opl' && address === 0x04)
     ) {
       modeWrite(timer, data);
     }
@@ -112,24 +114,32 @@ export function installYm2203Runtime(context: SoundRuntimeContext): SoundRuntime
       const mask = timer.registers[0x04]! & 0x78;
       return 0x06 | (timer.status & ~mask) | (timer.irq ? 0x80 : 0);
     }
-    return timer.kind === 'opn' && timer.address < 0x10
-      ? timer.registers[timer.address]!
+    const bank = (offset >>> 1) & 1;
+    const address = timer.addresses[bank] + bank * 0x100;
+    return timer.kind === 'opn' && bank === 0 && address < 0x10
+      ? timer.registers[address]!
       : 0xff;
   };
 
-  soundTags(sound).forEach((tag, chip) => {
+  const tags = soundTags(sound);
+  const portCounts = tags.map(tag =>
+    specificationFor(tag)?.type === 'YM2610' ? 4 : YM2203_PORTS_PER_CHIP);
+  const portBases = portCounts.map((_count, index) =>
+    portCounts.slice(0, index).reduce((sum, count) => sum + count, 0));
+  tags.forEach((tag, chip) => {
     const timer = createTimer(
       tag,
       'opn',
       specificationFor(tag)?.clock ?? 1_500_000,
     );
-    const base = chip * YM2203_PORTS_PER_CHIP;
+    const base = portBases[chip]!;
+    const ports = portCounts[chip]!;
     for (const method of sound.writeMethods) {
       // Each chip exposes an address/data port pair, addressed as
       // chip * 2 + port so one worklet hosts every chip on the board.
       const write = (offset: number, data: number): void => {
         writeTimer(timer, offset, data);
-        context.soundWrite(base + (offset & 1), data, context.fraction(), method);
+        context.soundWrite(base + (offset & (ports - 1)), data, context.fraction(), method);
       };
       registry.write[`${tag}.${method}`] = (_address, offset, data) => write(offset, data);
       for (const alias of deviceAliases(board, tag)) {
@@ -150,9 +160,26 @@ export function installYm2203Runtime(context: SoundRuntimeContext): SoundRuntime
     }
   });
 
-  const primaryPorts = soundTags(sound).length * YM2203_PORTS_PER_CHIP;
+  const primaryPorts = portCounts.reduce((sum, count) => sum + count, 0);
   let oplChip = 0;
   for (const auxiliary of sound.auxiliaryDevices ?? []) {
+    if (auxiliary.type === 'MSM5205') {
+      const base = primaryPorts + oplChip * YM2203_PORTS_PER_CHIP;
+      for (const method of auxiliary.writeMethods) {
+        const write = (data: number): void => context.soundWrite(
+          base,
+          data,
+          context.fraction(),
+          `${auxiliary.deviceTag}.${method}`,
+        );
+        registry.write[`${auxiliary.deviceTag}.${method}`] =
+          (_address, _offset, data) => write(data);
+        for (const alias of deviceAliases(board, auxiliary.deviceTag)) {
+          calls[`${alias}.${method}`] = (...args) => write(Number(args.at(-1) ?? 0));
+        }
+      }
+      continue;
+    }
     if (auxiliary.type !== 'YM3526') continue;
     const timer = createTimer(auxiliary.deviceTag, 'opl', auxiliary.clock);
     const base = primaryPorts + oplChip++ * YM2203_PORTS_PER_CHIP;
@@ -209,7 +236,7 @@ export function installYm2203Runtime(context: SoundRuntimeContext): SoundRuntime
     },
     reset: () => {
       for (const timer of timers) {
-        timer.address = 0;
+        timer.addresses = [0, 0];
         timer.registers.fill(0);
         timer.status = 0;
         timer.remaining = [Infinity, Infinity];

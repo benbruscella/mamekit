@@ -1,16 +1,27 @@
 import assert from 'node:assert/strict';
 import type { BoardIr } from '../ir/board.ts';
+import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   applyGeneratedCpuInputLine,
   pulseGeneratedCpuInputLine,
   bindGeneratedDriverState,
+  bindGeneratedInputState,
   bindGeneratedRegionState,
   bindGeneratedShareState,
   createGeneratedBoard,
+  generatedCompositeCallbackBindings,
   generatedDeviceCallbackArguments,
+  generatedCpuMemberBindings,
+  generatedPromGateOpen,
   generatedSignalHandlerArguments,
+  usesProtectionProtocolBridge,
 } from './generated-board.ts';
+import type { BoundEffect } from './generated-effects.ts';
 import { registerGeneratedCpu } from './generated-cpu.ts';
+import {
+  registerGeneratedDevice,
+  type Device,
+} from './generated-device.ts';
 
 const state: Record<string, unknown> = {};
 const first = new Uint8Array(0x100);
@@ -18,11 +29,37 @@ const second = new Uint8Array(0x100);
 
 bindGeneratedShareState(state, 'spriteram[0]', first);
 bindGeneratedShareState(state, 'spriteram[1]', second);
+bindGeneratedShareState(state, 'spyhunt_alpha', first, ['m_spyhunt_alpharam']);
 
 assert.equal(state['m_spriteram[0]'], first);
 assert.equal(state['m_spriteram[1]'], second);
 assert.deepEqual(state.m_spriteram, [first, second]);
 assert.equal((first as Uint8Array & { bytes(): number }).bytes(), 0x100);
+assert.equal(state.m_spyhunt_alpharam, first);
+
+const inputState: Record<string, unknown> = {};
+bindGeneratedInputState(inputState, [{
+  member: 'm_ports',
+  tags: ['ssio:IP0', 'ssio:IP1'],
+}], {
+  read: tag => tag === 'ssio:IP0' ? 0xfe : 0xfb,
+});
+const inputFinders = inputState.m_ports as {
+  read(): number;
+  read_safe(fallback?: number): number;
+}[];
+assert.equal(inputFinders[0]!.read_safe(), 0xfe);
+assert.equal(inputFinders[1]!.read(), 0xfb);
+
+let scopedCpuLine = '';
+const scopedBindings = generatedCpuMemberBindings({
+  calls: {
+    'm_maincpu.set_input_line': () => { scopedCpuLine = 'maincpu'; },
+    'm_ssio:cpu.set_input_line': () => { scopedCpuLine = 'ssio:cpu'; },
+  },
+}, 'ssio:cpu');
+scopedBindings.calls?.['m_cpu.set_input_line']?.(0, 1);
+assert.equal(scopedCpuLine, 'ssio:cpu');
 
 const regionState: Record<string, unknown> = {};
 const irqProm = Uint8Array.of(2, 6, 1, 5);
@@ -78,6 +115,22 @@ assert.deepEqual(
   { state: 4, data: 4, offset: 0, mem_mask: 0xff },
   'device write callbacks must receive MAME default offset and active mem_mask arguments',
 );
+assert.equal(
+  generatedPromGateOpen(
+    { member: 'm_irqprom', mask: 0x03 },
+    5,
+    { m_irqprom: Uint8Array.of(0, 4, 0, 0) },
+  ),
+  true,
+);
+assert.equal(
+  generatedPromGateOpen(
+    { member: 'm_irqprom', mask: 0x03 },
+    6,
+    { m_irqprom: Uint8Array.of(0, 4, 0, 0) },
+  ),
+  false,
+);
 assert.deepEqual(
   generatedSignalHandlerArguments(
     'offs_t offset, uint8_t data, uint8_t mem_mask',
@@ -117,6 +170,109 @@ const driverState: Record<string, unknown> = {};
 const driverCalls: Record<string, (...args: number[]) => number | void> = {};
 bindGeneratedDriverState(driverState, driverCalls);
 assert.equal(driverCalls.flip_screen!(), 0);
+
+let compositeCallbackValue = -1;
+const compositeMachine = {
+  schemaVersion: 3,
+  game: 'composite-callback-fixture',
+  family: 'fixture',
+  driverFile: 'fixture.cpp',
+  callbacks: [{
+    id: 'callback:into-composite',
+    ownerTag: 'pia',
+    signal: 'writepa_handler',
+    operation: 'set',
+    targetTag: 'soundbd',
+    targetClass: 'venture_sound_device',
+    targetMethod: 'pb_w',
+  }, {
+    id: 'callback:out-of-composite',
+    ownerTag: 'soundbd',
+    signal: 'pa_callback',
+    operation: 'set',
+    targetTag: 'pia',
+    targetClass: 'pia6821_device',
+    targetMethod: 'portb_w',
+  }, {
+    id: 'callback:child-read',
+    ownerTag: 'mcu:mcu',
+    signal: 'portb_r',
+    operation: 'set',
+    targetClass: 'arkanoid_68705p5_device',
+    targetMethod: 'mcu_pb_r',
+  }, {
+    id: 'callback:parent-read',
+    ownerTag: 'mcu',
+    signal: 'portb_r_cb',
+    operation: 'set',
+    targetClass: 'fixture_state',
+    targetMethod: 'input_mux_r',
+  }],
+  devices: [{ id: 'device:parent', tag: 'mcu', type: 'MCU_INTERFACE' }, {
+    id: 'device:child', tag: 'mcu:mcu', hostTag: 'mcu', type: 'M68705P5',
+  }],
+  connections: [],
+  execution: {
+    cpus: [],
+    screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 1, rotate: 0 },
+    frameEvents: [],
+  },
+} as BoardIr;
+const compositeEffects = new Map<string, BoundEffect>([[
+  'callback:out-of-composite',
+  {
+    run: value => { compositeCallbackValue = value; },
+    transforms: [],
+    reads: false,
+  },
+], [
+  'callback:parent-read',
+  {
+    run: () => 0xa5,
+    transforms: [],
+    reads: false,
+  },
+]]);
+const compositeBindings = generatedCompositeCallbackBindings(
+  compositeMachine,
+  'venture_sound_device',
+  () => false,
+  () => compositeEffects,
+  {},
+);
+compositeBindings.calls?.m_pa_callback?.(0x5a);
+assert.equal(
+  compositeCallbackValue,
+  0x5a,
+  'source-compiled composite devcb members must emit their board callbacks',
+);
+const compositeReadBindings = generatedCompositeCallbackBindings(
+  compositeMachine,
+  'arkanoid_68705p5_device',
+  tag => tag === 'mcu:mcu',
+  () => compositeEffects,
+  {},
+);
+assert.equal(
+  compositeReadBindings.calls?.m_portb_r_cb?.(),
+  0xa5,
+  'nested composite read devcbs must return the parent board callback value',
+);
+assert.equal(
+  usesProtectionProtocolBridge(compositeMachine, 'mcu:mcu'),
+  false,
+  'unrelated composite MCUs must keep firmware execution enabled',
+);
+assert.equal(
+  usesProtectionProtocolBridge({
+    ...compositeMachine,
+    devices: [{ id: 'parent', tag: 'mcu', type: 'ARKANOID_68705P5' }, {
+      id: 'child', tag: 'mcu:mcu', hostTag: 'mcu', type: 'M68705P5',
+    }],
+  }, 'mcu:mcu'),
+  true,
+  'known Taito protection interfaces use their bounded source protocol bridge',
+);
 driverCalls.flip_screen_set!(1);
 assert.equal(driverCalls.flip_screen!(), 1);
 assert.equal(driverCalls.flip_screen_x!(), 1);
@@ -178,6 +334,19 @@ const opcodeMachine: BoardIr = {
     },
     frameEvents: [],
   },
+  maps: [{
+    id: 'map:base',
+    className: 'fixture_state',
+    name: 'overridden_base_map',
+    ranges: [{
+      id: 'range:base',
+      start: 0,
+      end: 0,
+      raw: 'map(0, 0).w("removed", FUNC(device::write))',
+      write: 'removed.write',
+      props: {},
+    }],
+  }],
 };
 const opcodeBoard = createGeneratedBoard(
   opcodeMachine,
@@ -199,6 +368,72 @@ const opcodeBoard = createGeneratedBoard(
 opcodeBoard.frame(new Uint32Array(1));
 assert.equal(programRead, 0x11);
 assert.equal(opcodeRead, 0x22, 'the generated board must preserve the AS_OPCODES bus');
+assert.ok(opcodeBoard, 'handlers in archival maps overridden by the CPU plan must not block startup');
+
+registerGeneratedDevice({
+  type: 'SCREEN_HOST_FIXTURE',
+  constants: {},
+  members: [
+    { name: 'm_height', valueType: 'int', bits: 32, initial: 0 },
+    { name: 'm_frame', valueType: 'int', bits: 32, initial: 0 },
+  ],
+  callbacks: [],
+  methods: [{
+    name: 'capture_screen',
+    parameters: '',
+    program: compileMameHandler(
+      'm_height = screen().height(); m_frame = screen().frame_number();',
+    ),
+  }],
+  start: 'capture_screen',
+  summary: { diagnostics: 0 },
+});
+const screenHostMachine: BoardIr = {
+  ...opcodeMachine,
+  game: 'screen-host-fixture',
+  devices: [{
+    id: 'device:screen-host-fixture',
+    tag: 'timing',
+    type: 'SCREEN_HOST_FIXTURE',
+  }],
+  execution: {
+    ...opcodeMachine.execution,
+    cpus: [{
+      tag: 'maincpu',
+      type: 'OPCODE_BUS_FIXTURE',
+      clock: 60,
+      region: 'maincpu',
+      ranges: [{ start: 0, end: 0, kind: 'rom' }],
+    }],
+    screen: {
+      ...opcodeMachine.execution.screen,
+      height: 224,
+      vtotal: 264,
+    },
+  },
+};
+const screenHostBoard = createGeneratedBoard(
+  screenHostMachine,
+  {
+    game: screenHostMachine.game,
+    family: 'fixture',
+    cpus: [],
+    ranges: [],
+    screen: { width: 1, height: 224, refresh: 60, vtotal: 264, vbstart: 240, rotate: 0 },
+    clocks: { namco06: 0, wsg: 0 },
+  },
+  { maincpu: Uint8Array.of(0) },
+  { read: () => 0xff },
+  { soundWrite: () => {} },
+);
+const timingDevice = (screenHostBoard as unknown as {
+  devices: Map<string, Device>;
+}).devices.get('timing')!;
+assert.equal(timingDevice.get('m_height'), 264, 'screen().height() must expose total scanlines');
+assert.equal(timingDevice.get('m_frame'), 0);
+screenHostBoard.frame(new Uint32Array(screenHostBoard.fbWidth * screenHostBoard.fbHeight));
+timingDevice.invoke('capture_screen');
+assert.equal(timingDevice.get('m_frame'), 1, 'screen().frame_number() must follow board frames');
 
 let cpuSignalRead = -1;
 let cpuHandlerSignalRead = -1;
@@ -261,6 +496,17 @@ const signalMachine: BoardIr = {
       }],
       diagnostics: [],
     },
+  }, {
+    id: 'handler:fixture_state.custom_r',
+    ownerClass: 'fixture_state',
+    method: 'custom_r',
+    program: {
+      operations: [{
+        op: 'return',
+        value: { kind: 'number', value: 1 },
+      }],
+      diagnostics: [],
+    },
   }],
   execution: {
     ...opcodeMachine.execution,
@@ -280,15 +526,22 @@ const signalBoard = createGeneratedBoard(
     family: 'fixture',
     cpus: [],
     ranges: [],
+    customs: [{
+      port: 'IN0', mask: 0x80, member: 'custom_r', handler: 'fixture_state.custom_r',
+    }],
     screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 1, rotate: 0 },
     clocks: { namco06: 0, wsg: 0 },
   },
   { mcu: Uint8Array.of(0) },
-  { read: port => port === 'IN0' ? 0xa5 : 0xff },
+  { read: port => port === 'IN0' ? 0x25 : 0xff },
   { soundWrite: () => {} },
 );
 signalBoard.frame(new Uint32Array(1));
-assert.equal(cpuSignalRead, 0xa5, 'CPU input callbacks must return the bound port value');
+assert.equal(
+  cpuSignalRead,
+  0xa5,
+  'CPU input callbacks must return the port value after synthesized custom fields',
+);
 assert.equal(
   cpuHandlerSignalRead,
   0x5a,

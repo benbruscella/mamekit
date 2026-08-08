@@ -122,6 +122,8 @@ export interface GeneratedDiscreteEffectsPlan {
     release: number;
     gain: number;
     activeLow: boolean;
+    /** The source oscillator remains audible while its logic gate is held. */
+    sustain?: boolean;
     /** RCDISC_MODULATED networks respond to both latch transitions. */
     triggerEdge?: 'active' | 'both';
     /**
@@ -130,8 +132,8 @@ export interface GeneratedDiscreteEffectsPlan {
      */
     network?: 'dkong-stomp' | 'dkong-jump' | 'dkong-walk';
   }[];
-  /** Run the source circuit's final resistor mixer and amplifier stages. */
-  outputNetwork?: 'dkong2b';
+  /** Run a board-specific source circuit that cannot be reduced to generic voices. */
+  outputNetwork?: 'dkong2b' | 'asteroid';
   dischargeNode?: number;
   /** RC decay applied to the DAC when the active-low discharge gate closes. */
   dischargeRelease?: number;

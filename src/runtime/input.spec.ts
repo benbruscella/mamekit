@@ -15,6 +15,7 @@ const input = new KeyboardInput([
   { port: 'IN0', mask: 0x02, keys: ['ArrowLeft'], label: 'P1_LEFT' },
   { port: 'IN0', mask: 0x04, keys: ['ArrowRight'], label: 'P1_RIGHT' },
   { port: 'IN1', mask: 0x01, keys: ['Digit1'], label: 'START1', activeLow: false },
+  { port: 'IN1', mask: 0x02, keys: ['Digit9'], label: 'SERVICE1', activeLow: false, toggle: true },
 ], [], [
   { tag: 'IN0', init: 0xff },
   { tag: 'IN1', init: 0x00 },
@@ -33,6 +34,14 @@ target.dispatchEvent(keyEvent('keydown', 'Digit1'));
 assert.equal(input.read('IN1'), 0x01);
 target.dispatchEvent(keyEvent('keyup', 'Digit1'));
 assert.equal(input.read('IN1'), 0x00);
+
+target.dispatchEvent(keyEvent('keydown', 'Digit9'));
+target.dispatchEvent(keyEvent('keyup', 'Digit9'));
+assert.equal(input.read('IN1'), 0x02, 'a maintained switch must survive keyup');
+target.dispatchEvent(new Event('blur'));
+assert.equal(input.read('IN1'), 0x02, 'a maintained switch must survive focus loss');
+target.dispatchEvent(keyEvent('keydown', 'Digit9'));
+assert.equal(input.read('IN1'), 0x00, 'the next keydown must release a maintained switch');
 
 target.dispatchEvent(keyEvent('keydown', 'ArrowLeft'));
 target.dispatchEvent(keyEvent('keydown', 'ArrowRight'));

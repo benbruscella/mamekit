@@ -25,6 +25,9 @@ export interface RomLoad {
    * an incomplete set. `baddump` bytes are known-imperfect but usable.
    */
   status?: 'nodump' | 'baddump';
+  groupSize?: number;
+  skip?: number;
+  reverse?: boolean;
 }
 export interface RomRegionSpec {
   region: string;
@@ -33,6 +36,8 @@ export interface RomRegionSpec {
   fill?: number;
   /** MAME ROMREGION_INVERT complements every byte after the region is loaded. */
   invert?: boolean;
+  /** Source ROM_FILL directives applied after physical chips are loaded. */
+  fills?: { offset: number; size: number; value: number }[];
   /**
    * MAME device short name owning this region's ROMs, when they come from a
    * device set rather than the game set. MAME commonised device ROMs so one
@@ -51,11 +56,15 @@ export function isDumpedRom(load: RomLoad): boolean {
 export interface SoundSpec {
   /** Generic SoundCore/AudioWorklet processor kind. */
   kind: string;
+  /** Concrete MAME chip hosted by a shared worklet family (YM2203/YM2610). */
+  deviceType?: string;
   /** Generated worklet artifact stem when several MAME devices share a processor kind. */
   worklet?: string;
   clock?: number;
   /** rom region holding the wavetable (wsg only) */
   waveRegion?: string;
+  /** optional source-device sample ROM mixed by the primary worklet */
+  sampleRegion?: string;
   /** number of sound chips (ay8910: gyruss has 5) */
   chips?: number;
   /** Per-output routes lowered from MAME add_route calls. */
@@ -211,6 +220,15 @@ export interface ShellConfig {
 
 export type RomTransform =
   | {
+      kind: 'address-byte-bitswap';
+      region: string;
+      start: number;
+      end: number;
+      addressBits: number[];
+      addressXor: number;
+      dataBits: number[];
+    }
+  | {
       kind: 'conditional-byte-swap';
       region: string;
       indexMask: number;
@@ -231,10 +249,46 @@ export type RomTransform =
       start: number;
       end: number;
       table: number[];
+    }
+  | {
+      kind: 'sega-z80-decrypt';
+      algorithm: 'segacrpt' | 'segacrp2';
+      sourceRegion: string;
+      targetRegion: string;
+      start: number;
+      end: number;
+      convtable?: number[];
+      xorTable?: number[];
+      swapTable?: number[];
     };
 
 export function applyRomTransforms(regions: Regions, transforms: readonly RomTransform[]): void {
   for (const transform of transforms) {
+    if (transform.kind === 'address-byte-bitswap') {
+      const region = regions[transform.region];
+      if (
+        !region || transform.start < 0 || transform.end < transform.start ||
+        transform.end > region.length || transform.addressBits.length !== 16 ||
+        transform.dataBits.length !== 8 || new Set(transform.addressBits).size !== 16 ||
+        new Set(transform.dataBits).size !== 8
+      ) {
+        throw new Error(`ROM address/data bitswap for "${transform.region}" is invalid`);
+      }
+      const source = region.slice();
+      const bitswap = (value: number, bits: readonly number[]) => bits.reduce(
+        (result, sourceBit, outputIndex) =>
+          result | (((value >>> sourceBit) & 1) << (bits.length - outputIndex - 1)),
+        0,
+      );
+      for (let index = transform.start; index < transform.end; index++) {
+        const address = bitswap(index, transform.addressBits) ^ transform.addressXor;
+        if (address < 0 || address >= source.length) {
+          throw new Error(`ROM address bitswap for "${transform.region}" reads ${address}`);
+        }
+        region[index] = bitswap(source[address]!, transform.dataBits);
+      }
+      continue;
+    }
     if (transform.kind === 'conditional-byte-swap') {
       const region = regions[transform.region];
       if (!region) throw new Error(`ROM transform has no region "${transform.region}"`);
@@ -280,6 +334,66 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
     const source = regions[transform.sourceRegion];
     if (!source) {
       throw new Error(`ROM transform has no source region "${transform.sourceRegion}"`);
+    }
+    if (transform.kind === 'sega-z80-decrypt') {
+      if (!source || transform.start < 0 || transform.end < transform.start ||
+          transform.end > source.length) {
+        throw new Error(`Sega Z80 transform for "${transform.sourceRegion}" has invalid bounds`);
+      }
+      const target = source.slice();
+      if (transform.algorithm === 'segacrpt') {
+        if (transform.convtable?.length !== 128) {
+          throw new Error('Sega Z80 transform has no 32x4 conversion table');
+        }
+        for (let address = transform.start; address < transform.end; address++) {
+          const src = source[address]!;
+          const row = (address & 1) | (((address >>> 4) & 1) << 1) |
+            (((address >>> 8) & 1) << 2) | (((address >>> 12) & 1) << 3);
+          let column = ((src >>> 3) & 1) | (((src >>> 5) & 1) << 1);
+          let xor = 0;
+          if (src & 0x80) { column = 3 - column; xor = 0xa8; }
+          const opcodeKey = transform.convtable[2 * row * 4 + column]!;
+          const dataKey = transform.convtable[(2 * row + 1) * 4 + column]!;
+          target[address] = opcodeKey === 0xff
+            ? 0xee : (src & ~0xa8) | (opcodeKey ^ xor);
+          source[address] = dataKey === 0xff
+            ? 0xee : (src & ~0xa8) | (dataKey ^ xor);
+        }
+      } else {
+        if (transform.xorTable?.length !== 128 || transform.swapTable?.length !== 128) {
+          throw new Error('Sega Z80 transform has no 128-entry XOR/swap tables');
+        }
+        const swaps = [
+          [6, 4, 2, 0], [4, 6, 2, 0], [2, 4, 6, 0], [0, 4, 2, 6],
+          [6, 2, 4, 0], [6, 0, 2, 4], [6, 4, 0, 2], [2, 6, 4, 0],
+          [4, 2, 6, 0], [4, 6, 0, 2], [6, 0, 4, 2], [0, 6, 4, 2],
+          [4, 0, 6, 2], [0, 4, 6, 2], [6, 2, 0, 4], [2, 6, 0, 4],
+          [0, 6, 2, 4], [2, 0, 6, 4], [0, 2, 6, 4], [4, 2, 0, 6],
+          [2, 4, 0, 6], [4, 0, 2, 6], [2, 0, 4, 6], [0, 2, 4, 6],
+        ];
+        const decode = (value: number, tableIndex: number, xor: number): number => {
+          const bits = swaps[tableIndex]!;
+          return (((((value >>> 7) & 1) << 7) |
+            (((value >>> bits[0]!) & 1) << 6) |
+            (((value >>> 5) & 1) << 5) |
+            (((value >>> bits[1]!) & 1) << 4) |
+            (((value >>> 3) & 1) << 3) |
+            (((value >>> bits[2]!) & 1) << 2) |
+            (((value >>> 1) & 1) << 1) |
+            ((value >>> bits[3]!) & 1)) ^ xor) & 0xff;
+        };
+        for (let address = transform.start; address < transform.end; address++) {
+          const src = source[address]!;
+          const row = (((address >>> 14) & 1) << 5) |
+            (((address >>> 12) & 1) << 4) | (((address >>> 9) & 1) << 3) |
+            (((address >>> 6) & 1) << 2) | (((address >>> 3) & 1) << 1) |
+            (address & 1);
+          target[address] = decode(src, transform.swapTable[2 * row]!, transform.xorTable[2 * row]!);
+          source[address] = decode(src, transform.swapTable[2 * row + 1]!, transform.xorTable[2 * row + 1]!);
+        }
+      }
+      regions[transform.targetRegion] = target;
+      continue;
     }
     if (
       transform.start < 0 ||
@@ -387,8 +501,10 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     void audio.start(
       {
         sampleRate: clock,
+        deviceType: cfg.sound.deviceType,
         clock,
         waveRom: cfg.sound.waveRegion ? regions[cfg.sound.waveRegion] : undefined,
+        sampleRom: cfg.sound.sampleRegion ? regions[cfg.sound.sampleRegion] : undefined,
         chips: cfg.sound.chips,
         routes: cfg.sound.routes,
         auxiliary: cfg.sound.auxiliary,
@@ -421,7 +537,6 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   let last = performance.now();
   let frames = 0;
   let fpsWindowStart = last;
-
   const tick = (now: number) => {
     if (input.debug && now - last > 50) {
       console.log(`[stall] ${Math.round(now - last)}ms between frames at ${Math.round(now)}`);
@@ -459,6 +574,34 @@ function hex4(v: number): string { return v.toString(16).padStart(4, '0'); }
 
 // ---------------------------------------------------------------------------
 
+function copyRomLoad(
+  destination: Uint8Array,
+  source: Uint8Array,
+  sourceOffset: number,
+  size: number,
+  destinationOffset: number,
+  load: RomLoad,
+): void {
+  const group = load.groupSize ?? 1;
+  const skip = load.skip ?? 0;
+  if (group === 1 && skip === 0 && !load.reverse) {
+    destination.set(source.subarray(sourceOffset, sourceOffset + size), destinationOffset);
+    return;
+  }
+  let input = sourceOffset;
+  let output = destinationOffset;
+  const end = sourceOffset + size;
+  while (input < end) {
+    const count = Math.min(group, end - input);
+    for (let index = 0; index < count; index++) {
+      const sourceIndex = load.reverse ? input + count - 1 - index : input + index;
+      if (output + index < destination.length) destination[output + index] = source[sourceIndex]!;
+    }
+    input += count;
+    output += group + skip;
+  }
+}
+
 export function assembleRegions(
   specs: RomRegionSpec[],
   files: Map<string, Uint8Array>,
@@ -490,14 +633,16 @@ export function assembleRegions(
       if (!exact) {
         console.warn(`CRC mismatch for ${load.file} (got ${crc32(f).toString(16)}, want ${load.crc}) — continuing`);
       }
-      bytes.set(f.subarray(0, load.size), load.offset);
+      copyRomLoad(bytes, f, 0, load.size, load.offset, load);
       for (const segment of load.continueSegments ?? []) {
-        bytes.set(
-          f.subarray(segment.fileOffset, segment.fileOffset + segment.size),
-          segment.offset,
-        );
+        copyRomLoad(bytes, f, segment.fileOffset, segment.size, segment.offset, load);
       }
-      for (const ro of load.reloadOffsets ?? []) bytes.set(f.subarray(0, load.size), ro);
+      for (const ro of load.reloadOffsets ?? []) copyRomLoad(bytes, f, 0, load.size, ro, load);
+    }
+    for (const fill of spec.fills ?? []) {
+      const start = Math.max(0, fill.offset);
+      const end = Math.min(bytes.length, fill.offset + fill.size);
+      bytes.fill(fill.value & 0xff, start, end);
     }
     if (spec.invert) {
       for (let index = 0; index < bytes.length; index++) bytes[index] ^= 0xff;

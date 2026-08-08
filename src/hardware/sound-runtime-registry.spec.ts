@@ -20,6 +20,7 @@ const sound = {
 
 installSoundRuntime({
   board,
+  regions: {},
   sound,
   registry: { read: {}, write: {} },
   calls,
@@ -30,6 +31,7 @@ installSoundRuntime({
   callDevice: () => undefined,
   runCallbackHandler: () => undefined,
   dispatch: () => {},
+  readSignal: () => undefined,
   readProgram: () => 0xff,
   stallCpu: () => {},
   setCpuInputLine: () => {},
@@ -44,3 +46,59 @@ assert.deepEqual(writes, [
 ]);
 
 console.log('sound-runtime-registry.spec: callback-reached sound writes passed');
+
+const williamsCalls: SoundRuntimeContext['calls'] = {};
+const williamsDeviceCalls: unknown[][] = [];
+installSoundRuntime({
+  board: {
+    callbacks: [{
+      id: 'pia-command',
+      ownerTag: 'pia_1',
+      signal: 'writepb_handler',
+      operation: 'set',
+      targetClass: 'williams_state',
+      targetMethod: 'snd_cmd_w',
+    }],
+    devices: [
+      { id: 'pia-2', tag: 'pia_2', type: 'PIA6821' },
+      { id: 'dac', tag: 'dac', type: 'MC1408' },
+    ],
+  } as BoardIr,
+  regions: {},
+  sound: {
+    kind: 'dac',
+    deviceTag: 'dac',
+    deviceType: 'MC1408',
+    writeMethods: ['data_w'],
+    enableMethods: [],
+    controlOffset: -1,
+  },
+  registry: { read: {}, write: {} },
+  calls: williamsCalls,
+  state: {},
+  soundWrite: () => {},
+  soundData: () => {},
+  fraction: () => 0,
+  callDevice: (...args) => {
+    williamsDeviceCalls.push(args);
+    return 0;
+  },
+  runCallbackHandler: () => undefined,
+  dispatch: () => {},
+  readSignal: () => undefined,
+  readProgram: () => 0xff,
+  stallCpu: () => {},
+  setCpuInputLine: () => {},
+});
+
+assert.equal(typeof williamsCalls['williams_state.snd_cmd_w'], 'function');
+williamsCalls['williams_state.snd_cmd_w']!(0x15);
+williamsCalls['williams_state.snd_cmd_w']!(0x3f);
+assert.deepEqual(williamsDeviceCalls, [
+  ['pia_2', 'portb_w', 0xd5],
+  ['pia_2', 'cb1_w', 1],
+  ['pia_2', 'portb_w', 0xff],
+  ['pia_2', 'cb1_w', 0],
+]);
+
+console.log('sound-runtime-registry.spec: Williams PIA sound-command bridge passed');

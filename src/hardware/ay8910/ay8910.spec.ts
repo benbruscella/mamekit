@@ -44,6 +44,7 @@ function context(sound: Sound): SoundRuntimeContext & {
     callDevice: () => undefined,
     runCallbackHandler: () => undefined,
     dispatch: () => {},
+    readSignal: () => undefined,
     readProgram: () => 0xff,
     stallCpu: () => {},
     setCpuInputLine: () => {},
@@ -82,6 +83,14 @@ check('an unread port returns the last value written to it', () => {
   installAy8910Runtime(ctx);
   ctx.registry.write['ay.address_w']!(0, 0, 2);
   ctx.registry.write['ay.data_w']!(0, 0, 0x5a);
+  assert.equal(ctx.registry.read['ay.data_r']!(0, 0), 0x5a);
+});
+
+check('a port read pulls through its typed board callback', () => {
+  const ctx = context(base);
+  ctx.readSignal = (_tag, signal) => signal === 'port_a_read_callback' ? 0x5a : undefined;
+  installAy8910Runtime(ctx);
+  ctx.registry.write['ay.address_w']!(0, 0, 14);
   assert.equal(ctx.registry.read['ay.data_r']!(0, 0), 0x5a);
 });
 

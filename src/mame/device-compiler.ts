@@ -348,6 +348,15 @@ export function compileMameDevice(
   const source = sources.map(candidate => candidate.source).join('\n');
   const clockDivider = executionClockDivider(source);
   const dataAddressBits = executionDataAddressBits(definition.className, source, constants);
+  // Bitmap entry points are necessarily frame/scanline hot paths. Selecting
+  // them explicitly also enables pointer-safe AOT lowering for their draw
+  // helpers; leaving a source device such as Neo Geo's sprite generator in
+  // the generic IR walker makes a correct frame hundreds of times too slow.
+  const hotMethods = methods
+    .filter(method =>
+      !method.program.diagnostics.length &&
+      /\bbitmap_(?:rgb32|ind16)\s*&/.test(method.parameters))
+    .map(method => method.name);
   return {
     schemaVersion: 1,
     type,
@@ -359,6 +368,7 @@ export function compileMameDevice(
     callbacks,
     timers,
     methods,
+    ...(hotMethods.length ? { hotMethods } : {}),
     ...(clockDivider ? { clockDivider } : {}),
     ...(dataAddressBits ? { dataAddressBits } : {}),
     ...(methods.some(method => method.name === 'device_start') ? { start: 'device_start' } : {}),

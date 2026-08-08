@@ -111,6 +111,66 @@ class Pair16 {
   set w(value: number) { this.value = value & 0xffff; }
 }
 
+class WordByteRegisterFile {
+  readonly w: Uint16Array;
+  readonly b: Uint8Array;
+
+  constructor(words: number) {
+    const buffer = new ArrayBuffer(words * 2);
+    this.w = new Uint16Array(buffer);
+    this.b = new Uint8Array(buffer);
+  }
+}
+
+class Z8000RegisterFile {
+  readonly W = new Uint16Array(16);
+  readonly B: Record<number, number>;
+  readonly L: Record<number, number>;
+  readonly Q: Record<number, number>;
+
+  constructor() {
+    this.B = new Proxy({}, {
+      get: (_target, key) => {
+        const index = Number(key); const word = this.W[index >>> 1] ?? 0;
+        return index & 1 ? word & 0xff : (word >>> 8) & 0xff;
+      },
+      set: (_target, key, value) => {
+        const index = Number(key); const wordIndex = index >>> 1;
+        const old = this.W[wordIndex] ?? 0;
+        this.W[wordIndex] = index & 1
+          ? (old & 0xff00) | (Number(value) & 0xff)
+          : (old & 0x00ff) | ((Number(value) & 0xff) << 8);
+        return true;
+      },
+    }) as Record<number, number>;
+    this.L = new Proxy({}, {
+      get: (_target, key) => {
+        const index = Number(key) * 2;
+        return ((((this.W[index] ?? 0) << 16) | (this.W[index + 1] ?? 0)) >>> 0);
+      },
+      set: (_target, key, value) => {
+        const index = Number(key) * 2; const data = Number(value) >>> 0;
+        this.W[index] = data >>> 16; this.W[index + 1] = data; return true;
+      },
+    }) as Record<number, number>;
+    this.Q = new Proxy({}, {
+      get: (_target, key) => {
+        const index = Number(key) * 4;
+        return (this.W[index] ?? 0) * 0x1000000000000 +
+          (this.W[index + 1] ?? 0) * 0x100000000 +
+          (this.W[index + 2] ?? 0) * 0x10000 + (this.W[index + 3] ?? 0);
+      },
+      set: (_target, key, value) => {
+        const index = Number(key) * 4; let data = Number(value);
+        this.W[index + 3] = data; data = Math.floor(data / 0x10000);
+        this.W[index + 2] = data; data = Math.floor(data / 0x10000);
+        this.W[index + 1] = data; data = Math.floor(data / 0x10000);
+        this.W[index] = data; return true;
+      },
+    }) as Record<number, number>;
+  }
+}
+
 class Generated${safeName(definition.type)} implements Cpu {
   private readonly bus: CpuBus;
   private irqData: number | (() => number) = 0xff;
@@ -160,9 +220,10 @@ ${step}
     this.generatedInput(-1, 0);
   }
 
-  private acknowledgeIrq(): number {
+  private acknowledgeIrq(level = 0): number {
     const source = this.irqData;
-    const data = typeof source === 'function' ? source() : source;
+    const data = this.bus.acknowledge?.(level) ??
+      (typeof source === 'function' ? source() : source);
     if (this.irqHold) {
       this.irqHold = false;
       this.setIrqLine(false);
@@ -187,7 +248,7 @@ ${emitPublicSetCases(definition)}
 
   invoke(name: string, ...args: number[]): number {
     switch (name) {
-${definition.methods.map(method => emitInvokeCase(method)).join('\n')}
+${emitInvokeCases(definition)}
       default: throw new Error('${definition.type} has no generated method "' + name + '"');
     }
   }
@@ -239,6 +300,7 @@ function emitInternalFields(definition: GeneratedCpuDefinition): string {
 }
 
 function emitInternalMethods(definition: GeneratedCpuDefinition): string {
+  const addressMask = definition.addressMask ?? 0xffff;
   const ram = definition.internal?.ram ?? [];
   const ports = definition.internal?.ports ?? [];
   const handshake = definition.internal?.portHandshake;
@@ -325,13 +387,13 @@ ${index === handshake?.portIndex
     : `    void inputnum;
     void state;`;
   return `  private readMemory(address: number): number {
-    const location = address & 0xffff;${controlRead}${portReads}
+    const location = address & ${addressMask};${controlRead}${portReads}
     if (${ramCondition}) return this.internalRam[location];
     return this.bus.read(location) & 0xff;
   }
 
   private writeMemory(address: number, value: number): void {
-    const location = address & 0xffff;
+    const location = address & ${addressMask};
     const data = value & 0xff;${controlWrite}${portWrites}
     if (${ramCondition}) {
       this.internalRam[location] = data;
@@ -341,7 +403,7 @@ ${index === handshake?.portIndex
   }
 
   private readOpcode(address: number): number {
-    const location = address & 0xffff;
+    const location = address & ${addressMask};
     const value = this.readMemory(location);
 ${decrypt
     ? `    if (location < ${decrypt.boundary}) return value;
@@ -372,6 +434,10 @@ ${updateInput}
 }
 
 function emitMember(member: GeneratedCpuMember): string {
+  if (member.z8000Registers) return `  private ${member.name} = new Z8000RegisterFile();`;
+  if (member.wordByteRegisters) {
+    return `  private ${member.name} = new WordByteRegisterFile(${member.wordByteRegisters});`;
+  }
   if (member.values) {
     return member.bits === 8
       ? `  private ${member.name} = Uint8Array.from([${member.values.join(', ')}]);`
@@ -412,18 +478,53 @@ function emitMethod(
   const reference = parameters.find(parameter => parameter.reference);
   const body = emitProgram(method.program, context, 4);
   return [
-    `  private method_${safeName(method.name)}(${parameters.map(parameter =>
-      `${parameter.name}: number`).join(', ')}): number {`,
+    `  private method_${emittedMethodName(definition, method)}(${parameters.map(parameter =>
+      `${parameter.name}: number = 0`).join(', ')}): number {`,
     body,
     reference ? `    return ${reference.name};` : '    return 0;',
     '  }',
   ].join('\n');
 }
 
-function emitInvokeCase(method: GeneratedCpuMethod): string {
-  const parameters = parseParameters(method.parameters);
-  const args = parameters.map((_, index) => `args[${index}] ?? 0`).join(', ');
-  return `      case ${JSON.stringify(method.name)}: return this.method_${safeName(method.name)}(${args});`;
+function emittedMethodName(
+  definition: GeneratedCpuDefinition,
+  method: GeneratedCpuMethod,
+): string {
+  const overloaded = definition.methods.filter(candidate => candidate.name === method.name).length > 1;
+  return safeName(method.name) + (overloaded ? `_${parseParameters(method.parameters).length}` : '');
+}
+
+function resolveMethod(
+  definition: GeneratedCpuDefinition,
+  name: string,
+  arity: number,
+): GeneratedCpuMethod | undefined {
+  const candidates = definition.methods.filter(candidate => candidate.name === name);
+  return candidates.find(candidate => parseParameters(candidate.parameters).length === arity) ?? candidates[0];
+}
+
+function emitInvokeCases(definition: GeneratedCpuDefinition): string {
+  const names = [...new Set(definition.methods.map(method => method.name))];
+  return names.map(name => {
+    const candidates = definition.methods.filter(method => method.name === name);
+    const calls = candidates.map(method => {
+      const parameters = parseParameters(method.parameters);
+      const args = parameters.map((_, index) => `args[${index}] ?? 0`).join(', ');
+      return {
+        arity: parameters.length,
+        call: `this.method_${emittedMethodName(definition, method)}(${args})`,
+      };
+    });
+    if (calls.length === 1) {
+      return `      case ${JSON.stringify(name)}: return ${calls[0]!.call};`;
+    }
+    return [
+      `      case ${JSON.stringify(name)}:`,
+      ...calls.map(candidate =>
+        `        if (args.length === ${candidate.arity}) return ${candidate.call};`),
+      `        return ${calls[0]!.call};`,
+    ].join('\n');
+  }).join('\n');
 }
 
 function emitPublicGetCases(definition: GeneratedCpuDefinition): string {
@@ -432,7 +533,7 @@ function emitPublicGetCases(definition: GeneratedCpuDefinition): string {
     lines.push(`      case ${JSON.stringify(name)}: return this.${name};`);
   }
   for (const member of definition.members) {
-    if (member.values) continue;
+    if (member.values || member.wordByteRegisters || member.z8000Registers) continue;
     if (member.pair) {
       lines.push(`      case ${JSON.stringify(member.name)}:`);
       lines.push(`      case ${JSON.stringify(`${member.name}.w`)}: return this.${member.name}.w;`);
@@ -459,7 +560,7 @@ function emitPublicSetCases(definition: GeneratedCpuDefinition): string {
     );
   }
   for (const member of definition.members) {
-    if (member.values) continue;
+    if (member.values || member.wordByteRegisters || member.z8000Registers) continue;
     if (member.pair) {
       lines.push(`      case ${JSON.stringify(member.name)}:`);
       lines.push(
@@ -560,7 +661,9 @@ function emitOperation(
       .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
       .map((part, index) => (index > 0 && part.startsWith('let ') ? part.slice(4) : part))
       .join(', ');
-    const iterate = emitOperation(operation.iterate, context, 0).trim().replace(/;$/, '');
+    const iterate = operation.iterate
+      .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+      .join(', ');
     return [
       `${pad}for (${initialize}; ${emitExpression(operation.condition, context)}; ${iterate}) {`,
       emitOperations(operation.body, context, indentation + 2),
@@ -623,14 +726,14 @@ function emitCallStatement(
     ].join('\n');
   }
 
-  const method = context.definition.methods.find(candidate => candidate.name === name);
+  const method = resolveMethod(context.definition, name ?? '', expression.args.length);
   const parameters = method ? parseParameters(method.parameters) : [];
   const referenceIndex = parameters.findIndex(parameter => parameter.reference);
   if (method && referenceIndex >= 0 && expression.args[referenceIndex]) {
     const target = targetInfo(expression.args[referenceIndex]!, context);
     const args = expression.args.map((argument, index) =>
       index === referenceIndex ? target.code : emitExpression(argument, context));
-    const value = `this.method_${safeName(method.name)}(${args.join(', ')})`;
+    const value = `this.method_${emittedMethodName(context.definition, method)}(${args.join(', ')})`;
     return `${pad}${target.code} = ${wrapTarget(value, target)};`;
   }
   return `${pad}${emitExpression(expression, context)};`;
@@ -695,8 +798,12 @@ function emitCall(
 ): string {
   const name = expressionPath(expression.callee) ?? '';
   const args = expression.args.map(argument => emitExpression(argument, context));
-  const method = context.definition.methods.find(candidate => candidate.name === name);
-  if (method) return `this.method_${safeName(method.name)}(${args.join(', ')})`;
+  const addressMask = context.definition.addressMask ?? 0xffff;
+  const fixedInstructionCycles = context.definition.dialect === 'mame-musashi-generated-handler-table';
+  const method = resolveMethod(context.definition, name, expression.args.length);
+  if (method) {
+    return `this.method_${emittedMethodName(context.definition, method)}(${args.join(', ')})`;
+  }
 
   if ((name === 'POSTINC' || name === 'POSTDEC') && expression.args[0]) {
     const target = targetInfo(expression.args[0], context);
@@ -718,7 +825,40 @@ function emitCall(
   if (name === 'std::size') return `(${args[0] ?? '[]'}).length`;
 
   if (name === 'READ' || name === 'ARG') {
-    return `(++this.cycles, this.readMemory((${args[0] ?? '0'}) & 0xffff) & 0xff)`;
+    const read = `this.readMemory((${args[0] ?? '0'}) & ${addressMask}) & 0xff`;
+    return fixedInstructionCycles ? `(${read})` : `(++this.cycles, ${read})`;
+  }
+  if (name === 'READ16BE') {
+    const address = `(${args[0] ?? '0'})`;
+    if (!context.definition.internal) {
+      return `(this.bus.read16be?.(${address} & ${addressMask}) ?? ` +
+        `(((this.readMemory(${address}) & 0xff) << 8) | ` +
+        `(this.readMemory(${address} + 1) & 0xff)))`;
+    }
+    return `(((this.readMemory(${address}) & 0xff) << 8) | ` +
+      `(this.readMemory(${address} + 1) & 0xff))`;
+  }
+  if (name === 'READ16LE') {
+    const address = `(${args[0] ?? '0'})`;
+    return `((this.readMemory(${address}) & 0xff) | ` +
+      `((this.readMemory(${address} + 1) & 0xff) << 8))`;
+  }
+  if (name === 'READ32BE') {
+    const address = `(${args[0] ?? '0'})`;
+    if (!context.definition.internal) {
+      const high = `(this.bus.read16be?.(${address} & ${addressMask}) ?? ` +
+        `(((this.readMemory(${address}) & 0xff) << 8) | ` +
+        `(this.readMemory(${address} + 1) & 0xff)))`;
+      const lowAddress = `(${address} + 2)`;
+      const low = `(this.bus.read16be?.(${lowAddress} & ${addressMask}) ?? ` +
+        `(((this.readMemory(${lowAddress}) & 0xff) << 8) | ` +
+        `(this.readMemory(${lowAddress} + 1) & 0xff)))`;
+      return `(((${high} << 16) | ${low}) >>> 0)`;
+    }
+    return `((((this.readMemory(${address}) & 0xff) << 24) | ` +
+      `((this.readMemory(${address} + 1) & 0xff) << 16) | ` +
+      `((this.readMemory(${address} + 2) & 0xff) << 8) | ` +
+      `(this.readMemory(${address} + 3) & 0xff)) >>> 0)`;
   }
   if (name === 'READ_VECTOR') {
     return `(++this.cycles, this.readMemory((this.m_ea.w + (${args[0] ?? '0'})) & 0xffff) & 0xff)`;
@@ -727,8 +867,44 @@ function emitCall(
     return `(++this.cycles, this.readOpcode((${args[0] ?? '0'}) & 0xffff) & 0xff)`;
   }
   if (name === 'WRITE') {
-    return `(++this.cycles, this.writeMemory((${args[0] ?? '0'}) & 0xffff, ` +
-      `(${args[1] ?? '0'}) & 0xff), 0)`;
+    const write = `this.writeMemory((${args[0] ?? '0'}) & ${addressMask}, ` +
+      `(${args[1] ?? '0'}) & 0xff)`;
+    return fixedInstructionCycles ? `(${write}, 0)` : `(++this.cycles, ${write}, 0)`;
+  }
+  if (name === 'WRITE16BE') {
+    const address = `(${args[0] ?? '0'})`;
+    const value = `(${args[1] ?? '0'})`;
+    if (!context.definition.internal) {
+      return `(this.bus.write16be ` +
+        `? (this.bus.write16be(${address} & ${addressMask}, ${value} & 0xffff), 0) ` +
+        `: (this.writeMemory(${address}, ${value} >>> 8), ` +
+        `this.writeMemory(${address} + 1, ${value}), 0))`;
+    }
+    return `(this.writeMemory(${address}, ${value} >>> 8), ` +
+      `this.writeMemory(${address} + 1, ${value}), 0)`;
+  }
+  if (name === 'WRITE16LE') {
+    const address = `(${args[0] ?? '0'})`;
+    const value = `(${args[1] ?? '0'})`;
+    return `(this.writeMemory(${address}, ${value}), ` +
+      `this.writeMemory(${address} + 1, ${value} >>> 8), 0)`;
+  }
+  if (name === 'WRITE32BE') {
+    const address = `(${args[0] ?? '0'})`;
+    const value = `(${args[1] ?? '0'})`;
+    if (!context.definition.internal) {
+      return `(this.bus.write16be ` +
+        `? (this.bus.write16be(${address} & ${addressMask}, (${value} >>> 16) & 0xffff), ` +
+        `this.bus.write16be((${address} + 2) & ${addressMask}, ${value} & 0xffff), 0) ` +
+        `: (this.writeMemory(${address}, ${value} >>> 24), ` +
+        `this.writeMemory(${address} + 1, ${value} >>> 16), ` +
+        `this.writeMemory(${address} + 2, ${value} >>> 8), ` +
+        `this.writeMemory(${address} + 3, ${value}), 0))`;
+    }
+    return `(this.writeMemory(${address}, ${value} >>> 24), ` +
+      `this.writeMemory(${address} + 1, ${value} >>> 16), ` +
+      `this.writeMemory(${address} + 2, ${value} >>> 8), ` +
+      `this.writeMemory(${address} + 3, ${value}), 0)`;
   }
   if (name === 'm_opcodes.read_byte') {
     return `((this.bus.readOpcode?.((${args[0] ?? '0'}) & 0xffff) ?? ` +
@@ -746,6 +922,21 @@ function emitCall(
   }
   if (name === 'm_io.write_interruptible') {
     return `(this.bus.out((${args[0] ?? '0'}) & 0xffff, (${args[1] ?? '0'}) & 0xff), 0)`;
+  }
+  if (name === 'PORT_READ') return `(this.bus.in((${args[0] ?? '0'}) & 0xffff) & 0xff)`;
+  if (name === 'PORT_READ16') {
+    const port = `(${args[0] ?? '0'})`;
+    return `((this.bus.in(${port} & 0xffff) & 0xff) | ` +
+      `((this.bus.in((${port} + 1) & 0xffff) & 0xff) << 8))`;
+  }
+  if (name === 'PORT_WRITE') {
+    return `(this.bus.out((${args[0] ?? '0'}) & 0xffff, (${args[1] ?? '0'}) & 0xff), 0)`;
+  }
+  if (name === 'PORT_WRITE16') {
+    const port = `(${args[0] ?? '0'})`;
+    const value = `(${args[1] ?? '0'})`;
+    return `(this.bus.out(${port} & 0xffff, ${value} & 0xff), ` +
+      `this.bus.out((${port} + 1) & 0xffff, (${value} >>> 8) & 0xff), 0)`;
   }
   if (name === 'm_program.read_byte' || name === 'm_cprogram.read_byte' ||
       name === 'm_copcodes.read_byte') {
@@ -795,11 +986,16 @@ function emitCall(
     return `(this.bus.signal?.(${JSON.stringify(name.slice(2))}, ` +
       `${args[0] ?? '0'}) ?? 0)`;
   }
-  if (name === 'standard_irq_callback') return 'this.acknowledgeIrq()';
+  if (name === 'standard_irq_callback') {
+    return `this.acknowledgeIrq(${args[0] ?? '0'})`;
+  }
   if (name === 'm_irqack_cb') {
     return `(this.bus.signal?.('irqack_cb', ${args[0] ?? '0'}) ?? 0)`;
   }
   if (name === 'm_irqack_cb.bind') return '0';
+  if (/^m_\w+_cb$/.test(name)) {
+    return `(this.bus.signal?.(${JSON.stringify(name.slice(2))}, ${args[0] ?? '0'}) ?? 0)`;
+  }
   if (name === 'LOG' || name === 'LOGMASKED' || name === 'logerror') return '0';
   if (name === 'total_cycles') return '1';
 
@@ -815,6 +1011,21 @@ function emitAssignment(
   context: EmitContext,
   postfix = false,
 ): string {
+  // MAME uses a conditional pointer as an lvalue in a few register helpers,
+  // e.g. `*((ordinal & 1) ? &m_d.b.l : &m_d.b.h) = data`. Preserve the
+  // selected byte target explicitly; JavaScript has no address-of/dereference
+  // lvalue syntax for targetInfo to represent directly.
+  if (target.kind === 'unary' && target.operator === '*' &&
+      target.operand.kind === 'conditional') {
+    const whenTrue = target.operand.whenTrue;
+    const whenFalse = target.operand.whenFalse;
+    if (whenTrue.kind === 'unary' && whenTrue.operator === '&' &&
+        whenFalse.kind === 'unary' && whenFalse.operator === '&') {
+      return `(${emitExpression(target.operand.condition, context)} ? (` +
+        `${emitAssignment(whenTrue.operand, operator, value, context, postfix)}) : (` +
+        `${emitAssignment(whenFalse.operand, operator, value, context, postfix)}))`;
+    }
+  }
   const targetValue = targetInfo(target, context);
   const right = emitExpression(value, context);
   const next = operator === '='
@@ -832,7 +1043,11 @@ function targetInfo(
 ): { code: string; bits?: 1 | 8 | 16 | 32; valueType?: string } {
   if (expression.kind === 'index') {
     const object = expressionPath(expression.object);
-    if (!object) throw new Error('generated CPU assignment has unsupported indexed target');
+    if (!object) {
+      throw new Error(
+        `generated CPU assignment has unsupported indexed target ${JSON.stringify(expression)}`,
+      );
+    }
     const member = memberForPath(object, context.definition);
     return {
       code: `${emitExpression(expression.object, context)}[${emitExpression(expression.index, context)}]`,
@@ -840,7 +1055,11 @@ function targetInfo(
     };
   }
   const path = expressionPath(expression);
-  if (!path) throw new Error(`generated CPU assignment has unsupported target ${expression.kind}`);
+  if (!path) {
+    throw new Error(
+      `generated CPU assignment has unsupported target ${JSON.stringify(expression)}`,
+    );
+  }
   const localType = context.locals.get(path);
   if (context.locals.has(path)) {
     return { code: path, valueType: localType };
@@ -929,7 +1148,7 @@ function collectLocals(
       if (operation.else) collectLocals(operation.else, locals);
     } else if (operation.op === 'for') {
       collectLocals(operation.initialize, locals);
-      collectLocals([operation.iterate], locals);
+      collectLocals(operation.iterate, locals);
       collectLocals(operation.body, locals);
     } else if (operation.op === 'while' || operation.op === 'do-while') {
       collectLocals(operation.body, locals);

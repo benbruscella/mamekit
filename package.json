@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "clean": "rm -rf dist",
+    "dev": "node src/dev.ts",
     "serve": "node bin/mamekit.js --serve",
     "gen": "node bin/mamekit.js",
     "gen:all": "npm run clean && node bin/mamekit.js --all",

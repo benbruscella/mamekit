@@ -8,11 +8,17 @@ import type { GeneratedHandlerProgram } from '../ir/board.ts';
 
 export interface CpuBus {
   read(address: number): number;
+  /** Atomic big-endian word access for native 16-bit address-map handlers. */
+  read16be?(address: number): number;
   /** AS_OPCODES fetch when the board maps encrypted opcodes separately. */
   readOpcode?(address: number): number;
   write(address: number, data: number): void;
+  /** Atomic big-endian word access for native 16-bit address-map handlers. */
+  write16be?(address: number, data: number): void;
   in(port: number): number;
   out(port: number, data: number): void;
+  /** Optional source-derived interrupt-acknowledge address-space read. */
+  acknowledge?(level: number): number;
   signal?(name: string, state: number): number | void;
   /** Instruction boundary within the current scheduler slice. */
   timing?(elapsedCycles: number, targetCycles: number): void;
@@ -31,6 +37,8 @@ interface CpuMember {
   values?: number[];
   fields?: Record<string, 1 | 8 | 16 | 32>;
   initial?: number;
+  wordByteRegisters?: number;
+  z8000Registers?: boolean;
 }
 
 interface CpuMethod {
@@ -47,6 +55,8 @@ interface CpuOpcode {
 
 export interface GeneratedCpuDefinition {
   type: string;
+  dialect?: string;
+  addressMask?: number;
   constants: Record<string, number>;
   aliases: Record<string, CpuAlias>;
   members: CpuMember[];
@@ -154,6 +164,10 @@ class IrCpu implements Cpu {
   private portHandshakeLatched = false;
   private portHandshakePendingClear = false;
 
+  private get addressMask(): number {
+    return this.definition.addressMask ?? 0xffff;
+  }
+
   constructor(definition: GeneratedCpuDefinition, bus: CpuBus) {
     this.definition = definition;
     this.bus = bus;
@@ -162,7 +176,11 @@ class IrCpu implements Cpu {
     this.opcodes = new Map(definition.opcodes.map(opcode => [opcode.key, opcode]));
     this.methods = new Map(definition.methods.map(method => [method.name, method]));
     for (const member of definition.members) {
-      if (member.values) {
+      if (member.z8000Registers) {
+        this.members[member.name] = new Z8000RegisterFile();
+      } else if (member.wordByteRegisters) {
+        this.members[member.name] = new WordByteRegisterFile(member.wordByteRegisters);
+      } else if (member.values) {
         this.members[member.name] = member.bits === 8
           ? Uint8Array.from(member.values)
           : [...member.values];
@@ -324,9 +342,20 @@ class IrCpu implements Cpu {
   private externalCalls(): NonNullable<GeneratedHandlerBindings['calls']> {
     return {
       READ: address => {
-        this.set('cycles', this.get('cycles') + 1);
+        if (this.definition.dialect !== 'mame-musashi-generated-handler-table') {
+          this.set('cycles', this.get('cycles') + 1);
+        }
         return this.readMemory(address);
       },
+      READ16BE: address => this.bus.read16be && !this.definition.internal
+        ? this.bus.read16be(address & this.addressMask)
+        : ((this.readMemory(address) << 8) | this.readMemory(address + 1)) & 0xffff,
+      READ32BE: address => (
+        (this.readMemory(address) << 24) |
+        (this.readMemory(address + 1) << 16) |
+        (this.readMemory(address + 2) << 8) |
+        this.readMemory(address + 3)
+      ) >>> 0,
       READ_VECTOR: ordinal => {
         this.set('cycles', this.get('cycles') + 1);
         return this.readMemory(this.get('m_ea.w') + ordinal);
@@ -340,17 +369,36 @@ class IrCpu implements Cpu {
         return this.readOpcode(address);
       },
       WRITE: (address, value) => {
-        this.set('cycles', this.get('cycles') + 1);
+        if (this.definition.dialect !== 'mame-musashi-generated-handler-table') {
+          this.set('cycles', this.get('cycles') + 1);
+        }
         this.writeMemory(address, value);
         return 0;
       },
-      'm_data.read_interruptible': address => this.bus.read(address & 0xffff) & 0xff,
+      WRITE16BE: (address, value) => {
+        if (this.bus.write16be && !this.definition.internal) {
+          this.bus.write16be(address & this.addressMask, value & 0xffff);
+          return 0;
+        }
+        this.writeMemory(address, value >>> 8);
+        this.writeMemory(address + 1, value);
+        return 0;
+      },
+      WRITE32BE: (address, value) => {
+        this.writeMemory(address, value >>> 24);
+        this.writeMemory(address + 1, value >>> 16);
+        this.writeMemory(address + 2, value >>> 8);
+        this.writeMemory(address + 3, value);
+        return 0;
+      },
+      'm_data.read_interruptible': address => this.bus.read(address & this.addressMask) & 0xff,
       'm_data.write_interruptible': (address, value) => {
-        this.bus.write(address & 0xffff, value & 0xff);
+        this.bus.write(address & this.addressMask, value & 0xff);
       },
       'm_opcodes.read_byte': address =>
-        (this.bus.readOpcode?.(address & 0xffff) ?? this.bus.read(address & 0xffff)) & 0xff,
-      'm_args.read_byte': address => this.bus.read(address & 0xffff) & 0xff,
+        (this.bus.readOpcode?.(address & this.addressMask) ??
+          this.bus.read(address & this.addressMask)) & 0xff,
+      'm_args.read_byte': address => this.bus.read(address & this.addressMask) & 0xff,
       'm_program.read_byte': address => this.readMemory(address),
       'm_cprogram.read_byte': address => this.readMemory(address),
       'm_copcodes.read_byte': address => this.readMemory(address),
@@ -360,6 +408,24 @@ class IrCpu implements Cpu {
       'm_io.read_interruptible': port => this.bus.in(port & 0xffff) & 0xff,
       'm_io.write_interruptible': (port, value) => {
         this.bus.out(port & 0xffff, value & 0xff);
+      },
+      PORT_READ: port => this.bus.in(port & 0xffff) & 0xff,
+      PORT_READ16: port => (this.bus.in(port & 0xffff) & 0xff) |
+        ((this.bus.in((port + 1) & 0xffff) & 0xff) << 8),
+      PORT_WRITE: (port, value) => {
+        this.bus.out(port & 0xffff, value & 0xff);
+        return 0;
+      },
+      PORT_WRITE16: (port, value) => {
+        this.bus.out(port & 0xffff, value & 0xff);
+        this.bus.out((port + 1) & 0xffff, (value >>> 8) & 0xff);
+        return 0;
+      },
+      READ16LE: address => this.readMemory(address) | (this.readMemory(address + 1) << 8),
+      WRITE16LE: (address, value) => {
+        this.writeMemory(address, value);
+        this.writeMemory(address + 1, value >>> 8);
+        return 0;
       },
       program_r: address => this.readMemory(address & 0x0fff),
       ram_r: address => {
@@ -386,7 +452,12 @@ class IrCpu implements Cpu {
       prog_w: value => Number(this.bus.signal?.('prog_out_cb', value & 1) ?? 0),
       m_out_inte_func: state => this.bus.signal?.('out_inte_func', state) ?? 0,
       m_out_sod_func: state => this.bus.signal?.('out_sod_func', state) ?? 0,
-      standard_irq_callback: () => this.acknowledgeIrq(),
+      m_refresh_cb: state => this.bus.signal?.('refresh_cb', state) ?? 0,
+      m_nomreq_cb: state => this.bus.signal?.('nomreq_cb', state) ?? 0,
+      m_halt_cb: state => this.bus.signal?.('halt_cb', state) ?? 0,
+      m_busack_cb: state => this.bus.signal?.('busack_cb', state) ?? 0,
+      standard_irq_callback: (...args) =>
+        this.bus.acknowledge?.(Number(args[0]) || 0) ?? this.acknowledgeIrq(),
       daisy_get_irq_device: () => 0,
       daisy_chain_present: () => 0,
       daisy_update_irq_state: () => 0,
@@ -402,7 +473,7 @@ class IrCpu implements Cpu {
   }
 
   private readMemory(address: number): number {
-    const location = address & 0xffff;
+    const location = address & this.addressMask;
     const ports = this.definition.internal?.ports ?? [];
     const handshake = this.definition.internal?.portHandshake;
     if (location === handshake?.controlAddress) {
@@ -440,7 +511,7 @@ class IrCpu implements Cpu {
   }
 
   private readOpcode(address: number): number {
-    const location = address & 0xffff;
+    const location = address & this.addressMask;
     const value = this.readMemory(location);
     const decrypt = this.definition.opcodeDecrypt;
     if (!decrypt || location < decrypt.boundary) return value;
@@ -448,7 +519,7 @@ class IrCpu implements Cpu {
   }
 
   private writeMemory(address: number, value: number): void {
-    const location = address & 0xffff;
+    const location = address & this.addressMask;
     const data = value & 0xff;
     const ports = this.definition.internal?.ports ?? [];
     const handshake = this.definition.internal?.portHandshake;
@@ -597,8 +668,8 @@ function isLValue(value: GeneratedCallArgument): value is GeneratedLValue {
   return Boolean(
     value &&
     typeof value === 'object' &&
-    'get' in value &&
-    'set' in value,
+    'generatedLValue' in value &&
+    value.generatedLValue === true,
   );
 }
 
@@ -628,6 +699,62 @@ function typedObject(fields: Record<string, 1 | 8 | 16 | 32>): Record<string, un
     });
   }
   return object;
+}
+
+class WordByteRegisterFile {
+  readonly w: Uint16Array;
+  readonly b: Uint8Array;
+
+  constructor(words: number) {
+    const buffer = new ArrayBuffer(words * 2);
+    this.w = new Uint16Array(buffer);
+    this.b = new Uint8Array(buffer);
+  }
+}
+
+class Z8000RegisterFile {
+  readonly W = new Uint16Array(16);
+  readonly B: Record<number, number>;
+  readonly L: Record<number, number>;
+  readonly Q: Record<number, number>;
+
+  constructor() {
+    this.B = new Proxy({}, {
+      get: (_target, key) => {
+        const index = Number(key); const word = this.W[index >>> 1] ?? 0;
+        return index & 1 ? word & 0xff : word >>> 8;
+      },
+      set: (_target, key, value) => {
+        const index = Number(key); const slot = index >>> 1; const old = this.W[slot] ?? 0;
+        this.W[slot] = index & 1 ? (old & 0xff00) | (Number(value) & 0xff)
+          : (old & 0xff) | ((Number(value) & 0xff) << 8); return true;
+      },
+    }) as Record<number, number>;
+    this.L = new Proxy({}, {
+      get: (_target, key) => {
+        const index = Number(key) * 2;
+        return ((((this.W[index] ?? 0) << 16) | (this.W[index + 1] ?? 0)) >>> 0);
+      },
+      set: (_target, key, value) => {
+        const index = Number(key) * 2; const data = Number(value) >>> 0;
+        this.W[index] = data >>> 16; this.W[index + 1] = data; return true;
+      },
+    }) as Record<number, number>;
+    this.Q = new Proxy({}, {
+      get: (_target, key) => {
+        const index = Number(key) * 4;
+        return (this.W[index] ?? 0) * 0x1000000000000 + (this.W[index + 1] ?? 0) * 0x100000000 +
+          (this.W[index + 2] ?? 0) * 0x10000 + (this.W[index + 3] ?? 0);
+      },
+      set: (_target, key, value) => {
+        const index = Number(key) * 4; let data = Number(value);
+        this.W[index + 3] = data; data = Math.floor(data / 0x10000);
+        this.W[index + 2] = data; data = Math.floor(data / 0x10000);
+        this.W[index + 1] = data; data = Math.floor(data / 0x10000);
+        this.W[index] = data; return true;
+      },
+    }) as Record<number, number>;
+  }
 }
 
 class Pair16 {

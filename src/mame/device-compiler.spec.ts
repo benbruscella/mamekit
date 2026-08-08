@@ -34,7 +34,11 @@ assert.deepEqual(
   generated.hierarchy,
   ['addressable_latch_device', 'ls259_device'],
 );
-assert.equal(generated.summary.methods, 27);
+assert.equal(
+  generated.summary.methods,
+  38,
+  'overridden methods must retain their qualified base implementations',
+);
 assert.equal(generated.summary.compiledMethods, generated.summary.methods);
 assert.equal(generated.summary.diagnostics, 0);
 assert.ok(generated.sourceFiles.every(file => file.startsWith('src/')));

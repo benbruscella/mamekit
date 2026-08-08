@@ -52,6 +52,14 @@ export interface CapabilityExtraction {
   executable: Record<string, { kind: CapabilityKind; artifact: string }>;
   artifacts: CapabilityArtifact[];
   /**
+   * Lazily generated artifact groups for unusually large source compilers.
+   * The closure emitter consumes and releases one group at a time instead of
+   * retaining every generated source string in the Node heap.
+   */
+  artifactGroups?: Array<() => CapabilityArtifact[]>;
+  /** Emit large artifacts in an isolated worker so its compiler heap is reclaimed. */
+  artifactEmitters?: Array<(root: string) => void>;
+  /**
    * Methods this extraction lowered for a device type, replacing whatever the
    * closure scraped from the class. A device compiled through MAME's device
    * inheritance knows its real method set; the closure's first pass does not.

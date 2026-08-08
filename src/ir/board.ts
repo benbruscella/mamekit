@@ -24,6 +24,8 @@ export interface RangeSpec {
   start: number;
   end: number;
   mirror?: number;
+  /** ROM region supplying this range when it differs from the CPU's primary region. */
+  region?: string;
   /** Byte offset in the ROM region corresponding to this range's start. */
   romOffset?: number;
   kind: 'rom' | 'ram' | 'handler' | 'nop';
@@ -38,6 +40,9 @@ export interface RangeSpec {
   writeOnly?: boolean;
   /** The MAME write handler explicitly stores this shared RAM byte itself. */
   writeHandlerOwnsRam?: boolean;
+  /** MAME memory_view entry that conditionally overlays this range. */
+  viewTag?: string;
+  viewEntry?: number;
 }
 
 export interface GeneratedCallback {
@@ -59,6 +64,8 @@ export interface GeneratedCallback {
   /** TIMER.configure_scanline start and cadence, expanded against screen vtotal. */
   scanlineStart?: number;
   scanlineIncrement?: number;
+  /** Skip a source scanline callback when its PROM lookup is electrically zero. */
+  promGate?: { member: string; mask: number };
   transforms?: string[];
   source?: BoardSourceRef;
 }
@@ -78,7 +85,9 @@ export interface GeneratedCallback {
 // ---------------------------------------------------------------------------
 
 /** CPU interrupt/control pins, named as pins rather than as MAME methods. */
-export type CpuLine = 'irq' | 'firq' | 'nmi' | 'reset' | 'halt';
+export type CpuLine =
+  | 'irq' | 'irq1' | 'irq2' | 'irq3' | 'irq4' | 'irq5' | 'irq6' | 'irq7'
+  | 'firq' | 'nmi' | 'reset' | 'halt';
 
 /**
  * How a source drives the pin. MAME's driver_device interrupt generators
@@ -117,6 +126,7 @@ export type BoardEffect =
 export type BoardTransform =
   | { kind: 'invert' }
   | { kind: 'mask'; value: number }
+  | { kind: 'bit'; bit: number }
   | { kind: 'rshift'; bits: number }
   | { kind: 'lshift'; bits: number };
 
@@ -160,7 +170,7 @@ export interface GeneratedHandler {
 }
 
 export type GeneratedExpression =
-  | { kind: 'number'; value: number }
+  | { kind: 'number'; value: number; floating?: boolean }
   | { kind: 'string'; value: string }
   | { kind: 'identifier'; name: string }
   | { kind: 'unary'; operator: string; operand: GeneratedExpression }
@@ -195,7 +205,7 @@ export type GeneratedHandlerOperation =
       op: 'for';
       initialize: GeneratedHandlerOperation[];
       condition: GeneratedExpression;
-      iterate: GeneratedHandlerOperation;
+      iterate: GeneratedHandlerOperation[];
       body: GeneratedHandlerOperation[];
     }
   | {
@@ -247,6 +257,10 @@ export interface GeneratedExecutionCpu {
   clock: number;
   /** Effective instruction-cycle clock after a MAME device's internal divider. */
   cycleClock?: number;
+  /** Whether a 68000 exposes logical IRQ levels instead of its three physical IPL pins. */
+  interruptMixer?: boolean;
+  /** Source handler mapped in the CPU's interrupt-acknowledge address space. */
+  interruptAcknowledge?: string;
   region: string;
   ranges?: RangeSpec[];
   mask?: number;
@@ -292,12 +306,19 @@ export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
   /** Source-defined power-on contents for battery-backed/shared RAM. */
   initialShares?: { share: string; bytes: number[] }[];
+  /** Source member names that alias an address-map memory share. */
+  shareBindings?: { share: string; member: string; bits?: 8 | 16 }[];
   /** Driver lifecycle handlers executed in source-derived base-first order. */
+  startHandlers?: string[];
   resetHandlers?: string[];
   banks?: {
     tag: string;
     member: string;
-    region: string;
+    region?: string;
+    /** Per-entry ROM region when one hardware bank spans several devices. */
+    entryRegions?: (string | null)[];
+    /** Driver-owned byte arrays backing entries instead of a ROM region. */
+    entryMembers?: (string | null)[];
     /**
      * Byte offset into the region for each bank entry, indexed by MAME entry
      * number. A bank configured by several calls (configure_entries plus a
@@ -305,11 +326,28 @@ export interface GeneratedExecutionPlan {
      * null, and selecting one is an error just as it is in MAME.
      */
     entryOffsets: (number | null)[];
+    dynamicShift?: number;
     source?: BoardSourceRef;
   }[];
   screen: GeneratedScreen;
-  customs?: { port: string; mask: number; member: string; handler?: string }[];
+  customs?: {
+    port: string;
+    mask: number;
+    member: string;
+    handler?: string;
+    source?: 'screen-vblank' | 'rtc-tp' | 'rtc-data';
+    activeLow?: boolean;
+  }[];
   inputMembers?: { member: string; tags: string[] }[];
+  /** Source PORT_CHANGED_MEMBER handlers that latch an asserted input bit. */
+  inputLatches?: {
+    port: string;
+    mask: number;
+    activeLow: boolean;
+    stateMember: string;
+    index: number;
+    handler: string;
+  }[];
   frameEvents: GeneratedFrameEvent[];
   screenUpdate?: {
     handler: string;
@@ -343,6 +381,16 @@ export interface GeneratedGfxEntry {
 }
 
 export interface GeneratedPromPalettePlan {
+  /**
+   * A source-defined palette that switches multiple PROM-backed resistor
+   * networks at runtime.  TNX1 hardware exposes background/text and sprite
+   * PROMs through one palette_device and selects their banks from DMA state.
+   */
+  dynamic?: {
+    kind: 'tnx1-banked';
+    colorRegion: string;
+    spriteRegion: string;
+  };
   region: string;
   /** Lookup PROM when it is separate from the RGB PROM. */
   lookupRegion?: string;
@@ -369,6 +417,8 @@ export interface GeneratedPromPalettePlan {
   };
   /** palette_t::normalize_range applied after PROM decoding/overrides. */
   normalize?: { start: number; end: number; lumMin: number; lumMax: number };
+  /** Destination pen -> decoded PROM color permutation applied by the driver. */
+  colorIndexMap?: number[];
   /**
    * PROM indices overridden to electrical black after resistor decoding.
    * Some boards tri-state their palette outputs for a masked subset of
@@ -395,6 +445,16 @@ export interface GeneratedPromPalettePlan {
     }[];
   }[];
   /**
+   * Indirect-color sections computed entirely from the palette index with
+   * fixed MAME helpers/expressions (for example pal1bit and conditional
+   * resistor pulls). Values are packed in the runtime's native RGBA word
+   * order and do not depend on a PROM byte.
+   */
+  indexedColors?: {
+    base: number;
+    colors: number[];
+  }[];
+  /**
    * Additional indirect-color sections read from a different range of the
    * same PROM with their own fixed bit weights.
    */
@@ -415,6 +475,23 @@ export interface GeneratedPromPalettePlan {
     colorStride?: number;
     lookupOffset?: number;
     lookupCount?: number;
+    /**
+     * Source PROM terms combined to form one indirect color. This preserves
+     * boards whose lookup value spans several PROM addresses or regions.
+     */
+    lookupTerms?: {
+      region: string;
+      offset: number;
+      mask: number;
+      shift: number;
+    }[];
+    /**
+     * A lookup PROM value that maps to a fixed indirect color instead of the
+     * bank's normal colorOr mapping.  Pole Position's PROMs use value 15 as a
+     * shared transparent color across otherwise distinct palette banks.
+     */
+    lookupValueOverride?: number;
+    overrideColor?: number;
     /** Direct palettes map pen N to color colorOr + N without a lookup PROM. */
     direct?: boolean;
   }[];
@@ -444,6 +521,10 @@ export interface GeneratedRamPalettePlan {
     bits: number;
     shift: number;
   }[];
+  /** Optional intensity field used by MAME's standard_irgb_decoder. */
+  intensity?: { bits: number; shift: number };
+  /** Fixed pens established by a palette init callback alongside writable RAM. */
+  initialColors?: { pen: number; color: number }[];
   /** inverted_rgb_decoder complements the raw value before expansion. */
   inverted?: boolean;
   /**
@@ -463,6 +544,10 @@ export interface GeneratedRamPalettePlan {
 
 export interface GeneratedTilemapPlan {
   member: string;
+  /** Source memory exposed through tilemap.user_data(). */
+  userDataMember?: string;
+  userDataOffset?: number;
+  userDataBytes?: number;
   /** MAME gfxdecode member passed to tilemap::create. */
   decodeMember?: string;
   tileWidth: number;
@@ -556,7 +641,7 @@ export interface GeneratedVideoPlan {
   /** Palette RAM decoded by a MAME set_format converter instead of a PROM. */
   ramPalette?: GeneratedRamPalettePlan;
   tilemaps: GeneratedTilemapPlan[];
-  initialState: Record<string, number | number[]>;
+  initialState: Record<string, unknown>;
   /** MAME may render at a hardware sub-pixel scale (Galaxian uses 3x horizontally). */
   renderScale?: { x: number; y: number };
   /** Driver-init delegate member -> selected MAME method, or null when explicitly cleared. */
@@ -581,6 +666,17 @@ export interface GeneratedVideoPlan {
     };
   };
   bitmap?: GeneratedBitmapPlan;
+  /** Atari Digital Vector Generator display list executed from the CPU bus. */
+  vector?: {
+    type: 'DVG';
+    memoryBase: number;
+    coordinateBits: number;
+    doneInput?: {
+      port: string;
+      mask: number;
+      activeLow: boolean;
+    };
+  };
   source?: BoardSourceRef;
 }
 

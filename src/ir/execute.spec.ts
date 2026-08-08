@@ -35,6 +35,16 @@ check('handler arguments are readable as locals', () => {
   );
 });
 
+check('68000 physical IPL line aliases retain their interrupt levels', () => {
+  assert.equal(
+    executeGeneratedHandler(
+      program([{ op: 'return', value: { kind: 'identifier', name: 'M68K_IRQ_IPL1' } }]),
+      {},
+    ),
+    1,
+  );
+});
+
 check('members are read and written through the bindings', () => {
   const members: Record<string, unknown> = { m_irq_mask: 0 };
   executeGeneratedHandler(
@@ -48,6 +58,66 @@ check('members are read and written through the bindings', () => {
     { state: 1 },
   );
   assert.equal(members.m_irq_mask, 1);
+});
+
+check('source member arrays are zero-initialized lazily on indexed writes', () => {
+  const members: Record<string, unknown> = {};
+  executeGeneratedHandler(
+    program([{
+      op: 'assign',
+      target: {
+        kind: 'index',
+        object: { kind: 'identifier', name: 'm_data' },
+        index: { kind: 'number', value: 2 },
+      },
+      operator: '=',
+      value: { kind: 'number', value: 0x5a },
+    }]),
+    { members },
+  );
+  assert.equal((members.m_data as number[])[0] ?? 0, 0);
+  assert.equal((members.m_data as number[])[2], 0x5a);
+});
+
+check('nested source member arrays are materialized on indexed writes', () => {
+  const members: Record<string, unknown> = {};
+  executeGeneratedHandler(
+    program([{
+      op: 'assign',
+      target: {
+        kind: 'index',
+        object: {
+          kind: 'index',
+          object: { kind: 'identifier', name: 'm_duty_cycle' },
+          index: { kind: 'number', value: 1 },
+        },
+        index: { kind: 'number', value: 2 },
+      },
+      operator: '=',
+      value: { kind: 'number', value: 7 },
+    }]),
+    { members },
+  );
+  assert.equal((members.m_duty_cycle as number[][])[1]![2], 7);
+});
+
+check('device finders with get/set methods remain pointer-like objects', () => {
+  const device = { get: () => 0, set: (_name: string, _value: number) => {} };
+  assert.equal(
+    executeGeneratedHandler(
+      program([{
+        op: 'return',
+        value: {
+          kind: 'binary',
+          operator: '!=',
+          left: { kind: 'identifier', name: 'm_device' },
+          right: { kind: 'number', value: 0 },
+        },
+      }]),
+      { members: { m_device: device } },
+    ),
+    1,
+  );
 });
 
 check('a program that falls off the end returns nothing', () => {
@@ -97,6 +167,85 @@ check('64-bit function-style casts preserve timer divisors', () => {
       {},
     ),
     15_744,
+  );
+});
+
+check('direct-initialized bitmap references preserve their runtime object', () => {
+  const bitmap = { 'pix=': () => {} };
+  assert.deepEqual(
+    executeGeneratedProgram(
+      program([{
+        op: 'return',
+        value: {
+          kind: 'call',
+          callee: { kind: 'identifier', name: 'bitmap_ind16' },
+          args: [{
+            kind: 'call',
+            callee: { kind: 'identifier', name: 'auto' },
+            args: [{ kind: 'identifier', name: 'bitmap' }],
+          }],
+        },
+      }]),
+      {},
+      { bitmap },
+    ),
+    { returned: true, value: bitmap },
+  );
+});
+
+check('std::copy_n copies between source memory containers', () => {
+  const source = Uint8Array.of(4, 5, 6, 7);
+  const destination = new Array(4).fill(0);
+  executeGeneratedHandler(
+    program([{
+      op: 'call',
+      expression: {
+        kind: 'call',
+        callee: { kind: 'identifier', name: 'std::copy_n' },
+        args: [
+          { kind: 'identifier', name: 'source' },
+          { kind: 'number', value: 3 },
+          { kind: 'identifier', name: 'destination' },
+        ],
+      },
+    }]),
+    {},
+    { source, destination },
+  );
+  assert.deepEqual(destination, [4, 5, 6, 0]);
+});
+
+check('finite hardware initialization loops may exceed 65536 iterations', () => {
+  assert.equal(
+    executeGeneratedHandler(
+      program([
+        {
+          op: 'for',
+          initialize: [{
+            op: 'declare',
+            name: 'i',
+            valueType: 'int',
+            value: { kind: 'number', value: 0 },
+          }],
+          condition: {
+            kind: 'binary',
+            operator: '<',
+            left: { kind: 'identifier', name: 'i' },
+            right: { kind: 'number', value: 131_071 },
+          },
+          iterate: [{
+            op: 'assign',
+            target: { kind: 'identifier', name: 'i' },
+            operator: '+=',
+            value: { kind: 'number', value: 1 },
+          }],
+          body: [],
+        },
+        { op: 'return', value: { kind: 'identifier', name: 'i' } },
+      ]),
+      {},
+    ),
+    131_071,
   );
 });
 

@@ -16,7 +16,9 @@ import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDi
 
 export interface WorkletCoreConfig {
   readonly sampleRate: number;
+  readonly deviceType?: string;
   readonly waveRom?: Uint8Array;
+  readonly sampleRom?: Uint8Array;
   readonly clock?: number;
   readonly voices?: number;
   /** number of chip instances the worklet should host (ay8910 bank) */
@@ -100,7 +102,9 @@ export class AudioOutput {
 
     node.port.postMessage({
       type: 'init',
+      deviceType: core.deviceType,
       waveRom: core.waveRom ?? new Uint8Array(0x100),
+      sampleRom: core.sampleRom,
       clock: core.clock ?? core.sampleRate,
       voices: core.voices,
       chips: core.chips,

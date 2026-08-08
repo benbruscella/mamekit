@@ -54,12 +54,12 @@ const definition: GeneratedDeviceDefinition = {
             left: { kind: 'identifier', name: 'y' },
             right: { kind: 'identifier', name: 'LIMIT' },
           },
-          iterate: {
+          iterate: [{
             op: 'assign',
             target: { kind: 'identifier', name: 'y' },
             operator: '+=',
             value: { kind: 'number', value: 1 },
-          },
+          }],
           body: [{
             op: 'for',
             initialize: [{
@@ -74,12 +74,12 @@ const definition: GeneratedDeviceDefinition = {
               left: { kind: 'identifier', name: 'x' },
               right: { kind: 'identifier', name: 'LIMIT' },
             },
-            iterate: {
+            iterate: [{
               op: 'assign',
               target: { kind: 'identifier', name: 'x' },
               operator: '+=',
               value: { kind: 'number', value: 1 },
-            },
+            }],
             body: [{
               op: 'assign',
               target: { kind: 'identifier', name: 'm_total' },
@@ -267,7 +267,7 @@ const pointerAdditionDefinition: GeneratedDeviceDefinition = {
     parameters: '',
     source: { file: 'src/devices/test.cpp', line: 9 },
     program: compileMameHandler(`
-      uint8_t *base_ptr = &m_bytes[0];
+      auto base_ptr = &m_bytes[0];
       uint8_t *page_ptr = base_ptr + 2;
       return page_ptr[0];
     `),

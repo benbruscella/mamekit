@@ -354,9 +354,16 @@ export interface RomLoad {
    * is indistinguishable from a ROM set that is simply incomplete.
    */
   status?: 'nodump' | 'baddump';
+  /** Bytes copied per group before skipping destination lanes (ROMX_LOAD). */
+  groupSize?: number;
+  /** Destination bytes skipped after each copied group. */
+  skip?: number;
+  /** Reverse byte order inside each group (ROM_LOAD16_WORD_SWAP). */
+  reverse?: boolean;
 }
 export interface RomRegionDef {
   tag: string; size: number; flags: string; loads: RomLoad[];
+  fills: { offset: number; size: number; value: number }[];
 }
 export interface RomSetDef { name: string; regions: RomRegionDef[]; }
 
@@ -380,14 +387,59 @@ function maskDisabledIfZero(source: string): string {
   }).join('');
 }
 
-export function parseRomSets(src: string): RomSetDef[] {
+/** Expand source-local helper macros that emit ROM_REGION/ROM_LOAD statements. */
+function expandRomMacros(source: string, initial: string): string {
+  const macros = new Map<string, { parameters?: string[]; body: string }>();
+  const definitions = /^[ \t]*#define\s+(\w+)(?:\(([^)]*)\))?[ \t]+((?:[^\n]*\\\r?\n)*[^\n]*)/gm;
+  for (const match of source.matchAll(definitions)) {
+    const body = match[3]!.replace(/\\\r?\n/g, '\n').trim();
+    if (!/\bROM_[A-Z0-9_]+\b/.test(body)) continue;
+    macros.set(match[1]!, {
+      ...(match[2] !== undefined
+        ? { parameters: match[2].split(',').map(parameter => parameter.trim()) }
+        : {}),
+      body,
+    });
+  }
+  let expanded = initial;
+  for (let pass = 0; pass < 12; pass++) {
+    const before = expanded;
+    for (const [name, macro] of macros) {
+      if (!macro.parameters) {
+        expanded = expanded.replace(new RegExp(`\\b${name}\\b`, 'g'), macro.body);
+        continue;
+      }
+      const pattern = new RegExp(`\\b${name}\\s*\\(`, 'g');
+      let match: RegExpExecArray | null;
+      while ((match = pattern.exec(expanded)) !== null) {
+        const open = expanded.indexOf('(', match.index + name.length);
+        const close = matchParen(expanded, open);
+        if (close < 0) break;
+        const args = splitArgs(expanded.slice(open + 1, close));
+        let body = macro.body;
+        macro.parameters.forEach((parameter, index) => {
+          body = body.replace(new RegExp(`\\b${parameter}\\b`, 'g'), args[index] ?? '');
+        });
+        expanded = expanded.slice(0, match.index) + body + expanded.slice(close + 1);
+        pattern.lastIndex = match.index + body.length;
+      }
+    }
+    if (expanded === before) break;
+  }
+  return expanded;
+}
+
+export function parseRomSets(
+  src: string,
+  consts: Record<string, number> = parseDefines(src),
+): RomSetDef[] {
   const out: RomSetDef[] = [];
   const re = /ROM_START\(\s*(\w+)\s*\)([\s\S]*?)ROM_END/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const set: RomSetDef = { name: m[1], regions: [] };
-    const body = maskDisabledIfZero(m[2]);
-    const stmtRe = /(ROM_REGION|ROM_LOAD|ROM_RELOAD|ROM_CONTINUE|ROM_IGNORE|ROM_FILL)\s*\(/g;
+    const body = maskDisabledIfZero(expandRomMacros(src, m[2]));
+    const stmtRe = /(ROM_REGION(?:16_BE|16_LE|32_BE|32_LE|64_BE|64_LE)?|ROM_LOAD(?:16_BYTE|16_WORD_SWAP|32_BYTE|32_WORD(?:_SWAP)?|64_BYTE|64_WORD(?:_SWAP)?)?|ROMX_LOAD|ROM_RELOAD|ROM_CONTINUE|ROM_IGNORE|ROM_FILL)\s*\(/g;
     let sm: RegExpExecArray | null;
     let region: RomRegionDef | null = null;
     let lastLoad: RomLoad | null = null;
@@ -397,28 +449,38 @@ export function parseRomSets(src: string): RomSetDef[] {
       const close = matchParen(body, open);
       if (close < 0) continue;
       const args = splitArgs(body.slice(open + 1, close));
-      switch (sm[1]) {
-        case 'ROM_REGION': {
+      const statement = sm[1]!;
+      if (statement.startsWith('ROM_REGION')) {
           region = {
-            size: evalExpr(args[0]) ?? 0,
+            size: evalExpr(args[0], consts) ?? 0,
             tag: unquote(args[1]),
             flags: args[2] ?? '',
             loads: [],
+            fills: [],
           };
           set.regions.push(region);
           lastLoad = null;
           fileOffset = 0;
-          break;
-        }
-        case 'ROM_LOAD': {
+      } else if (statement.startsWith('ROM_LOAD') || statement === 'ROMX_LOAD') {
           if (!region) break;
-          const flags = args[3] ?? '';
+          const flags = statement === 'ROMX_LOAD'
+            ? args.slice(3).join(' | ')
+            : args[3] ?? '';
+          // ROM_SYSTEM_BIOS index zero is MAME's default unless a machine
+          // declares another default. Loading every selectable BIOS in source
+          // order would overwrite the real default with the final alternative.
+          const bios = /ROM_BIOS\(\s*([^)]+)\s*\)/.exec(flags);
+          if (bios && (evalExpr(bios[1]!, consts) ?? 0) !== 0) {
+            lastLoad = null;
+            fileOffset = 0;
+            continue;
+          }
           const crc = /CRC\(([0-9a-fA-F]+)\)/.exec(flags);
           const sha1 = /SHA1\(([0-9a-fA-F]+)\)/.exec(flags);
           lastLoad = {
             file: unquote(args[0]),
-            offset: evalExpr(args[1]) ?? 0,
-            size: evalExpr(args[2]) ?? 0,
+            offset: evalExpr(args[1], consts) ?? 0,
+            size: evalExpr(args[2], consts) ?? 0,
             crc: crc ? crc[1] : '',
             sha1: sha1 ? sha1[1] : '',
             reloadOffsets: [],
@@ -429,31 +491,40 @@ export function parseRomSets(src: string): RomSetDef[] {
                 ? { status: 'baddump' as const }
                 : {}),
           };
+          const loadFlags = statement === 'ROMX_LOAD' ? flags : statement;
+          const groupSize = /(?:GROUPWORD|(?:16|32|64)_WORD)/.test(loadFlags) ? 2 : 1;
+          const skip = statement.includes('16_BYTE') ? 1
+            : statement.includes('32_BYTE') ? 3
+              : statement.includes('32_WORD') ? 2
+                : statement.includes('64_BYTE') ? 7
+                  : statement.includes('64_WORD') ? 6
+                    : Number(/ROM_SKIP\(\s*(\d+)\s*\)/.exec(loadFlags)?.[1] ?? 0);
+          const reverse = /WORD_SWAP|ROM_REVERSE/.test(loadFlags);
+          if (groupSize !== 1) lastLoad.groupSize = groupSize;
+          if (skip) lastLoad.skip = skip;
+          if (reverse) lastLoad.reverse = true;
           region.loads.push(lastLoad);
           fileOffset = lastLoad.size;
-          break;
-        }
-        case 'ROM_RELOAD': {
-          if (lastLoad) lastLoad.reloadOffsets.push(evalExpr(args[0]) ?? 0);
-          break;
-        }
-        case 'ROM_CONTINUE': {
+      } else if (statement === 'ROM_RELOAD') {
+          if (lastLoad) lastLoad.reloadOffsets.push(evalExpr(args[0], consts) ?? 0);
+      } else if (statement === 'ROM_CONTINUE') {
           if (!lastLoad) break;
-          const size = evalExpr(args[1]) ?? 0;
+          const size = evalExpr(args[1], consts) ?? 0;
           lastLoad.continueSegments.push({
-            offset: evalExpr(args[0]) ?? 0,
+            offset: evalExpr(args[0], consts) ?? 0,
             size,
             fileOffset,
           });
           fileOffset += size;
-          break;
-        }
-        case 'ROM_IGNORE': {
-          fileOffset += evalExpr(args[0]) ?? 0;
-          break;
-        }
-        default:
-          break; // ROM_FILL is not needed by a generated target yet
+      } else if (statement === 'ROM_IGNORE') {
+          fileOffset += evalExpr(args[0], consts) ?? 0;
+      } else if (statement === 'ROM_FILL') {
+          if (!region) break;
+          region.fills.push({
+            offset: evalExpr(args[0], consts) ?? 0,
+            size: evalExpr(args[1], consts) ?? 0,
+            value: evalExpr(args[2], consts) ?? 0,
+          });
       }
     }
     out.push(set);
@@ -489,6 +560,9 @@ export interface AddressRangeDef {
   /** Explicit ROM region and byte offset from .region("tag", offset). */
   region?: string; regionOffset?: number;
   share?: string;
+  /** Entry-qualified memory_view mapping, e.g. m_rom_view[0](...). */
+  viewTag?: string;
+  viewEntry?: number;
   raw: string;
 }
 
@@ -501,7 +575,10 @@ export interface AddressMapDef {
 }
 
 export function parseAddressMaps(src: string): AddressMapDef[] {
-  const fns = extractFunctionBody(src, /void\s+(\w+)::(\w+)\(address_map\s*&\s*map\)/g);
+  const fns = extractFunctionBody(
+    src,
+    /void\s+(\w+)::(\w+)\(address_map\s*&\s*map(?:\s*,[^)]*)?\)/g,
+  );
   return fns.map(({ cls, name, body }) => {
     const ranges: AddressRangeDef[] = [];
     const calls: string[] = [];
@@ -510,16 +587,20 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
     for (const stmt of splitStatements(body)) {
       const s = stmt.trim();
       // composition: galaxian_map(address_map &map) { galaxian_map_base(map); ... }
-      const call = /^(\w+)\(\s*map\s*\)$/.exec(s);
-      if (call) { calls.push(call[1]); continue; }
+      const call = /^(?:(\w+)::)?(\w+)\(\s*map(?:\s*,[\s\S]*)?\)$/.exec(s);
+      if (call) {
+        calls.push(call[1] ? `${call[1]}::${call[2]}` : call[2]!);
+        continue;
+      }
       const mapProp = /^map\.(\w+)\s*\(([^)]*)\)$/.exec(s);
       if (mapProp) {
         if (mapProp[1] === 'global_mask') globalMask = evalExpr(mapProp[2]) ?? undefined;
         if (mapProp[1] === 'unmap_value_high') unmapHigh = true;
         continue;
       }
-      if (!s.startsWith('map(')) continue;
-      const open = 3;
+      const viewCall = /^(m_\w+)\s*\[\s*(\d+)\s*\]\s*\(/.exec(s);
+      if (!s.startsWith('map(') && !viewCall) continue;
+      const open = s.indexOf('(');
       const close = matchParen(s, open);
       const [startS, endS] = splitArgs(s.slice(open + 1, close));
       const range: AddressRangeDef = {
@@ -527,6 +608,10 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
         end: evalExpr(endS) ?? 0,
         raw: s,
       };
+      if (viewCall) {
+        range.viewTag = viewCall[1];
+        range.viewEntry = Number(viewCall[2]);
+      }
       for (const { method, args } of parseChain(s.slice(close + 1))) {
         switch (method) {
           case 'rom': range.rom = true; break;
@@ -543,6 +628,12 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
           case 'portw': range.portWrite = unquote(args[0]); break;
           case 'bankr': range.bankRead = unquote(args[0]).replace(/^m_/, ''); break;
           case 'bankw': range.bankWrite = unquote(args[0]).replace(/^m_/, ''); break;
+          case 'bankrw': {
+            const bank = unquote(args[0]).replace(/^m_/, '');
+            range.bankRead = bank;
+            range.bankWrite = bank;
+            break;
+          }
           case 'region':
             range.region = unquote(args[0]);
             range.regionOffset = evalExpr(args[1] ?? '0') ?? 0;
@@ -714,6 +805,10 @@ export interface MachineConfigDef {
    * graph-build time
    */
   patches: { tag: string; addrMaps: Record<string, string>; raw: string }[];
+  /** remove_addrmap calls applied to devices inherited from a called config. */
+  removedAddrMaps: { tag: string; space: string; raw: string }[];
+  /** Devices explicitly removed from a called/base machine configuration. */
+  removedDevices: { tag: string; raw: string }[];
   /**
    * Configuration applied to a device instantiated by a called base config.
    * Kept separate from address-map and gfx-decode patches because these
@@ -723,6 +818,8 @@ export interface MachineConfigDef {
   devicePatches: {
     tag: string;
     config: string[];
+    /** Device macro passed config.replace(), e.g. SEGA_315_5098. */
+    replacementType?: string;
     clock?: number;
     screenRaw?: DeviceDef['screenRaw'];
   }[];
@@ -736,10 +833,71 @@ export interface MemoryBankDef {
   tag: string;
   startEntry: number;
   entries: number;
-  region: string;
+  region?: string;
+  /** Array/member storage allocated by the driver rather than a ROM region. */
+  entryMember?: string;
   offset: number;
   stride: number;
+  /** Entry selects base + ((entry << shift) & region-derived mask). */
+  dynamicShift?: number;
   raw: string;
+}
+
+export interface InstalledHandlerDef {
+  space: string;
+  kind: 'read' | 'write';
+  start: number;
+  end: number;
+  mirror?: number;
+  className: string;
+  method: string;
+}
+
+/**
+ * Address-space handlers installed by a selected driver-init method.
+ *
+ * These are executable map overrides, not ordinary calls: MAME installs them
+ * after machine construction, so generation appends them after the static map
+ * and lets the bus's normal last-range-wins semantics apply.
+ */
+export function parseInstalledHandlers(
+  body: string,
+  consts: Record<string, number>,
+): InstalledHandlerDef[] {
+  const installed: InstalledHandlerDef[] = [];
+  const spaces = new Map<string, string>();
+  for (const declaration of body.matchAll(
+    /\baddress_space\s*&\s*(\w+)\s*\([^;]*?(?:->|\.)\s*space\s*\(\s*(AS_\w+)\s*\)\s*\)\s*;/g,
+  )) spaces.set(declaration[1]!, declaration[2]!);
+  const pattern = /\b(space\s*\(\s*(AS_\w+)\s*\)|(\w+))\s*\.\s*install_(read|write)_handler\s*\(/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(body)) !== null) {
+    const open = body.indexOf('(', match.index + match[0]!.lastIndexOf('install_'));
+    const close = matchParen(body, open);
+    if (close < 0) continue;
+    const args = splitArgs(body.slice(open + 1, close));
+    const callback = /FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(body.slice(open + 1, close));
+    const space = match[2] ?? spaces.get(match[3]!);
+    if (!space || !callback || args.length < 3) continue;
+    const start = evalExpr(args[0]!, consts);
+    const end = evalExpr(args[1]!, consts);
+    if (start === null || end === null) continue;
+    // The long install overload is (start, end, mask, mirror, select,
+    // delegate). Preserve the mirror so dynamically installed board I/O is
+    // decoded over the same address window as MAME.
+    const mirror = args.length >= 6 ? evalExpr(args[3]!, consts) : null;
+    installed.push({
+      space,
+      kind: match[4]! as 'read' | 'write',
+      start,
+      end,
+      ...(mirror !== null && mirror !== 0 ? { mirror } : {}),
+      className: callback[1]!,
+      method: callback[2]!,
+    });
+    pattern.lastIndex = close + 1;
+  }
+  return installed;
 }
 
 /**
@@ -768,23 +926,58 @@ export function parseMemoryBanks(
     const plural = match[3] === 'entries';
     const args = splitArgs(body.slice(open + 1, close));
     if (args.length !== (plural ? 4 : 2)) continue;
-    const source = regionPointer(args[plural ? 2 : 1]!, regionAliases, consts);
+    let source = regionPointer(
+      args[plural ? 2 : 1]!,
+      regionAliases,
+      memberTags,
+      consts,
+    );
+    // Neo Geo's audio main bank deliberately spans two ROM regions: entry 0
+    // is the SM1 audio BIOS when present, entry 1 is the cartridge M1 ROM.
+    // A conditional pointer expression otherwise resolves through its `ROM`
+    // fallback and silently starts the Z80 on the wrong firmware.
+    if (/m_region_audiobios[^?]*\?[^:]*m_region_audiobios\s*->\s*base\s*\(\s*\)/
+      .test(args[plural ? 2 : 1]!)) {
+      source = { region: 'audiobios', offset: 0 };
+    }
+    const owned = /^(m_\w+(?:\s*\[\s*(\d+)\s*\])?)(?:\.get\(\))?$/.exec(
+      args[plural ? 2 : 1]!.trim(),
+    );
     const startEntry = evalExpr(args[0]!, consts);
     const entries = plural ? evalExpr(args[1]!, consts) : 1;
     const stride = plural ? evalExpr(args[3]!, consts) : 0;
-    if (!source || startEntry === null || entries === null || stride === null) continue;
+    if ((!source && !owned) || startEntry === null || entries === null || stride === null) continue;
     const member = match[1]?.replace(/\s+/g, '') ?? match[2]!;
     banks.push({
       member,
       tag: match[2] ?? memberTags[member] ?? member.replace(/^m_/, ''),
       startEntry,
       entries,
-      region: source.region,
-      offset: source.offset,
+      ...(source ? { region: source.region, offset: source.offset } : {
+        entryMember: owned![1]!.replace(/\s+/g, ''),
+        offset: Number(owned![2] ?? 0),
+      }),
       stride,
       raw: body.slice(match.index, close + 1).trim(),
     });
     call.lastIndex = close + 1;
+  }
+  if (/m_bank_audio_cart\s*\[\s*region\s*\]\s*->\s*configure_entry\s*\(\s*bank\s*,\s*&ROM\s*\[\s*bank_address\s*\]\s*\)/.test(body)) {
+    for (const [tag, shift] of [
+      ['audio_f000', 11], ['audio_e000', 12], ['audio_c000', 13], ['audio_8000', 14],
+    ] as const) {
+      banks.push({
+        member: tag,
+        tag,
+        startEntry: 0,
+        entries: 256,
+        region: regionAliases.ROM ?? 'cslot1:audiocpu',
+        offset: 0x10000,
+        stride: 0,
+        dynamicShift: shift,
+        raw: 'm_bank_audio_cart[region]->configure_entry(bank, &ROM[bank_address])',
+      });
+    }
   }
   return banks;
 }
@@ -796,6 +989,10 @@ function pointerRegionAliases(body: string): Record<string, string> {
     /\b(?:const\s+)?(?:uint8_t|u8|char)\s*\*\s*(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)\s*->\s*base\(\)/g;
   let match: RegExpExecArray | null;
   while ((match = re.exec(body)) !== null) aliases[match[1]!] = match[2]!;
+  const audio = /\b(?:uint8_t|u8)\s*\*\s*(\w+)\s*=\s*[^;]*\bget_audio_base\s*\(\s*\)[^;]*;/.exec(body);
+  if (audio) aliases[audio[1]!] = 'cslot1:audiocpu';
+  const program = /\b(?:uint8_t|u8)\s*\*\s*(\w+)\s*=\s*[^;]*\bget_rom_base\s*\(\s*\)[^;]*;/.exec(body);
+  if (program) aliases[program[1]!] = 'cslot1:maincpu';
   return aliases;
 }
 
@@ -806,13 +1003,25 @@ function pointerRegionAliases(body: string): Record<string, string> {
 function regionPointer(
   expression: string,
   aliases: Record<string, string>,
+  memberTags: Record<string, string>,
   consts: Record<string, number>,
 ): { region: string; offset: number } | undefined {
   const text = expression.trim();
+  const conditionalAlias = /:\s*(\w+)\s*\)?$/.exec(text);
+  if (conditionalAlias && aliases[conditionalAlias[1]!]) {
+    return { region: aliases[conditionalAlias[1]!]!, offset: 0 };
+  }
   const direct = /^memregion\(\s*"([^"]+)"\s*\)\s*->\s*base\(\)\s*(?:\+\s*(.+))?$/.exec(text);
   if (direct) {
     const offset = evalExpr(direct[2] ?? '0', consts);
     return offset === null ? undefined : { region: direct[1]!, offset };
+  }
+  const member = /^(m_\w+)\s*->\s*base\(\)\s*(?:\+\s*(.+))?$/.exec(text);
+  if (member && memberTags[member[1]!]) {
+    const offset = evalExpr(member[2] ?? '0', consts);
+    return offset === null
+      ? undefined
+      : { region: memberTags[member[1]!]!.replace(/^:/, ''), offset };
   }
   const indexed = /^&\s*(\w+)\s*\[\s*(.+?)\s*\]$/.exec(text);
   if (indexed && aliases[indexed[1]!]) {
@@ -901,6 +1110,8 @@ export function parseMachineConfigs(
       softwareLists: [],
       calls: [],
       patches: [],
+      removedAddrMaps: [],
+      removedDevices: [],
       devicePatches: [],
       gfxDecodePatches: [],
       raw: body.trim(),
@@ -908,17 +1119,82 @@ export function parseMachineConfigs(
     const byRef = new Map<string, DeviceDef>(); // m_member, "tag", or localVar -> device
     const resolveTag = (ref: string): string => {
       const r = ref.trim();
-      if (r.startsWith('"')) return unquote(r);
-      return memberTags[r] ?? r.replace(/^m_/, '');
+      // A leading ':' is MAME's absolute-tag syntax, not part of the device
+      // name or its ROM region (TRACKFLD_AUDIO exposes ":audiocpu").
+      if (r.startsWith('"')) return unquote(r).replace(/^:/, '');
+      return (memberTags[r] ?? r.replace(/^m_/, '')).replace(/^:/, '');
     };
 
-    for (const stmt of splitStatements(body)) {
+    const statements = splitStatements(body);
+    // MAME occasionally instantiates a finder array in a small counted loop
+    // instead of spelling out each device (Mario's four sound latches). Expand
+    // those declarations into the same source forms handled below.
+    for (const loop of body.matchAll(
+      /for\s*\(\s*int\s+(\w+)\s*=\s*0\s*;\s*\1\s*<\s*(\d+)\s*;\s*\1\+\+\s*\)\s*([A-Z][A-Z0-9_]{1,})\s*\(\s*config\s*,\s*(m_\w+)\s*\[\s*\1\s*\]\s*\)\s*;/g,
+    )) {
+      const count = Number(loop[2]);
+      for (let index = 0; index < count; index++) {
+        statements.push(`${loop[3]}(config, ${loop[4]}[${index}])`);
+      }
+    }
+    for (const stmt of statements) {
       const s = stmt.trim();
       if (!s) continue;
 
-      // helper call: galaga(config);
-      const call = /^(\w+)\(\s*config\s*\)$/.exec(s);
-      if (call) { cfg.calls.push(call[1]); continue; }
+      // Derived configurations remove inherited devices by tag.  This must be
+      // composed before executable hardware is selected; retaining the base
+      // device changes nullable-finder branches in driver handlers (System 1
+      // selects its PIO rather than the removed 8255, for example).
+      const deviceRemoval = /^config\.device_remove\(\s*"([^"]+)"\s*\)$/.exec(s);
+      if (deviceRemoval) {
+        cfg.removedDevices.push({
+          tag: deviceRemoval[1]!.replace(/^:/, ''),
+          raw: s,
+        });
+        continue;
+      }
+
+      // A derived machine config can replace a device instantiated by its
+      // base config.  MAME spells this as a normal device macro whose first
+      // argument is config.replace(), often wrapped in a local reference:
+      //   segacrpt_z80_device &z80(SEGA_315_5098(
+      //     config.replace(), m_maincpu, MASTER_CLOCK / 5));
+      // It is not a second device; preserve the effective type/clock as an
+      // inherited-device patch and let the per-game graph apply it.
+      const replacement = /(?:\b\w+(?:_device)?\s*&\s*(\w+)\s*\(\s*)?\b([A-Z][A-Z0-9_]{1,})\s*\(\s*config\.replace\(\)\s*,\s*([^,]+)\s*,\s*([\s\S]+?)\)\s*\)?$/.exec(s);
+      if (replacement) {
+        const [, localVar, replacementType, refRaw, clockRaw] = replacement;
+        const tag = resolveTag(refRaw);
+        const clock = evalExpr(clockRaw, consts);
+        const patch = {
+          tag,
+          config: [s],
+          replacementType,
+          ...(clock !== null ? { clock } : {}),
+        };
+        cfg.devicePatches.push(patch);
+        // The local is only used for follow-up setters. They remain useful
+        // provenance on this same patch even though no new Device is emitted.
+        if (localVar) {
+          byRef.set(localVar, {
+            type: replacementType,
+            tag,
+            clock,
+            ...(clock === null ? { clockExpr: clockRaw.trim() } : {}),
+            addrMaps: {},
+            config: patch.config,
+            localVar,
+          });
+        }
+        continue;
+      }
+
+      // helper/base call: galaga(config) or tpp1_state::config(config).
+      const call = /^(?:(\w+)::)?(\w+)\(\s*config\s*\)$/.exec(s);
+      if (call) {
+        cfg.calls.push(call[1] ? `${call[1]}::${call[2]}` : call[2]!);
+        continue;
+      }
 
       // device instantiation, possibly wrapped: type_device &var(TYPE(config, ref[, clock]));
       const dm = DEVICE_MACRO_RE.exec(s);
@@ -942,7 +1218,11 @@ export function parseMachineConfigs(
           continue;
         }
         const refRaw = args[1] ?? dm[3];
-        const clockRaw = args.length > 2 ? args.slice(2).join(', ') : undefined;
+        // Device macros may carry constructor configuration after the clock
+        // (OKIM6295(..., clock, PIN7_HIGH)).  Only the third argument is the
+        // clock expression; folding later arguments into it leaves otherwise
+        // evaluable clocks unresolved.
+        const clockRaw = args.length > 2 ? args[2] : undefined;
         const ref = refRaw.trim();
         const dev: DeviceDef = {
           type,
@@ -957,14 +1237,30 @@ export function parseMachineConfigs(
         byRef.set(dev.tag, dev);
         if (ref.startsWith('"')) byRef.set(unquote(ref), dev);
         // GFXDECODE(config, m_gfxdecode, m_palette, gfx_galaga)
-        if (type === 'GFXDECODE' && clockRaw) {
-          const parts = splitArgs(clockRaw);
-          dev.gfxDecodeName = parts[parts.length - 1]?.trim();
+        if (type === 'GFXDECODE' && args.length > 2) {
+          dev.gfxDecodeName = args[args.length - 1]?.trim();
         }
-        // slot device with an options table + quoted default:
-        // NES_CONTROL_PORT(config, m_ctrl1, nes_control_port1_devices, "joypad")
-        if (args.length >= 4 && /_devices$/.test(args[2].trim()) && args[3].trim().startsWith('"')) {
-          dev.slotOptions = args[2].trim();
+        // Slot device with an options table + quoted default.  Most option
+        // tables use a *_devices name (NES), but MAME also uses board-specific
+        // names such as neogeo_arc_edge.  Verify the third argument against an
+        // actual device_slot_interface function instead of relying on naming.
+        //
+        //   NES_CONTROL_PORT(..., nes_control_port1_devices, "joypad")
+        //   NEOGEO_CTRL_EDGE_CONNECTOR(..., neogeo_arc_edge, "joy", false)
+        const slotOptions = args[2]?.trim() ?? '';
+        const hasSlotOptions = slotOptions.length > 0 && new RegExp(
+          `\\b(?:void\\s+)?${slotOptions}\\s*\\(\\s*device_slot_interface\\s*&`,
+        ).test(src);
+        if (
+          args.length >= 4
+          && (
+            /_devices$/.test(slotOptions)
+            || hasSlotOptions
+            || /(?:_PORT|_CONNECTOR)$/.test(type)
+          )
+          && args[3].trim().startsWith('"')
+        ) {
+          dev.slotOptions = slotOptions;
           dev.slotDefault = unquote(args[3]);
           dev.clock = null;
           delete dev.clockExpr;
@@ -999,6 +1295,20 @@ export function parseMachineConfigs(
       if (mc) {
         const [, refRaw, method] = mc;
         const dev = byRef.get(refRaw) ?? byRef.get(resolveTag(refRaw));
+        if (method === 'remove_addrmap') {
+          const open = s.indexOf('(', s.indexOf(method));
+          const close = matchParen(s, open);
+          const [space = ''] = splitArgs(s.slice(open + 1, close));
+          if (space.trim()) {
+            if (dev) delete dev.addrMaps[space.trim()];
+            cfg.removedAddrMaps.push({
+              tag: resolveTag(refRaw),
+              space: space.trim(),
+              raw: s,
+            });
+          }
+          continue;
+        }
         if (!dev && method === 'set_addrmap' && refRaw.startsWith('m_')) {
           // device lives in a CALLED config — record as a patch by tag
           const open = s.indexOf('(', s.indexOf(method));
@@ -1202,7 +1512,7 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
     const body = expandPortMacros(m[2], macros);
     let port: PortDef | null = null;
     let dip: PortFieldDef | null = null;
-    const tokRe = /(PORT_START|PORT_MODIFY|PORT_INCLUDE|PORT_BIT|PORT_DIPNAME|PORT_DIPSETTING|PORT_SERVICE_DIPLOC|PORT_SERVICE|PORT_DIPLOCATION|PORT_DIPUNUSED_DIPLOC|PORT_CONDITION|PORT_CONFNAME|PORT_CONFSETTING)\s*\(/g;
+    const tokRe = /(PORT_START|PORT_MODIFY|PORT_INCLUDE|PORT_BIT|PORT_DIPNAME|PORT_DIPSETTING|PORT_SERVICE_NO_TOGGLE|PORT_SERVICE_DIPLOC|PORT_SERVICE|PORT_DIPLOCATION|PORT_DIPUNUSED_DIPLOC|PORT_CONDITION|PORT_CONFNAME|PORT_CONFSETTING)\s*\(/g;
     let tm: RegExpExecArray | null;
     while ((tm = tokRe.exec(body)) !== null) {
       const open = body.indexOf('(', tm.index + tm[1].length - 1);
@@ -1230,6 +1540,7 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
           break;
         }
         case 'PORT_SERVICE_DIPLOC': // service dip with a DIPLOC arg — same semantics
+        case 'PORT_SERVICE_NO_TOGGLE':
         case 'PORT_SERVICE': {
           if (!port) break;
           const mask = evalExpr(args[0]) ?? 0;
