@@ -322,9 +322,14 @@ export class GeneratedDiscreteAudioCore {
     const raw1 = this.effect1Phase < 0.5 ? 1 : -1;
     const filterK = 1 - Math.exp(-2 * Math.PI * 338 / this.sampleRate);
     this.effect1Filter += (raw1 - this.effect1Filter) * filterK;
-    const effect1 = (this.latchB & plan.control.effect1FilterMask)
-      ? this.effect1Filter
-      : raw1;
+    // MAME's DISCRETE_NOTE counter stops when its preload already equals the
+    // first counter's maximum (0x0f).  That is Phoenix's normal idle value;
+    // clocking it anyway turns the silent attract intervals into a hard buzz.
+    const effect1 = data1 === 0x0f
+      ? 0
+      : (this.latchB & plan.control.effect1FilterMask)
+        ? this.effect1Filter
+        : raw1;
 
     const select = (this.latchA & plan.control.effect2FrequencyMask) >>
       plan.control.effect2FrequencyShift;
@@ -339,7 +344,9 @@ export class GeneratedDiscreteAudioCore {
     const data2 = this.latchA & plan.control.effect2DataMask;
     const frequency2 = 18_000 * modulation / Math.max(2, 2 * (16 - data2));
     this.effect2Phase = (this.effect2Phase + frequency2 / this.sampleRate) % 1;
-    const effect2 = (this.effect2Phase < 0.5 ? 1 : -1) * ((select & 2) ? 0.5 : 1);
+    const effect2 = data2 === 0x0f
+      ? 0
+      : (this.effect2Phase < 0.5 ? 1 : -1) * ((select & 2) ? 0.5 : 1);
     return (effect1 + effect2) * 0.25;
   }
 
@@ -382,7 +389,9 @@ export class GeneratedDiscreteAudioCore {
   }
 
   sample(): number {
-    const noise = this.clockNoise() * 2 - 0.5;
+    // The MM5837 output is unipolar and settles at zero while disabled.  Centering
+    // it here turns that idle zero into a permanent DC offset.
+    const noise = this.clockNoise();
     const custom = noise * plan.routes.custom;
     const effects = this.clockEffects() * plan.routes.effects;
     const melody = this.clockMelody() * plan.routes.melody;

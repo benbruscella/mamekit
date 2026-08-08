@@ -1486,6 +1486,25 @@ function compileResNetAllPalette(
         lumMax: normalizeCall[4] ? expressionNumber(normalizeCall[4], constants) : 255,
       }
     : undefined;
+  const bitswap = new RegExp(
+    String.raw`(?:int\s+const|int)\s+(\w+)\s*=\s*bitswap<(\d+)>\s*` +
+    String.raw`\(\s*(\w+)\s*,\s*([^)]+)\)\s*;[\s\S]*?` +
+    String.raw`set_pen_color\s*\(\s*\3\s*,\s*\w+\s*\[\s*\1\s*\]\s*\)`,
+  ).exec(fn.body);
+  let colorIndexMap: number[] | undefined;
+  if (bitswap) {
+    const width = Number(bitswap[2]);
+    const sourceBits = splitMameArgs(bitswap[4]!)
+      .map(value => expressionNumber(value, constants));
+    if (
+      Number.isInteger(width) && width > 0 && width <= 31 &&
+      sourceBits.length === width && sourceBits.every(Number.isInteger)
+    ) {
+      colorIndexMap = Array.from({ length: count }, (_unused, destination) =>
+        sourceBits.reduce((mapped, sourceBit, position) =>
+          mapped | (((destination >>> sourceBit) & 1) << (width - position - 1)), 0));
+    }
+  }
   return {
     region,
     colorCount: count,
@@ -1497,6 +1516,7 @@ function compileResNetAllPalette(
       resNet: { input: 'ttl' as const, monitor: 'sanyo' as const, amplifiers },
     } : {}),
     ...(normalize && Object.values(normalize).every(Number.isFinite) ? { normalize } : {}),
+    ...(colorIndexMap ? { colorIndexMap } : {}),
     ...(forceBlack ? { forceBlack } : {}),
     lookupOffset: start,
     lookupCount: count,

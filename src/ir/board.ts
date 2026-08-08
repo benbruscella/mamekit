@@ -417,6 +417,8 @@ export interface GeneratedPromPalettePlan {
   };
   /** palette_t::normalize_range applied after PROM decoding/overrides. */
   normalize?: { start: number; end: number; lumMin: number; lumMax: number };
+  /** Destination pen -> decoded PROM color permutation applied by the driver. */
+  colorIndexMap?: number[];
   /**
    * PROM indices overridden to electrical black after resistor decoding.
    * Some boards tri-state their palette outputs for a masked subset of

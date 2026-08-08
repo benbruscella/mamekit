@@ -631,10 +631,20 @@ class GeneratedPalette implements GeneratedPaletteDevice {
         }
         rgb[channel.channel] = Math.floor(value + 0.5);
       }
-      core[index] = plan.forceBlack &&
-          (index & plan.forceBlack.mask) === plan.forceBlack.value
-        ? packRgb(0, 0, 0)
-        : packRgb(rgb.r, rgb.g, rgb.b);
+      core[index] = packRgb(rgb.r, rgb.g, rgb.b);
+    }
+    if (plan.colorIndexMap) {
+      const decoded = core.slice();
+      for (let index = 0; index < plan.colorCount; index++) {
+        core[index] = decoded[plan.colorIndexMap[index] ?? index] ?? 0xff000000;
+      }
+    }
+    if (plan.forceBlack) {
+      for (let index = 0; index < plan.colorCount; index++) {
+        if ((index & plan.forceBlack.mask) === plan.forceBlack.value) {
+          core[index] = packRgb(0, 0, 0);
+        }
+      }
     }
     if (plan.normalize) normalizePaletteRange(core, plan.normalize);
     for (const group of plan.indexedColors ?? []) {

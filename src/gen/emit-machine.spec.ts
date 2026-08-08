@@ -25,6 +25,10 @@ import type { KnowledgeGraph } from '../kg/types.ts';
 import type { BoardConfig } from '../runtime/types.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 
+if (generatedCpuCycleClock('i8085a', 5_500_000) !== 2_750_000) {
+  throw new Error('I8085A must use MAME\'s divide-by-two execution clock');
+}
+
 const graph: KnowledgeGraph = {
   meta: {
     tool: 'mamekit',

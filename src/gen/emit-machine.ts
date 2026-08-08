@@ -17,6 +17,7 @@ import type {
 
 /** MAME device input clocks converted to the instruction-cycle scheduler rate. */
 export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
+  if (type === 'i8085a') return clock / 2;
   if (
     type === 'konami' || type === 'mc6809' || type === 'm6801u4' || type === 'm6802' ||
     type === 'm6803' || type === 'm6808' || type === 'nsc8105'
