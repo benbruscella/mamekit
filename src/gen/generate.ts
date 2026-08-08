@@ -1341,6 +1341,26 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   if (compiledVideo?.plan.updateMode) {
     screen.updateMode = compiledVideo.plan.updateMode;
   }
+  // Packed-framebuffer drivers can expose a raw pixel-clock width that is a
+  // multiple of the actual RAM raster (Tutankham uses GALAXIAN_XSCALE=3 but
+  // has no GFX decode entry from which the screen pass can discover it).  The
+  // bitmap layout is source-proven geometry, so use it to remove that clock
+  // multiplier before the shell rotates and presents the native framebuffer.
+  const packedBitmap = compiledVideo?.plan.bitmap;
+  if (packedBitmap) {
+    const packedWidth = packedBitmap.xOffset +
+      packedBitmap.bytesPerRow * (8 / (packedBitmap.bitsPerPixel ?? 1));
+    if (
+      Number.isInteger(packedWidth) &&
+      packedWidth > 0 &&
+      screen.width > packedWidth &&
+      screen.width % packedWidth === 0
+    ) {
+      const rawScale = screen.width / packedWidth;
+      screen.width = packedWidth;
+      screen.xOffset /= rawScale;
+    }
+  }
   const config = {
     game: opts.game,
     title,

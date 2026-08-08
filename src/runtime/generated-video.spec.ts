@@ -62,6 +62,30 @@ assert.equal(williamsPaletteColor(0xff), 0xffffffff);
 
 assert.equal(
   generatedDirectScreenShape({
+    execution: { screenUpdate: { handler: 'exidy_state.screen_update' } },
+    handlers: [{
+      ownerClass: 'exidy_state',
+      method: 'screen_update',
+      body: `set_colors(); draw_background();
+        copybitmap(bitmap, m_background_bitmap, 0, 0, 0, 0, cliprect);
+        draw_sprites(bitmap, cliprect);`,
+    }, {
+      ownerClass: 'exidy_state',
+      method: 'draw_background',
+      body: `const uint8_t *const cram = m_characterram;
+        m_background_bitmap.pix(y, x) = 0;`,
+    }, {
+      ownerClass: 'exidy_state',
+      method: 'draw_sprites',
+      body: `int sx = 236 - *m_sprite2_xpos - 4;
+        m_gfxdecode->gfx(0)->transpen(bitmap, cliprect, 0, 0, 0, 0, sx, 0, 0);`,
+    }],
+  } as unknown as BoardIr),
+  'exidy-character-ram',
+);
+
+assert.equal(
+  generatedDirectScreenShape({
     execution: { screenUpdate: { handler: 'berzerk_state.screen_update' } },
     handlers: [{
       ownerClass: 'berzerk_state',

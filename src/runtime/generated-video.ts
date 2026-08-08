@@ -1529,6 +1529,7 @@ type GeneratedDirectScreenShape =
   | 'bublbobl-object-columns'
   | 'cosmic-bitmap-sprites'
   | 'dkong-scanline-sprites'
+  | 'exidy-character-ram'
   | 'gauntlet-tilemaps'
   | 'galaxian-no-bullets'
   | 'm62-category-sprites'
@@ -1576,6 +1577,22 @@ export function generatedDirectScreenShape(
     body.includes('m_bg_tilemap->draw(screen, bitmap, cliprect, 1, 0)')
   ) {
     return 'm62-category-sprites';
+  }
+  if (
+    body.includes('set_colors()') &&
+    body.includes('draw_background()') &&
+    body.includes('copybitmap(bitmap, m_background_bitmap') &&
+    body.includes('draw_sprites(bitmap, cliprect)') &&
+    machine.handlers?.some(handler =>
+      handler.method === 'draw_background' &&
+      handler.body?.includes('const uint8_t *const cram = m_characterram') &&
+      handler.body.includes('m_background_bitmap.pix(y, x)')) &&
+    machine.handlers?.some(handler =>
+      handler.method === 'draw_sprites' &&
+      handler.body?.includes('236 - *m_sprite2_xpos - 4') &&
+      handler.body.includes('m_gfxdecode->gfx(0)->transpen'))
+  ) {
+    return 'exidy-character-ram';
   }
   if (
     body.includes('for (int offs = 0; offs < m_videoram.bytes(); offs++)') &&
@@ -2386,6 +2403,82 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   ): boolean {
     if (handler !== this.machine.execution.screenUpdate?.handler) return false;
     const vector = this.machine.video?.vector;
+    if (this.directScreenShape === 'exidy-character-ram') {
+      const videoRaw = this.state.m_videoram;
+      const characterRaw = this.state.m_characterram;
+      const colorRaw = this.state.m_color_latch;
+      const gfx = this.gfx[0];
+      if (
+        !ArrayBuffer.isView(videoRaw) ||
+        !ArrayBuffer.isView(characterRaw) ||
+        !ArrayBuffer.isView(colorRaw) ||
+        !gfx
+      ) return false;
+      const video = videoRaw as Uint8Array;
+      const characters = characterRaw as Uint8Array;
+      const colors = colorRaw as Uint8Array;
+      const colorBits = [0, 7, 0, 6, 4, 3, 2, 1];
+      for (let pen = 0; pen < colorBits.length; pen++) {
+        const bit = colorBits[pen]!;
+        this.palette?.set_pen_color?.(
+          pen,
+          colors[2]! & (1 << bit) ? 255 : 0,
+          colors[1]! & (1 << bit) ? 255 : 0,
+          colors[0]! & (1 << bit) ? 255 : 0,
+        );
+      }
+      bitmap.fill(0, cliprect);
+      for (let offset = 0; offset < 0x400; offset++) {
+        const code = video[offset] ?? 0;
+        const onPen = 4 + ((code >>> 6) & 3);
+        const tileX = (offset & 0x1f) << 3;
+        const tileY = (offset >>> 5) << 3;
+        for (let y = 0; y < 8; y++) {
+          const line = characters[(code << 3) | y] ?? 0;
+          for (let x = 0; x < 8; x++) {
+            bitmap['pix='](tileY + y, tileX + x, line & (0x80 >>> x) ? onPen : 0);
+          }
+        }
+      }
+      const scalar = (value: unknown): number => {
+        if (ArrayBuffer.isView(value)) {
+          return Number((value as unknown as ArrayLike<number>)[0] ?? 0);
+        }
+        return generatedPointerNumber(value);
+      };
+      const spriteEnable = scalar(this.state.m_sprite_enable);
+      const spriteNumber = scalar(this.state.m_spriteno);
+      const sprite2X = 232 - scalar(this.state.m_sprite2_xpos);
+      const sprite2Y = 240 - scalar(this.state.m_sprite2_ypos);
+      gfx.transpen(
+        bitmap,
+        cliprect,
+        ((spriteNumber >>> 4) & 0x0f) + 32 + (spriteEnable & 0x40 ? 16 : 0),
+        1,
+        0,
+        0,
+        sprite2X,
+        sprite2Y,
+        0,
+      );
+      const collisionMask = Number(this.state.m_collision_mask ?? 0);
+      if (!(spriteEnable & 0x80) || (spriteEnable & 0x10) || collisionMask === 0) {
+        const sprite1X = 232 - scalar(this.state.m_sprite1_xpos);
+        const sprite1Y = Math.max(0, 240 - scalar(this.state.m_sprite1_ypos));
+        gfx.transpen(
+          bitmap,
+          cliprect,
+          (spriteNumber & 0x0f) + (spriteEnable & 0x20 ? 16 : 0),
+          0,
+          0,
+          0,
+          sprite1X,
+          sprite1Y,
+          0,
+        );
+      }
+      return true;
+    }
     if (this.directScreenShape === 'outrun-sega16-layers') {
       return this.drawOutrunLayers(screen, bitmap, cliprect);
     }

@@ -369,6 +369,12 @@ assert.equal(irqMask, 1);
 const compositeState: Record<string, unknown> = { m_last_irq_state: 0 };
 const compositeMachine: BoardIr = {
   ...machine,
+  devices: [{
+    id: 'device:audio',
+    tag: 'audio',
+    type: 'AUDIO',
+    member: 'm_audio',
+  }],
   handlers: [{
     id: 'handler:driver:sound_on_w',
     ownerClass: 'driver_state',
@@ -391,7 +397,7 @@ executeGeneratedMachineHandler(
 assert.equal(
   compositeState.m_last_irq_state,
   1,
-  'a source handler may call a uniquely resolved method on a composed device member',
+  'a source handler may call a uniquely resolved method on a configured composite device member',
 );
 
 const concreteDeviceState: Record<string, unknown> = {};

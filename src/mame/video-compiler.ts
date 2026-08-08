@@ -3141,12 +3141,19 @@ function machineConfigInitialState(
   constants: Record<string, number>,
 ): Record<string, number> {
   const state: Record<string, number> = {};
-  for (const match of config.body.matchAll(/\b(set_\w+)\s*\(([^;()]*)\)\s*;/g)) {
+  for (const match of config.body.matchAll(
+    /\b((?:set_\w+)|(?:\w+_video_config))\s*\(([^;()]*)\)\s*;/g,
+  )) {
     const method = ast.findFunctionInHierarchy(config.className, match[1]!)
       ?? inlineSetter(source, match[1]!);
     if (!method) continue;
     const arguments_ = splitMameArgs(match[2]!).map(argument =>
-      evalExpr(substituteNumbers(argument, constants), constants));
+      evalExpr(
+        substituteNumbers(argument, constants)
+          .replace(/\bfalse\b/g, '0')
+          .replace(/\btrue\b/g, '1'),
+        constants,
+      ));
     if (arguments_.some(value => value === null)) continue;
     const parameters = splitMameArgs(method.parameters)
       .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])

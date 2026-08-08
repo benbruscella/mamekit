@@ -24,5 +24,10 @@ const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video, 'Tutankham packed bitmap source must lower to executable video IR');
 assert.ok(video.plan.bitmap);
 assert.equal(video.plan.bitmap.member, 'm_videoram');
+assert.equal(
+  video.plan.bitmap.bytesPerRow * (8 / (video.plan.bitmap.bitsPerPixel ?? 1)),
+  tutankhm.screen.width,
+  'packed framebuffer width must describe the native raster, not the x3 pixel clock',
+);
 
 console.log('tutankhm.spec: MC6809E, Z80, dual AY8910 and bitmap video passed');

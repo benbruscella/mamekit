@@ -314,6 +314,23 @@ function preparedMachineCalls(
     callParameters[qualified] = parameters;
     callParameters[candidate.method] = parameters;
   }
+  // A configured custom device can be a source-defined composite rather than
+  // a primitive supplied by the runtime. Bind its finder member to methods on
+  // the matching MAME device class (TIMEPLT_AUDIO -> timeplt_audio_device),
+  // while leaving unrelated same-named hardware methods strictly isolated.
+  const classStem = (value: string): string =>
+    value.replace(/_device$/, '').replace(/[^A-Za-z0-9]/g, '').toLowerCase();
+  for (const device of machine.devices ?? []) {
+    if (!device.member) continue;
+    const deviceStem = classStem(device.type);
+    for (const candidate of compiled) {
+      if (classStem(candidate.ownerClass) !== deviceStem) continue;
+      const memberMethod = `${device.member}.${candidate.method}`;
+      if (!referenceCalls[memberMethod] && !bindings.calls?.[memberMethod]) {
+        referenceCalls[memberMethod] = (...values) => invoke(candidate, values);
+      }
+    }
+  }
   const prepared = {
     referenceCalls,
     callParameters,
