@@ -6,7 +6,7 @@ type SourceTarget = Pick<
 >;
 type SourceTargetOptions = SourceTarget & Pick<
   Partial<GameTestContract>,
-  'actions' | 'minimumFps' | 'minimumAudioRms' | 'audioRequirements'
+  'frames' | 'checkpoints' | 'actions' | 'minimumFps' | 'minimumAudioRms' | 'audioRequirements'
 >;
 
 /**
@@ -19,9 +19,9 @@ export function sourceTarget(target: SourceTargetOptions): GameTestContract {
     ...target,
     category: 'arcade',
     romEnvironment: `MAMEKIT_${target.game.toUpperCase()}_ROM`,
-    frames: 1200,
+    frames: target.frames ?? 1200,
     minimumFps: target.minimumFps ?? 10,
-    checkpoints: [1, 60, 180, 300, 600, 900, 1200],
+    checkpoints: target.checkpoints ?? [1, 60, 180, 300, 600, 900, 1200],
     actions: target.actions ?? [
       { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
       { atFrame: 330, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },

@@ -71,6 +71,50 @@ export function createBoard(
   return factory(config, regions, inputs, sinks);
 }
 
+/** Bind devcb members owned by a source-compiled composite device. */
+export function generatedCompositeCallbackBindings(
+  machine: BoardIr,
+  ownerClass: string,
+  hasDevice: (tag: string) => boolean,
+  effects: () => Map<string, BoundEffect>,
+  bindings: GeneratedHandlerBindings,
+): GeneratedHandlerBindings {
+  const compositeTags = new Set(
+    machine.callbacks.flatMap(callback =>
+      callback.targetClass === ownerClass &&
+      callback.targetTag &&
+      !hasDevice(callback.targetTag)
+        ? [callback.targetTag]
+        : callback.targetClass === ownerClass
+          ? machine.devices?.flatMap(device =>
+            device.tag === callback.ownerTag && device.hostTag && !hasDevice(device.hostTag)
+              ? [device.hostTag]
+              : []) ?? []
+          : []),
+  );
+  if (compositeTags.size !== 1) return bindings;
+  const [ownerTag] = compositeTags;
+  const calls = { ...bindings.calls };
+  for (const callback of machine.callbacks.filter(candidate =>
+    candidate.ownerTag === ownerTag)) {
+    const emit = (value: number) => {
+      const effect = effects().get(callback.id);
+      if (!effect) {
+        throw new Error(
+          `${machine.game}: callback "${callback.id}" has no bound effect`,
+        );
+      }
+      const reads = effect.reads || /(?:^|_)(?:r|read)(?:_cb|_callback)?$/.test(callback.signal);
+      return reads
+        ? applyBoardTransforms(Number(effect.run(0)) || 0, effect.transforms)
+        : (effect.run(applyBoardTransforms(value, effect.transforms)), 0);
+    };
+    calls[`m_${callback.signal}`] ??= emit;
+    calls[callback.signal] ??= emit;
+  }
+  return { ...bindings, calls };
+}
+
 /**
  * Hardware-neutral composition host for generated machine, CPU and device IR.
  * Missing generated hardware is an error; composition only executes emitted
@@ -276,30 +320,46 @@ class IrBoard implements Board {
           selectors: {
             'cart.mapper': config.cart?.mapper,
           },
-          finder: rawTag => {
+          finder: (rawTag, member) => {
+            const inferredTag = member?.replace(/^m_/, '');
             const tag = rawTag.replace(/^[\^:]+/, '') ||
-              machine.execution.cpus[0]?.tag ||
-              '';
+              (inferredTag && (
+                machine.execution.cpus.some(cpu => cpu.tag === inferredTag) ||
+                machine.devices?.some(device => device.tag === inferredTag)
+              ) ? inferredTag : undefined) ||
+              machine.execution.cpus[0]?.tag || '';
             if (tag === 'screen') return screenHost;
             const cpuSpec = machine.execution.cpus.find(candidate => candidate.tag === tag) ??
               machine.execution.cpus[0];
             if (!cpuSpec) return 0;
-            return {
-              cycles_to_attotime: (cycles: number) =>
-                cycles / Math.max(1, cpuSpec.cycleClock ?? cpuSpec.clock),
-              reset: () => this.cpus.get(cpuSpec.tag)?.reset(),
-              set_input_line: (line: number, state: number) => {
-                const cpu = this.cpus.get(cpuSpec.tag);
-                if (cpu) {
-                  applyGeneratedCpuInputLine(
-                    cpu,
-                    line,
-                    state,
-                    held => this.cpuHeld.set(cpuSpec.tag, held),
-                  );
+            return new Proxy({}, {
+              get: (_target, property) => {
+                const method = String(property);
+                if (method === 'cycles_to_attotime') {
+                  return (cycles: number) =>
+                    cycles / Math.max(1, cpuSpec.cycleClock ?? cpuSpec.clock);
                 }
+                if (method === 'total_cycles') {
+                  return () => this.cpuCycles.get(cpuSpec.tag) ?? 0;
+                }
+                if (method === 'reset') return () => this.cpus.get(cpuSpec.tag)?.reset();
+                if (method === 'set_input_line') {
+                  return (line: number, state: number) => {
+                    const cpu = this.cpus.get(cpuSpec.tag);
+                    if (cpu) {
+                      applyGeneratedCpuInputLine(
+                        cpu,
+                        line,
+                        state,
+                        held => this.cpuHeld.set(cpuSpec.tag, held),
+                      );
+                    }
+                  };
+                }
+                return (...args: number[]) =>
+                  this.devices.get(tag)?.invoke(method, ...args) ?? 0;
               },
-            };
+            });
           },
           calls: {
             screen: () => screenHost,
@@ -440,7 +500,8 @@ class IrBoard implements Board {
             if (
               machine.game === 'arkanoid' &&
               custom.member === 'arkanoid_semaphore_input_r' &&
-              !this.devices.has('mcu:mcu')
+              (!this.devices.has('mcu:mcu') ||
+                usesProtectionProtocolBridge(machine, 'mcu:mcu'))
             ) {
               // Immediate protocol mirror: host latch consumed, MCU reply ready.
               line = 1;
@@ -837,6 +898,7 @@ class IrBoard implements Board {
       const firmware = regions[specification.tag] ?? regions[
         Object.keys(regions).find(name => name.endsWith(`:${leaf}`)) ?? ''
       ];
+      if (usesProtectionProtocolBridge(machine, specification.tag)) return [];
       if (
         device && !host && firmware && specification.type === 'M68705P5' &&
         device.methodNames().includes('execute_run') &&
@@ -1996,7 +2058,11 @@ class IrBoard implements Board {
       }
       return reset;
     }
-    if (machine.game === 'elevator' && this.devices.has('mcu:mcu')) {
+    if (
+      machine.game === 'elevator' &&
+      this.devices.has('mcu:mcu') &&
+      !usesProtectionProtocolBridge(machine, 'mcu:mcu')
+    ) {
       // The security-interface device is source-compiled while its child
       // 68705 is a concrete generated CPU.  Initialise the interface exactly
       // as device_start/device_reset do in MAME and supply the values of its
@@ -2129,7 +2195,8 @@ class IrBoard implements Board {
     }
     if (
       machine.game !== 'arkanoid' ||
-      this.devices.has('mcu:mcu')
+      (this.devices.has('mcu:mcu') &&
+        !usesProtectionProtocolBridge(machine, 'mcu:mcu'))
     ) return undefined;
 
     // The original Arkanoid boot streams 0xc000 program bytes to its 68705,
@@ -2143,7 +2210,9 @@ class IrBoard implements Board {
       const pc = this.cpus.get('maincpu')?.get('PC') ?? -1;
       if (pc === 0x17de) return 0xff;
       if (pc === 0x0382) return 0x55;
-      if (pc === 0x0393) return 0x00;
+      // LD A,(0xd018) spans 0x038e..0x0390; the generated Z80 exposes the
+      // post-instruction PC while the mapped read is delivered.
+      if (pc === 0x0391) return 0x00;
       return [0xff, 0x55, 0x00][response++] ?? 0x00;
     };
     const dataWrite = () => {};
@@ -2263,7 +2332,8 @@ class IrBoard implements Board {
             ? inputs.read('edge:START') & 0x0f
             : machine.game === 'arkanoid' &&
             custom.member === 'arkanoid_semaphore_input_r' &&
-            !this.devices.has('mcu:mcu')
+            (!this.devices.has('mcu:mcu') ||
+              usesProtectionProtocolBridge(machine, 'mcu:mcu'))
             ? 1
             : executeGeneratedMachineHandler(
                 machine,
@@ -2287,14 +2357,21 @@ class IrBoard implements Board {
       if (paletteWrite) {
         const ext = Boolean(paletteWrite[1]);
         registry.write[key] = (_address, offset, data, memMask = 0xffff) => {
+          const bytes = (this.generatedResources[
+            `registers:palette${ext ? ':ext' : ''}`
+          ] as Uint8Array | undefined) ?? new Uint8Array(0x10000);
+          this.generatedResources[`registers:palette${ext ? ':ext' : ''}`] = bytes;
           if (key.includes('write16')) {
             if (memMask & 0xff00) {
+              bytes[(offset * 2) & 0xffff] = (data >>> 8) & 0xff;
               this.videoPrimitives?.writePaletteRam?.(offset * 2, data >>> 8, ext);
             }
             if (memMask & 0x00ff) {
+              bytes[(offset * 2 + 1) & 0xffff] = data & 0xff;
               this.videoPrimitives?.writePaletteRam?.(offset * 2 + 1, data, ext);
             }
           } else {
+            bytes[offset & 0xffff] = data & 0xff;
             this.videoPrimitives?.writePaletteRam?.(offset, data, ext);
           }
         };
@@ -2319,9 +2396,27 @@ class IrBoard implements Board {
         };
         continue;
       }
-      if (deviceType === 'POKEY' || deviceType.startsWith('TMS5220')) {
+      if (
+        deviceType === 'POKEY' || deviceType === 'YM3812' ||
+        deviceType.startsWith('TMS5220')
+      ) {
         // Primary-board audio remains live; these auxiliary chips currently
         // expose their register bus so the unmodified sound CPU can progress.
+        registry.write[key] = () => {};
+        continue;
+      }
+      if (/^K0\d+/.test(deviceType)) {
+        const bytes = this.generatedResources[`registers:${deviceTag}`] as Uint8Array |
+          undefined ?? new Uint8Array(0x10000);
+        this.generatedResources[`registers:${deviceTag}`] = bytes;
+        registry.write[key] = (_address, offset, data) => {
+          bytes[offset & 0xffff] = data & 0xff;
+        };
+        continue;
+      }
+      if (deviceType === 'UPD7759' || deviceType === 'VLM5030') {
+        // Keep the real command/control bus executable while the media
+        // decoder remains a separately reported hardware gap.
         registry.write[key] = () => {};
         continue;
       }
@@ -2335,6 +2430,16 @@ class IrBoard implements Board {
       }
       const deviceTag = key.slice(0, key.indexOf('.'));
       const deviceType = machine.devices?.find(device => device.tag === deviceTag)?.type ?? '';
+      const paletteRead = /^palette\.read(?:8|16|32)(_ext)?$/.exec(key);
+      if (paletteRead) {
+        const ext = Boolean(paletteRead[1]);
+        const bytes = (this.generatedResources[
+          `registers:palette${ext ? ':ext' : ''}`
+        ] as Uint8Array | undefined) ?? new Uint8Array(0x10000);
+        this.generatedResources[`registers:palette${ext ? ':ext' : ''}`] = bytes;
+        registry.read[key] = (_address, offset) => bytes[offset & 0xffff]!;
+        continue;
+      }
       if (deviceType.startsWith('EEPROM_')) {
         const bytes = this.generatedResources[`eeprom:${deviceTag}`] as Uint8Array |
           undefined ?? new Uint8Array(0x800).fill(0xff);
@@ -2342,8 +2447,19 @@ class IrBoard implements Board {
         registry.read[key] = (_address, offset) => bytes[offset % bytes.length]!;
         continue;
       }
-      if (deviceType === 'POKEY') {
+      if (deviceType === 'POKEY' || deviceType === 'YM3812') {
         registry.read[key] = () => 0xff;
+        continue;
+      }
+      if (/^K0\d+/.test(deviceType)) {
+        const bytes = this.generatedResources[`registers:${deviceTag}`] as Uint8Array |
+          undefined ?? new Uint8Array(0x10000);
+        this.generatedResources[`registers:${deviceTag}`] = bytes;
+        registry.read[key] = (_address, offset) => bytes[offset & 0xffff]!;
+        continue;
+      }
+      if (deviceType === 'UPD7759' || deviceType === 'VLM5030') {
+        registry.read[key] = () => 0;
         continue;
       }
       const custom = config.customs?.find(candidate => candidate.member === key.split('.').at(-1));
@@ -2727,9 +2843,21 @@ class IrBoard implements Board {
       candidate.program &&
       !candidate.program.diagnostics.length);
     if (!handler?.program) return undefined;
-    const bindings = scopedCpuTag
+    let bindings = scopedCpuTag
       ? generatedCpuMemberBindings(this.bindings, scopedCpuTag)
       : this.bindings;
+    // Composite devices are source-compiled handlers rather than generated
+    // Device instances. Their devcb members still have to emit the callbacks
+    // declared on the composite tag. For example Venture's inner PIA calls
+    // venture_sound_device::pia_pa_w, which invokes m_pa_callback and must
+    // reach the cabinet PIA through soundbd.pa_callback().
+    bindings = generatedCompositeCallbackBindings(
+      this.machine,
+      handler.ownerClass,
+      tag => this.devices.has(tag),
+      () => this.effects,
+      bindings,
+    );
     return (state, ...sourceArgs) => {
       return executeGeneratedMachineHandler(
         this.machine,
@@ -2915,6 +3043,23 @@ class IrBoard implements Board {
       },
     };
   }
+}
+
+/**
+ * These parent interfaces expose a source-level host protocol while their
+ * dumped 68705 firmware still exercises timer behavior the compact core does
+ * not pass. Use the bounded interface protocol instead of letting the real
+ * firmware enter its hardware-error trap and falsely claiming a cold boot.
+ */
+export function usesProtectionProtocolBridge(
+  machine: BoardIr,
+  childTag: string,
+): boolean {
+  const child = machine.devices?.find(device => device.tag === childTag);
+  const host = child?.hostTag
+    ? machine.devices?.find(device => device.tag === child.hostTag)
+    : undefined;
+  return host?.type === 'ARKANOID_68705P5' || host?.type === 'TAITO_SJ_SECURITY_MCU';
 }
 
 /** Scope a composite device's conventional m_cpu finder to its hosted CPU. */

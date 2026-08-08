@@ -77,6 +77,11 @@ export interface HardwareClosure {
 
 const DECLARATIVE_HOST_TYPES = new Set([
   'DISCRETE',
+  // Persistent serial EEPROM storage and passive filters are services of the
+  // browser host. They do not execute a MAME CPU/device program of their own.
+  'EEPROM_2804',
+  'EEPROM_ER5911_8BIT',
+  'FILTER_BIQUAD',
   'FILTER_RC',
   'GFXDECODE',
   'NETLIST_LOGIC_INPUT',

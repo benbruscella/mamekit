@@ -290,4 +290,18 @@ const staticArray = compileMameHandler(`
 assert.deepEqual(staticArray.diagnostics, []);
 assert.equal(executeGeneratedProgram(staticArray, {}, { address: 6 }).value, 'IN1');
 
-console.log('handler-ir.spec: 37 passed');
+const reinterpretedSpriteRam = compileMameHandler(`
+  u16 *const spriteram16 = reinterpret_cast<u16 *>(m_spriteram8->live());
+  return spriteram16[0];
+`);
+assert.deepEqual(reinterpretedSpriteRam.diagnostics, []);
+assert.equal(executeGeneratedProgram(reinterpretedSpriteRam, {
+  calls: { 'm_spriteram8.live': () => Uint8Array.of(0x34, 0x12) },
+}).value, 0x1234);
+
+const crystalClock = compileMameHandler(`
+  m_timer->adjust(attotime::from_ticks(256, 24_MHz_XTAL / 4));
+`);
+assert.deepEqual(crystalClock.diagnostics, []);
+
+console.log('handler-ir.spec: 40 passed');

@@ -199,7 +199,8 @@ export function buildRuntimeReport(
     // Resolve the longest tag prefix rather than treating the first dot as the
     // boundary between device and method.
     const device = [...deviceRequirementByTag.entries()]
-      .filter(([tag]) => name.startsWith(`${tag}.`))
+      .filter(([tag]) =>
+        name.startsWith(`${tag}.`) || name.includes(`:${tag}.`))
       .sort(([left], [right]) => right.length - left.length)[0]?.[1];
     if (device) {
       return {

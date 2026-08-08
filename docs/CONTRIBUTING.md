@@ -267,6 +267,264 @@ Passing hashes do not prove correctness. A deterministic test can faithfully
 preserve a deterministic bug. Compare questionable behavior with MAME or a
 trusted reference before accepting it.
 
+### THE 40-GAME BRING-UP CHECKLIST
+
+The first large arcade batch exposed a set of recurring traps. Treat this as a
+mandatory checklist, not optional debugging advice. Most apparently unrelated
+"does not boot", "no sound", corrupt-sprite, and false-blocker reports came
+from one of these patterns.
+
+#### 1. Prove a cold boot before testing inputs
+
+Run the machine from reset with **no input at all** until MAME reaches its
+attract/title state. Capture intermediate frames and compare their emulated
+times with the same MAME revision. Then run a separate coin/start/gameplay
+scenario.
+
+Do not let an acceptance action hide a boot failure. Several boards ignore
+coin/start during RAM, ROM, audio-board, or bookkeeping self-test; pressing a
+key at a generic frame can be discarded, accidentally skip a state, or make a
+broken attract path look healthy. Put input actions after the observed ready
+state, not after an assumed number of seconds.
+
+MAME has no universal `booted` signal. Drivers know about reset lines,
+interrupts, watchdogs, device handshakes, and video updates, but "ready for a
+player" is game software state. Do not add timers, fake boot-complete flags, or
+UI spinners that guess. The stable user feedback is the board's real output;
+the stable test is an observed title/attract checkpoint followed by accepted
+coin and start inputs.
+
+For a reference timeline, a headless MAME AVI is often more useful than a
+single screenshot:
+
+```sh
+SDL_VIDEODRIVER=dummy mame <target> \
+  -rompath .data/roms/arcade \
+  -video soft -sound none -nothrottle \
+  -seconds_to_run 60 -aviwrite /tmp/mame-<target>.avi -skip_gameinfo
+```
+
+#### 2. Never test new source against stale or mixed `dist`
+
+`npm run build` type-checks; it does not update the JavaScript that the ROM
+acceptance harness and browser load from `dist`. Rebuild runtime/app output
+after changing runtime, generated hardware, or handler execution.
+
+A target-only hardware build over a 65-game catalog is deliberately refused:
+its registry, closure, reports, and catalog describe different worlds. A
+runtime report from such a mixed tree can both invent blockers and conceal real
+ones. Targeted builds are useful only in an isolated/empty distribution. Before
+recording status or goldens, always do:
+
+```sh
+npm run gen:all
+npm run audit:generated
+```
+
+If a test passed before a rebuild and fails after it, trust the rebuilt result.
+The Venture composite-callback regression was initially missed for exactly
+this reason.
+
+#### 3. Treat status as derived output, never a label to maintain by hand
+
+"Supported", "blocked", and catalog grouping must come from one coherent full
+hardware closure plus the current runtime certification. A source-resolved
+type is not necessarily executable; a nested part may already be satisfied by
+an executable host; and a declarative browser concept such as `SCREEN`,
+`SPEAKER`, or `PALETTE` is not an emulated-device blocker.
+
+When a game is reported blocked, classify every gap before coding:
+
+| Reported gap | First check | Usual fix |
+|---|---|---|
+| Type is executable in the full manifest | stale/mixed target closure | clean full regeneration |
+| Child is internal to a composite device | `hostTag`, `hostedBy`, nested config reachability | preserve `host:child` ownership |
+| Screen/speaker/palette/timer is host-declarative | manifest status | correct capability classification |
+| Source device has methods but no executable artifact | compiler diagnostics and unsupported syntax | extend generic device lowering |
+| Map handler is missing | graph edge, map inheritance, submap lowering | fix extraction/closure before runtime |
+| Report is playable but ROM stalls | cold boot, interrupts, callbacks, scheduler | fix behavior; do not relabel |
+
+Do not bump a difficult game merely because the first report says blocked.
+First determine whether the blocker is real, duplicated, hosted, declarative,
+or an artifact of a stale build.
+
+#### 4. Preserve nested machine ownership
+
+MAME composite devices commonly call `device_add_mconfig` and create children
+whose raw tags are generic (`cpu`, `pia`, `riot`, `pit`, `dac`). Those children
+must retain the composite namespace (`soundbd:pia`, `soundbd:audiocpu`). The
+same scoping applies to callbacks declared by the nested machine config, not
+only to devices and ROM regions.
+
+An unscoped callback can bind successfully to the wrong same-named cabinet
+device and produce a plausible but dead machine. Verify all four together:
+
+- emitted child device tag and `hostTag`;
+- child CPU ROM region and address map;
+- callback `ownerTag`;
+- callback target/effect and the live runtime device it reaches.
+
+Subdevice maps such as `map(...).m(m_riot, FUNC(...::ram_map))` must lower the
+selected RAM/I/O submap, mirrors, and global mask. Zero-filled RAM or a generic
+no-op handler is not a safe approximation.
+
+Finder tags can also arrive through a templated device constructor rather than
+the member declaration. A class may declare `optional_device(...DUMMY_TAG)` and
+the selected machine config supplies `m_audiocpu`/`m_vlm` as macro arguments.
+Do not resolve an empty finder to the first CPU. Preserve the configured
+argument or, when lowering an already-typed member, resolve its member identity
+(`m_audiocpu` to `audiocpu`). Track & Field silently delivered its sound IRQ to
+the main CPU until this distinction was preserved.
+
+#### 5. Callbacks are electrical connections, including during construction
+
+A generated callback is not complete because it appears in `board.json`. Its
+source signal must emit, every effect must bind, and assert/clear transitions
+must reach the target. Composite devices implemented as source-compiled
+handlers still own `devcb` members such as `m_pa_callback`; those delegates
+need runtime emitters just like generated `Device` instances.
+
+Construction and reset ordering matter. MAME wires machine configuration
+before devices start or reset. Do not capture an unfinished effect/device table
+by value in an early closure. Resolve it lazily when the signal fires, and add
+a cold-start test that reaches the first real transition. Also replay source
+initial latch output when the physical target would have observed it at power
+on.
+
+For every line callback, preserve the distinction between:
+
+- asserted level and cleared level;
+- `HOLD_LINE`, `ASSERT_LINE`, and a pulse;
+- IRQ, NMI, reset, halt/bus request, and interrupt acknowledge;
+- active-high and active-low transforms;
+- callback data versus `(offset, data, mask)` conventions.
+
+Dropping the clear edge often creates a boot loop; turning a held level into
+repeated pulses often creates an interrupt storm.
+
+#### 6. Multi-CPU boards need source scheduler facts
+
+Correct clocks alone do not guarantee a working handshake. Preserve CPU clock
+dividers, scanline/periodic events, device timers, and source calls such as
+`config.set_maximum_quantum(...)`. Audio CPU, MCU, and main CPU communication
+can fail when each processor runs the right total cycles in slices that are too
+coarse or in the wrong line/event phase.
+
+Low fps is not permission to reduce clocks, skip interrupts, raise generated
+loop guards, or lower the acceptance threshold. First determine whether the
+cost is an interpreter hot loop, a timer firing too frequently, duplicated
+work at both scanline phases, or an incorrectly lowered busy-wait. Optimize the
+generic generated path and differential-test it against the interpreter.
+
+An error such as `generated handler loop exceeded 65536 iterations` usually
+means the compiled control flow, callback, timer, or CPU-visible condition is
+wrong. Raising the guard converts a diagnosable bug into a hang.
+
+Keep extending the handler language for recurring source syntax instead of
+copying a handler into game code. Named casts such as
+`reinterpret_cast<u16 *>(byte_buffer)` must preserve the typed view, and MAME
+frequency tokens such as `24_MHz_XTAL` must lower to numeric clock values.
+Those two generic parser fixes removed Wardner's sprite and screen-update gaps
+and made the Simpsons vblank callback executable.
+
+#### 7. Rendering includes hardware side effects
+
+A screen that looks right can still be unplayable. Video hardware may expose
+collision latches, scanline IRQs, sprite buffering, priority flags, or partial
+update timing to the CPU. A direct renderer must preserve those side effects,
+not only draw equivalent pixels. Venture's treasure/room behavior depends on
+the Exidy motion-object/background collision bits and IRQ, for example.
+
+During active play compare:
+
+- native orientation, visible area, crop, and render scale;
+- tile/character RAM updates and dirty behavior;
+- sprite code banks, enable bits, coordinate bias, clipping and wrap;
+- transparent pen versus palette color zero;
+- sprite/background and sprite/sprite priority and collision;
+- PROM lookup order, palette bit wiring, endianness and RAM palette writes;
+- buffered sprite RAM and partial/scanline update boundaries.
+
+Title screens rarely exercise these paths. A golden must include moving
+sprites, room/stage transitions, score areas, and at least one meaningful
+collision or priority case.
+
+#### 8. Audible output is not proof of correct audio
+
+Keep these as separate milestones:
+
+1. command/handshake reaches the sound CPU or device;
+2. source registers receive writes during **gameplay**, not only boot;
+3. the worklet renders non-silent PCM;
+4. pitch, duration, waveform, envelope, filtering, gain, mute, and speech match
+   MAME credibly.
+
+A boot beep can satisfy a whole-run RMS floor while every game effect remains
+dead. Require post-ready writes on the actual source paths (for example 8253,
+6840, effects control, AY/YM registers, DAC, samples, or speech). Record method
+counts and a PCM hash only after the contract has inserted a coin and started
+play.
+
+Timer chips have state beyond a divisor. Control-word writes, null-count state,
+byte sequencing, gates, output polarity, and reload modes determine whether a
+short boot tone stops or becomes an endless buzz. Likewise, a synthetic square
+or sawtooth is not a substitute for a missing speech chip, noise path, sample,
+or analog filter. Use the MAME audio A/B before approving "close enough".
+
+#### 9. Inputs are protocols, not just key bindings
+
+Confirm port tag, bit mask, polarity, impulse/edge behavior, player number,
+cocktail mapping, service inputs, and DIP defaults. Some coin inputs reset a
+CPU or feed a monostable instead of appearing as a stable readable bit. Test
+coin acceptance visibly (credit count), then start acceptance, then sustained
+gameplay controls. A keyboard event dispatched during self-test proves only
+that the browser emitted a key.
+
+#### 10. Separate ROM transport failures from emulation failures
+
+Validate the same local ROM with the real-ROM harness before debugging a
+browser fetch. A browser can report `ERR_FAILED 200 (OK)` because CORS,
+content-encoding, range handling, or an object-store response header rejected
+an otherwise successful HTTP response. Conversely, a successful fetch says
+nothing about region assembly, device ROM sets, CRCs, transforms, or critical
+ROM coverage.
+
+Do not zero-fill a missing dumped chip and record the resulting screen. Include
+device ROM sets, parent/shared files, region offsets, reload/continue/copy
+transforms, and opcode/data views exactly as the generated manifest declares.
+
+#### 11. Use a verification matrix, not one heroic test
+
+Before declaring a game unblocked, obtain independent evidence for:
+
+| Scenario | Required evidence |
+|---|---|
+| Cold boot, no input | reaches the same ready/attract state as MAME on a comparable timeline |
+| Boot audio | starts and stops at credible times; no endless tone or buzz |
+| Coin/start | credit changes and the game leaves attract mode |
+| Active play | controls, sprites, colors, priorities and collisions behave |
+| Gameplay audio | named post-boot device paths write and PCM is non-silent |
+| Reset/reload | the same cold path works without stale browser/device state |
+| Performance | fps floor passes with all real hardware behavior enabled |
+| Browser | canvas and AudioWorklet run with no page/console error |
+
+The source spec, compiler/device unit tests, no-input boot trace, gameplay ROM
+contract, browser test, and MAME comparison catch different classes of error.
+None substitutes for the others.
+
+#### 12. Batch by reusable failure pattern
+
+For a large target set, regenerate the full closure, group real blockers by
+missing hardware/source shape, implement one shared capability, and regenerate
+again. Good batches are "nested composite callback scoping", "hosted MCU",
+"buffered sprite device", or "missing generated filter", not an arbitrary list
+of game names. Re-run the status audit after each shared fix because one change
+may correctly unblock several machines.
+
+Keep the game token declarative and resist emergency game-name branches. A
+branch that appears to fix one of forty games usually documents a missing IR
+fact that will fail again on the forty-first.
+
 For an audio A/B, give the comparison command an actual MAME executable.
 MAMEKIT captures the emitted worklet from a clean power-on, MAME records its
 own run with `-wavwrite`, and the tool writes both WAVs plus a spectrogram:

@@ -19,6 +19,7 @@ assert.deepEqual(Object.keys(RUNTIME_CERTIFICATIONS).sort(), [
   'sinistar',
   'spyhunt',
   'timeplt',
+  'trackfld',
   'tutankhm',
   'venture',
 ]);
@@ -30,6 +31,10 @@ assert.equal(
   'a certification must not hide a new hardware gap',
 );
 assert.equal(isRuntimeCertified('arkanoid', [], [], true), false);
+assert.equal(
+  isRuntimeCertified('trackfld', ['vlm:VLM5030'], ['vlm.data_w'], true),
+  true,
+);
 assert.equal(isRuntimeCertified('venture', [], [
   'soundbd:pia.read',
   'soundbd:pia.write',
@@ -39,4 +44,4 @@ assert.equal(isRuntimeCertified('venture', [], [
   'soundbd:riot.ram_write',
 ], true), true);
 
-console.log('runtime-certification.spec: 5 passed, 0 failed');
+console.log('runtime-certification.spec: 6 passed, 0 failed');

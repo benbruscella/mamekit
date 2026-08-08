@@ -121,7 +121,10 @@ export class GeneratedM68705P5Device implements Device {
     return name === 'execute_set_input' ? ['inputnum', 'state'] : [];
   }
   signalNames(): readonly string[] {
-    return ['porta_r', 'portc_r', 'porta_w', 'portb_w'];
+    return [
+      'porta_r', 'portb_r', 'portc_r',
+      'porta_w', 'portb_w', 'portc_w',
+    ];
   }
   on(signal: string, listener: DeviceCallbackListener, slot = 0): Device {
     const values = this.listeners.get(signal) ?? [];
@@ -384,8 +387,8 @@ export class GeneratedM68705P5Device implements Device {
 
   private readPort(port: number): number {
     const mask = port === 2 ? 0xf0 : 0;
-    const signal = port === 0 ? 'porta_r' : port === 2 ? 'portc_r' : '';
-    const input = signal ? Number(this.listeners.get(signal)?.[0]?.() ?? 0xff) : 0xff;
+    const signal = ['porta_r', 'portb_r', 'portc_r'][port]!;
+    const input = Number(this.listeners.get(signal)?.[0]?.() ?? 0xff);
     const ddr = this.portDdr[port] ?? 0;
     return (mask | ((this.portLatch[port] ?? 0xff) & ddr) | (input & ~ddr)) & 0xff;
   }
@@ -398,8 +401,7 @@ export class GeneratedM68705P5Device implements Device {
   }
 
   private emitPort(port: number): void {
-    const signal = port === 0 ? 'porta_w' : port === 1 ? 'portb_w' : '';
-    if (!signal) return;
+    const signal = ['porta_w', 'portb_w', 'portc_w'][port]!;
     const latch = this.portLatch[port] ?? 0xff;
     const value = latch;
     for (const listener of this.listeners.get(signal) ?? []) listener?.(value & 0xff);

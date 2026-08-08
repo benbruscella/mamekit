@@ -95,6 +95,14 @@ export function lowerGeneratedMachine(
   const reachableConfigIds = new Set(
     [...visitedConfigs].map(key => key.slice(0, key.indexOf('\0'))),
   );
+  const reachableConfigHosts = new Map<string, Set<string>>();
+  for (const key of visitedConfigs) {
+    const separator = key.indexOf('\0');
+    const id = key.slice(0, separator);
+    const host = key.slice(separator + 1);
+    if (host) (reachableConfigHosts.get(id) ??
+      reachableConfigHosts.set(id, new Set()).get(id)!).add(host);
+  }
   const resolveReachableTag = (rawTag: string): string => {
     const tags = [...new Set(emittedTags.values())];
     if (tags.includes(rawTag)) return rawTag;
@@ -119,11 +127,20 @@ export function lowerGeneratedMachine(
       const props = node.props;
       const ownerDevice = graph.edges.find(edge =>
         edge.rel === 'HAS_CALLBACK' && edge.to === node.id);
+      const rawOwnerTag = String(props.ownerTag);
+      const configHosts = ownerDevice
+        ? [...(reachableConfigHosts.get(ownerDevice.from) ?? [])]
+        : [];
+      const configScopedOwner = configHosts.length === 1 && !rawOwnerTag.includes(':')
+        ? `${configHosts[0]}:${rawOwnerTag}`
+        : undefined;
       const callback: GeneratedCallback = {
         id: node.id,
         ownerTag: ownerDevice && emittedTags.has(ownerDevice.from)
-          ? emittedDeviceTag(ownerDevice.from, String(props.ownerTag))
-          : resolveReachableTag(String(props.ownerTag)),
+          ? emittedDeviceTag(ownerDevice.from, rawOwnerTag)
+          : configScopedOwner && [...emittedTags.values()].includes(configScopedOwner)
+            ? configScopedOwner
+            : resolveReachableTag(rawOwnerTag),
         signal: String(props.signal),
         operation: String(props.operation),
       };

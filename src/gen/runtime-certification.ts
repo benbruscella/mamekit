@@ -145,6 +145,13 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
       'timeplt_audio:ay2.data_w',
     ],
   },
+  trackfld: {
+    // Real-ROM video and the SN76489/DAC audio stream match every stored
+    // checkpoint exactly. VLM speech decoding remains an explicit bounded
+    // gap rather than blocking the playable board around it.
+    generationGaps: ['vlm:VLM5030'],
+    handlerGaps: ['vlm.data_w'],
+  },
   tutankhm: {
     generationGaps: [],
     handlerGaps: [

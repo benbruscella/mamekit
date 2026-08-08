@@ -7,6 +7,7 @@ import {
   createGeneratedTileInfoTarget,
   decodeTaitoSjRamPixel,
   decodeVicDualPixel,
+  exidySpriteCollisionMask,
   generatedDirectScreenShape,
   generatedScrollBand,
   generatedTileGroupIndirectMask,
@@ -57,6 +58,15 @@ assert.deepEqual(taitoSjSpritePosition(17, 16), { x: 16, y: 224, visible: true }
 
 assert.equal(decodeVicDualPixel(0x80, 0xa2, 0), 0xff00ffff);
 assert.equal(decodeVicDualPixel(0x80, 0xa2, 1), 0xff00ff00);
+const exidyPixels = new Uint8Array(3 * 2 * 2);
+exidyPixels[0] = 1;
+exidyPixels[4] = 1;
+assert.equal(exidySpriteCollisionMask(
+  { count: 3, width: 2, height: 2, pixels: exidyPixels },
+  (x, y) => Number(x === 4 && y === 5),
+  { code: 0, x: 4, y: 5 },
+  { code: 1, x: 4, y: 5 },
+), 0x1c);
 assert.equal(williamsPaletteColor(0), 0xff000000);
 assert.equal(williamsPaletteColor(0xff), 0xffffffff);
 

@@ -56,6 +56,10 @@ const graph: KnowledgeGraph = {
     label: 'MachineConfig',
     props: {},
   }, {
+    id: 'machine:composite-inner',
+    label: 'MachineConfig',
+    props: {},
+  }, {
     id: 'handler:screen_update',
     label: 'Handler',
     props: {
@@ -79,6 +83,23 @@ const graph: KnowledgeGraph = {
     id: 'device:screen',
     label: 'Device',
     props: { type: 'SCREEN', tag: 'screen', clock: 0, config: [] },
+  }, {
+    id: 'device:soundbd',
+    label: 'Device',
+    props: { type: 'COMPOSITE_FIXTURE', tag: 'soundbd', clock: 0, config: [] },
+  }, {
+    id: 'device:inner-pia',
+    label: 'Device',
+    props: { type: 'PIA6821', tag: 'pia', clock: 0, config: [] },
+  }, {
+    id: 'callback:inner-pia',
+    label: 'Callback',
+    props: {
+      ownerTag: 'pia',
+      signal: 'writepa_handler',
+      operation: 'set_nop',
+      raw: 'm_pia->writepa_handler().set_nop()',
+    },
   }, {
     id: 'callback:test',
     label: 'Callback',
@@ -178,6 +199,10 @@ const graph: KnowledgeGraph = {
     { from: 'machine:test', to: 'device:sub', rel: 'HAS_DEVICE' },
     { from: 'machine:test', to: 'device:latch', rel: 'HAS_DEVICE' },
     { from: 'machine:test', to: 'device:screen', rel: 'HAS_DEVICE' },
+    { from: 'machine:test', to: 'device:soundbd', rel: 'HAS_DEVICE' },
+    { from: 'device:soundbd', to: 'machine:composite-inner', rel: 'CALLS' },
+    { from: 'machine:composite-inner', to: 'device:inner-pia', rel: 'HAS_DEVICE' },
+    { from: 'machine:composite-inner', to: 'callback:inner-pia', rel: 'HAS_CALLBACK' },
     { from: 'machine:test', to: 'device:dma', rel: 'HAS_DEVICE' },
     { from: 'machine:test', to: 'device:ay0', rel: 'HAS_DEVICE' },
     { from: 'machine:test', to: 'callback:config-screen', rel: 'HAS_CALLBACK' },
@@ -237,6 +262,13 @@ if (
 }
 const testCallback = machine.callbacks.find(callback => callback.id === 'callback:test');
 if (testCallback?.slot !== 3) throw new Error('slot should lower to a number');
+const innerPiaCallback = machine.callbacks.find(callback => callback.id === 'callback:inner-pia');
+if (innerPiaCallback?.ownerTag !== 'soundbd:pia') {
+  throw new Error('callbacks declared by a hosted machine config must retain the host tag');
+}
+if (machine.devices?.find(device => device.id === 'device:inner-pia')?.tag !== 'soundbd:pia') {
+  throw new Error('devices declared by a hosted machine config must retain the host tag');
+}
 if (testCallback.source?.line !== 42) throw new Error('source provenance missing');
 const reset = machine.connections.find(connection => connection.callbackId === 'callback:test');
 if (machine.connections.some(connection => connection.callbackId === 'callback:config-screen')) {

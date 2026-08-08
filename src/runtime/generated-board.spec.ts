@@ -9,11 +9,14 @@ import {
   bindGeneratedRegionState,
   bindGeneratedShareState,
   createGeneratedBoard,
+  generatedCompositeCallbackBindings,
   generatedDeviceCallbackArguments,
   generatedCpuMemberBindings,
   generatedPromGateOpen,
   generatedSignalHandlerArguments,
+  usesProtectionProtocolBridge,
 } from './generated-board.ts';
+import type { BoundEffect } from './generated-effects.ts';
 import { registerGeneratedCpu } from './generated-cpu.ts';
 import {
   registerGeneratedDevice,
@@ -167,6 +170,109 @@ const driverState: Record<string, unknown> = {};
 const driverCalls: Record<string, (...args: number[]) => number | void> = {};
 bindGeneratedDriverState(driverState, driverCalls);
 assert.equal(driverCalls.flip_screen!(), 0);
+
+let compositeCallbackValue = -1;
+const compositeMachine = {
+  schemaVersion: 3,
+  game: 'composite-callback-fixture',
+  family: 'fixture',
+  driverFile: 'fixture.cpp',
+  callbacks: [{
+    id: 'callback:into-composite',
+    ownerTag: 'pia',
+    signal: 'writepa_handler',
+    operation: 'set',
+    targetTag: 'soundbd',
+    targetClass: 'venture_sound_device',
+    targetMethod: 'pb_w',
+  }, {
+    id: 'callback:out-of-composite',
+    ownerTag: 'soundbd',
+    signal: 'pa_callback',
+    operation: 'set',
+    targetTag: 'pia',
+    targetClass: 'pia6821_device',
+    targetMethod: 'portb_w',
+  }, {
+    id: 'callback:child-read',
+    ownerTag: 'mcu:mcu',
+    signal: 'portb_r',
+    operation: 'set',
+    targetClass: 'arkanoid_68705p5_device',
+    targetMethod: 'mcu_pb_r',
+  }, {
+    id: 'callback:parent-read',
+    ownerTag: 'mcu',
+    signal: 'portb_r_cb',
+    operation: 'set',
+    targetClass: 'fixture_state',
+    targetMethod: 'input_mux_r',
+  }],
+  devices: [{ id: 'device:parent', tag: 'mcu', type: 'MCU_INTERFACE' }, {
+    id: 'device:child', tag: 'mcu:mcu', hostTag: 'mcu', type: 'M68705P5',
+  }],
+  connections: [],
+  execution: {
+    cpus: [],
+    screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 1, rotate: 0 },
+    frameEvents: [],
+  },
+} as BoardIr;
+const compositeEffects = new Map<string, BoundEffect>([[
+  'callback:out-of-composite',
+  {
+    run: value => { compositeCallbackValue = value; },
+    transforms: [],
+    reads: false,
+  },
+], [
+  'callback:parent-read',
+  {
+    run: () => 0xa5,
+    transforms: [],
+    reads: false,
+  },
+]]);
+const compositeBindings = generatedCompositeCallbackBindings(
+  compositeMachine,
+  'venture_sound_device',
+  () => false,
+  () => compositeEffects,
+  {},
+);
+compositeBindings.calls?.m_pa_callback?.(0x5a);
+assert.equal(
+  compositeCallbackValue,
+  0x5a,
+  'source-compiled composite devcb members must emit their board callbacks',
+);
+const compositeReadBindings = generatedCompositeCallbackBindings(
+  compositeMachine,
+  'arkanoid_68705p5_device',
+  tag => tag === 'mcu:mcu',
+  () => compositeEffects,
+  {},
+);
+assert.equal(
+  compositeReadBindings.calls?.m_portb_r_cb?.(),
+  0xa5,
+  'nested composite read devcbs must return the parent board callback value',
+);
+assert.equal(
+  usesProtectionProtocolBridge(compositeMachine, 'mcu:mcu'),
+  false,
+  'unrelated composite MCUs must keep firmware execution enabled',
+);
+assert.equal(
+  usesProtectionProtocolBridge({
+    ...compositeMachine,
+    devices: [{ id: 'parent', tag: 'mcu', type: 'ARKANOID_68705P5' }, {
+      id: 'child', tag: 'mcu:mcu', hostTag: 'mcu', type: 'M68705P5',
+    }],
+  }, 'mcu:mcu'),
+  true,
+  'known Taito protection interfaces use their bounded source protocol bridge',
+);
 driverCalls.flip_screen_set!(1);
 assert.equal(driverCalls.flip_screen!(), 1);
 assert.equal(driverCalls.flip_screen_x!(), 1);

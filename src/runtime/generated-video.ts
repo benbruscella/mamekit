@@ -40,6 +40,45 @@ export function isIndexedScreen(machine: BoardIr): boolean {
   return /\bbitmap_ind16\b/.test(handler?.parameters ?? '');
 }
 
+export interface ExidySpriteState {
+  code: number;
+  x: number;
+  y: number;
+  enabled?: boolean;
+}
+
+/** Pixel collision signals produced by Exidy's two motion objects. */
+export function exidySpriteCollisionMask(
+  gfx: GfxSet,
+  backgroundPixel: (x: number, y: number) => number,
+  sprite1: ExidySpriteState,
+  sprite2: ExidySpriteState,
+): number {
+  const pixel = (sprite: ExidySpriteState, x: number, y: number): boolean => {
+    if (sprite.enabled === false || x < 0 || y < 0 || x >= gfx.width || y >= gfx.height) {
+      return false;
+    }
+    const code = ((sprite.code % gfx.count) + gfx.count) % gfx.count;
+    return (gfx.pixels[(code * gfx.height + y) * gfx.width + x] ?? 0) !== 0;
+  };
+  let collision = 0;
+  for (let y = 0; y < gfx.height; y++) {
+    for (let x = 0; x < gfx.width; x++) {
+      const global1X = sprite1.x + x;
+      const global1Y = sprite1.y + y;
+      if (pixel(sprite1, x, y)) {
+        if (backgroundPixel(global1X, global1Y) !== 0) collision |= 0x04;
+        if (pixel(sprite2, global1X - sprite2.x, global1Y - sprite2.y)) collision |= 0x10;
+      }
+      if (
+        pixel(sprite2, x, y) &&
+        backgroundPixel(sprite2.x + x, sprite2.y + y) !== 0
+      ) collision |= 0x08;
+    }
+  }
+  return collision;
+}
+
 /**
  * Compose reusable renderer primitives by executing the screen-update method
  * compiled from the selected MAME driver.
@@ -2450,10 +2489,41 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       const spriteNumber = scalar(this.state.m_spriteno);
       const sprite2X = 232 - scalar(this.state.m_sprite2_xpos);
       const sprite2Y = 240 - scalar(this.state.m_sprite2_ypos);
+      const sprite2 = {
+        code: ((spriteNumber >>> 4) & 0x0f) + 32 + (spriteEnable & 0x40 ? 16 : 0),
+        x: sprite2X,
+        y: sprite2Y,
+      };
+      const collisionMask = Number(this.state.m_collision_mask ?? 0);
+      const sprite1Enabled = !(spriteEnable & 0x80) ||
+        Boolean(spriteEnable & 0x10) || collisionMask === 0;
+      const sprite1 = {
+        code: (spriteNumber & 0x0f) + (spriteEnable & 0x20 ? 16 : 0),
+        x: 232 - scalar(this.state.m_sprite1_xpos),
+        y: 240 - scalar(this.state.m_sprite1_ypos),
+        enabled: sprite1Enabled,
+      };
+      const collision = exidySpriteCollisionMask(
+        gfx.decoded,
+        (x, y) => bitmap.pix?.(y, x) ?? 0,
+        sprite1,
+        sprite2,
+      );
+      if (collision & collisionMask) {
+        const collisionInvert = Number(this.state.m_collision_invert ?? 0);
+        const interruptSource = this.bindings.inputs?.read('INTSOURCE') ?? 0;
+        this.state.m_int_condition =
+          (interruptSource & ~0x1c) | ((collision ^ collisionInvert) & collisionMask);
+        const mainCpu = this.machine.execution.cpus.find(cpu => cpu.tag === 'maincpu') ??
+          this.machine.execution.cpus[0];
+        if (mainCpu) {
+          this.bindings.calls?.[`m_${mainCpu.tag}.set_input_line`]?.(0, 1);
+        }
+      }
       gfx.transpen(
         bitmap,
         cliprect,
-        ((spriteNumber >>> 4) & 0x0f) + 32 + (spriteEnable & 0x40 ? 16 : 0),
+        sprite2.code,
         1,
         0,
         0,
@@ -2461,19 +2531,16 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         sprite2Y,
         0,
       );
-      const collisionMask = Number(this.state.m_collision_mask ?? 0);
-      if (!(spriteEnable & 0x80) || (spriteEnable & 0x10) || collisionMask === 0) {
-        const sprite1X = 232 - scalar(this.state.m_sprite1_xpos);
-        const sprite1Y = Math.max(0, 240 - scalar(this.state.m_sprite1_ypos));
+      if (sprite1Enabled) {
         gfx.transpen(
           bitmap,
           cliprect,
-          (spriteNumber & 0x0f) + (spriteEnable & 0x20 ? 16 : 0),
+          sprite1.code,
           0,
           0,
           0,
-          sprite1X,
-          sprite1Y,
+          sprite1.x,
+          Math.max(0, sprite1.y),
           0,
         );
       }

@@ -49,10 +49,23 @@ export function compileMameHandler(body: string): GeneratedHandlerProgram {
   // C++ pointer-to-member invocation has no distinct runtime value in the IR.
   // Preserve it as a normal call through the member slot; the surrounding
   // source null check still controls whether the call is reached.
-  const executable = body.replace(
-    /\(\s*this\s*->\s*\*\s*(m_\w+)\s*\)\s*\(/g,
-    '$1(',
-  );
+  const executable = body
+    .replace(
+      /\(\s*this\s*->\s*\*\s*(m_\w+)\s*\)\s*\(/g,
+      '$1(',
+    )
+    // Named C++ casts carry the same numeric/view semantics as an ordinary
+    // cast in handler IR. This common form appears in byte-backed sprite RAM.
+    .replace(
+      /\breinterpret_cast\s*<([^>]+)>\s*\(([^;]+)\)/g,
+      '($1)($2)',
+    )
+    // MAME's frequency literal macros are preprocessing tokens whose leading
+    // digit otherwise looks like a number followed by a stray identifier.
+    .replace(/\b(\d+(?:\.\d+)?)_MHz_XTAL\b/g, (_all, mhz) =>
+      String(Number(mhz) * 1_000_000))
+    .replace(/\b(\d+(?:\.\d+)?)_kHz_XTAL\b/g, (_all, khz) =>
+      String(Number(khz) * 1_000));
   const parser = new HandlerParser(tokenize(executable));
   return parser.parse();
 }

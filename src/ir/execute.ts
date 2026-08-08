@@ -1020,6 +1020,15 @@ function assignmentValue(operator: string, current: unknown, value: unknown): un
 }
 
 function wrapValue(valueType: string | undefined, value: unknown): unknown {
+  if (valueType?.includes('*') && value instanceof Uint8Array) {
+    const normalized = valueType.replace(/\bconst\b/g, '').replace(/\s/g, '');
+    if (/^(?:u16|uint16_t)\*$/.test(normalized)) {
+      return new Uint16Array(value.buffer, value.byteOffset, value.byteLength >>> 1);
+    }
+    if (/^(?:s16|int16_t)\*$/.test(normalized)) {
+      return new Int16Array(value.buffer, value.byteOffset, value.byteLength >>> 1);
+    }
+  }
   if (valueType === 'auto' || valueType?.includes('*') || valueType?.includes('&')) return value;
   valueType = valueType?.replace(/\bconst\b/g, '').trim();
   if (valueType === 'rectangle' && value && typeof value === 'object') {

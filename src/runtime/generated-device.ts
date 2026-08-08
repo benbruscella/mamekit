@@ -204,7 +204,7 @@ export interface GeneratedDeviceOptions {
   slot?: string | number;
   selectors?: Record<string, string | number | undefined>;
   /** Resolve required/optional device finders to host/device proxies. */
-  finder?: (tag: string) => unknown;
+  finder?: (tag: string, member?: string) => unknown;
   regions?: Record<string, Uint8Array>;
   configuration?: unknown;
   banks?: Record<string, GeneratedMemoryBank>;
@@ -331,7 +331,7 @@ class IrDevice implements Device {
         (inputTag
           ? { read: () => options.inputs?.read(inputTag) ?? 0xff }
           : member.finder?.kind === 'device'
-            ? options.finder?.(member.finder.tag) ?? 0
+            ? options.finder?.(member.finder.tag, member.name) ?? 0
           : member.valueType === 'bitmap_rgb32'
             ? new GeneratedBitmapRgb32()
         : member.memory
