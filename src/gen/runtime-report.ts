@@ -9,6 +9,7 @@ import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { GAME_CATEGORIES, gameOutputDir } from './output-layout.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
+import { isRuntimeCertified } from '../games/runtime-certification.ts';
 
 interface RuntimeRange {
   kind: string;
@@ -74,6 +75,7 @@ export interface RuntimeReport {
   family: string;
   boardMode: 'generated' | 'missing';
   playable: boolean;
+  playabilityBasis: 'source-complete' | 'runtime-certified' | 'blocked';
   generationGaps: string[];
   sourceCoverage: { covered: number; total: number; percent: number };
   requirements: {
@@ -293,17 +295,32 @@ export function buildRuntimeReport(
   const screenUpdateCompiled = config.board.videoMode === 'bitmap' ||
     config.board.videoMode === 'vector' ||
     Boolean(screenProgram && screenProgram.diagnostics.length === 0);
+  const handlerGaps = handlers
+    .filter(item => item.status === 'blocked' || item.status === 'missing')
+    .map(item => item.name)
+    .sort();
+  const sourceComplete = boardMode === 'generated' &&
+    generationGaps.length === 0 &&
+    summary.blocked === 0 &&
+    summary.missing === 0 &&
+    screenUpdateCompiled;
+  const runtimeCertified = boardMode === 'generated' && isRuntimeCertified(
+    config.game,
+    generationGaps,
+    handlerGaps,
+    screenUpdateCompiled,
+  );
+  const playable = sourceComplete || runtimeCertified;
 
   return {
     schemaVersion: 2,
     game: config.game,
     family: config.family,
     boardMode,
-    playable: boardMode === 'generated' &&
-      generationGaps.length === 0 &&
-      summary.blocked === 0 &&
-      summary.missing === 0 &&
-      screenUpdateCompiled,
+    playable,
+    playabilityBasis: sourceComplete
+      ? 'source-complete'
+      : runtimeCertified ? 'runtime-certified' : 'blocked',
     generationGaps,
     sourceCoverage: {
       covered,
@@ -338,6 +355,8 @@ export function runtimeReportMarkdown(report: RuntimeReport): string {
     `# ${report.game} source-generation report`,
     '',
     `Playability: **${report.playable ? 'executable' : 'blocked'}**`,
+    '',
+    `Basis: **${report.playabilityBasis}**`,
     '',
     `MAME source coverage: **${report.sourceCoverage.covered}/${report.sourceCoverage.total} ` +
       `nodes (${report.sourceCoverage.percent}%)**`,

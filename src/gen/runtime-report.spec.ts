@@ -97,9 +97,44 @@ if (report.boardMode !== 'generated') {
 if (report.requirements.composition[0]?.status !== 'generated') {
   throw new Error('board composition should not depend on family code');
 }
+if (report.playabilityBasis !== 'blocked') {
+  throw new Error('uncertified report gaps should remain blocked');
+}
+
+const certifiedReport = buildRuntimeReport({
+  ...graph,
+  nodes: [
+    ...graph.nodes,
+    { id: 'device:galaga/mcu', label: 'Device', props: { tag: 'mcu', type: 'MB8843' } },
+  ],
+}, {
+  game: 'galaga',
+  family: 'galaga',
+  board: {
+    cpus: [{ tag: 'maincpu', type: 'z80', ranges: [] }],
+    ranges: [],
+    videoMode: 'bitmap',
+  },
+}, {
+  hardware: [
+    {
+      type: 'Z80',
+      status: 'source-resolved',
+      executable: true,
+    },
+    {
+      type: 'LS259',
+      status: 'source-resolved',
+      executable: true,
+    },
+  ],
+});
+if (!certifiedReport.playable || certifiedReport.playabilityBasis !== 'runtime-certified') {
+  throw new Error('verified runtime boards should not be blocked by bounded closure gaps');
+}
 const markdown = runtimeReportMarkdown(report);
 if (markdown.includes('handwritten') || markdown.includes('Runtime primitives')) {
   throw new Error('report should only describe source-generation stages');
 }
 
-console.log('runtime-report.spec: 10 passed, 0 failed');
+console.log('runtime-report.spec: 12 passed, 0 failed');
