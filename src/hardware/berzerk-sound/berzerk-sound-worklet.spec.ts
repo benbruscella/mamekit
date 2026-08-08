@@ -19,4 +19,14 @@ for (let sample = 0; sample < 4_800; sample++) {
 }
 assert.ok(Math.sqrt(energy / 4_800) > 0.05, 'Venture 8253 music should be audible');
 
-console.log('berzerk-sound-worklet.spec: 2 passed, 0 failed');
+for (const [offset, data] of [[3, 0x30], [3, 0x70], [3, 0xb0]] as const) {
+  core.write(offset, data, 'sh8253_w');
+}
+let stoppedEnergy = 0;
+for (let sample = 0; sample < 4_800; sample++) {
+  const value = core.sample();
+  stoppedEnergy += value * value;
+}
+assert.equal(stoppedEnergy, 0, 'a new control word must stop the old divider');
+
+console.log('berzerk-sound-worklet.spec: 3 passed, 0 failed');

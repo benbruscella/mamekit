@@ -7,7 +7,7 @@ export const venture = sourceTarget({
   screen: { width: 256, height: 256 },
   soundKind: 'exidy',
   minimumFps: 45,
-  minimumAudioRms: 0.05,
+  minimumAudioRms: 0.005,
   golden: {
     regions: {
       gfx1: 'ea6fd981',
@@ -28,8 +28,8 @@ export const venture = sourceTarget({
       writes: 31,
       nonzeroWrites: 22,
       writeHash: 'eb51d1cb',
-      pcmHash: 'bc402b11',
-      rms: 0.118454,
+      pcmHash: '57bf57d1',
+      rms: 0.01293,
     },
   },
 });

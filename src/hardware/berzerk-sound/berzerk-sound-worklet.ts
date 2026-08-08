@@ -175,6 +175,11 @@ class ExidyPit8253Core {
       channel.access = access;
       channel.mode = ((data >>> 1) & 7) % 6;
       channel.waitingHigh = false;
+      // A mode/control write makes the current count null. OUT assumes the
+      // mode's initial state, but no further oscillation occurs until the
+      // selected byte sequence loads a new count. Venture uses this exact
+      // sequence to stop its three-note power-on chord.
+      channel.enabled = false;
       return;
     }
     const channel = this.channels[offset]!;
