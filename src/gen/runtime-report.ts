@@ -9,7 +9,7 @@ import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { GAME_CATEGORIES, gameOutputDir } from './output-layout.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
-import { isRuntimeCertified } from '../games/runtime-certification.ts';
+import { isRuntimeCertified } from './runtime-certification.ts';
 
 interface RuntimeRange {
   kind: string;

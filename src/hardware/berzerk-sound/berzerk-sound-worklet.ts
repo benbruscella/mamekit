@@ -6,6 +6,7 @@ export interface GeneratedBerzerkWrite {
 }
 
 const EXIDY_CLOCK = 3_579_545 / 4;
+const SH8253_CLOCK = 3_579_545 / 2;
 const BASE_VOLUME = 32767 / 6;
 
 interface ExidyTimer {
@@ -137,6 +138,79 @@ class ExidySoundCore {
       if ((this.lfsr2 & 3) === 1) noiseClocks++;
     }
     return noiseClocks;
+  }
+}
+
+interface PitChannel {
+  access: number;
+  mode: number;
+  lowLatch: number;
+  waitingHigh: boolean;
+  divisor: number;
+  phase: number;
+  enabled: boolean;
+}
+
+/** Intel 8253 tone path used by Venture's three music oscillators. */
+class ExidyPit8253Core {
+  private readonly channels: PitChannel[] = Array.from({ length: 3 }, () => ({
+    access: 3,
+    mode: 3,
+    lowLatch: 0,
+    waitingHigh: false,
+    divisor: 0x10000,
+    phase: 0,
+    enabled: false,
+  }));
+
+  write(offset: number, data: number): void {
+    offset &= 3;
+    data &= 0xff;
+    if (offset === 3) {
+      const channelIndex = (data >>> 6) & 3;
+      if (channelIndex === 3) return;
+      const access = (data >>> 4) & 3;
+      if (access === 0) return; // counter latch command; the sound CPU never reads it
+      const channel = this.channels[channelIndex]!;
+      channel.access = access;
+      channel.mode = ((data >>> 1) & 7) % 6;
+      channel.waitingHigh = false;
+      return;
+    }
+    const channel = this.channels[offset]!;
+    if (channel.access === 1) {
+      this.load(channel, data || 0x100);
+    } else if (channel.access === 2) {
+      this.load(channel, (data << 8) || 0x10000);
+    } else if (!channel.waitingHigh) {
+      channel.lowLatch = data;
+      channel.waitingHigh = true;
+    } else {
+      this.load(channel, ((data << 8) | channel.lowLatch) || 0x10000);
+      channel.waitingHigh = false;
+    }
+  }
+
+  sample(outputRate: number): number {
+    let sample = 0;
+    const clocks = SH8253_CLOCK / outputRate;
+    for (const channel of this.channels) {
+      if (!channel.enabled) continue;
+      channel.phase = (channel.phase + clocks) % channel.divisor;
+      // Venture programs the music channels in square-wave modes 2/3. Mode 2
+      // has a one-clock low pulse; mode 3 divides evenly (odd counts favour high).
+      const high = channel.mode === 2
+        ? channel.phase < channel.divisor - 1
+        : channel.phase < Math.ceil(channel.divisor / 2);
+      if (high) sample += BASE_VOLUME;
+    }
+    return sample / 32768;
+  }
+
+  private load(channel: PitChannel, divisor: number): void {
+    channel.divisor = Math.max(1, divisor);
+    channel.phase = 0;
+    channel.enabled = true;
   }
 }
 
@@ -360,27 +434,36 @@ export class S14001aCore {
 
 export class GeneratedBerzerkSoundCore {
   private readonly exidy = new ExidySoundCore();
+  private readonly pit = new ExidyPit8253Core();
   private readonly speech: S14001aCore;
   private readonly outputRate: number;
+  private readonly venture: boolean;
   private speechGain = 0;
 
   constructor(
     outputRate: number,
     speechRom: Uint8Array<ArrayBufferLike> = new Uint8Array(0x1000),
+    venture = false,
   ) {
     this.outputRate = outputRate;
     this.speech = new S14001aCore(speechRom);
+    this.venture = venture;
   }
 
   write(offset: number, data: number, method = 'sh6840_w'): void {
     if (method === 'sh6840_w') this.exidy.write6840(offset, data);
     else if (method === 'sfxctrl_w') this.exidy.writeControl(offset, data);
+    else if (method === 'sh8253_w') this.pit.write(offset, data);
     else if (method === 'speech_start') this.speech.start(data);
     else if (method === 'speech_clock') this.speech.setClock(data);
     else if (method === 'speech_gain') this.speechGain = (data & 0xff) / 255;
   }
 
   sample(): number {
+    if (this.venture) {
+      const mix = (this.exidy.sample(this.outputRate) + this.pit.sample(this.outputRate)) * 0.5;
+      return Math.max(-1, Math.min(1, mix));
+    }
     // Driver routes: EXIDY -> mono 0.33; S14001A -> volume 0.5 -> mono 1.0.
     const mix = this.exidy.sample(this.outputRate) * 0.33 +
       this.speech.sample(this.outputRate) * this.speechGain * 0.5;
@@ -437,11 +520,16 @@ if (typeof AudioWorkletProcessor !== 'undefined') {
           type: string;
           refresh?: number;
           sampleRom?: Uint8Array;
+          deviceType?: string;
           writes?: GeneratedBerzerkWrite[];
         };
         if (message.type === 'init') {
           this.renderer = new GeneratedBerzerkSoundFrameRenderer(
-            new GeneratedBerzerkSoundCore(sampleRate, message.sampleRom),
+            new GeneratedBerzerkSoundCore(
+              sampleRate,
+              message.sampleRom,
+              message.deviceType === 'EXIDY_VENTURE',
+            ),
             sampleRate,
             message.refresh ?? 60,
           );
@@ -467,4 +555,5 @@ if (typeof AudioWorkletProcessor !== 'undefined') {
   }
 
   registerProcessor('berzerk', BerzerkProcessor);
+  registerProcessor('exidy', class extends BerzerkProcessor {});
 }

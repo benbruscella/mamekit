@@ -373,6 +373,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const rangeSpec = (r: KGNode, ownerTag?: string) => {
     const reads = g.out(r.id, 'READS');
     const writes = g.out(r.id, 'WRITES');
+    const raw = String(r.props.raw ?? '');
     const spec: Record<string, unknown> = {
       start: Number(r.props.start),
       end: Number(r.props.end),
@@ -383,7 +384,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           : 'handler',
     };
     if (r.props.mirror) spec.mirror = Number(r.props.mirror);
-    const select = /\.select\s*\(\s*(0x[\da-f]+|\d+)\s*\)/i.exec(String(r.props.raw ?? ''));
+    const select = /\.select\s*\(\s*(0x[\da-f]+|\d+)\s*\)/i.exec(raw);
     if (select) spec.select = Number(select[1]);
     if (r.props.regionOffset !== undefined) spec.romOffset = Number(r.props.regionOffset);
     if (r.props.share) spec.share = String(r.props.share);
@@ -405,6 +406,25 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     // .bankr(m_mainbank) -> "bank.mainbank" (the board owns bank switching)
     if (r.props.bankRead) spec.read = `bank.${r.props.bankRead}`;
     if (r.props.bankWrite) spec.write = `bank.${r.props.bankWrite}`;
+    // MAME embeds the MOS6532's RAM and register maps with `.m(...)`. Preserve
+    // those source-declared submaps as executable device handlers instead of
+    // collapsing them to NOP ranges. Composite-device tags inherit their
+    // owning CPU's namespace (soundbd:audiocpu -> soundbd:riot).
+    const riotSubmap = /\.m\s*\(\s*(m_)?([\w:]+)\s*,\s*FUNC\s*\(\s*mos6532_device::(ram_map|io_map)\s*\)\s*\)/
+      .exec(raw);
+    if (riotSubmap) {
+      const localTag = riotSubmap[2]!;
+      const namespace = ownerTag?.includes(':')
+        ? ownerTag.slice(0, ownerTag.lastIndexOf(':'))
+        : undefined;
+      const scopedTag = namespace && byTag.has(`${namespace}:${localTag}`)
+        ? `${namespace}:${localTag}`
+        : localTag;
+      const method = riotSubmap[3] === 'ram_map' ? 'ram' : 'io';
+      spec.kind = 'handler';
+      spec.read = `${scopedTag}.${method}_read`;
+      spec.write = `${scopedTag}.${method}_write`;
+    }
     if (spec.kind === 'handler' && !spec.read && !spec.write) spec.kind = 'nop';
     return spec;
   };
@@ -686,7 +706,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       'NETLIST_INT_INPUT']
       .includes(String(d.props.type)));
   const sampleChips = devices.filter(d => d.props.type === 'SAMPLES');
-  const berzerkSound = devices.find(d => d.props.type === 'EXIDY');
+  const berzerkSound = devices.find(d =>
+    d.props.type === 'EXIDY' || d.props.type === 'EXIDY_VENTURE');
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
         const type = String(device.props.type);
@@ -787,10 +808,15 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               }
         : berzerkSound
           ? {
-              kind: 'berzerk',
-              clock: cpus[0].clock,
+              kind: berzerkSound.props.type === 'EXIDY_VENTURE' ? 'exidy' : 'berzerk',
+              deviceType: String(berzerkSound.props.type),
+              clock: Number(berzerkSound.props.clock) ||
+                cpus.find(cpu => /sound|audio/.test(cpu.tag))?.clock ||
+                cpus[0].clock,
               worklet: 'berzerk-sound',
-              sampleRegion: 'speech',
+              ...(devices.some(device => device.props.type === 'S14001A')
+                ? { sampleRegion: 'speech' }
+                : {}),
             }
         : sampleChips.length
           ? {

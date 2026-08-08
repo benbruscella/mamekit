@@ -7,7 +7,9 @@ export async function createBerzerkSoundProbe(context: AudioProbeContext): Promi
   const module = await import(pathToFileURL(join(
     context.outRoot, 'runtime/generated', BERZERK_SOUND_WORKLET_ARTIFACT.replace(/\.ts$/, '.js'),
   )).href) as {
-    GeneratedBerzerkSoundCore: new (rate: number, speechRom?: Uint8Array) => unknown;
+    GeneratedBerzerkSoundCore: new (
+      rate: number, speechRom?: Uint8Array, venture?: boolean,
+    ) => unknown;
     GeneratedBerzerkSoundFrameRenderer: new (
       core: unknown, rate: number, refresh: number,
     ) => AudioFrameRenderer;
@@ -17,6 +19,7 @@ export async function createBerzerkSoundProbe(context: AudioProbeContext): Promi
     new module.GeneratedBerzerkSoundCore(
       context.outputRate,
       context.regions[context.sound.sampleRegion ?? 'speech'],
+      context.sound.deviceType === 'EXIDY_VENTURE',
     ),
     context.outputRate, context.refresh,
   );

@@ -20,6 +20,7 @@ assert.deepEqual(Object.keys(RUNTIME_CERTIFICATIONS).sort(), [
   'spyhunt',
   'timeplt',
   'tutankhm',
+  'venture',
 ]);
 
 assert.equal(isRuntimeCertified('galaga', ['mcu:MB8843'], [], true), true);
@@ -29,6 +30,13 @@ assert.equal(
   'a certification must not hide a new hardware gap',
 );
 assert.equal(isRuntimeCertified('arkanoid', [], [], true), false);
-assert.equal(isRuntimeCertified('venture', [], [], true), false);
+assert.equal(isRuntimeCertified('venture', [], [
+  'soundbd:pia.read',
+  'soundbd:pia.write',
+  'soundbd:riot.io_read',
+  'soundbd:riot.io_write',
+  'soundbd:riot.ram_read',
+  'soundbd:riot.ram_write',
+], true), true);
 
 console.log('runtime-certification.spec: 5 passed, 0 failed');

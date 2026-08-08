@@ -1281,7 +1281,49 @@ class IrBoard implements Board {
           if (!tag) continue;
           const method = key.slice(tag.length + 1);
           const device = this.devices.get(tag);
-          if (!device || !device.methodNames().includes(method)) continue;
+          if (!device) continue;
+          const specification = machine.devices?.find(candidate => candidate.tag === tag);
+          if (specification?.type === 'MOS6532' && method === 'ram_read' && kind === 'read') {
+            registry.read[key] = (_address, offset) => device.call('ram_r', offset);
+            continue;
+          }
+          if (specification?.type === 'MOS6532' && method === 'ram_write' && kind === 'write') {
+            registry.write[key] = (_address, offset, data) => {
+              device.call('ram_w', offset, data);
+            };
+            continue;
+          }
+          if (specification?.type === 'MOS6532' && method === 'io_read' && kind === 'read') {
+            registry.read[key] = (_address, offset) => {
+              const register = offset & 0x1f;
+              if ((register & 4) === 0) {
+                return device.call([
+                  'pa_data_r', 'pa_ddr_r', 'pb_data_r', 'pb_ddr_r',
+                ][register & 3]!);
+              }
+              if (register & 1) return device.call('irq_r');
+              return device.call(register & 8 ? 'timer_on_r' : 'timer_off_r');
+            };
+            continue;
+          }
+          if (specification?.type === 'MOS6532' && method === 'io_write' && kind === 'write') {
+            registry.write[key] = (_address, offset, data) => {
+              const register = offset & 0x1f;
+              if ((register & 4) === 0) {
+                device.call([
+                  'pa_data_w', 'pa_ddr_w', 'pb_data_w', 'pb_ddr_w',
+                ][register & 3]!, data);
+              } else if (register >= 0x1c) {
+                device.call('timer_on_w', register, data);
+              } else if (register >= 0x14) {
+                device.call('timer_off_w', register, data);
+              } else {
+                device.call('edge_w', register, data);
+              }
+            };
+            continue;
+          }
+          if (!device.methodNames().includes(method)) continue;
           if (kind === 'read') {
             registry.read[key] = (_address, offset) =>
               device.arity(method) ? device.call(method, offset) : device.call(method);

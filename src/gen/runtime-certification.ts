@@ -156,6 +156,17 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
       'timeplt_audio:ay2.data_w',
     ],
   },
+  venture: {
+    generationGaps: [],
+    handlerGaps: [
+      'soundbd:pia.read',
+      'soundbd:pia.write',
+      'soundbd:riot.io_read',
+      'soundbd:riot.io_write',
+      'soundbd:riot.ram_read',
+      'soundbd:riot.ram_write',
+    ],
+  },
 };
 
 function isSubset(actual: readonly string[], allowed: readonly string[]): boolean {

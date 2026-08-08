@@ -30,6 +30,7 @@ export const AUDIO_PROBES: Readonly<Record<string, AudioProbeFactory>> = {
   samples: createSamplesProbe,
   ym2151: createYm2151Probe,
   berzerk: createBerzerkSoundProbe,
+  exidy: createBerzerkSoundProbe,
 };
 
 export type { AudioFrameRenderer, AudioProbeContext, ProbeSoundWrite } from './audio-probe.ts';

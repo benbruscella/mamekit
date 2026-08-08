@@ -11,13 +11,28 @@ export function installBerzerkSoundRuntime(context: SoundRuntimeContext): SoundR
   const bind = (tag: string, method: string, fn: (...args: number[]) => number): void => {
     for (const alias of deviceAliases(context.board, tag)) context.calls[`${alias}.${method}`] = fn;
   };
-  bind('exidy', 'sh6840_w', (offset, data) => {
+  bind(context.sound.deviceTag, 'sh6840_w', (offset, data) => {
     context.soundWrite(offset & 7, data, context.fraction(), 'sh6840_w'); return 0;
   });
-  bind('exidy', 'sh6840_r', () => 0);
-  bind('exidy', 'sfxctrl_w', (offset, data) => {
+  bind(context.sound.deviceTag, 'sh6840_r', () => 0);
+  bind(context.sound.deviceTag, 'sfxctrl_w', (offset, data) => {
     context.soundWrite(offset & 3, data, context.fraction(), 'sfxctrl_w'); return 0;
   });
+  bind(context.sound.deviceTag, 'sh8253_w', (offset, data) => {
+    context.soundWrite(offset & 3, data, context.fraction(), 'sh8253_w'); return 0;
+  });
+  for (const cpu of context.board.execution.cpus) {
+    for (const range of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])]) {
+      const method = range.write?.split('.').at(-1);
+      if (!range.write || !['sh8253_w', 'sh6840_w', 'sfxctrl_w'].includes(method ?? '')) continue;
+      context.registry.write[range.write] = (_address, offset, data) => {
+        context.soundWrite(offset, data, context.fraction(), method);
+      };
+      if (range.read?.endsWith('.sh6840_r')) {
+        context.registry.read[range.read] = () => 0;
+      }
+    }
+  }
   bind('speech', 'data_w', data => { speechData = data & 0x3f; return 0; });
   bind('speech', 'start_w', state => {
     if (speechStart && !state) {

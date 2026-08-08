@@ -388,7 +388,8 @@ export function lowerGeneratedMachine(
     ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
       'NETLIST_INT_INPUT'].includes(device.type));
   const sampleDevices = devices.filter(device => device.type === 'SAMPLES');
-  const berzerkSound = devices.find(device => device.type === 'EXIDY');
+  const berzerkSound = devices.find(device =>
+    device.type === 'EXIDY' || device.type === 'EXIDY_VENTURE');
   const discreteDevice = devices.find(device => device.type === 'DISCRETE');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
@@ -501,10 +502,12 @@ export function lowerGeneratedMachine(
         }
     : berzerkSound
       ? {
-          kind: 'berzerk',
+          kind: berzerkSound.type === 'EXIDY_VENTURE' ? 'exidy' : 'berzerk',
           deviceTag: berzerkSound.tag,
-          deviceType: 'EXIDY',
-          writeMethods: ['sh6840_w', 'sfxctrl_w'],
+          deviceType: berzerkSound.type,
+          writeMethods: berzerkSound.type === 'EXIDY_VENTURE'
+            ? ['sh8253_w', 'sh6840_w', 'sfxctrl_w']
+            : ['sh6840_w', 'sfxctrl_w'],
           enableMethods: [],
           controlOffset: -1,
         }

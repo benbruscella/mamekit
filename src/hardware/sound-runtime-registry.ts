@@ -33,6 +33,7 @@ const INSTALLERS: Readonly<Record<string, SoundRuntimeInstaller>> = {
   samples: installSamplesRuntime,
   ym2151: installYm2151Runtime,
   berzerk: installBerzerkSoundRuntime,
+  exidy: installBerzerkSoundRuntime,
 };
 
 export function installSoundRuntime(context: SoundRuntimeContext): SoundRuntimeHooks | undefined {
