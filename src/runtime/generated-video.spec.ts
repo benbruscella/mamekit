@@ -8,6 +8,7 @@ import {
   decodeTaitoSjRamPixel,
   decodeVicDualPixel,
   exidySpriteCollisionMask,
+  exidySpriteCollisions,
   generatedDirectScreenShape,
   generatedScrollBand,
   generatedTileGroupIndirectMask,
@@ -67,6 +68,15 @@ assert.equal(exidySpriteCollisionMask(
   { code: 0, x: 4, y: 5 },
   { code: 1, x: 4, y: 5 },
 ), 0x1c);
+assert.deepEqual(exidySpriteCollisions(
+  { count: 3, width: 2, height: 2, pixels: exidyPixels },
+  (x, y) => Number(x === 4 && y === 5),
+  { code: 0, x: 4, y: 5 },
+  { code: 1, x: 4, y: 5 },
+), [
+  { position: 4, mask: 0x14 },
+  { position: 4, mask: 0x08 },
+]);
 assert.equal(williamsPaletteColor(0), 0xff000000);
 assert.equal(williamsPaletteColor(0xff), 0xffffffff);
 

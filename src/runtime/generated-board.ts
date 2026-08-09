@@ -227,6 +227,7 @@ class IrBoard implements Board {
   private frameSound?: () => void;
   private readonly inputs: InputPorts;
   private readonly inputLatchPrevious = new Map<string, boolean>();
+  private readonly pendingExidyCollisions = new Map<number, number[]>();
   private vicdualCoinPrevious = false;
   private vicdualCoinFrames = 0;
   private neoGeoRtc?: {
@@ -469,6 +470,21 @@ class IrBoard implements Board {
       return 0;
     };
     calls['machine().scheduler().perfect_quantum'] = () => 0;
+    calls['machine().schedule_exidy_collision'] = (position, collision) => {
+      const vtotal = Math.max(1, machine.execution.screen.vtotal);
+      const line = ((Math.floor(position) % vtotal) + vtotal) % vtotal;
+      const collisions = this.pendingExidyCollisions.get(line) ?? [];
+      // MAME allocates 128 collision timers. The generated scheduler is
+      // scanline-granular, so retain their source order at each beam line.
+      if ([...this.pendingExidyCollisions.values()].reduce(
+        (count, values) => count + values.length,
+        0,
+      ) < 128) {
+        collisions.push(collision & 0x1c);
+        this.pendingExidyCollisions.set(line, collisions);
+      }
+      return 0;
+    };
     // Generated handlers execute normal CPU accesses, never debugger/disassembly
     // probes.  MAME's guard must therefore allow read-side acknowledgement
     // effects such as clearing a sound CPU IRQ.
@@ -1063,6 +1079,20 @@ class IrBoard implements Board {
         if (phase === 'before-processors') activeFramebuffer = framebuffer;
         this.currentLine = line;
         this.currentLineFraction = 0;
+        if (phase === 'before-processors') {
+          const collisions = this.pendingExidyCollisions.get(line);
+          if (collisions?.length) {
+            this.pendingExidyCollisions.delete(line);
+            const collisionMask = Number(this.state.m_collision_mask ?? 0);
+            const collisionInvert = Number(this.state.m_collision_invert ?? 0);
+            for (const collision of collisions) {
+              this.state.m_int_condition =
+                (generatedInputs.read('INTSOURCE') & ~0x1c) |
+                ((collision ^ collisionInvert) & collisionMask);
+              this.cpus.get('maincpu')?.setInputLine(0, 1);
+            }
+          }
+        }
         if (
           neoGeoInterrupts &&
           phase === 'before-processors' &&
@@ -1270,6 +1300,7 @@ class IrBoard implements Board {
     for (const reset of this.peripheralResets) reset();
     this.boardSpecificReset?.();
     this.inputLatchPrevious.clear();
+    this.pendingExidyCollisions.clear();
     this.vicdualCoinPrevious = false;
     this.vicdualCoinFrames = 0;
     this.currentLine = 0;

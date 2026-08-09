@@ -13,11 +13,13 @@ export const venture = sourceTarget({
     // is running. Exercise coin/start only after the attract maze is live.
     { atFrame: 3100, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 3150, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
-    { atFrame: 5200, code: 'ArrowRight', heldFrames: 120, releasedFrames: 20 },
-    { atFrame: 5400, code: 'ArrowUp', heldFrames: 120, releasedFrames: 20 },
-    { atFrame: 5600, code: 'ArrowLeft', heldFrames: 120, releasedFrames: 20 },
-    { atFrame: 5800, code: 'ArrowDown', heldFrames: 120, releasedFrames: 20 },
-    { atFrame: 6000, code: 'Space', heldFrames: 30, releasedFrames: 20 },
+    // Route Winky through the lower-left room entrance. This transition is
+    // driven by the same sprite/background collision IRQ used for treasure
+    // pickup, so the acceptance run now guards real gameplay collision timing
+    // instead of merely moving around the overworld after the game is over.
+    { atFrame: 3450, code: 'ArrowRight', heldFrames: 10, releasedFrames: 1 },
+    { atFrame: 3461, code: 'ArrowUp', heldFrames: 39, releasedFrames: 1 },
+    { atFrame: 3501, code: 'ArrowLeft', heldFrames: 30, releasedFrames: 20 },
   ],
   audioRequirements: [
     { method: 'sh8253_w', fromFrame: 3100, minimumNonzeroWrites: 100 },
@@ -39,21 +41,21 @@ export const venture = sourceTarget({
       180: { video: 'd2fa9021', state: '323f68e4' },
       300: { video: '65144fc9', state: '23458ed2' },
       1200: { video: '81872b36', state: '9f833257' },
-      2400: { video: '1c482054', state: '5b243cda' },
-      3000: { video: '0ed3fb63', state: '95255432' },
-      3600: { video: '3a6446cb', state: '7f3b9660' },
-      4200: { video: 'ad4a5a7c', state: 'e4dea50a' },
-      4800: { video: 'ceb30300', state: '6b55cdd0' },
-      5400: { video: 'db19234e', state: '0b563622' },
-      6000: { video: '096988ef', state: 'c31ccde8' },
-      6200: { video: '1c482054', state: 'c370e7d3' },
+      2400: { video: '1c482054', state: 'b00012c0' },
+      3000: { video: '5be91ecc', state: '8beab8bf' },
+      3600: { video: 'a384367c', state: '3af0fd9d' },
+      4200: { video: 'ccd0bc5a', state: '2a911cc8' },
+      4800: { video: 'bdec40a2', state: 'dd3d5add' },
+      5400: { video: '90662e6f', state: 'f4c3a0b7' },
+      6000: { video: '5be91ecc', state: '9f2a3878' },
+      6200: { video: '31544105', state: 'fd03b569' },
     },
     audio: {
-      writes: 9501,
-      nonzeroWrites: 6812,
-      writeHash: '6e16be53',
-      pcmHash: '8da65cb1',
-      rms: 0.068698,
+      writes: 8113,
+      nonzeroWrites: 5947,
+      writeHash: '87eb517b',
+      pcmHash: 'd191b332',
+      rms: 0.070196,
     },
   },
 });

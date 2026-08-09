@@ -186,6 +186,17 @@ export class GeneratedDiscreteAudioCore {
           continue;
         }
         let frequency = voice.frequency;
+        if (voice.network === 'dkongjr-jump') {
+          // NODE_104 from the walking divider modulates the JR jump LS624.
+          // Its measured output rocks through roughly 260-300 Hz; a triangle
+          // is the band-limited equivalent of the divider-driven control ramp
+          // and avoids turning the jump back into a fixed electronic beep.
+          this.modulationPhase[index] = (
+            this.modulationPhase[index]! + 5.5 / this.outputRate
+          ) % 1;
+          const triangle = 1 - 4 * Math.abs(this.modulationPhase[index]! - 0.5);
+          frequency += triangle * 25;
+        }
         if (voice.vco) {
           const vco = voice.vco;
           this.modulationPhase[index] = (

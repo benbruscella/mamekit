@@ -768,14 +768,26 @@ export function compileDiscreteEffects(
   const exactDkongNetwork = /\bdkong_custom_mixer\b/.test(body) &&
     /\bDISCRETE_RCINTEGRATE\s*\(NODE_294\b/.test(body);
   const voices = voiceSymbols.map((symbol, index) => {
-    const frequency = toneFor(symbol);
+    // Donkey Kong Jr.'s SOUND1 path is a 74LS123 one-shot driving the
+    // dkongjr_s1_mixer_desc and a 74LS624 VCO. It has no 555 astable for the
+    // generic topology matcher to associate with the input, but it is a
+    // measured 260-300 Hz pitched jump effect—not broadband noise. Preserve
+    // that source topology from its unique mixer/VCO chain.
+    const exactDkongJrJump =
+      /\bdkongjr_s1_mixer_desc\b/.test(body) &&
+      /DISCRETE_74LS624\s*\(NODE_14\b/.test(body) &&
+      node(symbol) === node('DS_SOUND1_INV');
+    const frequency = toneFor(symbol) ?? (exactDkongJrJump ? 290 : undefined);
     const vco = frequency ? vcoFor(symbol) : undefined;
     return {
       node: node(symbol)!,
       mode: frequency ? 'tone' as const : 'noise' as const,
       frequency: frequency ?? noiseFrequency,
       ...(vco ? { vco } : {}),
-      release: releaseFor(symbol),
+      // R27/C28 and R28/C28 produce the measured quarter-second JR jump
+      // decay. The input symbol reaches them through NODE_10/NODE_15, so the
+      // generic direct-node RC lookup cannot discover this value.
+      release: exactDkongJrJump ? 0.24 : releaseFor(symbol),
       gain: Number.isFinite(outputAttenuations[index])
         ? outputAttenuations[index]! / voiceSymbols.length
         : 1 / (voiceSymbols.length + 1),
@@ -789,6 +801,7 @@ export function compileDiscreteEffects(
           ? 'dkong-jump' as const
           : 'dkong-walk' as const,
       } : {}),
+      ...(exactDkongJrJump ? { network: 'dkongjr-jump' as const } : {}),
       ...(!vco && exactDkongNetwork ? {
         // SOUND2 is Kong's stomp/landing circuit: a 24-bit LFSR, LS161
         // divider and two-stage RC/transistor envelope. It is not generic

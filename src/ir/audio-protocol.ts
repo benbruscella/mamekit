@@ -130,7 +130,7 @@ export interface GeneratedDiscreteEffectsPlan {
      * Exact source topology used after the oscillator. These circuits cannot
      * be represented by a generic ADSR without changing their pitch/timbre.
      */
-    network?: 'dkong-stomp' | 'dkong-jump' | 'dkong-walk';
+    network?: 'dkong-stomp' | 'dkong-jump' | 'dkong-walk' | 'dkongjr-jump';
   }[];
   /** Run a board-specific source circuit that cannot be reduced to generic voices. */
   outputNetwork?: 'dkong2b' | 'asteroid';

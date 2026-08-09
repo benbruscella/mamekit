@@ -47,13 +47,28 @@ export interface ExidySpriteState {
   enabled?: boolean;
 }
 
-/** Pixel collision signals produced by Exidy's two motion objects. */
-export function exidySpriteCollisionMask(
+export interface ExidySpriteCollision {
+  /** First argument passed by MAME to screen_device::time_until_pos. */
+  position: number;
+  mask: number;
+}
+
+/**
+ * Pixel collision timer events produced by Exidy's two motion objects.
+ *
+ * The hardware does not expose one aggregate collision per rendered frame:
+ * MAME queues as many as 128 timer callbacks at the source beam positions.
+ * Venture uses those IRQs for interactions with room characters, including
+ * treasure pickup, so retaining the event sequence is gameplay-critical.
+ */
+export function exidySpriteCollisions(
   gfx: GfxSet,
   backgroundPixel: (x: number, y: number) => number,
   sprite1: ExidySpriteState,
   sprite2: ExidySpriteState,
-): number {
+  collisionMask = 0x1c,
+): ExidySpriteCollision[] {
+  const collisions: ExidySpriteCollision[] = [];
   const pixel = (sprite: ExidySpriteState, x: number, y: number): boolean => {
     if (sprite.enabled === false || x < 0 || y < 0 || x >= gfx.width || y >= gfx.height) {
       return false;
@@ -61,22 +76,46 @@ export function exidySpriteCollisionMask(
     const code = ((sprite.code % gfx.count) + gfx.count) % gfx.count;
     return (gfx.pixels[(code * gfx.height + y) * gfx.width + x] ?? 0) !== 0;
   };
-  let collision = 0;
-  for (let y = 0; y < gfx.height; y++) {
-    for (let x = 0; x < gfx.width; x++) {
+  for (let y = 0; y < gfx.height && collisions.length < 128; y++) {
+    for (let x = 0; x < gfx.width && collisions.length < 128; x++) {
       const global1X = sprite1.x + x;
       const global1Y = sprite1.y + y;
       if (pixel(sprite1, x, y)) {
-        if (backgroundPixel(global1X, global1Y) !== 0) collision |= 0x04;
-        if (pixel(sprite2, global1X - sprite2.x, global1Y - sprite2.y)) collision |= 0x10;
+        let currentMask = 0;
+        if (backgroundPixel(global1X, global1Y) !== 0) currentMask |= 0x04;
+        if (pixel(sprite2, global1X - sprite2.x, global1Y - sprite2.y)) {
+          currentMask |= 0x10;
+        }
+        if (currentMask & collisionMask) {
+          collisions.push({ position: global1X, mask: currentMask });
+        }
       }
       if (
+        collisions.length < 128 &&
+        (collisionMask & 0x08) &&
         pixel(sprite2, x, y) &&
         backgroundPixel(sprite2.x + x, sprite2.y + y) !== 0
-      ) collision |= 0x08;
+      ) {
+        collisions.push({ position: sprite2.x + x, mask: 0x08 });
+      }
     }
   }
-  return collision;
+  return collisions;
+}
+
+/** Pixel collision signals produced by Exidy's two motion objects. */
+export function exidySpriteCollisionMask(
+  gfx: GfxSet,
+  backgroundPixel: (x: number, y: number) => number,
+  sprite1: ExidySpriteState,
+  sprite2: ExidySpriteState,
+): number {
+  return exidySpriteCollisions(
+    gfx,
+    backgroundPixel,
+    sprite1,
+    sprite2,
+  ).reduce((mask, collision) => mask | collision.mask, 0);
 }
 
 /**
@@ -2503,13 +2542,23 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         y: 240 - scalar(this.state.m_sprite1_ypos),
         enabled: sprite1Enabled,
       };
-      const collision = exidySpriteCollisionMask(
+      const collisions = exidySpriteCollisions(
         gfx.decoded,
         (x, y) => bitmap.pix?.(y, x) ?? 0,
         sprite1,
         sprite2,
+        collisionMask,
       );
-      if (collision & collisionMask) {
+      const scheduleCollision =
+        this.bindings.calls?.['machine().schedule_exidy_collision'];
+      if (scheduleCollision) {
+        for (const collision of collisions) {
+          scheduleCollision(collision.position, collision.mask);
+        }
+      } else if (collisions.length) {
+        // Isolated renderer hosts do not own a scanline scheduler. Preserve a
+        // deterministic immediate fallback for those callers.
+        const collision = collisions.reduce((mask, event) => mask | event.mask, 0);
         const collisionInvert = Number(this.state.m_collision_invert ?? 0);
         const interruptSource = this.bindings.inputs?.read('INTSOURCE') ?? 0;
         this.state.m_int_condition =
