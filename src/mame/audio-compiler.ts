@@ -638,12 +638,12 @@ export function compileDiscreteEffects(
     };
   }
 
-  const inputCalls = callArgs(
-    body.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''),
-    'DISCRETE_INPUT_NOT',
-  );
+  const inputCalls = [
+    ...callArgs(cleanedBody, 'DISCRETE_INPUT_NOT'),
+    ...callArgs(cleanedBody, 'DISCRETE_INPUT_LOGIC'),
+  ];
   const dacArgs = callArgs(
-    body.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''),
+    cleanedBody,
     'DISCRETE_INPUT_BUFFER',
   )[0];
   const dacNode = node(dacArgs?.[0]);
@@ -764,7 +764,10 @@ export function compileDiscreteEffects(
   const outputAttenuations = callArgs(body, 'DISCRETE_MULTIPLY')
     .filter(args => /^DS_OUT_SOUND\d+$/.test(symbolName(args[0]) ?? ''))
     .map(args => analog(args[2]));
-  const dacMixGain = 1 / (voiceSymbols.length + 1);
+  const exactDkongJrNetwork = netlist === 'dkongjr_discrete';
+  // SOUND7 is a divider selector and SOUND9 is an additional analog effect;
+  // adding the latter must not silently attenuate the already calibrated DAC.
+  const dacMixGain = 1 / (voiceSymbols.length + (exactDkongJrNetwork ? 0 : 1));
   const exactDkongNetwork = /\bdkong_custom_mixer\b/.test(body) &&
     /\bDISCRETE_RCINTEGRATE\s*\(NODE_294\b/.test(body);
   const voices = voiceSymbols.map((symbol, index) => {
@@ -777,24 +780,61 @@ export function compileDiscreteEffects(
       /\bdkongjr_s1_mixer_desc\b/.test(body) &&
       /DISCRETE_74LS624\s*\(NODE_14\b/.test(body) &&
       node(symbol) === node('DS_SOUND1_INV');
-    const frequency = toneFor(symbol) ?? (exactDkongJrJump ? 290 : undefined);
-    const vco = frequency ? vcoFor(symbol) : undefined;
+    const exactDkongJrWalk = exactDkongJrNetwork &&
+      node(symbol) === node('DS_SOUND0_INV');
+    // SOUND2 is a 710 Hz LS164 feedback register feeding an LS123 one-shot
+    // and C-R-C-R filter, not generic white noise.
+    const exactDkongJrClimb =
+      /\bdkongjr_lfsr\b/.test(body) &&
+      /DISCRETE_LFSR_NOISE\s*\(NODE_21[^\n]*\b710\b/.test(body) &&
+      /DISCRETE_LS123_INV\s*\(NODE_25\b/.test(body) &&
+      node(symbol) === node('DS_SOUND2_INV');
+    const exactDkongJrFall = exactDkongJrNetwork &&
+      node(symbol) === node('DS_SOUND9_INV');
+    const exactDkongJrControl = exactDkongJrNetwork &&
+      node(symbol) === node('DS_SOUND7_INV');
+    const toneFrequency = toneFor(symbol) ??
+      (exactDkongJrWalk
+        ? 2_105
+        : exactDkongJrJump
+          ? 590
+          : exactDkongJrFall
+            ? 2_110
+            : undefined);
+    const vco = toneFrequency ? vcoFor(symbol) : undefined;
     return {
       node: node(symbol)!,
-      mode: frequency ? 'tone' as const : 'noise' as const,
-      frequency: frequency ?? noiseFrequency,
+      mode: toneFrequency ? 'tone' as const : 'noise' as const,
+      frequency: exactDkongJrClimb ? 710 : toneFrequency ?? noiseFrequency,
       ...(vco ? { vco } : {}),
       // R27/C28 and R28/C28 produce the measured quarter-second JR jump
       // decay. The input symbol reaches them through NODE_10/NODE_15, so the
       // generic direct-node RC lookup cannot discover this value.
-      release: exactDkongJrJump ? 0.24 : releaseFor(symbol),
-      gain: Number.isFinite(outputAttenuations[index])
-        ? outputAttenuations[index]! / voiceSymbols.length
-        : 1 / (voiceSymbols.length + 1),
+      release: exactDkongJrWalk
+        ? 0.15
+        : exactDkongJrJump
+        ? 0.28
+        : exactDkongJrClimb
+          ? 0.25 * 47_000 * 22e-6 * (1 + 700 / 47_000)
+          : exactDkongJrFall
+            ? 0.001
+          : releaseFor(symbol),
+      gain: exactDkongJrWalk
+        ? 0.045
+        : exactDkongJrClimb
+          ? 0.183
+        : exactDkongJrFall
+          ? 0.07
+          : exactDkongJrControl
+            ? 0
+            : Number.isFinite(outputAttenuations[index])
+              ? outputAttenuations[index]! / voiceSymbols.length
+              : 1 / (voiceSymbols.length + 1),
       // DISCRETE_INPUT_NOT makes the netlist node active-low, but write_line
       // receives the latch value before that inverter. A high latch value is
       // therefore the trigger edge seen by this generated core.
-      activeLow: false,
+      activeLow: exactDkongJrWalk || exactDkongJrJump || exactDkongJrClimb,
+      ...(exactDkongJrFall ? { sustain: true } : {}),
       ...(vco ? { triggerEdge: 'both' as const } : {}),
       ...(vco && exactDkongNetwork ? {
         network: vco.modulationType === 1
@@ -802,6 +842,10 @@ export function compileDiscreteEffects(
           : 'dkong-walk' as const,
       } : {}),
       ...(exactDkongJrJump ? { network: 'dkongjr-jump' as const } : {}),
+      ...(exactDkongJrClimb ? { network: 'dkongjr-climb' as const } : {}),
+      ...(exactDkongJrWalk ? { network: 'dkongjr-walk' as const } : {}),
+      ...(exactDkongJrFall ? { network: 'dkongjr-fall' as const } : {}),
+      ...(exactDkongJrControl ? { network: 'dkongjr-control' as const } : {}),
       ...(!vco && exactDkongNetwork ? {
         // SOUND2 is Kong's stomp/landing circuit: a 24-bit LFSR, LS161
         // divider and two-stage RC/transistor envelope. It is not generic
@@ -859,6 +903,7 @@ export function compileDiscreteEffects(
     },
     voices,
     ...(exactDkongNetwork ? { outputNetwork: 'dkong2b' as const } : {}),
+    ...(exactDkongJrNetwork ? { outputNetwork: 'dkongjr' as const } : {}),
     ...(dischargeNode !== undefined
       ? {
           dischargeNode,

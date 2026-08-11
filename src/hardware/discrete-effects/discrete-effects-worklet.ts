@@ -53,6 +53,16 @@ export class GeneratedDiscreteAudioCore {
   private dkongStompEnvelope = 0;
   private dkongStompIntegrateCap = 0;
   private dkongStompVce = 0;
+  private dkongJrClimbLfsr = 0;
+  private dkongJrClimbNoisePhase = 0;
+  private dkongJrClimbNoise = 1;
+  private dkongJrClimbOneShot = 0;
+  private dkongJrWalkAge = Number.POSITIVE_INFINITY;
+  private dkongJrJumpAge = Number.POSITIVE_INFINITY;
+  private dkongJrStartupJump = true;
+  private dkongJrFallAge = 0;
+  private dkongJrMixerLowpass = 0;
+  private dkongJrMixerCoupling = 0;
   private readonly nodeValues = new Uint8Array(256);
   private asteroidLfsr = 0;
   private asteroidNoisePhase = 0;
@@ -81,7 +91,8 @@ export class GeneratedDiscreteAudioCore {
     this.outputRate = outputRate;
     this.plan = plan;
     this.active = plan?.voices.map(() => false) ?? [];
-    this.envelope = plan?.voices.map(() => 0) ?? [];
+    this.envelope = plan?.voices.map(voice =>
+      voice.network === 'dkongjr-jump' ? 1 : 0) ?? [];
     this.phase = plan?.voices.map(() => 0) ?? [];
     this.modulationPhase = plan?.voices.map(() => 0) ?? [];
     this.controlVoltage = plan?.voices.map(() => 0) ?? [];
@@ -96,6 +107,7 @@ export class GeneratedDiscreteAudioCore {
       rcDisc2: 0,
       crCap: 0,
     })) ?? [];
+    if (plan?.outputNetwork === 'dkongjr') this.dkongJrJumpAge = 0;
   }
 
   write(offset: number, data: number): void {
@@ -118,6 +130,12 @@ export class GeneratedDiscreteAudioCore {
           this.asteroidLfsr = 0;
           this.asteroidNoise = 1;
         }
+      } else if (
+        plan.outputNetwork === 'dkongjr' &&
+        offset === plan.inputNodes.DS_SOUND9_INP &&
+        !previous && data
+      ) {
+        this.dkongJrFallAge = 0;
       }
     }
     if (offset === plan.dac.node) {
@@ -139,7 +157,20 @@ export class GeneratedDiscreteAudioCore {
       if (
         active !== this.active[index] &&
         (active || voice.triggerEdge === 'both')
-      ) this.envelope[index] = 1;
+      ) {
+        this.envelope[index] = 1;
+        if (voice.network === 'dkongjr-climb') {
+          this.dkongJrClimbOneShot = voice.release;
+        } else if (voice.network === 'dkongjr-walk') {
+          this.dkongJrWalkAge = 0;
+          this.phase[index] = 0;
+          this.modulationPhase[index] = 0;
+        } else if (voice.network === 'dkongjr-jump') {
+          this.dkongJrJumpAge = 0;
+          this.dkongJrStartupJump = false;
+          this.phase[index] = 0;
+        }
+      }
       this.active[index] = active;
     }
   }
@@ -164,9 +195,18 @@ export class GeneratedDiscreteAudioCore {
       else this.envelope[index] *= Math.exp(-1 / releaseSamples);
       if (this.envelope[index] < 1e-5) this.envelope[index] = 0;
       let signal: number;
+      if (voice.network === 'dkongjr-control') continue;
+      if (voice.network === 'dkongjr-walk') {
+        mixed += this.sampleDkongJrWalk(index) * voice.gain;
+        continue;
+      }
       if (voice.mode === 'noise') {
         if (voice.network === 'dkong-stomp') {
           dkongStomp = this.sampleDkongStomp(index);
+          continue;
+        }
+        if (voice.network === 'dkongjr-climb') {
+          mixed += this.sampleDkongJrClimb(index) * voice.gain;
           continue;
         }
         this.phase[index] += voice.frequency / this.outputRate;
@@ -187,15 +227,22 @@ export class GeneratedDiscreteAudioCore {
         }
         let frequency = voice.frequency;
         if (voice.network === 'dkongjr-jump') {
-          // NODE_104 from the walking divider modulates the JR jump LS624.
-          // Its measured output rocks through roughly 260-300 Hz; a triangle
-          // is the band-limited equivalent of the divider-driven control ramp
-          // and avoids turning the jump back into a fixed electronic beep.
+          // NODE_104 from the walking divider is mixed into the jump LS624's
+          // control input. MAME's WAV output moves around 520-660 Hz; keeping
+          // the divider modulation is what separates it from a fixed beep.
           this.modulationPhase[index] = (
             this.modulationPhase[index]! + 5.5 / this.outputRate
           ) % 1;
           const triangle = 1 - 4 * Math.abs(this.modulationPhase[index]! - 0.5);
-          frequency += triangle * 25;
+          frequency = this.dkongJrStartupJump
+            ? 290 + triangle * 210
+            : frequency + triangle * 75;
+        }
+        if (voice.network === 'dkongjr-fall') {
+          // IC 7P sweeps from its measured 2111 Hz high-control endpoint down
+          // toward the 570 Hz low endpoint through the board's control RC.
+          frequency = 570 + 1_540 * Math.exp(-this.dkongJrFallAge / 0.55);
+          this.dkongJrFallAge += 1 / this.outputRate;
         }
         if (voice.vco) {
           const vco = voice.vco;
@@ -263,6 +310,16 @@ export class GeneratedDiscreteAudioCore {
         signal += polyBlep(tonePhase, phaseStep);
         signal -= polyBlep((tonePhase + 0.5) % 1, phaseStep);
       }
+      if (voice.network === 'dkongjr-jump') {
+        // The Q3 collector produces a strong leading transient before its
+        // 100k/10u tail settles. Preserve that attack instead of starting the
+        // jump at the quieter steady-state oscillator level.
+        if (this.dkongJrJumpAge < 0.04) signal *= 1.6;
+        if (this.dkongJrStartupJump) {
+          signal *= 1 + 2 * Math.exp(-this.dkongJrJumpAge / 0.12);
+        }
+        this.dkongJrJumpAge += 1 / this.outputRate;
+      }
       mixed += signal * this.envelope[index] * voice.gain;
     }
 
@@ -317,7 +374,99 @@ export class GeneratedDiscreteAudioCore {
       );
     }
     mixed += dacOutput;
+    if (plan.outputNetwork === 'dkongjr') {
+      const dt = 1 / this.outputRate;
+      // The passive five-input mixer sees roughly 9.15k in parallel with its
+      // 10 nF feedback capacitor: 1.74 kHz. Its 4.7 uF output coupling stage
+      // then removes the DC component at about 34 Hz. Omitting this shared
+      // network left every LS624 harmonic 5-9 dB too bright versus wavwrite.
+      this.dkongJrMixerLowpass += (mixed - this.dkongJrMixerLowpass) *
+        onePoleCoefficient(1_740, this.outputRate);
+      const coupled = this.dkongJrMixerLowpass - this.dkongJrMixerCoupling;
+      this.dkongJrMixerCoupling += coupled * rcCharge(dt, 1_000 * 4.7e-6);
+      return Math.max(-1, Math.min(1, coupled * plan.outputGain));
+    }
     return Math.max(-1, Math.min(1, mixed * plan.outputGain));
+  }
+
+  /** DK Jr. SOUND2: 710 Hz LS164 LFSR, LS123 one-shot and C-R-C-R filter. */
+  private sampleDkongJrWalk(_index: number): number {
+    const dt = 1 / this.outputRate;
+    const alternate = Boolean(this.nodeValues[5]);
+    const oneShot = this.dkongJrWalkAge < 0.056;
+    let source = 0;
+    // IC 4K's 47k/4.7u LS123 pulse is 55.9 ms. The oscillator must stop when
+    // that pulse ends; exponentially fading a sustained tone was the long
+    // electronic ding heard in the previous renderer.
+    if (oneShot) {
+      if (alternate) {
+        this.phase[_index] = (
+          this.phase[_index]! + 360 / this.outputRate
+        ) % 1;
+        this.modulationPhase[_index] = (
+          this.modulationPhase[_index]! + 180 / this.outputRate
+        ) % 1;
+        const primary = this.phase[_index]! < 0.5 ? 1 : 0;
+        const subharmonic = this.modulationPhase[_index]! < 0.5 ? 1 : 0;
+        source = primary + subharmonic * 0.25;
+      } else {
+        // MAME's XTIME XOR preserves several IC 6L transitions inside one
+        // output sample. Two band-limited components preserve its measured
+        // 1-8 kHz distribution without aliasing the 59.4 kHz counter clock.
+        const highFrequency = 1_200 +
+          6_000 * Math.exp(-this.dkongJrWalkAge / 0.03);
+        this.phase[_index] = (
+          this.phase[_index]! + highFrequency / this.outputRate
+        ) % 1;
+        this.modulationPhase[_index] = (
+          this.modulationPhase[_index]! + 1_100 / this.outputRate
+        ) % 1;
+        const high = this.phase[_index]! < 0.5 ? 1 : 0;
+        const low = this.modulationPhase[_index]! < 0.5 ? 1 : 0;
+        source = high * 0.8 + low * 0.2;
+      }
+    }
+    this.dkongJrWalkAge += dt;
+    return source * (alternate ? 4.7 : 5.4);
+  }
+
+  private sampleDkongJrClimb(index: number): number {
+    const dt = 1 / this.outputRate;
+    this.dkongJrClimbNoisePhase += 710 / this.outputRate;
+    while (this.dkongJrClimbNoisePhase >= 1) {
+      this.dkongJrClimbNoisePhase--;
+      const previousFeedback = (this.dkongJrClimbLfsr >>> 16) & 1;
+      const input = previousFeedback ^ 1;
+      this.dkongJrClimbLfsr = (
+        ((this.dkongJrClimbLfsr << 1) & 0xffff) | input
+      );
+      const bit2 = (this.dkongJrClimbLfsr >>> 2) & 1;
+      const bit15 = (this.dkongJrClimbLfsr >>> 15) & 1;
+      const feedback = bit2 ^ bit15;
+      this.dkongJrClimbLfsr |= feedback << 16;
+      this.dkongJrClimbNoise = feedback ? 0 : 1;
+    }
+
+    const state = this.dkongVoiceState[index]!;
+    const oneShot = this.dkongJrClimbOneShot > 0 ? 0 : 4;
+    this.dkongJrClimbOneShot = Math.max(0, this.dkongJrClimbOneShot - dt);
+    const modulated = stepRcDiscMod(
+      state,
+      oneShot,
+      this.dkongJrClimbNoise,
+      120,
+      4_700,
+      1,
+      100_000,
+      10e-6,
+      5,
+      dt,
+    );
+    const highpass = modulated - state.crCap;
+    state.crCap += highpass * rcCharge(dt, 20_000 * 0.47e-6);
+    state.rcDisc2 += (highpass - state.rcDisc2) *
+      rcCharge(dt, 120 * 1e-6);
+    return state.rcDisc2;
   }
 
   /**

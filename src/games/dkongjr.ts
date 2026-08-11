@@ -39,8 +39,8 @@ export const dkongjr: GameTestContract = {
       writes: 333008,
       nonzeroWrites: 274931,
       writeHash: '5ec07d82',
-      pcmHash: '7e6f2930',
-      rms: 0.096638,
+      pcmHash: 'e218a363',
+      rms: 0.091032,
     },
   },
 };

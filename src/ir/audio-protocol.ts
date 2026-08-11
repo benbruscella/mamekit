@@ -130,10 +130,12 @@ export interface GeneratedDiscreteEffectsPlan {
      * Exact source topology used after the oscillator. These circuits cannot
      * be represented by a generic ADSR without changing their pitch/timbre.
      */
-    network?: 'dkong-stomp' | 'dkong-jump' | 'dkong-walk' | 'dkongjr-jump';
+    network?: 'dkong-stomp' | 'dkong-jump' | 'dkong-walk' |
+      'dkongjr-walk' | 'dkongjr-jump' | 'dkongjr-climb' |
+      'dkongjr-fall' | 'dkongjr-control';
   }[];
   /** Run a board-specific source circuit that cannot be reduced to generic voices. */
-  outputNetwork?: 'dkong2b' | 'asteroid';
+  outputNetwork?: 'dkong2b' | 'dkongjr' | 'asteroid';
   dischargeNode?: number;
   /** RC decay applied to the DAC when the active-low discharge gate closes. */
   dischargeRelease?: number;
