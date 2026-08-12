@@ -305,7 +305,7 @@ export interface GeneratedFrameEvent {
 export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
   /** Source-defined power-on contents for battery-backed/shared RAM. */
-  initialShares?: { share: string; bytes: number[] }[];
+  initialShares?: { share: string; bytes?: number[]; fill?: number }[];
   /** Source member names that alias an address-map memory share. */
   shareBindings?: { share: string; member: string; bits?: 8 | 16 }[];
   /** Driver lifecycle handlers executed in source-derived base-first order. */

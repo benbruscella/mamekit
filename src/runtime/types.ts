@@ -67,7 +67,7 @@ export interface BoardConfig {
   /** cpu[0]'s io space (pacman IM2 vector port) */
   io?: { ranges: RangeSpec[]; globalMask?: number };
   /** Source-defined power-on contents for battery-backed/shared RAM. */
-  initialShares?: { share: string; bytes: number[] }[];
+  initialShares?: { share: string; bytes?: number[]; fill?: number }[];
   /** IPT_CUSTOM port bits synthesized by a named driver member (the board
    * implements members by name; invaders_in1_control_r reads CONTP1) */
   customs?: {

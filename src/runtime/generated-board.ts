@@ -273,7 +273,8 @@ class IrBoard implements Board {
           `${machine.game}: initial share "${initializer.share}" is not mapped`,
         );
       }
-      share.set(initializer.bytes.slice(0, share.length));
+      if (initializer.fill !== undefined) share.fill(initializer.fill & 0xff);
+      if (initializer.bytes) share.set(initializer.bytes.slice(0, share.length));
     }
     for (const specification of machine.devices ?? []) {
       if (hasGeneratedDevice(specification.type)) {
@@ -465,6 +466,19 @@ class IrBoard implements Board {
 
     const calls: NonNullable<GeneratedHandlerBindings['calls']> = {};
     let runAutonomousNow = (): void => {};
+    const timerClockCpu = machine.execution.cpus[0];
+    const timerClockHz = timerClockCpu
+      ? Math.max(1, timerClockCpu.cycleClock ?? timerClockCpu.clock)
+      : 1;
+    const tickGeneratedDevices = (seconds: number): void => {
+      if (!(seconds > 0)) return;
+      for (const device of this.devices.values()) device.tick(seconds);
+    };
+    let tickHostedProcessors = (_seconds: number): void => {};
+    const advanceTimedHardware = (seconds: number): void => {
+      tickGeneratedDevices(seconds);
+      tickHostedProcessors(seconds);
+    };
     calls['machine().scheduler().abort_timeslice'] = () => {
       runAutonomousNow();
       return 0;
@@ -753,6 +767,7 @@ class IrBoard implements Board {
         calls[`${owner}.space`] = () => programSpace;
       }
       const mask = specification.mask ?? 0xffff;
+      let previousTimingCycles = 0;
       const cpu = createCpu(type, {
         read: address => bus.read(address & mask),
         // Keep native 16-bit address-map handlers atomic. In particular,
@@ -776,6 +791,17 @@ class IrBoard implements Board {
         } : {}),
         timing: (elapsed, target) => {
           this.currentLineFraction = target > 0 ? Math.min(1, elapsed / target) : 0;
+          if (specification.tag === timerClockCpu?.tag) {
+            const current = Math.max(0, Math.min(target, elapsed));
+            // run() calls timing(0,target) at the start of each slice and
+            // timing(target,target) at its end. Advancing by instruction-time
+            // deltas lets device timers assert lines between instructions,
+            // matching MAME's scheduler instead of batching every edge at the
+            // next scanline boundary.
+            if (current < previousTimingCycles) previousTimingCycles = 0;
+            advanceTimedHardware((current - previousTimingCycles) / timerClockHz);
+            previousTimingCycles = current === target ? 0 : current;
+          }
         },
         signal: (signal, state) => {
           const callbacks = machine.callbacks.filter(candidate =>
@@ -869,11 +895,29 @@ class IrBoard implements Board {
       const member = machine.devices?.find(device =>
         device.tag === specification.tag)?.member;
       if (member) {
-        for (const name of [
+        const cpuMethods = [
           'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
           'suspended',
-        ]) {
+        ];
+        for (const name of cpuMethods) {
           calls[`${member}.${name}`] = calls[`m_${specification.tag}.${name}`]!;
+        }
+        // Template-specialised handlers preserve a runtime index in source
+        // (`m_subcpu[Which]->set_input_line(...)`). Static binding keys cover
+        // literal indexes, but a dynamic index is evaluated through driver
+        // state and therefore needs the finder array to contain live targets.
+        // Populate an adapter from the same generic CPU call package so every
+        // required_device_array works without a board/game exception.
+        const indexed = /^(m_\w+)\[(\d+)\]$/.exec(member);
+        if (indexed) {
+          const values = Array.isArray(this.state[indexed[1]!])
+            ? this.state[indexed[1]!] as unknown[]
+            : [];
+          values[Number(indexed[2])] = Object.fromEntries(cpuMethods.map(name => [
+            name,
+            calls[`m_${specification.tag}.${name}`]!,
+          ]));
+          this.state[indexed[1]!] = values;
         }
       }
     }
@@ -954,6 +998,29 @@ class IrBoard implements Board {
         },
       }];
     });
+    // Firmware MCUs share elapsed board time with the primary CPU. Running
+    // them only after the primary CPU's whole scanline lets that CPU assert a
+    // chip-select and read the stale response before the child executes once.
+    // Accumulate each hosted processor's source clock at instruction
+    // boundaries so short handshakes (Namco 06xx/53xx is one example) retain
+    // MAME's causal ordering without any board-specific quantum.
+    const hostedCarry = new Map(hostedProcessors.map(processor => [processor.tag, 0]));
+    tickHostedProcessors = seconds => {
+      if (!(seconds > 0)) return;
+      for (const processor of hostedProcessors) {
+        if (processor.enabled && !processor.enabled()) {
+          hostedCarry.set(processor.tag, 0);
+          continue;
+        }
+        const carry = (hostedCarry.get(processor.tag) ?? 0) + seconds * processor.clock;
+        const target = Math.floor(carry);
+        if (target <= 0) {
+          hostedCarry.set(processor.tag, carry);
+          continue;
+        }
+        hostedCarry.set(processor.tag, carry - processor.run(target));
+      }
+    };
     // Standalone bus masters expose MAME's execute_run/m_icount pair but have
     // no firmware host. The Intel 8257 on Donkey Kong is one such processor.
     const autonomousProcessors = (machine.devices ?? []).flatMap(specification => {
@@ -1045,6 +1112,9 @@ class IrBoard implements Board {
           const pendingStall = this.cpuStalls.get(specification.tag) ?? 0;
           const stalled = Math.min(cycles, pendingStall);
           this.cpuStalls.set(specification.tag, pendingStall - stalled);
+          if (specification.tag === timerClockCpu?.tag && stalled > 0) {
+            advanceTimedHardware(stalled / timerClockHz);
+          }
           const executed = stalled + (cycles > stalled
             ? this.cpus.get(specification.tag)!.run(cycles - stalled)
             : 0);
@@ -1056,7 +1126,7 @@ class IrBoard implements Board {
           );
           return executed;
         },
-      })), ...hostedProcessors, ...autonomousProcessors],
+      })), ...autonomousProcessors],
       onEvent: event => {
         const callback = machine.callbacks.find(candidate => candidate.id === event.callbackId);
         if (callback?.promGate && !generatedPromGateOpen(
@@ -1149,7 +1219,12 @@ class IrBoard implements Board {
         if (phase === 'before-processors') {
           const seconds = 1 /
             (this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal);
-          for (const device of this.devices.values()) device.tick(seconds);
+          // A held primary CPU produces no instruction progress, but board
+          // timers continue in wall-clock time. Runnable CPUs advance these
+          // same devices through the timing hook above.
+          if (timerClockCpu && this.cpuHeld.get(timerClockCpu.tag)) {
+            advanceTimedHardware(seconds);
+          }
           for (const tick of this.peripheralTicks) tick(seconds);
         }
       },
@@ -1216,12 +1291,41 @@ class IrBoard implements Board {
       if (!host.methodNames().includes(callback.targetMethod!)) continue;
       device.on(
         callback.signal,
-        (...args) => host.call(callback.targetMethod!, ...args),
+        (...args) => {
+          // Child CPU devcb writes carry (offset, data, mask), while their
+          // host method normally declares only `uint8_t data`. Adapt that
+          // callback value through the target signature exactly as ordinary
+          // board device-method effects do; forwarding all three arguments
+          // prevents overload selection and silently leaves MCU output ports
+          // stale on hosts such as the Namco 53xx.
+          const value = args.length >= 3 ? args.at(-2)! : args.at(-1) ?? 0;
+          return host.call(
+            callback.targetMethod!,
+            ...generatedDeviceCallbackArguments(
+              host.parameters(callback.targetMethod!),
+              value,
+            ),
+          );
+        },
         callback.slot ?? 0,
       );
     }
-    host.bindCall('m_cpu.set_input_line', (_line, state) =>
-      device.call('execute_set_input', 0, state));
+    host.bindCall('m_cpu.set_input_line', (line, state) => {
+      // A host's source file may name a line constant declared by its child
+      // processor (MB88XX_TC_LINE is one example), so it is intentionally not
+      // duplicated in the host definition. Resolve reference-shaped line
+      // arguments against the child core that owns the declaration and retain
+      // the exact line MAME requested.
+      const reference = line && typeof line === 'object' && 'reference' in line
+        ? String((line as { reference: unknown }).reference)
+        : undefined;
+      const inputLine = typeof line === 'number'
+        ? line
+        : reference
+          ? device.constant(reference) ?? 0
+          : Number(line) || 0;
+      return device.call('execute_set_input', inputLine, state);
+    });
     host.bindCall('NAMCO_54XX_0_DATA', () => 0);
     host.bindCall('NAMCO_54XX_1_DATA', () => 1);
     host.bindCall('NAMCO_54XX_2_DATA', () => 2);
@@ -2373,7 +2477,12 @@ class IrBoard implements Board {
                 {},
               ) ?? 0;
           const shift = trailingZeroBits(custom.mask);
-          value = (value & ~custom.mask) | ((result << shift) & custom.mask);
+          // ioport_port::read applies the field's active-high/low default
+          // after inserting a dynamic callback value.  KeyboardInput already
+          // returns final electrical levels for ordinary fields, so mirror
+          // that last polarity step only for the synthesized custom field.
+          const field = custom.activeLow ? ~result : result;
+          value = (value & ~custom.mask) | ((field << shift) & custom.mask);
         }
         // Bus width, rather than the input wrapper, owns final truncation.
         // This keeps word-wide custom fields visible to 16-bit CPUs.
@@ -2890,6 +2999,10 @@ class IrBoard implements Board {
       bindings,
     );
     return (state, ...sourceArgs) => {
+      const debugCounts = (globalThis as {
+        __mamekitHandlerCounts?: Map<string, number>;
+      }).__mamekitHandlerCounts;
+      if (debugCounts) debugCounts.set(key, (debugCounts.get(key) ?? 0) + 1);
       return executeGeneratedMachineHandler(
         this.machine,
         handler,
@@ -3012,6 +3125,22 @@ class IrBoard implements Board {
         // key here; ordinary generated handlers continue through source IR.
         const exactCall = this.bindings.calls?.[key];
         if (exactCall) return state => { exactCall(state); };
+        // A callback installed by a composite device's child belongs to the
+        // parent device instance. MAME expresses this as FUNC(parent::method)
+        // on a hosted MCU (for example an MB88 port callback). Route it back
+        // to that generated parent so its AOT-compiled method runs directly
+        // instead of walking a duplicate board-level handler IR program.
+        const method = key.split('.').at(-1)!;
+        const parentTag = deviceTag
+          ? this.machine.devices?.find(device => device.tag === deviceTag)?.hostTag
+          : undefined;
+        const parent = parentTag ? this.devices.get(parentTag) : undefined;
+        if (parent?.methodNames().includes(method)) {
+          return state => parent.call(
+            method,
+            ...generatedDeviceCallbackArguments(parent.parameters(method), state),
+          );
+        }
         const cpuDevice = deviceTag
           ? {
               execute: () => ({

@@ -805,8 +805,8 @@ class GeneratedPalette implements GeneratedPaletteDevice {
 
   transpen_mask(gfx: GeneratedGfxElement, color: number, transparent: number): number {
     let mask = 0;
-    const base = gfx.entry.colorBase + color * gfx.granularity;
-    for (let pen = 0; pen < gfx.granularity; pen++) {
+    const base = gfx.entry.colorBase + color * gfx.granularity();
+    for (let pen = 0; pen < gfx.granularity(); pen++) {
       if (this.indirect[base + pen] === transparent) mask |= 1 << pen;
     }
     return mask;
@@ -908,10 +908,10 @@ class GeneratedTnx1Palette implements GeneratedPaletteDevice {
   }
 }
 
-class GeneratedGfxElement {
+export class GeneratedGfxElement {
   readonly entry: GeneratedGfxEntry;
   readonly decoded: GfxSet;
-  readonly granularity: number;
+  private readonly penGranularity: number;
   private readonly palette: GeneratedPaletteDevice;
   /** Indexed (bitmap_ind16) screens compose pens; the screen resolves them. */
   private readonly indexed: boolean;
@@ -924,7 +924,7 @@ class GeneratedGfxElement {
   ) {
     this.entry = entry;
     this.decoded = decoded;
-    this.granularity = 1 << entry.layout.planes;
+    this.penGranularity = 1 << entry.layout.planes;
     this.palette = palette;
     this.indexed = indexed;
   }
@@ -1000,6 +1000,25 @@ class GeneratedGfxElement {
     return this.entry.colorBase;
   }
 
+  /** MAME gfx_element source surface used by custom zoom/scaling renderers. */
+  elements(): number {
+    return this.decoded.count;
+  }
+
+  rowbytes(): number {
+    return this.decoded.width;
+  }
+
+  granularity(): number {
+    return this.penGranularity;
+  }
+
+  get_data(code: number): Uint8Array {
+    const element = modulo(Math.trunc(code), this.decoded.count);
+    const size = this.decoded.width * this.decoded.height;
+    return this.decoded.pixels.subarray(element * size, (element + 1) * size);
+  }
+
   draw(
     bitmap: BitmapTarget,
     clip: GeneratedRectangle,
@@ -1014,7 +1033,7 @@ class GeneratedGfxElement {
     const gfx = this.decoded;
     const element = modulo(code, gfx.count);
     const base = element * gfx.width * gfx.height;
-    const colorBase = this.entry.colorBase + color * this.granularity;
+    const colorBase = this.entry.colorBase + color * this.penGranularity;
     const direct = bitmap.direct;
     const directStartX = direct &&
         this.entry.xscale === direct.xScale &&
@@ -3292,7 +3311,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
           spriteBitmap['pix='](
             y,
             pixelX,
-            pen ? gfx.entry.colorBase + attribute.color * gfx.granularity + pen : 0,
+            pen ? gfx.entry.colorBase + attribute.color * gfx.granularity() + pen : 0,
           );
         }
       }

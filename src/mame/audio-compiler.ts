@@ -3775,25 +3775,8 @@ export class GeneratedNamcoWsgCore {
       let volume = plan.engine
         ? voice.volume.reduce((sum, value) => sum + value, 0) / 4
         : voice.volume[0] ?? 0;
-      let frequency = voice.frequency;
-      // Pole Position uses the high bit of its rear-volume register to route
-      // a channel to the 52XX/54XX analog effects instead of the WSG mixer.
-      // Until a generated MB88 MCU produces those DAC nibbles, preserve an
-      // audible source-derived fallback from the same frequency, waveform and
-      // front-volume registers rather than turning the selected channel into
-      // digital silence.
-      if (!volume && plan.engine) {
-        const base = voiceIndex * 4;
-        const auxiliarySelect = this.soundregs[base + 0x23] ?? 0;
-        if (auxiliarySelect & 8) {
-          const frontVolume = this.soundregs[base + 3] ?? 0;
-          volume = ((frontVolume >>> 4) + (frontVolume & 0x0f)) / 2;
-          if (frequency < 0x100) {
-            frequency = 0x800 + ((auxiliarySelect >>> 4) & 3) * 0x400;
-          }
-        }
-      }
       if (!volume) continue;
+      const frequency = voice.frequency;
       const waveBase = voice.waveform_select << 5;
       let counter = voice.counter >>> 0;
       for (let index = 0; index < out.length; index++) {

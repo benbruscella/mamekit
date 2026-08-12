@@ -45,6 +45,51 @@ check('68000 physical IPL line aliases retain their interrupt levels', () => {
   );
 });
 
+check('scoped device constants resolve through source-derived leaf names', () => {
+  assert.equal(
+    executeGeneratedHandler(
+      program([{
+        op: 'return',
+        value: { kind: 'identifier', name: 'z8002_device::NVI_LINE' },
+      }]),
+      { constants: { NVI_LINE: 0 } },
+    ),
+    0,
+  );
+});
+
+check('runtime-indexed finder arrays invoke their live target', () => {
+  let line = -1;
+  executeGeneratedHandler(
+    program([{
+      op: 'call',
+      expression: {
+        kind: 'call',
+        callee: {
+          kind: 'member',
+          object: {
+            kind: 'index',
+            object: { kind: 'identifier', name: 'm_subcpu' },
+            index: { kind: 'identifier', name: 'Which' },
+          },
+          property: 'set_input_line',
+        },
+        args: [{ kind: 'number', value: 0 }, { kind: 'number', value: 1 }],
+      },
+    }]),
+    {
+      constants: { Which: 1 },
+      members: {
+        m_subcpu: [
+          { set_input_line: () => {} },
+          { set_input_line: (value: number) => { line = value; } },
+        ],
+      },
+    },
+  );
+  assert.equal(line, 0);
+});
+
 check('members are read and written through the bindings', () => {
   const members: Record<string, unknown> = { m_irq_mask: 0 };
   executeGeneratedHandler(

@@ -83,6 +83,10 @@ export async function runGameAcceptance(
   root = projectRoot,
   options: GameAcceptanceOptions = {},
 ): Promise<GameAcceptanceGolden> {
+  if (process.env.MAMEKIT_PROFILE_HANDLERS === '1') {
+    (globalThis as { __mamekitHandlerCounts?: Map<string, number> })
+      .__mamekitHandlerCounts = new Map();
+  }
   const diagnosticCapture = options.captureAudio !== undefined;
   const framesToRun = options.frames ?? contract.frames;
   const outRoot = join(root, 'dist');
@@ -475,6 +479,16 @@ export async function runGameAcceptance(
     `${contract.game}: ${emulatedFps.toFixed(1)} emulated fps ` +
       `(minimum ${contract.minimumFps})`,
   );
+  const handlerCounts = (globalThis as {
+    __mamekitHandlerCounts?: Map<string, number>;
+  }).__mamekitHandlerCounts;
+  if (handlerCounts) {
+    console.log([...handlerCounts]
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 30)
+      .map(([name, count]) => `${count.toLocaleString()} ${name}`)
+      .join('\n'));
+  }
 
   // Behaviour is asserted before throughput. The fps floor depends on how busy
   // the host is, so checking it first let a loaded machine abort the run before
@@ -509,15 +523,25 @@ function verifyInputBindings(
     const released = input.read(binding.port);
     key(target, 'keydown', code);
     const pressed = input.read(binding.port);
-    const expected = binding.activeLow
-      ? released & ~binding.mask
-      : released | binding.mask;
+    const expected = binding.relativeDelta !== undefined
+      ? (released & ~binding.mask) |
+        (((released & binding.mask) + binding.relativeDelta) & binding.mask)
+      : binding.activeValue !== undefined
+        ? (released & ~binding.mask) | (binding.activeValue & binding.mask)
+        : binding.activeLow
+          ? released & ~binding.mask
+          : released | binding.mask;
     assert.equal(pressed, expected, `${contract.game}: ${code} did not reach ${binding.port}`);
     key(target, 'keyup', code);
     if (binding.toggle) {
       assert.equal(input.read(binding.port), expected);
       key(target, 'keydown', code);
       key(target, 'keyup', code);
+    }
+    if (binding.relativeDelta !== undefined) {
+      // A dial is a persistent hardware counter, not a switch that springs
+      // back on keyup. Restore the preflight probe before the actual replay.
+      input.setDip(binding.port, binding.mask, released);
     }
     assert.equal(input.read(binding.port), released);
   }

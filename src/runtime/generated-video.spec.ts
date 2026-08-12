@@ -15,6 +15,7 @@ import {
   generatedTileGroupTransparentMask,
   generatedTileCategoryMatches,
   generatedTileMemoryIndex,
+  GeneratedGfxElement,
   GeneratedMameVideoPrimitives,
   GeneratedVideoRenderer,
   taitoSjLayerScrollX,
@@ -22,6 +23,39 @@ import {
   williamsPaletteColor,
   type GeneratedVideoPrimitives,
 } from './generated-video.ts';
+
+const sourceGfx = new GeneratedGfxElement({
+  region: 'fixture',
+  offset: 0,
+  colorBase: 0x300,
+  colorCount: 4,
+  layout: {
+    width: 2,
+    height: 2,
+    total: 2,
+    planes: 2,
+    planeOffsets: [0, 1],
+    xOffsets: [0, 1],
+    yOffsets: [0, 2],
+    charIncrement: 4,
+  },
+  xscale: 1,
+  yscale: 1,
+}, {
+  count: 2,
+  width: 2,
+  height: 2,
+  pixels: Uint8Array.of(0, 1, 2, 3, 3, 2, 1, 0),
+}, {
+  colors: new Uint32Array(0),
+  transpen_mask: () => 0,
+  black_pen: () => 0,
+  pens: () => new Uint32Array(0),
+}, true);
+assert.equal(sourceGfx.elements(), 2);
+assert.equal(sourceGfx.rowbytes(), 2);
+assert.equal(sourceGfx.granularity(), 4);
+assert.deepEqual([...sourceGfx.get_data(1)], [3, 2, 1, 0]);
 
 assert.equal(generatedTileCategoryMatches(1, 0), false);
 assert.equal(generatedTileCategoryMatches(1, 1), true);

@@ -463,7 +463,16 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     if (expression.name === 'ACCESSING_BITS_8_15') {
       return toNumber(context.locals.mem_mask) & 0xff00 ? 1 : 0;
     }
-    const constant = context.bindings.constants?.[expression.name] ?? DEFAULT_CONSTANTS[expression.name];
+    // Clang retains a scoped spelling for device constants used by driver
+    // handlers (for example `z8002_device::NVI_LINE`), while the source
+    // compiler records the declaration under its leaf name (`NVI_LINE`).
+    // Resolve both forms so source-derived callbacks deliver the numeric pin
+    // rather than passing an unresolved reference object to a device.
+    const constantName = expression.name.split('::').at(-1)!;
+    const constant = context.bindings.constants?.[expression.name] ??
+      context.bindings.constants?.[constantName] ??
+      DEFAULT_CONSTANTS[expression.name] ??
+      DEFAULT_CONSTANTS[constantName];
     if (constant !== undefined) return constant;
     return context.bindings.concreteDeviceMembers?.has(expression.name)
       ? { reference: expression.name, resolved: true }

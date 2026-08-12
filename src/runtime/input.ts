@@ -31,13 +31,25 @@ export interface FieldBinding {
   activeLow?: boolean;
   /** Maintained cabinet switch: each keydown flips it and keyup leaves it set. */
   toggle?: boolean;
+  /** Absolute value driven while an analog control key is held. */
+  activeValue?: number;
+  /** Relative masked delta applied for each keydown (including key repeat). */
+  relativeDelta?: number;
 }
 
 export interface DipDefault { port: string; mask: number; value: number; name: string }
 
 export interface PortSpec { tag: string; init: number }
 
-interface Field { port: string; mask: number; activeLow: boolean; label: string; toggle: boolean }
+interface Field {
+  port: string;
+  mask: number;
+  activeLow: boolean;
+  label: string;
+  toggle: boolean;
+  activeValue?: number;
+  relativeDelta?: number;
+}
 
 const OPPOSITE_SUFFIX: Record<string, string> = { _LEFT: '_RIGHT', _RIGHT: '_LEFT', _UP: '_DOWN', _DOWN: '_UP' };
 
@@ -65,6 +77,8 @@ export class KeyboardInput implements InputPorts {
         activeLow: b.activeLow !== false,
         label: b.label,
         toggle: b.toggle === true,
+        activeValue: b.activeValue,
+        relativeDelta: b.relativeDelta,
       };
       fields.push(f);
       for (const key of b.keys) {
@@ -92,7 +106,9 @@ export class KeyboardInput implements InputPorts {
   /** drive a field active (pressed) or back to its resting bits */
   private apply(f: Field, active: boolean): void {
     if (active) {
-      this.state[f.port] = f.activeLow ? this.state[f.port] & ~f.mask : this.state[f.port] | f.mask;
+      this.state[f.port] = f.activeValue !== undefined
+        ? (this.state[f.port] & ~f.mask) | (f.activeValue & f.mask)
+        : f.activeLow ? this.state[f.port] & ~f.mask : this.state[f.port] | f.mask;
     } else {
       this.state[f.port] = (this.state[f.port] & ~f.mask) | (this.init[f.port] & f.mask);
     }
@@ -115,8 +131,18 @@ export class KeyboardInput implements InputPorts {
       return;
     }
     ev.preventDefault();
-    if (ev.repeat) return; // auto-repeat carries no new information
     for (const h of hits) {
+      if (h.relativeDelta !== undefined) {
+        if (!down) continue;
+        // Relative cabinets (dial/trackball) emit movement pulses rather than
+        // a maintained switch. Keyboard repeat supplies a steady stream while
+        // held, and the masked byte naturally wraps like the hardware counter.
+        const current = this.state[h.port] & h.mask;
+        this.state[h.port] = (this.state[h.port] & ~h.mask) |
+          ((current + h.relativeDelta) & h.mask);
+        continue;
+      }
+      if (ev.repeat) continue; // digital auto-repeat carries no new information
       if (h.toggle) {
         if (!down) continue;
         const active = !(this.toggled.get(this.fid(h)) ?? false);

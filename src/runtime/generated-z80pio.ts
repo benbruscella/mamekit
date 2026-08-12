@@ -185,6 +185,11 @@ export class GeneratedZ80PioDevice implements Device {
     }
   }
 
+  constant(name: string): number | undefined {
+    return this.definition.constants[name] ??
+      this.definition.constants[name.split('::').at(-1)!];
+  }
+
   methodNames(): readonly string[] {
     return [...this.methodParameters.keys()];
   }

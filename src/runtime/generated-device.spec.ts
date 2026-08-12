@@ -15,7 +15,7 @@ const method = (name: string, parameters: string, source: string) => ({
 });
 const definition: GeneratedDeviceDefinition = {
   type: 'fixture',
-  constants: {},
+  constants: { MASK: 3 },
   members: [
     { name: 'm_byte', valueType: 'uint8_t', bits: 8, initial: 0 },
     { name: 'm_signed', valueType: 'int8_t', bits: 8, signed: true, initial: 0 },
@@ -77,6 +77,7 @@ const device = createDevice('FiXtUrE', { clock: 2_000 });
 assert.equal(device.get('m_byte'), 7);
 assert.equal(device.cycleClock(), 500);
 assert.equal(device.dataAddressBits(), 8);
+assert.equal(device.constant('fixture::MASK'), device.constant('MASK'));
 assert.equal(device.arity('write'), 1);
 assert.deepEqual(device.signalNames(), ['q_out_cb']);
 

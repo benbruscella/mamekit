@@ -53,6 +53,27 @@ export function isDumpedRom(load: RomLoad): boolean {
   return load.status !== 'nodump';
 }
 
+/**
+ * Regions whose absence cannot produce a usable machine.  In addition to the
+ * board CPUs, this includes firmware owned by MAME device ROM sets.  Split
+ * MAME collections keep those chips in (for example) namco51.zip rather than
+ * the game's zip; silently zero-filling them can pass the main-CPU boot ROM
+ * check while leaving I/O or sound controllers dead.
+ */
+export function requiredRomRegions(specs: RomRegionSpec[], cpuRegions: Iterable<string>): Set<string> {
+  const required = new Set(cpuRegions);
+  for (const spec of specs) {
+    if (spec.romSet && spec.loads.some(isDumpedRom)) required.add(spec.region);
+  }
+  return required;
+}
+
+/** Distinct external device sets needed alongside the game's own zip. */
+export function dependencyRomSets(specs: RomRegionSpec[], game: string): string[] {
+  return [...new Set(specs.flatMap(spec => spec.romSet && spec.loads.some(isDumpedRom) ? [spec.romSet] : []))]
+    .filter(set => set !== game);
+}
+
 export interface SoundSpec {
   /** Generic SoundCore/AudioWorklet processor kind. */
   kind: string;
@@ -449,10 +470,15 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   if (preloaded) {
     regions = preloaded;
   } else {
-    // Only CPU code regions are boot-critical; other regions warn and zero-fill.
-    const critical = new Set(cfg.board.cpus.map(c => c.region));
+    // Device firmware is just as boot-critical as CPU code even though MAME
+    // stores it in a separate split-set zip.
+    const critical = requiredRomRegions(cfg.roms, cfg.board.cpus.map(c => c.region));
+    const dependencies = dependencyRomSets(cfg.roms, cfg.game);
     const zone = ui.dropZone(cfg.game);
-    ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip (never stored).`);
+    const companionText = dependencies.length
+      ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
+      : '';
+    ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (never stored).`);
     const files = await waitForZip(ui, zone, cfg.roms, critical, cfg.game);
     regions = assembleRegions(cfg.roms, files, ui.status, critical);
   }
@@ -831,7 +857,7 @@ function buildDom(cfg: ShellConfig) {
       big.textContent = `Drop ${game}.zip here`;
       const small = document.createElement('div');
       small.style.cssText = 'color:#9fb0ff';
-      small.textContent = 'or click anywhere on the screen to choose the file';
+      small.textContent = 'or click anywhere on the screen to choose one or more zip files';
       const note = document.createElement('div');
       note.style.cssText = 'color:#667;font-size:12px;margin-top:6px;max-width:320px';
       note.textContent = 'ROMs are copyrighted and not distributed with mamekit — bring your own dump.';
@@ -861,9 +887,10 @@ function buildDom(cfg: ShellConfig) {
       style.textContent = `@keyframes m2j-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
         @keyframes m2j-shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}`;
 
-      // exactly which chips the zip must contain (straight from the knowledge
-      // graph); ★ marks CPU code regions the game cannot boot without
-      const critical = new Set(cfg.board.cpus.map(c => c.region));
+      // Exactly which chips the supplied zips must contain (straight from the
+      // knowledge graph). Device firmware is required too: split MAME sets
+      // keep it in a separate zip from the game.
+      const critical = requiredRomRegions(cfg.roms, cfg.board.cpus.map(c => c.region));
       const manifest = document.createElement('details');
       manifest.style.cssText = 'align-self:stretch;margin-top:8px;text-align:left';
       const sum = document.createElement('summary');
@@ -890,7 +917,7 @@ function buildDom(cfg: ShellConfig) {
       }
       const legend = document.createElement('div');
       legend.style.cssText = 'color:#667;font-size:10px;margin-top:4px';
-      legend.textContent = '★ CPU code — required to boot · others fall back to zero-fill with a warning';
+      legend.textContent = '★ required CPU/device firmware · others fall back to zero-fill with a warning';
       list.appendChild(legend);
       manifest.append(sum, list);
       manifest.addEventListener('click', ev => ev.stopPropagation()); // don't open the file picker
@@ -937,9 +964,16 @@ function buildDom(cfg: ShellConfig) {
           if (check.missingCritical.length) {
             manifest.open = true;
             icon.textContent = '🚫';
-            big.textContent = 'Wrong romset for this game';
-            small.textContent = `${check.missingCritical.length} required CPU chip${check.missingCritical.length > 1 ? 's' : ''} missing — ` +
-              `try the "${game}" set. Drop another zip to retry.`;
+            big.textContent = 'More ROM files are required';
+            const missingRegions = new Set(check.perFile
+              .filter(part => part.critical && part.status === 'missing')
+              .map(part => part.region));
+            const missingSets = [...new Set(cfg.roms
+              .filter(spec => missingRegions.has(spec.region) && spec.romSet)
+              .map(spec => `${spec.romSet}.zip`))];
+            small.textContent = missingSets.length
+              ? `Also select or drop ${missingSets.join(', ')}. Files already supplied are kept for this page.`
+              : `${check.missingCritical.length} required CPU chip${check.missingCritical.length > 1 ? 's are' : ' is'} missing — try the "${game}" set.`;
             zone.style.borderColor = '#e0504d';
             zone.style.animation = 'm2j-shake .4s';
             setTimeout(() => { zone.style.animation = ''; }, 450);
@@ -1041,15 +1075,29 @@ function waitForZip(
     const pick = document.createElement('input');
     pick.type = 'file';
     pick.accept = '.zip';
+    pick.multiple = true;
     let accepted = false;
+    const files = new Map<string, Uint8Array>();
+    const mergeFiles = (incoming: Map<string, Uint8Array>) => {
+      for (const [name, bytes] of incoming) {
+        let key = name;
+        // Keep same-named chips with different contents: findRomBytes can
+        // still select the right one by CRC from this synthetic map key.
+        if (files.has(key) && crc32(files.get(key)!) !== crc32(bytes)) {
+          key = `${name}#${crc32(bytes).toString(16).padStart(8, '0')}`;
+        }
+        files.set(key, bytes);
+      }
+    };
     const ingest = async (name: string, raw: Uint8Array): Promise<boolean> => {
       if (accepted) return true;
       zone.busy(name);
-      let files: Map<string, Uint8Array>;
-      try { files = await readZip(raw); }
+      let incoming: Map<string, Uint8Array>;
+      try { incoming = await readZip(raw); }
       catch { zone.error(`${name} isn’t a readable zip — try the original romset.`); return false; }
+      mergeFiles(incoming);
       // grade the set against the manifest BEFORE booting: ticks in the
-      // list, and a wrong set bounces back here instead of hanging
+      // list. Previously supplied split-set zips remain accumulated.
       const check = checkRomSet(specs, files, critical);
       zone.verdict(check);
       if (check.missingCritical.length) return false; // stay in the loop for a retry
@@ -1058,7 +1106,15 @@ function waitForZip(
       return true;
     };
     const handle = async (file: File) => ingest(file.name, new Uint8Array(await file.arrayBuffer()));
-    pick.addEventListener('change', () => { if (pick.files?.[0]) void handle(pick.files[0]); });
+    const handleMany = async (selected: Iterable<File>) => {
+      for (const file of selected) {
+        if (await handle(file)) break;
+      }
+    };
+    pick.addEventListener('change', () => {
+      if (pick.files?.length) void handleMany(Array.from(pick.files));
+      pick.value = '';
+    });
 
     // "Try web search": probe the mirror bucket while the bar plays out a
     // little theatre — it crawls toward 92% on its own and only lands at
@@ -1083,11 +1139,23 @@ function waitForZip(
         searching = false;
         fn();
       }, Math.max(0, 2400 - (performance.now() - started)));
-      fetchRomSet(game).then(
-        raw => finish(() => {
-          zone.search.progress(1, `Found ${game}.zip!`);
+      const sets = [game, ...dependencyRomSets(specs, game)];
+      Promise.allSettled(sets.map(async set => ({ set, raw: await fetchRomSet(set) }))).then(
+        results => finish(() => {
+          const found = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : []);
+          if (!found.length) {
+            zone.search.reset();
+            zone.error(`Couldn’t find ${game}.zip on the web — drop your own dump.`);
+            return;
+          }
+          zone.search.progress(1, `Found ${found.length} of ${sets.length} required ROM set${sets.length > 1 ? 's' : ''}!`);
           setTimeout(() => {
-            void ingest(`${game}.zip`, raw).then(ok => ok ? zone.search.hide() : zone.search.reset());
+            void (async () => {
+              let ok = false;
+              for (const item of found) ok = await ingest(`${item.set}.zip`, item.raw);
+              if (ok) zone.search.hide();
+              else zone.search.reset();
+            })();
           }, 500);
         }),
         () => finish(() => {
@@ -1106,8 +1174,8 @@ function waitForZip(
     addEventListener('drop', ev => {
       ev.preventDefault();
       depth = 0;
-      const f = ev.dataTransfer?.files?.[0];
-      if (f) void handle(f);
+      const dropped = ev.dataTransfer?.files;
+      if (dropped?.length) void handleMany(Array.from(dropped));
       else zone.idle();
     });
   });

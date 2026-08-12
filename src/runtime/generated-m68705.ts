@@ -111,6 +111,14 @@ export class GeneratedM68705P5Device implements Device {
     else if (name === 'm_cc' || name === 'CC') this.cc = value & 0xff;
   }
 
+  constant(name: string): number | undefined {
+    const constants: Record<string, number> = {
+      INPUT_LINE_IRQ0: 0,
+      INPUT_LINE_RESET: 1,
+    };
+    return constants[name] ?? constants[name.split('::').at(-1)!];
+  }
+
   methodNames(): readonly string[] {
     return ['execute_run', 'execute_set_input', 'set_input_line'];
   }

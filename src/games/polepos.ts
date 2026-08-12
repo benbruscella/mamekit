@@ -7,12 +7,25 @@ export const polepos = sourceTarget({
   screen: { width: 256, height: 224 },
   soundKind: 'wsg',
   actions: [
-    { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
-    { atFrame: 780, code: 'KeyC', heldFrames: 30, releasedFrames: 20 },
+    // Pole Position ignores an early coin while its board test is running.
+    // Keep actions non-overlapping: the acceptance harness replays each pulse
+    // to completion before advancing to the next scheduled action.
+    { atFrame: 600, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 820, code: 'KeyC', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 850, code: 'ArrowRight', heldFrames: 30, releasedFrames: 20 },
+    { atFrame: 900, code: 'ArrowUp', heldFrames: 270, releasedFrames: 20 },
+  ],
+  audioRequirements: [
+    { method: 'discrete', fromFrame: 120, minimumNonzeroWrites: 100 },
+    { method: 'polepos_engine_sound_lsb_w', fromFrame: 900, minimumNonzeroWrites: 50 },
+    { method: 'polepos_engine_sound_msb_w', fromFrame: 900, minimumNonzeroWrites: 50 },
   ],
   golden: {
     regions: {
+      '51xx:mcu': 'c2f57ef8',
       '52xx': '77f83385',
+      '52xx:mcu': '3257d11e',
+      '53xx:mcu': 'b326fecb',
       '54xx:mcu': 'ee7357e0',
       bigsprites: 'deef9a37',
       chars: '2e77187e',
@@ -29,20 +42,20 @@ export const polepos = sourceTarget({
       user1: '2401c817',
     },
     checkpoints: {
-      1: { video: '89dde23a', state: '1bf2b461' },
-      60: { video: '89dde23a', state: '1a25a219' },
-      180: { video: '81ca9e9a', state: '8a87bb04' },
-      300: { video: '9bbefd2e', state: '8924157f' },
-      600: { video: 'f207d430', state: '41080d46' },
-      900: { video: '13dea699', state: '8ece622c' },
-      1200: { video: '81ca9e9a', state: 'c1e8de46' },
+      1: { video: '89dde23a', state: 'd0e24b27' },
+      60: { video: '89dde23a', state: '4aa4de45' },
+      180: { video: '81ca9e9a', state: 'e0ba55f6' },
+      300: { video: '9bbefd2e', state: '2ba31e43' },
+      600: { video: '5cb9143a', state: 'adf38468' },
+      900: { video: 'cc079309', state: '49a856b8' },
+      1200: { video: 'f6fba275', state: 'efd1d6ba' },
     },
     audio: {
-      writes: 34062,
-      nonzeroWrites: 4915,
-      writeHash: '4a607749',
-      pcmHash: 'a7f9c5af',
-      rms: 0.109201,
+      writes: 163295,
+      nonzeroWrites: 25948,
+      writeHash: 'da345c16',
+      pcmHash: '2e6f78a2',
+      rms: 0.02115,
     },
   },
 });

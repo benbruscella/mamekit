@@ -91,6 +91,10 @@ const KEYMAP: Record<string, string[]> = {
   IPT_SERVICE2: ['Digit8'],
   IPT_SERVICE3: ['Digit7'],
   IPT_SERVICE4: ['Digit0'],
+  // Analog cabinet controls. Absolute pedals use their source PORT_MINMAX
+  // range; relative dials are expanded into left/right pulse bindings below.
+  IPT_PEDAL: ['ArrowUp'],
+  IPT_PEDAL2: ['ArrowDown'],
   // Cabinet operator buttons used by first-boot audits (Defender's ADVANCE
   // and HIGH SCORE RESET are the common case).
   IPT_SERVICE: ['F2'],
@@ -180,12 +184,19 @@ function chunkTriples(values: number[]): [number, number, number][] {
 export function sourceNvramInitializers(
   devices: readonly KGNode[],
   mameSrc: string,
-): { share: string; bytes: number[] }[] {
-  const result: { share: string; bytes: number[] }[] = [];
+): { share: string; bytes?: number[]; fill?: number }[] {
+  const result: { share: string; bytes?: number[]; fill?: number }[] = [];
   for (const device of devices.filter(node => node.props.type === 'NVRAM')) {
     const config = Array.isArray(device.props.config)
       ? device.props.config.map(String).join('\n')
       : String(device.props.config ?? '');
+    // nvram_device applies this value before attempting to load a persisted
+    // image. A generated board without persistence still needs the same cold
+    // boot contents; several drivers use all-ones as an erased-memory marker.
+    if (/\bNVRAM\s*\([^\n;]*\bDEFAULT_ALL_1\b/.test(config)) {
+      result.push({ share: String(device.props.tag), fill: 0xff });
+      continue;
+    }
     const callback = /set_custom_handler\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)\s*\)\s*\)/
       .exec(config);
     const sourceFile = String(device.props.sourceFile ?? '');
@@ -1027,7 +1038,12 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   }
   if (opts.fullGraph) {
     const full = new Graph(opts.fullGraph);
-    for (const nested of devices.filter(device => device.props.type === 'MB8844')) {
+    // A device hosted inside another source-defined device may own a dumped
+    // ROM set (Namco's 51/52/53/54xx MCUs are one family, but this is not
+    // specific to them). Discover those sets from the declaring host class
+    // instead of naming one processor model here. Devices without
+    // device_rom_region simply contribute nothing.
+    for (const nested of devices) {
       const ownerConfigEdge = graph.edges.find(edge =>
         edge.rel === 'HAS_DEVICE' && edge.to === nested.id);
       const ownerConfig = ownerConfigEdge && g.node(ownerConfigEdge.from);
@@ -1047,8 +1063,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       // name in DEFINE_DEVICE_TYPE — namco54.zip, not the parent game's zip.
       const romSet = mameDeviceShortName(opts.mameSrc, sourceFile, className);
       for (const { node: region } of full.out(deviceRomSet.id, 'HAS_REGION')) {
+        const regionTag = `${host.props.tag}:${region.props.tag}`;
+        if (roms.some(candidate => candidate.region === regionTag)) continue;
         roms.push({
-          region: `${host.props.tag}:${region.props.tag}`,
+          region: regionTag,
           size: Number(region.props.size),
           ...(romSet ? { romSet } : {}),
           loads: full.out(region.id, 'LOADS').map(({ node: rom }) => ({
@@ -1182,6 +1200,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             mask,
             member: method,
             handler: `${custom[1]}.${method}`,
+            activeLow,
           });
           continue;
         }
@@ -1213,6 +1232,25 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         }
         if (mods.includes('PORT_COCKTAIL')) continue;  // player-2 cocktail path: unbound
         if (mods.includes('PORT_PLAYER(2)')) continue; // don't double-bind P1 keys
+        const sourceNumber = (value: string): number => Number(value.trim());
+        const minMax = mods
+          .map(modifier => /PORT_MINMAX\s*\(\s*([^,]+),\s*([^\)]+)\)/.exec(modifier))
+          .find((match): match is RegExpExecArray => Boolean(match));
+        const keyDelta = mods
+          .map(modifier => /PORT_KEYDELTA\s*\(\s*([^\)]+)\)/.exec(modifier))
+          .find((match): match is RegExpExecArray => Boolean(match));
+        if (type === 'IPT_DIAL') {
+          const delta = keyDelta ? sourceNumber(keyDelta[1]!) : 1;
+          bindings.push({
+            port: tag, mask, keys: ['ArrowLeft'], label: `${type}_LEFT`,
+            activeLow: false, relativeDelta: -delta,
+          });
+          bindings.push({
+            port: tag, mask, keys: ['ArrowRight'], label: `${type}_RIGHT`,
+            activeLow: false, relativeDelta: delta,
+          });
+          continue;
+        }
         const keys = inputKeys(opts.game, type);
         if (keys) bindings.push({
           port: tag,
@@ -1220,6 +1258,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           keys,
           label: type,
           activeLow,
+          ...(/^IPT_PEDAL\d*$/.test(type)
+            ? { activeValue: minMax ? sourceNumber(minMax[2]!) : mask }
+            : {}),
           ...(mods.includes('PORT_TOGGLE') ? { toggle: true } : {}),
         });
       }
@@ -1945,7 +1986,13 @@ if (game) {
   // generated tree after overlaying its compiled JavaScript modules.
   const stagedGenerated = join(srcDir, 'runtime/generated');
   if (existsSync(stagedGenerated)) {
-    cpSync(stagedGenerated, join(outRoot, 'runtime/generated'), { recursive: true });
+    cpSync(stagedGenerated, join(outRoot, 'runtime/generated'), {
+      recursive: true,
+      // Incremental hardware generation replaces the TypeScript/IR first.
+      // Any JavaScript beside it belongs to the previous compilation and must
+      // not overwrite the modules tsc just emitted into the output tree.
+      filter: source => !source.endsWith('.js') && !source.endsWith('.js.map'),
+    });
   }
   const archive = emitArchiveRoutes(outRoot, appDir);
   rmSync(buildDir, { recursive: true, force: true });

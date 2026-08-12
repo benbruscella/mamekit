@@ -36,6 +36,8 @@ export interface MameFunction {
   kind: 'function';
   className: string;
   name: string;
+  /** Function-template parameters declared immediately before this definition. */
+  templateParameters?: string[];
   parameters: string;
   body: string;
   statements: MameStatement[];
@@ -138,10 +140,12 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
       : masked.slice(lineStart, qualifiedName).search(/\S/));
     const bodyStart = braceStart + 1;
     const body = source.slice(bodyStart, braceEnd);
+    const templateParameters = functionTemplateParameters(masked, fm.index, fm[1]!);
     functions.push({
       kind: 'function',
       className: fm[1],
       name: fm[2],
+      ...(templateParameters.length ? { templateParameters } : {}),
       parameters: source.slice(
         masked.indexOf('(', fm.index),
         matchPair(masked, masked.indexOf('(', fm.index), '(', ')') + 1,
@@ -354,6 +358,32 @@ function classTemplateParameters(masked: string, classIndex: number): string[] {
   return splitMameArgs(match[1]!)
     .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1] ?? '')
     .filter(Boolean);
+}
+
+/**
+ * Template parameters belonging to an out-of-class member definition.
+ *
+ * A preceding template declaration may instead specialize the class itself
+ * (`template<typename T> void device<T>::method()`); in that form the class
+ * qualifier contains `<...>` and the parameters are handled by the class
+ * hierarchy specializer rather than being mistaken for method parameters.
+ */
+function functionTemplateParameters(
+  masked: string,
+  functionIndex: number,
+  className: string,
+): string[] {
+  const header = masked.slice(functionIndex, masked.indexOf('{', functionIndex));
+  const escapedClass = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (new RegExp(`\\b${escapedClass}\\s*<`).test(header)) return [];
+  const classIndex = header.search(new RegExp(`\\b${escapedClass}\\s*::`));
+  if (classIndex < 0) return [];
+  const match = /template\s*<([^<>]*)>[\s\S]*$/.exec(header.slice(0, classIndex));
+  if (!match) return [];
+  return splitMameArgs(match[1]!).flatMap(parameter => {
+    const name = /([A-Za-z_]\w*)\s*(?:=.*)?$/.exec(parameter.trim())?.[1];
+    return name ? [name] : [];
+  });
 }
 
 function memberMacroParameters(name: string): string {

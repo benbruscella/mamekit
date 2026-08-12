@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
-import { applyRomTransforms, assembleRegions } from './shell.ts';
+import {
+  applyRomTransforms,
+  assembleRegions,
+  dependencyRomSets,
+  requiredRomRegions,
+} from './shell.ts';
 import type { Regions } from './types.ts';
 
 const regions = assembleRegions(
@@ -17,6 +22,14 @@ assert.deepEqual([...regions.eraseff!], [0xff, 0xff, 0xff, 0xff]);
 assert.deepEqual([...regions.erase00!], [0x00, 0x00, 0x00, 0x00]);
 assert.deepEqual([...regions.inverted!], [0xff, 0xff, 0xff, 0xff]);
 assert.deepEqual([...regions.socket!], [0x00, 0x00, 0xff, 0xff]);
+
+const splitSetSpecs = [
+  { region: 'maincpu', size: 1, loads: [{ file: 'game.bin', offset: 0, size: 1, crc: '00' }] },
+  { region: 'io:mcu', size: 1, romSet: 'deviceio', loads: [{ file: 'io.bin', offset: 0, size: 1, crc: '00' }] },
+  { region: 'undumped:mcu', size: 1, romSet: 'prototype', loads: [{ file: 'none.bin', offset: 0, size: 1, crc: '00', status: 'nodump' as const }] },
+];
+assert.deepEqual([...requiredRomRegions(splitSetSpecs, ['maincpu'])].sort(), ['io:mcu', 'maincpu']);
+assert.deepEqual(dependencyRomSets(splitSetSpecs, 'game'), ['deviceio']);
 const splitFile = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
 const splitRegions = assembleRegions(
   [{

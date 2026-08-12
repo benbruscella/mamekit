@@ -256,12 +256,16 @@ export function compileMameDevice(
   const sourceMethods = ast.units.flatMap(unit => unit.functions);
   for (const className of hierarchy) {
     for (const method of sourceMethods.filter(candidate => candidate.className === className)) {
-      replaceOrAppend(method);
+      for (const specialized of specializeFunctionTemplate(method, sources)) {
+        replaceOrAppend(specialized);
+      }
     }
     const declaration = classes.get(className);
     if (!declaration) continue;
     for (const method of inlineMethods(declaration)) {
-      replaceOrAppend(method);
+      for (const specialized of specializeFunctionTemplate(method, sources)) {
+        replaceOrAppend(specialized);
+      }
     }
   }
 
@@ -348,14 +352,21 @@ export function compileMameDevice(
   const source = sources.map(candidate => candidate.source).join('\n');
   const clockDivider = executionClockDivider(source);
   const dataAddressBits = executionDataAddressBits(definition.className, source, constants);
-  // Bitmap entry points are necessarily frame/scanline hot paths. Selecting
-  // them explicitly also enables pointer-safe AOT lowering for their draw
-  // helpers; leaving a source device such as Neo Geo's sprite generator in
-  // the generic IR walker makes a correct frame hundreds of times too slow.
+  // Bitmap entry points are necessarily frame/scanline hot paths. Methods
+  // installed through FUNC(...) are hardware callbacks too: a child MCU can
+  // invoke a tiny parent-port handler hundreds of thousands of times per
+  // second. Selecting both shapes keeps source-derived execution direct
+  // without naming any particular device family.
+  const callbackMethods = new Set([...source.matchAll(
+    /\bFUNC\s*\(\s*[A-Za-z_]\w*(?:::[A-Za-z_]\w*)*::([A-Za-z_]\w*)(?:\s*<\s*(\d+)\s*>)?\s*\)/g,
+  )].map(match => match[2] === undefined ? match[1]! : `${match[1]}_${match[2]}`));
   const hotMethods = methods
     .filter(method =>
       !method.program.diagnostics.length &&
-      /\bbitmap_(?:rgb32|ind16)\s*&/.test(method.parameters))
+      (
+        /\bbitmap_(?:rgb32|ind16)\s*&/.test(method.parameters) ||
+        callbackMethods.has(method.name)
+      ))
     .map(method => method.name);
   return {
     schemaVersion: 1,
@@ -522,6 +533,52 @@ function specializeMethod(
   const body = specialize(method.className, method.body);
   if (parameters === method.parameters && body === method.body) return method;
   return { ...method, parameters, body };
+}
+
+/**
+ * Materialize the numeric function-template instances explicitly referenced
+ * by MAME's own source (most commonly `FUNC(device::read<0>)` callbacks).
+ * Handler IR already normalizes numeric template calls to `read_0`, so using
+ * the same name here lets configuration and executable device code meet at a
+ * source-derived entry point.
+ */
+function specializeFunctionTemplate(
+  method: MameFunction,
+  sources: readonly { file: string; source: string }[],
+): MameFunction[] {
+  const parameters = method.templateParameters ?? [];
+  if (!parameters.length) return [method];
+  const className = method.className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const methodName = method.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(
+    `\\b${className}::${methodName}\\s*<([^<>]+)>`,
+    'g',
+  );
+  const instances = new Map<string, string[]>();
+  for (const { source } of sources) {
+    for (const match of source.matchAll(pattern)) {
+      const args = splitMameArgs(match[1]!).map(argument => argument.trim());
+      if (args.length !== parameters.length || !args.every(arg => /^\d+$/.test(arg))) continue;
+      instances.set(args.join('_'), args);
+    }
+  }
+  return [...instances].map(([suffix, args]) => {
+    let body = method.body;
+    let methodParameters = method.parameters;
+    parameters.forEach((parameter, index) => {
+      const replacement = args[index]!;
+      const pattern = new RegExp(`\\b${parameter}\\b`, 'g');
+      body = body.replace(pattern, replacement);
+      methodParameters = methodParameters.replace(pattern, replacement);
+    });
+    return {
+      ...method,
+      name: `${method.name}_${suffix}`,
+      parameters: methodParameters,
+      body,
+      templateParameters: undefined,
+    };
+  });
 }
 
 function classHierarchy(

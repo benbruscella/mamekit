@@ -104,6 +104,16 @@ assert.equal(mb8844.dataAddressBits(), 6);
 mb8844.set('m_icount', -1);
 assert.equal(mb8844.get('m_icount'), -1);
 
+const mb8843Definition = hardware.get('MB8843');
+assert.ok(mb8843Definition, 'MAME hardware index should resolve MB8843');
+const generatedMb8843 = compileMameDevice(mameSrc, mb8843Definition);
+assert.equal(generatedMb8843.summary.diagnostics, 0);
+assert.equal(
+  generatedMb8843.dataAddressBits,
+  6,
+  'MB8843 data address width must come from its MAME constructor',
+);
+
 const namco54Definition = hardware.get('NAMCO_54XX');
 assert.ok(namco54Definition, 'MAME hardware index should resolve NAMCO_54XX');
 const generatedNamco54 = compileMameDevice(mameSrc, namco54Definition);
@@ -111,6 +121,42 @@ assert.equal(
   generatedNamco54.callbacks.find(callback => callback.signal === 'reset')?.member,
   'm_reset',
   'MAME INPUT_LINE_RESET callbacks must remain distinct from IRQ callbacks',
+);
+
+const namco51Definition = hardware.get('NAMCO_51XX');
+assert.ok(namco51Definition, 'MAME hardware index should resolve NAMCO_51XX');
+const generatedNamco51 = compileMameDevice(mameSrc, namco51Definition);
+assert.deepEqual(
+  generatedNamco51.methods
+    .map(method => method.name)
+    .filter(name => name.startsWith('R_r_')),
+  ['R_r_0', 'R_r_1', 'R_r_2', 'R_r_3'],
+  'numeric MAME function-template callback bindings must emit executable specializations',
+);
+assert.ok(
+  generatedNamco51.methods
+    .filter(method => method.name.startsWith('R_r_'))
+    .every(method => !method.program.diagnostics.length),
+  'function-template specializations must lower without unresolved parameters',
+);
+
+const namco53Definition = hardware.get('NAMCO_53XX');
+assert.ok(namco53Definition, 'MAME hardware index should resolve NAMCO_53XX');
+const generatedNamco53 = compileMameDevice(mameSrc, namco53Definition);
+assert.equal(generatedNamco53.summary.diagnostics, 0);
+assert.ok(
+  generatedNamco53.members.some(member =>
+    member.name === 'm_cpu' && member.finder?.tag === 'mcu'),
+  'Namco 53xx must retain its source-declared MB8843 firmware device',
+);
+assert.ok(
+  generatedNamco53.methods.some(method => method.name === 'K_r'),
+  'Namco 53xx firmware port callbacks must lower from current MAME source',
+);
+assert.ok(
+  ['K_r', 'O_w', 'P_w', 'R_r_0', 'R_r_1', 'R_r_2', 'R_r_3']
+    .every(method => generatedNamco53.hotMethods?.includes(method)),
+  'source-installed child firmware callbacks must be selected for direct execution',
 );
 
 const cnromDefinition = hardware.get('NES_CNROM');

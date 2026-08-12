@@ -799,7 +799,10 @@ function emitCall(
   const name = expressionPath(expression.callee) ?? '';
   const args = expression.args.map(argument => emitExpression(argument, context));
   const addressMask = context.definition.addressMask ?? 0xffff;
-  const fixedInstructionCycles = context.definition.dialect === 'mame-musashi-generated-handler-table';
+  const dataAddress = (value: string): string => context.definition.alignDataWords
+    ? `((${value}) & ~1)`
+    : `(${value})`;
+  const fixedInstructionCycles = context.definition.fixedInstructionCycles === true;
   const method = resolveMethod(context.definition, name, expression.args.length);
   if (method) {
     return `this.method_${emittedMethodName(context.definition, method)}(${args.join(', ')})`;
@@ -829,7 +832,7 @@ function emitCall(
     return fixedInstructionCycles ? `(${read})` : `(++this.cycles, ${read})`;
   }
   if (name === 'READ16BE') {
-    const address = `(${args[0] ?? '0'})`;
+    const address = dataAddress(args[0] ?? '0');
     if (!context.definition.internal) {
       return `(this.bus.read16be?.(${address} & ${addressMask}) ?? ` +
         `(((this.readMemory(${address}) & 0xff) << 8) | ` +
@@ -844,7 +847,7 @@ function emitCall(
       `((this.readMemory(${address} + 1) & 0xff) << 8))`;
   }
   if (name === 'READ32BE') {
-    const address = `(${args[0] ?? '0'})`;
+    const address = dataAddress(args[0] ?? '0');
     if (!context.definition.internal) {
       const high = `(this.bus.read16be?.(${address} & ${addressMask}) ?? ` +
         `(((this.readMemory(${address}) & 0xff) << 8) | ` +
@@ -872,7 +875,7 @@ function emitCall(
     return fixedInstructionCycles ? `(${write}, 0)` : `(++this.cycles, ${write}, 0)`;
   }
   if (name === 'WRITE16BE') {
-    const address = `(${args[0] ?? '0'})`;
+    const address = dataAddress(args[0] ?? '0');
     const value = `(${args[1] ?? '0'})`;
     if (!context.definition.internal) {
       return `(this.bus.write16be ` +
@@ -890,7 +893,7 @@ function emitCall(
       `this.writeMemory(${address} + 1, ${value} >>> 8), 0)`;
   }
   if (name === 'WRITE32BE') {
-    const address = `(${args[0] ?? '0'})`;
+    const address = dataAddress(args[0] ?? '0');
     const value = `(${args[1] ?? '0'})`;
     if (!context.definition.internal) {
       return `(this.bus.write16be ` +

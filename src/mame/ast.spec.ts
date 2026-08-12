@@ -110,6 +110,19 @@ check(
   ['(i << 1) | 1', 'value >> 2'],
 );
 
+const templatedMethod = parseMameSource('template.cpp', `
+template<int N>
+uint8_t input_device::port_r()
+{
+  return m_in[N]();
+}
+`);
+check(
+  'function template parameters are retained',
+  templatedMethod.functions[0]?.templateParameters,
+  ['N'],
+);
+
 const memberMacros = parseMameSource('timer.cpp', `
 TIMER_CALLBACK_MEMBER(test_state::scanline_tick)
 {

@@ -48,7 +48,11 @@ export interface GeneratedCpuDefinition {
   type: string;
   /** Mask applied to program-space byte addresses (defaults to 16-bit). */
   addressMask?: number;
+  /** Clear address bit zero for CPU families whose word/long bus access does so. */
+  alignDataWords?: boolean;
   dialect: string;
+  /** Opcode-table timing already includes every memory access for the instruction. */
+  fixedInstructionCycles?: boolean;
   sourceFiles: string[];
   constants: Record<string, number>;
   aliases: Record<string, GeneratedCpuAlias>;
@@ -1173,6 +1177,7 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
     type: 'M68000',
     addressMask: 0xffffff,
     dialect: 'mame-musashi-generated-handler-table',
+    fixedInstructionCycles: true,
     sourceFiles: [operationsFile, headerFile, dataFile],
     constants,
     aliases: {},
@@ -2606,6 +2611,10 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
     schemaVersion: 1,
     type: 'Z8002',
     dialect: 'mame-z8002-source-table',
+    // MAME's z8002_device::RDMEM_W/RDMEM_L/WRMEM_W/WRMEM_L all clear
+    // address bit zero before touching the program/data space.
+    alignDataWords: true,
+    fixedInstructionCycles: true,
     sourceFiles: [cppFile, headerFile, cpuHeaderFile, opsFile, tableFile, dabFile],
     constants,
     aliases: {},

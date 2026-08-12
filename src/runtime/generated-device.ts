@@ -131,6 +131,8 @@ export interface Device {
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
   get(name: string): number;
   set(name: string, value: number): void;
+  /** Resolve a numeric constant declared by this generated device family. */
+  constant(name: string): number | undefined;
   methodNames(): readonly string[];
   arity(name: string): number;
   parameters(name: string): readonly string[];
@@ -551,6 +553,11 @@ class IrDevice implements Device {
     );
   }
 
+  constant(name: string): number | undefined {
+    return this.definition.constants[name] ??
+      this.definition.constants[name.split('::').at(-1)!];
+  }
+
   methodNames(): readonly string[] {
     return [...this.methods.keys()];
   }
@@ -632,12 +639,14 @@ class IrDevice implements Device {
         // dropping the opaque timer_expired_delegate expression.
         return this.invoke('sync_callback', args[0] ?? 0);
       }
-      const compiled = this.definition.compiledMethods?.[method.name];
-      if (compiled) return compiled(this.executionContext, ...args);
-      const locals: Record<string, unknown> = {};
       const defaults = this.methodDefaults.get(method);
+      const resolvedArgs = parameterNames.map((_name, index) =>
+        args[index] ?? defaults?.[index] ?? 0);
+      const compiled = this.definition.compiledMethods?.[method.name];
+      if (compiled) return compiled(this.executionContext, ...resolvedArgs);
+      const locals: Record<string, unknown> = {};
       for (let index = 0; index < parameterNames.length; index++) {
-        locals[parameterNames[index]!] = args[index] ?? defaults?.[index] ?? 0;
+        locals[parameterNames[index]!] = resolvedArgs[index];
       }
       return executeGeneratedProgram(method.program, this.bindings, locals).value;
     } catch (error) {

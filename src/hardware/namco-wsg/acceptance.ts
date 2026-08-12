@@ -6,6 +6,7 @@ import type {
   AudioProbeContext,
   ProbeSoundWrite,
 } from '../audio-probe.ts';
+import { StreamingFrameResampler } from '../audio-probe.ts';
 import { NAMCO_WSG_WORKLET_ARTIFACT } from './definition.ts';
 
 interface WsgCore { readonly sampleRate: number }
@@ -38,5 +39,13 @@ export async function createNamcoWsgProbe(
     context.sound.auxiliary,
     context.sound.sampleRegion ? context.regions[context.sound.sampleRegion] : undefined,
   );
-  return new module.GeneratedNamcoWsgFrameRenderer(core, context.refresh);
+  const native = new module.GeneratedNamcoWsgFrameRenderer(core, context.refresh);
+  return core.sampleRate === context.outputRate
+    ? native
+    : new StreamingFrameResampler(
+      native,
+      core.sampleRate,
+      context.outputRate,
+      context.refresh,
+    );
 }

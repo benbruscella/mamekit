@@ -1,12 +1,16 @@
 import assert from 'node:assert/strict';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { polepos } from './polepos.ts';
+import { sourceNvramInitializers } from '../gen/generate.ts';
 import {
   gameSourceGraph,
   mameSourceRoot,
 } from './test-support.ts';
 
 const graph = gameSourceGraph(polepos);
+assert.deepEqual(sourceNvramInitializers(graph.nodes, mameSourceRoot()), [
+  { share: 'nvram', fill: 0xff },
+]);
 const machine = graph.nodes.find(node =>
   node.label === 'MachineConfig' &&
   node.props.cls === polepos.machine.className &&

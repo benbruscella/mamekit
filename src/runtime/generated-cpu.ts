@@ -57,6 +57,8 @@ export interface GeneratedCpuDefinition {
   type: string;
   dialect?: string;
   addressMask?: number;
+  /** CPU families such as Z8000 discard bit zero for word/long data access. */
+  alignDataWords?: boolean;
   constants: Record<string, number>;
   aliases: Record<string, CpuAlias>;
   members: CpuMember[];
@@ -340,6 +342,10 @@ class IrCpu implements Cpu {
   }
 
   private externalCalls(): NonNullable<GeneratedHandlerBindings['calls']> {
+    const dataAddress = (address: number): number => {
+      const masked = address & this.addressMask;
+      return this.definition.alignDataWords ? masked & ~1 : masked;
+    };
     return {
       READ: address => {
         if (this.definition.dialect !== 'mame-musashi-generated-handler-table') {
@@ -347,15 +353,21 @@ class IrCpu implements Cpu {
         }
         return this.readMemory(address);
       },
-      READ16BE: address => this.bus.read16be && !this.definition.internal
-        ? this.bus.read16be(address & this.addressMask)
-        : ((this.readMemory(address) << 8) | this.readMemory(address + 1)) & 0xffff,
-      READ32BE: address => (
-        (this.readMemory(address) << 24) |
-        (this.readMemory(address + 1) << 16) |
-        (this.readMemory(address + 2) << 8) |
-        this.readMemory(address + 3)
-      ) >>> 0,
+      READ16BE: address => {
+        const location = dataAddress(address);
+        return this.bus.read16be && !this.definition.internal
+          ? this.bus.read16be(location)
+          : ((this.readMemory(location) << 8) | this.readMemory(location + 1)) & 0xffff;
+      },
+      READ32BE: address => {
+        const location = dataAddress(address);
+        return (
+          (this.readMemory(location) << 24) |
+          (this.readMemory(location + 1) << 16) |
+          (this.readMemory(location + 2) << 8) |
+          this.readMemory(location + 3)
+        ) >>> 0;
+      },
       READ_VECTOR: ordinal => {
         this.set('cycles', this.get('cycles') + 1);
         return this.readMemory(this.get('m_ea.w') + ordinal);
@@ -376,19 +388,21 @@ class IrCpu implements Cpu {
         return 0;
       },
       WRITE16BE: (address, value) => {
+        const location = dataAddress(address);
         if (this.bus.write16be && !this.definition.internal) {
-          this.bus.write16be(address & this.addressMask, value & 0xffff);
+          this.bus.write16be(location, value & 0xffff);
           return 0;
         }
-        this.writeMemory(address, value >>> 8);
-        this.writeMemory(address + 1, value);
+        this.writeMemory(location, value >>> 8);
+        this.writeMemory(location + 1, value);
         return 0;
       },
       WRITE32BE: (address, value) => {
-        this.writeMemory(address, value >>> 24);
-        this.writeMemory(address + 1, value >>> 16);
-        this.writeMemory(address + 2, value >>> 8);
-        this.writeMemory(address + 3, value);
+        const location = dataAddress(address);
+        this.writeMemory(location, value >>> 24);
+        this.writeMemory(location + 1, value >>> 16);
+        this.writeMemory(location + 2, value >>> 8);
+        this.writeMemory(location + 3, value);
         return 0;
       },
       'm_data.read_interruptible': address => this.bus.read(address & this.addressMask) & 0xff,

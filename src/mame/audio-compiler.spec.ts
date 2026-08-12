@@ -51,6 +51,12 @@ assert.equal(poleposPlan.engine?.filters.length, 3);
 assert.deepEqual(poleposPlan.engine?.volumeTable, [
   0.28, 0.36, 0.48, 0.56, 0.73, 0.81, 0.93, 1.01,
 ]);
+const poleposSource = generatedNamcoWsgWorkletSource(poleposPlan);
+assert.doesNotMatch(
+  poleposSource,
+  /auxiliarySelect/,
+  'Pole Position 52XX/54XX channels must be synthesized only by their hosted MCU DAC path',
+);
 
 const source = generatedNamcoWsgWorkletSource(plan)
   .replace(

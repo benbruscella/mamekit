@@ -82,6 +82,16 @@ assert.equal(cpu.get('A'), 0x01);
 // Pole Position relies on this for its sub-CPU boot and mailbox service loop.
 const z8002Definition = compileMameZ8002(process.env.MAME_SRC ?? '../mame');
 assert.equal(z8002Definition.summary.diagnostics, 0);
+assert.equal(
+  z8002Definition.alignDataWords,
+  true,
+  'Z8002 word and long data accesses must discard address bit zero like MAME',
+);
+assert.equal(
+  z8002Definition.fixedInstructionCycles,
+  true,
+  'Z8002 opcode-table cycles must not be charged again for byte memory accesses',
+);
 clearGeneratedCpus();
 registerGeneratedCpu(z8002Definition);
 const z8002Memory = new Uint8Array(0x10000);
@@ -96,6 +106,18 @@ z8002.set('m_pc', 0x0100);
 z8002.set('m_op_valid', 1);
 assert.equal(z8002.invoke('get_addr_operand', 1), 0x335c);
 assert.equal(z8002.get('m_pc'), 0x0102);
+
+// ADD r1,@r2 with an odd r2. Pole Position's Z8002 RAM test deliberately
+// exercises this case; MAME reads the word at 0002, never the pair at 0003.
+z8002Memory.set([0x01, 0x21], 0x0200);
+z8002Memory.set([0x12, 0x34, 0x56], 0x0002);
+z8002.set('m_irq_req', 0);
+z8002.set('m_halt', 0);
+z8002.set('m_pc', 0x0200);
+z8002.set('m_regs.W.1', 1);
+z8002.set('m_regs.W.2', 3);
+z8002.step();
+assert.equal(z8002.get('m_regs.W.1'), 0x1235);
 registerGeneratedCpu(definition);
 
 // Gottlieb's 8088 boards mirror a 16-bit map into the CPU's 20-bit physical

@@ -528,6 +528,7 @@ const signalBoard = createGeneratedBoard(
     ranges: [],
     customs: [{
       port: 'IN0', mask: 0x80, member: 'custom_r', handler: 'fixture_state.custom_r',
+      activeLow: true,
     }],
     screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 1, rotate: 0 },
     clocks: { namco06: 0, wsg: 0 },
@@ -539,8 +540,8 @@ const signalBoard = createGeneratedBoard(
 signalBoard.frame(new Uint32Array(1));
 assert.equal(
   cpuSignalRead,
-  0xa5,
-  'CPU input callbacks must return the port value after synthesized custom fields',
+  0x25,
+  'active-low custom input callbacks must be inverted like MAME digital fields',
 );
 assert.equal(
   cpuHandlerSignalRead,

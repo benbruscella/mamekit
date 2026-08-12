@@ -3,8 +3,6 @@ import { compileMameDevice } from '../../mame/device-compiler.ts';
 import { compileMameHandler } from '../../mame/handler-ir.ts';
 import type { MameHardwareDefinition } from '../../mame/hardware.ts';
 import { compileInputMerger } from '../../mame/input-merger-compiler.ts';
-import { compileNamco51Protocol } from '../../mame/namco51-compiler.ts';
-import { compileNamco53Protocol } from '../../mame/namco53-compiler.ts';
 import type {
   CapabilityArtifact,
   CapabilityExtraction,
@@ -452,22 +450,11 @@ function compileZ80Ctc(
   return refreshSummary(device);
 }
 
-/** Devices MAMEKIT lowers as a protocol rather than by running MCU firmware. */
-const PROTOCOL: Record<string, () => Compiled> = {
-  NAMCO_51XX: compileNamco51Protocol,
-  NAMCO_53XX: compileNamco53Protocol,
-};
-
 export function extractDevices(input: CapabilityInput): CapabilityExtraction | undefined {
   const compiled = new Map<string, Compiled>();
   for (const type of DEVICE_MAME_TYPES) {
     const entry = input.entries.find(candidate => candidate.type === type);
     if (!entry) continue;
-    const protocol = PROTOCOL[type];
-    if (protocol) {
-      compiled.set(type, protocol());
-      continue;
-    }
     if (!entry.definition) continue;
     const definition = entry.definition as MameHardwareDefinition;
     const device = SPECIALIZED[type]

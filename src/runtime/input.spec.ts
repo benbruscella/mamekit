@@ -16,9 +16,17 @@ const input = new KeyboardInput([
   { port: 'IN0', mask: 0x04, keys: ['ArrowRight'], label: 'P1_RIGHT' },
   { port: 'IN1', mask: 0x01, keys: ['Digit1'], label: 'START1', activeLow: false },
   { port: 'IN1', mask: 0x02, keys: ['Digit9'], label: 'SERVICE1', activeLow: false, toggle: true },
+  { port: 'PEDAL', mask: 0xff, keys: ['ArrowUp'], label: 'PEDAL', activeLow: false,
+    activeValue: 0x90 },
+  { port: 'DIAL', mask: 0xff, keys: ['KeyA'], label: 'DIAL_LEFT', activeLow: false,
+    relativeDelta: -4 },
+  { port: 'DIAL', mask: 0xff, keys: ['KeyD'], label: 'DIAL_RIGHT', activeLow: false,
+    relativeDelta: 4 },
 ], [], [
   { tag: 'IN0', init: 0xff },
   { tag: 'IN1', init: 0x00 },
+  { tag: 'PEDAL', init: 0x00 },
+  { tag: 'DIAL', init: 0x00 },
 ]);
 const target = new EventTarget();
 input.attach(target);
@@ -51,10 +59,20 @@ assert.equal(input.read('IN0') & 0x06, 0x04, 'releasing newest direction must re
 target.dispatchEvent(new Event('blur'));
 assert.equal(input.read('IN0'), 0xff);
 
+target.dispatchEvent(keyEvent('keydown', 'ArrowUp'));
+assert.equal(input.read('PEDAL'), 0x90, 'absolute pedal must use its source maximum');
+target.dispatchEvent(keyEvent('keyup', 'ArrowUp'));
+assert.equal(input.read('PEDAL'), 0x00, 'absolute pedal must return to its source rest value');
+
+target.dispatchEvent(keyEvent('keydown', 'KeyA'));
+assert.equal(input.read('DIAL'), 0xfc, 'relative dial must wrap its hardware counter');
+target.dispatchEvent(keyEvent('keydown', 'KeyD', true));
+assert.equal(input.read('DIAL'), 0x00, 'relative dial must accept held-key repeat pulses');
+
 input.setDip('IN0', 0x80, 0);
 assert.equal(input.read('IN0'), 0x7f);
 assert.equal(input.read('missing'), 0xff);
-assert.equal(input.dump(), 'IN0=7f IN1=00');
+assert.equal(input.dump(), 'IN0=7f IN1=00 PEDAL=00 DIAL=00');
 
 const handlers = portHandlers([
   { start: 0, end: 0, kind: 'handler', read: 'port.IN0' },

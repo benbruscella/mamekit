@@ -31,6 +31,7 @@ export const DEVICE_MAME_TYPES = [
   'LS259',
   'LATCH8',
   'MB14241',
+  'MB8843',
   'MB8844',
   'MOS6532',
   'OUTPUT_LATCH',
@@ -52,8 +53,7 @@ export const DEVICE_MAME_TYPES = [
   'PIT8253',
   'STARFIELD_05XX',
   'MC6845',
-  // Protocol devices: MAME models these as an MCU running firmware, and
-  // MAMEKIT lowers the protocol its methods implement instead.
+  // Protocol devices used when a dumped firmware core is not executable.
   'NAMCO_51XX',
   'NAMCO_53XX',
 ] as const;
