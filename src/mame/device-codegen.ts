@@ -26,6 +26,18 @@ const SAFE_BINARY_OPERATORS = new Set([
   '<<', '>>', '+', '-', '*', '/', '%', '&&', '||',
 ]);
 
+// C++ permits a few local names that are grammar tokens in JavaScript. Keep
+// source names in the IR/binding maps, but spell those locals safely in AOT
+// output (MOS6532's `uint8_t in` is one real example).
+const JAVASCRIPT_RESERVED_WORDS = new Set([
+  'await', 'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger',
+  'default', 'delete', 'do', 'else', 'enum', 'export', 'extends', 'false',
+  'finally', 'for', 'function', 'if', 'implements', 'import', 'in',
+  'instanceof', 'interface', 'let', 'new', 'null', 'package', 'private',
+  'protected', 'public', 'return', 'static', 'super', 'switch', 'this',
+  'throw', 'true', 'try', 'typeof', 'var', 'void', 'while', 'with', 'yield',
+]);
+
 /**
  * Emit direct JavaScript for expensive device methods. Selection is based on
  * IR shape rather than device identity: methods containing nested loops are
@@ -278,8 +290,8 @@ function emitMethod(
   };
   collectLocals(method.program.operations, context);
   const annotation = typescript ? ': any' : '';
-  const args = parameters.map(parameter => `${parameter.name}${annotation}`).join(', ');
-  const returned = returnedReference ? `\n    return ${returnedReference};` : '';
+  const args = parameters.map(parameter => `${localName(parameter.name)}${annotation}`).join(', ');
+  const returned = returnedReference ? `\n    return ${localName(returnedReference)};` : '';
   return `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''}) {
     const members = runtime.members;
 ${emitOperations(method.program.operations, context, 4)}${returned}
@@ -308,7 +320,7 @@ function emitOperation(
     const allocated = operation.value?.kind === 'call' &&
       operation.value.callee.kind === 'identifier' &&
       ['ALLOC', 'make_unique_clear'].includes(operation.value.callee.name);
-    return `${pad}let ${operation.name}${annotation} = ${
+    return `${pad}let ${localName(operation.name)}${annotation} = ${
       allocated ? value : wrapType(value, operation.valueType)
     };`;
   }
@@ -385,8 +397,8 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
   if (expression.kind === 'identifier') {
     if (context.locals.has(expression.name)) {
       return context.wrappedReferences.has(expression.name)
-        ? `${expression.name}.get()`
-        : expression.name;
+        ? `${localName(expression.name)}.get()`
+        : localName(expression.name);
     }
     if (expression.name === 'true') return '1';
     if (expression.name === 'false' || expression.name === 'nullptr') return '0';
@@ -637,9 +649,9 @@ function emitAssignment(
     context.wrappedReferences.has(expression.name)
   ) {
     const valueType = context.locals.get(expression.name);
-    const current = `${expression.name}.get()`;
+    const current = `${localName(expression.name)}.get()`;
     const next = pointerAssignment(current, operator, right, valueType);
-    return `${expression.name}.set(${wrapType(next, valueType)})`;
+    return `${localName(expression.name)}.set(${wrapType(next, valueType)})`;
   }
   if (expression.kind === 'index' && context.pointerSafeIndex) {
     const object = emitExpression(expression.object, context);
@@ -799,7 +811,7 @@ function assignsIdentifier(
 function targetInfo(expression: GeneratedExpression, context: EmitContext): Target {
   if (expression.kind === 'identifier') {
     if (context.locals.has(expression.name)) {
-      return { code: expression.name, valueType: context.locals.get(expression.name) };
+      return { code: localName(expression.name), valueType: context.locals.get(expression.name) };
     }
     const member = context.definition.members.find(candidate => candidate.name === expression.name);
     if (member) {
@@ -973,4 +985,8 @@ function wrapType(value: string, valueType?: string): string {
 
 function safeName(name: string): string {
   return name.replace(/\W/g, '_');
+}
+
+function localName(name: string): string {
+  return JAVASCRIPT_RESERVED_WORDS.has(name) ? `$${name}` : name;
 }

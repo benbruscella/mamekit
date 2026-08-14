@@ -159,6 +159,23 @@ methods.render!(runtime);
 assert.equal(runtime.members.m_total, 40);
 assert.equal(runtime.members.m_budget, -16);
 
+const reservedLocal = generatedDeviceMethodsSource({
+  ...definition,
+  hotMethods: ['reserved_local'],
+  methods: [{
+    name: 'reserved_local',
+    parameters: '',
+    source: { file: 'src/devices/test.cpp', line: 5 },
+    program: compileMameHandler('uint8_t in = 3; in |= 4; return in;'),
+  }],
+});
+assert.match(reservedLocal.source, /let \$in =/);
+assert.equal(
+  (Function(`return ${reservedLocal.source}`)() as Record<string, (runtime: unknown) => number>)
+    .reserved_local!({ members: {} }),
+  7,
+);
+
 const unsafeDefinition: GeneratedDeviceDefinition = {
   ...definition,
   members: [

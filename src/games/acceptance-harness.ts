@@ -161,6 +161,7 @@ export async function runGameAcceptance(
   const pendingWrites: SoundWrite[] = [];
   const allWrites: SoundWrite[] = [];
   const requiredAudioCounts = new Map<number, number>();
+  const requiredAudioValues = new Map<number, Set<number>>();
   const board = generatedRuntime.createBoard(
     { ...config.board, game: config.game },
     regions,
@@ -191,6 +192,7 @@ export async function runGameAcceptance(
       assert.ok(bus, `${contract.game}: diagnostic CPU bus ${write.cpu} is missing`);
       bus.write(write.address, write.data);
     }
+    input.advance();
     board.frame(framebuffer);
     if (input.debug && !input.dump().split(' ').every(value => value.endsWith('=ff'))) {
       const devices = (board as unknown as {
@@ -234,6 +236,14 @@ export async function runGameAcceptance(
         index,
         (requiredAudioCounts.get(index) ?? 0) + count,
       );
+      const values = requiredAudioValues.get(index) ?? new Set<number>();
+      for (const write of pendingWrites) {
+        if (
+          write.method === requirement.method &&
+          (requirement.offset === undefined || write.offset === requirement.offset)
+        ) values.add(write.data);
+      }
+      requiredAudioValues.set(index, values);
     }
     audio.render(pendingWrites, diagnosticCapture || snapshot.frame >= 120);
     pendingWrites.length = 0;
@@ -472,6 +482,14 @@ export async function runGameAcceptance(
         actual <= requirement.maximumNonzeroWrites,
         `${contract.game}: ${source} audio emitted ${actual} nonzero writes ` +
           `${window} (maximum ${requirement.maximumNonzeroWrites})`,
+      );
+    }
+    if (requirement.minimumDistinctValues !== undefined) {
+      const distinct = requiredAudioValues.get(index)?.size ?? 0;
+      assert.ok(
+        distinct >= requirement.minimumDistinctValues,
+        `${contract.game}: ${source} audio emitted ${distinct} distinct values ` +
+          `${window} (minimum ${requirement.minimumDistinctValues})`,
       );
     }
   }

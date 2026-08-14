@@ -47,6 +47,12 @@ const definition: GeneratedDeviceDefinition = {
     ),
     method('fast', 'uint8_t data', 'return 0;'),
     method('timer_remaining', '', 'return 0;'),
+    method('seconds_from_hz', 'double frequency', 'return attotime::from_hz(frequency);'),
+    method(
+      'seconds_from_ticks',
+      'uint64_t ticks, uint32_t frequency',
+      'return attotime::from_ticks(ticks, frequency);',
+    ),
   ],
   compiledMethods: {
     fast: (runtime, data) => {
@@ -77,6 +83,8 @@ const device = createDevice('FiXtUrE', { clock: 2_000 });
 assert.equal(device.get('m_byte'), 7);
 assert.equal(device.cycleClock(), 500);
 assert.equal(device.dataAddressBits(), 8);
+assert.equal(device.call('seconds_from_hz', 2_000), 0.0005);
+assert.equal(device.call('seconds_from_ticks', 3, 12_000), 0.00025);
 assert.equal(device.constant('fixture::MASK'), device.constant('MASK'));
 assert.equal(device.arity('write'), 1);
 assert.deepEqual(device.signalNames(), ['q_out_cb']);

@@ -57,6 +57,8 @@ export interface GameTestContract {
     toFrame?: number;
     minimumNonzeroWrites: number;
     maximumNonzeroWrites?: number;
+    /** Minimum register-value diversity, including zero, in the same window. */
+    minimumDistinctValues?: number;
   }[];
   /** Minimum rendered PCM energy; stricter than the harness silence floor. */
   minimumAudioRms?: number;

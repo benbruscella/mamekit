@@ -1118,6 +1118,14 @@ export function parseIoportMembers(
 
   const members: Record<string, string[]> = {};
   for (const [member, size] of sizes) {
+    const listed = new RegExp(
+      `\\b${member}\\s*\\(\\s*\\*this\\s*,\\s*\\{([^}]*)\\}\\s*\\)`,
+    ).exec(source);
+    if (listed) {
+      const tags = [...listed[1]!.matchAll(/"([^"]+)"/g)].map(match => match[1]!);
+      if (tags.length === size) members[member] = tags;
+      continue;
+    }
     const initializer = new RegExp(
       `\\b${member}\\s*\\(\\s*\\*this\\s*,\\s*("[^"]+"|\\w+)` +
       `(?:\\s*,\\s*((?:\\d+)(?:ULL|UL|U)?|'[^']'))?\\s*\\)`,

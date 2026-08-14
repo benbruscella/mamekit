@@ -13,10 +13,14 @@ const check = (name: string, run: () => void): void => { run(); passed++; void n
 
 const context: ConnectionContext = {
   cpuTags: new Set(['maincpu', 'audiocpu', 'mcu']),
-  deviceTags: new Set(['maincpu', 'audiocpu', 'mcu', 'mainlatch', 'timeplt_audio', 'aysnd']),
+  deviceTags: new Set([
+    'maincpu', 'audiocpu', 'mcu', 'mainlatch', 'timeplt_audio', 'aysnd',
+    'io:mcu',
+  ]),
   handlerKeys: new Set([
     'fixture_state.irq_w',
     'timeplt_audio_device.sh_irqtrigger_w',
+    'io_device.port_w',
   ]),
   soundTag: 'aysnd',
   soundEnableMethods: new Set(['sound_enable_w']),
@@ -163,6 +167,20 @@ check('a custom interrupt generator preserves its source handler and CPU device'
       context,
     ),
     { kind: 'handler', handler: 'fixture_state.irq_w', deviceTag: 'maincpu' },
+  );
+});
+
+check('a hosted processor callback retains its scoped device owner', () => {
+  assert.deepEqual(
+    lowerCallbackEffect(
+      callback({
+        ownerTag: 'io:mcu',
+        targetClass: 'io_device',
+        targetMethod: 'port_w',
+      }),
+      context,
+    ),
+    { kind: 'handler', handler: 'io_device.port_w', deviceTag: 'io:mcu' },
   );
 });
 

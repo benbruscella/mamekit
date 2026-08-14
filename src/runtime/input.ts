@@ -33,7 +33,7 @@ export interface FieldBinding {
   toggle?: boolean;
   /** Absolute value driven while an analog control key is held. */
   activeValue?: number;
-  /** Relative masked delta applied for each keydown (including key repeat). */
+  /** Relative masked delta applied each emulated frame while held. */
   relativeDelta?: number;
 }
 
@@ -101,7 +101,21 @@ export class KeyboardInput implements InputPorts {
     }
   }
 
-  private fid(f: Field): string { return `${f.port}:${f.mask}`; }
+  private fid(f: Field): string { return `${f.port}:${f.mask}:${f.label}`; }
+
+  /**
+   * Advance relative cabinet controls once per emulated frame. MAME's
+   * PORT_KEYDELTA describes a frame-rate input ramp; browser key-repeat is an
+   * OS preference and may be delayed, disabled, or absent in automation.
+   */
+  advance(): void {
+    for (const field of this.fields) {
+      if (field.relativeDelta === undefined || !this.held.get(this.fid(field))) continue;
+      const current = this.state[field.port] & field.mask;
+      this.state[field.port] = (this.state[field.port] & ~field.mask) |
+        ((current + field.relativeDelta) & field.mask);
+    }
+  }
 
   /** drive a field active (pressed) or back to its resting bits */
   private apply(f: Field, active: boolean): void {
@@ -133,13 +147,15 @@ export class KeyboardInput implements InputPorts {
     ev.preventDefault();
     for (const h of hits) {
       if (h.relativeDelta !== undefined) {
-        if (!down) continue;
-        // Relative cabinets (dial/trackball) emit movement pulses rather than
-        // a maintained switch. Keyboard repeat supplies a steady stream while
-        // held, and the masked byte naturally wraps like the hardware counter.
-        const current = this.state[h.port] & h.mask;
-        this.state[h.port] = (this.state[h.port] & ~h.mask) |
-          ((current + h.relativeDelta) & h.mask);
+        if (ev.repeat) continue;
+        this.held.set(this.fid(h), down);
+        if (down) {
+          // Make a tap observable immediately; advance() supplies subsequent
+          // MAME-style per-frame deltas for as long as the key remains held.
+          const current = this.state[h.port] & h.mask;
+          this.state[h.port] = (this.state[h.port] & ~h.mask) |
+            ((current + h.relativeDelta) & h.mask);
+        }
         continue;
       }
       if (ev.repeat) continue; // digital auto-repeat carries no new information

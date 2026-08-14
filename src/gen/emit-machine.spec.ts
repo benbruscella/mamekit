@@ -1,12 +1,28 @@
 import {
   generatedBoardSource,
   generatedCpuCycleClock,
+  generatedScanlineTriggers,
   inferredMemberIndexRank,
   lowerAudioRoutes,
   lowerAuxiliaryAudioDevices,
   lowerGeneratedMachine,
   resolveInputPortTag,
 } from './emit-machine.ts';
+import { compileMameHandler } from '../mame/handler-ir.ts';
+
+const sparseScanlines = generatedScanlineTriggers(compileMameHandler(`
+  int scanline = param;
+  if ((scanline == 64 || scanline == 192) && m_enabled) m_cpu->set_input_line(0, ASSERT_LINE);
+  if (scanline == 240 && m_mask) m_subcpu->set_input_line(0, ASSERT_LINE);
+`).operations);
+if (JSON.stringify(sparseScanlines) !== JSON.stringify([64, 192, 240])) {
+  throw new Error(`literal scanline gates must lower sparsely: ${JSON.stringify(sparseScanlines)}`);
+}
+if (generatedScanlineTriggers(compileMameHandler(`
+  if (scanline & 1) m_cpu->set_input_line(0, ASSERT_LINE);
+`).operations) !== undefined) {
+  throw new Error('non-literal scanline callbacks must retain their full cadence');
+}
 
 for (const type of ['m6802', 'm6803', 'm6808', 'nsc8105', 'm6801u4', 'mc6809']) {
   if (generatedCpuCycleClock(type, 4_000_000) !== 1_000_000) {
@@ -23,7 +39,6 @@ for (const type of ['i8035', 'i8039', 'mb8884']) {
 }
 import type { KnowledgeGraph } from '../kg/types.ts';
 import type { BoardConfig } from '../runtime/types.ts';
-import { compileMameHandler } from '../mame/handler-ir.ts';
 
 if (generatedCpuCycleClock('i8085a', 5_500_000) !== 2_750_000) {
   throw new Error('I8085A must use MAME\'s divide-by-two execution clock');

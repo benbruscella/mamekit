@@ -352,6 +352,272 @@ export function executeGeneratedMachineHandler(
   return result.returned && result.value !== undefined ? toNumber(result.value) : undefined;
 }
 
+export type CompiledGeneratedMachineHandler = (
+  args: Record<string, unknown>,
+) => number | undefined;
+
+/**
+ * Precompile the common straight-line/conditional handler subset into
+ * closures. This is CSP-safe (no eval/new Function) and preserves the generic
+ * interpreter as the fallback for loops and other uncommon control flow.
+ * Hardware callbacks often execute hundreds of thousands of tiny handlers per
+ * second, so removing repeated IR dispatch is material to real-time emulation.
+ */
+export function compileGeneratedMachineHandler(
+  machine: BoardIr,
+  handler: GeneratedHandler,
+  bindings: GeneratedHandlerBindings,
+): CompiledGeneratedMachineHandler | undefined {
+  if (!handler.program || handler.program.diagnostics.length) return undefined;
+  const prepared = preparedMachineCalls(machine, bindings, handler.ownerClass);
+  const suffix = /_(\d+)$/.exec(handler.method);
+  const generatedBindings: GeneratedHandlerBindings = {
+    ...bindings,
+    constants: {
+      ...handler.constants,
+      ...bindings.constants,
+      ...(suffix ? { Which: Number(suffix[1]) } : {}),
+    },
+    referenceCalls: prepared.referenceCalls,
+    callParameters: prepared.callParameters,
+    concreteDeviceMembers: prepared.concreteDeviceMembers,
+  };
+  const localNames = new Set([
+    ...parameterNames(handler.parameters),
+    'addr', 'offset', 'data', 'state',
+  ]);
+  const executable = compileFastOperations(
+    handler.program.operations,
+    generatedBindings,
+    localNames,
+  );
+  if (!executable) return undefined;
+  return args => {
+    const context: ExecutionContext = {
+      bindings: generatedBindings,
+      locals: {
+        ...args,
+        addr: args.addr ?? 0,
+        offset: args.offset ?? 0,
+        data: args.data ?? 0,
+        state: args.state ?? args.data ?? 0,
+      },
+      localTypes: {},
+    };
+    const result = executable(context);
+    return result?.control === 'return' && result.value !== undefined
+      ? toNumber(result.value)
+      : undefined;
+  };
+}
+
+type FastOperation = (context: ExecutionContext) => ExecutionResult | undefined;
+type FastExpression = (context: ExecutionContext) => unknown;
+
+function compileFastOperations(
+  operations: GeneratedHandlerOperation[],
+  bindings: GeneratedHandlerBindings,
+  inheritedLocals: ReadonlySet<string>,
+): FastOperation | undefined {
+  const localNames = new Set(inheritedLocals);
+  const compiled: FastOperation[] = [];
+  for (const operation of operations) {
+    if (operation.op === 'declare') {
+      localNames.add(operation.name);
+      const value = operation.value
+        ? compileFastExpression(operation.value, bindings, localNames)
+        : () => 0;
+      const wrap = compileValueWrapper(operation.valueType);
+      compiled.push(context => {
+        context.localTypes[operation.name] = operation.valueType;
+        context.locals[operation.name] = wrap(value(context));
+        return undefined;
+      });
+      continue;
+    }
+    if (operation.op === 'assign') {
+      const value = compileFastExpression(operation.value, bindings, localNames);
+      compiled.push(context => {
+        assign(operation.target, operation.operator, value(context), context);
+        return undefined;
+      });
+      continue;
+    }
+    if (operation.op === 'call') {
+      const expression = compileFastExpression(operation.expression, bindings, localNames);
+      compiled.push(context => { expression(context); return undefined; });
+      continue;
+    }
+    if (operation.op === 'return') {
+      const value = operation.value
+        ? compileFastExpression(operation.value, bindings, localNames)
+        : undefined;
+      compiled.push(context => ({
+        control: 'return',
+        ...(value ? { value: value(context) } : {}),
+      }));
+      continue;
+    }
+    if (operation.op === 'break' || operation.op === 'continue') {
+      compiled.push(() => ({ control: operation.op }));
+      continue;
+    }
+    if (operation.op === 'if') {
+      const condition = compileFastExpression(operation.condition, bindings, localNames);
+      const whenTrue = compileFastOperations(operation.then, bindings, localNames);
+      const whenFalse = compileFastOperations(operation.else ?? [], bindings, localNames);
+      if (!whenTrue || !whenFalse) return undefined;
+      compiled.push(context =>
+        (truthy(condition(context)) ? whenTrue : whenFalse)(context));
+      continue;
+    }
+    return undefined;
+  }
+  return context => {
+    for (const operation of compiled) {
+      const result = operation(context);
+      if (result?.control) return result;
+    }
+    return undefined;
+  };
+}
+
+function compileFastExpression(
+  expression: GeneratedExpression,
+  bindings: GeneratedHandlerBindings,
+  locals: ReadonlySet<string>,
+): FastExpression {
+  if (expression.kind === 'number' || expression.kind === 'string') {
+    return () => expression.value;
+  }
+  if (expression.kind === 'identifier') {
+    const name = expression.name;
+    if (locals.has(name)) {
+      return context => {
+        const value = context.locals[name];
+        return isLValue(value) ? value.get() : value;
+      };
+    }
+    const constantName = name.split('::').at(-1)!;
+    const constant = bindings.constants?.[name] ?? bindings.constants?.[constantName] ??
+      DEFAULT_CONSTANTS[name] ?? DEFAULT_CONSTANTS[constantName];
+    if (constant !== undefined) return () => constant;
+    if (name === 'ACCESSING_BITS_0_7') {
+      return context => toNumber(context.locals.mem_mask) & 0x00ff ? 1 : 0;
+    }
+    if (name === 'ACCESSING_BITS_8_15') {
+      return context => toNumber(context.locals.mem_mask) & 0xff00 ? 1 : 0;
+    }
+    // Driver members are materialized lazily as source handlers first touch
+    // them. A closure may therefore compile before a member exists (Pole
+    // Position's steering accumulators are one example). Resolve at execution
+    // time so later writes are visible instead of permanently compiling the
+    // identifier as a zero-valued symbolic reference.
+    return () => {
+      const getter = bindings.getters?.[name];
+      if (getter) return getter();
+      if (Object.hasOwn(bindings.members ?? {}, name)) return bindings.members![name];
+      return bindings.concreteDeviceMembers?.has(name)
+        ? { reference: name, resolved: true }
+        : reference(name);
+    };
+  }
+  if (expression.kind === 'unary') {
+    if (expression.operator === '&' || expression.operator === '*') {
+      return context => evaluate(expression, context);
+    }
+    const operand = compileFastExpression(expression.operand, bindings, locals);
+    if (expression.operator === '!') return context => truthy(operand(context)) ? 0 : 1;
+    if (expression.operator === '~') return context => ~toNumber(operand(context));
+    if (expression.operator === '-') return context => -toNumber(operand(context));
+    return context => toNumber(operand(context));
+  }
+  if (expression.kind === 'cast') {
+    const operand = compileFastExpression(expression.operand, bindings, locals);
+    const wrap = compileValueWrapper(expression.valueType);
+    return context => wrap(operand(context));
+  }
+  if (expression.kind === 'binary') {
+    const left = compileFastExpression(expression.left, bindings, locals);
+    const right = compileFastExpression(expression.right, bindings, locals);
+    if (expression.operator === '&&') {
+      return context => truthy(left(context)) && truthy(right(context)) ? 1 : 0;
+    }
+    if (expression.operator === '||') {
+      return context => truthy(left(context)) || truthy(right(context)) ? 1 : 0;
+    }
+    return context => {
+      const leftValue = left(context);
+      const rightValue = right(context);
+      if (expression.operator === '+' && isGeneratedPointer(leftValue)) {
+        return offsetPointer(leftValue, toNumber(rightValue));
+      }
+      if (expression.operator === '+' && isIndexableMemory(leftValue)) {
+        return { generatedPointer: true, source: leftValue, offset: toNumber(rightValue) };
+      }
+      if (expression.operator === '+' && isGeneratedPointer(rightValue)) {
+        return offsetPointer(rightValue, toNumber(leftValue));
+      }
+      if (expression.operator === '-' && isGeneratedPointer(leftValue)) {
+        return offsetPointer(leftValue, -toNumber(rightValue));
+      }
+      if (expression.operator === '==' || expression.operator === '!=') {
+        const equal = comparableValue(leftValue) === comparableValue(rightValue);
+        return expression.operator === '==' ? Number(equal) : Number(!equal);
+      }
+      return binary(expression.operator, toNumber(leftValue), toNumber(rightValue));
+    };
+  }
+  if (expression.kind === 'conditional') {
+    const condition = compileFastExpression(expression.condition, bindings, locals);
+    const whenTrue = compileFastExpression(expression.whenTrue, bindings, locals);
+    const whenFalse = compileFastExpression(expression.whenFalse, bindings, locals);
+    return context => truthy(condition(context)) ? whenTrue(context) : whenFalse(context);
+  }
+  if (expression.kind === 'member') {
+    const objectExpression = compileFastExpression(expression.object, bindings, locals);
+    return context => {
+      const raw = objectExpression(context);
+      const object = isGeneratedPointer(raw) ? pointerValue(raw, 0) : raw;
+      if (isReference(object)) return reference(`${object.reference}.${expression.property}`);
+      if (object && (typeof object === 'object' || typeof object === 'function') &&
+          expression.property in object) {
+        return (object as Record<string, unknown>)[expression.property];
+      }
+      return reference(expression.property);
+    };
+  }
+  if (expression.kind === 'index') {
+    const object = compileFastExpression(expression.object, bindings, locals);
+    const index = compileFastExpression(expression.index, bindings, locals);
+    return context => indexValue(object(context), toNumber(index(context)));
+  }
+  // Calls and assignment expressions have nuanced reference/device semantics;
+  // retain their established evaluator while the enclosing operations and
+  // arithmetic remain precompiled.
+  return context => evaluate(expression, context);
+}
+
+function compileValueWrapper(valueType: string | undefined): (value: unknown) => unknown {
+  const normalized = valueType?.replace(/\bconst\b/g, '').trim();
+  if (normalized === 'uint8_t' || normalized === 'u8') return value => toNumber(value) & 0xff;
+  if (normalized === 'int8_t' || normalized === 's8' || normalized === 'char') {
+    return value => toNumber(value) << 24 >> 24;
+  }
+  if (normalized === 'bool') return value => toNumber(value) ? 1 : 0;
+  if (normalized === 'uint16_t' || normalized === 'u16') return value => toNumber(value) & 0xffff;
+  if (normalized === 'int16_t' || normalized === 's16') {
+    return value => toNumber(value) << 16 >> 16;
+  }
+  if (normalized === 'uint32_t' || normalized === 'u32') return value => toNumber(value) >>> 0;
+  if (normalized === 'int32_t' || normalized === 's32') return value => toNumber(value) | 0;
+  if (normalized === 'uint64_t' || normalized === 'u64' ||
+      normalized === 'int64_t' || normalized === 's64') {
+    return value => Math.trunc(toNumber(value));
+  }
+  return value => wrapValue(valueType, value);
+}
+
 // A MAME signature is a constant, so parsing it is cached by that string.
 // This runs on every machine-handler call, which for video handlers is per
 // tile and per pixel.

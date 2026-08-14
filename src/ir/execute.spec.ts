@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
-import { executeGeneratedHandler, executeGeneratedProgram } from './execute.ts';
-import type { GeneratedHandlerProgram } from './board.ts';
+import {
+  compileGeneratedMachineHandler,
+  executeGeneratedHandler,
+  executeGeneratedProgram,
+} from './execute.ts';
+import type { BoardIr, GeneratedHandler, GeneratedHandlerProgram } from './board.ts';
 
 // The interpreter's breadth is covered where its output is compared against the
 // compiler that produced it (src/runtime/generated-handler.spec.ts and the
@@ -33,6 +37,68 @@ check('handler arguments are readable as locals', () => {
     ),
     7,
   );
+});
+
+check('straight-line machine handlers compile to equivalent cached closures', () => {
+  const handler: GeneratedHandler = {
+    id: 'handler:fixture_state.consume_r',
+    ownerClass: 'fixture_state',
+    method: 'consume_r',
+    parameters: '',
+    program: program([
+      {
+        op: 'if',
+        condition: {
+          kind: 'binary', operator: '>',
+          left: { kind: 'identifier', name: 'm_accum' },
+          right: { kind: 'number', value: 0 },
+        },
+        then: [{
+          op: 'assign', target: { kind: 'identifier', name: 'm_accum' },
+          operator: '-=', value: { kind: 'number', value: 1 },
+        }],
+      },
+      { op: 'return', value: { kind: 'identifier', name: 'm_accum' } },
+    ]),
+  };
+  const state = { m_accum: 2 };
+  const compiled = compileGeneratedMachineHandler(
+    { handlers: [handler], devices: [] } as unknown as BoardIr,
+    handler,
+    {
+      members: state,
+      getters: { m_accum: () => state.m_accum },
+      setters: { m_accum: value => { state.m_accum = value; } },
+    },
+  );
+  assert.ok(compiled);
+  assert.equal(compiled({}), 1);
+  assert.equal(compiled({}), 0);
+});
+
+check('compiled handlers observe driver members created after compilation', () => {
+  const handler: GeneratedHandler = {
+    id: 'handler:fixture_state.accumulate_r',
+    ownerClass: 'fixture_state',
+    method: 'accumulate_r',
+    parameters: '',
+    program: program([
+      {
+        op: 'assign', target: { kind: 'identifier', name: 'm_accum' },
+        operator: '+=', value: { kind: 'number', value: 1 },
+      },
+      { op: 'return', value: { kind: 'identifier', name: 'm_accum' } },
+    ]),
+  };
+  const state: Record<string, unknown> = {};
+  const compiled = compileGeneratedMachineHandler(
+    { handlers: [handler], devices: [] } as unknown as BoardIr,
+    handler,
+    { members: state },
+  );
+  assert.ok(compiled);
+  assert.equal(compiled({}), 1);
+  assert.equal(compiled({}), 2);
 });
 
 check('68000 physical IPL line aliases retain their interrupt levels', () => {

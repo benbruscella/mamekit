@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { compileMameVideo } from '../mame/video-compiler.ts';
+import { compilePoleposDiscrete } from '../mame/audio-compiler.ts';
 import { polepos } from './polepos.ts';
 import { sourceNvramInitializers } from '../gen/generate.ts';
 import {
@@ -36,5 +37,19 @@ assert.ok(compiled.handlers.some(handler =>
   handler.method === 'draw_sprites' && handler.program?.diagnostics.length === 0));
 assert.ok(compiled.handlers.some(handler =>
   handler.method === 'draw_road' && handler.program?.diagnostics.length === 0));
+
+const discrete = compilePoleposDiscrete(
+  mameSourceRoot(),
+  polepos.driver,
+  'polepos_discrete',
+);
+assert.equal(discrete.channels.length, 4, 'the 52XX channel must not be dropped');
+assert.ok(discrete.channels.slice(0, 3).every(channel =>
+  channel.gain < 0 && channel.clamp?.minimum === -2 && channel.clamp.maximum === 1.5));
+assert.ok(Math.abs(discrete.outputGain - (32767 / 2 / 32768 * 0.9)) < 1e-12);
+assert.deepEqual(discrete.channels[3]?.stages?.map(stage => stage.type), [
+  'highpass',
+  'lowpass',
+]);
 
 console.log('polepos.spec: game token and MAME-source video contract passed');

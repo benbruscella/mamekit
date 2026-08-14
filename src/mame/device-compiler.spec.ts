@@ -114,6 +114,23 @@ assert.equal(
   'MB8843 data address width must come from its MAME constructor',
 );
 
+const adc0804Definition = hardware.get('ADC0804');
+assert.ok(adc0804Definition, 'MAME hardware index should resolve ADC0804');
+const generatedAdc0804 = compileMameDevice(mameSrc, adc0804Definition);
+assert.equal(
+  generatedAdc0804.constants.s_conversion_cycles,
+  74,
+  'out-of-class static constant definitions must remain available to device methods',
+);
+registerGeneratedDevice(generatedAdc0804);
+const adc0804 = createDevice('ADC0804', { clock: 192_000 });
+adc0804.on('vin_callback', () => 0x90);
+adc0804.call('write', 0);
+adc0804.tick(73 / 192_000);
+assert.equal(adc0804.get('m_result'), 0);
+adc0804.tick(2 / 192_000);
+assert.equal(adc0804.get('m_result'), 0x90);
+
 const namco54Definition = hardware.get('NAMCO_54XX');
 assert.ok(namco54Definition, 'MAME hardware index should resolve NAMCO_54XX');
 const generatedNamco54 = compileMameDevice(mameSrc, namco54Definition);
@@ -121,6 +138,16 @@ assert.equal(
   generatedNamco54.callbacks.find(callback => callback.signal === 'reset')?.member,
   'm_reset',
   'MAME INPUT_LINE_RESET callbacks must remain distinct from IRQ callbacks',
+);
+
+const namco52Definition = hardware.get('NAMCO_52XX');
+assert.ok(namco52Definition, 'MAME hardware index should resolve NAMCO_52XX');
+const generatedNamco52 = compileMameDevice(mameSrc, namco52Definition);
+assert.equal(generatedNamco52.summary.diagnostics, 0);
+assert.ok(
+  ['K_r', 'SI_r', 'R0_r', 'R1_r', 'P_w', 'R2_w', 'R3_w', 'O_w', 'write', 'chip_select']
+    .every(method => generatedNamco52.methods.some(candidate => candidate.name === method)),
+  'Namco 52xx sample-player host must retain its firmware and DAC protocol',
 );
 
 const namco51Definition = hardware.get('NAMCO_51XX');

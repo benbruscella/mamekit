@@ -399,6 +399,10 @@ class IrDevice implements Device {
         logerror: () => 0,
         clock: () => clock,
         clocks_to_attotime: ticks => clock > 0 ? ticks / clock : Infinity,
+        'attotime::from_hz': frequency =>
+          frequency > 0 ? 1 / frequency : Infinity,
+        'attotime::from_ticks': (ticks, frequency) =>
+          frequency > 0 ? ticks / frequency : Infinity,
         set_pen_color: (entry, color) => {
           palette[entry] = color >>> 0;
           return 0;

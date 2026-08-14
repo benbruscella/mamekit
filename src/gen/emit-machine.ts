@@ -374,6 +374,7 @@ export function lowerGeneratedMachine(
     frameEvents: lowerFrameEvents(
       callbacks,
       devices,
+      handlers,
       board.screen.refresh,
       board.screen.vtotal,
       board.screen.vbstart,
@@ -1029,6 +1030,7 @@ function visitOperations(
 function lowerFrameEvents(
   callbacks: GeneratedCallback[],
   devices: GeneratedDevice[],
+  handlers: GeneratedHandler[],
   refreshHz: number,
   vtotal: number,
   vbstart: number,
@@ -1042,11 +1044,19 @@ function lowerFrameEvents(
       callback.scanlineIncrement !== undefined &&
       callback.scanlineIncrement > 0
     ) {
+      const target = callback.targetClass && callback.targetMethod
+        ? handlers.find(handler =>
+            handler.ownerClass === callback.targetClass &&
+            handler.method === callback.targetMethod)
+        : undefined;
+      const sparseLines = callback.scanlines ??
+        (target?.program ? generatedScanlineTriggers(target.program.operations) : undefined);
       for (
         let line = callback.scanlineStart;
         line < vtotal;
         line += callback.scanlineIncrement
       ) {
+        if (sparseLines && !sparseLines.includes(line)) continue;
         events.push({
           callbackId: callback.id,
           ownerTag: callback.ownerTag,
@@ -1146,6 +1156,57 @@ function lowerFrameEvents(
     }
   }
   return events.sort((a, b) => a.line - b.line || a.callbackId.localeCompare(b.callbackId));
+}
+
+/**
+ * Prove that a scanline callback has no work outside a finite set of literal
+ * lines. Every non-declaration top-level operation must be an if whose
+ * condition constrains the scanline alias on all OR branches. If the proof is
+ * incomplete we return undefined and retain the source timer's full cadence.
+ */
+export function generatedScanlineTriggers(
+  operations: GeneratedHandlerOperation[],
+): number[] | undefined {
+  const alias = operations.find(operation =>
+    operation.op === 'declare' &&
+    operation.value?.kind === 'identifier' &&
+    ['param', 'scanline'].includes(operation.value.name));
+  const name = alias?.op === 'declare' ? alias.name : 'scanline';
+  const triggers = new Set<number>();
+  for (const operation of operations) {
+    if (operation.op === 'declare') continue;
+    if (operation.op !== 'if') return undefined;
+    const values = scanlineConditionValues(operation.condition, name);
+    if (!values?.size) return undefined;
+    values.forEach(value => triggers.add(value));
+  }
+  return triggers.size ? [...triggers].sort((left, right) => left - right) : undefined;
+}
+
+function scanlineConditionValues(
+  expression: GeneratedExpression,
+  name: string,
+): Set<number> | undefined {
+  if (expression.kind !== 'binary') return undefined;
+  if (expression.operator === '==') {
+    if (expression.left.kind === 'identifier' && expression.left.name === name &&
+        expression.right.kind === 'number') return new Set([expression.right.value]);
+    if (expression.right.kind === 'identifier' && expression.right.name === name &&
+        expression.left.kind === 'number') return new Set([expression.left.value]);
+    return undefined;
+  }
+  const left = scanlineConditionValues(expression.left, name);
+  const right = scanlineConditionValues(expression.right, name);
+  if (expression.operator === '&&') {
+    if (!left) return right;
+    if (!right) return left;
+    const intersection = new Set([...left].filter(value => right.has(value)));
+    return intersection.size ? intersection : undefined;
+  }
+  if (expression.operator === '||' && left && right) {
+    return new Set([...left, ...right]);
+  }
+  return undefined;
 }
 
 function deviceCallbackHz(props: Record<string, unknown>): number | undefined {

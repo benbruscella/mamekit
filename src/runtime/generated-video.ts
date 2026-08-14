@@ -1936,6 +1936,18 @@ export function taitoSjSpritePosition(
   return { x: sx, y: sy, visible: sy < 240 };
 }
 
+/** Pole Position's palette PROMs also carry the road vertical-address table. */
+export function polePositionVerticalModifiers(proms: Uint8Array): Uint16Array {
+  const modifiers = new Uint16Array(256);
+  for (let index = 0; index < modifiers.length; index++) {
+    modifiers[index] =
+      (proms[0x500 + index] ?? 0) |
+      ((proms[0x600 + index] ?? 0) << 4) |
+      ((proms[0x700 + index] ?? 0) << 8);
+  }
+  return modifiers;
+}
+
 /**
  * Hardware-neutral MAME video services. All layouts, palette wiring,
  * tile callbacks, sprite loops and initial state come from generated IR.
@@ -2131,6 +2143,16 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       handler.body?.includes('m_vertical_position_modifier') &&
       handler.body.includes('m_road16_memory'));
     if (roadHandler) {
+      // polepos_palette() has a non-palette side effect: three PROM pages are
+      // combined into the road generator's 12-bit vertical address table.
+      // The generated palette plan owns colors and lookup pens, so materialize
+      // this source table explicitly before the first road draw.
+      const colorProms = state.m_proms;
+      if (ArrayBuffer.isView(colorProms)) {
+        state.m_vertical_position_modifier = polePositionVerticalModifiers(
+          colorProms as unknown as Uint8Array,
+        );
+      }
       const drawRoad = (...rawArgs: unknown[]) => {
         const bitmap = generatedArgumentValue(rawArgs[0]) as BitmapTarget | undefined;
         const roadRegion = state.m_road_region;
@@ -2138,17 +2160,25 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         const vertical = state.m_vertical_position_modifier;
         if (
           !bitmap || !ArrayBuffer.isView(roadRegion) ||
-          !ArrayBuffer.isView(roadMemory) || !Array.isArray(vertical)
+          !ArrayBuffer.isView(roadMemory) || !ArrayBuffer.isView(vertical)
         ) return 0;
         const roadBytes = roadRegion as unknown as Uint8Array;
         const roadWords = roadMemory as unknown as Uint16Array;
-        const height = bitmap.direct?.height ?? this.height;
+        const verticalWords = vertical as unknown as Uint16Array;
+        // Driver raster coordinates include the configured visible-area
+        // offset. A framebuffer's compact height is not the source bitmap's
+        // maximum y (Pole Position exposes 224 rows at source y=16..239 and
+        // its road generator intentionally draws through y=255). Let pix=
+        // perform the final visible clipping in that source coordinate space.
+        const height = this.machine.execution.screen.vtotal;
         const roadBits1 = 0x2000;
         const roadBits2 = 0x4000;
         for (let y = 128; y < Math.min(256, height); y++) {
           const scanline = new Uint16Array(256 + 8);
           let destination = 0;
-          const yOffset = (((vertical[y] ?? 0) + Number(state.m_road16_vscroll ?? 0)) >> 3) & 0x1ff;
+          const yOffset = (
+            ((verticalWords[y] ?? 0) + Number(state.m_road16_vscroll ?? 0)) >> 3
+          ) & 0x1ff;
           const roadPalette = (roadWords[yOffset] ?? 0) & 15;
           const penBase = 0x0b00 + (roadPalette << 6);
           let xOffset = (roadWords[0x380 + (y & 0x7f)] ?? 0) & 0x3ff;
@@ -2179,6 +2209,101 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       };
       referenceCalls.draw_road = drawRoad;
       referenceCalls[`${roadHandler.ownerClass}.draw_road`] = drawRoad;
+    }
+    const zoomSpriteHandler = machine.handlers?.find(handler =>
+      handler.method === 'zoom_sprite' &&
+      handler.body?.includes('m_scalelut_region[(y << 6) + sizey]') &&
+      handler.body.includes('gfx->get_data(code % gfx->elements())') &&
+      handler.body.includes('bitmap.pix(yy, xx) = pen + coloroffs'));
+    const spriteHandler = machine.handlers?.find(handler =>
+      handler.method === 'draw_sprites' &&
+      handler.ownerClass === zoomSpriteHandler?.ownerClass &&
+      handler.body?.includes('&m_sprite16_memory[0x380]') &&
+      handler.body.includes('&m_sprite16_memory[0x780]') &&
+      handler.body.includes('zoom_sprite(bitmap, BIT(sizmem[0], 15)'));
+    if (zoomSpriteHandler && spriteHandler) {
+      const zoomSprite = (...rawArgs: unknown[]) => {
+        const bitmap = generatedArgumentValue(rawArgs[0]) as BitmapTarget | undefined;
+        const big = Boolean(Number(generatedArgumentValue(rawArgs[1]) ?? 0));
+        const code = Number(generatedArgumentValue(rawArgs[2]) ?? 0) >>> 0;
+        const color = Number(generatedArgumentValue(rawArgs[3]) ?? 0) >>> 0;
+        const flipX = Boolean(Number(generatedArgumentValue(rawArgs[4]) ?? 0));
+        const sx = Number(generatedArgumentValue(rawArgs[5]) ?? 0) | 0;
+        const sy = Number(generatedArgumentValue(rawArgs[6]) ?? 0) | 0;
+        const sizeX = Number(generatedArgumentValue(rawArgs[7]) ?? 0) | 0;
+        const sizeY = Number(generatedArgumentValue(rawArgs[8]) ?? 0) | 0;
+        const scale = state.m_scalelut_region;
+        const gfx = this.gfx[big ? 3 : 2];
+        if (!bitmap || !ArrayBuffer.isView(scale) || !gfx || !this.palette) return 0;
+        const scaleLut = scale as unknown as Uint8Array;
+        const source = gfx.get_data(code % gfx.elements());
+        const transparent = this.palette.transpen_mask(gfx, color, 0x1f);
+        const colorOffset = gfx.colorbase() + color * gfx.granularity();
+        const offsetXor = flipX ? (big ? 0x1f : 0x0f) : 0;
+        for (let y = 0; y <= sizeY; y++) {
+          const yy = (sy + y) & 0x1ff;
+          if (yy < 0x10 || yy >= 0xf0) continue;
+          let dy = (scaleLut[(y << 6) + sizeY] ?? 0) & 0x1f;
+          if (!big) dy >>= 1;
+          const row = dy * gfx.rowbytes();
+          let xx = sx & 0x3ff;
+          let accumulator = 0;
+          let sourceOffset = 0;
+          for (let x = big ? 0x40 : 0x20; x > 0; x--) {
+            if (xx < 0x100) {
+              const pen = source[row + ((sourceOffset >> 1) ^ offsetXor)] ?? 0;
+              if (!((transparent >>> pen) & 1)) {
+                bitmap['pix=']?.(yy, xx, pen + colorOffset);
+              }
+            }
+            sourceOffset++;
+            accumulator += 1 + sizeX;
+            if (accumulator & 0x40) {
+              accumulator &= 0x3f;
+              xx = (xx + 1) & 0x3ff;
+            }
+          }
+        }
+        return 0;
+      };
+      const drawSprites = (...rawArgs: unknown[]) => {
+        const bitmap = generatedArgumentValue(rawArgs[0]) as BitmapTarget | undefined;
+        const spriteMemory = state.m_sprite16_memory;
+        if (!bitmap || !ArrayBuffer.isView(spriteMemory)) return 0;
+        const words = spriteMemory as unknown as Uint16Array;
+        for (let index = 0; index < 64; index++) {
+          const position = 0x380 + index * 2;
+          const size = 0x780 + index * 2;
+          const positionY = words[position] ?? 0;
+          const positionX = words[position + 1] ?? 0;
+          const sizeCode = words[size] ?? 0;
+          const sizeColor = words[size + 1] ?? 0;
+          const sx = (positionX & 0x3ff) - 0x40 + 4;
+          const sy = 512 - (positionY & 0x1ff) + 1;
+          const sizeX = (sizeColor & 0x3f00) >> 8;
+          const sizeY = (sizeCode & 0x3f00) >> 8;
+          const code = sizeCode & 0x7f;
+          const flipX = Boolean(sizeCode & 0x80);
+          let color = sizeColor & 0x3f;
+          if (sy >= 128) color |= 0x40;
+          zoomSprite(
+            bitmap,
+            Number(Boolean(sizeCode & 0x8000)),
+            code,
+            color,
+            Number(flipX),
+            sx,
+            sy,
+            sizeX,
+            sizeY,
+          );
+        }
+        return 0;
+      };
+      referenceCalls.zoom_sprite = zoomSprite;
+      referenceCalls[`${zoomSpriteHandler.ownerClass}.zoom_sprite`] = zoomSprite;
+      referenceCalls.draw_sprites = drawSprites;
+      referenceCalls[`${spriteHandler.ownerClass}.draw_sprites`] = drawSprites;
     }
     const cpsBankMapper = machine.handlers?.find(handler =>
       handler.method === 'gfxrom_bank_mapper' &&

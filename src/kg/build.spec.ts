@@ -81,16 +81,19 @@ assert.deepEqual(
   parseIoportMembers(`
     required_ioport_array<4> m_io_in;
     optional_ioport_array<3> m_dsw;
+    required_ioport_array<2> m_pedals;
     test_state::test_state()
       : m_io_in(*this, "IN%u", 0U)
       , m_dsw(*this, "DSW%c", 'A')
+      , m_pedals(*this, {"BRAKE", "ACCEL"})
     { }
   `, {}),
   {
     m_io_in: ['IN0', 'IN1', 'IN2', 'IN3'],
     m_dsw: ['DSWA', 'DSWB', 'DSWC'],
+    m_pedals: ['BRAKE', 'ACCEL'],
   },
-  'ioport finder arrays must expand numeric and character tag patterns',
+  'ioport finder arrays must expand patterns and explicit tag lists',
 );
 
 const graph: KnowledgeGraph = {

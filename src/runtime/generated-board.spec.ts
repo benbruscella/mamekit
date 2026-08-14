@@ -165,6 +165,14 @@ assert.deepEqual(
   generatedDeviceCallbackArguments(['uint8_t data'], 0x7f),
   [0x7f],
 );
+assert.deepEqual(
+  generatedDeviceCallbackArguments(
+    ['offs_t offset', 'uint8_t data', 'uint8_t mem_mask'],
+    0x7f,
+  ),
+  [0, 0x7f, 0xff],
+  'parallel callback adapters must retain an all-bits mask for AOT device methods',
+);
 
 const driverState: Record<string, unknown> = {};
 const driverCalls: Record<string, (...args: number[]) => number | void> = {};

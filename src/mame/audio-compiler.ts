@@ -167,13 +167,7 @@ export function compileNamco54Discrete(
   };
 }
 
-/**
- * Lower the three 54XX DAC/op-amp channels embedded in Pole Position's
- * four-output discrete netlist. The fourth 52XX channel uses a separate
- * cascaded filter topology; keeping the three fully described analog paths
- * gives the generated WSG the source-routed effects that otherwise vanish
- * whenever the game selects its 52XX/54XX inputs.
- */
+/** Lower Pole Position's three 54XX op-amp paths and its fourth 52XX path. */
 export function compilePoleposDiscrete(
   mameSrc: string,
   driverFile: string,
@@ -203,7 +197,17 @@ export function compilePoleposDiscrete(
   const levels = Array.from({ length: 16 }, (_, data) =>
     ladderResistors.reduce((sum, resistance, bit) =>
       sum + ((data >> bit) & 1) / resistance, 0) / ladderConductance);
-  const channels = dacs.slice(0, 3).map(dac => {
+  const vrefExpression = /^#define\s+POLEPOS_VREF\s+(.+)$/m.exec(source)?.[1]
+    ?.replace(/\/\*.*$/, '').trim();
+  if (!vrefExpression) throw new Error(`${netlist}: voltage reference is missing`);
+  const vref = requiredAnalog(vrefExpression);
+  const discreteHeader = readFileSync(join(mameSrc, 'src/devices/sound/discrete.h'), 'utf8');
+  const railOffset = requiredAnalog(
+    /^#define\s+OP_AMP_VP_RAIL_OFFSET\s+([^\s/]+)/m.exec(discreteHeader)?.[1],
+  );
+  const outputMaximum = 5 - railOffset - vref;
+  const voltageLevels = levels.map(level => level * 4 - vref);
+  const channels: GeneratedDacFilterPlan['channels'] = dacs.slice(0, 3).map(dac => {
     const outputNode = symbolName(dac[0]);
     const input = Number(/NAMCO_54XX_(\d)_DATA/.exec(dac[1]!)?.[1]);
     const filter = filters.find(candidate => symbolName(candidate[2]) === outputNode);
@@ -223,16 +227,50 @@ export function compilePoleposDiscrete(
     const damping = (capacitors[0]! + capacitors[1]!) / Math.sqrt(
       feedbackResistance! / totalResistance * capacitors[0]! * capacitors[1]!,
     );
-    const gain = feedbackResistance! / totalResistance *
+    const gain = -feedbackResistance! / totalResistance *
       capacitors[1]! / (capacitors[0]! + capacitors[1]!);
-    return { input, frequency, q: 1 / damping, gain };
+    return {
+      input,
+      frequency,
+      q: 1 / damping,
+      gain,
+      clamp: { minimum: -vref, maximum: outputMaximum },
+    };
   });
-  const gainTotal = channels.reduce((sum, channel) => sum + channel.gain, 0);
+  const ladder52Name = symbolName(dacs[3]?.at(-1));
+  const ladder52Resistors = ladder52Name ? resistorTable(source, ladder52Name) : [];
+  const input52 = Number(/NAMCO_52XX_P_DATA\(NODE_(\d+)\)/.exec(dacs[3]?.[1] ?? '')?.[1]) - 1;
+  if (ladder52Resistors.length !== 4 || !Number.isInteger(input52)) {
+    throw new Error(`${netlist}: missing four-bit 52XX DAC resistance ladder`);
+  }
+  const conductance52 = ladder52Resistors.reduce((sum, resistance) => sum + 1 / resistance, 0);
+  const levels52 = Array.from({ length: 16 }, (_, data) =>
+    ladder52Resistors.reduce((sum, resistance, bit) =>
+      sum + ((data >> bit) & 1) / resistance, 0) / conductance52 * 4 - vref);
+  channels.push({
+    input: input52,
+    // The primary fields retain the protocol's single-stage compatibility;
+    // Pole Position's CHANL4 source is the explicit cascade below.
+    frequency: 100,
+    q: 0.3,
+    gain: 1,
+    levels: levels52,
+    stages: [
+      { type: 'highpass', frequency: 100, q: 0.3, gain: 1 },
+      { type: 'lowpass', frequency: 1200, q: 0.8, gain: 0.5 },
+    ],
+    clamp: { minimum: 0, maximum: outputMaximum },
+  });
+  const outputScale = requiredAnalog(macroArguments(body, 'DISCRETE_OUTPUT')[0]?.[1]) / 32768;
+  const driverSource = readFileSync(join(mameSrc, driverFile), 'utf8');
+  const routeGain = requiredAnalog(
+    /\bdiscrete\.add_route\([^,]+,[^,]+,\s*([^,)]+)/.exec(driverSource)?.[1],
+  );
   return {
     type: 'DAC_FILTER',
-    levels,
-    channels: channels.map(channel => ({ ...channel, gain: channel.gain / gainTotal })),
-    outputGain: 0.65,
+    levels: voltageLevels,
+    channels,
+    outputGain: outputScale * routeGain,
     source: {
       file: sourceFile,
       line: source.slice(0, marker.index).split('\n').length,
@@ -3540,14 +3578,26 @@ function generatedNamcoWsgSuffix(plan: GeneratedNamcoWsgPlan): string {
   return `
 interface DacFilterPlan {
   levels: number[];
-  channels: { input: number; frequency: number; q: number; gain: number }[];
+  channels: {
+    input: number;
+    frequency: number;
+    q: number;
+    gain: number;
+    levels?: number[];
+    stages?: {
+      type: 'lowpass' | 'highpass' | 'bandpass';
+      frequency: number;
+      q: number;
+      gain: number;
+    }[];
+    clamp?: { minimum: number; maximum: number };
+  }[];
   outputGain: number;
 }
 
 interface BiquadState {
-  input: number;
-  gain: number;
   b0: number;
+  b1: number;
   b2: number;
   a1: number;
   a2: number;
@@ -3555,6 +3605,14 @@ interface BiquadState {
   x2: number;
   y1: number;
   y2: number;
+}
+
+interface DacFilterChannelState {
+  input: number;
+  gain: number;
+  levels: number[];
+  filters: BiquadState[];
+  clamp?: { minimum: number; maximum: number };
 }
 
 export interface GeneratedNamcoWsgWrite {
@@ -3566,53 +3624,91 @@ export interface GeneratedNamcoWsgWrite {
 
 class GeneratedDacFilterCore {
   private readonly values: Float64Array;
-  private readonly levels: number[];
-  private readonly filters: BiquadState[];
+  private readonly channels: DacFilterChannelState[];
   private readonly outputGain: number;
 
   constructor(plan: DacFilterPlan, sampleRate: number) {
     this.values = new Float64Array(
       Math.max(0, ...plan.channels.map(channel => channel.input)) + 1,
     );
-    this.levels = plan.levels;
     this.outputGain = plan.outputGain;
-    this.filters = plan.channels.map(channel => {
-      const omega = 2 * Math.PI * channel.frequency / sampleRate;
-      const alpha = Math.sin(omega) / (2 * channel.q);
+    const filter = (
+      stage: { type: 'lowpass' | 'highpass' | 'bandpass'; frequency: number; q: number; gain: number },
+    ): BiquadState => {
+      const omega = 2 * Math.PI * stage.frequency / sampleRate;
+      const cosine = Math.cos(omega);
+      const alpha = Math.sin(omega) / (2 * stage.q);
       const a0 = 1 + alpha;
+      const b0 = stage.type === 'lowpass'
+        ? (1 - cosine) / 2 / a0
+        : stage.type === 'highpass'
+          ? (1 + cosine) / 2 / a0
+          : alpha / a0;
       return {
-        input: channel.input,
-        gain: channel.gain,
-        b0: alpha / a0,
-        b2: -alpha / a0,
-        a1: -2 * Math.cos(omega) / a0,
+        b0: b0 * stage.gain,
+        b1: (stage.type === 'lowpass'
+          ? (1 - cosine) / a0
+          : stage.type === 'highpass'
+            ? -(1 + cosine) / a0
+            : 0) * stage.gain,
+        b2: (stage.type === 'lowpass'
+          ? b0
+          : stage.type === 'highpass'
+            ? b0
+            : -b0) * stage.gain,
+        a1: -2 * cosine / a0,
         a2: (1 - alpha) / a0,
         x1: 0,
         x2: 0,
         y1: 0,
         y2: 0,
       };
+    };
+    this.channels = plan.channels.map(channel => {
+      const explicitStages = Boolean(channel.stages?.length);
+      return {
+        input: channel.input,
+        // A primary op-amp's gain is part of the filter and therefore precedes
+        // its rail clamp. Explicit cascades keep their optional post gain.
+        gain: explicitStages ? channel.gain : 1,
+        levels: channel.levels ?? plan.levels,
+        filters: (explicitStages
+          ? channel.stages!
+          : [{
+              type: 'bandpass' as const,
+              frequency: channel.frequency,
+              q: channel.q,
+              gain: channel.gain,
+            }]).map(filter),
+        clamp: channel.clamp,
+      };
     });
   }
 
   write(input: number, data: number): void {
     if (input >= 0 && input < this.values.length) {
-      this.values[input] = this.levels[data & 0x0f] ?? 0;
+      this.values[input] = data & 0x0f;
     }
   }
 
   renderInto(output: Float32Array): void {
     for (let index = 0; index < output.length; index++) {
       let mixed = 0;
-      for (const filter of this.filters) {
-        const x = this.values[filter.input] ?? 0;
-        const y = filter.b0 * x + filter.b2 * filter.x2 -
-          filter.a1 * filter.y1 - filter.a2 * filter.y2;
-        filter.x2 = filter.x1;
-        filter.x1 = x;
-        filter.y2 = filter.y1;
-        filter.y1 = y;
-        mixed += y * filter.gain;
+      for (const channel of this.channels) {
+        let value = channel.levels[(this.values[channel.input] ?? 0) & 0x0f] ?? 0;
+        for (const filter of channel.filters) {
+          const next = filter.b0 * value + filter.b1 * filter.x1 + filter.b2 * filter.x2 -
+            filter.a1 * filter.y1 - filter.a2 * filter.y2;
+          filter.x2 = filter.x1;
+          filter.x1 = value;
+          filter.y2 = filter.y1;
+          filter.y1 = next;
+          value = next;
+        }
+        if (channel.clamp) {
+          value = Math.max(channel.clamp.minimum, Math.min(channel.clamp.maximum, value));
+        }
+        mixed += value * channel.gain;
       }
       output[index] = Math.max(-1, Math.min(1, output[index]! + mixed * this.outputGain));
     }

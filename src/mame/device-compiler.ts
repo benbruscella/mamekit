@@ -892,6 +892,14 @@ function numericConstants(source: string): Record<string, number> {
   )) {
     expressions.set(match[1]!, match[2]!.trim());
   }
+  // Non-integral and pre-C++17 static class constants are commonly declared
+  // in the header and defined in the implementation file. The unqualified
+  // member name is what source-compiled methods reference.
+  for (const match of source.matchAll(
+    /\bconst\s+(?:\w+\s+)+\w+::(\w+)\s*=\s*([^;]+);/g,
+  )) {
+    expressions.set(match[1]!, match[2]!.trim());
+  }
   for (const declaration of source.matchAll(/\benum(?:\s+\w+)?\s*\{([^{}]+)\}/g)) {
     let previous: string | undefined;
     for (const raw of splitMameArgs(declaration[1]!)) {

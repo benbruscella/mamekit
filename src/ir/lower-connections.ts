@@ -259,7 +259,16 @@ export function lowerCallbackEffect(
   // A generated handler program on the driver class or a device class.
   if (callback.targetClass && callback.targetMethod) {
     const key = `${callback.targetClass}.${callback.targetMethod}`;
-    if (context.handlerKeys.has(key)) return { kind: 'handler', handler: key };
+    if (context.handlerKeys.has(key)) {
+      const ownerTag = resolveScopedTag(context.deviceTags, callback.ownerTag);
+      return {
+        kind: 'handler',
+        handler: key,
+        // A nested owner is a hosted processor callback. Carry its tag so the
+        // runtime can route FUNC(parent::method) to the generated host device.
+        ...(ownerTag?.includes(':') ? { deviceTag: ownerTag } : {}),
+      };
+    }
   }
 
   // A CPU-directed method with no input line (set_input_line wrappers).

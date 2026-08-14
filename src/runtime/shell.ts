@@ -572,6 +572,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause
     let ran = false;
     while (acc >= frameMs) {
+      input.advance();
       board.frame(fb);
       audio.flush(); // one batch message per emulated frame
       acc -= frameMs;
@@ -703,6 +704,8 @@ function fnLabel(label: string): string {
     IPT_START1: 'start 1P', IPT_START2: 'start 2P',
     IPT_COIN1: 'coin', IPT_COIN2: 'coin 2',
     IPT_BUTTON1: 'fire', IPT_BUTTON2: 'fire 2', IPT_BUTTON3: 'fire 3',
+    IPT_DIAL_LEFT: 'steer left', IPT_DIAL_RIGHT: 'steer right',
+    IPT_PEDAL: 'accelerate', IPT_PEDAL2: 'brake',
     IPT_SERVICE1: 'service', IPT_SERVICE: 'service',
   };
   if (map[label]) return map[label];

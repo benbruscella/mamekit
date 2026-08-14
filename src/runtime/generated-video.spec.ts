@@ -18,6 +18,7 @@ import {
   GeneratedGfxElement,
   GeneratedMameVideoPrimitives,
   GeneratedVideoRenderer,
+  polePositionVerticalModifiers,
   taitoSjLayerScrollX,
   taitoSjSpritePosition,
   williamsPaletteColor,
@@ -113,6 +114,11 @@ assert.deepEqual(exidySpriteCollisions(
 ]);
 assert.equal(williamsPaletteColor(0), 0xff000000);
 assert.equal(williamsPaletteColor(0xff), 0xffffffff);
+const polePositionProms = new Uint8Array(0x800);
+polePositionProms[0x507] = 3;
+polePositionProms[0x607] = 4;
+polePositionProms[0x707] = 5;
+assert.equal(polePositionVerticalModifiers(polePositionProms)[7], 0x543);
 
 assert.equal(
   generatedDirectScreenShape({

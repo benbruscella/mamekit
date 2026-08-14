@@ -12,6 +12,7 @@ import {
   GeneratedVideoRenderer,
 } from './generated-video.ts';
 import {
+  compileGeneratedMachineHandler,
   dispatchGeneratedCallback,
   dispatchGeneratedCallbacks,
   executeGeneratedCallbackHandler,
@@ -331,6 +332,15 @@ class IrBoard implements Board {
               ) ? inferredTag : undefined) ||
               machine.execution.cpus[0]?.tag || '';
             if (tag === 'screen') return screenHost;
+            const targetDevice = machine.devices?.find(candidate => candidate.tag === tag);
+            if (targetDevice?.type === 'DISCRETE') {
+              return {
+                write: (offset: number, data: number) => {
+                  sinks.soundWrite(offset, data, this.soundFraction(), 'discrete');
+                  return 0;
+                },
+              };
+            }
             const cpuSpec = machine.execution.cpus.find(candidate => candidate.tag === tag) ??
               machine.execution.cpus[0];
             if (!cpuSpec) return 0;
@@ -1329,6 +1339,9 @@ class IrBoard implements Board {
     host.bindCall('NAMCO_54XX_0_DATA', () => 0);
     host.bindCall('NAMCO_54XX_1_DATA', () => 1);
     host.bindCall('NAMCO_54XX_2_DATA', () => 2);
+    // Normalize the adjacent MAME discrete nodes (NODE_01..NODE_04) to the
+    // compact four-channel protocol consumed by the generated audio core.
+    host.bindCall('NAMCO_52XX_P_DATA', () => 3);
     host.bindCall('m_discrete.write', (channel, value) => {
       sinks.soundWrite(channel, value, this.soundFraction(), 'discrete');
       return 0;
@@ -2998,22 +3011,27 @@ class IrBoard implements Board {
       () => this.effects,
       bindings,
     );
+    // Read callbacks are frequently polled by peripheral MCUs and are safe to
+    // memoize as query closures. Keep command/lifecycle handlers on the
+    // established interpreter path: those callbacks may deliberately depend
+    // on sequencing that is not represented by their return value.
+    const compiled = /_r(?:_\d+)?$/.test(handler.method)
+      ? compileGeneratedMachineHandler(this.machine, handler, bindings)
+      : undefined;
     return (state, ...sourceArgs) => {
       const debugCounts = (globalThis as {
         __mamekitHandlerCounts?: Map<string, number>;
       }).__mamekitHandlerCounts;
       if (debugCounts) debugCounts.set(key, (debugCounts.get(key) ?? 0) + 1);
-      return executeGeneratedMachineHandler(
-        this.machine,
-        handler,
-        bindings,
-        generatedSignalHandlerArguments(
-          handler.parameters,
-          state,
-          firstArgument,
-          sourceArgs,
-        ),
+      const args = generatedSignalHandlerArguments(
+        handler.parameters,
+        state,
+        firstArgument,
+        sourceArgs,
       );
+      return compiled
+        ? compiled(args)
+        : executeGeneratedMachineHandler(this.machine, handler, bindings, args);
     };
   }
 
@@ -3125,44 +3143,59 @@ class IrBoard implements Board {
         // key here; ordinary generated handlers continue through source IR.
         const exactCall = this.bindings.calls?.[key];
         if (exactCall) return state => { exactCall(state); };
-        // A callback installed by a composite device's child belongs to the
-        // parent device instance. MAME expresses this as FUNC(parent::method)
-        // on a hosted MCU (for example an MB88 port callback). Route it back
-        // to that generated parent so its AOT-compiled method runs directly
-        // instead of walking a duplicate board-level handler IR program.
         const method = key.split('.').at(-1)!;
+        // A hosted CPU's port callbacks belong to its generated parent device.
+        // Reads and writes must use the same instance: splitting them between
+        // parent state and board-handler state leaves command/mode latches
+        // stale (the Namco 51xx then sees a coin pin but never credits it).
+        // Sound-producing parent writes reach the sink through the bindings
+        // installed by configureHostedDevice above.
         const parentTag = deviceTag
           ? this.machine.devices?.find(device => device.tag === deviceTag)?.hostTag
           : undefined;
         const parent = parentTag ? this.devices.get(parentTag) : undefined;
         if (parent?.methodNames().includes(method)) {
-          return state => parent.call(
-            method,
-            ...generatedDeviceCallbackArguments(parent.parameters(method), state),
-          );
+          const parameters = parent.parameters(method);
+          return (state, ...sourceArgs) => {
+            if (!parameters.length) return parent.call(method);
+            if (/\boffs_t\b/.test(parameters[0] ?? '')) {
+              return parent.call(
+                method,
+                ...generatedDeviceCallbackArguments(parameters, sourceArgs[0] ?? state),
+              );
+            }
+            return parent.call(
+              method,
+              ...generatedDeviceCallbackArguments(parameters, state),
+            );
+          };
         }
-        const cpuDevice = deviceTag
+        const scopedCpuTag = deviceTag && this.machine.execution.cpus.some(cpu =>
+          cpu.tag === deviceTag)
+          ? deviceTag
+          : undefined;
+        const cpuDevice = scopedCpuTag
           ? {
               execute: () => ({
                 set_input_line: (line: number, state: number) => {
-                  const cpu = this.cpus.get(deviceTag);
+                  const cpu = this.cpus.get(scopedCpuTag);
                   if (cpu) {
                     applyGeneratedCpuInputLine(
                       cpu,
                       line,
                       state,
-                      held => this.cpuHeld.set(deviceTag, held),
+                      held => this.cpuHeld.set(scopedCpuTag, held),
                     );
                   }
                 },
                 pulse_input_line: (line: number) => {
-                  const cpu = this.cpus.get(deviceTag);
+                  const cpu = this.cpus.get(scopedCpuTag);
                   if (cpu) pulseGeneratedCpuInputLine(cpu, line);
                 },
               }),
             }
           : undefined;
-        const run = this.handlerExecutor(key, cpuDevice, deviceTag);
+        const run = this.handlerExecutor(key, cpuDevice, scopedCpuTag);
         if (run) return run;
         // A driver method the board binds directly rather than lowering.
         const call = this.bindings.calls?.[key.split('.').at(-1)!];
@@ -3263,7 +3296,18 @@ export function generatedDeviceCallbackArguments(
 ): number[] {
   if (!parameters.length) return [];
   if (/\boffs_t\b/.test(parameters[0]!)) {
-    return parameters.length === 1 ? [0] : [0, state];
+    if (parameters.length === 1) return [0];
+    return parameters.map((parameter, index) => {
+      if (index === 0) return 0;
+      if (/\bmem_mask\b/.test(parameter)) {
+        return /\b(?:u?int)?32_t\b|\bu32\b/.test(parameter)
+          ? 0xffffffff
+          : /\b(?:u?int)?16_t\b|\bu16\b/.test(parameter)
+            ? 0xffff
+            : 0xff;
+      }
+      return state;
+    });
   }
   return [state];
 }

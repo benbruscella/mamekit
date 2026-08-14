@@ -66,13 +66,18 @@ assert.equal(input.read('PEDAL'), 0x00, 'absolute pedal must return to its sourc
 
 target.dispatchEvent(keyEvent('keydown', 'KeyA'));
 assert.equal(input.read('DIAL'), 0xfc, 'relative dial must wrap its hardware counter');
+input.advance();
+assert.equal(input.read('DIAL'), 0xf8, 'held relative dial must advance every emulated frame');
 target.dispatchEvent(keyEvent('keydown', 'KeyD', true));
-assert.equal(input.read('DIAL'), 0x00, 'relative dial must accept held-key repeat pulses');
+assert.equal(input.read('DIAL'), 0xf8, 'browser key repeat must not double-advance a relative dial');
+target.dispatchEvent(keyEvent('keyup', 'KeyA'));
+input.advance();
+assert.equal(input.read('DIAL'), 0xf8, 'released relative dial must retain its hardware counter');
 
 input.setDip('IN0', 0x80, 0);
 assert.equal(input.read('IN0'), 0x7f);
 assert.equal(input.read('missing'), 0xff);
-assert.equal(input.dump(), 'IN0=7f IN1=00 PEDAL=00 DIAL=00');
+assert.equal(input.dump(), 'IN0=7f IN1=00 PEDAL=00 DIAL=f8');
 
 const handlers = portHandlers([
   { start: 0, end: 0, kind: 'handler', read: 'port.IN0' },

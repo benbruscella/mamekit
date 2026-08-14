@@ -22,6 +22,17 @@ export interface GeneratedDacFilterPlan {
     frequency: number;
     q: number;
     gain: number;
+    /** A channel may use a different resistor ladder than the shared DAC. */
+    levels?: number[];
+    /** Additional source-ordered filter stages after the primary band-pass. */
+    stages?: {
+      type: 'lowpass' | 'highpass' | 'bandpass';
+      frequency: number;
+      q: number;
+      gain: number;
+    }[];
+    /** Source clamp applied after all stages (DISCRETE_CLAMP). */
+    clamp?: { minimum: number; maximum: number };
   }[];
   outputGain: number;
   source: { file: string; line: number; netlist: string };

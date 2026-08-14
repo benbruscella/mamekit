@@ -846,7 +846,14 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // The post-mix level belongs to the sound family's capability package, so
   // the shell reads it from the generated config instead of keeping a table
   // that every new family would have to be added to.
-  const soundGain = devices
+  const poleposWsgDevices = devices.filter(device => device.props.type === 'POLEPOS_WSG');
+  const routedWsgGain = lowerAudioRoutes(
+    graph,
+    poleposWsgDevices.map(device => ({ id: device.id, tag: String(device.props.tag) })),
+  )[0]?.gain;
+  const soundGain = routedWsgGain !== undefined
+    ? routedWsgGain
+    : devices
     .map(device => capabilityForType(HARDWARE_CAPABILITIES, String(device.props.type)))
     .find(capability => capability?.masterGain !== undefined)?.masterGain;
   if (soundGain !== undefined) Object.assign(sound, { masterGain: soundGain });
@@ -1239,14 +1246,17 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         const keyDelta = mods
           .map(modifier => /PORT_KEYDELTA\s*\(\s*([^\)]+)\)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
+        const named = mods
+          .map(modifier => /PORT_NAME\("(?:%p )?([^"]+)"\)/.exec(modifier)?.[1])
+          .find(Boolean);
         if (type === 'IPT_DIAL') {
           const delta = keyDelta ? sourceNumber(keyDelta[1]!) : 1;
           bindings.push({
-            port: tag, mask, keys: ['ArrowLeft'], label: `${type}_LEFT`,
+            port: tag, mask, keys: ['ArrowLeft'], label: named ? `${named} Left` : `${type}_LEFT`,
             activeLow: false, relativeDelta: -delta,
           });
           bindings.push({
-            port: tag, mask, keys: ['ArrowRight'], label: `${type}_RIGHT`,
+            port: tag, mask, keys: ['ArrowRight'], label: named ? `${named} Right` : `${type}_RIGHT`,
             activeLow: false, relativeDelta: delta,
           });
           continue;
@@ -1256,7 +1266,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           port: tag,
           mask,
           keys,
-          label: type,
+          label: named ?? type,
           activeLow,
           ...(/^IPT_PEDAL\d*$/.test(type)
             ? { activeValue: minMax ? sourceNumber(minMax[2]!) : mask }
