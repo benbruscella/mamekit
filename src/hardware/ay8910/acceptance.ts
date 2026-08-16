@@ -23,6 +23,7 @@ export async function createAy8910Probe(
       routes?: unknown,
       auxiliaryDevices?: unknown,
       discreteMixer?: unknown,
+      deviceTags?: string[],
     ) => Mixer;
     GeneratedAy8910FrameRenderer: new (
       mixer: Mixer, outputRate: number, refresh: number,
@@ -36,6 +37,7 @@ export async function createAy8910Probe(
     context.sound.routes,
     context.sound.auxiliaryDevices,
     context.sound.discreteMixer,
+    context.sound.deviceTags,
   );
   return new module.GeneratedAy8910FrameRenderer(mixer, context.outputRate, context.refresh);
 }

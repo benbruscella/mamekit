@@ -37,9 +37,9 @@ export const junglek: GameTestContract = {
     audio: {
       writes: 1580862,
       nonzeroWrites: 1168947,
-      writeHash: 'a1dc657c',
-      pcmHash: '539f1604',
-      rms: 0.126143,
+      writeHash: '1414b140',
+      pcmHash: '30ecb720',
+      rms: 0.361654,
     },
   },
 };

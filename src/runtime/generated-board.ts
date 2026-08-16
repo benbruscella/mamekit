@@ -2843,9 +2843,9 @@ class IrBoard implements Board {
       if (!/^(?:YM|AY|POKEY|TMS|OKI|MSM|SN|DAC|DISCRETE)/.test(specification.type)) continue;
       for (const alias of [specification.tag, `m_${specification.tag}`, specification.member]
         .filter((value): value is string => Boolean(value))) {
-        this.bindings.calls![`${alias}.set_output_gain`] ??= (_channel, gain) => {
+        this.bindings.calls![`${alias}.set_output_gain`] ??= (channel, gain) => {
           sinks.soundWrite(
-            0,
+            Math.max(0, Math.round(Number(channel)) || 0),
             Math.round(Math.max(0, Math.min(1, Number(gain))) * 255),
             this.soundFraction(),
             `${specification.tag}.set_output_gain`,

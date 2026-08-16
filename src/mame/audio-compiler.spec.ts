@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import * as ts from 'typescript';
 import {
   compileAy8910,
+  compileDiscreteDacReferenceLevels,
   compileMameSpeakerFilter,
   compileDiscreteMixer,
   compileMsm5205,
@@ -218,7 +219,16 @@ assert.deepEqual(ayPlan.readMasks.slice(0, 8), [
   0xff, 0x0f, 0xff, 0x0f, 0xff, 0x0f, 0x1f, 0xff,
 ]);
 assert.equal(ayPlan.volumeTable.length, 16);
+assert.ok(ayPlan.volumeTable[0]! > 0 && ayPlan.volumeTable[15]! < 0.5);
 assert.deepEqual(ayPlan.filterTypes, { lowpass3r: 0, lowpass: 2, highpass: 3, ac: 4 });
+const taitosjReference = compileDiscreteDacReferenceLevels(
+  mameSrc,
+  'src/mame/taito/taitosj.cpp',
+  'taitosj_dacvol_discrete',
+);
+assert.equal(taitosjReference?.length, 256);
+assert.equal(taitosjReference?.[0], 0);
+assert.ok(Math.abs((taitosjReference?.[255] ?? 0) - 1) < 1e-12);
 
 const msmPlan = compileMsm5205(mameSrc, {
   ...definition,
@@ -269,6 +279,8 @@ const ayModule = await import(
       target: string;
       writeMethods: string[];
     }[],
+    discreteMixer?: unknown,
+    deviceTags?: string[],
   ) => { write(offset: number, data: number, method?: string): void; sample(): number };
   GeneratedAy8910FrameRenderer: new (
     mixer: { write(offset: number, data: number): void; sample(): number },
@@ -359,12 +371,32 @@ for (const [mixer, period] of [[aliased, 1], [audible, 16]] as const) {
 const rms = (values: number[]) => Math.sqrt(
   values.reduce((sum, value) => sum + value * value, 0) / values.length,
 );
-const aliasedRms = rms(Array.from({ length: 4096 }, () => aliased.sample()).slice(256));
-const audibleRms = rms(Array.from({ length: 4096 }, () => audible.sample()).slice(256));
+const acRms = (values: number[]) => {
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  return rms(values.map(value => value - mean));
+};
+const aliasedRms = acRms(Array.from({ length: 4096 }, () => aliased.sample()).slice(256));
+const audibleRms = acRms(Array.from({ length: 4096 }, () => audible.sample()).slice(256));
 assert.ok(
   aliasedRms < audibleRms * 0.1,
   `native AY period 1 folded into 48 kHz output (${aliasedRms} vs ${audibleRms})`,
 );
+
+const gainControlled = new ayModule.GeneratedAy8910Mixer(
+  1_789_772,
+  1,
+  48_000,
+  [{ chip: 0, channel: 0, gain: 1, target: 'speaker' }],
+  [],
+  undefined,
+  ['ay1'],
+);
+gainControlled.write(0, 16);
+gainControlled.write(7, 0x3e);
+gainControlled.write(8, 0x0f);
+assert.ok(acRms(Array.from({ length: 1024 }, () => gainControlled.sample()).slice(256)) > 0.01);
+gainControlled.write(0, 0, 'ay1.set_output_gain');
+assert.ok(Array.from({ length: 64 }, () => gainControlled.sample()).every(sample => sample === 0));
 
 const timedMixer = new ayModule.GeneratedAy8910Mixer(1_789_772, 1, 48_000);
 const frameRenderer = new ayModule.GeneratedAy8910FrameRenderer(timedMixer, 48_000, 60);
@@ -373,27 +405,42 @@ const timed = frameRenderer.render([
   { offset: 8, data: 0x0f, frac: 0.5 },
 ]);
 assert.equal(timed.length, 800);
-assert.ok(timed.slice(0, 400).every(sample => sample === 0));
-assert.ok(timed.slice(400).some(sample => sample !== 0));
+assert.ok(acRms([...timed.slice(200, 380)]) < 1e-6);
+assert.ok(acRms([...timed.slice(400)]) > 1e-4);
 assert.match(aySource, /write\.frac/);
 
 const dacMixer = new ayModule.GeneratedAy8910Mixer(
   1_789_772,
   1,
   48_000,
-  [],
+  [{ chip: 0, channel: 0, gain: 0, target: 'speaker' }],
   [{
     type: 'DAC_8BIT_R2R', deviceTag: 'dac', clock: 0, gain: 1,
     target: 'speaker', writeMethods: ['data_w'],
   }],
 );
 const dacRenderer = new ayModule.GeneratedAy8910FrameRenderer(dacMixer, 48_000, 60);
+const dacBaselineRenderer = new ayModule.GeneratedAy8910FrameRenderer(
+  new ayModule.GeneratedAy8910Mixer(
+    1_789_772,
+    1,
+    48_000,
+    [{ chip: 0, channel: 0, gain: 0, target: 'speaker' }],
+    [{
+      type: 'DAC_8BIT_R2R', deviceTag: 'dac', clock: 0, gain: 1,
+      target: 'speaker', writeMethods: ['data_w'],
+    }],
+  ),
+  48_000,
+  60,
+);
+const dacBaseline = dacBaselineRenderer.render([]);
 const integrated = dacRenderer.render([
   { offset: 0, data: 0, frac: 0, method: 'dac.data_w' },
   { offset: 0, data: 0xff, frac: 0.5 / 800, method: 'dac.data_w' },
 ]);
 assert.ok(
-  Math.abs(integrated[0]!) < 0.01,
+  Math.abs(integrated[0]! - dacBaseline[0]!) < 0.01,
   `sub-sample DAC writes must integrate instead of aliasing (${integrated[0]})`,
 );
 const fullReference = dacRenderer.render([

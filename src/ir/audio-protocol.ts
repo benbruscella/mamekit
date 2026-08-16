@@ -170,6 +170,8 @@ export interface GeneratedAuxiliaryAudioDevice {
     deviceTag: string;
     member?: string;
   };
+  /** Normalized voltage levels of the source DISCRETE_DAC_R1 ladder. */
+  referenceLevels?: number[];
 }
 /** Source-derived RP2A03 APU configuration carried by generated board IR. */
 export interface GeneratedNesApuPlan {

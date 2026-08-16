@@ -88,6 +88,8 @@ export interface SoundSpec {
   sampleRegion?: string;
   /** number of sound chips (ay8910: gyruss has 5) */
   chips?: number;
+  /** MAME device tags in chip-index order. */
+  deviceTags?: string[];
   /** Per-output routes lowered from MAME add_route calls. */
   routes?: GeneratedAudioRoute[];
   /** MAME discrete DAC/filter network mixed with the primary core. */
@@ -532,6 +534,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
         waveRom: cfg.sound.waveRegion ? regions[cfg.sound.waveRegion] : undefined,
         sampleRom: cfg.sound.sampleRegion ? regions[cfg.sound.sampleRegion] : undefined,
         chips: cfg.sound.chips,
+        deviceTags: cfg.sound.deviceTags,
         routes: cfg.sound.routes,
         auxiliary: cfg.sound.auxiliary,
         auxiliaryDevices: cfg.sound.auxiliaryDevices,

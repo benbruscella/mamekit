@@ -85,6 +85,7 @@ export interface AudioProbeContext {
     worklet?: string;
     clock?: number;
     chips?: number;
+    deviceTags?: string[];
     waveRegion?: string;
     sampleRegion?: string;
     routes?: unknown;

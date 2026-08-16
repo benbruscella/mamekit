@@ -23,6 +23,8 @@ export interface WorkletCoreConfig {
   readonly voices?: number;
   /** number of chip instances the worklet should host (ay8910 bank) */
   readonly chips?: number;
+  /** MAME device tags in chip-index order, used by dynamic gain writes. */
+  readonly deviceTags?: string[];
   readonly routes?: GeneratedAudioRoute[];
   readonly auxiliary?: GeneratedDacFilterPlan;
   readonly auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
@@ -108,6 +110,7 @@ export class AudioOutput {
       clock: core.clock ?? core.sampleRate,
       voices: core.voices,
       chips: core.chips,
+      deviceTags: core.deviceTags,
       routes: core.routes,
       auxiliary: core.auxiliary,
       auxiliaryDevices: core.auxiliaryDevices,

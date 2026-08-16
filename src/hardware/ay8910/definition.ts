@@ -25,7 +25,7 @@ export const AY8910_IR_ARTIFACT = 'audio/ay8910.audio.ir.json';
 export const AY8910_WORKLET_ARTIFACT = 'audio/ay8910-worklet.ts';
 export const MSM5205_IR_ARTIFACT = 'audio/msm5205.audio.ir.json';
 
-/** The AY bank runs hot against the other cores; this sits it level with them. */
+/** Default for normalized AY stream packages; compiled analog mixers override it. */
 export const AY8910_MASTER_GAIN = 0.7;
 
 export const AY8910_PORTS: readonly PortDeclaration[] = [

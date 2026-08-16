@@ -24,6 +24,7 @@ import type {
 import { compileMameVideo, effectiveGfxDecodes } from '../mame/video-compiler.ts';
 import {
   compileDiscreteDacAttenuator,
+  compileDiscreteDacReferenceLevels,
   compileDiscreteEffects,
   compileDiscreteMixer,
   compileMameSpeakerFilter,
@@ -690,7 +691,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     graph,
     ayChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
   );
-  const auxiliaryAudioDevices = lowerAuxiliaryAudioDevices(
+  let auxiliaryAudioDevices = lowerAuxiliaryAudioDevices(
     graph,
     devices.map(device => ({
       id: device.id,
@@ -702,6 +703,19 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       ...(typeof device.props.clock === 'number' ? { clock: device.props.clock } : {}),
     })),
   );
+  auxiliaryAudioDevices = auxiliaryAudioDevices.map(device => {
+    const referenceTag = device.referenceControl?.deviceTag;
+    if (!referenceTag) return device;
+    const referenceDevice = devices.find(candidate => candidate.props.tag === referenceTag);
+    const config = Array.isArray(referenceDevice?.props.config)
+      ? referenceDevice.props.config.map(String).join('\n')
+      : '';
+    const netlist = /\bDISCRETE\s*\([^,]+,[^,]+,\s*(\w+)\s*\)/.exec(config)?.[1];
+    const referenceLevels = netlist
+      ? compileDiscreteDacReferenceLevels(opts.mameSrc, String(graph.meta.driverFile), netlist)
+      : undefined;
+    return referenceLevels ? { ...device, referenceLevels } : device;
+  });
   const ymChips = devices.filter(d =>
     d.props.type === 'YM2203' || d.props.type === 'YM2610');
   const ym2610SampleRegion = g.out(romset.id, 'HAS_REGION')
@@ -785,6 +799,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             kind: 'ay8910',
             clock: Number(ayChips[0].props.clock),
             chips: ayChips.length,
+            deviceTags: ayChips.map(chip => String(chip.props.tag)),
             ...(ayRoutes.length ? { routes: ayRoutes } : {}),
             ...(auxiliaryAudioDevices.length
               ? { auxiliaryDevices: auxiliaryAudioDevices }
@@ -851,7 +866,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     graph,
     poleposWsgDevices.map(device => ({ id: device.id, tag: String(device.props.tag) })),
   )[0]?.gain;
-  const soundGain = routedWsgGain !== undefined
+  const soundGain = sound.kind === 'ay8910' && auxiliaryAudioDevices.some(device =>
+    (device.referenceLevels?.length ?? 0) > 0)
+    ? 1
+    : routedWsgGain !== undefined
     ? routedWsgGain
     : devices
     .map(device => capabilityForType(HARDWARE_CAPABILITIES, String(device.props.type)))

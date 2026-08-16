@@ -979,6 +979,8 @@ export interface GeneratedAy8910Plan {
   noiseTaps: [number, number];
   readMasks: number[];
   volumeTable: number[];
+  /** Compatibility curve for stream packages not yet lowered as analog nets. */
+  legacyVolumeTable: number[];
   /** AY outputs tied together through their real shared resistor load. */
   singleOutput: {
     rDown: number;
@@ -1763,6 +1765,34 @@ function resistorTable(source: string, name: string): number[] {
     .filter(Number.isFinite);
 }
 
+/**
+ * Compile the passive DISCRETE_DAC_R1 ladder used as a DAC's moving voltage
+ * reference. The ladder output is a Millman sum, not `data / 255`; imperfect
+ * real resistor values are intentionally audible as the sample volume moves.
+ */
+export function compileDiscreteDacReferenceLevels(
+  mameSrc: string,
+  driverFile: string,
+  netlist: string,
+): number[] | undefined {
+  const source = readFileSync(join(mameSrc, driverFile), 'utf8');
+  const body = discreteSoundBody(source, netlist);
+  const dac = callArgs(body, 'DISCRETE_DAC_R1')[0];
+  const descriptor = symbolName(dac?.at(-1));
+  if (!dac || !descriptor) return undefined;
+  const values = structValues(source, descriptor);
+  const bitCount = Math.round(values.scalars[0] ?? 0);
+  const resistors = values.firstArray.slice(0, bitCount).map(analogValue);
+  if (
+    bitCount < 2 || bitCount > 12 || resistors.length !== bitCount ||
+    resistors.some(value => !Number.isFinite(value) || value <= 0)
+  ) return undefined;
+  const conductance = resistors.reduce((sum, resistance) => sum + 1 / resistance, 0);
+  return Array.from({ length: 1 << bitCount }, (_, data) =>
+    resistors.reduce((sum, resistance, bit) =>
+      sum + ((data >> bit) & 1) / resistance, 0) / conductance);
+}
+
 function discreteVoiceModel(body: string): GeneratedDiscreteAudioVoice['model'] {
   if (body.includes('DISCRETE_COMP_ADDER') && body.includes('DISCRETE_555_ASTABLE')) {
     return 'parallel-555';
@@ -1839,8 +1869,14 @@ export function compileAy8910(
   });
   const minimum = Math.min(...raw);
   const maximum = Math.max(...raw);
-  const volumeTable = raw.map(value =>
+  const legacyVolumeTable = raw.map(value =>
     (((value - minimum) / (maximum - minimum)) - 0.25) * 0.5);
+  // MAME only normalizes this table for AY8910_LEGACY_OUTPUT. Normal AY
+  // devices expose the resistor network's unipolar voltage, and the speaker's
+  // AC coupling removes its DC component later. Normalizing/bipolarizing here
+  // makes separately routed channels over four times louder than tied-output
+  // chips and changes their balance against a routed DAC.
+  const volumeTable = raw;
   return {
     schemaVersion: 1,
     type: 'AY8910',
@@ -1853,6 +1889,7 @@ export function compileAy8910(
     noiseTaps: [Number(noise[1]), Number(noise[2])],
     readMasks: splitMameArgs(masks[1]!).map(value => Number(value)),
     volumeTable,
+    legacyVolumeTable,
     singleOutput: {
       rDown,
       rUp,
@@ -2540,6 +2577,8 @@ export interface GeneratedAuxiliaryAudioDevice {
   targetInput?: number;
   writeMethods: string[];
   referenceControl?: { deviceTag: string; member?: string };
+  /** Normalized levels of a DISCRETE_DAC_R1 reference-voltage ladder. */
+  referenceLevels?: number[];
 }
 
 interface GeneratedFilterState {
@@ -2607,7 +2646,7 @@ export class GeneratedAy8910Core {
     return this.regs[reg] & plan.readMasks[reg];
   }
 
-  sampleChannels(output: number[]): void {
+  sampleChannels(output: number[], analogOutputs = true): void {
     for (let channel = 0; channel < plan.channels; channel++) {
       if (++this.toneCount[channel] >= this.tonePeriod[channel]) {
         this.toneCount[channel] = 0;
@@ -2652,8 +2691,12 @@ export class GeneratedAy8910Core {
       const envelopeEnabled = (volume & 0x10) !== 0;
       const level = envelopeEnabled ? envelope : volume & 0x0f;
       const gate = toneGate & noiseGate;
-      const amplitude = plan.volumeTable[level] - plan.volumeTable[0];
-      output[channel] = gate ? amplitude : -amplitude;
+      if (analogOutputs) {
+        output[channel] = plan.volumeTable[gate ? level : 0];
+      } else {
+        const amplitude = plan.legacyVolumeTable[level] - plan.legacyVolumeTable[0];
+        output[channel] = gate ? amplitude : -amplitude;
+      }
 
       // MAME's AY8910_SINGLE_OUTPUT does not average three independent
       // streams: the physical pins share one resistor load. Reproduce its
@@ -2762,16 +2805,20 @@ export class GeneratedDac8Core {
   private sampleCursor = 0;
   private sampleIntegral = 0;
   private integrating = false;
+  private readonly referenceLevels?: number[];
 
-  constructor(bits = 8) {
+  constructor(bits = 8, referenceLevels?: number[]) {
     this.mask = (1 << bits) - 1;
     this.midpoint = 1 << (bits - 1);
     this.value = this.midpoint;
+    this.referenceLevels = referenceLevels;
   }
 
   write(method: string, data: number): void {
     if (method === 'data_w' || method === 'write') this.value = data & this.mask;
-    else if (method === 'reference_w') this.reference = (data & 0xff) / 0xff;
+    else if (method === 'reference_w') {
+      this.reference = this.referenceLevels?.[data & 0xff] ?? (data & 0xff) / 0xff;
+    }
   }
 
   beginSample(): void {
@@ -2814,10 +2861,13 @@ export class GeneratedAy8910Mixer {
   private readonly singleAntialias2: number[];
   private readonly routes: GeneratedAyRoute[];
   private readonly filters: GeneratedFilterState[];
+  private readonly outputGains: number[][];
+  private readonly sourceAnalogMix: boolean;
   private readonly gainTotal: number;
   private readonly auxiliary: {
     deviceTag: string;
     gain: number;
+    outputGain: number;
     core: GeneratedMsm5205Core | GeneratedDac8Core;
   }[];
   private readonly auxiliaryWrites = new Map<string, {
@@ -2830,6 +2880,7 @@ export class GeneratedAy8910Mixer {
   private readonly discreteValues = new Map<number, number>();
   private readonly discreteFilterMemory = new Map<number, number>();
   private readonly outputRate: number;
+  private readonly deviceTags: string[];
   private muted = false;
 
   constructor(
@@ -2839,8 +2890,10 @@ export class GeneratedAy8910Mixer {
     routes: GeneratedAyRoute[] = [],
     auxiliaryDevices: GeneratedAuxiliaryAudioDevice[] = [],
     discreteMixer?: GeneratedDiscreteMixerPlanData,
+    deviceTags: string[] = [],
   ) {
     this.outputRate = outputRate;
+    this.deviceTags = deviceTags;
     const count = Math.max(1, chips);
     this.cores = Array.from({ length: count }, () => new GeneratedAy8910Core(clock));
     this.phases = this.cores.map(() => 0);
@@ -2866,6 +2919,13 @@ export class GeneratedAy8910Mixer {
             gain: 1,
             target: 'mono',
           })));
+    this.outputGains = this.cores.map(() => [1, 1, 1]);
+    // Taito SJ's AY bank and moving-reference DAC are one explicit analog
+    // mixer. Preserve source voltages for that topology; other generated AY
+    // packages retain their established normalized stream protocol until
+    // their downstream netlists are compiled to the same level of fidelity.
+    this.sourceAnalogMix = auxiliaryDevices.some(device =>
+      (device.referenceLevels?.length ?? 0) > 0);
     const filterCount = this.routes.reduce(
       (maximum, route) => Math.max(maximum, (route.filter?.index ?? -1) + 1),
       0,
@@ -2883,19 +2943,25 @@ export class GeneratedAy8910Mixer {
     this.auxiliary = auxiliaryDevices.flatMap<{
       deviceTag: string;
       gain: number;
+      outputGain: number;
       core: GeneratedMsm5205Core | GeneratedDac8Core;
     }>(device =>
       device.type === 'MSM5205' && msmPlan
         ? [{
             deviceTag: device.deviceTag,
             gain: device.gain,
+            outputGain: 1,
             core: new GeneratedMsm5205Core(device.initialMode),
           }]
         : device.type === 'DAC_4BIT_R2R' || device.type === 'DAC_8BIT_R2R'
           ? [{
               deviceTag: device.deviceTag,
               gain: device.gain,
-              core: new GeneratedDac8Core(device.type === 'DAC_4BIT_R2R' ? 4 : 8),
+              outputGain: 1,
+              core: new GeneratedDac8Core(
+                device.type === 'DAC_4BIT_R2R' ? 4 : 8,
+                device.referenceLevels,
+              ),
             }]
           : []);
     for (const device of this.auxiliary) {
@@ -2933,6 +2999,20 @@ export class GeneratedAy8910Mixer {
     const auxiliaryWrite = this.auxiliaryWrites.get(method ?? '');
     if (auxiliaryWrite) {
       auxiliaryWrite.core.write(auxiliaryWrite.method, data);
+      return;
+    }
+    const gainWrite = /^(.+)\.set_output_gain$/.exec(method ?? '');
+    if (gainWrite) {
+      const gain = Math.max(0, Math.min(1, data / 0xff));
+      const auxiliary = this.auxiliary.find(device => device.deviceTag === gainWrite[1]);
+      if (auxiliary) {
+        auxiliary.outputGain = gain;
+        return;
+      }
+      const chip = this.deviceTags.indexOf(gainWrite[1]!);
+      if (chip >= 0 && this.outputGains[chip]) {
+        this.outputGains[chip]![Math.max(0, Math.min(2, offset))] = gain;
+      }
       return;
     }
     if (offset < 0) {
@@ -2989,7 +3069,7 @@ export class GeneratedAy8910Mixer {
       this.phases[chip]! += core.nativeRate / this.outputRate;
       while (this.phases[chip]! >= 1) {
         this.phases[chip]! -= 1;
-        core.sampleChannels(native);
+        core.sampleChannels(native, this.sourceAnalogMix);
         for (let channel = 0; channel < plan.channels; channel++) {
           lowpass1[channel]! += (native[channel]! - lowpass1[channel]!) * k;
           lowpass2[channel]! += (lowpass1[channel]! - lowpass2[channel]!) * k;
@@ -3017,13 +3097,18 @@ export class GeneratedAy8910Mixer {
         ? this.singleSamples[route.chip] ?? 0
         : samples?.[route.channel] ?? 0;
       if (route.filter) value = this.filter(value, this.filters[route.filter.index]);
-      mixed += value * route.gain;
+      const output = route.channel === -1 ? 0 : route.channel;
+      mixed += value * route.gain * (this.outputGains[route.chip]?.[output] ?? 1);
     }
-    for (const device of this.auxiliary) mixed += device.core.sample() * device.gain;
-    return Math.max(
-      -1,
-      Math.min(1, mixed / (this.gainTotal + this.auxiliaryGainTotal)),
-    );
+    for (const device of this.auxiliary) {
+      mixed += device.core.sample() * device.gain * device.outputGain;
+    }
+    // A fully source-compiled analog mixer uses MAME's physical add_route
+    // gains. Legacy stream packages retain their established weighted mix.
+    const output = this.sourceAnalogMix
+      ? mixed
+      : mixed / (this.gainTotal + this.auxiliaryGainTotal);
+    return Math.max(-1, Math.min(1, output));
   }
 
   private sampleDiscreteMixer(): number {
@@ -3209,6 +3294,7 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
         type: string;
         clock?: number;
         chips?: number;
+        deviceTags?: string[];
         routes?: GeneratedAyRoute[];
         auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
         discreteMixer?: GeneratedDiscreteMixerPlanData;
@@ -3226,6 +3312,7 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
           message.routes,
           message.auxiliaryDevices,
           message.discreteMixer,
+          message.deviceTags,
         );
         this.renderer = new GeneratedAy8910FrameRenderer(
           this.mixer,
