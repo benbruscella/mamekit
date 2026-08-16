@@ -1637,11 +1637,16 @@ function compileNamedPalette(
         const foldedBanks: GeneratedPromPalettePlan['banks'] = [];
         for (const sourceBase of [0, high]) {
           for (let index = 0; index < banks.length; index++) {
+            const lookupTerms = banks[index]!.lookupTerms?.map(term => ({
+              ...term,
+              offset: term.offset + sourceBase,
+            }));
             foldedBanks.push({
               ...banks[index]!,
               penOffset: sourceBase + penDeltas[index]!,
               lookupOffset: lookupBase + sourceBase,
               lookupCount: count,
+              ...(lookupTerms ? { lookupTerms } : {}),
             });
           }
         }
@@ -2244,11 +2249,16 @@ function compilePalette(
       const foldedBanks: GeneratedPromPalettePlan['banks'] = [];
       for (const sourceBase of [0, high]) {
         for (let index = 0; index < banks.length; index++) {
+          const lookupTerms = banks[index]!.lookupTerms?.map(term => ({
+            ...term,
+            offset: term.offset + sourceBase,
+          }));
           foldedBanks.push({
             ...banks[index]!,
             penOffset: sourceBase + penDeltas[index]!,
             lookupOffset: lookupBase + sourceBase,
             lookupCount: count,
+            ...(lookupTerms ? { lookupTerms } : {}),
           });
         }
       }
@@ -3316,9 +3326,26 @@ function compilePaletteLookupTerms(
     const pointerAdvance = [...body.slice(0, before).matchAll(
       new RegExp(`\\b${match[1]}\\s*\\+=\\s*([^;]+);`, 'g'),
     )].reduce((total, advance) => total + expressionNumber(advance[1], constants), 0);
+    // A palette loop commonly consumes its PROM pointer one byte at a time
+    // (`color_prom++`) before a later lookup-table loop indexes that same
+    // pointer.  The compact bank offset already accounts for those consumed
+    // bytes; explicit lookup terms must do the same or they take precedence
+    // at runtime and incorrectly read from the start of the color PROM.
+    // Bank Panic is the canonical two-layer case: its lookup tables begin at
+    // 0x20/0x120, and reading offset zero makes one layer transparent while
+    // mapping the other to a solid pink field.
+    const pointerPostIncrement = numericForLoops(body)
+      .filter(loop => loop.sourceOffset < before)
+      .reduce((total, loop) => {
+        const increments = [
+          ...loop.body.matchAll(new RegExp(`\\b${match![1]}\\s*\\+\\+`, 'g')),
+          ...loop.body.matchAll(new RegExp(`\\+\\+\\s*${match![1]}\\b`, 'g')),
+        ].length;
+        return total + increments * Math.max(0, loop.end - loop.start);
+      }, 0);
     terms.push({
       region,
-      offset: pointerAdvance + paletteExpressionAt(
+      offset: pointerAdvance + pointerPostIncrement + paletteExpressionAt(
         match[2]!, index, body, before, constants,
       ),
       mask: expressionNumber(operation?.[1] ?? '0xff'),
