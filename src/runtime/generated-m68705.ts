@@ -98,6 +98,15 @@ export class GeneratedM68705P5Device implements Device {
     if (name === 'm_pc' || name === 'PC') return this.pc;
     if (name === 'm_s' || name === 'SP') return this.sp;
     if (name === 'm_cc' || name === 'CC') return this.cc;
+    const port = /^(?:LATCH|DDR)([ABC])$/.exec(name);
+    if (port) {
+      const index = port[1]!.charCodeAt(0) - 65;
+      return name.startsWith('LATCH')
+        ? this.portLatch[index] ?? 0xff
+        : this.portDdr[index] ?? 0;
+    }
+    if (name === 'TDR') return this.timerData;
+    if (name === 'TCR') return this.timerControl;
     if (name === 'm_state') return this.pc;
     return 0;
   }
@@ -109,6 +118,26 @@ export class GeneratedM68705P5Device implements Device {
     else if (name === 'm_pc' || name === 'PC') this.pc = value & 0x7ff;
     else if (name === 'm_s' || name === 'SP') this.sp = this.adjustSp(value);
     else if (name === 'm_cc' || name === 'CC') this.cc = value & 0xff;
+    else {
+      const port = /^(?:LATCH|DDR)([ABC])$/.exec(name);
+      if (port) {
+        const index = port[1]!.charCodeAt(0) - 65;
+        if (name.startsWith('LATCH')) {
+          this.portLatch[index] = value & (index === 2 ? 0x0f : 0xff);
+        } else {
+          this.portDdr[index] = value & (index === 2 ? 0x0f : 0xff);
+        }
+      } else if (name === 'TDR') {
+        this.timerData = value & 0xff;
+      } else if (name === 'TCR') {
+        this.timerControl = value & 0xff;
+        this.timerDivisor = value & 7;
+        this.timerSource = (value & 0x30) >>> 4;
+        this.timerIrq = Boolean(
+          (this.timerControl & 0x80) && !(this.timerControl & 0x40),
+        );
+      }
+    }
   }
 
   constant(name: string): number | undefined {
@@ -175,7 +204,15 @@ export class GeneratedM68705P5Device implements Device {
         continue;
       }
       if (this.waiting) {
-        used++;
+        // WAIT consumes no instructions until an interrupt wakes the core.
+        // Advancing one idle cycle per JavaScript loop made protection MCUs
+        // spend almost all host time counting clocks while their parent CPU
+        // was doing the useful work. Timer state still advances by the exact
+        // elapsed cycle count; a newly pending timer interrupt is serviced at
+        // the next scheduler boundary, like an externally asserted IRQ.
+        const idle = target - used;
+        this.tickTimer(idle);
+        used += idle;
         continue;
       }
       const op = this.fetch();

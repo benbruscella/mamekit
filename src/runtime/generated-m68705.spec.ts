@@ -23,5 +23,13 @@ assert.equal(portC, 0x05, 'port C output callback receives the driven latch');
 assert.equal(device.get('A'), 0x5a, 'port B input callback supplies the MCU read');
 assert.ok(device.signalNames().includes('portb_r'));
 assert.ok(device.signalNames().includes('portc_w'));
+device.set('LATCHA', 0x117);
+device.set('DDRC', 0xff);
+device.set('TDR', 0x93);
+device.set('TCR', 0x07);
+assert.equal(device.get('LATCHA'), 0x17, 'port-latch state is restorable');
+assert.equal(device.get('DDRC'), 0x0f, 'port C DDR keeps its physical width');
+assert.equal(device.get('TDR'), 0x93, 'timer data state is restorable');
+assert.equal(device.get('TCR'), 0x07, 'timer control state is restorable');
 
-console.log('generated-m68705.spec: 4 passed, 0 failed');
+console.log('generated-m68705.spec: 8 passed, 0 failed');

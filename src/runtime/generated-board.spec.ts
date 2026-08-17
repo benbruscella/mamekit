@@ -15,6 +15,7 @@ import {
   generatedPromGateOpen,
   generatedSignalHandlerArguments,
   usesProtectionProtocolBridge,
+  taitoSjSecurityMcuResponse,
 } from './generated-board.ts';
 import type { BoundEffect } from './generated-effects.ts';
 import { registerGeneratedCpu } from './generated-cpu.ts';
@@ -280,6 +281,18 @@ assert.equal(
   }, 'mcu:mcu'),
   true,
   'known Taito protection interfaces use their bounded source protocol bridge',
+);
+assert.equal(taitoSjSecurityMcuResponse(0x52), 0x17);
+assert.equal(taitoSjSecurityMcuResponse(0x69), 0x69);
+assert.equal(
+  usesProtectionProtocolBridge({
+    ...compositeMachine,
+    devices: [{ id: 'parent', tag: 'mcu', type: 'TAITO_SJ_SECURITY_MCU' }, {
+      id: 'child', tag: 'mcu:mcu', hostTag: 'mcu', type: 'M68705P5',
+    }],
+  }, 'mcu:mcu'),
+  true,
+  'the Taito SJ interface services its dumped firmware on host exchanges',
 );
 driverCalls.flip_screen_set!(1);
 assert.equal(driverCalls.flip_screen!(), 1);
