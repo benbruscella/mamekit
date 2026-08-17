@@ -158,7 +158,7 @@ class GeneratedDacProcessor extends AudioWorkletProcessor {
         );
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 8) this.frames.shift();
+        while (this.frames.length > 1) this.frames.shift();
       }
     };
   }

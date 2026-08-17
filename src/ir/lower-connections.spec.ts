@@ -184,6 +184,25 @@ check('a hosted processor callback retains its scoped device owner', () => {
   );
 });
 
+check('a composite sound callback retains the shared board handler state', () => {
+  assert.deepEqual(
+    lowerCallbackEffect(
+      callback({
+        ownerTag: 'iremsound',
+        targetClass: 'm62_audio_device',
+        targetMethod: 'm6803_port1_w',
+      }),
+      {
+        ...context,
+        deviceTags: new Set([...context.deviceTags, 'irem_audio:iremsound']),
+        handlerKeys: new Set([...context.handlerKeys, 'm62_audio_device.m6803_port1_w']),
+        soundTag: 'irem_audio:ay_45m',
+      },
+    ),
+    { kind: 'handler', handler: 'm62_audio_device.m6803_port1_w' },
+  );
+});
+
 check('flip_screen helpers lower to video controls', () => {
   assert.deepEqual(
     effect({ targetClass: 'fixture_state', targetMethod: 'flip_screen_set' }),

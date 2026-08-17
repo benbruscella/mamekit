@@ -261,12 +261,22 @@ export function lowerCallbackEffect(
     const key = `${callback.targetClass}.${callback.targetMethod}`;
     if (context.handlerKeys.has(key)) {
       const ownerTag = resolveScopedTag(context.deviceTags, callback.ownerTag);
+      const soundHost = context.soundTag?.includes(':')
+        ? context.soundTag.split(':').slice(0, -1).join(':')
+        : undefined;
+      const insideCompositeSoundDevice = soundHost !== undefined &&
+        (ownerTag === soundHost || ownerTag?.startsWith(`${soundHost}:`) === true);
       return {
         kind: 'handler',
         handler: key,
         // A nested owner is a hosted processor callback. Carry its tag so the
         // runtime can route FUNC(parent::method) to the generated host device.
-        ...(ownerTag?.includes(':') ? { deviceTag: ownerTag } : {}),
+        // Composite audio devices already share the board sound-handler state;
+        // rerouting their CPU/PSG callbacks into a second AOT device instance
+        // broke Irem M62's proven port/latch sequence and silenced Kung-Fu.
+        ...(ownerTag?.includes(':') && !insideCompositeSoundDevice
+          ? { deviceTag: ownerTag }
+          : {}),
       };
     }
   }

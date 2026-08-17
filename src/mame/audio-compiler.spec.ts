@@ -77,6 +77,7 @@ interface WorkletHarness {
   process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean;
 }
 let registeredWsgProcessor: (new () => WorkletHarness) | undefined;
+let registeredAyProcessor: (new () => WorkletHarness) | undefined;
 globals.AudioWorkletProcessor = class {
   readonly port = { onmessage: null };
 };
@@ -86,6 +87,7 @@ globals.registerProcessor = (
   processor: new () => WorkletHarness,
 ) => {
   if (name === 'wsg') registeredWsgProcessor = processor;
+  if (name === 'ay8910') registeredAyProcessor = processor;
 };
 const module = await import(
   `data:text/javascript;base64,${Buffer.from(javaScript).toString('base64')}`
@@ -408,6 +410,31 @@ assert.equal(timed.length, 800);
 assert.ok(acRms([...timed.slice(200, 380)]) < 1e-6);
 assert.ok(acRms([...timed.slice(400)]) > 1e-4);
 assert.match(aySource, /write\.frac/);
+
+// A browser animation-frame catch-up can deliver several complete audio
+// batches at once. Rendering each batch must advance chip state, but playing
+// every stale PCM frame would turn that brief stall into permanent latency.
+assert.ok(registeredAyProcessor);
+const queuedAy = new registeredAyProcessor();
+queuedAy.port.onmessage?.({ data: {
+  type: 'init', clock: 1_789_772, chips: 1, refresh: 60,
+} });
+queuedAy.port.onmessage?.({ data: { type: 'batch', writes: [
+  { offset: 0, data: 16, frac: 0 },
+  { offset: 7, data: 0x3f, frac: 0 },
+  { offset: 8, data: 0, frac: 0 },
+] } });
+queuedAy.port.onmessage?.({ data: { type: 'batch', writes: [
+  { offset: 7, data: 0x3e, frac: 0 },
+  { offset: 8, data: 0x0f, frac: 0 },
+] } });
+queuedAy.port.onmessage?.({ data: { type: 'batch', writes: [] } });
+const freshAudio = new Float32Array(256);
+queuedAy.process([], [[freshAudio]]);
+assert.ok(
+  acRms([...freshAudio]) > 1e-4,
+  'the worklet must discard stale silent PCM and play the newest queued frame',
+);
 
 const dacMixer = new ayModule.GeneratedAy8910Mixer(
   1_789_772,

@@ -2480,7 +2480,10 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
         this.core?.write(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 8) this.frames.shift();
+        // Rendering advances the chip state immediately, so queued PCM older
+        // than the next frame is obsolete. Keeping it after a main-thread
+        // catch-up burst turns a transient stall into permanent A/V latency.
+        while (this.frames.length > 1) this.frames.shift();
       }
     };
   }
@@ -3324,7 +3327,10 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
       } else if (message.type === 'batch') {
         if (this.renderer) {
           this.frames.push(this.renderer.render(message.writes ?? []));
-          while (this.frames.length > 8) this.frames.shift();
+          // Keep only the next frame of PCM. The renderer has already advanced
+          // chip state through every batch, so older queued frames only add
+          // permanent latency after a main-thread catch-up burst.
+          while (this.frames.length > 1) this.frames.shift();
         }
       }
     };
@@ -3631,7 +3637,7 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
         this.core?.write(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 8) this.frames.shift();
+        while (this.frames.length > 1) this.frames.shift();
       }
     };
   }
@@ -4080,7 +4086,7 @@ class GeneratedNamcoWsgProcessor extends AudioWorkletProcessor {
         this.apply(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 8) this.frames.shift();
+        while (this.frames.length > 1) this.frames.shift();
       }
     };
   }

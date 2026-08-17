@@ -466,7 +466,7 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
         this.core?.write(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 8) this.frames.shift();
+        while (this.frames.length > 1) this.frames.shift();
       }
     };
   }
