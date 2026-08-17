@@ -2064,7 +2064,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     this.palette = this.palettes.get('m_palette') ?? this.palettes.values().next().value;
     const indexed = isIndexedScreen(machine);
     this.gfx = (machine.video?.gfx ?? []).map(entry => {
-      const region = regions[entry.region];
+      const stateRegion = state[`m_${entry.region.replace(/[^A-Za-z0-9_]/g, '_')}`];
+      const region = entry.ram && ArrayBuffer.isView(stateRegion)
+        ? stateRegion as Uint8Array
+        : regions[entry.region] ?? (
+          ArrayBuffer.isView(stateRegion) ? stateRegion as Uint8Array : undefined
+        );
       if (!region) throw new Error(`${machine.game}: missing gfx region "${entry.region}"`);
       const palette = entry.paletteMember
         ? this.palettes.get(entry.paletteMember)
@@ -2568,9 +2573,18 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         ? maximum / Math.max(Number.EPSILON, maximumOutput)
         : requestedScale;
       for (const network of networks) {
+        const scaled = network.weights.map(value => value * scale);
+        // MAME writes the computed values into the caller-owned weight array.
+        // Keeping them only in the WeakMap made later handler invocations lose
+        // the table when the IR evaluator materialised a fresh pointer wrapper
+        // for the same array (Gottlieb's dynamic palette is one such path).
+        const output = network.output as Record<number, number>;
+        for (let index = 0; index < scaled.length; index++) {
+          output[index] = scaled[index]!;
+        }
         resistorWeightTables.set(
           network.output,
-          network.weights.map(value => value * scale),
+          scaled,
         );
       }
       return scale;

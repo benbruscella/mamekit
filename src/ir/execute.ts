@@ -920,10 +920,15 @@ function evaluateCall(
     if (name === 'sin') return Math.sin(toNumber(args[0]));
     if (name === 'DEGREE_TO_RADIAN') return toNumber(args[0]) * Math.PI / 180;
     if (name === 'rgb_t') {
-      const red = toNumber(args[0]) & 0xff;
-      const green = toNumber(args[1]) & 0xff;
-      const blue = toNumber(args[2]) & 0xff;
-      return (0xff000000 | blue << 16 | green << 8 | red) >>> 0;
+      // rgb_t has both (r, g, b) and (a, r, g, b) constructors.  Treating
+      // the four-argument form as RGB made alpha become red and discarded
+      // blue, flattening Gottlieb games to a single yellow field.
+      const offset = args.length >= 4 ? 1 : 0;
+      const alpha = args.length >= 4 ? toNumber(args[0]) & 0xff : 0xff;
+      const red = toNumber(args[offset]) & 0xff;
+      const green = toNumber(args[offset + 1]) & 0xff;
+      const blue = toNumber(args[offset + 2]) & 0xff;
+      return (alpha << 24 | blue << 16 | green << 8 | red) >>> 0;
     }
     const paletteExpansion = /^pal([1-8])bit$/.exec(name);
     if (paletteExpansion) {

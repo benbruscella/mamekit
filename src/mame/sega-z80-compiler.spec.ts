@@ -4,7 +4,7 @@ import { compileSegaZ80RomTransform } from './sega-z80-compiler.ts';
 import { applyRomTransforms } from '../runtime/shell.ts';
 import type { Regions } from '../runtime/types.ts';
 
-const mameSrc = join(import.meta.dirname, '../../../mame');
+const mameSrc = process.env.MAME_SRC ?? join(import.meta.dirname, '../../../mame');
 const old = compileSegaZ80RomTransform(
   mameSrc, 'SEGA_315_5098', 'maincpu', 'decrypted_opcodes',
 );

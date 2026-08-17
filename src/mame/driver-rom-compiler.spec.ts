@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { compileDriverRomTransforms } from './driver-rom-compiler.ts';
 import { applyRomTransforms } from '../runtime/shell.ts';
 
-const mameSrc = join(import.meta.dirname, '../../../mame');
+const mameSrc = process.env.MAME_SRC ?? join(import.meta.dirname, '../../../mame');
 const transforms = compileDriverRomTransforms(
   mameSrc,
   'src/mame/nintendo/popeye.cpp',

@@ -28,6 +28,8 @@ export interface RomLoad {
   groupSize?: number;
   skip?: number;
   reverse?: boolean;
+  /** Merge the source's low nibble into the low or high destination nibble. */
+  nibbleShift?: 0 | 4;
 }
 export interface RomRegionSpec {
   region: string;
@@ -614,7 +616,7 @@ function copyRomLoad(
 ): void {
   const group = load.groupSize ?? 1;
   const skip = load.skip ?? 0;
-  if (group === 1 && skip === 0 && !load.reverse) {
+  if (group === 1 && skip === 0 && !load.reverse && load.nibbleShift === undefined) {
     destination.set(source.subarray(sourceOffset, sourceOffset + size), destinationOffset);
     return;
   }
@@ -625,7 +627,17 @@ function copyRomLoad(
     const count = Math.min(group, end - input);
     for (let index = 0; index < count; index++) {
       const sourceIndex = load.reverse ? input + count - 1 - index : input + index;
-      if (output + index < destination.length) destination[output + index] = source[sourceIndex]!;
+      if (output + index < destination.length) {
+        const sourceByte = source[sourceIndex]!;
+        if (load.nibbleShift === undefined) {
+          destination[output + index] = sourceByte;
+        } else {
+          const mask = 0x0f << load.nibbleShift;
+          destination[output + index] =
+            (destination[output + index]! & ~mask) |
+            ((sourceByte & 0x0f) << load.nibbleShift);
+        }
+      }
     }
     input += count;
     output += group + skip;

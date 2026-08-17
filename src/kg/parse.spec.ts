@@ -10,6 +10,7 @@ import {
   parseAddressMaps,
   parseDefines,
   parseGames,
+  parseGfxDecodes,
   parseGfxLayouts,
   parseInitRomTransforms,
   parseInputPorts,
@@ -34,6 +35,22 @@ function eq(label: string, actual: unknown, expected: unknown): void {
     console.log(`  FAIL ${label}: got ${a}, want ${e}`);
   }
 }
+
+eq('RAM graphics entries retain their live-memory source and table order',
+  parseGfxDecodes(`
+GFXDECODE_START( gfxdecode )
+  GFXDECODE_RAM( "charram", 0, packed, 0, 1 )
+  GFXDECODE_ENTRY( "tiles", 0, packed, 0, 1 )
+GFXDECODE_END
+  `), [{
+    name: 'gfxdecode',
+    entries: [
+      { region: 'charram', offset: 0, layout: 'packed', colorBase: 0,
+        colorCount: 1, ram: true, xscale: 1, yscale: 1 },
+      { region: 'tiles', offset: 0, layout: 'packed', colorBase: 0,
+        colorCount: 1, xscale: 1, yscale: 1 },
+    ],
+  }]);
 
 eq('driver-init address-space installs lower as executable map overrides',
   parseInstalledHandlers(`
@@ -201,6 +218,33 @@ ROM_START( board )
   ROM_FILL( 0x3800, 0x0800, 0xff )
 ROM_END
 `)[0]?.regions[0]?.fills, [{ offset: 0x3800, size: 0x0800, value: 0xff }]);
+
+eq('ROM_LOAD_NIB merges low and high palette PROM chips', parseRomSets(`
+ROM_START( palette )
+  ROM_REGION( 0x0100, "sprpal", 0 )
+  ROM_LOAD_NIB_LOW(  "low.bin",  0, 0x0100, CRC(11111111) )
+  ROM_LOAD_NIB_HIGH( "high.bin", 0, 0x0100, CRC(22222222) )
+ROM_END
+`)[0]?.regions[0]?.loads.map(load => ({ file: load.file, nibbleShift: load.nibbleShift })), [
+  { file: 'low.bin', nibbleShift: 0 },
+  { file: 'high.bin', nibbleShift: 4 },
+]);
+
+eq('ROM_LOAD16_WORD retains a contiguous 16-bit program ROM', parseRomSets(`
+ROM_START( cps1 )
+  ROM_REGION( 0x100000, "maincpu", 0 )
+  ROM_LOAD16_WORD( "program.bin", 0x80000, 0x80000, CRC(12345678) )
+ROM_END
+`)[0]?.regions[0]?.loads, [{
+  file: 'program.bin',
+  offset: 0x80000,
+  size: 0x80000,
+  crc: '12345678',
+  sha1: '',
+  reloadOffsets: [],
+  continueSegments: [],
+  groupSize: 2,
+}]);
 
 {
   const regions = parseRomSets(`

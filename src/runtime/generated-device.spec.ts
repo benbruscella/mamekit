@@ -47,6 +47,7 @@ const definition: GeneratedDeviceDefinition = {
     ),
     method('fast', 'uint8_t data', 'return 0;'),
     method('timer_remaining', '', 'return 0;'),
+    method('timer_ticks', '', 'return 0;'),
     method('seconds_from_hz', 'double frequency', 'return attotime::from_hz(frequency);'),
     method(
       'seconds_from_ticks',
@@ -61,6 +62,9 @@ const definition: GeneratedDeviceDefinition = {
     },
     timer_remaining: runtime =>
       Number((runtime.members.m_timer as { remaining(): number }).remaining()),
+    timer_ticks: runtime =>
+      (runtime.members.m_timer as { remaining(): { as_ticks(clock: number): number } })
+        .remaining().as_ticks(2_000),
   },
   start: 'device_start',
   reset: 'device_reset',
@@ -113,6 +117,8 @@ assert.ok(
   device.call('timer_remaining') < 0.011,
   'generated timer remaining() must expose the live source-compatible delay',
 );
+assert.ok(device.call('timer_ticks') >= 19 && device.call('timer_ticks') <= 20,
+  'generated timer remaining() must retain attotime::as_ticks');
 device.tick(0.02);
 assert.equal(device.get('m_count'), 3);
 assert.equal(device.get('m_reschedule_count'), 2);

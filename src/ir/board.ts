@@ -369,6 +369,8 @@ export interface GeneratedGfxLayout {
 export interface GeneratedGfxEntry {
   region: string;
   offset: number;
+  /** Decode from the live `m_<region>` share instead of immutable ROM. */
+  ram?: boolean;
   /** MAME gfxdecode device member owning this entry. */
   decodeMember?: string;
   /** MAME palette device member used by this decode entry. */

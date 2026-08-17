@@ -12,7 +12,7 @@ export const popeye = sourceTarget({
       gfx2: '38b5a50c',
       maincpu: 'ea72ef37',
       proms: '62ec4acb',
-      sprpal: '0d968558',
+      sprpal: 'fd9bfe68',
       timing: 'a4655e2e',
     },
     checkpoints: {
@@ -20,9 +20,9 @@ export const popeye = sourceTarget({
       60: { video: 'afd291bd', state: 'e6a73a05' },
       180: { video: '2039de27', state: 'bfd8b506' },
       300: { video: '2039de27', state: 'a9d0c43a' },
-      600: { video: '660952eb', state: 'f72c4d19' },
-      900: { video: 'f5202e9b', state: 'f1de02c8' },
-      1200: { video: '2a383054', state: '0e809470' },
+      600: { video: 'caaef48b', state: 'f72c4d19' },
+      900: { video: 'e90c674e', state: 'f1de02c8' },
+      1200: { video: '921fcd02', state: '0e809470' },
     },
     audio: {
       writes: 2539,

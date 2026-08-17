@@ -320,6 +320,7 @@ export function compileMameVideo(
       return {
         region: String(entry.props.region),
         offset: Number(entry.props.offset),
+        ...(entry.props.ram ? { ram: true } : {}),
         ...(binding?.decodeMember ? { decodeMember: binding.decodeMember } : {}),
         ...(binding?.paletteMember ? { paletteMember: binding.paletteMember } : {}),
         colorBase: Number(entry.props.colorBase),

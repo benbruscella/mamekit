@@ -16,12 +16,15 @@ assert.deepEqual(Object.keys(RUNTIME_CERTIFICATIONS).sort(), [
   'pooyan',
   'qbert',
   'rocnrope',
+  'simpsons',
   'sinistar',
   'spyhunt',
   'timeplt',
+  'tmnt',
   'trackfld',
   'tutankhm',
   'venture',
+  'wardner',
 ]);
 
 assert.equal(isRuntimeCertified('galaga', ['mcu:MB8843'], [], true), true);

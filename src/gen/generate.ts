@@ -1016,6 +1016,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         ...(rom.props.groupSize ? { groupSize: Number(rom.props.groupSize) } : {}),
         ...(rom.props.skip ? { skip: Number(rom.props.skip) } : {}),
         ...(rom.props.reverse ? { reverse: true } : {}),
+        ...(rom.props.nibbleShift !== undefined
+          ? { nibbleShift: Number(rom.props.nibbleShift) as 0 | 4 }
+          : {}),
         ...(rom.props.continueSegments ? {
           continueSegments: chunkTriples(rom.props.continueSegments as number[]).map(
             ([offset, size, fileOffset]) => ({ offset, size, fileOffset }),

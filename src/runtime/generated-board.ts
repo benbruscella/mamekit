@@ -397,6 +397,10 @@ class IrBoard implements Board {
               write_ctrlsel: () => 0,
             } : {}),
             machine: () => ({
+              time: () => generatedAttotime(
+                this.frameRunner?.frameCount /
+                  Math.max(1, this.machine.execution.screen.refresh) || 0,
+              ),
               root_device: () => ({
                 membank: (name: string) => this.generatedBanks[name],
               }),
@@ -601,8 +605,10 @@ class IrBoard implements Board {
       }
     }
     for (const device of this.devices.values()) {
-      device.bindCall('machine().time', () => this.frameRunner?.frameCount /
-        this.machine.execution.screen.refresh || 0);
+      device.bindCall('machine().time', () => generatedAttotime(
+        this.frameRunner?.frameCount /
+          Math.max(1, this.machine.execution.screen.refresh) || 0,
+      ));
     }
     const sourceHandlers = generatedHandlerRegistry(machine, this.bindings);
     const registry: HandlerRegistry = {
@@ -912,6 +918,10 @@ class IrBoard implements Board {
         for (const name of cpuMethods) {
           calls[`${member}.${name}`] = calls[`m_${specification.tag}.${name}`]!;
         }
+        const adapter = Object.fromEntries(cpuMethods.map(name => [
+          name,
+          calls[`m_${specification.tag}.${name}`]!,
+        ]));
         // Template-specialised handlers preserve a runtime index in source
         // (`m_subcpu[Which]->set_input_line(...)`). Static binding keys cover
         // literal indexes, but a dynamic index is evaluated through driver
@@ -923,11 +933,16 @@ class IrBoard implements Board {
           const values = Array.isArray(this.state[indexed[1]!])
             ? this.state[indexed[1]!] as unknown[]
             : [];
-          values[Number(indexed[2])] = Object.fromEntries(cpuMethods.map(name => [
-            name,
-            calls[`m_${specification.tag}.${name}`]!,
-          ]));
+          values[Number(indexed[2])] = adapter;
           this.state[indexed[1]!] = values;
+        } else {
+          // A required_device CPU finder is a live object in source, not only
+          // a qualified call spelling. Composite handlers such as
+          // timeplt_audio_device::sh_irqtrigger_w evaluate `m_soundcpu`
+          // before invoking set_input_line; materialize the same adapter used
+          // for required_device_array so that ordinary hosted CPU finders do
+          // not silently resolve to a symbolic reference.
+          this.state[member] = adapter;
         }
       }
     }
@@ -3282,6 +3297,17 @@ export function generatedPromGateOpen(
   return ArrayBuffer.isView(source) && 'length' in source
     ? Number((source as unknown as ArrayLike<number>)[state & gate.mask] ?? 0) !== 0
     : true;
+}
+
+/** Minimal numeric attotime value for compiled device source methods. */
+function generatedAttotime(seconds: number): {
+  as_ticks(frequency: number): number;
+  valueOf(): number;
+} {
+  return {
+    as_ticks: frequency => Math.floor(seconds * Math.max(0, frequency)),
+    valueOf: () => seconds,
+  };
 }
 
 /**

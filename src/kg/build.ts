@@ -242,6 +242,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         if (load.groupSize !== undefined) props.groupSize = load.groupSize;
         if (load.skip !== undefined) props.skip = load.skip;
         if (load.reverse) props.reverse = true;
+        if (load.nibbleShift !== undefined) props.nibbleShift = load.nibbleShift;
         if (load.continueSegments.length) {
           props.continueSegments = load.continueSegments.flatMap(segment => [
             segment.offset,
@@ -770,6 +771,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       g.node('GfxDecodeEntry', eid, {
         region: e.region, offset: e.offset, layout: e.layout,
         colorBase: e.colorBase, colorCount: e.colorCount,
+        ...(e.ram ? { ram: true } : {}),
         xscale: e.xscale, yscale: e.yscale,
       });
       g.edge(decId, eid, 'HAS_ENTRY');

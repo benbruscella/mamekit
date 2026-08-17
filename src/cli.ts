@@ -374,7 +374,15 @@ if (command === 'run') {
   // shared hardware closure exist. Compiling here would rebuild the same app
   // once per target against an intentionally incomplete catalog.
   const skipApp = batched || 'skip-app' in opts;
-  if (!skipApp && !buildApp(root)) process.exitCode = 1;
+  if (!skipApp) {
+    // A target generation initially writes its report before the distribution
+    // hardware manifest is consulted. Refresh reports from the existing
+    // closure before building the catalog, otherwise a known-working target
+    // is incorrectly grouped as blocked until the next full --all build.
+    const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
+    refreshRuntimeReports(root);
+    if (!buildApp(root)) process.exitCode = 1;
+  }
   // static manifest so the built tree is servable as plain files (github
   // pages); the dev server's live /games.json route shadows it locally
   if (!batched && !skipApp) {
@@ -434,7 +442,11 @@ async function pipelineFromGraph(game: string): Promise<void> {
 
   const { generate, buildApp } = await import('./gen/generate.ts');
   await generate(sub, { mameSrc, outDir, game, fullGraph });
-  if (!('skip-app' in opts) && !buildApp(outRoot)) process.exitCode = 1;
+  if (!('skip-app' in opts)) {
+    const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
+    refreshRuntimeReports(outRoot);
+    if (!buildApp(outRoot)) process.exitCode = 1;
+  }
   const { gamesManifest } = await import('./serve.ts');
   writeFileSync(join(outRoot, 'games.json'),
     await gamesManifest(outRoot, artworkDir(projectRoot)));

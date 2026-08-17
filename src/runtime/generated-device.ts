@@ -232,6 +232,23 @@ export function createDevice(type: string, options: GeneratedDeviceOptions = {})
   return new IrDevice(definition, options.clock ?? 0, options);
 }
 
+/** Numeric seconds with the attotime method surface used by compiled devices. */
+class IrAttotime {
+  private readonly seconds: number;
+
+  constructor(seconds: number) {
+    this.seconds = seconds;
+  }
+
+  as_ticks(frequency: number): number {
+    return Math.floor(this.seconds * Math.max(0, frequency));
+  }
+
+  valueOf(): number {
+    return this.seconds;
+  }
+}
+
 class IrTimer {
   private remainingSeconds = Infinity;
   private intervalSeconds = Infinity;
@@ -247,13 +264,15 @@ class IrTimer {
     this.adjustmentGeneration++;
   }
 
-  remaining(): number {
-    return this.remainingSeconds;
+  remaining(): IrAttotime {
+    return new IrAttotime(this.remainingSeconds);
   }
 
-  elapsed(): number {
-    if (!Number.isFinite(this.intervalSeconds)) return 0;
-    return Math.max(0, this.intervalSeconds - Math.max(0, this.remainingSeconds));
+  elapsed(): IrAttotime {
+    const seconds = !Number.isFinite(this.intervalSeconds)
+      ? 0
+      : Math.max(0, this.intervalSeconds - Math.max(0, this.remainingSeconds));
+    return new IrAttotime(seconds);
   }
 
   enabled(): boolean {
@@ -414,11 +433,14 @@ class IrDevice implements Device {
         DEGREE_TO_RADIAN: value => value * Math.PI / 180,
         'std::clamp': (value, minimum, maximum) =>
           Math.min(maximum, Math.max(minimum, value)),
-        rgb_t: (red, green, blue) =>
-          (0xff000000 |
-            (blue & 0xff) << 16 |
-            (green & 0xff) << 8 |
-            (red & 0xff)) >>> 0,
+        rgb_t: (...components) => {
+          const offset = components.length >= 4 ? 1 : 0;
+          const alpha = components.length >= 4 ? components[0]! & 0xff : 0xff;
+          const red = components[offset]! & 0xff;
+          const green = components[offset + 1]! & 0xff;
+          const blue = components[offset + 2]! & 0xff;
+          return (alpha << 24 | blue << 16 | green << 8 | red) >>> 0;
+        },
         copybitmap: (destination, source) => {
           copyGeneratedBitmap(destination, source);
           return 0;

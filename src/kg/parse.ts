@@ -360,6 +360,8 @@ export interface RomLoad {
   skip?: number;
   /** Reverse byte order inside each group (ROM_LOAD16_WORD_SWAP). */
   reverse?: boolean;
+  /** Merge each source byte's low nibble into this destination bit position. */
+  nibbleShift?: 0 | 4;
 }
 export interface RomRegionDef {
   tag: string; size: number; flags: string; loads: RomLoad[];
@@ -439,7 +441,7 @@ export function parseRomSets(
   while ((m = re.exec(src)) !== null) {
     const set: RomSetDef = { name: m[1], regions: [] };
     const body = maskDisabledIfZero(expandRomMacros(src, m[2]));
-    const stmtRe = /(ROM_REGION(?:16_BE|16_LE|32_BE|32_LE|64_BE|64_LE)?|ROM_LOAD(?:16_BYTE|16_WORD_SWAP|32_BYTE|32_WORD(?:_SWAP)?|64_BYTE|64_WORD(?:_SWAP)?)?|ROMX_LOAD|ROM_RELOAD|ROM_CONTINUE|ROM_IGNORE|ROM_FILL)\s*\(/g;
+    const stmtRe = /(ROM_REGION(?:16_BE|16_LE|32_BE|32_LE|64_BE|64_LE)?|ROM_LOAD(?:16_BYTE|16_WORD(?:_SWAP)?|32_BYTE|32_WORD(?:_SWAP)?|64_BYTE|64_WORD(?:_SWAP)?|_NIB_(?:LOW|HIGH))?|ROMX_LOAD|ROM_RELOAD|ROM_CONTINUE|ROM_IGNORE|ROM_FILL)\s*\(/g;
     let sm: RegExpExecArray | null;
     let region: RomRegionDef | null = null;
     let lastLoad: RomLoad | null = null;
@@ -503,6 +505,8 @@ export function parseRomSets(
           if (groupSize !== 1) lastLoad.groupSize = groupSize;
           if (skip) lastLoad.skip = skip;
           if (reverse) lastLoad.reverse = true;
+          if (statement.endsWith('_NIB_LOW')) lastLoad.nibbleShift = 0;
+          if (statement.endsWith('_NIB_HIGH')) lastLoad.nibbleShift = 4;
           region.loads.push(lastLoad);
           fileOffset = lastLoad.size;
       } else if (statement === 'ROM_RELOAD') {
@@ -1696,6 +1700,8 @@ function parseOffsetList(s: string): (number | string)[] {
 
 export interface GfxDecodeEntryDef {
   region: string; offset: number; layout: string; colorBase: number; colorCount: number;
+  /** The graphics source is a live address-map share rather than ROM. */
+  ram?: boolean;
   /** GFXDECODE_SCALE render scale (galaxian renders 3x wide); 1 for plain entries */
   xscale: number; yscale: number;
 }
@@ -1707,7 +1713,7 @@ export function parseGfxDecodes(src: string, consts: Record<string, number> = {}
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const entries: GfxDecodeEntryDef[] = [];
-    const em = m[2].matchAll(/GFXDECODE_(ENTRY|SCALE)\(\s*([^)]*)\)/g);
+    const em = m[2].matchAll(/GFXDECODE_(ENTRY|SCALE|RAM)\(\s*([^)]*)\)/g);
     for (const e of em) {
       const args = splitArgs(e[2]);
       entries.push({
@@ -1716,6 +1722,7 @@ export function parseGfxDecodes(src: string, consts: Record<string, number> = {}
         layout: args[2].trim(),
         colorBase: evalExpr(args[3], consts) ?? 0,
         colorCount: evalExpr(args[4], consts) ?? 0,
+        ...(e[1] === 'RAM' ? { ram: true } : {}),
         xscale: e[1] === 'SCALE' ? (evalExpr(args[5], consts) ?? 1) : 1,
         yscale: e[1] === 'SCALE' ? (evalExpr(args[6], consts) ?? 1) : 1,
       });

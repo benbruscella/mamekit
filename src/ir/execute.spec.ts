@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   compileGeneratedMachineHandler,
   executeGeneratedHandler,
@@ -26,6 +27,27 @@ check('a returned expression comes back as a number', () => {
     ),
     0x2a,
   );
+});
+
+check('rgb_t preserves both RGB and ARGB constructor ordering', () => {
+  const rgb = compileGeneratedMachineHandler(
+    { handlers: [], devices: [] } as unknown as BoardIr,
+    {
+      id: 'handler:fixture.rgb', ownerClass: 'fixture', method: 'rgb',
+      parameters: '', program: compileMameHandler('return rgb_t(0x34, 0x56, 0x78);'),
+    },
+    {},
+  );
+  const argb = compileGeneratedMachineHandler(
+    { handlers: [], devices: [] } as unknown as BoardIr,
+    {
+      id: 'handler:fixture.argb', ownerClass: 'fixture', method: 'argb',
+      parameters: '', program: compileMameHandler('return rgb_t(0x12, 0x34, 0x56, 0x78);'),
+    },
+    {},
+  );
+  assert.equal(rgb?.({}), 0xff785634);
+  assert.equal(argb?.({}), 0x12785634);
 });
 
 check('handler arguments are readable as locals', () => {

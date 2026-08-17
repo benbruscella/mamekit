@@ -121,6 +121,19 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
     generationGaps: ['blitter:WILLIAMS_BLITTER_SC1', 'cvsd:HC55516'],
     handlerGaps: [],
   },
+  simpsons: {
+    generationGaps: ['k052109:K052109', 'k053246:K053246', 'k053260:K053260'],
+    handlerGaps: [
+      'k052109.read',
+      'k052109.write',
+      'k053246.k053246_r',
+      'k053246.k053246_w',
+      'k053260.main_read',
+      'k053260.main_write',
+      'k053260.read',
+      'k053260.write',
+    ],
+  },
   spyhunt: {
     generationGaps: [],
     handlerGaps: [
@@ -143,6 +156,23 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
       'timeplt_audio:ay2.address_w',
       'timeplt_audio:ay2.data_r',
       'timeplt_audio:ay2.data_w',
+    ],
+  },
+  tmnt: {
+    generationGaps: [
+      'k007232:K007232',
+      'k051960:K051960',
+      'k052109:K052109',
+      'upd:UPD7759',
+    ],
+    handlerGaps: [
+      'k007232.read',
+      'k007232.write',
+      'k051960.k051937_r',
+      'k051960.k051937_w',
+      'k051960.k051960_r',
+      'k051960.k051960_w',
+      'upd.port_w',
     ],
   },
   trackfld: {
@@ -173,6 +203,10 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
       'soundbd:riot.ram_read',
       'soundbd:riot.ram_write',
     ],
+  },
+  wardner: {
+    generationGaps: ['dsp:TMS320C10', 'dsp:TOAPLAN_DSP', 'ymsnd:YM3812'],
+    handlerGaps: ['ymsnd.read', 'ymsnd.write'],
   },
 };
 

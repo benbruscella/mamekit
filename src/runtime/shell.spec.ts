@@ -95,6 +95,23 @@ const wordSwapped = assembleRegions(
 );
 assert.deepEqual([...wordSwapped.words!], [2, 1, 4, 3]);
 
+const nibbleMerged = assembleRegions(
+  [{
+    region: 'palette',
+    size: 3,
+    loads: [
+      { file: 'low.bin', offset: 0, size: 3, crc: '55bc801d', nibbleShift: 0 as const },
+      { file: 'high.bin', offset: 0, size: 3, crc: '1894c924', nibbleShift: 4 as const },
+    ],
+  }],
+  new Map([
+    ['low.bin', Uint8Array.from([1, 2, 3])],
+    ['high.bin', Uint8Array.from([10, 11, 12])],
+  ]),
+  () => {},
+);
+assert.deepEqual([...nibbleMerged.palette!], [0xa1, 0xb2, 0xc3]);
+
 const transformed = { gfx1: Uint8Array.from({ length: 32 }, (_, index) => index) };
 applyRomTransforms(transformed, [{
   kind: 'conditional-byte-swap',
