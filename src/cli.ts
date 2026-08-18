@@ -15,6 +15,19 @@ import {
   defaultGeneratorJobs,
   retryableGeneratorSignal,
 } from './gen/generator-workers.ts';
+import {
+  cacheIdentity,
+  cachingDisabled,
+  copyTree,
+  disableCaching,
+  entryTree,
+  genCacheRoot,
+  hashBytes,
+  readEntry,
+  verifyGenCache,
+  writeEntry,
+  type CacheIdentity,
+} from './gen/gen-cache.ts';
 import { buildGraph, gameSubgraph } from './kg/build.ts';
 import { toCypher } from './kg/cypher.ts';
 import { viewerHtml } from './kg/viewer.ts';
@@ -32,7 +45,8 @@ function usage(): never {
   console.error('usage: mamekit [graph|from-graph] <game> [--mame-src <path>] [--out <dir>] [--serve [port]]');
   console.error('       mamekit <game> --from-graph [graph.json]');
   console.error('       mamekit --all              generate every required target, then the app');
-  console.error('                  [--jobs <n>]   parallel target generators (default: memory-aware, max 4)');
+  console.error('                  [--jobs <n>]   parallel target generators (default: memory-aware, max 8)');
+  console.error('                  [--no-cache]   ignore .cache/ and re-derive everything from MAME source');
   console.error('       mamekit --build-runtime [--build-app] [--targets <game,...>]');
   console.error('       mamekit --serve            serve the unified app + all generated games');
   process.exit(2);
@@ -54,7 +68,8 @@ for (let i = 0; i < argv.length; i++) {
   } else if (key === 'from-graph') {
     opts[key] = next && next.endsWith('.json') ? argv[++i] : 'true';
   } else if (
-    key === 'skip-app' || key === 'build-app' || key === 'build-runtime' || key === 'all'
+    key === 'skip-app' || key === 'build-app' || key === 'build-runtime' ||
+    key === 'all' || key === 'no-cache'
   ) {
     opts[key] = 'true';
   } else {
@@ -147,30 +162,109 @@ function findDriverFile(game: string): string {
   process.exit(1);
 }
 
+/**
+ * The gen:all cache pre-step. One identity — MAME HEAD + mamekit src hash —
+ * is decided here for this process and every worker it spawns; each cache
+ * entry is verified against it and drifted entries are pruned, so whatever
+ * the build reuses afterwards is exactly current. Without a clean MAME git
+ * revision there is nothing sound to verify against, so caching turns off.
+ */
+let cacheId: CacheIdentity | undefined;
+function prepareGenCache(): void {
+  if ('no-cache' in opts) {
+    disableCaching();
+    console.log('mamekit: cache disabled (--no-cache)');
+    return;
+  }
+  cacheId = cacheIdentity(mameSrc);
+  if (!cacheId) {
+    disableCaching();
+    console.log('mamekit: cache disabled — MAME checkout is dirty or has no git revision');
+    return;
+  }
+  const { valid, pruned } = verifyGenCache(cacheId);
+  console.log(
+    `mamekit: cache verified — mame @ ${cacheId.mameRevision.slice(0, 12)}, ` +
+    `src ${cacheId.srcHash.slice(0, 12)}: ${valid} entries valid` +
+    (pruned ? `, ${pruned} drifted pruned` : ''),
+  );
+}
+
+/** Driver index depends only on the MAME tree; reuse it across builds. */
+function primeDriverIndex(): Record<string, string> {
+  const entryDir = join(genCacheRoot(), 'driver-index', 'index');
+  if (cacheId && readEntry(entryDir, cacheId)) {
+    try {
+      const index = JSON.parse(
+        readFileSync(join(entryDir, 'index.json'), 'utf8'),
+      ) as Record<string, string>;
+      mkdirSync(outRoot, { recursive: true });
+      writeFileSync(join(outRoot, '.driver-cache.json'), JSON.stringify(index, null, 2));
+      return index;
+    } catch { /* unreadable — rebuild below */ }
+  }
+  const index = rebuildDriverCache();
+  if (cacheId) {
+    writeEntry(entryDir, cacheId);
+    writeFileSync(join(entryDir, 'index.json'), JSON.stringify(index));
+  }
+  return index;
+}
+
+function storeTargetCache(target: string): void {
+  if (!cacheId) return;
+  const outDir = existingGameOutputDir(outRoot, target);
+  if (!outDir) return;
+  const entryDir = join(genCacheRoot(), 'targets', target);
+  copyTree(outDir, entryTree(entryDir));
+  writeEntry(entryDir, cacheId, { game: target, category: basename(dirname(outDir)) });
+}
+
 async function generateTargetsInParallel(targets: readonly string[]): Promise<void> {
   // Prime the shared index before children start. Each target otherwise writes
   // independently under dist/games/<category>/<game>.
-  const cache = rebuildDriverCache();
+  const cache = primeDriverIndex();
   const absent = targets.filter(target => !cache[target]);
   if (absent.length) throw new Error(`MAME drivers not found: ${absent.join(', ')}`);
 
+  // Verified cache entries restore in place of a generator run; the rest
+  // regenerate and refresh their entries in the same pass.
+  const pending: string[] = [];
+  let restored = 0;
+  for (const target of targets) {
+    const entryDir = join(genCacheRoot(), 'targets', target);
+    const entry = cacheId ? readEntry(entryDir, cacheId) : undefined;
+    if (entry && existsSync(entryTree(entryDir))) {
+      copyTree(
+        entryTree(entryDir),
+        gameOutputDir(outRoot, entry.category === 'consoles' ? 'consoles' : 'arcade', target),
+      );
+      restored++;
+    } else {
+      pending.push(target);
+    }
+  }
+  if (restored) console.log(`mamekit: restored ${restored}/${targets.length} targets from cache`);
+  if (!pending.length) return;
+
   const requested = Number(opts.jobs ?? process.env.MAMEKIT_JOBS);
   const jobs = Number.isInteger(requested) && requested > 0
-    ? Math.min(requested, targets.length)
-    : defaultGeneratorJobs(targets.length);
-  console.log(`mamekit: generating ${targets.length} targets with ${jobs} workers`);
+    ? Math.min(requested, pending.length)
+    : defaultGeneratorJobs(pending.length);
+  console.log(`mamekit: generating ${pending.length} targets with ${jobs} workers`);
 
   let next = 0;
   let failure: Error | undefined;
   const worker = async (): Promise<void> => {
     while (!failure) {
       const index = next++;
-      const target = targets[index];
+      const target = pending[index];
       if (!target) return;
       try {
         const output = await generateTargetProcess(target);
-        console.log(`mamekit: generated ${target} (${index + 1}/${targets.length})`);
+        console.log(`mamekit: generated ${target} (${index + 1}/${pending.length})`);
         if (output.trim()) console.log(output.trimEnd());
+        storeTargetCache(target);
       } catch (error) {
         failure = error as Error;
       }
@@ -178,6 +272,54 @@ async function generateTargetsInParallel(targets: readonly string[]): Promise<vo
   };
   await Promise.all(Array.from({ length: jobs }, () => worker()));
   if (failure) throw failure;
+}
+
+/**
+ * Build (or restore) the hardware closure for exactly these targets. The
+ * cache key is the byte content of every target graph plus the shared
+ * identity, so any change in what the targets use re-derives the closure.
+ */
+async function emitClosureFromGraphs(targets: readonly string[]): Promise<void> {
+  const graphs = targets.map(target => {
+    const graphPath = join(
+      existingGameOutputDir(outRoot, target) ?? gameOutputDir(outRoot, 'arcade', target),
+      'graph.json',
+    );
+    if (!existsSync(graphPath)) {
+      throw new Error(`cannot build runtime hardware closure: missing ${graphPath}`);
+    }
+    return { game: target, bytes: readFileSync(graphPath) };
+  });
+  console.log(`\nmamekit: resolving MAME hardware used by ${graphs.length} targets`);
+  const entryDir = cacheId
+    ? join(genCacheRoot(), 'closure', hashBytes(...graphs.map(graph => graph.bytes)).slice(0, 24))
+    : undefined;
+  let summary: { types: number; sourceResolved: number; unresolved: number };
+  const cachedEntry = entryDir && cacheId ? readEntry(entryDir, cacheId) : undefined;
+  if (entryDir && cachedEntry && existsSync(entryTree(entryDir))) {
+    copyTree(entryTree(entryDir), join(outRoot, 'runtime/generated'));
+    summary = cachedEntry.summary as typeof summary;
+    console.log('mamekit: hardware closure restored from cache');
+  } else {
+    const { buildHardwareClosure, emitHardwareClosure } = await import('./mame/hardware.ts');
+    const closure = buildHardwareClosure(mameSrc, graphs.map(graph => ({
+      game: graph.game,
+      graph: JSON.parse(graph.bytes.toString('utf8')),
+    })));
+    await emitHardwareClosure(closure, outRoot, defaultGeneratorJobs());
+    summary = closure.summary;
+    if (entryDir && cacheId) {
+      copyTree(join(outRoot, 'runtime/generated'), entryTree(entryDir));
+      writeEntry(entryDir, cacheId, { summary, targets: [...targets] });
+    }
+  }
+  const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
+  const refreshedReports = refreshRuntimeReports(outRoot);
+  console.log(
+    `generated hardware closure: ${summary.sourceResolved}/${summary.types} ` +
+    `types source-resolved, ${summary.unresolved} unresolved; ` +
+    `${refreshedReports} generation reports refreshed`,
+  );
 }
 
 function generateTargetProcess(target: string, attempt = 1): Promise<string> {
@@ -227,32 +369,14 @@ if (generateAll) {
   // build across exactly those targets. Most are discovered from acceptance
   // contracts; consoles may temporarily contribute synthetic-only targets.
   const { GENERATION_TARGETS } = await import('./gen/targets.ts');
+  // Quick cache pre-step: verify every entry against the current MAME
+  // revision + mamekit source before anything is reused.
+  prepareGenCache();
   // A complete build owns the output directory. Starting clean prevents
   // deleted or renamed generated modules surviving from an earlier build.
   rmSync(outRoot, { recursive: true, force: true });
   await generateTargetsInParallel(GENERATION_TARGETS);
-  const { buildHardwareClosure, emitHardwareClosure } = await import('./mame/hardware.ts');
-  const targetGraphs = GENERATION_TARGETS.map(target => ({
-    game: target,
-    graph: JSON.parse(readFileSync(
-      join(
-        existingGameOutputDir(outRoot, target)
-          ?? gameOutputDir(outRoot, 'arcade', target),
-        'graph.json',
-      ),
-      'utf8',
-    )),
-  }));
-  console.log(`\nmamekit: resolving MAME hardware used by ${targetGraphs.length} targets`);
-  const closure = buildHardwareClosure(mameSrc, targetGraphs);
-  await emitHardwareClosure(closure, outRoot, defaultGeneratorJobs());
-  const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
-  const refreshedReports = refreshRuntimeReports(outRoot);
-  console.log(
-    `generated hardware closure: ${closure.summary.sourceResolved}/${closure.summary.types} ` +
-    `types source-resolved, ${closure.summary.unresolved} unresolved; ` +
-    `${refreshedReports} generation reports refreshed`,
-  );
+  await emitClosureFromGraphs(GENERATION_TARGETS);
   const { buildApp } = await import('./gen/generate.ts');
   if (!buildApp(outRoot)) process.exitCode = 1;
   else {
@@ -265,7 +389,6 @@ if (generateAll) {
   }
 } else if (buildAppOnly || buildRuntimeOnly) {
   const { REQUIRED_TARGETS } = await import('./gen/targets.ts');
-  const { buildHardwareClosure, emitHardwareClosure } = await import('./mame/hardware.ts');
   const targets = opts.targets
     ? opts.targets.split(',').map(target => target.trim()).filter(Boolean)
     : [...REQUIRED_TARGETS];
@@ -275,29 +398,8 @@ if (generateAll) {
       `invalid runtime closure targets: ${unknownTargets.length ? unknownTargets.join(', ') : '(none)'}`,
     );
   }
-  const targetGraphs = targets.map(target => {
-    const graphPath = join(
-      existingGameOutputDir(outRoot, target) ?? gameOutputDir(outRoot, 'arcade', target),
-      'graph.json',
-    );
-    if (!existsSync(graphPath)) {
-      throw new Error(`cannot build runtime hardware closure: missing ${graphPath}`);
-    }
-    return {
-      game: target,
-      graph: JSON.parse(readFileSync(graphPath, 'utf8')),
-    };
-  });
-  console.log(`mamekit: resolving MAME hardware used by ${targetGraphs.length} targets`);
-  const closure = buildHardwareClosure(mameSrc, targetGraphs);
-  await emitHardwareClosure(closure, outRoot, defaultGeneratorJobs());
-  const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
-  const refreshedReports = refreshRuntimeReports(outRoot);
-  console.log(
-    `generated hardware closure: ${closure.summary.sourceResolved}/${closure.summary.types} ` +
-    `types source-resolved, ${closure.summary.unresolved} unresolved; ` +
-    `${refreshedReports} generation reports refreshed`,
-  );
+  prepareGenCache();
+  await emitClosureFromGraphs(targets);
   if (!buildAppOnly) process.exit(0);
   const { buildApp } = await import('./gen/generate.ts');
   if (!buildApp(outRoot)) {

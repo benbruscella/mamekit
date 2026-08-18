@@ -21,6 +21,7 @@ import {
 } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cachingDisabled } from './gen-cache.ts';
 
 export interface DriverAuthorStats {
   name: string;
@@ -150,6 +151,7 @@ export function cachedDriverGitHistory(
   driverFile: string,
   cacheRoot = defaultHistoryCacheRoot(),
 ): DriverGitHistory | undefined {
+  if (cachingDisabled()) return historyFromLog(followLog(mameSrc, driverFile));
   const revision = mameRevision(mameSrc);
   if (!revision) return historyFromLog(followLog(mameSrc, driverFile));
 

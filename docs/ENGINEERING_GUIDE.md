@@ -81,12 +81,23 @@ MAME source closure before the shared runtime/app build runs once. The
 hardware closure's isolated CPU artifact workers run through the same bounded
 pool policy.
 
-Driver contribution history (`git log --follow` over the MAME checkout, ~6s
-per driver) is memoized in the gitignored `.cache/driver-history/` tree. Each
-entry records the exact MAME revision it was extracted from; entries are
-reused only while the checkout's HEAD matches and are pruned when it moves.
+`gen:all` memoizes derived artifacts in the gitignored `.cache/` tree: driver
+git history, per-target output, the hardware closure (CPU cores included) and
+the compiled app. The build's only inputs are the MAME checkout and this
+repository's source, so every entry records the exact MAME HEAD revision and
+a content hash of mamekit's own src/bin/tools it was derived from. A quick
+pre-step (one `git rev-parse` + `git status` + hashing `src/`, well under a
+second) verifies every entry against the current identity and prunes drift
+before anything is reused; stale or missing pieces re-derive and refresh
+their entries in the same run. A dirty MAME working tree disables caching
+entirely. A warm build is byte-identical to a cold one — the cache changes
+when derivation runs, never what it produces.
+
 Nothing under `.cache/` is ever committed — delete the directory freely to
-force re-extraction.
+force re-derivation, or pass `--no-cache` (`npm run gen:all -- --no-cache`)
+for a one-off fully uncached build. `test:generation` always runs uncached:
+it exists to prove generation works from scratch, and the cache must never
+satisfy any part of it.
 
 ## 3. CLEAN GENERATION IS MANDATORY
 

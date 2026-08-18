@@ -67,6 +67,9 @@ function run(args: string[]): void {
   const result = spawnSync(process.execPath, [cli, ...args], {
     cwd: projectRoot,
     stdio: 'inherit',
+    // This gate exists to prove generation works from scratch, so the local
+    // generation cache must never satisfy any part of it.
+    env: { ...process.env, MAMEKIT_NO_CACHE: '1' },
   });
   if (result.error) throw result.error;
   assert.equal(

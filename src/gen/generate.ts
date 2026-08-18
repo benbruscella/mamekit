@@ -13,6 +13,16 @@ import {
 } from './runtime-report.ts';
 import { cachedDriverGitHistory } from './driver-history.ts';
 import {
+  cacheIdentityFromEnv,
+  cachingDisabled,
+  copyTree,
+  entryTree,
+  genCacheRoot,
+  hashTree,
+  readEntry,
+  writeEntry,
+} from './gen-cache.ts';
+import {
   emitGeneratedMachine,
   lowerAudioRoutes,
   lowerAuxiliaryAudioDevices,
@@ -1782,11 +1792,8 @@ export function buildApp(outRoot: string): boolean {
   const deviceBindings: string[] = [];
   const hardwareManifestPath = join(outRoot, 'runtime/generated/hardware-manifest.json');
   if (existsSync(hardwareManifestPath)) {
-    cpSync(
-      join(outRoot, 'runtime/generated'),
-      join(srcDir, 'runtime/generated'),
-      { recursive: true },
-    );
+    // The generated hardware tree is hundreds of MB; copyTree clones on APFS.
+    copyTree(join(outRoot, 'runtime/generated'), join(srcDir, 'runtime/generated'));
     const manifest = JSON.parse(readFileSync(hardwareManifestPath, 'utf8')) as {
       hardware?: {
         type: string;
@@ -1958,22 +1965,41 @@ if (game) {
     }
   }
 
-  console.log('compiling unified app with tsc...');
-  const tsc = spawnSync(process.execPath, [
-    join(projectRoot, 'node_modules/typescript/bin/tsc'),
-    '-p',
-    join(buildDir, 'tsconfig.json'),
-  ], {
-    stdio: 'inherit',
-  });
-  if (tsc.status !== 0) {
-    console.error('tsc failed — app emitted but not compiled');
-    rmSync(buildDir, { recursive: true, force: true });
-    rmSync(appDir, { recursive: true, force: true });
-    rmSync(runtimeCoreDir, { recursive: true, force: true });
-    return false;
-  }
+  // The staged tree is tsc's complete input, so its content hash keys the
+  // compiled output; the shared identity tag keeps entries answerable to the
+  // MAME revision + compiler source they were built from.
   const compiledDir = join(buildDir, 'out');
+  const tscCacheId = cachingDisabled() ? undefined : cacheIdentityFromEnv();
+  const tscEntryDir = tscCacheId
+    ? join(genCacheRoot(), 'app-tsc', hashTree(buildDir).slice(0, 24))
+    : undefined;
+  if (
+    tscEntryDir && tscCacheId &&
+    readEntry(tscEntryDir, tscCacheId) && existsSync(entryTree(tscEntryDir))
+  ) {
+    copyTree(entryTree(tscEntryDir), compiledDir);
+    console.log('unified app: compiled output restored from cache');
+  } else {
+    console.log('compiling unified app with tsc...');
+    const tsc = spawnSync(process.execPath, [
+      join(projectRoot, 'node_modules/typescript/bin/tsc'),
+      '-p',
+      join(buildDir, 'tsconfig.json'),
+    ], {
+      stdio: 'inherit',
+    });
+    if (tsc.status !== 0) {
+      console.error('tsc failed — app emitted but not compiled');
+      rmSync(buildDir, { recursive: true, force: true });
+      rmSync(appDir, { recursive: true, force: true });
+      rmSync(runtimeCoreDir, { recursive: true, force: true });
+      return false;
+    }
+    if (tscEntryDir && tscCacheId) {
+      copyTree(compiledDir, entryTree(tscEntryDir));
+      writeEntry(tscEntryDir, tscCacheId);
+    }
+  }
   for (const group of ['app', 'runtime', 'games']) {
     const compiledGroup = join(compiledDir, group);
     if (!existsSync(compiledGroup)) continue;
