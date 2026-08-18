@@ -95,7 +95,12 @@ export function generatedCompositeCallbackBindings(
   );
   if (compositeTags.size !== 1) return bindings;
   const [ownerTag] = compositeTags;
-  const calls = { ...bindings.calls };
+  // A live overlay, not a snapshot: CPU/device call bindings keep being added
+  // after effects are bound, and a spread copy here silently no-ops them
+  // (bublbobl's MCU IS3 pulse never reached the core through a stale copy).
+  const calls = Object.create(bindings.calls ?? null) as NonNullable<
+    GeneratedHandlerBindings['calls']
+  >;
   for (const callback of machine.callbacks.filter(candidate =>
     candidate.ownerTag === ownerTag)) {
     const emit = (value: number) => {
@@ -578,7 +583,17 @@ class IrBoard implements Board {
         return value;
       },
     };
-    this.bindings = { members: this.state, inputs: generatedInputs, calls };
+    // referenceCalls/callParameters are shared, mutate-in-place dictionaries:
+    // effect executors and prepared-call caches hold references to them, so
+    // later packages (video framework calls) must extend them rather than
+    // replace them, or those holders keep serving stale bindings.
+    this.bindings = {
+      members: this.state,
+      inputs: generatedInputs,
+      calls,
+      referenceCalls: {},
+      callParameters: {},
+    };
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
       bindGeneratedRegionState(
@@ -1122,10 +1137,18 @@ class IrBoard implements Board {
       // board bindings. Carry the video package's framework factories (bitmap
       // allocation, delegates and tilemap creation) into that same binding set
       // before lifecycle execution replaces any preallocated members.
-      Object.assign(
-        this.bindings,
-        primitives.generatedVideoBindings(new Uint32Array(0)),
-      );
+      const videoBindings = primitives.generatedVideoBindings(new Uint32Array(0));
+      // Merge INTO the shared dictionaries (see the bindings construction
+      // note): replacing them would strand every earlier capture on a stale
+      // snapshot and silently no-op video framework calls (Mario's
+      // palette_bank_w mark_all_dirty was one such casualty).
+      Object.assign(this.bindings.referenceCalls!, videoBindings.referenceCalls);
+      Object.assign(this.bindings.callParameters!, videoBindings.callParameters);
+      Object.assign(this.bindings, {
+        ...videoBindings,
+        referenceCalls: this.bindings.referenceCalls,
+        callParameters: this.bindings.callParameters,
+      });
       video = new GeneratedVideoRenderer(machine, primitives);
     }
     this.frameRunner = new GeneratedFrameRunner({
@@ -2312,15 +2335,14 @@ class IrBoard implements Board {
       // These small private/timer helpers are invoked indirectly from the
       // generated port handlers.  Bind their exact source semantics so MAME's
       // scheduler-delegate spelling does not turn the latch edges into no-ops.
-      this.bindings.referenceCalls = {
-        ...this.bindings.referenceCalls,
+      Object.assign(this.bindings.referenceCalls ??= {}, {
         get_bus_val: getBusValue,
         'taito_sj_security_mcu_device.get_bus_val': getBusValue,
         do_mcu_read: doMcuRead,
         'taito_sj_security_mcu_device.do_mcu_read': doMcuRead,
         do_mcu_write: doMcuWrite,
         'taito_sj_security_mcu_device.do_mcu_write': doMcuWrite,
-      };
+      });
       const sourceRead = registry.read['mcu.data_r'];
       const sourceWrite = registry.write['mcu.data_w'];
       if (sourceRead) {
@@ -3341,7 +3363,10 @@ export function generatedCpuMemberBindings(
   bindings: GeneratedHandlerBindings,
   cpuTag: string,
 ): GeneratedHandlerBindings {
-  const calls = { ...bindings.calls };
+  // Live overlay rather than a snapshot; see generatedCompositeCallbackBindings.
+  const calls = Object.create(bindings.calls ?? null) as NonNullable<
+    GeneratedHandlerBindings['calls']
+  >;
   for (const method of [
     'set_input_line',
     'set_input_line_and_vector',

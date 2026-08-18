@@ -279,8 +279,15 @@ function preparedMachineCalls(
 
   const compiled = (machine.handlers ?? []).filter(candidate =>
     candidate.program && candidate.program.diagnostics.length === 0);
-  const referenceCalls = { ...bindings.referenceCalls };
-  const callParameters = { ...bindings.callParameters };
+  // Prototype-chained views over the live binding dictionaries: cross-handler
+  // delegates layer on top while later additions (video framework calls merged
+  // after board construction) stay visible without invalidating this cache.
+  const referenceCalls = Object.create(bindings.referenceCalls ?? null) as NonNullable<
+    GeneratedHandlerBindings['referenceCalls']
+  >;
+  const callParameters = Object.create(bindings.callParameters ?? null) as NonNullable<
+    GeneratedHandlerBindings['callParameters']
+  >;
   const resolve = (method: string): GeneratedHandler | undefined =>
     compiled.find(candidate => candidate.ownerClass === ownerClass && candidate.method === method) ??
     compiled.find(candidate => candidate.method === method);

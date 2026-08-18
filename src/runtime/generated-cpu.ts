@@ -538,6 +538,10 @@ class IrCpu implements Cpu {
     const ports = this.definition.internal?.ports ?? [];
     const handshake = this.definition.internal?.portHandshake;
     if (location === handshake?.controlAddress) {
+      if ((globalThis as {__csrDbg?: number}).__csrDbg! < 10) {
+        (globalThis as {__csrDbg?: number}).__csrDbg = ((globalThis as {__csrDbg?: number}).__csrDbg ?? 0) + 1;
+        console.log('[hs] csr write', data.toString(16));
+      }
       this.portHandshakeControl = data;
       return;
     }
@@ -575,6 +579,11 @@ class IrCpu implements Cpu {
 
   private updatePortHandshakeInput(inputnum: number, state: number): void {
     const handshake = this.definition.internal?.portHandshake;
+    if (handshake && (globalThis as {__hsDbg?: number}).__hsDbg! < 20) {
+      (globalThis as {__hsDbg?: number}).__hsDbg = ((globalThis as {__hsDbg?: number}).__hsDbg ?? 0) + 1;
+      console.log('[hs] input line', inputnum, 'state', state, 'want', handshake.inputLine,
+        'csr', this.portHandshakeControl.toString(16), 'latched', this.portHandshakeLatched);
+    }
     if (!handshake || inputnum !== handshake.inputLine) return;
     if (
       !this.portHandshakeInputState &&

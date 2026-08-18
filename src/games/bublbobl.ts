@@ -40,10 +40,10 @@ export const bublbobl: GameTestContract = {
       1800: { video: '06716daf', state: '982deea7' },
     },
     audio: {
-      writes: 52218,
+      writes: 52220,
       nonzeroWrites: 50497,
-      writeHash: 'e1f170a4',
-      pcmHash: 'aa322176',
+      writeHash: 'b775a009',
+      pcmHash: '1fdfe613',
       rms: 0.037735,
     },
   },
