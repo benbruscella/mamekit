@@ -1439,13 +1439,25 @@ class IrBoard implements Board {
     this.runMachineReset();
   }
 
-  /** The Taito SJ 74LS393 watchdog restarts the host Z80, not the security MCU. */
+  /**
+   * MAME's watchdog performs a device reset without restarting emulated time.
+   * In particular, a 68705 keeps internal RAM while its PC, ports and timer
+   * reset.  Re-running device_start here would erase the parent interface's
+   * output latch; resetting the frame runner would also make a boot watchdog
+   * look like an endless frame-zero loop to clients.
+   */
   private watchdogReset(): void {
+    for (const device of this.devices.values()) device.reset();
+    for (const cpu of this.cpus.values()) cpu.reset();
+    for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
+    for (const tag of this.cpuReportedSuspended.keys()) {
+      this.cpuReportedSuspended.set(tag, false);
+    }
+    for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
+    for (const reset of this.peripheralResets) reset();
+    this.boardSpecificReset?.();
     this.watchdogFrames = 0;
-    this.cpus.get('maincpu')?.reset();
-    this.cpuHeld.set('maincpu', false);
-    this.cpuReportedSuspended.set('maincpu', false);
-    this.cpuStalls.set('maincpu', 0);
+    this.runMachineReset();
   }
 
   /** Execute MAME's selected MACHINE_RESET_MEMBER chain, base first. */
@@ -2246,43 +2258,7 @@ class IrBoard implements Board {
         'int_mode::LATCH': 1,
         'int_mode::WRITE': 2,
       };
-      let awaitingWarmBoot = false;
-      let warmBoot = false;
-      let bootstrapComplete = false;
-      let bootstrapWrite = 0;
-      const bootstrapWrites = [
-        0x69, 0x73, 0x75, 0x77, 0x81, 0x83, 0x85, 0x87, 0x91, 0x93,
-        0x95, 0x97, 0xa1, 0xa3, 0xa5, 0xa7, 0x3b, 0x45, 0x47, 0x51,
-        0x53, 0x55, 0x57, 0x61, 0x63, 0x65, 0x67, 0x71, 0x73, 0x75,
-        0x77, 0x81, 0x83, 0x85, 0x87, 0x91, 0x93, 0x95, 0x97,
-      ] as const;
-      const bootstrapStates = [
-        [0x187, 0x00, 0x02], [0x187, 0x00, 0x02],
-        [0x189, 0x00, 0x02], [0x185, 0xa6, 0x04],
-        [0x187, 0x00, 0x02], [0x185, 0x47, 0x00],
-        [0x189, 0x00, 0x02], [0x187, 0x00, 0x02],
-        [0x185, 0xba, 0x04], [0x189, 0x00, 0x02],
-        [0x18b, 0x00, 0x02], [0x18b, 0x00, 0x02],
-        [0x189, 0x00, 0x02], [0x187, 0x01, 0x00],
-        [0x18b, 0x00, 0x02], [0x189, 0x00, 0x02],
-        [0x185, 0x41, 0x00], [0x18b, 0x00, 0x02],
-        [0x187, 0x01, 0x00], [0x189, 0x00, 0x02],
-        [0x18b, 0x00, 0x02], [0x185, 0x55, 0x00],
-        [0x189, 0x00, 0x02], [0x187, 0x01, 0x00],
-        [0x18b, 0x00, 0x02], [0x189, 0x00, 0x02],
-        [0x187, 0x01, 0x00], [0x18b, 0x00, 0x02],
-        [0x187, 0x01, 0x00], [0x189, 0x00, 0x02],
-        [0x18b, 0x00, 0x02], [0x187, 0x01, 0x00],
-        [0x189, 0x00, 0x02], [0x18b, 0x00, 0x02],
-        [0x185, 0xf0, 0x04], [0x189, 0x00, 0x02],
-        [0x185, 0x91, 0x04], [0x187, 0x00, 0x02],
-        [0x183, 0xb4, 0x04],
-      ] as const;
-      const reset = () => {
-        awaitingWarmBoot = false;
-        warmBoot = false;
-        bootstrapComplete = false;
-        bootstrapWrite = 0;
+      const initialize = () => {
         this.watchdogFrames = 0;
         this.state.m_int_mode = 1;
         this.state.m_addr = 0xffff;
@@ -2291,69 +2267,20 @@ class IrBoard implements Board {
         this.state.m_read_data = 0xff;
         this.state.m_zaccept = 1;
         this.state.m_zready = 0;
-        this.state.m_pa_val = 0;
+        // Device callback resolution exposes the 68705's reset Port A latch
+        // (0xff) to the interface before firmware changes the DDR.  Starting
+        // the cached bus value at zero forces every host byte read to zero.
+        this.state.m_pa_val = 0xff;
         this.state.m_pb_val = 0xff;
         this.state.m_busak = 0;
         this.state.m_reset = 0;
       };
       const child = this.devices.get('mcu:mcu')!;
-      // The 68705 spends nearly all of its time in a short host-latch polling
-      // loop. Running that loop at every Z80 instruction boundary is both
-      // needlessly expensive and obscures the actual causal contract: host
-      // writes assert the MCU IRQ, and the firmware runs until it consumes
-      // the latch and returns to its stable polling state. Execute those
-      // bounded bursts synchronously so Elevator keeps the dumped firmware,
-      // retained MCU RAM, and bus-master side effects at browser speed.
-      const serviceMcu = (
-        goal: 'idle' | 'latch' | 'consume' | 'response' = 'idle',
-      ) => {
-        const quantum = goal === 'idle' ? 64 : 1;
-        const cycleLimit = goal === 'idle'
-          ? 0x20000
-          : goal === 'response'
-            ? 0x2000
-            : 0x800;
-        const seenIdleStates = new Set<string>();
-        for (let cycles = 0; cycles < cycleLimit; cycles += quantum) {
-          child.set('m_icount', quantum);
-          child.call('execute_run');
-          if (goal === 'latch' && !this.state.m_zready) return;
-          if (
-            goal === 'consume' &&
-            !this.state.m_zready &&
-            child.get('PC') >= 0x180 &&
-            child.get('PC') <= 0x18b &&
-            child.get('SP') === 0x7f
-          ) {
-            // The firmware deliberately rewrites the saved X byte before
-            // returning from its latch IRQ, so X retains the consumed host
-            // byte. Model that externally visible state at the scheduling
-            // boundary; the compact core otherwise restores the pre-IRQ X.
-            child.set('X', Number(this.state.m_host_data) & 0xff);
-            return;
-          }
-          if (goal === 'response' && !this.state.m_zaccept) return;
-          const signature = [
-            child.get('PC'), child.get('A'), child.get('X'),
-            child.get('SP'), child.get('CC'), Number(this.state.m_zaccept),
-            Number(this.state.m_zready),
-          ].join(':');
-          if (goal !== 'consume' && seenIdleStates.has(signature)) return;
-          seenIdleStates.add(signature);
-        }
-        if (goal === 'consume' || goal === 'latch') {
-          this.state.m_zready = 0;
-          child.call('set_input_line', 0, 0);
-          child.set('X', Number(this.state.m_host_data) & 0xff);
-          return;
-        }
-        if (goal === 'response') return;
-        throw new Error(
-          'Elevator Action MCU did not return to its host polling loop ' +
-          `(pc=${child.get('PC').toString(16)} a=${child.get('A').toString(16)} ` +
-          `x=${child.get('X').toString(16)} cc=${child.get('CC').toString(16)} ` +
-          `ready=${this.state.m_zready} accept=${this.state.m_zaccept})`,
-        );
+      const reset = () => {
+        this.watchdogFrames = 0;
+        this.state.m_zaccept = 1;
+        this.state.m_zready = 0;
+        child.call('set_input_line', 0, 0);
       };
       // The CPU board's 74LS393 fires after 128 vblanks. Elevator Action uses
       // that real watchdog reset as part of its power-on protection sequence;
@@ -2398,124 +2325,25 @@ class IrBoard implements Board {
       const sourceWrite = registry.write['mcu.data_w'];
       if (sourceRead) {
         registry.read['mcu.data_r'] = (address, offset) => {
-          const mainPc = this.cpus.get('maincpu')?.get('PC') ?? 0;
-          if (
-            (offset & 1) &&
-            !awaitingWarmBoot &&
-            this.state.m_zready &&
-            mainPc >= 0x77d6 &&
-            mainPc <= 0x77da
-          ) serviceMcu('latch');
-          if (
-            (offset & 1) &&
-            !awaitingWarmBoot &&
-            !this.state.m_zready &&
-            this.state.m_zaccept &&
-            mainPc >= 0x77c3 &&
-            mainPc <= 0x77c7
-          ) {
-            serviceMcu('response');
-            // Some protection paths finish computing the byte but settle at
-            // the polling boundary before the compact core observes the
-            // physical 68LWR edge. The data latch is already authoritative;
-            // expose it to the waiting Z80 instead of deadlocking the board.
-            if (this.state.m_zaccept) this.state.m_zaccept = 0;
-          }
-          if (!(offset & 1) && awaitingWarmBoot) {
-            // MAME observes the retained MCU at RAM PC 0x020 on the first
-            // ZLREAD after the watchdog restart, with the power-on zero in
-            // its output latch and the abandoned 0x69 host latch cleared.
-            awaitingWarmBoot = false;
-            warmBoot = true;
-            this.state.m_mcu_data = 0;
-            this.state.m_zready = 0;
-            this.state.m_zaccept = 1;
-            child.call('set_input_line', 0, 0);
-            child.set('PC', 0x020);
-            child.set('A', 0x0b);
-            child.set('X', 0x08);
-            child.set('SP', 0x7d);
-            child.set('CC', 0x09);
-            child.set('LATCHA', 0x00);
-            child.set('LATCHB', 0xff);
-            child.set('LATCHC', 0x0f);
-            child.set('DDRA', 0x00);
-            child.set('DDRB', 0xff);
-            child.set('DDRC', 0x00);
-            child.set('TDR', 0x93);
-            child.set('TCR', 0x7f);
-          }
-          const responsePending = !(offset & 1) && !this.state.m_zaccept;
           const value = sourceRead(address, offset);
-          if (!(offset & 1)) {
-            this.state.m_zaccept = 1;
-            if (responsePending && !bootstrapComplete) {
-              // Advance the firmware across the short scheduler interval
-              // between ZLREAD and the next ZLWRITE. These are the states
-              // observed from the dumped MCU in MAME at the following host
-              // write; preserving this boundary avoids executing its polling
-              // loop tens of thousands of times per Z80 instruction.
-              child.set('PC', warmBoot ? 0x183 : 0x690);
-              child.set('A', warmBoot ? 0x9a : 0xff);
-              child.set('X', warmBoot ? 0x58 : 0x05);
-              child.set('SP', warmBoot ? 0x7f : 0x7d);
-              child.set('CC', warmBoot ? 0x04 : 0x0c);
-              child.set('LATCHA', warmBoot ? 0x17 : 0x00);
-              child.set('DDRA', warmBoot ? 0x00 : 0xff);
-              child.set('TDR', warmBoot ? 0xfc : 0xf4);
-              child.set('TCR', warmBoot ? 0x07 : 0xff);
-              if (warmBoot) bootstrapComplete = true;
-            }
-          }
+          if (!(offset & 1)) this.state.m_zaccept = 1;
           return value;
         };
       }
       if (sourceWrite) {
         registry.write['mcu.data_w'] = (address, offset, data, memMask) => {
-          sourceWrite(address, offset, data, memMask);
+          if (offset & 1) {
+            sourceWrite(address, offset, data, memMask);
+            return;
+          }
           // The parent interface is source-compiled rather than instantiated,
-          // so explicitly bridge the configured LATCH interrupt to its live
-          // child.  All latch contents/status still come from the source
-          // handlers above.
-          if (!(offset & 1) && !this.state.m_reset) {
+          // so perform the synchronized host-latch edge exactly once. Calling
+          // the generated scheduler delegate and then mirroring it asserted a
+          // second IRQ that never acquired a new edge after the first byte.
+          if (!this.state.m_reset) {
             this.state.m_host_data = data & 0xff;
             this.state.m_zready = 1;
             child.call('set_input_line', 0, 1);
-            if (!warmBoot && (data & 0xff) === 0x69) {
-              // The cold board deliberately leaves this latch pending until
-              // the 128-vblank watchdog restarts the Z80. Do not run through
-              // that physical synchronization point in the same JS turn.
-              awaitingWarmBoot = true;
-              this.state.m_mcu_data = 0;
-              return;
-            }
-            if (warmBoot && (data & 0xff) === 0x52) {
-              this.state.m_zready = 0;
-              this.state.m_zaccept = 0;
-              this.state.m_mcu_data = 0x17;
-              child.call('set_input_line', 0, 0);
-              return;
-            }
-            if (
-              bootstrapComplete &&
-              bootstrapWrite < bootstrapWrites.length &&
-              (data & 0xff) === bootstrapWrites[bootstrapWrite]
-            ) {
-              serviceMcu('latch');
-              const [pc, a, cc] = bootstrapStates[bootstrapWrite]!;
-              child.set('PC', pc);
-              child.set('A', a);
-              child.set('X', data);
-              child.set('SP', 0x7f);
-              child.set('CC', cc);
-              bootstrapWrite++;
-              return;
-            }
-            serviceMcu(
-              !warmBoot && (data & 0xff) === 0x52
-                ? 'response'
-                : 'consume',
-            );
           }
         };
       }
@@ -2592,38 +2420,7 @@ class IrBoard implements Board {
         }
         this.state.m_pb_val = data;
       }, 0);
-      const resetAndPrime = () => {
-        reset();
-        // With continuous scheduling the MCU reaches its initial output-latch
-        // wait before the Z80 performs the power-on read. The event-driven
-        // path must establish that same ordering explicitly.
-        serviceMcu();
-      };
-      resetAndPrime();
-      return resetAndPrime;
-    }
-    if (machine.game === 'elevator') {
-      // The dumped 68705's compact execution path is currently too slow for
-      // the browser, so preserve the source interface protocol here.  The
-      // board's cold-boot hardware test writes 0x52 and requires the MCU's
-      // observed 0x17 reply; echoing the host latch directly trips BAD HW.
-      // Other traffic keeps the previous transparent bridge until the full
-      // firmware path meets the runtime timing contract.
-      let response = 0;
-      const reset = () => { response = 0; };
-      const dataRead = (_address: number, offset: number) =>
-        offset & 1 ? 0x03 : response;
-      const dataWrite = (_address: number, offset: number, data: number) => {
-        if (!(offset & 1)) response = taitoSjSecurityMcuResponse(data);
-      };
-      registry.read['mcu.data_r'] = dataRead;
-      registry.write['mcu.data_w'] = dataWrite;
-      this.bindings.calls!['mcu.data_r'] = (offset = 0) =>
-        dataRead(0x8800 + Number(offset), Number(offset));
-      this.bindings.calls!['mcu.data_w'] = (offset = 0, data = 0) => {
-        dataWrite(0x8800 + Number(offset), Number(offset), Number(data));
-        return 0;
-      };
+      initialize();
       return reset;
     }
     if (
@@ -3524,10 +3321,9 @@ class IrBoard implements Board {
 }
 
 /**
- * These parent interfaces expose a source-level host protocol while their
- * dumped 68705 firmware still exercises timer behavior the compact core does
- * not pass. Use the bounded interface protocol instead of letting the real
- * firmware enter its hardware-error trap and falsely claiming a cold boot.
+ * Arkanoid still uses its bounded source-level boot protocol.  Taito SJ must
+ * execute the dumped MCU: its firmware is a bus master and participates in
+ * gameplay after the cold-boot exchange.
  */
 export function usesProtectionProtocolBridge(
   machine: BoardIr,
@@ -3537,12 +3333,7 @@ export function usesProtectionProtocolBridge(
   const host = child?.hostTag
     ? machine.devices?.find(device => device.tag === child.hostTag)
     : undefined;
-  return host?.type === 'ARKANOID_68705P5' || host?.type === 'TAITO_SJ_SECURITY_MCU';
-}
-
-/** Source-observed cold-boot exchange for the bounded Taito SJ MCU bridge. */
-export function taitoSjSecurityMcuResponse(data: number): number {
-  return data === 0x52 ? 0x17 : data & 0xff;
+  return host?.type === 'ARKANOID_68705P5';
 }
 
 /** Scope a composite device's conventional m_cpu finder to its hosted CPU. */

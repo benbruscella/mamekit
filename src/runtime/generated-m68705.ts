@@ -13,6 +13,30 @@ const N = 0x04;
 const Z = 0x02;
 const C = 0x01;
 
+// MC68705P3/P5 are HMOS parts.  Their cycle counts differ substantially from
+// the CMOS 68HC05 family (bit branches are the most visible example: ten
+// cycles rather than five).  The programmable timer advances from these
+// machine cycles, so using approximate instruction costs changes firmware
+// control flow, not just its wall-clock speed.
+const HMOS_CYCLES = Uint8Array.from([
+  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+   7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,
+   4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
+   6,  4,  4,  6,  6,  4,  6,  6,  6,  6,  6,  4,  6,  6,  4,  6,
+   4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
+   4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
+   7,  4,  4,  7,  7,  4,  7,  7,  7,  7,  7,  4,  7,  7,  4,  7,
+   6,  4,  4,  6,  6,  4,  6,  6,  6,  6,  6,  4,  6,  6,  4,  6,
+   9,  6,  4, 11,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
+   4,  4,  4,  4,  4,  4,  4,  2,  2,  2,  2,  2,  2,  2,  4,  2,
+   2,  2,  2,  2,  2,  2,  2,  4,  2,  2,  2,  2,  4,  8,  2,  4,
+   4,  4,  4,  4,  4,  4,  4,  5,  4,  4,  4,  4,  3,  7,  4,  5,
+   5,  5,  5,  5,  5,  5,  5,  6,  5,  5,  5,  5,  4,  8,  5,  6,
+   6,  6,  6,  6,  6,  6,  6,  7,  6,  6,  6,  6,  5,  9,  6,  7,
+   5,  5,  5,  5,  5,  5,  5,  6,  5,  5,  5,  5,  4,  8,  5,  6,
+   4,  4,  4,  4,  4,  4,  4,  5,  4,  4,  4,  4,  3,  7,  4,  5,
+]);
+
 /** Motorola 68705P5 core used by source-composed protection devices. */
 export class GeneratedM68705P5Device implements Device {
   private readonly clock: number;
@@ -216,7 +240,8 @@ export class GeneratedM68705P5Device implements Device {
         continue;
       }
       const op = this.fetch();
-      const cycles = this.execute(op);
+      this.execute(op);
+      const cycles = HMOS_CYCLES[op] ?? 4;
       used += cycles;
       this.tickTimer(cycles);
     }
@@ -448,7 +473,14 @@ export class GeneratedM68705P5Device implements Device {
   private emitPort(port: number): void {
     const signal = ['porta_w', 'portb_w', 'portc_w'][port]!;
     const latch = this.portLatch[port] ?? 0xff;
-    const value = latch;
+    // Port A on the MC68705P is open-drain.  Releasing a pin by clearing its
+    // DDR bit presents a pulled-up 1 to the external bus, irrespective of the
+    // stale output latch.  Forwarding the latch verbatim made every later MCU
+    // command get ANDed with its previous response (for example EE became 06),
+    // which stranded Elevator Action in the protection bootstrap.
+    const value = port === 0
+      ? latch | ~(this.portDdr[port] ?? 0)
+      : latch;
     for (const listener of this.listeners.get(signal) ?? []) listener?.(value & 0xff);
   }
 

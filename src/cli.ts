@@ -9,9 +9,12 @@
 
 import { spawn } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, statSync } from 'node:fs';
-import { availableParallelism } from 'node:os';
 import { join, resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  defaultGeneratorJobs,
+  retryableGeneratorSignal,
+} from './gen/generator-workers.ts';
 import { buildGraph, gameSubgraph } from './kg/build.ts';
 import { toCypher } from './kg/cypher.ts';
 import { viewerHtml } from './kg/viewer.ts';
@@ -29,7 +32,7 @@ function usage(): never {
   console.error('usage: mamekit [graph|from-graph] <game> [--mame-src <path>] [--out <dir>] [--serve [port]]');
   console.error('       mamekit <game> --from-graph [graph.json]');
   console.error('       mamekit --all              generate every required target, then the app');
-  console.error('                  [--jobs <n>]   parallel target generators (default: CPU count)');
+  console.error('                  [--jobs <n>]   parallel target generators (default: memory-aware, max 4)');
   console.error('       mamekit --build-runtime [--build-app] [--targets <game,...>]');
   console.error('       mamekit --serve            serve the unified app + all generated games');
   process.exit(2);
@@ -154,7 +157,7 @@ async function generateTargetsInParallel(targets: readonly string[]): Promise<vo
   const requested = Number(opts.jobs ?? process.env.MAMEKIT_JOBS);
   const jobs = Number.isInteger(requested) && requested > 0
     ? Math.min(requested, targets.length)
-    : Math.min(availableParallelism(), targets.length);
+    : defaultGeneratorJobs(targets.length);
   console.log(`mamekit: generating ${targets.length} targets with ${jobs} workers`);
 
   let next = 0;
@@ -177,7 +180,7 @@ async function generateTargetsInParallel(targets: readonly string[]): Promise<vo
   if (failure) throw failure;
 }
 
-function generateTargetProcess(target: string): Promise<string> {
+function generateTargetProcess(target: string, attempt = 1): Promise<string> {
   return new Promise((resolveProcess, rejectProcess) => {
     const child = spawn(process.execPath, [
       join(projectRoot, 'bin/mamekit.js'),
@@ -200,6 +203,13 @@ function generateTargetProcess(target: string): Promise<string> {
     child.once('exit', (code, signal) => {
       if (code === 0) {
         resolveProcess(stdout);
+        return;
+      }
+      if (attempt === 1 && retryableGeneratorSignal(signal)) {
+        console.warn(
+          `mamekit: ${target} worker crashed with ${signal}; retrying once`,
+        );
+        generateTargetProcess(target, attempt + 1).then(resolveProcess, rejectProcess);
         return;
       }
       rejectProcess(new Error(
