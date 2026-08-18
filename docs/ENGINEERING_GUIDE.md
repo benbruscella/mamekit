@@ -74,10 +74,19 @@ one that must generate and pass. `src/gen/targets.spec.ts` asserts that target
 discovery, the generated catalog and the contracts name the same set.
 
 Target generation is already parallel. `gen:all` uses a bounded worker pool
-whose default size is the host's available CPU parallelism. Override it with
-`npm run gen:all -- --jobs 12` or `MAMEKIT_JOBS=12`; do not launch an
+(memory-aware, capped at 8 — see `src/gen/generator-workers.ts`). Override it
+with `npm run gen:all -- --jobs 12` or `MAMEKIT_JOBS=12`; do not launch an
 unbounded process per target because every worker parses and lowers a sizeable
-MAME source closure before the shared runtime/app build runs once.
+MAME source closure before the shared runtime/app build runs once. The
+hardware closure's isolated CPU artifact workers run through the same bounded
+pool policy.
+
+Driver contribution history (`git log --follow` over the MAME checkout, ~6s
+per driver) is memoized in the gitignored `.cache/driver-history/` tree. Each
+entry records the exact MAME revision it was extracted from; entries are
+reused only while the checkout's HEAD matches and are pruned when it moves.
+Nothing under `.cache/` is ever committed — delete the directory freely to
+force re-extraction.
 
 ## 3. CLEAN GENERATION IS MANDATORY
 

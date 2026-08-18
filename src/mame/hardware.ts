@@ -474,7 +474,12 @@ export function hardwareKnowledgeGraph(
   });
 }
 
-export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): void {
+export async function emitHardwareClosure(
+  closure: HardwareClosure,
+  outRoot: string,
+  /** Concurrent isolated artifact workers; policy belongs to the caller. */
+  emitterJobs = 4,
+): Promise<void> {
   const root = join(outRoot, 'runtime/generated');
   const devicesDir = join(root, 'devices');
   const dslDir = join(root, 'dsl');
@@ -576,6 +581,7 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     join(root, 'hardware-graph.json'),
     JSON.stringify(hardwareKnowledgeGraph(closure, executableTypes), null, 2),
   );
+  const isolatedEmitters: Array<(root: string) => void | Promise<void>> = [];
   for (const { result } of extracted) {
     const writeArtifacts = (artifacts: typeof result.artifacts): void => {
       for (const artifact of artifacts) {
@@ -588,10 +594,20 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     for (const generateArtifacts of result.artifactGroups ?? []) {
       writeArtifacts(generateArtifacts());
     }
-    for (const emitArtifacts of result.artifactEmitters ?? []) {
-      emitArtifacts(root);
-    }
+    isolatedEmitters.push(...(result.artifactEmitters ?? []));
   }
+  // Each emitter compiles in its own worker process and none depend on each
+  // other, so a bounded pool replaces the previous one-at-a-time sequence.
+  let nextEmitter = 0;
+  const drainEmitters = async (): Promise<void> => {
+    while (nextEmitter < isolatedEmitters.length) {
+      await isolatedEmitters[nextEmitter++]!(root);
+    }
+  };
+  await Promise.all(Array.from(
+    { length: Math.max(1, Math.min(emitterJobs, isolatedEmitters.length)) },
+    drainEmitters,
+  ));
 
   for (const entry of closure.hardware) {
     const slug = entry.type.toLowerCase();

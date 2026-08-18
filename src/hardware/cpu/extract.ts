@@ -80,19 +80,22 @@ export function extractCpus(input: CapabilityInput): CapabilityExtraction | unde
     executableTypes: [...present],
     executable,
     artifacts: [],
-    artifactEmitters: present.map(type => root => {
-      const worker = spawnSync(process.execPath, [
-        join(import.meta.dirname, '../../../tools/emit-cpu-worker.ts'),
-        type,
-        input.mameSource,
-        root,
-      ], { stdio: 'inherit' });
-      if (worker.error) throw worker.error;
-      if (worker.status !== 0) {
-        throw new Error(`${type}: CPU artifact worker exited ${worker.status ?? worker.signal}`);
-      }
-    }),
+    artifactEmitters: present.map(type => root => new Promise<void>(
+      (resolveWorker, rejectWorker) => {
+        const worker = spawn(process.execPath, [
+          join(import.meta.dirname, '../../../tools/emit-cpu-worker.ts'),
+          type,
+          input.mameSource,
+          root,
+        ], { stdio: 'inherit' });
+        worker.once('error', rejectWorker);
+        worker.once('exit', (code, signal) => {
+          if (code === 0) resolveWorker();
+          else rejectWorker(new Error(`${type}: CPU artifact worker exited ${code ?? signal}`));
+        });
+      },
+    )),
   };
 }
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { join } from 'node:path';

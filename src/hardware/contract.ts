@@ -57,8 +57,12 @@ export interface CapabilityExtraction {
    * retaining every generated source string in the Node heap.
    */
   artifactGroups?: Array<() => CapabilityArtifact[]>;
-  /** Emit large artifacts in an isolated worker so its compiler heap is reclaimed. */
-  artifactEmitters?: Array<(root: string) => void>;
+  /**
+   * Emit large artifacts in an isolated worker so its compiler heap is
+   * reclaimed. Emitters are independent of each other, so the closure emitter
+   * runs them concurrently; an async emitter resolves when its worker exits.
+   */
+  artifactEmitters?: Array<(root: string) => void | Promise<void>>;
   /**
    * Methods this extraction lowered for a device type, replacing whatever the
    * closure scraped from the class. A device compiled through MAME's device

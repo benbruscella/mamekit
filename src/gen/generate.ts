@@ -11,6 +11,7 @@ import { parseSoftwareList, buildCatalog } from '../kg/softlist.ts';
 import {
   buildRuntimeReport, runtimeReportMarkdown, type RuntimeConfigShape,
 } from './runtime-report.ts';
+import { cachedDriverGitHistory } from './driver-history.ts';
 import {
   emitGeneratedMachine,
   lowerAudioRoutes,
@@ -1498,45 +1499,12 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
 
   // per-game metadata for the boot menu manifest + "learn" modal:
   // driver credits from the source header, contribution history from the
-  // MAME git checkout (best effort — absent when git/history unavailable)
+  // MAME git checkout (best effort — absent when git/history unavailable),
+  // cached in .cache/driver-history against the checkout's HEAD revision
   let gitHistory: Record<string, unknown> | undefined;
   try {
-    const log = spawnSync('git', ['-C', opts.mameSrc, 'log', '--follow', '--format=%as|%an', '--', String(graph.meta.driverFile)],
-      { encoding: 'utf8', timeout: 30000 });
-    const lines = (log.stdout ?? '').trim().split('\n').filter(Boolean);
-    if (lines.length) {
-      const authors = new Map<string, {
-        commits: number;
-        firstCommit: string;
-        lastCommit: string;
-      }>();
-      for (const l of lines) {
-        const [date, name] = l.split('|');
-        if (!name || !date) continue;
-        const author = authors.get(name);
-        if (author) {
-          author.commits++;
-          author.firstCommit = date;
-        } else {
-          authors.set(name, {
-            commits: 1,
-            firstCommit: date,
-            lastCommit: date,
-          });
-        }
-      }
-      const authorStats = [...authors.entries()]
-        .map(([name, author]) => ({ name, ...author }))
-        .sort((a, b) => b.commits - a.commits || a.name.localeCompare(b.name));
-      gitHistory = {
-        firstCommit: lines[lines.length - 1].split('|')[0],
-        lastCommit: lines[0].split('|')[0],
-        commits: lines.length,
-        contributors: authors.size,
-        topAuthors: authorStats.slice(0, 5).map(author => author.name),
-        authorStats,
-      };
-    }
+    gitHistory = cachedDriverGitHistory(opts.mameSrc, String(graph.meta.driverFile)) as
+      Record<string, unknown> | undefined;
   } catch { /* no git history available */ }
 
   // Prefer a local curated story when preservation research has more detail

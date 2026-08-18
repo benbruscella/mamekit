@@ -245,7 +245,7 @@ if (generateAll) {
   }));
   console.log(`\nmamekit: resolving MAME hardware used by ${targetGraphs.length} targets`);
   const closure = buildHardwareClosure(mameSrc, targetGraphs);
-  emitHardwareClosure(closure, outRoot);
+  await emitHardwareClosure(closure, outRoot, defaultGeneratorJobs());
   const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
   const refreshedReports = refreshRuntimeReports(outRoot);
   console.log(
@@ -290,7 +290,7 @@ if (generateAll) {
   });
   console.log(`mamekit: resolving MAME hardware used by ${targetGraphs.length} targets`);
   const closure = buildHardwareClosure(mameSrc, targetGraphs);
-  emitHardwareClosure(closure, outRoot);
+  await emitHardwareClosure(closure, outRoot, defaultGeneratorJobs());
   const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
   const refreshedReports = refreshRuntimeReports(outRoot);
   console.log(
