@@ -540,10 +540,12 @@ if (typeof AudioWorkletProcessor !== 'undefined') {
           );
         } else if (message.type === 'batch' && this.renderer) {
           this.frames.push(this.renderer.render(message.writes ?? []));
-          while (this.frames.length > 1) this.frames.shift();
+          while (this.frames.length > 3) this.frames.shift();
         }
       };
     }
+    private lastSample = 0;
+
     process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
       const output = outputs[0]?.[0];
       if (!output) return true;
@@ -553,7 +555,8 @@ if (typeof AudioWorkletProcessor !== 'undefined') {
           this.cursor = 0;
           if (!this.current) break;
         }
-        output[index] = this.current?.[this.cursor++] ?? 0;
+        // Hold the last sample when starved: a 0-fill pops on DC-offset mixes.
+        output[index] = this.lastSample = this.current?.[this.cursor++] ?? this.lastSample;
       }
       return true;
     }

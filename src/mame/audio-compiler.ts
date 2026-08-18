@@ -2480,21 +2480,27 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
         this.core?.write(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        // Rendering advances the chip state immediately, so queued PCM older
-        // than the next frame is obsolete. Keeping it after a main-thread
-        // catch-up burst turns a transient stall into permanent A/V latency.
-        while (this.frames.length > 1) this.frames.shift();
+        // Elastic queue: frame delivery jitters (a rAF tick can carry 0 or 2
+        // batches, and non-60Hz boards beat against the display rate), so a
+        // few frames of slack must absorb it — dropping to one frame made
+        // every burst an audible discontinuity. The cap still bounds A/V
+        // latency after a main-thread catch-up burst.
+        while (this.frames.length > 3) this.frames.shift();
       }
     };
   }
+
+  private lastSample = 0;
 
   private nextSample(): number {
     while (!this.current || this.position >= this.current.length) {
       this.current = this.frames.shift();
       this.position = 0;
-      if (!this.current) return 0;
+      // Starved: hold the last sample. A 0-fill is a hard step on any
+      // mix with a DC offset (e.g. tied-pin AY outputs) and pops loudly.
+      if (!this.current) return this.lastSample;
     }
-    return this.current[this.position++]!;
+    return (this.lastSample = this.current[this.position++]!);
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
@@ -3327,22 +3333,28 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
       } else if (message.type === 'batch') {
         if (this.renderer) {
           this.frames.push(this.renderer.render(message.writes ?? []));
-          // Keep only the next frame of PCM. The renderer has already advanced
-          // chip state through every batch, so older queued frames only add
-          // permanent latency after a main-thread catch-up burst.
-          while (this.frames.length > 1) this.frames.shift();
+          // Elastic queue: frame delivery jitters (a rAF tick can carry 0 or
+          // 2 batches, and non-60Hz boards beat against the display rate), so
+          // a few frames of slack must absorb it — dropping to one frame made
+          // every burst an audible discontinuity. The cap still bounds A/V
+          // latency after a main-thread catch-up burst.
+          while (this.frames.length > 3) this.frames.shift();
         }
       }
     };
   }
 
+  private lastSample = 0;
+
   private nextSample(): number {
     while (!this.current || this.currentIndex >= this.current.length) {
       this.current = this.frames.shift();
       this.currentIndex = 0;
-      if (!this.current) return 0;
+      // Starved: hold the last sample. A 0-fill is a hard step on any
+      // mix with a DC offset (e.g. tied-pin AY outputs) and pops loudly.
+      if (!this.current) return this.lastSample;
     }
-    return this.current[this.currentIndex++]!;
+    return (this.lastSample = this.current[this.currentIndex++]!);
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
@@ -3637,18 +3649,22 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
         this.core?.write(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 1) this.frames.shift();
+        while (this.frames.length > 3) this.frames.shift();
       }
     };
   }
+
+  private lastSample = 0;
 
   private next(): number {
     while (!this.current || this.index >= this.current.length) {
       this.current = this.frames.shift();
       this.index = 0;
-      if (!this.current) return 0;
+      // Starved: hold the last sample. A 0-fill is a hard step on any
+      // mix with a DC offset (e.g. tied-pin AY outputs) and pops loudly.
+      if (!this.current) return this.lastSample;
     }
-    return this.current[this.index++]!;
+    return (this.lastSample = this.current[this.index++]!);
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
@@ -4086,7 +4102,7 @@ class GeneratedNamcoWsgProcessor extends AudioWorkletProcessor {
         this.apply(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 1) this.frames.shift();
+        while (this.frames.length > 3) this.frames.shift();
       }
     };
   }
@@ -4100,13 +4116,17 @@ class GeneratedNamcoWsgProcessor extends AudioWorkletProcessor {
     else this.core?.write(offset, data);
   }
 
+  private lastSample = 0;
+
   private nextNative(): number {
     while (!this.current || this.nativePosition >= this.current.length) {
       this.current = this.frames.shift() ?? null;
       this.nativePosition = 0;
-      if (!this.current) return 0;
+      // Starved: hold the last sample. A 0-fill is a hard step on any
+      // mix with a DC offset (e.g. tied-pin AY outputs) and pops loudly.
+      if (!this.current) return this.lastSample;
     }
-    return this.current[this.nativePosition++]!;
+    return (this.lastSample = this.current[this.nativePosition++]!);
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {

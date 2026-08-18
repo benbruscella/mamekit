@@ -466,17 +466,21 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
         this.core?.write(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 1) this.frames.shift();
+        while (this.frames.length > 3) this.frames.shift();
       }
     };
   }
+  private lastSample = 0;
+
   private next(): number {
     while (!this.current || this.index >= this.current.length) {
       this.current = this.frames.shift();
       this.index = 0;
-      if (!this.current) return 0;
+      // Starved: hold the last sample. A 0-fill is a hard step on any
+      // mix with a DC offset (e.g. tied-pin AY outputs) and pops loudly.
+      if (!this.current) return this.lastSample;
     }
-    return this.current[this.index++]!;
+    return (this.lastSample = this.current[this.index++]!);
   }
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
     const channels = outputs[0];

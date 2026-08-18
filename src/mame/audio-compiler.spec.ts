@@ -412,8 +412,9 @@ assert.ok(acRms([...timed.slice(400)]) > 1e-4);
 assert.match(aySource, /write\.frac/);
 
 // A browser animation-frame catch-up can deliver several complete audio
-// batches at once. Rendering each batch must advance chip state, but playing
-// every stale PCM frame would turn that brief stall into permanent latency.
+// batches at once. The queue is elastic — a few frames of slack absorb rAF
+// jitter without a discontinuity — but it must stay bounded so a stall never
+// becomes permanent latency: bursting past the cap drops the oldest PCM.
 assert.ok(registeredAyProcessor);
 const queuedAy = new registeredAyProcessor();
 queuedAy.port.onmessage?.({ data: {
@@ -429,11 +430,25 @@ queuedAy.port.onmessage?.({ data: { type: 'batch', writes: [
   { offset: 8, data: 0x0f, frac: 0 },
 ] } });
 queuedAy.port.onmessage?.({ data: { type: 'batch', writes: [] } });
+queuedAy.port.onmessage?.({ data: { type: 'batch', writes: [] } });
 const freshAudio = new Float32Array(256);
 queuedAy.process([], [[freshAudio]]);
 assert.ok(
   acRms([...freshAudio]) > 1e-4,
-  'the worklet must discard stale silent PCM and play the newest queued frame',
+  'a burst past the queue cap must drop the oldest (silent) PCM frame',
+);
+
+// Starvation must hold the last sample rather than snap to 0: the Taito SJ
+// analog AY mix idles well above 0, so a 0-fill is an audible pop.
+const starvedTail = new Float32Array(800 * 3);
+queuedAy.process([], [[starvedTail]]);
+const starved = new Float32Array(256);
+queuedAy.process([], [[starved]]);
+const held = starvedTail[starvedTail.length - 1]!;
+assert.notEqual(held, 0, 'the starved tail must already hold a real sample');
+assert.ok(
+  starved.every(sample => sample === held),
+  'an underrun must hold the last rendered sample, not emit zeros',
 );
 
 const dacMixer = new ayModule.GeneratedAy8910Mixer(

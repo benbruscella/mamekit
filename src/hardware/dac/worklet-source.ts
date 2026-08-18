@@ -158,18 +158,22 @@ class GeneratedDacProcessor extends AudioWorkletProcessor {
         );
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 1) this.frames.shift();
+        while (this.frames.length > 3) this.frames.shift();
       }
     };
   }
+
+  private lastSample = 0;
 
   private nextSample(): number {
     while (!this.current || this.currentIndex >= this.current.length) {
       this.current = this.frames.shift();
       this.currentIndex = 0;
-      if (!this.current) return 0;
+      // Starved: hold the last sample. A 0-fill is a hard step on any
+      // mix with a DC offset (e.g. tied-pin AY outputs) and pops loudly.
+      if (!this.current) return this.lastSample;
     }
-    return this.current[this.currentIndex++]!;
+    return (this.lastSample = this.current[this.currentIndex++]!);
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {

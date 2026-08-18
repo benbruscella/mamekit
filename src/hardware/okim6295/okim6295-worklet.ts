@@ -142,17 +142,20 @@ class GeneratedOkim6295Processor extends AudioWorkletProcessor {
       );
       else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 1) this.frames.shift();
+        while (this.frames.length > 3) this.frames.shift();
       }
     };
   }
+  private lastSample = 0;
+
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
     const channels = outputs[0]; const output = channels?.[0]; if (!output) return true;
     for (let index = 0; index < output.length; index++) {
       while (!this.current || this.cursor >= this.current.length) {
         this.current = this.frames.shift(); this.cursor = 0; if (!this.current) break;
       }
-      output[index] = this.current?.[this.cursor++] ?? 0;
+      // Hold the last sample when starved: a 0-fill pops on DC-offset mixes.
+      output[index] = this.lastSample = this.current?.[this.cursor++] ?? this.lastSample;
     }
     for (let channel = 1; channel < (channels?.length ?? 0); channel++) channels![channel]!.set(output);
     return true;

@@ -1086,10 +1086,12 @@ class GeneratedDiscreteEffectsProcessor extends AudioWorkletProcessor {
         );
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 1) this.frames.shift();
+        while (this.frames.length > 3) this.frames.shift();
       }
     };
   }
+
+  private lastSample = 0;
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
     const channels = outputs[0];
@@ -1101,7 +1103,8 @@ class GeneratedDiscreteEffectsProcessor extends AudioWorkletProcessor {
         this.cursor = 0;
         if (!this.current) break;
       }
-      output[index] = this.current?.[this.cursor++] ?? 0;
+      // Hold the last sample when starved: a 0-fill pops on DC-offset mixes.
+      output[index] = this.lastSample = this.current?.[this.cursor++] ?? this.lastSample;
     }
     for (let channel = 1; channel < (channels?.length ?? 0); channel++) {
       channels![channel]!.set(output);
