@@ -831,6 +831,18 @@ class GeneratedPalette implements GeneratedPaletteDevice {
     this.indirect[pen] = color;
     this.colors[pen] = this.indirectColors[color] ?? 0xff000000;
   }
+
+  /**
+   * palette_device::set_pen_color overloads used by driver-owned RAM writers.
+   * Some PROM-palette boards keep a RAM-colored pen range on top (Mat Mania's
+   * sprite pens 64..79); the driver handler recomputes those pens directly.
+   */
+  set_pen_color(pen: number, colorOrRed: number, green?: number, blue?: number): void {
+    if (pen < 0 || pen >= this.colors.length) return;
+    this.colors[pen] = green === undefined || blue === undefined
+      ? colorOrRed >>> 0
+      : packRgb(colorOrRed, green, blue);
+  }
 }
 
 /** TNX1's DMA-selected background/text/sprite PROM resistor networks. */
