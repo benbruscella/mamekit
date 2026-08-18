@@ -923,7 +923,8 @@ class GeneratedTnx1Palette implements GeneratedPaletteDevice {
 export class GeneratedGfxElement {
   readonly entry: GeneratedGfxEntry;
   readonly decoded: GfxSet;
-  private readonly penGranularity: number;
+  /** Pens per color entry; drivers can widen it (mario's set_granularity(8)). */
+  private penGranularity: number;
   private readonly palette: GeneratedPaletteDevice;
   /** Indexed (bitmap_ind16) screens compose pens; the screen resolves them. */
   private readonly indexed: boolean;
@@ -1023,6 +1024,11 @@ export class GeneratedGfxElement {
 
   granularity(): number {
     return this.penGranularity;
+  }
+
+  /** gfx_element::set_granularity: pens per color entry, from video_start. */
+  set_granularity(value: number): void {
+    if (Number.isFinite(value) && value > 0) this.penGranularity = Math.trunc(value);
   }
 
   get_data(code: number): Uint8Array {

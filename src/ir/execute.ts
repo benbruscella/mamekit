@@ -80,6 +80,14 @@ interface PreparedMachineCalls {
   referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']>;
   callParameters: NonNullable<GeneratedHandlerBindings['callParameters']>;
   concreteDeviceMembers: ReadonlySet<string>;
+  /**
+   * The bindings.referenceCalls object this table was seeded from. Board
+   * construction replaces bindings.referenceCalls when the video package
+   * merges its framework calls (tilemap dirty marking and kin); a snapshot
+   * seeded before that merge must be rebuilt, not reused, or those calls
+   * silently no-op for every later handler (Mario's palette_bank_w).
+   */
+  seededFrom: GeneratedHandlerBindings['referenceCalls'];
 }
 
 const MACHINE_CALL_CACHE = new WeakMap<
@@ -267,7 +275,7 @@ function preparedMachineCalls(
     byBindings.set(bindings, byOwner);
   }
   const cached = byOwner.get(ownerClass);
-  if (cached) return cached;
+  if (cached && cached.seededFrom === bindings.referenceCalls) return cached;
 
   const compiled = (machine.handlers ?? []).filter(candidate =>
     candidate.program && candidate.program.diagnostics.length === 0);
@@ -337,6 +345,7 @@ function preparedMachineCalls(
     concreteDeviceMembers: new Set(
       (machine.devices ?? []).flatMap(device => device.member ? [device.member] : []),
     ),
+    seededFrom: bindings.referenceCalls,
   };
   byOwner.set(ownerClass, prepared);
   return prepared;
