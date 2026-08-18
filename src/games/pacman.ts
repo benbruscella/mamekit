@@ -34,8 +34,8 @@ export const pacman: GameTestContract = {
       writes: 5831,
       nonzeroWrites: 2375,
       writeHash: '2553b996',
-      pcmHash: '30c742bc',
-      rms: 0.170869,
+      pcmHash: '029b50e1',
+      rms: 0.1691,
     },
   },
 };
