@@ -3517,9 +3517,19 @@ export function bindGeneratedRegionState(
   const leaf = tag.split(':').at(-1)!;
   state[`m_${leaf}`] ??= bytes;
   for (const [member, finderTag] of Object.entries(bindings)) {
-    if (finderTag === tag || finderTag === leaf) {
-      const offset = Math.max(0, offsets[member] ?? 0);
-      state[member] ??= offset ? bytes.subarray(offset) : bytes;
+    if (finderTag !== tag && finderTag !== leaf) continue;
+    const offset = Math.max(0, offsets[member] ?? 0);
+    const bound = offset ? bytes.subarray(offset) : bytes;
+    // region_ptr_array finders bind per element (m_adpcm_rom[1] -> "adpcm2").
+    const indexed = /^(.+)\[(\d+)\]$/.exec(member);
+    if (indexed) {
+      const values = Array.isArray(state[indexed[1]!])
+        ? state[indexed[1]!] as unknown[]
+        : [];
+      values[Number(indexed[2])] ??= bound;
+      state[indexed[1]!] = values;
+    } else {
+      state[member] ??= bound;
     }
   }
 }

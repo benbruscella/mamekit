@@ -368,7 +368,7 @@ function prescaleSelectors(source: string): GeneratedYm2203Plan['prescale']['sel
  * `0x00 + 2 * choffs` or shift by `3 + choffs`. OPN-only accessors are written
  * as `IsOpnA ? <opna> : <opn>`; the YM2203 typedef instantiates IsOpnA == false.
  */
-function registerField(source: string, name: string): GeneratedOpnField {
+export function registerField(source: string, name: string): GeneratedOpnField {
   const declaration = new RegExp(
     `\\b${name}\\s*\\([^)]*\\)\\s*const\\s*\\{\\s*return\\s+([^;]+);`,
   ).exec(source)?.[1];
@@ -441,7 +441,7 @@ function indexExpression(text: string): { base: number; stride: number } {
   return { base, stride };
 }
 
-function constant(source: string, name: string): number {
+export function constant(source: string, name: string): number {
   const declaration = new RegExp(
     `static\\s+constexpr\\s+\\w+\\s+${name}\\s*=\\s*([^;]+);`,
   ).exec(source)?.[1];
@@ -460,7 +460,7 @@ function evaluateConstant(text: string): number {
   return Number(text);
 }
 
-function enumeratorValues(source: string, name: string): Record<string, number> {
+export function enumeratorValues(source: string, name: string): Record<string, number> {
   const body = new RegExp(`enum\\s+${name}\\s*(?::\\s*\\w+\\s*)?\\{([^}]*)\\}`).exec(source)?.[1];
   if (!body) throw new Error(`YM2203: ymfm enum ${name} is missing`);
   const values: Record<string, number> = {};
@@ -475,7 +475,7 @@ function enumeratorValues(source: string, name: string): Record<string, number> 
   return values;
 }
 
-function requireState(states: Record<string, number>, name: string): number {
+export function requireState(states: Record<string, number>, name: string): number {
   const value = states[name];
   if (value === undefined) throw new Error(`YM2203: ymfm envelope state ${name} is missing`);
   return value;
@@ -488,7 +488,7 @@ function keycodeMagic(source: string): number {
   return Number(value);
 }
 
-function operatorMap(source: string, channels: number): number[][] {
+export function operatorMap(source: string, channels: number): number[][] {
   const fixed = /operator_map\(operator_mapping &dest\) const\s*\{([\s\S]*?)\n\}/.exec(source)?.[1];
   const lists = [...(fixed ?? '').matchAll(/operator_list\s*\(([^)]*)\)/g)]
     .map(match => splitMameArgs(match[1]!).map(value => Number(value.trim())));
@@ -499,7 +499,7 @@ function operatorMap(source: string, channels: number): number[][] {
 }
 
 /** Expand the ALGORITHM(...) macro entries of s_algorithm_ops. */
-function algorithmOps(source: string): number[] {
+export function algorithmOps(source: string): number[] {
   const macro =
     /#define\s+ALGORITHM\(op2in, op3in, op4in, op1out, op2out, op3out\)\s*\\\s*\n\s*([^\n]+)/
       .exec(source)?.[1];
@@ -515,7 +515,7 @@ function algorithmOps(source: string): number[] {
   });
 }
 
-function numericTable(source: string, name: string): number[] {
+export function numericTable(source: string, name: string): number[] {
   const body = new RegExp(
     `\\b${name}\\s*\\[[^\\]]*\\]\\s*=\\s*\\{([\\s\\S]*?)\\s*\\};`,
   ).exec(source)?.[1];
@@ -524,7 +524,7 @@ function numericTable(source: string, name: string): number[] {
     .map(match => Number(match[0]));
 }
 
-function nestedNumericTable(source: string, name: string): number[][] {
+export function nestedNumericTable(source: string, name: string): number[][] {
   const body = new RegExp(
     `\\b${name}\\s*\\[[^;]*?\\]\\s*=\\s*\\{([\\s\\S]*?)\\n\\s*\\};`,
   ).exec(source)?.[1];
@@ -537,7 +537,7 @@ function nestedNumericTable(source: string, name: string): number[][] {
  * The power table is stored through an `X(a)` macro that pre-applies the
  * implied leading bit and the DAC shift; lower the macro, not its output.
  */
-function powerTable(source: string): number[] {
+export function powerTable(source: string): number[] {
   const macro = /#define\s+X\(a\)\s*\(\(\(a\)\s*\|\s*(0x[\da-f]+)\)\s*<<\s*(\d+)\)/i.exec(source);
   if (!macro) throw new Error('YM2203: ymfm power table macro shape changed');
   const implied = Number(macro[1]);
@@ -567,7 +567,7 @@ function envelopeShapeRegister(source: string): number {
   return Number(value);
 }
 
-function lineOf(source: string, offset: number): number {
+export function lineOf(source: string, offset: number): number {
   return source.slice(0, Math.max(0, offset)).split('\n').length;
 }
 

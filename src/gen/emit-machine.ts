@@ -20,9 +20,17 @@ export function generatedCpuCycleClock(type: string | undefined, clock: number):
   if (type === 'i8085a') return clock / 2;
   if (
     type === 'konami' || type === 'mc6809' || type === 'm6801u4' || type === 'm6802' ||
-    type === 'm6803' || type === 'm6808' || type === 'nsc8105'
+    type === 'm6803' || type === 'm6808' || type === 'nsc8105' ||
+    // The whole m6800/m6801/hd6301 line divides its input clock by 4
+    // (m6800.h/m6801.h execute_cycles_to_clocks); only the external-E-clock
+    // variants (m6803e, mc6809e-style) run 1:1 and stay off this list.
+    type === 'hd63701y0'
   ) return clock / 4;
-  if (type === 'i8035' || type === 'i8039' || type === 'mb8884') return clock / 15;
+  // MCS-48 divides by 15 (mcs48.h execute_cycles_to_clocks); m58715 is a
+  // plain mcs48_cpu_device, only i8021/i8022 use the /30 variant.
+  if (
+    type === 'i8035' || type === 'i8039' || type === 'mb8884' || type === 'm58715'
+  ) return clock / 15;
   return clock;
 }
 import type {
@@ -1071,7 +1079,9 @@ function lowerFrameEvents(
       }
       continue;
     }
-    if (callback.signal === 'vck_callback') {
+    // vck_legacy_callback shares vck_callback's timing: the MSM5205 clocks
+    // itself at clock/prescaler and fires the driver's per-sample feeder.
+    if (callback.signal === 'vck_callback' || callback.signal === 'vck_legacy_callback') {
       const frequency = devices.find(device => device.tag === callback.ownerTag)?.callbackHz;
       if (frequency) {
         events.push({

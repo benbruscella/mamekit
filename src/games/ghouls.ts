@@ -43,8 +43,8 @@ export const ghouls = {
       writes: 98308,
       nonzeroWrites: 88551,
       writeHash: '7d11ceb7',
-      pcmHash: '28b86994',
-      rms: 0.005162,
+      pcmHash: '4366a2f9',
+      rms: 0.017504,
     },
   },
 };

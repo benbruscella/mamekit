@@ -85,6 +85,32 @@ export function installYm2151Runtime(context: SoundRuntimeContext): {
   const auxiliaries = (context.sound.auxiliaryDevices ?? [])
     .filter(device => device.type === 'OKIM6295')
     .map(device => installAuxiliaryOkim6295Runtime(context, device));
+  // MSM5205 ADPCM chips mixed by the worklet: the board never instantiates
+  // them, so driver calls (m_adpcm[0]->data_w from the vck feeder) and mapped
+  // writes go straight to the sink, tagged by device and method name.
+  for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
+    if (auxiliary.type !== 'MSM5205') continue;
+    const aliases = [
+      auxiliary.deviceTag,
+      `m_${auxiliary.deviceTag}`,
+      ...(auxiliary.member ? [auxiliary.member] : []),
+    ];
+    for (const method of auxiliary.writeMethods) {
+      const name = `${auxiliary.deviceTag}.${method}`;
+      context.registry.write[name] = (_address, offset, data) => {
+        context.soundWrite(offset, data, context.fraction(), name);
+      };
+      for (const alias of aliases) {
+        const key = `${alias}.${method}`;
+        const original = context.calls[key];
+        context.calls[key] = (...args: number[]) => {
+          const result = original?.(...args);
+          context.soundWrite(0, args.at(-1) ?? 0, context.fraction(), name);
+          return result;
+        };
+      }
+    }
+  }
   return {
     reset: () => {
       for (const timer of timers) {

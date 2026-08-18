@@ -645,16 +645,38 @@ function compileHandlerRamPalette(
  * shared-memory finders have separate runtime binding paths.
  */
 export function sourceRegionBindings(source: string): Record<string, string> {
-  const regionMembers = new Set(
-    [...source.matchAll(
-      /\b(?:required|optional)_region_ptr(?:_array)?\s*<[^;{}]+>\s+(m_\w+)\b/g,
-    )].map(match => match[1]!),
-  );
+  /** member -> declared array extent (0 for a scalar region_ptr). */
+  const regionMembers = new Map<string, number>();
+  for (const match of source.matchAll(
+    /\b(?:required|optional)_region_ptr(_array)?\s*<[^;{}]*?(?:,\s*(\d+)\s*)?>\s+(m_\w+)\b/g,
+  )) {
+    regionMembers.set(match[3]!, match[1] ? Number(match[2] ?? 0) : 0);
+  }
   const bindings: Record<string, string> = {};
   for (const match of source.matchAll(
-    /\b(m_\w+)\s*\(\s*\*this\s*,\s*"([^"]+)"\s*\)/g,
+    /\b(m_\w+)\s*\(\s*\*this\s*,\s*"([^"]+)"\s*(?:,\s*(\d+)U?\s*)?\)/g,
   )) {
-    if (regionMembers.has(match[1]!)) bindings[match[1]!] = match[2]!;
+    const extent = regionMembers.get(match[1]!);
+    if (extent === undefined) continue;
+    if (!extent) {
+      bindings[match[1]!] = match[2]!;
+      continue;
+    }
+    // Array finder with a printf tag pattern: m_adpcm_rom(*this, "adpcm%u", 1U)
+    const start = Number(match[3] ?? 0);
+    for (let index = 0; index < extent; index++) {
+      bindings[`${match[1]}[${index}]`] = match[2]!.replace('%u', String(start + index));
+    }
+  }
+  // Array finder with explicit tags: m_rom(*this, {"a", "b"})
+  for (const match of source.matchAll(
+    /\b(m_\w+)\s*\(\s*\*this\s*,\s*\{([^}]*)\}\s*\)/g,
+  )) {
+    const extent = regionMembers.get(match[1]!);
+    if (!extent) continue;
+    [...match[2]!.matchAll(/"([^"]+)"/g)].forEach((tagMatch, index) => {
+      bindings[`${match[1]}[${index}]`] = tagMatch[1]!;
+    });
   }
   return bindings;
 }
