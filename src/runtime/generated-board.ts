@@ -799,6 +799,7 @@ class IrBoard implements Board {
       }
       const mask = specification.mask ?? 0xffff;
       let previousTimingCycles = 0;
+      const signalCallbackCache = new Map<string, BoardIr['callbacks']>();
       const cpu = createCpu(type, {
         read: address => bus.read(address & mask),
         // Keep native 16-bit address-map handlers atomic. In particular,
@@ -835,9 +836,16 @@ class IrBoard implements Board {
           }
         },
         signal: (signal, state) => {
-          const callbacks = machine.callbacks.filter(candidate =>
-            candidate.ownerTag === specification.tag &&
-            candidate.signal === signal);
+          // Memoized per signal name: the Namco custom-I/O families emit port
+          // signals thousands of times per frame, and re-filtering the full
+          // callback list on each emit dominated Dig Dug's frame budget.
+          let callbacks = signalCallbackCache.get(signal);
+          if (!callbacks) {
+            callbacks = machine.callbacks.filter(candidate =>
+              candidate.ownerTag === specification.tag &&
+              candidate.signal === signal);
+            signalCallbackCache.set(signal, callbacks);
+          }
           let result: number | undefined;
           for (const callback of callbacks) {
             const effect = this.effects.get(callback.id);
