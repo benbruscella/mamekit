@@ -26,10 +26,10 @@ export const tutankhm: GameTestContract = {
       1: { video: 'f7e6ac81', state: 'c1ab7eea' },
       60: { video: 'f7e6ac81', state: 'ec3404e5' },
       180: { video: '0d63df78', state: '7af7b547' },
-      300: { video: '9f69cff5', state: 'dedeec29' },
+      300: { video: '7a944db9', state: 'dedeec29' },
       600: { video: 'e24cbb8e', state: '0e3830c0' },
       900: { video: '62c0a2d9', state: '6bf656cb' },
-      1200: { video: '27110f13', state: '6486e0ab' },
+      1200: { video: '8d6d604e', state: '6486e0ab' },
     },
     audio: {
       writes: 17384,

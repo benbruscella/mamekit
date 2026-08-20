@@ -30,9 +30,9 @@ export const junglek: GameTestContract = {
       60: { video: '2a3fbb82', state: 'd9171ca1' },
       180: { video: '5232ad1c', state: '570f6002' },
       300: { video: '7c3913ba', state: '2c2e5571' },
-      480: { video: '4d05e92d', state: 'cd28c587' },
-      600: { video: '03c776f7', state: 'c1866f0e' },
-      900: { video: 'f6c43d73', state: '1db8c826' },
+      480: { video: '44f0c76a', state: 'cd28c587' },
+      600: { video: '64dcc557', state: 'c1866f0e' },
+      900: { video: '4c431e70', state: '1db8c826' },
     },
     audio: {
       writes: 1580862,

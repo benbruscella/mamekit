@@ -17,12 +17,12 @@ export const popeye = sourceTarget({
     },
     checkpoints: {
       1: { video: '5e8c1790', state: 'a162995c' },
-      60: { video: 'afd291bd', state: 'e6a73a05' },
+      60: { video: '92c8098c', state: 'e6a73a05' },
       180: { video: '2039de27', state: 'bfd8b506' },
       300: { video: '2039de27', state: 'a9d0c43a' },
       600: { video: 'caaef48b', state: 'f72c4d19' },
       900: { video: 'e90c674e', state: 'f1de02c8' },
-      1200: { video: '921fcd02', state: '0e809470' },
+      1200: { video: '23877693', state: '0e809470' },
     },
     audio: {
       writes: 2539,

@@ -36,12 +36,12 @@ export const _1942: GameTestContract = {
     },
     checkpoints: {
       1: { video: 'a4f19f78', state: '94fda8e0' },
-      60: { video: '18d325fc', state: '48747488' },
+      60: { video: '0af93413', state: '48747488' },
       180: { video: '4473cda5', state: 'a6f7d0f7' },
       300: { video: 'ad8015e1', state: 'c3d5405d' },
-      600: { video: 'b2248e11', state: '0f53339d' },
-      900: { video: 'fcaf1a4f', state: '0d58c942' },
-      1200: { video: '20f7db02', state: 'e8442785' },
+      600: { video: '11f682da', state: '0f53339d' },
+      900: { video: '4f785ed3', state: '0d58c942' },
+      1200: { video: 'b1fd4e87', state: 'e8442785' },
     },
     audio: {
       writes: 53613,

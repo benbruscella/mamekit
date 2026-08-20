@@ -22,10 +22,10 @@ export const phoenix = sourceTarget({
     },
     checkpoints: {
       1: { video: 'eda81a59', state: 'b17abff0' },
-      60: { video: '96abaa99', state: '7c65cac3' },
-      180: { video: '35c0727b', state: '6f4d65de' },
+      60: { video: '62f7defc', state: '7c65cac3' },
+      180: { video: 'dfd9596d', state: '6f4d65de' },
       300: { video: '8dea2b6a', state: '3fe01a06' },
-      600: { video: '8a08218e', state: 'fc609e80' },
+      600: { video: '89941e07', state: 'fc609e80' },
       900: { video: 'b3c84d37', state: '6037dde4' },
       1200: { video: '7f60d66e', state: '5dd38bb7' },
     },

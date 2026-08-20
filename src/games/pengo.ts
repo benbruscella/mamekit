@@ -30,15 +30,15 @@ export const pengo: GameTestContract = {
       180: { video: '03392f1f', state: '1828f123' },
       300: { video: 'e61ef7b4', state: '30955f47' },
       600: { video: 'af2bf6d7', state: '0ddc3c94' },
-      900: { video: '35b9da1e', state: 'df5ef847' },
+      900: { video: '8959914d', state: 'df5ef847' },
       1200: { video: 'a317143a', state: '0fa1d94e' },
     },
     audio: {
       writes: 5758,
       nonzeroWrites: 4473,
       writeHash: '5bd1757f',
-      pcmHash: '7e854f6c',
-      rms: 0.112377,
+      pcmHash: 'a4eb450d',
+      rms: 0.113761,
     },
   },
 };

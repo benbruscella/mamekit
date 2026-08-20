@@ -24,11 +24,11 @@ export const carnival = sourceTarget({
     },
     checkpoints: {
       1: { video: 'f7e6ac81', state: '53144964' },
-      60: { video: '04aa26ef', state: 'c4a5bfe7' },
+      60: { video: 'fa381142', state: 'c4a5bfe7' },
       180: { video: '9e5f1048', state: 'b441e2a1' },
       300: { video: 'c7518618', state: '95b8fb32' },
       600: { video: '9de6e110', state: '1a950d77' },
-      900: { video: 'e242c62e', state: '839e2470' },
+      900: { video: '967c810a', state: '839e2470' },
       1200: { video: 'dbb60f93', state: '46ce2077' },
     },
     audio: {

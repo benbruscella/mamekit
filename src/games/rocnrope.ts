@@ -27,12 +27,12 @@ export const rocnrope: GameTestContract = {
       'timeplt_audio:tpsound': 'f47e6800',
     },
     checkpoints: {
-      1: { video: 'fa7a7abe', state: 'fa48c445' },
-      60: { video: '133dcf53', state: '7f483305' },
-      300: { video: '0ba4f893', state: 'a9efceb5' },
-      540: { video: '5512b739', state: 'fafdee9b' },
-      720: { video: '4205a71e', state: '9216dd69' },
-      1200: { video: '31df70ff', state: '160b2eaf' },
+      1: { video: 'fe92a11c', state: 'ecfb0dd9' },
+      60: { video: '133dcf53', state: '7e45e1d8' },
+      300: { video: '0ba4f893', state: 'ba045f35' },
+      540: { video: '5512b739', state: '210b77b9' },
+      720: { video: 'd00efec3', state: '4974fab5' },
+      1200: { video: '7c86ea84', state: 'f2b02bbc' },
     },
     audio: {
       writes: 1422,

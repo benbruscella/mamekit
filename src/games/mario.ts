@@ -32,12 +32,12 @@ export const mario = {
     checkpoints: {
       1: { video: '9d7c81cb', state: '78fb7055' },
       300: { video: 'a3913a72', state: '3026ed82' },
-      600: { video: '7a7ba954', state: '8d0d272e' },
+      600: { video: '2fe3d933', state: '8d0d272e' },
       900: { video: '026875d1', state: 'b4097b06' },
       1200: { video: 'e7380771', state: '302c1cfd' },
       1500: { video: '080dbf8e', state: '32024970' },
       1650: { video: '080dbf8e', state: 'ee9d8ccf' },
-      1840: { video: 'd2413da5', state: '1a24d8f0' },
+      1840: { video: 'c69c9e03', state: '1a24d8f0' },
     },
     audio: {
       writes: 375780,

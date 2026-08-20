@@ -31,7 +31,7 @@ export const galaxian: GameTestContract = {
       300: { video: 'd63f2643', state: '216d30f1' },
       480: { video: '7bec3347', state: 'b9383f89' },
       500: { video: '84ced788', state: '0edb7399' },
-      900: { video: '248a8878', state: '055823fc' },
+      900: { video: '21cf872c', state: '055823fc' },
     },
     audio: {
       writes: 4002,

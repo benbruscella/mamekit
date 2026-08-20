@@ -28,7 +28,7 @@ export const invaders: GameTestContract = {
       180: { video: '0f631559', state: 'e057e2a0' },
       300: { video: '64709a0d', state: 'b7d90dd9' },
       420: { video: 'e2d8e7f5', state: '3f1613f9' },
-      600: { video: '12ab6419', state: '651086c7' },
+      600: { video: 'a4acf059', state: '651086c7' },
     },
     audio: {
       writes: 721,

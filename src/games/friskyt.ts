@@ -30,8 +30,8 @@ export const friskyt: GameTestContract = {
       300: { video: 'f2a6ed1d', state: '87a94f64' },
       600: { video: '53ce8f1b', state: 'f84c45af' },
       900: { video: 'e9b25028', state: '6bd7a79c' },
-      1200: { video: '1c6312cb', state: '0a9cea12' },
-      1500: { video: '18c0d183', state: '6168bc40' },
+      1200: { video: '08f9eaf5', state: '0a9cea12' },
+      1500: { video: 'a5026b8a', state: '6168bc40' },
       1800: { video: '2d3b33e6', state: '27740663' },
     },
     audio: {

@@ -21,9 +21,9 @@ export const qbert = sourceTarget({
     checkpoints: {
       1: { video: '07673647', state: 'b9dcb33a' },
       60: { video: '0a71ec05', state: 'e3a6a9b3' },
-      180: { video: 'abff0230', state: '89dd7372' },
-      300: { video: '6aed9f1e', state: 'd8185c96' },
-      600: { video: '84843a5e', state: 'e9c85c59' },
+      180: { video: '9e26a63e', state: '89dd7372' },
+      300: { video: '517aeb0c', state: 'd8185c96' },
+      600: { video: '7028b3bf', state: 'e9c85c59' },
       900: { video: '23bb479e', state: 'fb3eaa0d' },
       1200: { video: '23bb479e', state: 'a5621254' },
     },

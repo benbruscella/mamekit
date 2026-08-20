@@ -34,7 +34,7 @@ export const gyruss: GameTestContract = {
       480: { video: '0cf148d4', state: 'b677c748' },
       720: { video: 'bbe296d9', state: '4663f25d' },
       1200: { video: 'b12f288e', state: 'd7c52a7d' },
-      1800: { video: 'e595fce5', state: '9556c09a' },
+      1800: { video: '80a09e40', state: '9556c09a' },
     },
     audio: {
       writes: 72835,

@@ -16,12 +16,12 @@ export const matmania = sourceTarget({
       tiles: '0bc21206',
     },
     checkpoints: {
-      1: { video: '9190e1eb', state: '9be98c6c' },
+      1: { video: '322f58d5', state: '9be98c6c' },
       60: { video: '99f41834', state: '758a0232' },
       180: { video: '99f41834', state: '6fe62b32' },
       300: { video: '1cbc58bf', state: '9f833c5f' },
-      600: { video: '8a76d31a', state: 'bb89ac03' },
-      900: { video: '18d5d672', state: 'b3acf056' },
+      600: { video: 'eed4849a', state: 'bb89ac03' },
+      900: { video: '7c7781f2', state: 'b3acf056' },
       1200: { video: '1abc9775', state: 'dfacdb62' },
     },
     audio: {

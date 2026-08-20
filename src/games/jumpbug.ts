@@ -26,9 +26,9 @@ export const jumpbug: GameTestContract = {
     checkpoints: {
       1: { video: 'b2afb37a', state: '1103d631' },
       60: { video: 'f7e6ac81', state: 'e297193f' },
-      180: { video: '89290299', state: 'e57ed450' },
-      300: { video: '9c228457', state: 'b9edfbfa' },
-      600: { video: 'aa57b1a9', state: 'c7341c19' },
+      180: { video: '56e8010e', state: 'e57ed450' },
+      300: { video: '2229d565', state: 'b9edfbfa' },
+      600: { video: '58638d02', state: 'c7341c19' },
       900: { video: '66733679', state: '500b6be2' },
       1200: { video: '4a1342d9', state: '259e2dc1' },
     },

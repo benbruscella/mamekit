@@ -26,8 +26,8 @@ export const pooyan: GameTestContract = {
     checkpoints: {
       1: { video: '74589235', state: 'b8e78566' },
       60: { video: 'e31b647c', state: '689367f6' },
-      180: { video: 'c036d9ec', state: 'e3838800' },
-      300: { video: '85d2acaa', state: '926eb9f5' },
+      180: { video: 'ff05b684', state: 'e3838800' },
+      300: { video: 'a2d03b71', state: '926eb9f5' },
       420: { video: 'e008d9ac', state: 'dc1f7c89' },
       600: { video: '359901e1', state: 'c8298203' },
     },

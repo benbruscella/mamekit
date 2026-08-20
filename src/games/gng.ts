@@ -31,14 +31,14 @@ export const gng: GameTestContract = {
       tiles: '7fecac80',
     },
     checkpoints: {
-      1: { video: 'ed40d49a', state: '97664026' },
+      1: { video: '589eb0d0', state: '97664026' },
       60: { video: 'f7e6ac81', state: 'e42904d3' },
       300: { video: 'a103a5e3', state: 'a3eb4241' },
       480: { video: '5b5e30a1', state: 'cfa6424a' },
       900: { video: '008a572c', state: '16a21cbf' },
-      1200: { video: '9fc16ce3', state: '5410d118' },
-      1800: { video: '58d45496', state: '1c7348f4' },
-      2400: { video: 'c78bec9d', state: 'ae60d957' },
+      1200: { video: '88e2d337', state: '5410d118' },
+      1800: { video: 'e0bee347', state: '1c7348f4' },
+      2400: { video: 'cd6e8432', state: 'ae60d957' },
       3000: { video: '4c7abb46', state: '994ff023' },
     },
     audio: {

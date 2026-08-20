@@ -24,12 +24,12 @@ export const timeplt: GameTestContract = {
       'timeplt_audio:tpsound': '3142803f',
     },
     checkpoints: {
-      1: { video: '43d7f729', state: '0b350316' },
-      60: { video: 'b95a6e16', state: 'ae9b3ae1' },
-      300: { video: '958f2475', state: '3e4b5bd5' },
-      540: { video: '3757fed1', state: '7f95cddf' },
-      720: { video: '96e6f0a2', state: '289f4c90' },
-      1200: { video: '7069f4a5', state: 'af922604' },
+      1: { video: '43d7f729', state: '43e30c92' },
+      60: { video: 'b95a6e16', state: '5efcf53e' },
+      300: { video: '958f2475', state: 'cc7d7745' },
+      540: { video: '3757fed1', state: 'f6beccc8' },
+      720: { video: '96e6f0a2', state: '0fd4fdf5' },
+      1200: { video: '7069f4a5', state: 'bcbb05b1' },
     },
     audio: {
       writes: 5831,

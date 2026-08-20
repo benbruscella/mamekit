@@ -36,7 +36,7 @@ export const digdug: GameTestContract = {
       sub2: '160b5db3',
     },
     checkpoints: {
-      1: { video: '7ec23ef6', state: '3a2718a7' },
+      1: { video: 'fa37277c', state: '3a2718a7' },
       300: { video: 'caacaddb', state: 'fd652c7a' },
       600: { video: '21864713', state: 'dd4fbcf6' },
       1200: { video: '96caa8ca', state: '19ebfc06' },

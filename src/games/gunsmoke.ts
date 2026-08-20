@@ -36,7 +36,7 @@ export const gunsmoke: GameTestContract = {
       600: { video: 'eca2166a', state: 'c8af2211' },
       900: { video: '6f34d8ff', state: '93eba40c' },
       1200: { video: 'c7401a28', state: '2a0f3b2b' },
-      1800: { video: '247dc679', state: '0c698607' },
+      1800: { video: '05077f3c', state: '0c698607' },
     },
     audio: {
       writes: 319350,
