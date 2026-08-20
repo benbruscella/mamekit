@@ -25,6 +25,11 @@ export interface RomLoad {
    * an incomplete set. `baddump` bytes are known-imperfect but usable.
    */
   status?: 'nodump' | 'baddump';
+  groupSize?: number;
+  skip?: number;
+  reverse?: boolean;
+  /** Merge the source's low nibble into the low or high destination nibble. */
+  nibbleShift?: 0 | 4;
 }
 export interface RomRegionSpec {
   region: string;
@@ -33,6 +38,8 @@ export interface RomRegionSpec {
   fill?: number;
   /** MAME ROMREGION_INVERT complements every byte after the region is loaded. */
   invert?: boolean;
+  /** Source ROM_FILL directives applied after physical chips are loaded. */
+  fills?: { offset: number; size: number; value: number }[];
   /**
    * MAME device short name owning this region's ROMs, when they come from a
    * device set rather than the game set. MAME commonised device ROMs so one
@@ -48,16 +55,43 @@ export function isDumpedRom(load: RomLoad): boolean {
   return load.status !== 'nodump';
 }
 
+/**
+ * Regions whose absence cannot produce a usable machine.  In addition to the
+ * board CPUs, this includes firmware owned by MAME device ROM sets.  Split
+ * MAME collections keep those chips in (for example) namco51.zip rather than
+ * the game's zip; silently zero-filling them can pass the main-CPU boot ROM
+ * check while leaving I/O or sound controllers dead.
+ */
+export function requiredRomRegions(specs: RomRegionSpec[], cpuRegions: Iterable<string>): Set<string> {
+  const required = new Set(cpuRegions);
+  for (const spec of specs) {
+    if (spec.romSet && spec.loads.some(isDumpedRom)) required.add(spec.region);
+  }
+  return required;
+}
+
+/** Distinct external device sets needed alongside the game's own zip. */
+export function dependencyRomSets(specs: RomRegionSpec[], game: string): string[] {
+  return [...new Set(specs.flatMap(spec => spec.romSet && spec.loads.some(isDumpedRom) ? [spec.romSet] : []))]
+    .filter(set => set !== game);
+}
+
 export interface SoundSpec {
   /** Generic SoundCore/AudioWorklet processor kind. */
   kind: string;
+  /** Concrete MAME chip hosted by a shared worklet family (YM2203/YM2610). */
+  deviceType?: string;
   /** Generated worklet artifact stem when several MAME devices share a processor kind. */
   worklet?: string;
   clock?: number;
   /** rom region holding the wavetable (wsg only) */
   waveRegion?: string;
+  /** optional source-device sample ROM mixed by the primary worklet */
+  sampleRegion?: string;
   /** number of sound chips (ay8910: gyruss has 5) */
   chips?: number;
+  /** MAME device tags in chip-index order. */
+  deviceTags?: string[];
   /** Per-output routes lowered from MAME add_route calls. */
   routes?: GeneratedAudioRoute[];
   /** MAME discrete DAC/filter network mixed with the primary core. */
@@ -211,6 +245,15 @@ export interface ShellConfig {
 
 export type RomTransform =
   | {
+      kind: 'address-byte-bitswap';
+      region: string;
+      start: number;
+      end: number;
+      addressBits: number[];
+      addressXor: number;
+      dataBits: number[];
+    }
+  | {
       kind: 'conditional-byte-swap';
       region: string;
       indexMask: number;
@@ -231,10 +274,46 @@ export type RomTransform =
       start: number;
       end: number;
       table: number[];
+    }
+  | {
+      kind: 'sega-z80-decrypt';
+      algorithm: 'segacrpt' | 'segacrp2';
+      sourceRegion: string;
+      targetRegion: string;
+      start: number;
+      end: number;
+      convtable?: number[];
+      xorTable?: number[];
+      swapTable?: number[];
     };
 
 export function applyRomTransforms(regions: Regions, transforms: readonly RomTransform[]): void {
   for (const transform of transforms) {
+    if (transform.kind === 'address-byte-bitswap') {
+      const region = regions[transform.region];
+      if (
+        !region || transform.start < 0 || transform.end < transform.start ||
+        transform.end > region.length || transform.addressBits.length !== 16 ||
+        transform.dataBits.length !== 8 || new Set(transform.addressBits).size !== 16 ||
+        new Set(transform.dataBits).size !== 8
+      ) {
+        throw new Error(`ROM address/data bitswap for "${transform.region}" is invalid`);
+      }
+      const source = region.slice();
+      const bitswap = (value: number, bits: readonly number[]) => bits.reduce(
+        (result, sourceBit, outputIndex) =>
+          result | (((value >>> sourceBit) & 1) << (bits.length - outputIndex - 1)),
+        0,
+      );
+      for (let index = transform.start; index < transform.end; index++) {
+        const address = bitswap(index, transform.addressBits) ^ transform.addressXor;
+        if (address < 0 || address >= source.length) {
+          throw new Error(`ROM address bitswap for "${transform.region}" reads ${address}`);
+        }
+        region[index] = bitswap(source[address]!, transform.dataBits);
+      }
+      continue;
+    }
     if (transform.kind === 'conditional-byte-swap') {
       const region = regions[transform.region];
       if (!region) throw new Error(`ROM transform has no region "${transform.region}"`);
@@ -280,6 +359,66 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
     const source = regions[transform.sourceRegion];
     if (!source) {
       throw new Error(`ROM transform has no source region "${transform.sourceRegion}"`);
+    }
+    if (transform.kind === 'sega-z80-decrypt') {
+      if (!source || transform.start < 0 || transform.end < transform.start ||
+          transform.end > source.length) {
+        throw new Error(`Sega Z80 transform for "${transform.sourceRegion}" has invalid bounds`);
+      }
+      const target = source.slice();
+      if (transform.algorithm === 'segacrpt') {
+        if (transform.convtable?.length !== 128) {
+          throw new Error('Sega Z80 transform has no 32x4 conversion table');
+        }
+        for (let address = transform.start; address < transform.end; address++) {
+          const src = source[address]!;
+          const row = (address & 1) | (((address >>> 4) & 1) << 1) |
+            (((address >>> 8) & 1) << 2) | (((address >>> 12) & 1) << 3);
+          let column = ((src >>> 3) & 1) | (((src >>> 5) & 1) << 1);
+          let xor = 0;
+          if (src & 0x80) { column = 3 - column; xor = 0xa8; }
+          const opcodeKey = transform.convtable[2 * row * 4 + column]!;
+          const dataKey = transform.convtable[(2 * row + 1) * 4 + column]!;
+          target[address] = opcodeKey === 0xff
+            ? 0xee : (src & ~0xa8) | (opcodeKey ^ xor);
+          source[address] = dataKey === 0xff
+            ? 0xee : (src & ~0xa8) | (dataKey ^ xor);
+        }
+      } else {
+        if (transform.xorTable?.length !== 128 || transform.swapTable?.length !== 128) {
+          throw new Error('Sega Z80 transform has no 128-entry XOR/swap tables');
+        }
+        const swaps = [
+          [6, 4, 2, 0], [4, 6, 2, 0], [2, 4, 6, 0], [0, 4, 2, 6],
+          [6, 2, 4, 0], [6, 0, 2, 4], [6, 4, 0, 2], [2, 6, 4, 0],
+          [4, 2, 6, 0], [4, 6, 0, 2], [6, 0, 4, 2], [0, 6, 4, 2],
+          [4, 0, 6, 2], [0, 4, 6, 2], [6, 2, 0, 4], [2, 6, 0, 4],
+          [0, 6, 2, 4], [2, 0, 6, 4], [0, 2, 6, 4], [4, 2, 0, 6],
+          [2, 4, 0, 6], [4, 0, 2, 6], [2, 0, 4, 6], [0, 2, 4, 6],
+        ];
+        const decode = (value: number, tableIndex: number, xor: number): number => {
+          const bits = swaps[tableIndex]!;
+          return (((((value >>> 7) & 1) << 7) |
+            (((value >>> bits[0]!) & 1) << 6) |
+            (((value >>> 5) & 1) << 5) |
+            (((value >>> bits[1]!) & 1) << 4) |
+            (((value >>> 3) & 1) << 3) |
+            (((value >>> bits[2]!) & 1) << 2) |
+            (((value >>> 1) & 1) << 1) |
+            ((value >>> bits[3]!) & 1)) ^ xor) & 0xff;
+        };
+        for (let address = transform.start; address < transform.end; address++) {
+          const src = source[address]!;
+          const row = (((address >>> 14) & 1) << 5) |
+            (((address >>> 12) & 1) << 4) | (((address >>> 9) & 1) << 3) |
+            (((address >>> 6) & 1) << 2) | (((address >>> 3) & 1) << 1) |
+            (address & 1);
+          target[address] = decode(src, transform.swapTable[2 * row]!, transform.xorTable[2 * row]!);
+          source[address] = decode(src, transform.swapTable[2 * row + 1]!, transform.xorTable[2 * row + 1]!);
+        }
+      }
+      regions[transform.targetRegion] = target;
+      continue;
     }
     if (
       transform.start < 0 ||
@@ -335,10 +474,15 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   if (preloaded) {
     regions = preloaded;
   } else {
-    // Only CPU code regions are boot-critical; other regions warn and zero-fill.
-    const critical = new Set(cfg.board.cpus.map(c => c.region));
+    // Device firmware is just as boot-critical as CPU code even though MAME
+    // stores it in a separate split-set zip.
+    const critical = requiredRomRegions(cfg.roms, cfg.board.cpus.map(c => c.region));
+    const dependencies = dependencyRomSets(cfg.roms, cfg.game);
     const zone = ui.dropZone(cfg.game);
-    ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip (never stored).`);
+    const companionText = dependencies.length
+      ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
+      : '';
+    ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (never stored).`);
     const files = await waitForZip(ui, zone, cfg.roms, critical, cfg.game);
     regions = assembleRegions(cfg.roms, files, ui.status, critical);
   }
@@ -387,9 +531,12 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     void audio.start(
       {
         sampleRate: clock,
+        deviceType: cfg.sound.deviceType,
         clock,
         waveRom: cfg.sound.waveRegion ? regions[cfg.sound.waveRegion] : undefined,
+        sampleRom: cfg.sound.sampleRegion ? regions[cfg.sound.sampleRegion] : undefined,
         chips: cfg.sound.chips,
+        deviceTags: cfg.sound.deviceTags,
         routes: cfg.sound.routes,
         auxiliary: cfg.sound.auxiliary,
         auxiliaryDevices: cfg.sound.auxiliaryDevices,
@@ -421,7 +568,6 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   let last = performance.now();
   let frames = 0;
   let fpsWindowStart = last;
-
   const tick = (now: number) => {
     if (input.debug && now - last > 50) {
       console.log(`[stall] ${Math.round(now - last)}ms between frames at ${Math.round(now)}`);
@@ -431,6 +577,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause
     let ran = false;
     while (acc >= frameMs) {
+      input.advance();
       board.frame(fb);
       audio.flush(); // one batch message per emulated frame
       acc -= frameMs;
@@ -458,6 +605,44 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
 function hex4(v: number): string { return v.toString(16).padStart(4, '0'); }
 
 // ---------------------------------------------------------------------------
+
+function copyRomLoad(
+  destination: Uint8Array,
+  source: Uint8Array,
+  sourceOffset: number,
+  size: number,
+  destinationOffset: number,
+  load: RomLoad,
+): void {
+  const group = load.groupSize ?? 1;
+  const skip = load.skip ?? 0;
+  if (group === 1 && skip === 0 && !load.reverse && load.nibbleShift === undefined) {
+    destination.set(source.subarray(sourceOffset, sourceOffset + size), destinationOffset);
+    return;
+  }
+  let input = sourceOffset;
+  let output = destinationOffset;
+  const end = sourceOffset + size;
+  while (input < end) {
+    const count = Math.min(group, end - input);
+    for (let index = 0; index < count; index++) {
+      const sourceIndex = load.reverse ? input + count - 1 - index : input + index;
+      if (output + index < destination.length) {
+        const sourceByte = source[sourceIndex]!;
+        if (load.nibbleShift === undefined) {
+          destination[output + index] = sourceByte;
+        } else {
+          const mask = 0x0f << load.nibbleShift;
+          destination[output + index] =
+            (destination[output + index]! & ~mask) |
+            ((sourceByte & 0x0f) << load.nibbleShift);
+        }
+      }
+    }
+    input += count;
+    output += group + skip;
+  }
+}
 
 export function assembleRegions(
   specs: RomRegionSpec[],
@@ -490,14 +675,16 @@ export function assembleRegions(
       if (!exact) {
         console.warn(`CRC mismatch for ${load.file} (got ${crc32(f).toString(16)}, want ${load.crc}) — continuing`);
       }
-      bytes.set(f.subarray(0, load.size), load.offset);
+      copyRomLoad(bytes, f, 0, load.size, load.offset, load);
       for (const segment of load.continueSegments ?? []) {
-        bytes.set(
-          f.subarray(segment.fileOffset, segment.fileOffset + segment.size),
-          segment.offset,
-        );
+        copyRomLoad(bytes, f, segment.fileOffset, segment.size, segment.offset, load);
       }
-      for (const ro of load.reloadOffsets ?? []) bytes.set(f.subarray(0, load.size), ro);
+      for (const ro of load.reloadOffsets ?? []) copyRomLoad(bytes, f, 0, load.size, ro, load);
+    }
+    for (const fill of spec.fills ?? []) {
+      const start = Math.max(0, fill.offset);
+      const end = Math.min(bytes.length, fill.offset + fill.size);
+      bytes.fill(fill.value & 0xff, start, end);
     }
     if (spec.invert) {
       for (let index = 0; index < bytes.length; index++) bytes[index] ^= 0xff;
@@ -532,6 +719,8 @@ function fnLabel(label: string): string {
     IPT_START1: 'start 1P', IPT_START2: 'start 2P',
     IPT_COIN1: 'coin', IPT_COIN2: 'coin 2',
     IPT_BUTTON1: 'fire', IPT_BUTTON2: 'fire 2', IPT_BUTTON3: 'fire 3',
+    IPT_DIAL_LEFT: 'steer left', IPT_DIAL_RIGHT: 'steer right',
+    IPT_PEDAL: 'accelerate', IPT_PEDAL2: 'brake',
     IPT_SERVICE1: 'service', IPT_SERVICE: 'service',
   };
   if (map[label]) return map[label];
@@ -686,7 +875,7 @@ function buildDom(cfg: ShellConfig) {
       big.textContent = `Drop ${game}.zip here`;
       const small = document.createElement('div');
       small.style.cssText = 'color:#9fb0ff';
-      small.textContent = 'or click anywhere on the screen to choose the file';
+      small.textContent = 'or click anywhere on the screen to choose one or more zip files';
       const note = document.createElement('div');
       note.style.cssText = 'color:#667;font-size:12px;margin-top:6px;max-width:320px';
       note.textContent = 'ROMs are copyrighted and not distributed with mamekit — bring your own dump.';
@@ -716,9 +905,10 @@ function buildDom(cfg: ShellConfig) {
       style.textContent = `@keyframes m2j-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
         @keyframes m2j-shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}`;
 
-      // exactly which chips the zip must contain (straight from the knowledge
-      // graph); ★ marks CPU code regions the game cannot boot without
-      const critical = new Set(cfg.board.cpus.map(c => c.region));
+      // Exactly which chips the supplied zips must contain (straight from the
+      // knowledge graph). Device firmware is required too: split MAME sets
+      // keep it in a separate zip from the game.
+      const critical = requiredRomRegions(cfg.roms, cfg.board.cpus.map(c => c.region));
       const manifest = document.createElement('details');
       manifest.style.cssText = 'align-self:stretch;margin-top:8px;text-align:left';
       const sum = document.createElement('summary');
@@ -745,7 +935,7 @@ function buildDom(cfg: ShellConfig) {
       }
       const legend = document.createElement('div');
       legend.style.cssText = 'color:#667;font-size:10px;margin-top:4px';
-      legend.textContent = '★ CPU code — required to boot · others fall back to zero-fill with a warning';
+      legend.textContent = '★ required CPU/device firmware · others fall back to zero-fill with a warning';
       list.appendChild(legend);
       manifest.append(sum, list);
       manifest.addEventListener('click', ev => ev.stopPropagation()); // don't open the file picker
@@ -792,9 +982,16 @@ function buildDom(cfg: ShellConfig) {
           if (check.missingCritical.length) {
             manifest.open = true;
             icon.textContent = '🚫';
-            big.textContent = 'Wrong romset for this game';
-            small.textContent = `${check.missingCritical.length} required CPU chip${check.missingCritical.length > 1 ? 's' : ''} missing — ` +
-              `try the "${game}" set. Drop another zip to retry.`;
+            big.textContent = 'More ROM files are required';
+            const missingRegions = new Set(check.perFile
+              .filter(part => part.critical && part.status === 'missing')
+              .map(part => part.region));
+            const missingSets = [...new Set(cfg.roms
+              .filter(spec => missingRegions.has(spec.region) && spec.romSet)
+              .map(spec => `${spec.romSet}.zip`))];
+            small.textContent = missingSets.length
+              ? `Also select or drop ${missingSets.join(', ')}. Files already supplied are kept for this page.`
+              : `${check.missingCritical.length} required CPU chip${check.missingCritical.length > 1 ? 's are' : ' is'} missing — try the "${game}" set.`;
             zone.style.borderColor = '#e0504d';
             zone.style.animation = 'm2j-shake .4s';
             setTimeout(() => { zone.style.animation = ''; }, 450);
@@ -896,15 +1093,29 @@ function waitForZip(
     const pick = document.createElement('input');
     pick.type = 'file';
     pick.accept = '.zip';
+    pick.multiple = true;
     let accepted = false;
+    const files = new Map<string, Uint8Array>();
+    const mergeFiles = (incoming: Map<string, Uint8Array>) => {
+      for (const [name, bytes] of incoming) {
+        let key = name;
+        // Keep same-named chips with different contents: findRomBytes can
+        // still select the right one by CRC from this synthetic map key.
+        if (files.has(key) && crc32(files.get(key)!) !== crc32(bytes)) {
+          key = `${name}#${crc32(bytes).toString(16).padStart(8, '0')}`;
+        }
+        files.set(key, bytes);
+      }
+    };
     const ingest = async (name: string, raw: Uint8Array): Promise<boolean> => {
       if (accepted) return true;
       zone.busy(name);
-      let files: Map<string, Uint8Array>;
-      try { files = await readZip(raw); }
+      let incoming: Map<string, Uint8Array>;
+      try { incoming = await readZip(raw); }
       catch { zone.error(`${name} isn’t a readable zip — try the original romset.`); return false; }
+      mergeFiles(incoming);
       // grade the set against the manifest BEFORE booting: ticks in the
-      // list, and a wrong set bounces back here instead of hanging
+      // list. Previously supplied split-set zips remain accumulated.
       const check = checkRomSet(specs, files, critical);
       zone.verdict(check);
       if (check.missingCritical.length) return false; // stay in the loop for a retry
@@ -913,7 +1124,15 @@ function waitForZip(
       return true;
     };
     const handle = async (file: File) => ingest(file.name, new Uint8Array(await file.arrayBuffer()));
-    pick.addEventListener('change', () => { if (pick.files?.[0]) void handle(pick.files[0]); });
+    const handleMany = async (selected: Iterable<File>) => {
+      for (const file of selected) {
+        if (await handle(file)) break;
+      }
+    };
+    pick.addEventListener('change', () => {
+      if (pick.files?.length) void handleMany(Array.from(pick.files));
+      pick.value = '';
+    });
 
     // "Try web search": probe the mirror bucket while the bar plays out a
     // little theatre — it crawls toward 92% on its own and only lands at
@@ -938,11 +1157,23 @@ function waitForZip(
         searching = false;
         fn();
       }, Math.max(0, 2400 - (performance.now() - started)));
-      fetchRomSet(game).then(
-        raw => finish(() => {
-          zone.search.progress(1, `Found ${game}.zip!`);
+      const sets = [game, ...dependencyRomSets(specs, game)];
+      Promise.allSettled(sets.map(async set => ({ set, raw: await fetchRomSet(set) }))).then(
+        results => finish(() => {
+          const found = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : []);
+          if (!found.length) {
+            zone.search.reset();
+            zone.error(`Couldn’t find ${game}.zip on the web — drop your own dump.`);
+            return;
+          }
+          zone.search.progress(1, `Found ${found.length} of ${sets.length} required ROM set${sets.length > 1 ? 's' : ''}!`);
           setTimeout(() => {
-            void ingest(`${game}.zip`, raw).then(ok => ok ? zone.search.hide() : zone.search.reset());
+            void (async () => {
+              let ok = false;
+              for (const item of found) ok = await ingest(`${item.set}.zip`, item.raw);
+              if (ok) zone.search.hide();
+              else zone.search.reset();
+            })();
           }, 500);
         }),
         () => finish(() => {
@@ -961,8 +1192,8 @@ function waitForZip(
     addEventListener('drop', ev => {
       ev.preventDefault();
       depth = 0;
-      const f = ev.dataTransfer?.files?.[0];
-      if (f) void handle(f);
+      const dropped = ev.dataTransfer?.files;
+      if (dropped?.length) void handleMany(Array.from(dropped));
       else zone.idle();
     });
   });

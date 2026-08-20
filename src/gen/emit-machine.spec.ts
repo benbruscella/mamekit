@@ -1,13 +1,30 @@
 import {
   generatedBoardSource,
   generatedCpuCycleClock,
+  generatedScanlineTriggers,
   inferredMemberIndexRank,
   lowerAudioRoutes,
   lowerAuxiliaryAudioDevices,
   lowerGeneratedMachine,
+  resolveInputPortTag,
 } from './emit-machine.ts';
+import { compileMameHandler } from '../mame/handler-ir.ts';
 
-for (const type of ['m6802', 'm6803', 'nsc8105', 'm6801u4', 'mc6809']) {
+const sparseScanlines = generatedScanlineTriggers(compileMameHandler(`
+  int scanline = param;
+  if ((scanline == 64 || scanline == 192) && m_enabled) m_cpu->set_input_line(0, ASSERT_LINE);
+  if (scanline == 240 && m_mask) m_subcpu->set_input_line(0, ASSERT_LINE);
+`).operations);
+if (JSON.stringify(sparseScanlines) !== JSON.stringify([64, 192, 240])) {
+  throw new Error(`literal scanline gates must lower sparsely: ${JSON.stringify(sparseScanlines)}`);
+}
+if (generatedScanlineTriggers(compileMameHandler(`
+  if (scanline & 1) m_cpu->set_input_line(0, ASSERT_LINE);
+`).operations) !== undefined) {
+  throw new Error('non-literal scanline callbacks must retain their full cadence');
+}
+
+for (const type of ['m6802', 'm6803', 'm6808', 'nsc8105', 'm6801u4', 'mc6809']) {
   if (generatedCpuCycleClock(type, 4_000_000) !== 1_000_000) {
     throw new Error(`${type} must use MAME's divide-by-four execution clock`);
   }
@@ -15,14 +32,17 @@ for (const type of ['m6802', 'm6803', 'nsc8105', 'm6801u4', 'mc6809']) {
 if (generatedCpuCycleClock('mc6809e', 1_000_000) !== 1_000_000) {
   throw new Error('externally-clocked MC6809E must retain its configured execution clock');
 }
-for (const type of ['i8039', 'mb8884']) {
+for (const type of ['i8035', 'i8039', 'mb8884']) {
   if (generatedCpuCycleClock(type, 6_000_000) !== 400_000) {
     throw new Error(`${type} must use MAME's divide-by-fifteen execution clock`);
   }
 }
 import type { KnowledgeGraph } from '../kg/types.ts';
 import type { BoardConfig } from '../runtime/types.ts';
-import { compileMameHandler } from '../mame/handler-ir.ts';
+
+if (generatedCpuCycleClock('i8085a', 5_500_000) !== 2_750_000) {
+  throw new Error('I8085A must use MAME\'s divide-by-two execution clock');
+}
 
 const graph: KnowledgeGraph = {
   meta: {
@@ -33,6 +53,69 @@ const graph: KnowledgeGraph = {
     generatedAt: '',
   },
   nodes: [{
+    id: 'game:test',
+    label: 'Game',
+    props: {},
+  }, {
+    id: 'callback:config-screen',
+    label: 'Callback',
+    props: {
+      ownerTag: 'screen',
+      signal: 'set_screen_update',
+      operation: 'set_screen_update',
+      targetClass: 'test_state',
+      targetMethod: 'screen_update',
+    },
+  }, {
+    id: 'machine:test',
+    label: 'MachineConfig',
+    props: {},
+  }, {
+    id: 'machine:composite-inner',
+    label: 'MachineConfig',
+    props: {},
+  }, {
+    id: 'handler:screen_update',
+    label: 'Handler',
+    props: {
+      ownerClass: 'test_state',
+      method: 'screen_update',
+      sourceBody: 'return 0;',
+    },
+  }, {
+    id: 'device:maincpu',
+    label: 'Device',
+    props: { type: 'Z80', tag: 'maincpu', clock: 1_000_000, config: [] },
+  }, {
+    id: 'device:sub',
+    label: 'Device',
+    props: { type: 'Z80', tag: 'sub', clock: 1_000_000, config: [] },
+  }, {
+    id: 'device:latch',
+    label: 'Device',
+    props: { type: 'LS259', tag: 'latch', clock: 0, config: [] },
+  }, {
+    id: 'device:screen',
+    label: 'Device',
+    props: { type: 'SCREEN', tag: 'screen', clock: 0, config: [] },
+  }, {
+    id: 'device:soundbd',
+    label: 'Device',
+    props: { type: 'COMPOSITE_FIXTURE', tag: 'soundbd', clock: 0, config: [] },
+  }, {
+    id: 'device:inner-pia',
+    label: 'Device',
+    props: { type: 'PIA6821', tag: 'pia', clock: 0, config: [] },
+  }, {
+    id: 'callback:inner-pia',
+    label: 'Callback',
+    props: {
+      ownerTag: 'pia',
+      signal: 'writepa_handler',
+      operation: 'set_nop',
+      raw: 'm_pia->writepa_handler().set_nop()',
+    },
+  }, {
     id: 'callback:test',
     label: 'Callback',
     props: {
@@ -125,8 +208,40 @@ const graph: KnowledgeGraph = {
       sourceBody: 'm_vector = data;',
     },
   }],
-  edges: [],
+  edges: [
+    { from: 'game:test', to: 'machine:test', rel: 'USES_MACHINE' },
+    { from: 'machine:test', to: 'device:maincpu', rel: 'HAS_DEVICE' },
+    { from: 'machine:test', to: 'device:sub', rel: 'HAS_DEVICE' },
+    { from: 'machine:test', to: 'device:latch', rel: 'HAS_DEVICE' },
+    { from: 'machine:test', to: 'device:screen', rel: 'HAS_DEVICE' },
+    { from: 'machine:test', to: 'device:soundbd', rel: 'HAS_DEVICE' },
+    { from: 'device:soundbd', to: 'machine:composite-inner', rel: 'CALLS' },
+    { from: 'machine:composite-inner', to: 'device:inner-pia', rel: 'HAS_DEVICE' },
+    { from: 'machine:composite-inner', to: 'callback:inner-pia', rel: 'HAS_CALLBACK' },
+    { from: 'machine:test', to: 'device:dma', rel: 'HAS_DEVICE' },
+    { from: 'machine:test', to: 'device:ay0', rel: 'HAS_DEVICE' },
+    { from: 'machine:test', to: 'callback:config-screen', rel: 'HAS_CALLBACK' },
+    { from: 'device:latch', to: 'callback:test', rel: 'HAS_CALLBACK' },
+    { from: 'device:maincpu', to: 'callback:vector', rel: 'HAS_CALLBACK' },
+    { from: 'device:maincpu', to: 'callback:periodic', rel: 'HAS_CALLBACK' },
+    { from: 'device:screen', to: 'callback:vblank-hold', rel: 'HAS_CALLBACK' },
+    { from: 'device:screen', to: 'callback:vblank-level', rel: 'HAS_CALLBACK' },
+    { from: 'callback:test', to: 'device:sub', rel: 'TARGETS_DEVICE' },
+    { from: 'callback:vblank-hold', to: 'device:maincpu', rel: 'TARGETS_DEVICE' },
+    { from: 'callback:vblank-level', to: 'device:sub', rel: 'TARGETS_DEVICE' },
+  ],
 };
+
+if (resolveInputPortTag({
+  ...graph,
+  nodes: [...graph.nodes, {
+    id: 'port:ssio:IP0',
+    label: 'Port',
+    props: { tag: 'ssio:IP0' },
+  }],
+}, 'IP0') !== 'ssio:IP0') {
+  throw new Error('composite input member tags must resolve to their hosted port');
+}
 
 const board: BoardConfig = {
   family: 'test',
@@ -154,13 +269,30 @@ const board: BoardConfig = {
   clocks: { namco06: 48_000, wsg: 96_000 },
 };
 const machine = lowerGeneratedMachine(graph, 'test', 'test', board);
-if (machine.callbacks[0]?.slot !== 3) throw new Error('slot should lower to a number');
-if (machine.callbacks[0]?.source?.line !== 42) throw new Error('source provenance missing');
-const reset = machine.connections[0];
+if (
+  !machine.callbacks.some(callback => callback.id === 'callback:config-screen') ||
+  machine.execution.screenUpdate?.handler !== 'test_state.screen_update'
+) {
+  throw new Error('callbacks patched onto a reachable machine config must be executable');
+}
+const testCallback = machine.callbacks.find(callback => callback.id === 'callback:test');
+if (testCallback?.slot !== 3) throw new Error('slot should lower to a number');
+const innerPiaCallback = machine.callbacks.find(callback => callback.id === 'callback:inner-pia');
+if (innerPiaCallback?.ownerTag !== 'soundbd:pia') {
+  throw new Error('callbacks declared by a hosted machine config must retain the host tag');
+}
+if (machine.devices?.find(device => device.id === 'device:inner-pia')?.tag !== 'soundbd:pia') {
+  throw new Error('devices declared by a hosted machine config must retain the host tag');
+}
+if (testCallback.source?.line !== 42) throw new Error('source provenance missing');
+const reset = machine.connections.find(connection => connection.callbackId === 'callback:test');
+if (machine.connections.some(connection => connection.callbackId === 'callback:config-screen')) {
+  throw new Error('screen-update selection must not be lowered as a dispatched board effect');
+}
 if (reset?.effect.kind !== 'cpu-line' || reset.effect.line !== 'reset' || reset.effect.tag !== 'sub') {
   throw new Error('INPUT_LINE_RESET should lower to a typed cpu-line effect');
 }
-if (reset.callbackId !== machine.callbacks[0]?.id) {
+if (reset.callbackId !== testCallback.id) {
   throw new Error('connection lost its callback provenance');
 }
 if (machine.execution.cpus[0]?.clock !== 1_000_000) throw new Error('execution plan missing CPU clock');

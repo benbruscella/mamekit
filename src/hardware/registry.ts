@@ -59,6 +59,54 @@ import {
   SN76489_PORTS,
 } from './sn76489/definition.ts';
 import { extractSn76489 } from './sn76489/extract.ts';
+import {
+  DAC_ID,
+  DAC_MAME_TYPES,
+  DAC_MASTER_GAIN,
+  DAC_PORTS,
+} from './dac/definition.ts';
+import { extractDac } from './dac/extract.ts';
+import {
+  PHOENIX_SOUND_ID,
+  PHOENIX_SOUND_MAME_TYPES,
+  PHOENIX_SOUND_PORTS,
+} from './phoenix-sound/definition.ts';
+import { extractPhoenixSound } from './phoenix-sound/extract.ts';
+import {
+  SAMPLES_ID,
+  SAMPLES_MAME_TYPES,
+  SAMPLES_MASTER_GAIN,
+  SAMPLES_PORTS,
+} from './samples/definition.ts';
+import { extractSamples } from './samples/extract.ts';
+import {
+  YM2151_ID,
+  YM2151_MAME_TYPES,
+  YM2151_MASTER_GAIN,
+  YM2151_PORTS,
+} from './ym2151/definition.ts';
+import { extractYm2151 } from './ym2151/extract.ts';
+import {
+  OKIM6295_ID,
+  OKIM6295_MAME_TYPES,
+  OKIM6295_MASTER_GAIN,
+  OKIM6295_PORTS,
+} from './okim6295/definition.ts';
+import { extractOkim6295 } from './okim6295/extract.ts';
+import {
+  BERZERK_SOUND_ID,
+  BERZERK_SOUND_MAME_TYPES,
+  BERZERK_SOUND_PORTS,
+} from './berzerk-sound/definition.ts';
+import { extractBerzerkSound } from './berzerk-sound/extract.ts';
+import { VECTOR_ID, VECTOR_MAME_TYPES, VECTOR_PORTS } from './vector/definition.ts';
+import { extractVector } from './vector/extract.ts';
+import {
+  M68705_ID,
+  M68705_MAME_TYPES,
+  M68705_PORTS,
+} from './m68705/definition.ts';
+import { extractM68705 } from './m68705/extract.ts';
 
 export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
   // CPUs — one capability over every generated core.
@@ -74,6 +122,18 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: DEVICE_MAME_TYPES,
     ports: DEVICE_PORTS,
     extract: extractDevices,
+  },
+  {
+    id: M68705_ID,
+    mameTypes: M68705_MAME_TYPES,
+    ports: M68705_PORTS,
+    extract: extractM68705,
+  },
+  {
+    id: VECTOR_ID,
+    mameTypes: VECTOR_MAME_TYPES,
+    ports: VECTOR_PORTS,
+    extract: extractVector,
   },
   {
     id: NES_ID,
@@ -110,6 +170,46 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     ports: SN76489_PORTS,
     extract: extractSn76489,
     masterGain: SN76489_MASTER_GAIN,
+  },
+  {
+    id: DAC_ID,
+    mameTypes: DAC_MAME_TYPES,
+    ports: DAC_PORTS,
+    extract: extractDac,
+    masterGain: DAC_MASTER_GAIN,
+  },
+  {
+    id: PHOENIX_SOUND_ID,
+    mameTypes: PHOENIX_SOUND_MAME_TYPES,
+    ports: PHOENIX_SOUND_PORTS,
+    extract: extractPhoenixSound,
+  },
+  {
+    id: SAMPLES_ID,
+    mameTypes: SAMPLES_MAME_TYPES,
+    ports: SAMPLES_PORTS,
+    extract: extractSamples,
+    masterGain: SAMPLES_MASTER_GAIN,
+  },
+  {
+    id: YM2151_ID,
+    mameTypes: YM2151_MAME_TYPES,
+    ports: YM2151_PORTS,
+    extract: extractYm2151,
+    masterGain: YM2151_MASTER_GAIN,
+  },
+  {
+    id: OKIM6295_ID,
+    mameTypes: OKIM6295_MAME_TYPES,
+    ports: OKIM6295_PORTS,
+    extract: extractOkim6295,
+    masterGain: OKIM6295_MASTER_GAIN,
+  },
+  {
+    id: BERZERK_SOUND_ID,
+    mameTypes: BERZERK_SOUND_MAME_TYPES,
+    ports: BERZERK_SOUND_PORTS,
+    extract: extractBerzerkSound,
   },
   // Recognised by shape: their MAME classes are named per driver.
   {

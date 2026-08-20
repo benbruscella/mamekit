@@ -77,6 +77,11 @@ export interface HardwareClosure {
 
 const DECLARATIVE_HOST_TYPES = new Set([
   'DISCRETE',
+  // Persistent serial EEPROM storage and passive filters are services of the
+  // browser host. They do not execute a MAME CPU/device program of their own.
+  'EEPROM_2804',
+  'EEPROM_ER5911_8BIT',
+  'FILTER_BIQUAD',
   'FILTER_RC',
   'GFXDECODE',
   'NETLIST_LOGIC_INPUT',
@@ -261,6 +266,33 @@ export function buildHardwareClosure(
       }
 
       const absolute = join(mameSrc, definition.sourceFile);
+      // CPU capabilities compile their complete opcode sources in isolated
+      // workers during emission. Parsing those very large translation units a
+      // second time here merely to scrape generic device methods retained the
+      // 65-game graph closure plus multiple 65,536-opcode ASTs and exhausted
+      // Node's default heap before emission could begin.
+      if (HARDWARE_CAPABILITIES.find(capability =>
+        capability.id === 'cpu' && capability.mameTypes.includes(type))) {
+        const dslFiles = findDeviceDslFiles(absolute, definition.className)
+          .map(file => relative(mameSrc, file));
+        const sourceFiles = sourceClosureFiles(
+          absolute,
+          dslFiles.map(file => join(mameSrc, file)),
+        ).map(file => relative(mameSrc, file));
+        return {
+          type,
+          uses: usedBy,
+          status: 'source-resolved',
+          definition,
+          methods: [],
+          dslFiles,
+          sourceFiles,
+          ...(composedTypes.has(type) ? { composedOf: [...composedTypes.get(type)!].sort() } : {}),
+          ...(declaringClasses.has(type) && !boardLevel.has(type)
+            ? { declaredBy: [...declaringClasses.get(type)!].sort() }
+            : {}),
+        };
+      }
       const unit = unitCache.get(absolute) ??
         parseMameSource(definition.sourceFile, readFileSync(absolute, 'utf8'));
       unitCache.set(absolute, unit);
@@ -442,7 +474,12 @@ export function hardwareKnowledgeGraph(
   });
 }
 
-export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): void {
+export async function emitHardwareClosure(
+  closure: HardwareClosure,
+  outRoot: string,
+  /** Concurrent isolated artifact workers; policy belongs to the caller. */
+  emitterJobs = 4,
+): Promise<void> {
   const root = join(outRoot, 'runtime/generated');
   const devicesDir = join(root, 'devices');
   const dslDir = join(root, 'dsl');
@@ -544,13 +581,33 @@ export function emitHardwareClosure(closure: HardwareClosure, outRoot: string): 
     join(root, 'hardware-graph.json'),
     JSON.stringify(hardwareKnowledgeGraph(closure, executableTypes), null, 2),
   );
+  const isolatedEmitters: Array<(root: string) => void | Promise<void>> = [];
   for (const { result } of extracted) {
-    for (const artifact of result.artifacts) {
-      const target = join(root, artifact.path);
-      mkdirSync(dirname(target), { recursive: true });
-      writeFileSync(target, artifact.contents);
+    const writeArtifacts = (artifacts: typeof result.artifacts): void => {
+      for (const artifact of artifacts) {
+        const target = join(root, artifact.path);
+        mkdirSync(dirname(target), { recursive: true });
+        writeFileSync(target, artifact.contents);
+      }
+    };
+    writeArtifacts(result.artifacts);
+    for (const generateArtifacts of result.artifactGroups ?? []) {
+      writeArtifacts(generateArtifacts());
     }
+    isolatedEmitters.push(...(result.artifactEmitters ?? []));
   }
+  // Each emitter compiles in its own worker process and none depend on each
+  // other, so a bounded pool replaces the previous one-at-a-time sequence.
+  let nextEmitter = 0;
+  const drainEmitters = async (): Promise<void> => {
+    while (nextEmitter < isolatedEmitters.length) {
+      await isolatedEmitters[nextEmitter++]!(root);
+    }
+  };
+  await Promise.all(Array.from(
+    { length: Math.max(1, Math.min(emitterJobs, isolatedEmitters.length)) },
+    drainEmitters,
+  ));
 
   for (const entry of closure.hardware) {
     const slug = entry.type.toLowerCase();

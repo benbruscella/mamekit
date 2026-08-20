@@ -22,6 +22,17 @@ export interface GeneratedDacFilterPlan {
     frequency: number;
     q: number;
     gain: number;
+    /** A channel may use a different resistor ladder than the shared DAC. */
+    levels?: number[];
+    /** Additional source-ordered filter stages after the primary band-pass. */
+    stages?: {
+      type: 'lowpass' | 'highpass' | 'bandpass';
+      frequency: number;
+      q: number;
+      gain: number;
+    }[];
+    /** Source clamp applied after all stages (DISCRETE_CLAMP). */
+    clamp?: { minimum: number; maximum: number };
   }[];
   outputGain: number;
   source: { file: string; line: number; netlist: string };
@@ -122,16 +133,20 @@ export interface GeneratedDiscreteEffectsPlan {
     release: number;
     gain: number;
     activeLow: boolean;
+    /** The source oscillator remains audible while its logic gate is held. */
+    sustain?: boolean;
     /** RCDISC_MODULATED networks respond to both latch transitions. */
     triggerEdge?: 'active' | 'both';
     /**
      * Exact source topology used after the oscillator. These circuits cannot
      * be represented by a generic ADSR without changing their pitch/timbre.
      */
-    network?: 'dkong-stomp' | 'dkong-jump' | 'dkong-walk';
+    network?: 'dkong-stomp' | 'dkong-jump' | 'dkong-walk' |
+      'dkongjr-walk' | 'dkongjr-jump' | 'dkongjr-climb' |
+      'dkongjr-fall' | 'dkongjr-control';
   }[];
-  /** Run the source circuit's final resistor mixer and amplifier stages. */
-  outputNetwork?: 'dkong2b';
+  /** Run a board-specific source circuit that cannot be reduced to generic voices. */
+  outputNetwork?: 'dkong2b' | 'dkongjr' | 'asteroid';
   dischargeNode?: number;
   /** RC decay applied to the DAC when the active-low discharge gate closes. */
   dischargeRelease?: number;
@@ -155,6 +170,8 @@ export interface GeneratedAuxiliaryAudioDevice {
     deviceTag: string;
     member?: string;
   };
+  /** Normalized voltage levels of the source DISCRETE_DAC_R1 ladder. */
+  referenceLevels?: number[];
 }
 /** Source-derived RP2A03 APU configuration carried by generated board IR. */
 export interface GeneratedNesApuPlan {

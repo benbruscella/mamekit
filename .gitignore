@@ -12,6 +12,10 @@ artwork/
 /out/
 /dist/
 
+# Local generation cache: MAME-derived data memoized against the checkout's
+# HEAD revision (see src/gen/driver-history.ts). Never committed.
+/.cache/
+
 # Desktop MAME writes these relative to its working directory when diagnostic
 # runs use the default cfg_directory and snapshot_directory.
 /cfg/

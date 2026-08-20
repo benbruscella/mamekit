@@ -41,6 +41,18 @@ const fractional = decodeGfx({
 assert.equal(fractional.count, 2);
 assert.deepEqual([...fractional.pixels], [1, 0]);
 
+const additiveFraction = decodeGfx({
+  width: 1,
+  height: 1,
+  total: 1,
+  planes: 1,
+  planeOffsets: ['RGN_FRAC(0,4)+0+4'],
+  xOffsets: [0],
+  yOffsets: [0],
+  charIncrement: 1,
+}, Uint8Array.of(0x08));
+assert.equal(additiveFraction.pixels[0], 1);
+
 assert.throws(() => decodeGfx({
   width: 2,
   height: 1,

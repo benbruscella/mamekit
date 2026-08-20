@@ -6,6 +6,7 @@ import type {
   AudioProbeContext,
   ProbeSoundWrite,
 } from '../audio-probe.ts';
+import { StreamingFrameResampler } from '../audio-probe.ts';
 import { NAMCO_WSG_WORKLET_ARTIFACT } from './definition.ts';
 
 interface WsgCore { readonly sampleRate: number }
@@ -17,11 +18,13 @@ export async function createNamcoWsgProbe(
     join(
       context.outRoot,
       'runtime/generated',
-      NAMCO_WSG_WORKLET_ARTIFACT.replace(/\.ts$/, '.js'),
+      (context.sound.worklet
+        ? `audio/${context.sound.worklet}-worklet.ts`
+        : NAMCO_WSG_WORKLET_ARTIFACT).replace(/\.ts$/, '.js'),
     ),
   ).href) as {
     GeneratedNamcoWsgCore: new (
-      waveRom: Uint8Array, clock: number, auxiliary?: unknown,
+      waveRom: Uint8Array, clock: number, auxiliary?: unknown, sampleRom?: Uint8Array,
     ) => WsgCore;
     GeneratedNamcoWsgFrameRenderer: new (
       core: WsgCore, refresh: number,
@@ -34,6 +37,15 @@ export async function createNamcoWsgProbe(
     waveRom,
     context.sound.clock ?? 96_000,
     context.sound.auxiliary,
+    context.sound.sampleRegion ? context.regions[context.sound.sampleRegion] : undefined,
   );
-  return new module.GeneratedNamcoWsgFrameRenderer(core, context.refresh);
+  const native = new module.GeneratedNamcoWsgFrameRenderer(core, context.refresh);
+  return core.sampleRate === context.outputRate
+    ? native
+    : new StreamingFrameResampler(
+      native,
+      core.sampleRate,
+      context.outputRate,
+      context.refresh,
+    );
 }

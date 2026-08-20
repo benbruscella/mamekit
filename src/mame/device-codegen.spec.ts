@@ -54,12 +54,12 @@ const definition: GeneratedDeviceDefinition = {
             left: { kind: 'identifier', name: 'y' },
             right: { kind: 'identifier', name: 'LIMIT' },
           },
-          iterate: {
+          iterate: [{
             op: 'assign',
             target: { kind: 'identifier', name: 'y' },
             operator: '+=',
             value: { kind: 'number', value: 1 },
-          },
+          }],
           body: [{
             op: 'for',
             initialize: [{
@@ -74,12 +74,12 @@ const definition: GeneratedDeviceDefinition = {
               left: { kind: 'identifier', name: 'x' },
               right: { kind: 'identifier', name: 'LIMIT' },
             },
-            iterate: {
+            iterate: [{
               op: 'assign',
               target: { kind: 'identifier', name: 'x' },
               operator: '+=',
               value: { kind: 'number', value: 1 },
-            },
+            }],
             body: [{
               op: 'assign',
               target: { kind: 'identifier', name: 'm_total' },
@@ -158,6 +158,23 @@ const runtime = { members: { m_total: 0, m_budget: 0 } };
 methods.render!(runtime);
 assert.equal(runtime.members.m_total, 40);
 assert.equal(runtime.members.m_budget, -16);
+
+const reservedLocal = generatedDeviceMethodsSource({
+  ...definition,
+  hotMethods: ['reserved_local'],
+  methods: [{
+    name: 'reserved_local',
+    parameters: '',
+    source: { file: 'src/devices/test.cpp', line: 5 },
+    program: compileMameHandler('uint8_t in = 3; in |= 4; return in;'),
+  }],
+});
+assert.match(reservedLocal.source, /let \$in =/);
+assert.equal(
+  (Function(`return ${reservedLocal.source}`)() as Record<string, (runtime: unknown) => number>)
+    .reserved_local!({ members: {} }),
+  7,
+);
 
 const unsafeDefinition: GeneratedDeviceDefinition = {
   ...definition,
@@ -267,7 +284,7 @@ const pointerAdditionDefinition: GeneratedDeviceDefinition = {
     parameters: '',
     source: { file: 'src/devices/test.cpp', line: 9 },
     program: compileMameHandler(`
-      uint8_t *base_ptr = &m_bytes[0];
+      auto base_ptr = &m_bytes[0];
       uint8_t *page_ptr = base_ptr + 2;
       return page_ptr[0];
     `),

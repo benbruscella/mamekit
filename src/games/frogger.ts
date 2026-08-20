@@ -26,7 +26,7 @@ export const frogger: GameTestContract = {
     },
     checkpoints: {
       1: { video: 'e1e3eb19', state: '77b7b219' },
-      60: { video: '10075d9f', state: 'b596d596' },
+      60: { video: '0657403c', state: 'b596d596' },
       180: { video: '8f59fe5f', state: 'eab65890' },
       300: { video: '44890969', state: '21518801' },
       480: { video: 'a68ee068', state: 'a313c0aa' },

@@ -53,6 +53,35 @@ export class GeneratedDiscreteAudioCore {
   private dkongStompEnvelope = 0;
   private dkongStompIntegrateCap = 0;
   private dkongStompVce = 0;
+  private dkongJrClimbLfsr = 0;
+  private dkongJrClimbNoisePhase = 0;
+  private dkongJrClimbNoise = 1;
+  private dkongJrClimbOneShot = 0;
+  private dkongJrWalkAge = Number.POSITIVE_INFINITY;
+  private dkongJrJumpAge = Number.POSITIVE_INFINITY;
+  private dkongJrStartupJump = true;
+  private dkongJrFallAge = 0;
+  private dkongJrMixerLowpass = 0;
+  private dkongJrMixerCoupling = 0;
+  private readonly nodeValues = new Uint8Array(256);
+  private asteroidLfsr = 0;
+  private asteroidNoisePhase = 0;
+  private asteroidNoise = 1;
+  private asteroidExplosionPhase = 0;
+  private asteroidExplosionSample = 0;
+  private asteroidExplosionLowpass = 0;
+  private asteroidThrustInput = 0;
+  private asteroidThrustFast = 0;
+  private asteroidThrustSlow = 0;
+  private asteroidThumpPhase = 0;
+  private asteroidThumpFilter = 0;
+  private asteroidSaucerWarblePhase = 0;
+  private asteroidSaucerPhase = 0;
+  private asteroidShipFirePhase = 0;
+  private asteroidShipFireAge = 0;
+  private asteroidSaucerFirePhase = 0;
+  private asteroidSaucerFireAge = 0;
+  private asteroidLifePhase = 0;
 
   constructor(
     outputRate: number,
@@ -62,7 +91,8 @@ export class GeneratedDiscreteAudioCore {
     this.outputRate = outputRate;
     this.plan = plan;
     this.active = plan?.voices.map(() => false) ?? [];
-    this.envelope = plan?.voices.map(() => 0) ?? [];
+    this.envelope = plan?.voices.map(voice =>
+      voice.network === 'dkongjr-jump' ? 1 : 0) ?? [];
     this.phase = plan?.voices.map(() => 0) ?? [];
     this.modulationPhase = plan?.voices.map(() => 0) ?? [];
     this.controlVoltage = plan?.voices.map(() => 0) ?? [];
@@ -77,11 +107,37 @@ export class GeneratedDiscreteAudioCore {
       rcDisc2: 0,
       crCap: 0,
     })) ?? [];
+    if (plan?.outputNetwork === 'dkongjr') this.dkongJrJumpAge = 0;
   }
 
   write(offset: number, data: number): void {
     const plan = this.plan;
     if (!plan) return;
+    if (offset >= 0 && offset < this.nodeValues.length) {
+      const previous = this.nodeValues[offset]!;
+      this.nodeValues[offset] = data & 0xff;
+      if (plan.outputNetwork === 'asteroid') {
+        if (offset === 5 && !previous && data) {
+          this.asteroidShipFireAge = 0;
+          this.asteroidShipFirePhase = 0;
+        } else if (offset === 2 && !previous && data) {
+          this.asteroidSaucerFireAge = 0;
+          this.asteroidSaucerFirePhase = 0;
+        } else if (offset === 8 && !previous && data) {
+          this.asteroidThumpPhase = 0;
+        } else if (offset === 7) {
+          // DISCRETE_INPUT_PULSE resets the 16-bit XNOR feedback chain.
+          this.asteroidLfsr = 0;
+          this.asteroidNoise = 1;
+        }
+      } else if (
+        plan.outputNetwork === 'dkongjr' &&
+        offset === plan.inputNodes.DS_SOUND9_INP &&
+        !previous && data
+      ) {
+        this.dkongJrFallAge = 0;
+      }
+    }
     if (offset === plan.dac.node) {
       this.dac = data & 0xff;
       return;
@@ -101,7 +157,20 @@ export class GeneratedDiscreteAudioCore {
       if (
         active !== this.active[index] &&
         (active || voice.triggerEdge === 'both')
-      ) this.envelope[index] = 1;
+      ) {
+        this.envelope[index] = 1;
+        if (voice.network === 'dkongjr-climb') {
+          this.dkongJrClimbOneShot = voice.release;
+        } else if (voice.network === 'dkongjr-walk') {
+          this.dkongJrWalkAge = 0;
+          this.phase[index] = 0;
+          this.modulationPhase[index] = 0;
+        } else if (voice.network === 'dkongjr-jump') {
+          this.dkongJrJumpAge = 0;
+          this.dkongJrStartupJump = false;
+          this.phase[index] = 0;
+        }
+      }
       this.active[index] = active;
     }
   }
@@ -109,6 +178,9 @@ export class GeneratedDiscreteAudioCore {
   sample(): number {
     const plan = this.plan;
     if (!plan) return 0;
+    if (plan.outputNetwork === 'asteroid') {
+      return this.sampleAsteroidOutput() * plan.outputGain;
+    }
     let mixed = 0;
     let dkongStomp = 0;
     let dkongJump = 0;
@@ -119,12 +191,22 @@ export class GeneratedDiscreteAudioCore {
       // These gates feed RCDISC/RCDISC_MODULATED one-shots in the source
       // netlist.  A held latch starts the transient once; it does not sustain
       // the oscillator at full volume indefinitely.
-      this.envelope[index] *= Math.exp(-1 / releaseSamples);
+      if (voice.sustain && this.active[index]) this.envelope[index] = 1;
+      else this.envelope[index] *= Math.exp(-1 / releaseSamples);
       if (this.envelope[index] < 1e-5) this.envelope[index] = 0;
       let signal: number;
+      if (voice.network === 'dkongjr-control') continue;
+      if (voice.network === 'dkongjr-walk') {
+        mixed += this.sampleDkongJrWalk(index) * voice.gain;
+        continue;
+      }
       if (voice.mode === 'noise') {
         if (voice.network === 'dkong-stomp') {
           dkongStomp = this.sampleDkongStomp(index);
+          continue;
+        }
+        if (voice.network === 'dkongjr-climb') {
+          mixed += this.sampleDkongJrClimb(index) * voice.gain;
           continue;
         }
         this.phase[index] += voice.frequency / this.outputRate;
@@ -144,6 +226,24 @@ export class GeneratedDiscreteAudioCore {
           continue;
         }
         let frequency = voice.frequency;
+        if (voice.network === 'dkongjr-jump') {
+          // NODE_104 from the walking divider is mixed into the jump LS624's
+          // control input. MAME's WAV output moves around 520-660 Hz; keeping
+          // the divider modulation is what separates it from a fixed beep.
+          this.modulationPhase[index] = (
+            this.modulationPhase[index]! + 5.5 / this.outputRate
+          ) % 1;
+          const triangle = 1 - 4 * Math.abs(this.modulationPhase[index]! - 0.5);
+          frequency = this.dkongJrStartupJump
+            ? 290 + triangle * 210
+            : frequency + triangle * 75;
+        }
+        if (voice.network === 'dkongjr-fall') {
+          // IC 7P sweeps from its measured 2111 Hz high-control endpoint down
+          // toward the 570 Hz low endpoint through the board's control RC.
+          frequency = 570 + 1_540 * Math.exp(-this.dkongJrFallAge / 0.55);
+          this.dkongJrFallAge += 1 / this.outputRate;
+        }
         if (voice.vco) {
           const vco = voice.vco;
           this.modulationPhase[index] = (
@@ -210,6 +310,16 @@ export class GeneratedDiscreteAudioCore {
         signal += polyBlep(tonePhase, phaseStep);
         signal -= polyBlep((tonePhase + 0.5) % 1, phaseStep);
       }
+      if (voice.network === 'dkongjr-jump') {
+        // The Q3 collector produces a strong leading transient before its
+        // 100k/10u tail settles. Preserve that attack instead of starting the
+        // jump at the quieter steady-state oscillator level.
+        if (this.dkongJrJumpAge < 0.04) signal *= 1.6;
+        if (this.dkongJrStartupJump) {
+          signal *= 1 + 2 * Math.exp(-this.dkongJrJumpAge / 0.12);
+        }
+        this.dkongJrJumpAge += 1 / this.outputRate;
+      }
       mixed += signal * this.envelope[index] * voice.gain;
     }
 
@@ -264,7 +374,225 @@ export class GeneratedDiscreteAudioCore {
       );
     }
     mixed += dacOutput;
+    if (plan.outputNetwork === 'dkongjr') {
+      const dt = 1 / this.outputRate;
+      // The passive five-input mixer sees roughly 9.15k in parallel with its
+      // 10 nF feedback capacitor: 1.74 kHz. Its 4.7 uF output coupling stage
+      // then removes the DC component at about 34 Hz. Omitting this shared
+      // network left every LS624 harmonic 5-9 dB too bright versus wavwrite.
+      this.dkongJrMixerLowpass += (mixed - this.dkongJrMixerLowpass) *
+        onePoleCoefficient(1_740, this.outputRate);
+      const coupled = this.dkongJrMixerLowpass - this.dkongJrMixerCoupling;
+      this.dkongJrMixerCoupling += coupled * rcCharge(dt, 1_000 * 4.7e-6);
+      return Math.max(-1, Math.min(1, coupled * plan.outputGain));
+    }
     return Math.max(-1, Math.min(1, mixed * plan.outputGain));
+  }
+
+  /** DK Jr. SOUND2: 710 Hz LS164 LFSR, LS123 one-shot and C-R-C-R filter. */
+  private sampleDkongJrWalk(_index: number): number {
+    const dt = 1 / this.outputRate;
+    const alternate = Boolean(this.nodeValues[5]);
+    const oneShot = this.dkongJrWalkAge < 0.056;
+    let source = 0;
+    // IC 4K's 47k/4.7u LS123 pulse is 55.9 ms. The oscillator must stop when
+    // that pulse ends; exponentially fading a sustained tone was the long
+    // electronic ding heard in the previous renderer.
+    if (oneShot) {
+      if (alternate) {
+        this.phase[_index] = (
+          this.phase[_index]! + 360 / this.outputRate
+        ) % 1;
+        this.modulationPhase[_index] = (
+          this.modulationPhase[_index]! + 180 / this.outputRate
+        ) % 1;
+        const primary = this.phase[_index]! < 0.5 ? 1 : 0;
+        const subharmonic = this.modulationPhase[_index]! < 0.5 ? 1 : 0;
+        source = primary + subharmonic * 0.25;
+      } else {
+        // MAME's XTIME XOR preserves several IC 6L transitions inside one
+        // output sample. Two band-limited components preserve its measured
+        // 1-8 kHz distribution without aliasing the 59.4 kHz counter clock.
+        const highFrequency = 1_200 +
+          6_000 * Math.exp(-this.dkongJrWalkAge / 0.03);
+        this.phase[_index] = (
+          this.phase[_index]! + highFrequency / this.outputRate
+        ) % 1;
+        this.modulationPhase[_index] = (
+          this.modulationPhase[_index]! + 1_100 / this.outputRate
+        ) % 1;
+        const high = this.phase[_index]! < 0.5 ? 1 : 0;
+        const low = this.modulationPhase[_index]! < 0.5 ? 1 : 0;
+        source = high * 0.8 + low * 0.2;
+      }
+    }
+    this.dkongJrWalkAge += dt;
+    return source * (alternate ? 4.7 : 5.4);
+  }
+
+  private sampleDkongJrClimb(index: number): number {
+    const dt = 1 / this.outputRate;
+    this.dkongJrClimbNoisePhase += 710 / this.outputRate;
+    while (this.dkongJrClimbNoisePhase >= 1) {
+      this.dkongJrClimbNoisePhase--;
+      const previousFeedback = (this.dkongJrClimbLfsr >>> 16) & 1;
+      const input = previousFeedback ^ 1;
+      this.dkongJrClimbLfsr = (
+        ((this.dkongJrClimbLfsr << 1) & 0xffff) | input
+      );
+      const bit2 = (this.dkongJrClimbLfsr >>> 2) & 1;
+      const bit15 = (this.dkongJrClimbLfsr >>> 15) & 1;
+      const feedback = bit2 ^ bit15;
+      this.dkongJrClimbLfsr |= feedback << 16;
+      this.dkongJrClimbNoise = feedback ? 0 : 1;
+    }
+
+    const state = this.dkongVoiceState[index]!;
+    const oneShot = this.dkongJrClimbOneShot > 0 ? 0 : 4;
+    this.dkongJrClimbOneShot = Math.max(0, this.dkongJrClimbOneShot - dt);
+    const modulated = stepRcDiscMod(
+      state,
+      oneShot,
+      this.dkongJrClimbNoise,
+      120,
+      4_700,
+      1,
+      100_000,
+      10e-6,
+      5,
+      dt,
+    );
+    const highpass = modulated - state.crCap;
+    state.crCap += highpass * rcCharge(dt, 20_000 * 0.47e-6);
+    state.rcDisc2 += (highpass - state.rcDisc2) *
+      rcCharge(dt, 120 * 1e-6);
+    return state.rcDisc2;
+  }
+
+  /**
+   * Asteroids' seven-effect analog board.  The node numbers and constants are
+   * taken from asteroid_discrete: two swept fire VCOs, the 12 kHz XNOR noise
+   * chain used by explosion/thrust, the thump 555, saucer warble and life tone.
+   */
+  private sampleAsteroidOutput(): number {
+    const dt = 1 / this.outputRate;
+
+    // NODE_20: 16-bit XNOR LFSR clocked at 12 kHz.  Explosion samples this at
+    // a pitch-dependent rate; thrust uses the live noise stream.
+    this.asteroidNoisePhase += 12_000 / this.outputRate;
+    while (this.asteroidNoisePhase >= 1) {
+      this.asteroidNoisePhase--;
+      const bit6 = (this.asteroidLfsr >>> 6) & 1;
+      const bit14 = (this.asteroidLfsr >>> 14) & 1;
+      const feedback = (bit6 ^ bit14) ^ 1;
+      this.asteroidLfsr = ((this.asteroidLfsr << 1) | feedback) & 0xffff;
+      this.asteroidNoise = feedback ? 1 : -1;
+    }
+
+    let mix = 0;
+
+    // NODE_25: ship fire starts at 820 Hz, falls to 110 Hz over 280 ms, and
+    // loses most of its amplitude through the 8.1k/10u discharge network.
+    if (this.nodeValues[5]) {
+      const frequency = Math.max(
+        110,
+        820 - ((820 - 110) / 0.28) * this.asteroidShipFireAge,
+      );
+      const amplitude = (7 + 46 * Math.exp(-this.asteroidShipFireAge / 0.081)) / 53;
+      const duty = Math.min(0.95, (4_500 / frequency + 67) / 100);
+      const step = frequency / this.outputRate;
+      this.asteroidShipFirePhase = (this.asteroidShipFirePhase + step) % 1;
+      mix += bandLimitedPulse(this.asteroidShipFirePhase, step, duty) *
+        amplitude * (53 / 1_909.2);
+      this.asteroidShipFireAge += dt;
+    }
+
+    // NODE_24: the saucer projectile has a much shallower 830-to-630 Hz fall
+    // and a 300 ms amplitude discharge.
+    if (this.nodeValues[2]) {
+      const frequency = Math.max(
+        630,
+        830 - ((830 - 630) / 0.28) * this.asteroidSaucerFireAge,
+      );
+      const amplitude = (7 + 42.5 * Math.exp(-this.asteroidSaucerFireAge / 0.3)) / 49.5;
+      const duty = Math.min(0.95, (4_500 / frequency + 67) / 100);
+      const step = frequency / this.outputRate;
+      this.asteroidSaucerFirePhase = (this.asteroidSaucerFirePhase + step) % 1;
+      mix += bandLimitedPulse(this.asteroidSaucerFirePhase, step, duty) *
+        amplitude * (49.5 / 1_909.2);
+      this.asteroidSaucerFireAge += dt;
+    }
+
+    // NODE_26: pitch selects a divider of the 12 kHz source.  The held LFSR
+    // sample is multiplied by the ROM's 4-bit volume envelope and then passes
+    // through the source 3042-ohm/1u low-pass, producing the heavy rumble.
+    const explosionPitch = this.nodeValues[11] || 12;
+    this.asteroidExplosionPhase += (12_000 / explosionPitch) / this.outputRate;
+    while (this.asteroidExplosionPhase >= 1) {
+      this.asteroidExplosionPhase--;
+      this.asteroidExplosionSample = this.asteroidNoise;
+    }
+    const explosionTarget = this.asteroidExplosionSample *
+      (this.nodeValues[10]! / 15);
+    this.asteroidExplosionLowpass += (
+      explosionTarget - this.asteroidExplosionLowpass
+    ) * rcCharge(dt, 3_042 * 1e-6);
+    mix += this.asteroidExplosionLowpass * (1_000 / 1_909.2);
+
+    // NODE_27: the same LFSR through the board's low/band/low filter chain.
+    // The two-pole approximation preserves the narrow low-frequency rocket
+    // rumble without leaking raw 12 kHz noise into the output.
+    this.asteroidThrustInput += (this.asteroidNoise - this.asteroidThrustInput) *
+      rcCharge(dt, 2_200 * 1e-6);
+    this.asteroidThrustFast += (
+      this.asteroidThrustInput - this.asteroidThrustFast
+    ) * onePoleCoefficient(160, this.outputRate);
+    this.asteroidThrustSlow += (
+      this.asteroidThrustInput - this.asteroidThrustSlow
+    ) * onePoleCoefficient(45, this.outputRate);
+    if (this.nodeValues[4]) {
+      mix += (this.asteroidThrustFast - this.asteroidThrustSlow) *
+        (600 / 1_909.2) * 2.4;
+    }
+
+    // NODE_21: 4-bit DAC controls the heartbeat 555; NODE_32 smooths its
+    // square wave with the source 3.3k/0.1u RC.
+    if (this.nodeValues[8]) {
+      const frequency = 38 + (this.nodeValues[9]! & 0x0f) * 2.7;
+      this.asteroidThumpPhase = (this.asteroidThumpPhase +
+        frequency / this.outputRate) % 1;
+      const thump = this.asteroidThumpPhase < 0.5 ? 1 : -1;
+      this.asteroidThumpFilter += (thump - this.asteroidThumpFilter) *
+        rcCharge(dt, 3_300 * 0.1e-6);
+      mix += this.asteroidThumpFilter * (131.6 / 1_909.2);
+    }
+
+    // NODE_22: slow triangle modulates the higher-frequency saucer VCO.
+    if (this.nodeValues[1]) {
+      const select = this.nodeValues[3] ? 1 : 0;
+      const warbleRate = select ? 5.75 : 8.25;
+      this.asteroidSaucerWarblePhase = (
+        this.asteroidSaucerWarblePhase + warbleRate / this.outputRate
+      ) % 1;
+      const warble = 1 - 4 * Math.abs(this.asteroidSaucerWarblePhase - 0.5);
+      const frequency = 1_210 + 460 * warble - select * 250;
+      this.asteroidSaucerPhase = (
+        this.asteroidSaucerPhase + frequency / this.outputRate
+      ) % 1;
+      const saucer = 1 - 4 * Math.abs(this.asteroidSaucerPhase - 0.5);
+      mix += saucer * (76.1 / 1_909.2);
+    }
+
+    if (this.nodeValues[6]) {
+      const step = 3_000 / this.outputRate;
+      this.asteroidLifePhase = (this.asteroidLifePhase + step) % 1;
+      mix += bandLimitedPulse(this.asteroidLifePhase, step, 0.5) *
+        (100 / 1_909.2);
+    }
+
+    // asteroid_sound routes the discrete board at gain 1.4.  Leave headroom
+    // for overlapping thrust/explosion/saucer effects before hard clipping.
+    return Math.max(-1, Math.min(1, mix * 1.4));
   }
 
   /**
@@ -676,6 +1004,17 @@ function polyBlep(phase: number, step: number): number {
   return 0;
 }
 
+function bandLimitedPulse(phase: number, step: number, duty: number): number {
+  let value = phase < duty ? 1 : -1;
+  value += polyBlep(phase, step);
+  value -= polyBlep((phase - duty + 1) % 1, step);
+  return value;
+}
+
+function onePoleCoefficient(frequency: number, outputRate: number): number {
+  return 1 - Math.exp(-2 * Math.PI * frequency / outputRate);
+}
+
 export class GeneratedDiscreteAudioFrameRenderer {
   private carry = 0;
   private readonly core: GeneratedDiscreteAudioCore;
@@ -747,10 +1086,12 @@ class GeneratedDiscreteEffectsProcessor extends AudioWorkletProcessor {
         );
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 8) this.frames.shift();
+        while (this.frames.length > 3) this.frames.shift();
       }
     };
   }
+
+  private lastSample = 0;
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
     const channels = outputs[0];
@@ -762,7 +1103,8 @@ class GeneratedDiscreteEffectsProcessor extends AudioWorkletProcessor {
         this.cursor = 0;
         if (!this.current) break;
       }
-      output[index] = this.current?.[this.cursor++] ?? 0;
+      // Hold the last sample when starved: a 0-fill pops on DC-offset mixes.
+      output[index] = this.lastSample = this.current?.[this.cursor++] ?? this.lastSample;
     }
     for (let channel = 1; channel < (channels?.length ?? 0); channel++) {
       channels![channel]!.set(output);

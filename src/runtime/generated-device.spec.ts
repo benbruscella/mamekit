@@ -15,7 +15,7 @@ const method = (name: string, parameters: string, source: string) => ({
 });
 const definition: GeneratedDeviceDefinition = {
   type: 'fixture',
-  constants: {},
+  constants: { MASK: 3 },
   members: [
     { name: 'm_byte', valueType: 'uint8_t', bits: 8, initial: 0 },
     { name: 'm_signed', valueType: 'int8_t', bits: 8, signed: true, initial: 0 },
@@ -47,6 +47,13 @@ const definition: GeneratedDeviceDefinition = {
     ),
     method('fast', 'uint8_t data', 'return 0;'),
     method('timer_remaining', '', 'return 0;'),
+    method('timer_ticks', '', 'return 0;'),
+    method('seconds_from_hz', 'double frequency', 'return attotime::from_hz(frequency);'),
+    method(
+      'seconds_from_ticks',
+      'uint64_t ticks, uint32_t frequency',
+      'return attotime::from_ticks(ticks, frequency);',
+    ),
   ],
   compiledMethods: {
     fast: (runtime, data) => {
@@ -55,6 +62,9 @@ const definition: GeneratedDeviceDefinition = {
     },
     timer_remaining: runtime =>
       Number((runtime.members.m_timer as { remaining(): number }).remaining()),
+    timer_ticks: runtime =>
+      (runtime.members.m_timer as { remaining(): { as_ticks(clock: number): number } })
+        .remaining().as_ticks(2_000),
   },
   start: 'device_start',
   reset: 'device_reset',
@@ -77,6 +87,9 @@ const device = createDevice('FiXtUrE', { clock: 2_000 });
 assert.equal(device.get('m_byte'), 7);
 assert.equal(device.cycleClock(), 500);
 assert.equal(device.dataAddressBits(), 8);
+assert.equal(device.call('seconds_from_hz', 2_000), 0.0005);
+assert.equal(device.call('seconds_from_ticks', 3, 12_000), 0.00025);
+assert.equal(device.constant('fixture::MASK'), device.constant('MASK'));
 assert.equal(device.arity('write'), 1);
 assert.deepEqual(device.signalNames(), ['q_out_cb']);
 
@@ -104,6 +117,8 @@ assert.ok(
   device.call('timer_remaining') < 0.011,
   'generated timer remaining() must expose the live source-compatible delay',
 );
+assert.ok(device.call('timer_ticks') >= 19 && device.call('timer_ticks') <= 20,
+  'generated timer remaining() must retain attotime::as_ticks');
 device.tick(0.02);
 assert.equal(device.get('m_count'), 3);
 assert.equal(device.get('m_reschedule_count'), 2);

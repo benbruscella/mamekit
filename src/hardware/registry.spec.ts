@@ -55,6 +55,11 @@ check('no two capabilities claim the same MAME type', () => {
 
 check('a MAME type resolves to its capability', () => {
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'YM2203')?.id, 'ym2203');
+  assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'YM2149')?.id, 'ay8910');
+  assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'AY8912')?.id, 'ay8910');
+  assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'I8035')?.id, 'cpu');
+  assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'SEGA_315_5098')?.id, 'cpu');
+  assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'M68705P5')?.id, 'm68705');
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'NOT_A_CHIP'), undefined);
 });
 

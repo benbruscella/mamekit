@@ -9,7 +9,10 @@ export const YM2203_ID = 'ym2203';
 
 // YM3526 is hosted as an auxiliary chip by the same generated worklet. This
 // matches boards such as Bubble Bobble where OPN and OPL share one speaker.
-export const YM2203_MAME_TYPES = ['YM2203', 'YM3526'] as const;
+// YM2610 shares the OPN address/data register protocol. The current generated
+// core renders its FM/SSG portion; ADPCM-A/B can be layered in without changing
+// the board-facing contract.
+export const YM2203_MAME_TYPES = ['YM2203', 'YM2610', 'YM3526'] as const;
 
 /** Emitted artifacts, relative to dist/runtime/generated. */
 export const YM2203_IR_ARTIFACT = 'audio/ym2203.audio.ir.json';

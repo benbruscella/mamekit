@@ -13,10 +13,14 @@ const check = (name: string, run: () => void): void => { run(); passed++; void n
 
 const context: ConnectionContext = {
   cpuTags: new Set(['maincpu', 'audiocpu', 'mcu']),
-  deviceTags: new Set(['maincpu', 'audiocpu', 'mcu', 'mainlatch', 'timeplt_audio', 'aysnd']),
+  deviceTags: new Set([
+    'maincpu', 'audiocpu', 'mcu', 'mainlatch', 'timeplt_audio', 'aysnd',
+    'io:mcu',
+  ]),
   handlerKeys: new Set([
     'fixture_state.irq_w',
     'timeplt_audio_device.sh_irqtrigger_w',
+    'io_device.port_w',
   ]),
   soundTag: 'aysnd',
   soundEnableMethods: new Set(['sound_enable_w']),
@@ -38,10 +42,11 @@ const effect = (overrides: Partial<GeneratedCallback>): BoardEffect | undefined 
 
 check('devcb transforms lower to typed operations', () => {
   assert.deepEqual(
-    lowerTransforms(['invert', 'mask(0x0f)', 'rshift(4)', 'lshift(3)']),
+    lowerTransforms(['invert', 'mask(0x0f)', 'bit(5)', 'rshift(4)', 'lshift(3)']),
     [
       { kind: 'invert' },
       { kind: 'mask', value: 0x0f },
+      { kind: 'bit', bit: 5 },
       { kind: 'rshift', bits: 4 },
       { kind: 'lshift', bits: 3 },
     ],
@@ -51,7 +56,7 @@ check('devcb transforms lower to typed operations', () => {
 // lshift had no runtime implementation, so digdug's and galaga's 53xx K-port
 // MOD bits collapsed onto bit 0. An unmodelled transform must be visible.
 check('a transform with no lowering is reported, not dropped', () => {
-  assert.deepEqual(unknownTransforms(['invert', 'xor(3)']), ['xor(3)']);
+  assert.deepEqual(unknownTransforms(['invert', 'bit(2)', 'xor(3)']), ['xor(3)']);
   assert.deepEqual(unknownTransforms(['lshift(3)']), []);
 });
 
@@ -78,12 +83,32 @@ check('a CPU input line lowers to the named pin', () => {
     { kind: 'cpu-line', tag: 'maincpu', line: 'nmi', delivery: 'level' },
   );
   assert.deepEqual(
+    effect({ targetTag: 'audiocpu', inputLine: '0' }),
+    { kind: 'cpu-line', tag: 'audiocpu', line: 'irq', delivery: 'level' },
+  );
+  assert.deepEqual(
     effect({ targetTag: 'mcu', inputLine: 'M6801_IRQ1_LINE' }),
     { kind: 'cpu-line', tag: 'mcu', line: 'irq', delivery: 'level' },
   );
   assert.deepEqual(
+    effect({ targetTag: 'audiocpu', inputLine: 'M6502_IRQ_LINE' }),
+    { kind: 'cpu-line', tag: 'audiocpu', line: 'irq', delivery: 'level' },
+  );
+  assert.deepEqual(
+    effect({ targetTag: 'maincpu', inputLine: 'M68K_IRQ_5' }),
+    { kind: 'cpu-line', tag: 'maincpu', line: 'irq5', delivery: 'level' },
+  );
+  assert.deepEqual(
+    effect({ targetTag: 'maincpu', inputLine: 'M68K_IRQ_IPL1' }),
+    { kind: 'cpu-line', tag: 'maincpu', line: 'irq1', delivery: 'level' },
+  );
+  assert.deepEqual(
     effect({ targetTag: 'maincpu', inputLine: 'Z80_INPUT_LINE_BUSREQ' }),
     { kind: 'cpu-line', tag: 'maincpu', line: 'halt', delivery: 'level' },
+  );
+  assert.deepEqual(
+    effect({ targetTag: 'audiocpu', inputLine: 'Z80_INPUT_LINE_WAIT' }),
+    { kind: 'cpu-line', tag: 'audiocpu', line: 'halt', delivery: 'level' },
   );
   assert.deepEqual(
     effect({
@@ -116,6 +141,13 @@ check('a driver interrupt generator lowers to its pin and delivery mode', () => 
   );
   assert.deepEqual(
     lowerCallbackEffect(
+      callback({ ownerTag: 'maincpu', signal: 'set_vblank_int', targetMethod: 'irq4_line_hold' }),
+      context,
+    ),
+    { kind: 'cpu-line', tag: 'maincpu', line: 'irq4', delivery: 'hold' },
+  );
+  assert.deepEqual(
+    lowerCallbackEffect(
       callback({ ownerTag: 'audiocpu', signal: 'set_periodic_int', targetMethod: 'nmi_line_pulse' }),
       context,
     ),
@@ -135,6 +167,39 @@ check('a custom interrupt generator preserves its source handler and CPU device'
       context,
     ),
     { kind: 'handler', handler: 'fixture_state.irq_w', deviceTag: 'maincpu' },
+  );
+});
+
+check('a hosted processor callback retains its scoped device owner', () => {
+  assert.deepEqual(
+    lowerCallbackEffect(
+      callback({
+        ownerTag: 'io:mcu',
+        targetClass: 'io_device',
+        targetMethod: 'port_w',
+      }),
+      context,
+    ),
+    { kind: 'handler', handler: 'io_device.port_w', deviceTag: 'io:mcu' },
+  );
+});
+
+check('a composite sound callback retains the shared board handler state', () => {
+  assert.deepEqual(
+    lowerCallbackEffect(
+      callback({
+        ownerTag: 'iremsound',
+        targetClass: 'm62_audio_device',
+        targetMethod: 'm6803_port1_w',
+      }),
+      {
+        ...context,
+        deviceTags: new Set([...context.deviceTags, 'irem_audio:iremsound']),
+        handlerKeys: new Set([...context.handlerKeys, 'm62_audio_device.m6803_port1_w']),
+        soundTag: 'irem_audio:ay_45m',
+      },
+    ),
+    { kind: 'handler', handler: 'm62_audio_device.m6803_port1_w' },
   );
 });
 

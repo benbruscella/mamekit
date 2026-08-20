@@ -65,6 +65,14 @@ export interface GameAcceptanceOptions {
     number: number;
     framebuffer: Uint32Array;
     state: Readonly<Record<string, unknown>>;
+    /** Read-only shared-memory view for locating stalled generated machines. */
+    shares: Readonly<Record<string, Uint8Array>>;
+    /** Read-only register access for diagnosing interrupt/state transitions. */
+    cpus: ReadonlyMap<string, { get(name: string): number }>;
+    /** Read-only access to generated CPU buses for address-level diagnostics. */
+    buses: ReadonlyMap<string, { read(address: number): number }>;
+    /** Read-only generated-device state for latch/line diagnostics. */
+    devices: ReadonlyMap<string, { get(name: string): number }>;
     /** Sound writes emitted during this frame, before the probe consumes them. */
     writes: readonly SoundWrite[];
   }) => void;
@@ -75,6 +83,10 @@ export async function runGameAcceptance(
   root = projectRoot,
   options: GameAcceptanceOptions = {},
 ): Promise<GameAcceptanceGolden> {
+  if (process.env.MAMEKIT_PROFILE_HANDLERS === '1') {
+    (globalThis as { __mamekitHandlerCounts?: Map<string, number> })
+      .__mamekitHandlerCounts = new Map();
+  }
   const diagnosticCapture = options.captureAudio !== undefined;
   const framesToRun = options.frames ?? contract.frames;
   const outRoot = join(root, 'dist');
@@ -149,6 +161,7 @@ export async function runGameAcceptance(
   const pendingWrites: SoundWrite[] = [];
   const allWrites: SoundWrite[] = [];
   const requiredAudioCounts = new Map<number, number>();
+  const requiredAudioValues = new Map<number, Set<number>>();
   const board = generatedRuntime.createBoard(
     { ...config.board, game: config.game },
     regions,
@@ -179,6 +192,7 @@ export async function runGameAcceptance(
       assert.ok(bus, `${contract.game}: diagnostic CPU bus ${write.cpu} is missing`);
       bus.write(write.address, write.data);
     }
+    input.advance();
     board.frame(framebuffer);
     if (input.debug && !input.dump().split(' ').every(value => value.endsWith('=ff'))) {
       const devices = (board as unknown as {
@@ -197,6 +211,18 @@ export async function runGameAcceptance(
       state: (board as unknown as {
         state?: Record<string, unknown>;
       }).state ?? {},
+      shares: (board as unknown as {
+        shares?: Record<string, Uint8Array>;
+      }).shares ?? {},
+      cpus: (board as unknown as {
+        cpus?: Map<string, { get(name: string): number }>;
+      }).cpus ?? new Map(),
+      buses: (board as unknown as {
+        cpuBuses?: Map<string, { read(address: number): number }>;
+      }).cpuBuses ?? new Map(),
+      devices: (board as unknown as {
+        devices?: Map<string, { get(name: string): number }>;
+      }).devices ?? new Map(),
       writes: pendingWrites,
     });
     for (const [index, requirement] of (contract.audioRequirements ?? []).entries()) {
@@ -210,6 +236,14 @@ export async function runGameAcceptance(
         index,
         (requiredAudioCounts.get(index) ?? 0) + count,
       );
+      const values = requiredAudioValues.get(index) ?? new Set<number>();
+      for (const write of pendingWrites) {
+        if (
+          write.method === requirement.method &&
+          (requirement.offset === undefined || write.offset === requirement.offset)
+        ) values.add(write.data);
+      }
+      requiredAudioValues.set(index, values);
     }
     audio.render(pendingWrites, diagnosticCapture || snapshot.frame >= 120);
     pendingWrites.length = 0;
@@ -322,7 +356,8 @@ export async function runGameAcceptance(
       Object.fromEntries(
         ['m_a_input_overrides_output_mask', 'm_ddr_a', 'm_ctl_a', 'm_out_a',
           'm_ddr_b', 'm_ctl_b', 'm_out_b', 'm_in_ca1', 'm_out_ca2',
-          'm_irq_a1', 'm_irq_a_state', 'm_state']
+          'm_irq_a1', 'm_irq_a_state', 'm_state', 'm_latched_value',
+          'm_latch_written']
           .map(name => [name, device.get(name)]),
       ),
     ]),
@@ -449,11 +484,29 @@ export async function runGameAcceptance(
           `${window} (maximum ${requirement.maximumNonzeroWrites})`,
       );
     }
+    if (requirement.minimumDistinctValues !== undefined) {
+      const distinct = requiredAudioValues.get(index)?.size ?? 0;
+      assert.ok(
+        distinct >= requirement.minimumDistinctValues,
+        `${contract.game}: ${source} audio emitted ${distinct} distinct values ` +
+          `${window} (minimum ${requirement.minimumDistinctValues})`,
+      );
+    }
   }
   console.log(
     `${contract.game}: ${emulatedFps.toFixed(1)} emulated fps ` +
       `(minimum ${contract.minimumFps})`,
   );
+  const handlerCounts = (globalThis as {
+    __mamekitHandlerCounts?: Map<string, number>;
+  }).__mamekitHandlerCounts;
+  if (handlerCounts) {
+    console.log([...handlerCounts]
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 30)
+      .map(([name, count]) => `${count.toLocaleString()} ${name}`)
+      .join('\n'));
+  }
 
   // Behaviour is asserted before throughput. The fps floor depends on how busy
   // the host is, so checking it first let a loaded machine abort the run before
@@ -488,11 +541,26 @@ function verifyInputBindings(
     const released = input.read(binding.port);
     key(target, 'keydown', code);
     const pressed = input.read(binding.port);
-    const expected = binding.activeLow
-      ? released & ~binding.mask
-      : released | binding.mask;
+    const expected = binding.relativeDelta !== undefined
+      ? (released & ~binding.mask) |
+        (((released & binding.mask) + binding.relativeDelta) & binding.mask)
+      : binding.activeValue !== undefined
+        ? (released & ~binding.mask) | (binding.activeValue & binding.mask)
+        : binding.activeLow
+          ? released & ~binding.mask
+          : released | binding.mask;
     assert.equal(pressed, expected, `${contract.game}: ${code} did not reach ${binding.port}`);
     key(target, 'keyup', code);
+    if (binding.toggle) {
+      assert.equal(input.read(binding.port), expected);
+      key(target, 'keydown', code);
+      key(target, 'keyup', code);
+    }
+    if (binding.relativeDelta !== undefined) {
+      // A dial is a persistent hardware counter, not a switch that springs
+      // back on keyup. Restore the preflight probe before the actual replay.
+      input.setDip(binding.port, binding.mask, released);
+    }
     assert.equal(input.read(binding.port), released);
   }
 }

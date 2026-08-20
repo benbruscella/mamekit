@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { splitMameArgs } from './ast.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
 import type { GeneratedYm3526Plan } from './opl-compiler.ts';
+import type { GeneratedMsm5205Plan } from './audio-compiler.ts';
 
 /**
  * Lower MAME's YM2203 (OPN) sound device.
@@ -23,6 +24,8 @@ const OPN_SOURCE = `${YMFM_ROOT}/ymfm_opn.cpp`;
 const YMFM_HEADER = `${YMFM_ROOT}/ymfm.h`;
 const SSG_HEADER = `${YMFM_ROOT}/ymfm_ssg.h`;
 const SSG_SOURCE = `${YMFM_ROOT}/ymfm_ssg.cpp`;
+const ADPCM_HEADER = `${YMFM_ROOT}/ymfm_adpcm.h`;
+const ADPCM_SOURCE = `${YMFM_ROOT}/ymfm_adpcm.cpp`;
 const MAME_WRAPPER = 'src/devices/sound/ymfm_mame.h';
 
 /**
@@ -100,6 +103,15 @@ export interface GeneratedYm2203Plan {
     envelopeShapeRegister: number;
     fields: Record<string, GeneratedOpnField>;
   };
+  adpcmA: {
+    channels: number;
+    registers: number;
+    addressShift: number;
+    /** Native YM2610 chip samples between ADPCM-A nibble clocks. */
+    clockDivider: number;
+    steps: number[];
+    stepIncrement: number[];
+  };
   sourceFiles: string[];
   source: { file: string; line: number };
 }
@@ -149,6 +161,8 @@ export function compileYm2203(
   const opnSource = read(OPN_SOURCE);
   const ssgHeader = read(SSG_HEADER);
   const ssgSource = read(SSG_SOURCE);
+  const adpcmHeader = read(ADPCM_HEADER);
+  const adpcmSource = read(ADPCM_SOURCE);
   const wrapper = read(MAME_WRAPPER);
   const ymfmHeader = read(YMFM_HEADER);
 
@@ -225,6 +239,18 @@ export function compileYm2203(
       envelopeShapeRegister: envelopeShapeRegister(ssgSource),
       fields: ssgFields,
     },
+    // ym2610 clocks the FM/ADPCM block once per nine maximum-fidelity output
+    // samples, and ADPCM-A once per four FM envelope cycles (9 * 4 = 36).
+    // The address shift is the literal passed to its adpcm_a_engine member.
+    adpcmA: {
+      channels: constant(adpcmHeader, 'CHANNELS'),
+      registers: constant(adpcmHeader, 'REGISTERS'),
+      addressShift: Number(/m_adpcm_a\s*\(\s*intf\s*,\s*(\d+)\s*\)/
+        .exec(opnSource.slice(opnSource.indexOf('ym2610::ym2610')))?.[1] ?? 8),
+      clockDivider: 36,
+      steps: numericTable(adpcmSource, 's_steps'),
+      stepIncrement: numericTable(adpcmSource, 's_step_inc'),
+    },
     sourceFiles: [
       definition.sourceFile,
       MAME_WRAPPER,
@@ -235,6 +261,8 @@ export function compileYm2203(
       OPN_SOURCE,
       SSG_HEADER,
       SSG_SOURCE,
+      ADPCM_HEADER,
+      ADPCM_SOURCE,
     ],
     source: {
       file: OPN_SOURCE,
@@ -254,6 +282,8 @@ function validate(plan: GeneratedYm2203Plan): void {
   if (plan.fm.algorithmOps.length < 8) problems.push('algorithm table');
   if (plan.fm.operatorMap.length !== plan.fm.channels) problems.push('operator map');
   if (plan.ssg.amplitudes.length !== 32) problems.push('SSG amplitude table');
+  if (plan.adpcmA.steps.length !== 49) problems.push('ADPCM-A step table');
+  if (plan.adpcmA.stepIncrement.length !== 8) problems.push('ADPCM-A step increment table');
   if (!plan.fm.waveformLength || !plan.fm.egQuiet) problems.push('FM constants');
   if (problems.length) {
     throw new Error(
@@ -338,7 +368,7 @@ function prescaleSelectors(source: string): GeneratedYm2203Plan['prescale']['sel
  * `0x00 + 2 * choffs` or shift by `3 + choffs`. OPN-only accessors are written
  * as `IsOpnA ? <opna> : <opn>`; the YM2203 typedef instantiates IsOpnA == false.
  */
-function registerField(source: string, name: string): GeneratedOpnField {
+export function registerField(source: string, name: string): GeneratedOpnField {
   const declaration = new RegExp(
     `\\b${name}\\s*\\([^)]*\\)\\s*const\\s*\\{\\s*return\\s+([^;]+);`,
   ).exec(source)?.[1];
@@ -411,7 +441,7 @@ function indexExpression(text: string): { base: number; stride: number } {
   return { base, stride };
 }
 
-function constant(source: string, name: string): number {
+export function constant(source: string, name: string): number {
   const declaration = new RegExp(
     `static\\s+constexpr\\s+\\w+\\s+${name}\\s*=\\s*([^;]+);`,
   ).exec(source)?.[1];
@@ -430,7 +460,7 @@ function evaluateConstant(text: string): number {
   return Number(text);
 }
 
-function enumeratorValues(source: string, name: string): Record<string, number> {
+export function enumeratorValues(source: string, name: string): Record<string, number> {
   const body = new RegExp(`enum\\s+${name}\\s*(?::\\s*\\w+\\s*)?\\{([^}]*)\\}`).exec(source)?.[1];
   if (!body) throw new Error(`YM2203: ymfm enum ${name} is missing`);
   const values: Record<string, number> = {};
@@ -445,7 +475,7 @@ function enumeratorValues(source: string, name: string): Record<string, number> 
   return values;
 }
 
-function requireState(states: Record<string, number>, name: string): number {
+export function requireState(states: Record<string, number>, name: string): number {
   const value = states[name];
   if (value === undefined) throw new Error(`YM2203: ymfm envelope state ${name} is missing`);
   return value;
@@ -458,7 +488,7 @@ function keycodeMagic(source: string): number {
   return Number(value);
 }
 
-function operatorMap(source: string, channels: number): number[][] {
+export function operatorMap(source: string, channels: number): number[][] {
   const fixed = /operator_map\(operator_mapping &dest\) const\s*\{([\s\S]*?)\n\}/.exec(source)?.[1];
   const lists = [...(fixed ?? '').matchAll(/operator_list\s*\(([^)]*)\)/g)]
     .map(match => splitMameArgs(match[1]!).map(value => Number(value.trim())));
@@ -469,7 +499,7 @@ function operatorMap(source: string, channels: number): number[][] {
 }
 
 /** Expand the ALGORITHM(...) macro entries of s_algorithm_ops. */
-function algorithmOps(source: string): number[] {
+export function algorithmOps(source: string): number[] {
   const macro =
     /#define\s+ALGORITHM\(op2in, op3in, op4in, op1out, op2out, op3out\)\s*\\\s*\n\s*([^\n]+)/
       .exec(source)?.[1];
@@ -485,16 +515,16 @@ function algorithmOps(source: string): number[] {
   });
 }
 
-function numericTable(source: string, name: string): number[] {
+export function numericTable(source: string, name: string): number[] {
   const body = new RegExp(
-    `\\b${name}\\s*\\[[^\\]]*\\]\\s*=\\s*\\{([\\s\\S]*?)\\n\\s*\\};`,
+    `\\b${name}\\s*\\[[^\\]]*\\]\\s*=\\s*\\{([\\s\\S]*?)\\s*\\};`,
   ).exec(source)?.[1];
   if (!body) throw new Error(`YM2203: ymfm table ${name} is missing`);
   return [...body.replace(/\/\/[^\n]*/g, '').matchAll(/-?(?:0x[\da-f]+|\d+)/gi)]
     .map(match => Number(match[0]));
 }
 
-function nestedNumericTable(source: string, name: string): number[][] {
+export function nestedNumericTable(source: string, name: string): number[][] {
   const body = new RegExp(
     `\\b${name}\\s*\\[[^;]*?\\]\\s*=\\s*\\{([\\s\\S]*?)\\n\\s*\\};`,
   ).exec(source)?.[1];
@@ -507,7 +537,7 @@ function nestedNumericTable(source: string, name: string): number[][] {
  * The power table is stored through an `X(a)` macro that pre-applies the
  * implied leading bit and the DAC shift; lower the macro, not its output.
  */
-function powerTable(source: string): number[] {
+export function powerTable(source: string): number[] {
   const macro = /#define\s+X\(a\)\s*\(\(\(a\)\s*\|\s*(0x[\da-f]+)\)\s*<<\s*(\d+)\)/i.exec(source);
   if (!macro) throw new Error('YM2203: ymfm power table macro shape changed');
   const implied = Number(macro[1]);
@@ -537,7 +567,7 @@ function envelopeShapeRegister(source: string): number {
   return Number(value);
 }
 
-function lineOf(source: string, offset: number): number {
+export function lineOf(source: string, offset: number): number {
   return source.slice(0, Math.max(0, offset)).split('\n').length;
 }
 
@@ -557,6 +587,7 @@ export interface GeneratedYmRoute {
 export function generatedYm2203WorkletSource(
   plan: GeneratedYm2203Plan,
   ym3526Plan?: GeneratedYm3526Plan,
+  msm5205Plan?: GeneratedMsm5205Plan,
 ): string {
   return `// GENERATED from ${plan.source.file}:${plan.source.line}; do not edit.
 // The OPN FM engine, SSG engine, register bitfield map, die-extracted sine,
@@ -580,6 +611,18 @@ interface GeneratedYm3526Plan {
 // the way to never inside the dormant OPL class, breaking unrelated YM2203-only
 // targets such as Commando.
 const ym3526Plan = (${JSON.stringify(ym3526Plan ?? null, null, 2)}) as GeneratedYm3526Plan | null;
+const msmPlan = (${JSON.stringify(msm5205Plan ?? null, null, 2)}) as GeneratedMsm5205PlanData | null;
+
+interface GeneratedMsm5205PlanData {
+  indexShift: number[];
+  diffLookup: number[];
+  modes: Record<string, number>;
+  maximumStep: number;
+  minimumSignal: number;
+  maximumSignal: number;
+  sampleScale: number;
+  dacBits: number;
+}
 
 export interface GeneratedYmRoute {
   chip: number;
@@ -599,8 +642,10 @@ export interface GeneratedAuxiliaryAudioDevice {
   type: string;
   deviceTag: string;
   clock: number;
+  initialMode?: string;
   gain: number;
   target: string;
+  writeMethods?: string[];
 }
 
 interface Field {
@@ -646,7 +691,111 @@ function roundtripFp(value: number): number {
 
 const FM = plan.fm;
 const SSG = plan.ssg;
+const ADPCM_A = plan.adpcmA;
 const EG_STATES = 4;
+
+/** ymfm's YM2610 ADPCM-A engine, reading the board's real sample ROM. */
+class GeneratedYm2610AdpcmA {
+  private readonly rom: Uint8Array;
+  private readonly regs = new Uint8Array(ADPCM_A.registers);
+  private readonly playing = new Uint8Array(ADPCM_A.channels);
+  private readonly nibble = new Uint8Array(ADPCM_A.channels);
+  private readonly currentByte = new Uint8Array(ADPCM_A.channels);
+  private readonly address = new Uint32Array(ADPCM_A.channels);
+  private readonly accumulator = new Uint16Array(ADPCM_A.channels);
+  private readonly stepIndex = new Uint8Array(ADPCM_A.channels);
+
+  constructor(rom: Uint8Array) {
+    this.rom = rom;
+    this.reset();
+  }
+
+  reset(): void {
+    this.regs.fill(0);
+    // ymfm enables both pans and selects maximum instrument volume on reset.
+    for (let channel = 0; channel < ADPCM_A.channels; channel++) {
+      this.regs[0x08 + channel] = 0xdf;
+    }
+    this.playing.fill(0);
+    this.nibble.fill(0);
+    this.currentByte.fill(0);
+    this.address.fill(0);
+    this.accumulator.fill(0);
+    this.stepIndex.fill(0);
+  }
+
+  write(regnum: number, data: number): void {
+    if (regnum >= this.regs.length) return;
+    this.regs[regnum] = data & 0xff;
+    if (regnum !== 0) return;
+    const on = (data & 0x80) === 0;
+    for (let channel = 0; channel < ADPCM_A.channels; channel++) {
+      if ((data & (1 << channel)) === 0) continue;
+      this.playing[channel] = on ? 1 : 0;
+      if (!on) continue;
+      this.address[channel] = this.start(channel);
+      this.nibble[channel] = 0;
+      this.currentByte[channel] = 0;
+      this.accumulator[channel] = 0;
+      this.stepIndex[channel] = 0;
+    }
+  }
+
+  /** Clock one ADPCM nibble per active voice and return its mono board mix. */
+  clock(): number {
+    let mixed = 0;
+    for (let channel = 0; channel < ADPCM_A.channels; channel++) {
+      if (!this.playing[channel]) continue;
+      let data: number;
+      if (this.nibble[channel] === 0) {
+        const end = this.end(channel);
+        if (((this.address[channel]! ^ end) & 0xfffff) === 0) {
+          this.playing[channel] = 0;
+          this.accumulator[channel] = 0;
+          continue;
+        }
+        this.currentByte[channel] = this.rom[this.address[channel]!] ?? 0xff;
+        this.address[channel]++;
+        data = this.currentByte[channel]! >>> 4;
+        this.nibble[channel] = 1;
+      } else {
+        data = this.currentByte[channel]! & 0x0f;
+        this.nibble[channel] = 0;
+      }
+      let delta = ((2 * (data & 7) + 1) * ADPCM_A.steps[this.stepIndex[channel]!]!) >> 3;
+      if (data & 8) delta = -delta;
+      this.accumulator[channel] = (this.accumulator[channel]! + delta) & 0xfff;
+      this.stepIndex[channel] = clamp(
+        this.stepIndex[channel]! + ADPCM_A.stepIncrement[data & 7]!,
+        0,
+        ADPCM_A.steps.length - 1,
+      );
+      mixed += this.output(channel);
+    }
+    return mixed;
+  }
+
+  private start(channel: number): number {
+    return (this.regs[0x10 + channel]! | (this.regs[0x18 + channel]! << 8)) <<
+      ADPCM_A.addressShift;
+  }
+
+  /** ymfm treats the programmed end as inclusive. */
+  private end(channel: number): number {
+    return ((this.regs[0x20 + channel]! | (this.regs[0x28 + channel]! << 8)) + 1) <<
+      ADPCM_A.addressShift;
+  }
+
+  private output(channel: number): number {
+    const panLevel = this.regs[0x08 + channel]!;
+    if ((panLevel & 0xc0) === 0) return 0;
+    const volume = ((panLevel & 0x1f) ^ 0x1f) + ((this.regs[0x01]! & 0x3f) ^ 0x3f);
+    if (volume >= 63) return 0;
+    const multiply = 15 - (volume & 7);
+    const shift = 5 + (volume >>> 3);
+    return int16((int16(this.accumulator[channel]! << 4) * multiply) >> shift) & ~3;
+  }
+}
 
 /** ymfm's OPN chip: an FM engine and an SSG engine behind one register port. */
 export class GeneratedYm2203Chip {
@@ -654,7 +803,10 @@ export class GeneratedYm2203Chip {
   private readonly ssgRegs = new Uint8Array(SSG.registers);
   private readonly waveform = new Uint16Array(FM.waveformLength);
 
-  private address = 0;
+  private readonly addresses = new Uint8Array(2);
+  private readonly adpcmA?: GeneratedYm2610AdpcmA;
+  private adpcmClock = 0;
+  private adpcmLast = 0;
 
   // FM operator state
   private readonly phase = new Uint32Array(FM.operators);
@@ -701,7 +853,10 @@ export class GeneratedYm2203Chip {
   /** Reverse of operator_map: ymfm interleaves operators across channels. */
   private readonly operatorChannel = new Uint8Array(FM.operators);
 
-  constructor() {
+  constructor(deviceType = 'YM2203', sampleRom?: Uint8Array) {
+    if (deviceType === 'YM2610') {
+      this.adpcmA = new GeneratedYm2610AdpcmA(sampleRom ?? new Uint8Array(0));
+    }
     for (let chnum = 0; chnum < FM.channels; chnum++) {
       for (const opnum of FM.operatorMap[chnum]!) this.operatorChannel[opnum] = chnum;
     }
@@ -715,7 +870,7 @@ export class GeneratedYm2203Chip {
   reset(): void {
     this.regs.fill(0);
     this.ssgRegs.fill(0);
-    this.address = 0;
+    this.addresses.fill(0);
     this.phase.fill(0);
     this.envAttenuation.fill(0x3ff);
     this.envState.fill(FM.egRelease);
@@ -737,20 +892,27 @@ export class GeneratedYm2203Chip {
     this.noiseCount = 0;
     this.noiseState = 1;
     this.ssgLast.fill(0);
+    this.adpcmA?.reset();
+    this.adpcmClock = 0;
+    this.adpcmLast = 0;
   }
 
-  /** ym2203::write - offset 0 selects a register, offset 1 writes it. */
+  /**
+   * OPN register ports. YM2203 uses bank 0; YM2610 exposes a second
+   * address/data pair at offsets 2/3.
+   */
   write(offset: number, data: number): void {
+    const bank = (offset >>> 1) & 1;
     if ((offset & 1) === 0) {
-      this.address = data & 0xff;
+      this.addresses[bank] = data & 0xff;
       const selector = plan.prescale.selectors.find(
-        candidate => candidate.address === this.address &&
+        candidate => bank === 0 && candidate.address === this.addresses[bank] &&
           (candidate.requiresPrescale === undefined ||
             candidate.requiresPrescale === this.prescale),
       );
       if (selector) this.updatePrescale(selector.prescale);
     } else {
-      this.writeData(data & 0xff);
+      this.writeData(data & 0xff, bank);
     }
   }
 
@@ -766,16 +928,28 @@ export class GeneratedYm2203Chip {
     this.ssgResample = ratios.ssgResample;
   }
 
-  private writeData(data: number): void {
-    if (this.address < 0x10) {
+  private writeData(data: number, bank: number): void {
+    const address = this.addresses[bank]!;
+    if (bank === 0 && address < 0x10) {
       // 00-0F: SSG
-      const regnum = this.address & 0x0f;
+      const regnum = address & 0x0f;
       this.ssgRegs[regnum] = data;
       if (regnum === SSG.envelopeShapeRegister) this.envelopeState = 0;
       return;
     }
+    // YM2610 bank B registers below 0x30 belong to ADPCM-A. The FM/SSG
+    // core deliberately leaves those for the sample-ROM layer.
+    if (bank === 1 && address < 0x30) {
+      this.adpcmA?.write(address, data);
+      return;
+    }
     // 10-FF: FM
-    this.writeFm(this.address, data);
+    // The current OPN renderer hosts three four-operator channels. Bank-B FM
+    // channels share that engine as a best-effort voice bank until the full
+    // six-channel YM2610 plan is lowered; unlike dropping ports 2/3 entirely,
+    // this preserves their real register/key-on stream and produces the BIOS
+    // and gameplay FM layer.
+    this.writeFm(address, data);
   }
 
   /** opn_registers_base::write plus fm_engine_base::write key-on handling. */
@@ -1177,10 +1351,14 @@ export class GeneratedYm2203Chip {
     }
     this.sampleIndex++;
 
+    if (this.adpcmA && this.adpcmClock++ % ADPCM_A.clockDivider === 0) {
+      this.adpcmLast = this.adpcmA.clock();
+    }
+
     output[0] = sums[0]!;
     output[1] = sums[1]!;
     output[2] = sums[2]!;
-    output[3] = fm;
+    output[3] = fm + this.adpcmLast;
   }
 }
 
@@ -1422,6 +1600,69 @@ export class GeneratedYm3526Chip {
   }
 }
 
+export class GeneratedMsm5205Core {
+  private data = 0;
+  private resetLine = false;
+  private bitwidth = 4;
+  private modeValue = 4;
+  private signal = 0;
+  private step = 0;
+
+  constructor(initialMode?: string) {
+    if (!msmPlan) throw new Error('MSM5205 plan was not emitted');
+    const mode = initialMode ? msmPlan.modes[initialMode] : undefined;
+    if (mode !== undefined) this.playmode(mode);
+  }
+
+  write(method: string, data: number): void {
+    if (method === 'data_w') {
+      this.data = this.bitwidth === 4 ? data & 0x0f : (data & 0x07) << 1;
+    } else if (method === 'reset_w') {
+      this.resetLine = data !== 0;
+    } else if (method === 'playmode_w') {
+      this.playmode(data);
+    } else if (method === 's1_w') {
+      this.playmode((this.modeValue & ~1) | (data ? 1 : 0));
+    } else if (method === 's2_w') {
+      this.playmode((this.modeValue & ~2) | (data ? 2 : 0));
+    } else if ((method === 'vck' || method === 'vclk_w') && data) {
+      this.clock();
+    }
+  }
+
+  sample(): number {
+    if (!msmPlan) return 0;
+    const mask = msmPlan.dacBits >= 12 ? 0 : (1 << (12 - msmPlan.dacBits)) - 1;
+    return (this.signal & ~mask) * msmPlan.sampleScale;
+  }
+
+  private playmode(data: number): void {
+    this.modeValue = data & 7;
+    this.bitwidth = data & 4 ? 4 : 3;
+  }
+
+  private clock(): void {
+    if (!msmPlan) return;
+    if (this.resetLine) {
+      this.signal = 0;
+      this.step = 0;
+      return;
+    }
+    const value = this.data & 15;
+    this.signal = Math.max(
+      msmPlan.minimumSignal,
+      Math.min(
+        msmPlan.maximumSignal,
+        this.signal + msmPlan.diffLookup[this.step * 16 + value]!,
+      ),
+    );
+    this.step = Math.max(
+      0,
+      Math.min(msmPlan.maximumStep, this.step + msmPlan.indexShift[value & 7]!),
+    );
+  }
+}
+
 /**
  * Hosts the machine's YM2203 bank, resampling each chip's native ymfm rate to
  * the host output rate and mixing the driver's add_route gains.
@@ -1430,6 +1671,15 @@ export class GeneratedYm2203Mixer {
   private readonly chips: GeneratedYm2203Chip[];
   private readonly oplChips: GeneratedYm3526Chip[];
   private readonly oplGains: number[];
+  private readonly msmChips: {
+    deviceTag: string;
+    gain: number;
+    core: GeneratedMsm5205Core;
+  }[];
+  private readonly msmWrites = new Map<string, {
+    core: GeneratedMsm5205Core;
+    method: string;
+  }>();
   private readonly routes: GeneratedYmRoute[];
   private readonly chipRate: number;
   private readonly outputRate: number;
@@ -1437,6 +1687,7 @@ export class GeneratedYm2203Mixer {
   private readonly held: Int32Array[];
   private phase = 0;
   private lastSample = 0;
+  private readonly portsPerChip: number;
 
   constructor(
     clock: number,
@@ -1444,13 +1695,31 @@ export class GeneratedYm2203Mixer {
     outputRate: number,
     routes?: GeneratedYmRoute[],
     auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[],
+    deviceType = 'YM2203',
+    sampleRom?: Uint8Array,
   ) {
-    this.chips = Array.from({ length: Math.max(1, chips) }, () => new GeneratedYm2203Chip());
+    this.chips = Array.from(
+      { length: Math.max(0, chips) },
+      () => new GeneratedYm2203Chip(deviceType, sampleRom),
+    );
     const oplDevices = (auxiliaryDevices ?? []).filter(device => device.type === 'YM3526');
     this.oplChips = oplDevices.map(device =>
       new GeneratedYm3526Chip(device.clock, outputRate));
     this.oplGains = oplDevices.map(device => device.gain);
+    const msmDevices = (auxiliaryDevices ?? []).filter(device => device.type === 'MSM5205');
+    this.msmChips = msmPlan ? msmDevices.map(device => ({
+      deviceTag: device.deviceTag,
+      gain: device.gain,
+      core: new GeneratedMsm5205Core(device.initialMode),
+    })) : [];
+    for (const device of this.msmChips) {
+      const definition = msmDevices.find(candidate => candidate.deviceTag === device.deviceTag);
+      for (const method of new Set([...(definition?.writeMethods ?? []), 'vck', 'vclk_w'])) {
+        this.msmWrites.set(device.deviceTag + '.' + method, { core: device.core, method });
+      }
+    }
     this.chipRate = clock / plan.sampleRateDivider;
+    this.portsPerChip = deviceType === 'YM2610' ? 4 : 2;
     this.outputRate = outputRate;
     this.held = this.chips.map(() => new Int32Array(4));
     this.routes = routes?.length
@@ -1459,21 +1728,26 @@ export class GeneratedYm2203Mixer {
           [0, 1, 2, 3].map(channel => ({ chip, channel, gain: 1, target: 'mono' })));
   }
 
-  /** Register writes arrive as chip * 2 + port, matching the generated board. */
+  /** Register writes arrive as chip * port-count + port. */
   write(offset: number, data: number, method?: string): void {
-    const primaryPorts = this.chips.length * 2;
+    const msm = this.msmWrites.get(method ?? '');
+    if (msm) {
+      msm.core.write(msm.method, data);
+      return;
+    }
+    const primaryPorts = this.chips.length * this.portsPerChip;
     if (offset >= primaryPorts) {
       const opl = Math.floor((offset - primaryPorts) / 2);
       if (method === 'reset') this.oplChips[opl]?.reset();
       else this.oplChips[opl]?.write((offset - primaryPorts) & 1, data);
       return;
     }
-    const chip = Math.floor(offset / 2);
+    const chip = Math.floor(offset / this.portsPerChip);
     if (method === 'reset') {
       this.chips[chip]?.reset();
       return;
     }
-    this.chips[chip]?.write(offset & 1, data);
+    this.chips[chip]?.write(offset % this.portsPerChip, data);
   }
 
   /**
@@ -1501,6 +1775,7 @@ export class GeneratedYm2203Mixer {
     for (let chip = 0; chip < this.oplChips.length; chip++) {
       output += this.oplChips[chip]!.sample() * this.oplGains[chip]!;
     }
+    for (const device of this.msmChips) output += device.core.sample() * device.gain;
     return Math.max(-1, Math.min(1, output));
   }
 
@@ -1606,10 +1881,12 @@ class GeneratedYm2203Processor extends AudioWorkletProcessor {
     this.port.onmessage = (event: MessageEvent) => {
       const message = event.data as {
         type: string;
+        deviceType?: string;
         clock?: number;
         chips?: number;
         routes?: GeneratedYmRoute[];
         auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
+        sampleRom?: Uint8Array;
         refresh?: number;
         offset?: number;
         data?: number;
@@ -1623,6 +1900,8 @@ class GeneratedYm2203Processor extends AudioWorkletProcessor {
           sampleRate,
           message.routes,
           message.auxiliaryDevices,
+          message.deviceType,
+          message.sampleRom,
         );
         this.renderer = new GeneratedYm2203FrameRenderer(
           this.mixer,

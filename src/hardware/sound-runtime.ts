@@ -13,6 +13,8 @@ import type { BoardIr } from '../ir/board.ts';
 
 export interface SoundRuntimeContext {
   board: BoardIr;
+  /** Loaded ROMs for sound devices with a device-local sample region. */
+  regions?: Record<string, Uint8Array>;
   /** The board's generated sound binding; never undefined when this runs. */
   sound: NonNullable<BoardIr['sound']>;
   /** Bus handler slots, keyed as MAME's "<tag>.<method>". */
@@ -31,11 +33,13 @@ export interface SoundRuntimeContext {
   /** Position within the current video frame, so writes keep their timing. */
   fraction(): number;
   /** Call a method on an instantiated generated device, if it has one. */
-  callDevice(tag: string, method: string): number | undefined;
+  callDevice(tag: string, method: string, ...args: number[]): number | undefined;
   /** Run a callback's generated handler, for device ports read back. */
   runCallbackHandler(callbackId: string): number | undefined;
   /** Deliver a device signal through the board's typed effects. */
   dispatch(ownerTag: string, signal: string, value: number): void;
+  /** Pull a value from a read callback through the same typed connection. */
+  readSignal(ownerTag: string, signal: string): number | undefined;
   /** Read the live generated program bus, used by integrated DMA sound units. */
   readProgram(cpuTag: string, address: number): number;
   /** Charge cycles stolen by an integrated peripheral to its owning CPU. */

@@ -35,7 +35,7 @@ export const junofrst: GameTestContract = {
       300: { video: 'ddad08c3', state: '07e7507f' },
       480: { video: 'e5b26a75', state: '84da7540' },
       720: { video: '90ec6eb7', state: '7cbab2fe' },
-      1200: { video: '4cdc12db', state: '343f08a8' },
+      1200: { video: '29686572', state: '343f08a8' },
     },
     audio: {
       writes: 46839,

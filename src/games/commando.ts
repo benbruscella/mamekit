@@ -31,9 +31,9 @@ export const commando: GameTestContract = {
     },
     checkpoints: {
       1: { video: '451f9bc6', state: 'ae2b95f0' },
-      60: { video: '26339a07', state: 'f6e27715' },
-      300: { video: '07af9e59', state: '5d315800' },
-      480: { video: '898a3190', state: '7ce80328' },
+      60: { video: '76e26b49', state: 'f6e27715' },
+      300: { video: '3d80d00d', state: '5d315800' },
+      480: { video: 'a6080a12', state: '7ce80328' },
       720: { video: '764d21a0', state: 'ec5fc407' },
       1200: { video: '57c349c8', state: '8f489696' },
       1800: { video: '764d21a0', state: 'e3dac5cd' },

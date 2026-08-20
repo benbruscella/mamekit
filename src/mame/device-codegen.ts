@@ -26,6 +26,18 @@ const SAFE_BINARY_OPERATORS = new Set([
   '<<', '>>', '+', '-', '*', '/', '%', '&&', '||',
 ]);
 
+// C++ permits a few local names that are grammar tokens in JavaScript. Keep
+// source names in the IR/binding maps, but spell those locals safely in AOT
+// output (MOS6532's `uint8_t in` is one real example).
+const JAVASCRIPT_RESERVED_WORDS = new Set([
+  'await', 'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger',
+  'default', 'delete', 'do', 'else', 'enum', 'export', 'extends', 'false',
+  'finally', 'for', 'function', 'if', 'implements', 'import', 'in',
+  'instanceof', 'interface', 'let', 'new', 'null', 'package', 'private',
+  'protected', 'public', 'return', 'static', 'super', 'switch', 'this',
+  'throw', 'true', 'try', 'typeof', 'var', 'void', 'while', 'with', 'yield',
+]);
+
 /**
  * Emit direct JavaScript for expensive device methods. Selection is based on
  * IR shape rather than device identity: methods containing nested loops are
@@ -218,6 +230,7 @@ function supportsMethod(
     ...definition.timers.map(timer => timer.member),
   ]);
   const constants = new Set(Object.keys(definition.constants));
+  const callees = calledIdentifiers(method.program.operations);
   let supported = true;
   visitOperations(method.program.operations, operation => {
     visitOperationExpressions(operation, expression => {
@@ -226,6 +239,7 @@ function supportsMethod(
         supported = locals.has(expression.name) ||
           members.has(expression.name) ||
           constants.has(expression.name) ||
+          callees.has(expression.name) ||
           ['true', 'false', 'nullptr', 'g_profiler',
             'attotime::zero', 'attotime::never'].includes(expression.name) ||
           expression.name.startsWith('PROFILER_');
@@ -274,10 +288,10 @@ function emitMethod(
     pointerSafeIndex: Boolean(definition.hotMethods?.length),
     typescript,
   };
-  collectLocals(method.program.operations, context.locals);
+  collectLocals(method.program.operations, context);
   const annotation = typescript ? ': any' : '';
-  const args = parameters.map(parameter => `${parameter.name}${annotation}`).join(', ');
-  const returned = returnedReference ? `\n    return ${returnedReference};` : '';
+  const args = parameters.map(parameter => `${localName(parameter.name)}${annotation}`).join(', ');
+  const returned = returnedReference ? `\n    return ${localName(returnedReference)};` : '';
   return `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''}) {
     const members = runtime.members;
 ${emitOperations(method.program.operations, context, 4)}${returned}
@@ -306,7 +320,7 @@ function emitOperation(
     const allocated = operation.value?.kind === 'call' &&
       operation.value.callee.kind === 'identifier' &&
       ['ALLOC', 'make_unique_clear'].includes(operation.value.callee.name);
-    return `${pad}let ${operation.name}${annotation} = ${
+    return `${pad}let ${localName(operation.name)}${annotation} = ${
       allocated ? value : wrapType(value, operation.valueType)
     };`;
   }
@@ -339,7 +353,9 @@ function emitOperation(
       .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
       .map((part, index) => index > 0 && part.startsWith('let ') ? part.slice(4) : part)
       .join(', ');
-    const iterate = emitOperation(operation.iterate, context, 0).trim().replace(/;$/, '');
+    const iterate = operation.iterate
+      .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+      .join(', ');
     return [
       `${pad}for (${initialize}; ${emitExpression(operation.condition, context)}; ${iterate}) {`,
       emitOperations(operation.body, context, indentation + 2),
@@ -381,8 +397,8 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
   if (expression.kind === 'identifier') {
     if (context.locals.has(expression.name)) {
       return context.wrappedReferences.has(expression.name)
-        ? `${expression.name}.get()`
-        : expression.name;
+        ? `${localName(expression.name)}.get()`
+        : localName(expression.name);
     }
     if (expression.name === 'true') return '1';
     if (expression.name === 'false' || expression.name === 'nullptr') return '0';
@@ -523,9 +539,24 @@ function emitCall(
     if (name === 'ALLOC' || name === 'make_unique_clear') {
       return `new Uint8Array(Math.max(0, Number(${args[0] ?? '0'})))`;
     }
+    if (name === 'sizeof') {
+      const valueType = expression.args[0]
+        ? expressionValueType(expression.args[0], context)
+        : undefined;
+      const bytes = /(?:u?int64_t|[us]64|double)/.test(valueType ?? '') ? 8
+        : /(?:u?int32_t|[us]32|float|offs_t|pen_t)/.test(valueType ?? '') ? 4
+        : /(?:u?int16_t|[us]16)/.test(valueType ?? '') ? 2
+        : 1;
+      return String(bytes);
+    }
     if (name === 'memset') {
       const target = args[0] ?? '0';
-      return `((${target}).fill(${args[1] ?? '0'}, 0, ${args[2] ?? '0'}), ${target})`;
+      const value = args[1] ?? '0';
+      const bytes = args[2] ?? '0';
+      return `(() => { const target = ${target}; const bytes = Number(${bytes}); ` +
+        `if (target?.generatedPointer) { const width = target.source.BYTES_PER_ELEMENT ?? 1; ` +
+        `target.source.fill(${value}, target.offset, target.offset + Math.ceil(bytes / width)); ` +
+        `return target; } target.fill(${value}, 0, bytes); return target; })()`;
     }
     if (name === 'pen_color') {
       return `(runtime.palette[${args[0] ?? '0'}] ?? 0xff000000)`;
@@ -618,9 +649,9 @@ function emitAssignment(
     context.wrappedReferences.has(expression.name)
   ) {
     const valueType = context.locals.get(expression.name);
-    const current = `${expression.name}.get()`;
+    const current = `${localName(expression.name)}.get()`;
     const next = pointerAssignment(current, operator, right, valueType);
-    return `${expression.name}.set(${wrapType(next, valueType)})`;
+    return `${localName(expression.name)}.set(${wrapType(next, valueType)})`;
   }
   if (expression.kind === 'index' && context.pointerSafeIndex) {
     const object = emitExpression(expression.object, context);
@@ -780,7 +811,7 @@ function assignsIdentifier(
 function targetInfo(expression: GeneratedExpression, context: EmitContext): Target {
   if (expression.kind === 'identifier') {
     if (context.locals.has(expression.name)) {
-      return { code: expression.name, valueType: context.locals.get(expression.name) };
+      return { code: localName(expression.name), valueType: context.locals.get(expression.name) };
     }
     const member = context.definition.members.find(candidate => candidate.name === expression.name);
     if (member) {
@@ -823,10 +854,14 @@ function parseParameters(parameters: string): { name: string; valueType: string 
 
 function collectLocals(
   operations: GeneratedHandlerOperation[],
-  locals: Map<string, string | undefined>,
+  context: EmitContext,
 ): void {
   visitOperations(operations, operation => {
-    if (operation.op === 'declare') locals.set(operation.name, operation.valueType);
+    if (operation.op !== 'declare') return;
+    const inferred = operation.valueType === 'auto' && operation.value
+      ? expressionValueType(operation.value, context)
+      : undefined;
+    context.locals.set(operation.name, inferred ?? operation.valueType);
   });
 }
 
@@ -855,7 +890,7 @@ function visitOperations(
     ) {
       if (operation.op === 'for') visitOperations(operation.initialize, visit);
       visitOperations(operation.body, visit);
-      if (operation.op === 'for') visitOperations([operation.iterate], visit);
+      if (operation.op === 'for') visitOperations(operation.iterate, visit);
     } else if (operation.op === 'switch') {
       for (const entry of operation.cases) visitOperations(entry.body, visit);
     }
@@ -950,4 +985,8 @@ function wrapType(value: string, valueType?: string): string {
 
 function safeName(name: string): string {
   return name.replace(/\W/g, '_');
+}
+
+function localName(name: string): string {
+  return JAVASCRIPT_RESERVED_WORDS.has(name) ? `$${name}` : name;
 }

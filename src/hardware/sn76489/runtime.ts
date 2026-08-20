@@ -14,4 +14,26 @@ export function installSn76489Runtime(context: SoundRuntimeContext): void {
       context.calls[`${alias}.write`] = write;
     }
   }
+
+  // Routed secondary streams (DACs and speech devices) share the board's
+  // sound sink even though the SN76489 remains its primary synthesizer.
+  for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
+    const aliases = [
+      auxiliary.deviceTag,
+      `m_${auxiliary.deviceTag}`,
+      ...(auxiliary.member ? [auxiliary.member] : []),
+    ];
+    for (const method of auxiliary.writeMethods) {
+      const name = `${auxiliary.deviceTag}.${method}`;
+      context.registry.write[name] = (_address, offset, data) => {
+        context.soundWrite(offset, data, context.fraction(), name);
+      };
+      for (const alias of aliases) {
+        context.calls[`${alias}.${method}`] = (...args: number[]) => {
+          context.soundWrite(0, args.at(-1) ?? 0, context.fraction(), name);
+          return 0;
+        };
+      }
+    }
+  }
 }

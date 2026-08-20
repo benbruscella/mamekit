@@ -62,7 +62,7 @@ npm ci
 npm run gen:all
 npm run test:unit
 npm run audit:generated
-npm run serve
+npm run dev
 ```
 
 `npm run gen:all` always deletes `dist` before generation. The current branch
@@ -71,7 +71,10 @@ pool sized to available CPU parallelism; override it with
 `npm run gen:all -- --jobs 12` when needed. The shared hardware closure and app
 are built once after the target workers finish.
 
-The generated application is served at `http://localhost:8280/app/`.
+`npm run dev` compiles the browser application, serves it at
+`http://localhost:8280/app/`, and recompiles when files under `src/` or `bin/`
+change. Use `npm run dev -- 9000` to select a different port. `npm run serve`
+remains available when file watching is not needed.
 
 ## REPOSITORY MAP
 

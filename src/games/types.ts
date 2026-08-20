@@ -42,7 +42,7 @@ export interface GameTestContract {
   machine: { className: string; name: string };
   romEnvironment: string;
   screen: { width: number; height: number };
-  soundKind: 'wsg' | 'ay8910' | 'discrete' | 'sn76489' | 'ym2203';
+  soundKind: 'wsg' | 'ay8910' | 'dac' | 'discrete' | 'sn76489' | 'ym2203' | 'ym2151' | 'samples' | 'berzerk' | 'exidy' | 'none';
   frames: number;
   /** Minimum full-contract throughput, including video hashing and audio probing. */
   minimumFps: number;
@@ -57,6 +57,8 @@ export interface GameTestContract {
     toFrame?: number;
     minimumNonzeroWrites: number;
     maximumNonzeroWrites?: number;
+    /** Minimum register-value diversity, including zero, in the same window. */
+    minimumDistinctValues?: number;
   }[];
   /** Minimum rendered PCM energy; stricter than the harness silence floor. */
   minimumAudioRms?: number;

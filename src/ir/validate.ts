@@ -13,6 +13,11 @@ export function isUnconnectedCallback(callback: GeneratedCallback): boolean {
   return callback.operation === 'set_nop';
 }
 
+/** Configuration selectors consumed by their owning subsystem, not signals. */
+export function isDeclarativeCallback(callback: GeneratedCallback): boolean {
+  return callback.signal === 'set_screen_update';
+}
+
 /**
  * The endpoint key a callback resolves to, or undefined when it names no
  * target at all. Mirrors the runtime's callbackTarget() so validation and
@@ -71,12 +76,14 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     (board.handlers ?? []).map(handler => `${handler.ownerClass}.${handler.method}`),
   );
   const handlerMethods = new Set((board.handlers ?? []).map(handler => handler.method));
-  for (const [index, handler] of (board.execution.resetHandlers ?? []).entries()) {
-    if (handlerKeys.has(handler)) continue;
-    fail(
-      `execution.resetHandlers[${index}]`,
-      `machine reset handler "${handler}" was not generated`,
-    );
+  for (const field of ['startHandlers', 'resetHandlers'] as const) {
+    for (const [index, handler] of (board.execution[field] ?? []).entries()) {
+      if (handlerKeys.has(handler)) continue;
+      fail(
+        `execution.${field}[${index}]`,
+        `machine lifecycle handler "${handler}" was not generated`,
+      );
+    }
   }
   // A MAME timer_device is declared by the callback that schedules it rather
   // than by a machine-config device line, so it owns itself.
@@ -189,6 +196,7 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     }
   }
   for (const [index, callback] of board.callbacks.entries()) {
+    if (isDeclarativeCallback(callback)) continue;
     if ((connectionCounts.get(callback.id) ?? 0) !== 0) continue;
     fail(
       `callbacks[${index}].id`,
@@ -239,6 +247,7 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     );
   }
   for (const [index, custom] of (board.execution.customs ?? []).entries()) {
+    if (custom.source === 'screen-vblank' || custom.source === 'rtc-tp' || custom.source === 'rtc-data') continue;
     const resolved = custom.handler
       ? handlerKeys.has(custom.handler)
       : handlerMethods.has(custom.member);

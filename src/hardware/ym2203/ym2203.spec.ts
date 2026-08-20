@@ -63,6 +63,7 @@ SoundRuntimeContext & { writes: [number, number, string | undefined][] } {
     callDevice: () => undefined,
     runCallbackHandler: () => undefined,
     dispatch: () => {},
+    readSignal: () => undefined,
     readProgram: () => 0xff,
     stallCpu: () => {},
     setCpuInputLine: () => {},
@@ -84,6 +85,25 @@ check('port writes land in the chip\'s port pair', () => {
   ]);
   assert.equal(ctx.registry.read['ym1.read']!(0, 0), 0);
   assert.equal(ctx.registry.read['ym1.read']!(0, 1), 0x0f);
+});
+
+check('YM2610 preserves both address/data banks', () => {
+  const ctx = context();
+  ctx.sound = { ...sound, deviceTags: ['ym1'], deviceType: 'YM2610' };
+  ctx.board.sound = ctx.sound;
+  ctx.board.devices = [
+    { id: 'a', tag: 'ym1', type: 'YM2610', member: 'm_ym1', clock: 1 },
+  ];
+  installYm2203Runtime(ctx);
+  for (let offset = 0; offset < 4; offset++) {
+    ctx.registry.write['ym1.write']!(0, offset, 0x20 + offset);
+  }
+  assert.deepEqual(ctx.writes, [
+    [0, 0x20, 'write'],
+    [1, 0x21, 'write'],
+    [2, 0x22, 'write'],
+    [3, 0x23, 'write'],
+  ]);
 });
 
 check('a reset reaches the chip through its generated device port', () => {
@@ -112,6 +132,45 @@ check('auxiliary YM3526 writes follow the primary YM2203 port pair', () => {
   ]);
   assert.equal(ctx.registry.read['ym2.read']!(0, 0), 0x06);
   assert.equal(ctx.registry.read['ym2.read']!(0, 1), 0xff);
+});
+
+check('standalone OPL and MSM5205 boards expose both auxiliary write surfaces', () => {
+  const ctx = context();
+  const standalone: Sound = {
+    ...sound,
+    deviceTag: 'ymsnd',
+    deviceTags: [],
+    deviceType: 'YM3526',
+    writeMethods: [],
+    auxiliaryDevices: [{
+      type: 'YM3526',
+      deviceTag: 'ymsnd',
+      clock: 4_000_000,
+      gain: 1,
+      target: 'mono',
+      writeMethods: ['write'],
+    }, {
+      type: 'MSM5205',
+      deviceTag: 'msm',
+      clock: 400_000,
+      gain: 0.5,
+      target: 'mono',
+      writeMethods: ['data_w', 'reset_w'],
+    }],
+  };
+  ctx.sound = standalone;
+  ctx.board.sound = standalone;
+  ctx.board.devices = [
+    { id: 'opl', tag: 'ymsnd', type: 'YM3526', clock: 4_000_000 },
+    { id: 'msm', tag: 'msm', type: 'MSM5205', member: 'm_msm', clock: 400_000 },
+  ];
+  installYm2203Runtime(ctx);
+  ctx.calls['ymsnd.write']!(0, 0x20);
+  ctx.calls['m_msm.data_w']!(0x0f);
+  assert.deepEqual(ctx.writes, [
+    [0, 0x20, 'ymsnd.write'],
+    [2, 0x0f, 'msm.data_w'],
+  ]);
 });
 
 check('YM2203 timers assert and clear the generated IRQ callback', () => {

@@ -46,13 +46,30 @@ export interface GeneratedNamcoWsgPlan {
   schemaVersion: 1;
   type: 'NAMCO_WSG';
   className: string;
+  deviceType: string;
   voices: number;
   packed: boolean;
   registerCount: number;
   internalRate: number;
   mixResolution: number;
   writeMethod: string;
+  readMethod?: string;
   writeProgram: GeneratedHandlerProgram;
+  engine?: {
+    region: string;
+    clock: number;
+    outputRate: number;
+    routeGain: number;
+    volumeTable: number[];
+    filters: {
+      type: 'bandpass' | 'highpass';
+      frequency: number;
+      damping: number;
+      gain: number;
+      outputResistance: number;
+    }[];
+    outputResistance: number;
+  };
   sourceFiles: string[];
   source: { file: string; line: number };
 }
@@ -142,6 +159,118 @@ export function compileNamco54Discrete(
       gain: channel.gain / gainTotal,
     })),
     outputGain: 0.65,
+    source: {
+      file: sourceFile,
+      line: source.slice(0, marker.index).split('\n').length,
+      netlist,
+    },
+  };
+}
+
+/** Lower Pole Position's three 54XX op-amp paths and its fourth 52XX path. */
+export function compilePoleposDiscrete(
+  mameSrc: string,
+  driverFile: string,
+  netlist: string,
+): GeneratedDacFilterPlan {
+  const stem = basename(driverFile, extname(driverFile));
+  const candidate = join(dirname(driverFile), `${stem}_a.cpp`);
+  const sourceFile = existsSync(join(mameSrc, candidate)) ? candidate : driverFile;
+  const source = readFileSync(join(mameSrc, sourceFile), 'utf8');
+  const marker = new RegExp(`DISCRETE_SOUND_START\\s*\\(\\s*${netlist}\\s*\\)`).exec(source);
+  if (!marker) throw new Error(`${netlist}: MAME discrete netlist not found`);
+  const end = source.indexOf('DISCRETE_SOUND_END', marker.index);
+  if (end < 0) throw new Error(`${netlist}: unterminated MAME discrete netlist`);
+  const body = source.slice(marker.index, end);
+  const dacs = macroArguments(body, 'DISCRETE_DAC_R1');
+  const filters = macroArguments(body, 'DISCRETE_OP_AMP_FILTER');
+  if (dacs.length !== 4 || filters.length !== 3) {
+    throw new Error(`${netlist}: unsupported Pole Position discrete topology`);
+  }
+  const ladderName = symbolName(dacs[0]?.at(-1));
+  const ladderResistors = ladderName ? resistorTable(source, ladderName) : [];
+  if (ladderResistors.length !== 4) {
+    throw new Error(`${netlist}: missing four-bit 54XX DAC resistance ladder`);
+  }
+  const ladderConductance = ladderResistors.reduce((sum, resistance) => sum + 1 / resistance, 0);
+  const dacResistance = 1 / ladderConductance;
+  const levels = Array.from({ length: 16 }, (_, data) =>
+    ladderResistors.reduce((sum, resistance, bit) =>
+      sum + ((data >> bit) & 1) / resistance, 0) / ladderConductance);
+  const vrefExpression = /^#define\s+POLEPOS_VREF\s+(.+)$/m.exec(source)?.[1]
+    ?.replace(/\/\*.*$/, '').trim();
+  if (!vrefExpression) throw new Error(`${netlist}: voltage reference is missing`);
+  const vref = requiredAnalog(vrefExpression);
+  const discreteHeader = readFileSync(join(mameSrc, 'src/devices/sound/discrete.h'), 'utf8');
+  const railOffset = requiredAnalog(
+    /^#define\s+OP_AMP_VP_RAIL_OFFSET\s+([^\s/]+)/m.exec(discreteHeader)?.[1],
+  );
+  const outputMaximum = 5 - railOffset - vref;
+  const voltageLevels = levels.map(level => level * 4 - vref);
+  const channels: GeneratedDacFilterPlan['channels'] = dacs.slice(0, 3).map(dac => {
+    const outputNode = symbolName(dac[0]);
+    const input = Number(/NAMCO_54XX_(\d)_DATA/.exec(dac[1]!)?.[1]);
+    const filter = filters.find(candidate => symbolName(candidate[2]) === outputNode);
+    const filterName = symbolName(filter?.at(-1));
+    const components = filterName ? structValues(source, filterName).body : '';
+    const resistors = componentValues(components, 'RES');
+    const capacitors = componentValues(components, 'CAP');
+    if (!Number.isInteger(input) || resistors.length < 3 || capacitors.length < 2) {
+      throw new Error(`${netlist}: incomplete 54XX channel component data`);
+    }
+    const [seriesResistance, biasResistance, feedbackResistance] = resistors;
+    const inputResistance = seriesResistance! + dacResistance;
+    const totalResistance = 1 / (1 / inputResistance + 1 / biasResistance!);
+    const frequency = 1 / (2 * Math.PI * Math.sqrt(
+      totalResistance * feedbackResistance! * capacitors[0]! * capacitors[1]!,
+    ));
+    const damping = (capacitors[0]! + capacitors[1]!) / Math.sqrt(
+      feedbackResistance! / totalResistance * capacitors[0]! * capacitors[1]!,
+    );
+    const gain = -feedbackResistance! / totalResistance *
+      capacitors[1]! / (capacitors[0]! + capacitors[1]!);
+    return {
+      input,
+      frequency,
+      q: 1 / damping,
+      gain,
+      clamp: { minimum: -vref, maximum: outputMaximum },
+    };
+  });
+  const ladder52Name = symbolName(dacs[3]?.at(-1));
+  const ladder52Resistors = ladder52Name ? resistorTable(source, ladder52Name) : [];
+  const input52 = Number(/NAMCO_52XX_P_DATA\(NODE_(\d+)\)/.exec(dacs[3]?.[1] ?? '')?.[1]) - 1;
+  if (ladder52Resistors.length !== 4 || !Number.isInteger(input52)) {
+    throw new Error(`${netlist}: missing four-bit 52XX DAC resistance ladder`);
+  }
+  const conductance52 = ladder52Resistors.reduce((sum, resistance) => sum + 1 / resistance, 0);
+  const levels52 = Array.from({ length: 16 }, (_, data) =>
+    ladder52Resistors.reduce((sum, resistance, bit) =>
+      sum + ((data >> bit) & 1) / resistance, 0) / conductance52 * 4 - vref);
+  channels.push({
+    input: input52,
+    // The primary fields retain the protocol's single-stage compatibility;
+    // Pole Position's CHANL4 source is the explicit cascade below.
+    frequency: 100,
+    q: 0.3,
+    gain: 1,
+    levels: levels52,
+    stages: [
+      { type: 'highpass', frequency: 100, q: 0.3, gain: 1 },
+      { type: 'lowpass', frequency: 1200, q: 0.8, gain: 0.5 },
+    ],
+    clamp: { minimum: 0, maximum: outputMaximum },
+  });
+  const outputScale = requiredAnalog(macroArguments(body, 'DISCRETE_OUTPUT')[0]?.[1]) / 32768;
+  const driverSource = readFileSync(join(mameSrc, driverFile), 'utf8');
+  const routeGain = requiredAnalog(
+    /\bdiscrete\.add_route\([^,]+,[^,]+,\s*([^,)]+)/.exec(driverSource)?.[1],
+  );
+  return {
+    type: 'DAC_FILTER',
+    levels: voltageLevels,
+    channels,
+    outputGain: outputScale * routeGain,
     source: {
       file: sourceFile,
       line: source.slice(0, marker.index).split('\n').length,
@@ -456,12 +585,103 @@ export function compileDiscreteEffects(
     }
   };
 
-  const inputCalls = callArgs(
-    body.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''),
-    'DISCRETE_INPUT_NOT',
-  );
+  // Atari's DVG-era boards use sustained logic-gated oscillators and noise
+  // alongside transient fire circuits. Lower that source topology into the
+  // same executable effects protocol used by other analog boards.
+  const cleanedBody = body.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  const logicCalls = callArgs(cleanedBody, 'DISCRETE_INPUT_LOGIC');
+  if (
+    logicCalls.length >= 6 &&
+    /\bDISCRETE_555_CC\s*\(/.test(body) &&
+    /\bDISCRETE_LFSR_NOISE\s*\(/.test(body) &&
+    /\bDISCRETE_(?:ADDER\d+|MIXER\d+)\s*\(/.test(body)
+  ) {
+    const logicSymbols = logicCalls
+      .map(args => symbolName(args[0]))
+      .filter((value): value is string => Boolean(value));
+    const inputNodes: Record<string, number> = {};
+    for (const [name] of macros) {
+      const resolved = node(name);
+      if (resolved !== undefined && (
+        logicSymbols.some(symbol => node(symbol) === resolved) ||
+        callArgs(cleanedBody, 'DISCRETE_INPUT_DATA').some(args => node(args[0]) === resolved) ||
+        callArgs(cleanedBody, 'DISCRETE_INPUTX_DATA').some(args => node(args[0]) === resolved) ||
+        callArgs(cleanedBody, 'DISCRETE_INPUT_PULSE').some(args => node(args[0]) === resolved)
+      )) inputNodes[name] = resolved;
+    }
+    const lfsr = callArgs(body, 'DISCRETE_LFSR_NOISE')[0];
+    const noiseFrequency = analog(lfsr?.[3]);
+    const voices = logicSymbols.flatMap(symbol => {
+      const symbolNode = node(symbol);
+      if (symbolNode === undefined) return [];
+      const squareFixed = callArgs(body, 'DISCRETE_SQUAREWFIX')
+        .find(args => node(args[1]) === symbolNode);
+      const square = callArgs(body, 'DISCRETE_SQUAREWAVE')
+        .find(args => node(args[1]) === symbolNode);
+      const triangle = callArgs(body, 'DISCRETE_TRIANGLEWAVE')
+        .find(args => node(args[1]) === symbolNode);
+      const timer = callArgs(body, 'DISCRETE_555_CC')
+        .find(args => node(args[1]) === symbolNode);
+      const noiseGate = callArgs(body, 'DISCRETE_MULTIPLY')
+        .find(args => node(args[1]) === symbolNode || node(args[2]) === symbolNode);
+      if (!squareFixed && !square && !triangle && !timer && !noiseGate) return [];
+      const rampNode = node(square?.[2]);
+      const ramp = rampNode === undefined ? undefined : callArgs(body, 'DISCRETE_RAMP')
+        .find(args => node(args[0]) === rampNode);
+      const frequency = squareFixed
+        ? analog(squareFixed[2])
+        : ramp
+          ? analog(ramp[4])
+          : triangle && Number.isFinite(analog(triangle[2]))
+            ? analog(triangle[2])
+            : timer
+              ? 45
+              : Number.isFinite(noiseFrequency)
+                ? noiseFrequency
+                : 12_000;
+      const rawGain = squareFixed
+        ? analog(squareFixed[3])
+        : triangle
+          ? analog(triangle[3])
+          : noiseGate
+            ? 600
+            : 53;
+      const transient = Boolean(square || timer);
+      return [{
+        node: symbolNode,
+        mode: noiseGate ? 'noise' as const : 'tone' as const,
+        frequency: Number.isFinite(frequency) && frequency > 0 ? frequency : 750,
+        release: transient ? 0.28 : 0.12,
+        gain: Number.isFinite(rawGain) ? Math.min(0.5, Math.abs(rawGain) / 1_000) : 0.05,
+        activeLow: false,
+        ...(!transient ? { sustain: true } : {}),
+      }];
+    });
+    const marker = markerPattern.exec(source)!;
+    return {
+      schemaVersion: 1,
+      type: 'DISCRETE_EFFECTS',
+      inputNodes,
+      dac: { node: -1, gain: 0, filterFrequency: 2_000, q: 0.707 },
+      voices,
+      ...(netlist === 'asteroid_discrete'
+        ? { outputNetwork: 'asteroid' as const }
+        : {}),
+      outputGain: netlist === 'asteroid_discrete' ? 1 : 1.5,
+      source: {
+        file,
+        line: source.slice(0, marker.index).split('\n').length,
+        netlist,
+      },
+    };
+  }
+
+  const inputCalls = [
+    ...callArgs(cleanedBody, 'DISCRETE_INPUT_NOT'),
+    ...callArgs(cleanedBody, 'DISCRETE_INPUT_LOGIC'),
+  ];
   const dacArgs = callArgs(
-    body.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''),
+    cleanedBody,
     'DISCRETE_INPUT_BUFFER',
   )[0];
   const dacNode = node(dacArgs?.[0]);
@@ -582,31 +802,88 @@ export function compileDiscreteEffects(
   const outputAttenuations = callArgs(body, 'DISCRETE_MULTIPLY')
     .filter(args => /^DS_OUT_SOUND\d+$/.test(symbolName(args[0]) ?? ''))
     .map(args => analog(args[2]));
-  const dacMixGain = 1 / (voiceSymbols.length + 1);
+  const exactDkongJrNetwork = netlist === 'dkongjr_discrete';
+  // SOUND7 is a divider selector and SOUND9 is an additional analog effect;
+  // adding the latter must not silently attenuate the already calibrated DAC.
+  const dacMixGain = 1 / (voiceSymbols.length + (exactDkongJrNetwork ? 0 : 1));
   const exactDkongNetwork = /\bdkong_custom_mixer\b/.test(body) &&
     /\bDISCRETE_RCINTEGRATE\s*\(NODE_294\b/.test(body);
   const voices = voiceSymbols.map((symbol, index) => {
-    const frequency = toneFor(symbol);
-    const vco = frequency ? vcoFor(symbol) : undefined;
+    // Donkey Kong Jr.'s SOUND1 path is a 74LS123 one-shot driving the
+    // dkongjr_s1_mixer_desc and a 74LS624 VCO. It has no 555 astable for the
+    // generic topology matcher to associate with the input, but it is a
+    // measured 260-300 Hz pitched jump effect—not broadband noise. Preserve
+    // that source topology from its unique mixer/VCO chain.
+    const exactDkongJrJump =
+      /\bdkongjr_s1_mixer_desc\b/.test(body) &&
+      /DISCRETE_74LS624\s*\(NODE_14\b/.test(body) &&
+      node(symbol) === node('DS_SOUND1_INV');
+    const exactDkongJrWalk = exactDkongJrNetwork &&
+      node(symbol) === node('DS_SOUND0_INV');
+    // SOUND2 is a 710 Hz LS164 feedback register feeding an LS123 one-shot
+    // and C-R-C-R filter, not generic white noise.
+    const exactDkongJrClimb =
+      /\bdkongjr_lfsr\b/.test(body) &&
+      /DISCRETE_LFSR_NOISE\s*\(NODE_21[^\n]*\b710\b/.test(body) &&
+      /DISCRETE_LS123_INV\s*\(NODE_25\b/.test(body) &&
+      node(symbol) === node('DS_SOUND2_INV');
+    const exactDkongJrFall = exactDkongJrNetwork &&
+      node(symbol) === node('DS_SOUND9_INV');
+    const exactDkongJrControl = exactDkongJrNetwork &&
+      node(symbol) === node('DS_SOUND7_INV');
+    const toneFrequency = toneFor(symbol) ??
+      (exactDkongJrWalk
+        ? 2_105
+        : exactDkongJrJump
+          ? 590
+          : exactDkongJrFall
+            ? 2_110
+            : undefined);
+    const vco = toneFrequency ? vcoFor(symbol) : undefined;
     return {
       node: node(symbol)!,
-      mode: frequency ? 'tone' as const : 'noise' as const,
-      frequency: frequency ?? noiseFrequency,
+      mode: toneFrequency ? 'tone' as const : 'noise' as const,
+      frequency: exactDkongJrClimb ? 710 : toneFrequency ?? noiseFrequency,
       ...(vco ? { vco } : {}),
-      release: releaseFor(symbol),
-      gain: Number.isFinite(outputAttenuations[index])
-        ? outputAttenuations[index]! / voiceSymbols.length
-        : 1 / (voiceSymbols.length + 1),
+      // R27/C28 and R28/C28 produce the measured quarter-second JR jump
+      // decay. The input symbol reaches them through NODE_10/NODE_15, so the
+      // generic direct-node RC lookup cannot discover this value.
+      release: exactDkongJrWalk
+        ? 0.15
+        : exactDkongJrJump
+        ? 0.28
+        : exactDkongJrClimb
+          ? 0.25 * 47_000 * 22e-6 * (1 + 700 / 47_000)
+          : exactDkongJrFall
+            ? 0.001
+          : releaseFor(symbol),
+      gain: exactDkongJrWalk
+        ? 0.045
+        : exactDkongJrClimb
+          ? 0.183
+        : exactDkongJrFall
+          ? 0.07
+          : exactDkongJrControl
+            ? 0
+            : Number.isFinite(outputAttenuations[index])
+              ? outputAttenuations[index]! / voiceSymbols.length
+              : 1 / (voiceSymbols.length + 1),
       // DISCRETE_INPUT_NOT makes the netlist node active-low, but write_line
       // receives the latch value before that inverter. A high latch value is
       // therefore the trigger edge seen by this generated core.
-      activeLow: false,
+      activeLow: exactDkongJrWalk || exactDkongJrJump || exactDkongJrClimb,
+      ...(exactDkongJrFall ? { sustain: true } : {}),
       ...(vco ? { triggerEdge: 'both' as const } : {}),
       ...(vco && exactDkongNetwork ? {
         network: vco.modulationType === 1
           ? 'dkong-jump' as const
           : 'dkong-walk' as const,
       } : {}),
+      ...(exactDkongJrJump ? { network: 'dkongjr-jump' as const } : {}),
+      ...(exactDkongJrClimb ? { network: 'dkongjr-climb' as const } : {}),
+      ...(exactDkongJrWalk ? { network: 'dkongjr-walk' as const } : {}),
+      ...(exactDkongJrFall ? { network: 'dkongjr-fall' as const } : {}),
+      ...(exactDkongJrControl ? { network: 'dkongjr-control' as const } : {}),
       ...(!vco && exactDkongNetwork ? {
         // SOUND2 is Kong's stomp/landing circuit: a 24-bit LFSR, LS161
         // divider and two-stage RC/transistor envelope. It is not generic
@@ -664,6 +941,7 @@ export function compileDiscreteEffects(
     },
     voices,
     ...(exactDkongNetwork ? { outputNetwork: 'dkong2b' as const } : {}),
+    ...(exactDkongJrNetwork ? { outputNetwork: 'dkongjr' as const } : {}),
     ...(dischargeNode !== undefined
       ? {
           dischargeNode,
@@ -701,6 +979,8 @@ export interface GeneratedAy8910Plan {
   noiseTaps: [number, number];
   readMasks: number[];
   volumeTable: number[];
+  /** Compatibility curve for stream packages not yet lowered as analog nets. */
+  legacyVolumeTable: number[];
   /** AY outputs tied together through their real shared resistor load. */
   singleOutput: {
     rDown: number;
@@ -1485,6 +1765,34 @@ function resistorTable(source: string, name: string): number[] {
     .filter(Number.isFinite);
 }
 
+/**
+ * Compile the passive DISCRETE_DAC_R1 ladder used as a DAC's moving voltage
+ * reference. The ladder output is a Millman sum, not `data / 255`; imperfect
+ * real resistor values are intentionally audible as the sample volume moves.
+ */
+export function compileDiscreteDacReferenceLevels(
+  mameSrc: string,
+  driverFile: string,
+  netlist: string,
+): number[] | undefined {
+  const source = readFileSync(join(mameSrc, driverFile), 'utf8');
+  const body = discreteSoundBody(source, netlist);
+  const dac = callArgs(body, 'DISCRETE_DAC_R1')[0];
+  const descriptor = symbolName(dac?.at(-1));
+  if (!dac || !descriptor) return undefined;
+  const values = structValues(source, descriptor);
+  const bitCount = Math.round(values.scalars[0] ?? 0);
+  const resistors = values.firstArray.slice(0, bitCount).map(analogValue);
+  if (
+    bitCount < 2 || bitCount > 12 || resistors.length !== bitCount ||
+    resistors.some(value => !Number.isFinite(value) || value <= 0)
+  ) return undefined;
+  const conductance = resistors.reduce((sum, resistance) => sum + 1 / resistance, 0);
+  return Array.from({ length: 1 << bitCount }, (_, data) =>
+    resistors.reduce((sum, resistance, bit) =>
+      sum + ((data >> bit) & 1) / resistance, 0) / conductance);
+}
+
 function discreteVoiceModel(body: string): GeneratedDiscreteAudioVoice['model'] {
   if (body.includes('DISCRETE_COMP_ADDER') && body.includes('DISCRETE_555_ASTABLE')) {
     return 'parallel-555';
@@ -1561,8 +1869,14 @@ export function compileAy8910(
   });
   const minimum = Math.min(...raw);
   const maximum = Math.max(...raw);
-  const volumeTable = raw.map(value =>
+  const legacyVolumeTable = raw.map(value =>
     (((value - minimum) / (maximum - minimum)) - 0.25) * 0.5);
+  // MAME only normalizes this table for AY8910_LEGACY_OUTPUT. Normal AY
+  // devices expose the resistor network's unipolar voltage, and the speaker's
+  // AC coupling removes its DC component later. Normalizing/bipolarizing here
+  // makes separately routed channels over four times louder than tied-output
+  // chips and changes their balance against a routed DAC.
+  const volumeTable = raw;
   return {
     schemaVersion: 1,
     type: 'AY8910',
@@ -1575,6 +1889,7 @@ export function compileAy8910(
     noiseTaps: [Number(noise[1]), Number(noise[2])],
     readMasks: splitMameArgs(masks[1]!).map(value => Number(value)),
     volumeTable,
+    legacyVolumeTable,
     singleOutput: {
       rDown,
       rUp,
@@ -1611,7 +1926,11 @@ export function compileNamcoWsg(
   ).exec(header);
   const write = ast.units
     .flatMap(unit => unit.functions)
-    .find(fn => fn.className === definition.className && fn.name === 'pacman_sound_w');
+    .find(fn => fn.className === definition.className &&
+      ['pacman_sound_w', 'polepos_sound_w'].includes(fn.name));
+  const read = ast.units
+    .flatMap(unit => unit.functions)
+    .find(fn => fn.className === definition.className && fn.name === 'polepos_sound_r');
   const start = ast.units
     .flatMap(unit => unit.functions)
     .find(fn => fn.className === definition.className && fn.name === 'device_start');
@@ -1629,19 +1948,113 @@ export function compileNamcoWsg(
   if (writeProgram.diagnostics.length) {
     throw new Error(`NAMCO_WSG write lowering failed: ${writeProgram.diagnostics.join('; ')}`);
   }
+  const engine = definition.type === 'POLEPOS_WSG'
+    ? compilePoleposEngine(mameSrc)
+    : undefined;
   return {
     schemaVersion: 1,
     type: 'NAMCO_WSG',
     className: definition.className,
+    deviceType: definition.type,
     voices,
     packed: inheritance[2] === 'true',
     registerCount,
     internalRate,
     mixResolution: 128 * voices,
     writeMethod: write.name,
+    ...(read ? { readMethod: read.name } : {}),
     writeProgram,
-    sourceFiles: [cppFile, headerFile],
+    ...(engine ? { engine } : {}),
+    sourceFiles: [
+      cppFile,
+      headerFile,
+      ...(engine ? ['src/mame/namco/polepos_a.cpp', 'src/mame/namco/polepos.cpp'] : []),
+    ],
     source: { file: write.span.file, line: write.span.line },
+  };
+}
+
+function compilePoleposEngine(
+  mameSrc: string,
+): NonNullable<GeneratedNamcoWsgPlan['engine']> {
+  const file = 'src/mame/namco/polepos_a.cpp';
+  const driverFile = 'src/mame/namco/polepos.cpp';
+  const source = readFileSync(join(mameSrc, file), 'utf8');
+  const driver = readFileSync(join(mameSrc, driverFile), 'utf8');
+  const value = (raw: string): number => {
+    const normalized = raw
+      .replace(/RES_K\s*\(\s*([0-9.]+)\s*\)/g, (_, number) => String(Number(number) * 1_000))
+      .replace(/CAP_U\s*\(\s*([0-9.]+)\s*\)/g, (_, number) => String(Number(number) * 1e-6))
+      .replace(/Q_TO_DAMP\s*\(\s*([0-9.]+)\s*\)/g, (_, number) => String(1 / Number(number)));
+    const direct = Number(normalized);
+    const result = Number.isFinite(direct) ? direct : evalExpr(normalized);
+    if (result === null) throw new Error(`POLEPOS_SOUND expression did not evaluate: ${raw}`);
+    return result;
+  };
+  const constants: Record<string, number> = {};
+  const definitions = [...source.matchAll(/^#define\s+(POLEPOS_R\w+)\s+(.+)$/gm)];
+  for (let pass = 0; pass < definitions.length + 1; pass++) {
+    for (const definition of definitions) {
+      if (constants[definition[1]!] !== undefined) continue;
+      let expression = definition[2]!.replace(/\/\*.*$/, '').trim();
+      for (const [name, number] of Object.entries(constants)) {
+        expression = expression.replace(new RegExp(`\\b${name}\\b`, 'g'), String(number));
+      }
+      try { constants[definition[1]!] = value(expression); } catch { /* next pass */ }
+    }
+  }
+  const volumeBody = /static\s+const\s+double\s+volume_table\s*\[8\]\s*=\s*\{([\s\S]*?)\}/
+    .exec(source)?.[1];
+  if (!volumeBody) throw new Error('POLEPOS_SOUND volume table is missing');
+  const volumeTable = splitMameArgs(volumeBody).map(raw => {
+    let expression = raw;
+    for (const [name, number] of Object.entries(constants)) {
+      expression = expression.replace(new RegExp(`\\b${name}\\b`, 'g'), String(number));
+    }
+    return value(expression);
+  });
+  const outputResistances = /r_filt_out\s*\[3\]\s*=\s*\{([^}]+)\}/.exec(source)?.[1];
+  if (!outputResistances) throw new Error('POLEPOS_SOUND filter output network is missing');
+  const outputs = splitMameArgs(outputResistances).map(value);
+  const outputResistance = 1 / outputs.reduce((sum, resistance) => sum + 1 / resistance, 0);
+  const filters: NonNullable<GeneratedNamcoWsgPlan['engine']>['filters'] = [];
+  for (const match of source.matchAll(
+    /opamp_m_bandpass_setup\s*\(\s*this\s*,\s*([^,\n]+),\s*([^,\n]+),\s*([^,\n]+),\s*([^,\n]+),\s*([^\n]+)\);/g,
+  )) {
+    const [r1, r2, r3, c1, c2] = match.slice(1).map(value);
+    const inputResistance = 1 / (1 / r1! + 1 / r2!);
+    filters.push({
+      type: 'bandpass',
+      frequency: 1 / (2 * Math.PI * Math.sqrt(inputResistance * r3! * c1! * c2!)),
+      damping: (c1! + c2!) / Math.sqrt(r3! / inputResistance * c1! * c2!),
+      gain: r2! / (r1! + r2!) * -r3! / inputResistance * c2! / (c1! + c2!),
+      outputResistance: outputs[filters.length]!,
+    });
+  }
+  const highpass = /m_filter_engine\[2\]\.setup\s*\(\s*this\s*,\s*FILTER_HIGHPASS\s*,\s*([^,]+),\s*([^,]+),\s*([^)]+)\)/
+    .exec(source);
+  if (!highpass) throw new Error('POLEPOS_SOUND high-pass filter is missing');
+  filters.push({
+    type: 'highpass',
+    frequency: value(highpass[1]!),
+    damping: value(highpass[2]!),
+    gain: value(highpass[3]!),
+    outputResistance: outputs[2]!,
+  });
+  const outputRate = Number(/#define\s+OUTPUT_RATE\s+(\d+)/.exec(source)?.[1]);
+  const masterClock = evalExpr(/MASTER_CLOCK\s*=\s*([^;]+)/.exec(driver)?.[1] ?? '');
+  const route = /polepos\.add_route\([^,]+,[^,]+,\s*([^,)]+)/.exec(driver)?.[1];
+  if (!outputRate || !masterClock || !route || filters.length !== 3 || volumeTable.length !== 8) {
+    throw new Error('POLEPOS_SOUND source topology is incomplete');
+  }
+  return {
+    region: 'engine',
+    clock: masterClock / 8,
+    outputRate,
+    routeGain: value(route),
+    volumeTable,
+    filters,
+    outputResistance,
   };
 }
 
@@ -1659,6 +2072,20 @@ const plan = ${JSON.stringify(plan, null, 2)} as unknown as {
   internalRate: number;
   mixResolution: number;
   writeProgram: GeneratedHandlerProgram;
+  engine?: {
+    clock: number;
+    outputRate: number;
+    routeGain: number;
+    volumeTable: number[];
+    filters: {
+      type: 'bandpass' | 'highpass';
+      frequency: number;
+      damping: number;
+      gain: number;
+      outputResistance: number;
+    }[];
+    outputResistance: number;
+  };
 };
 
 interface Voice {
@@ -2053,18 +2480,27 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
         this.core?.write(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 8) this.frames.shift();
+        // Elastic queue: frame delivery jitters (a rAF tick can carry 0 or 2
+        // batches, and non-60Hz boards beat against the display rate), so a
+        // few frames of slack must absorb it — dropping to one frame made
+        // every burst an audible discontinuity. The cap still bounds A/V
+        // latency after a main-thread catch-up burst.
+        while (this.frames.length > 3) this.frames.shift();
       }
     };
   }
+
+  private lastSample = 0;
 
   private nextSample(): number {
     while (!this.current || this.position >= this.current.length) {
       this.current = this.frames.shift();
       this.position = 0;
-      if (!this.current) return 0;
+      // Starved: hold the last sample. A 0-fill is a hard step on any
+      // mix with a DC offset (e.g. tied-pin AY outputs) and pops loudly.
+      if (!this.current) return this.lastSample;
     }
-    return this.current[this.position++]!;
+    return (this.lastSample = this.current[this.position++]!);
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
@@ -2150,6 +2586,8 @@ export interface GeneratedAuxiliaryAudioDevice {
   targetInput?: number;
   writeMethods: string[];
   referenceControl?: { deviceTag: string; member?: string };
+  /** Normalized levels of a DISCRETE_DAC_R1 reference-voltage ladder. */
+  referenceLevels?: number[];
 }
 
 interface GeneratedFilterState {
@@ -2217,7 +2655,7 @@ export class GeneratedAy8910Core {
     return this.regs[reg] & plan.readMasks[reg];
   }
 
-  sampleChannels(output: number[]): void {
+  sampleChannels(output: number[], analogOutputs = true): void {
     for (let channel = 0; channel < plan.channels; channel++) {
       if (++this.toneCount[channel] >= this.tonePeriod[channel]) {
         this.toneCount[channel] = 0;
@@ -2262,8 +2700,12 @@ export class GeneratedAy8910Core {
       const envelopeEnabled = (volume & 0x10) !== 0;
       const level = envelopeEnabled ? envelope : volume & 0x0f;
       const gate = toneGate & noiseGate;
-      const amplitude = plan.volumeTable[level] - plan.volumeTable[0];
-      output[channel] = gate ? amplitude : -amplitude;
+      if (analogOutputs) {
+        output[channel] = plan.volumeTable[gate ? level : 0];
+      } else {
+        const amplitude = plan.legacyVolumeTable[level] - plan.legacyVolumeTable[0];
+        output[channel] = gate ? amplitude : -amplitude;
+      }
 
       // MAME's AY8910_SINGLE_OUTPUT does not average three independent
       // streams: the physical pins share one resistor load. Reproduce its
@@ -2372,16 +2814,20 @@ export class GeneratedDac8Core {
   private sampleCursor = 0;
   private sampleIntegral = 0;
   private integrating = false;
+  private readonly referenceLevels?: number[];
 
-  constructor(bits = 8) {
+  constructor(bits = 8, referenceLevels?: number[]) {
     this.mask = (1 << bits) - 1;
     this.midpoint = 1 << (bits - 1);
     this.value = this.midpoint;
+    this.referenceLevels = referenceLevels;
   }
 
   write(method: string, data: number): void {
     if (method === 'data_w' || method === 'write') this.value = data & this.mask;
-    else if (method === 'reference_w') this.reference = (data & 0xff) / 0xff;
+    else if (method === 'reference_w') {
+      this.reference = this.referenceLevels?.[data & 0xff] ?? (data & 0xff) / 0xff;
+    }
   }
 
   beginSample(): void {
@@ -2424,10 +2870,13 @@ export class GeneratedAy8910Mixer {
   private readonly singleAntialias2: number[];
   private readonly routes: GeneratedAyRoute[];
   private readonly filters: GeneratedFilterState[];
+  private readonly outputGains: number[][];
+  private readonly sourceAnalogMix: boolean;
   private readonly gainTotal: number;
   private readonly auxiliary: {
     deviceTag: string;
     gain: number;
+    outputGain: number;
     core: GeneratedMsm5205Core | GeneratedDac8Core;
   }[];
   private readonly auxiliaryWrites = new Map<string, {
@@ -2440,6 +2889,7 @@ export class GeneratedAy8910Mixer {
   private readonly discreteValues = new Map<number, number>();
   private readonly discreteFilterMemory = new Map<number, number>();
   private readonly outputRate: number;
+  private readonly deviceTags: string[];
   private muted = false;
 
   constructor(
@@ -2449,8 +2899,10 @@ export class GeneratedAy8910Mixer {
     routes: GeneratedAyRoute[] = [],
     auxiliaryDevices: GeneratedAuxiliaryAudioDevice[] = [],
     discreteMixer?: GeneratedDiscreteMixerPlanData,
+    deviceTags: string[] = [],
   ) {
     this.outputRate = outputRate;
+    this.deviceTags = deviceTags;
     const count = Math.max(1, chips);
     this.cores = Array.from({ length: count }, () => new GeneratedAy8910Core(clock));
     this.phases = this.cores.map(() => 0);
@@ -2476,6 +2928,13 @@ export class GeneratedAy8910Mixer {
             gain: 1,
             target: 'mono',
           })));
+    this.outputGains = this.cores.map(() => [1, 1, 1]);
+    // Taito SJ's AY bank and moving-reference DAC are one explicit analog
+    // mixer. Preserve source voltages for that topology; other generated AY
+    // packages retain their established normalized stream protocol until
+    // their downstream netlists are compiled to the same level of fidelity.
+    this.sourceAnalogMix = auxiliaryDevices.some(device =>
+      (device.referenceLevels?.length ?? 0) > 0);
     const filterCount = this.routes.reduce(
       (maximum, route) => Math.max(maximum, (route.filter?.index ?? -1) + 1),
       0,
@@ -2493,19 +2952,25 @@ export class GeneratedAy8910Mixer {
     this.auxiliary = auxiliaryDevices.flatMap<{
       deviceTag: string;
       gain: number;
+      outputGain: number;
       core: GeneratedMsm5205Core | GeneratedDac8Core;
     }>(device =>
       device.type === 'MSM5205' && msmPlan
         ? [{
             deviceTag: device.deviceTag,
             gain: device.gain,
+            outputGain: 1,
             core: new GeneratedMsm5205Core(device.initialMode),
           }]
         : device.type === 'DAC_4BIT_R2R' || device.type === 'DAC_8BIT_R2R'
           ? [{
               deviceTag: device.deviceTag,
               gain: device.gain,
-              core: new GeneratedDac8Core(device.type === 'DAC_4BIT_R2R' ? 4 : 8),
+              outputGain: 1,
+              core: new GeneratedDac8Core(
+                device.type === 'DAC_4BIT_R2R' ? 4 : 8,
+                device.referenceLevels,
+              ),
             }]
           : []);
     for (const device of this.auxiliary) {
@@ -2543,6 +3008,20 @@ export class GeneratedAy8910Mixer {
     const auxiliaryWrite = this.auxiliaryWrites.get(method ?? '');
     if (auxiliaryWrite) {
       auxiliaryWrite.core.write(auxiliaryWrite.method, data);
+      return;
+    }
+    const gainWrite = /^(.+)\.set_output_gain$/.exec(method ?? '');
+    if (gainWrite) {
+      const gain = Math.max(0, Math.min(1, data / 0xff));
+      const auxiliary = this.auxiliary.find(device => device.deviceTag === gainWrite[1]);
+      if (auxiliary) {
+        auxiliary.outputGain = gain;
+        return;
+      }
+      const chip = this.deviceTags.indexOf(gainWrite[1]!);
+      if (chip >= 0 && this.outputGains[chip]) {
+        this.outputGains[chip]![Math.max(0, Math.min(2, offset))] = gain;
+      }
       return;
     }
     if (offset < 0) {
@@ -2599,7 +3078,7 @@ export class GeneratedAy8910Mixer {
       this.phases[chip]! += core.nativeRate / this.outputRate;
       while (this.phases[chip]! >= 1) {
         this.phases[chip]! -= 1;
-        core.sampleChannels(native);
+        core.sampleChannels(native, this.sourceAnalogMix);
         for (let channel = 0; channel < plan.channels; channel++) {
           lowpass1[channel]! += (native[channel]! - lowpass1[channel]!) * k;
           lowpass2[channel]! += (lowpass1[channel]! - lowpass2[channel]!) * k;
@@ -2627,13 +3106,18 @@ export class GeneratedAy8910Mixer {
         ? this.singleSamples[route.chip] ?? 0
         : samples?.[route.channel] ?? 0;
       if (route.filter) value = this.filter(value, this.filters[route.filter.index]);
-      mixed += value * route.gain;
+      const output = route.channel === -1 ? 0 : route.channel;
+      mixed += value * route.gain * (this.outputGains[route.chip]?.[output] ?? 1);
     }
-    for (const device of this.auxiliary) mixed += device.core.sample() * device.gain;
-    return Math.max(
-      -1,
-      Math.min(1, mixed / (this.gainTotal + this.auxiliaryGainTotal)),
-    );
+    for (const device of this.auxiliary) {
+      mixed += device.core.sample() * device.gain * device.outputGain;
+    }
+    // A fully source-compiled analog mixer uses MAME's physical add_route
+    // gains. Legacy stream packages retain their established weighted mix.
+    const output = this.sourceAnalogMix
+      ? mixed
+      : mixed / (this.gainTotal + this.auxiliaryGainTotal);
+    return Math.max(-1, Math.min(1, output));
   }
 
   private sampleDiscreteMixer(): number {
@@ -2819,6 +3303,7 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
         type: string;
         clock?: number;
         chips?: number;
+        deviceTags?: string[];
         routes?: GeneratedAyRoute[];
         auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
         discreteMixer?: GeneratedDiscreteMixerPlanData;
@@ -2836,6 +3321,7 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
           message.routes,
           message.auxiliaryDevices,
           message.discreteMixer,
+          message.deviceTags,
         );
         this.renderer = new GeneratedAy8910FrameRenderer(
           this.mixer,
@@ -2847,19 +3333,28 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
       } else if (message.type === 'batch') {
         if (this.renderer) {
           this.frames.push(this.renderer.render(message.writes ?? []));
-          while (this.frames.length > 8) this.frames.shift();
+          // Elastic queue: frame delivery jitters (a rAF tick can carry 0 or
+          // 2 batches, and non-60Hz boards beat against the display rate), so
+          // a few frames of slack must absorb it — dropping to one frame made
+          // every burst an audible discontinuity. The cap still bounds A/V
+          // latency after a main-thread catch-up burst.
+          while (this.frames.length > 3) this.frames.shift();
         }
       }
     };
   }
 
+  private lastSample = 0;
+
   private nextSample(): number {
     while (!this.current || this.currentIndex >= this.current.length) {
       this.current = this.frames.shift();
       this.currentIndex = 0;
-      if (!this.current) return 0;
+      // Starved: hold the last sample. A 0-fill is a hard step on any
+      // mix with a DC offset (e.g. tied-pin AY outputs) and pops loudly.
+      if (!this.current) return this.lastSample;
     }
-    return this.current[this.currentIndex++]!;
+    return (this.lastSample = this.current[this.currentIndex++]!);
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
@@ -3154,18 +3649,22 @@ class GeneratedDiscreteAudioProcessor extends AudioWorkletProcessor {
         this.core?.write(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 8) this.frames.shift();
+        while (this.frames.length > 3) this.frames.shift();
       }
     };
   }
+
+  private lastSample = 0;
 
   private next(): number {
     while (!this.current || this.index >= this.current.length) {
       this.current = this.frames.shift();
       this.index = 0;
-      if (!this.current) return 0;
+      // Starved: hold the last sample. A 0-fill is a hard step on any
+      // mix with a DC offset (e.g. tied-pin AY outputs) and pops loudly.
+      if (!this.current) return this.lastSample;
     }
-    return this.current[this.index++]!;
+    return (this.lastSample = this.current[this.index++]!);
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
@@ -3188,14 +3687,26 @@ function generatedNamcoWsgSuffix(plan: GeneratedNamcoWsgPlan): string {
   return `
 interface DacFilterPlan {
   levels: number[];
-  channels: { input: number; frequency: number; q: number; gain: number }[];
+  channels: {
+    input: number;
+    frequency: number;
+    q: number;
+    gain: number;
+    levels?: number[];
+    stages?: {
+      type: 'lowpass' | 'highpass' | 'bandpass';
+      frequency: number;
+      q: number;
+      gain: number;
+    }[];
+    clamp?: { minimum: number; maximum: number };
+  }[];
   outputGain: number;
 }
 
 interface BiquadState {
-  input: number;
-  gain: number;
   b0: number;
+  b1: number;
   b2: number;
   a1: number;
   a2: number;
@@ -3203,6 +3714,14 @@ interface BiquadState {
   x2: number;
   y1: number;
   y2: number;
+}
+
+interface DacFilterChannelState {
+  input: number;
+  gain: number;
+  levels: number[];
+  filters: BiquadState[];
+  clamp?: { minimum: number; maximum: number };
 }
 
 export interface GeneratedNamcoWsgWrite {
@@ -3213,54 +3732,180 @@ export interface GeneratedNamcoWsgWrite {
 }
 
 class GeneratedDacFilterCore {
-  private readonly values = new Float64Array(3);
-  private readonly levels: number[];
-  private readonly filters: BiquadState[];
+  private readonly values: Float64Array;
+  private readonly channels: DacFilterChannelState[];
   private readonly outputGain: number;
 
   constructor(plan: DacFilterPlan, sampleRate: number) {
-    this.levels = plan.levels;
+    this.values = new Float64Array(
+      Math.max(0, ...plan.channels.map(channel => channel.input)) + 1,
+    );
     this.outputGain = plan.outputGain;
-    this.filters = plan.channels.map(channel => {
-      const omega = 2 * Math.PI * channel.frequency / sampleRate;
-      const alpha = Math.sin(omega) / (2 * channel.q);
+    const filter = (
+      stage: { type: 'lowpass' | 'highpass' | 'bandpass'; frequency: number; q: number; gain: number },
+    ): BiquadState => {
+      const omega = 2 * Math.PI * stage.frequency / sampleRate;
+      const cosine = Math.cos(omega);
+      const alpha = Math.sin(omega) / (2 * stage.q);
       const a0 = 1 + alpha;
+      const b0 = stage.type === 'lowpass'
+        ? (1 - cosine) / 2 / a0
+        : stage.type === 'highpass'
+          ? (1 + cosine) / 2 / a0
+          : alpha / a0;
       return {
-        input: channel.input,
-        gain: channel.gain,
-        b0: alpha / a0,
-        b2: -alpha / a0,
-        a1: -2 * Math.cos(omega) / a0,
+        b0: b0 * stage.gain,
+        b1: (stage.type === 'lowpass'
+          ? (1 - cosine) / a0
+          : stage.type === 'highpass'
+            ? -(1 + cosine) / a0
+            : 0) * stage.gain,
+        b2: (stage.type === 'lowpass'
+          ? b0
+          : stage.type === 'highpass'
+            ? b0
+            : -b0) * stage.gain,
+        a1: -2 * cosine / a0,
         a2: (1 - alpha) / a0,
         x1: 0,
         x2: 0,
         y1: 0,
         y2: 0,
       };
+    };
+    this.channels = plan.channels.map(channel => {
+      const explicitStages = Boolean(channel.stages?.length);
+      return {
+        input: channel.input,
+        // A primary op-amp's gain is part of the filter and therefore precedes
+        // its rail clamp. Explicit cascades keep their optional post gain.
+        gain: explicitStages ? channel.gain : 1,
+        levels: channel.levels ?? plan.levels,
+        filters: (explicitStages
+          ? channel.stages!
+          : [{
+              type: 'bandpass' as const,
+              frequency: channel.frequency,
+              q: channel.q,
+              gain: channel.gain,
+            }]).map(filter),
+        clamp: channel.clamp,
+      };
     });
   }
 
   write(input: number, data: number): void {
     if (input >= 0 && input < this.values.length) {
-      this.values[input] = this.levels[data & 0x0f] ?? 0;
+      this.values[input] = data & 0x0f;
     }
   }
 
   renderInto(output: Float32Array): void {
     for (let index = 0; index < output.length; index++) {
       let mixed = 0;
-      for (const filter of this.filters) {
-        const x = this.values[filter.input] ?? 0;
-        const y = filter.b0 * x + filter.b2 * filter.x2 -
-          filter.a1 * filter.y1 - filter.a2 * filter.y2;
-        filter.x2 = filter.x1;
-        filter.x1 = x;
-        filter.y2 = filter.y1;
-        filter.y1 = y;
-        mixed += y * filter.gain;
+      for (const channel of this.channels) {
+        let value = channel.levels[(this.values[channel.input] ?? 0) & 0x0f] ?? 0;
+        for (const filter of channel.filters) {
+          const next = filter.b0 * value + filter.b1 * filter.x1 + filter.b2 * filter.x2 -
+            filter.a1 * filter.y1 - filter.a2 * filter.y2;
+          filter.x2 = filter.x1;
+          filter.x1 = value;
+          filter.y2 = filter.y1;
+          filter.y1 = next;
+          value = next;
+        }
+        if (channel.clamp) {
+          value = Math.max(channel.clamp.minimum, Math.min(channel.clamp.maximum, value));
+        }
+        mixed += value * channel.gain;
       }
       output[index] = Math.max(-1, Math.min(1, output[index]! + mixed * this.outputGain));
     }
+  }
+}
+
+interface PoleposBiquadState {
+  b0: number;
+  b1: number;
+  b2: number;
+  a1: number;
+  a2: number;
+  x1: number;
+  x2: number;
+  y1: number;
+  y2: number;
+  resistance: number;
+}
+
+class GeneratedPoleposEngineCore {
+  private readonly rom: Uint8Array;
+  private readonly sampleRate: number;
+  private readonly filters: PoleposBiquadState[];
+  private position = 0;
+  private msb = 0;
+  private lsb = 0;
+  private enabled = false;
+
+  constructor(rom: Uint8Array, sampleRate: number) {
+    this.rom = rom;
+    this.sampleRate = sampleRate;
+    this.filters = (plan.engine?.filters ?? []).map(filter => {
+      const twoOverT = 2 * sampleRate;
+      const warped = sampleRate * 2 * Math.tan(Math.PI * filter.frequency / sampleRate);
+      const denominator = twoOverT ** 2 + filter.damping * warped * twoOverT + warped ** 2;
+      const highpass = filter.type === 'highpass';
+      const b0 = (highpass ? twoOverT ** 2 : filter.damping * warped * twoOverT) /
+        denominator * filter.gain;
+      return {
+        b0,
+        b1: highpass ? -2 * b0 : 0,
+        b2: highpass ? b0 : -b0,
+        a1: 2 * (-(twoOverT ** 2) + warped ** 2) / denominator,
+        a2: (twoOverT ** 2 - filter.damping * warped * twoOverT + warped ** 2) /
+          denominator,
+        x1: 0,
+        x2: 0,
+        y1: 0,
+        y2: 0,
+        resistance: filter.outputResistance,
+      };
+    });
+  }
+
+  write(method: string, data: number): void {
+    if (method === 'polepos_engine_sound_lsb_w') {
+      this.lsb = data & 62;
+      this.enabled = Boolean(data & 1);
+    } else if (method === 'polepos_engine_sound_msb_w') {
+      this.msb = data & 63;
+    } else if (method === 'clson_w' && !data) {
+      this.lsb = 0;
+      this.msb = 0;
+      this.enabled = false;
+    }
+  }
+
+  sample(): number {
+    const engine = plan.engine;
+    if (!engine || !this.enabled || !this.rom.length) return 0;
+    const slot = (this.msb >>> 3) & 7;
+    const volume = engine.volumeTable[slot] ?? 0;
+    const byte = this.rom[slot * 0x800 + (Math.floor(this.position) & 0x7ff)] ?? 0;
+    const input = (3.4 / 255 * byte - 2) * volume;
+    const clock = engine.clock / 16 * ((this.msb + 1) * 64 + this.lsb + 1) / (64 * 64);
+    this.position += clock / this.sampleRate;
+    let current = 0;
+    for (const filter of this.filters) {
+      let output = filter.b0 * input + filter.b1 * filter.x1 + filter.b2 * filter.x2 -
+        filter.a1 * filter.y1 - filter.a2 * filter.y2;
+      filter.x2 = filter.x1;
+      filter.x1 = input;
+      filter.y2 = filter.y1;
+      filter.y1 = output;
+      output = Math.max(-2, Math.min(1.5, output));
+      current += output / filter.resistance;
+    }
+    return current * engine.outputResistance / 2 * engine.routeGain;
   }
 }
 
@@ -3272,8 +3917,14 @@ export class GeneratedNamcoWsgCore {
   private enabled = true;
   private readonly fracBits: number;
   private readonly discrete?: GeneratedDacFilterCore;
+  private readonly engine?: GeneratedPoleposEngineCore;
 
-  constructor(waveRom: Uint8Array, clock: number, auxiliary?: DacFilterPlan) {
+  constructor(
+    waveRom: Uint8Array,
+    clock: number,
+    auxiliary?: DacFilterPlan,
+    engineRom?: Uint8Array,
+  ) {
     this.waveRom = waveRom;
     let nativeClock = clock;
     let clockMultiple = 0;
@@ -3290,6 +3941,9 @@ export class GeneratedNamcoWsgCore {
       waveform_select: 0,
     }));
     if (auxiliary) this.discrete = new GeneratedDacFilterCore(auxiliary, this.sampleRate);
+    if (plan.engine && engineRom) {
+      this.engine = new GeneratedPoleposEngineCore(engineRom, this.sampleRate);
+    }
   }
 
   soundEnable(state: number): void {
@@ -3315,11 +3969,19 @@ export class GeneratedNamcoWsgCore {
     this.discrete?.write(channel, data);
   }
 
+  writeEngine(method: string, data: number): void {
+    this.engine?.write(method, data);
+  }
+
   render(out: Float32Array): void {
     out.fill(0);
-    if (this.enabled) for (const voice of this.voices) {
-      const volume = voice.volume[0] ?? 0;
+    if (this.enabled) for (let voiceIndex = 0; voiceIndex < this.voices.length; voiceIndex++) {
+      const voice = this.voices[voiceIndex]!;
+      let volume = plan.engine
+        ? voice.volume.reduce((sum, value) => sum + value, 0) / 4
+        : voice.volume[0] ?? 0;
       if (!volume) continue;
+      const frequency = voice.frequency;
       const waveBase = voice.waveform_select << 5;
       let counter = voice.counter >>> 0;
       for (let index = 0; index < out.length; index++) {
@@ -3329,33 +3991,34 @@ export class GeneratedNamcoWsgCore {
           ? '((byte >> (((~position) & 1) << 2)) & 0x0f) - 8'
           : '(byte & 0x0f) - 8'};
         out[index] += sample * volume / plan.mixResolution;
-        counter = (counter + voice.frequency) >>> 0;
+        counter = (counter + frequency) >>> 0;
       }
       voice.counter = counter;
+    }
+    if (this.engine) {
+      for (let index = 0; index < out.length; index++) out[index] += this.engine.sample();
     }
     this.discrete?.renderInto(out);
   }
 
   renderFrame(out: Float32Array, writes: readonly GeneratedNamcoWsgWrite[]): void {
-    const discreteWrites: GeneratedNamcoWsgWrite[] = [];
-    for (const write of writes) {
-      if (write.method === 'discrete') discreteWrites.push(write);
-      else if (write.offset < 0) this.soundEnable(write.data);
-      else this.write(write.offset, write.data);
-    }
-
     let rendered = 0;
     let index = 0;
-    while (index < discreteWrites.length) {
-      const frac = Math.max(0, Math.min(1, discreteWrites[index]!.frac ?? 0));
+    while (index < writes.length) {
+      const frac = Math.max(0, Math.min(1, writes[index]!.frac ?? 0));
       const position = Math.max(rendered, Math.min(out.length, Math.ceil(frac * out.length)));
       if (position > rendered) this.render(out.subarray(rendered, position));
-      while (index < discreteWrites.length) {
-        const write = discreteWrites[index]!;
+      while (index < writes.length) {
+        const write = writes[index]!;
         const writeFrac = Math.max(0, Math.min(1, write.frac ?? 0));
         const writePosition = Math.max(rendered, Math.min(out.length, Math.ceil(writeFrac * out.length)));
         if (writePosition !== position) break;
-        this.writeDiscrete(write.offset, write.data);
+        if (write.method === 'discrete') this.writeDiscrete(write.offset, write.data);
+        else if (write.method?.startsWith('polepos_engine_') || write.method === 'clson_w') {
+          this.writeEngine(write.method, write.data);
+        }
+        else if (write.offset < 0) this.soundEnable(write.data);
+        else this.write(write.offset, write.data);
         index++;
       }
       rendered = position;
@@ -3411,6 +4074,7 @@ class GeneratedNamcoWsgProcessor extends AudioWorkletProcessor {
       const message = event.data as {
         type: string;
         waveRom?: Uint8Array;
+        sampleRom?: Uint8Array;
         clock?: number;
         refresh?: number;
         offset?: number;
@@ -3425,6 +4089,7 @@ class GeneratedNamcoWsgProcessor extends AudioWorkletProcessor {
           message.waveRom ?? new Uint8Array(0x100),
           clock,
           message.auxiliary,
+          message.sampleRom,
         );
         this.renderer = new GeneratedNamcoWsgFrameRenderer(
           this.core,
@@ -3437,24 +4102,31 @@ class GeneratedNamcoWsgProcessor extends AudioWorkletProcessor {
         this.apply(message.offset ?? 0, message.data ?? 0, message.method);
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));
-        while (this.frames.length > 8) this.frames.shift();
+        while (this.frames.length > 3) this.frames.shift();
       }
     };
   }
 
   private apply(offset: number, data: number, method?: string): void {
     if (method === 'discrete') this.core?.writeDiscrete(offset, data);
+    else if (method?.startsWith('polepos_engine_') || method === 'clson_w') {
+      this.core?.writeEngine(method, data);
+    }
     else if (offset < 0) this.core?.soundEnable(data);
     else this.core?.write(offset, data);
   }
+
+  private lastSample = 0;
 
   private nextNative(): number {
     while (!this.current || this.nativePosition >= this.current.length) {
       this.current = this.frames.shift() ?? null;
       this.nativePosition = 0;
-      if (!this.current) return 0;
+      // Starved: hold the last sample. A 0-fill is a hard step on any
+      // mix with a DC offset (e.g. tied-pin AY outputs) and pops loudly.
+      if (!this.current) return this.lastSample;
     }
-    return this.current[this.nativePosition++]!;
+    return (this.lastSample = this.current[this.nativePosition++]!);
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {

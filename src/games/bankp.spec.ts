@@ -33,6 +33,10 @@ assert.deepEqual(
     { penOffset: 384, lookupOffset: 288, lookupCount: 128, colorOr: 16 },
   ],
 );
+assert.ok(
+  video.plan.palette?.banks.every(bank => !bank.lookupTerms?.length),
+  'Bank Panic lookup banks must use their post-palette PROM offsets',
+);
 assert.deepEqual(
   [1, 2, 3].map(button => inputKeys('bankp', `IPT_BUTTON${button}`)),
   [['KeyZ'], ['KeyX'], ['KeyC']],

@@ -10,6 +10,9 @@ const graph: KnowledgeGraph = {
     { id: 'game:test', label: 'Game', props: { sourceFile: 'driver.cpp', sourceLine: 1 } },
     { id: 'device:test/maincpu', label: 'Device', props: { tag: 'maincpu', type: 'Z80' } },
     { id: 'device:test/latch', label: 'Device', props: { tag: 'latch', type: 'LS259' } },
+    { id: 'device:host.device_add_mconfig/riot', label: 'Device', props: {
+      tag: 'riot', type: 'MOS6532',
+    } },
     { id: 'map:test/range0', label: 'AddressRange', props: {
       raw: 'map(0xc300, 0xc30f).lw8(NAME([] {}))',
       sourceFile: 'driver.cpp',
@@ -44,6 +47,7 @@ const report = buildRuntimeReport(graph, {
       ranges: [
         { kind: 'handler', read: 'port.IN0' },
         { kind: 'handler', write: 'latch.write_d0' },
+        { kind: 'handler', read: 'soundboard:riot.io_read' },
         { kind: 'handler', write: 'test_state.video_w' },
         { kind: 'handler', read: 'test_state.read' },
       ],
@@ -68,6 +72,13 @@ const report = buildRuntimeReport(graph, {
       executableArtifact: 'devices/ls259.device.ir.json',
       definition: { sourceFile: 'src/devices/machine/74259.cpp', sourceLine: 1 },
     },
+    {
+      type: 'MOS6532',
+      status: 'source-resolved',
+      executable: true,
+      executableKind: 'device',
+      executableArtifact: 'devices/mos6532.device.ir.json',
+    },
   ],
 });
 
@@ -76,6 +87,9 @@ if (report.requirements.handlers.find(h => h.name === 'port.IN0')?.status !== 'g
 }
 if (report.requirements.handlers.find(h => h.name === 'latch.write_d0')?.status !== 'executable') {
   throw new Error('LS259 handler should resolve to generated executable hardware');
+}
+if (report.requirements.handlers.find(h => h.name === 'soundboard:riot.io_read')?.status !== 'executable') {
+  throw new Error('scoped composite child handler should resolve to executable hardware');
 }
 if (report.requirements.handlers.find(h => h.name === 'test_state.video_w')?.status !== 'missing') {
   throw new Error('uncompiled driver-state handler should remain a generation gap');
@@ -97,9 +111,49 @@ if (report.boardMode !== 'generated') {
 if (report.requirements.composition[0]?.status !== 'generated') {
   throw new Error('board composition should not depend on family code');
 }
+if (report.playabilityBasis !== 'blocked') {
+  throw new Error('uncertified report gaps should remain blocked');
+}
+
+const certifiedReport = buildRuntimeReport({
+  ...graph,
+  nodes: [
+    ...graph.nodes,
+    { id: 'device:galaga/mcu', label: 'Device', props: { tag: 'mcu', type: 'MB8843' } },
+  ],
+}, {
+  game: 'galaga',
+  family: 'galaga',
+  board: {
+    cpus: [{ tag: 'maincpu', type: 'z80', ranges: [] }],
+    ranges: [],
+    videoMode: 'bitmap',
+  },
+}, {
+  hardware: [
+    {
+      type: 'Z80',
+      status: 'source-resolved',
+      executable: true,
+    },
+    {
+      type: 'LS259',
+      status: 'source-resolved',
+      executable: true,
+    },
+    {
+      type: 'MOS6532',
+      status: 'source-resolved',
+      executable: true,
+    },
+  ],
+});
+if (!certifiedReport.playable || certifiedReport.playabilityBasis !== 'runtime-certified') {
+  throw new Error('verified runtime boards should not be blocked by bounded closure gaps');
+}
 const markdown = runtimeReportMarkdown(report);
 if (markdown.includes('handwritten') || markdown.includes('Runtime primitives')) {
   throw new Error('report should only describe source-generation stages');
 }
 
-console.log('runtime-report.spec: 10 passed, 0 failed');
+console.log('runtime-report.spec: 13 passed, 0 failed');

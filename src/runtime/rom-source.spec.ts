@@ -17,13 +17,13 @@ assert.equal(
   'consoles/nes/new/Argos%20no%20Senshi%20(J)%20%5BT%2BEng%5D.zip',
 );
 
-// --- source order: bucket first, same-origin proxy second --------------------------
+// --- source order: same-origin proxy first, bucket fallback second -----------------
 assert.deepEqual(romSourceUrls('consoles/nes/10yard.zip'), [
-  `${ROM_BUCKET_BASE}/consoles/nes/10yard.zip`,
   '/romsearch/consoles/nes/10yard.zip',
+  `${ROM_BUCKET_BASE}/consoles/nes/10yard.zip`,
 ]);
 
-// --- fetch falls through to the proxy, then gives up -------------------------------
+// --- fetch falls through to the bucket, then gives up ------------------------------
 const original = globalThis.fetch;
 function stubFetch(handler: (url: string) => Response | Promise<Response>): string[] {
   const seen: string[] = [];
@@ -35,13 +35,13 @@ function stubFetch(handler: (url: string) => Response | Promise<Response>): stri
   return seen;
 }
 
-// bucket blocked (CORS surfaces as a rejected fetch) -> proxy answers
+// proxy miss -> bucket answers
 let seen = stubFetch(url => {
-  if (url.startsWith('http')) throw new TypeError('Failed to fetch');
+  if (!url.startsWith('http')) return new Response(null, { status: 404 });
   return new Response(new Uint8Array([1, 2, 3]), { status: 200 });
 });
 assert.deepEqual([...(await fetchRomBytes('consoles/nes/10yard.zip'))!], [1, 2, 3]);
-assert.equal(seen.length, 2, 'the bucket is tried before the proxy');
+assert.equal(seen.length, 2, 'the proxy is tried before the bucket');
 
 // nothing has it -> null, never a throw: the drop zone stays the fallback
 seen = stubFetch(() => new Response(null, { status: 404 }));

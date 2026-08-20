@@ -42,6 +42,8 @@ export function installAy8910Runtime(context: SoundRuntimeContext): void {
         : register === PORT_B
           ? 'port_b_read_callback'
           : '';
+      const connected = signal ? context.readSignal(tag, signal) : undefined;
+      if (connected !== undefined) return connected;
       const callback = board.callbacks.find(candidate =>
         candidate.ownerTag === tag && candidate.signal === signal);
       if (callback?.targetTag && callback.targetMethod) {

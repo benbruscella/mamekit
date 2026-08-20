@@ -28,14 +28,14 @@ export const pacman: GameTestContract = {
       180: { video: '7e928035', state: '1e93e277' },
       300: { video: '189e0035', state: '201babd2' },
       420: { video: '06b7df05', state: '70b06825' },
-      600: { video: 'edb2c3f1', state: 'd4e273cc' },
+      600: { video: '1f0c4e15', state: 'd4e273cc' },
     },
     audio: {
       writes: 5831,
       nonzeroWrites: 2375,
       writeHash: '2553b996',
-      pcmHash: '30c742bc',
-      rms: 0.170869,
+      pcmHash: '029b50e1',
+      rms: 0.1691,
     },
   },
 };

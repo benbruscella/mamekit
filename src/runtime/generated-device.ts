@@ -4,6 +4,8 @@ import {
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
+import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
+import { GeneratedM68705P5Device } from './generated-m68705.ts';
 
 interface DeviceMember {
   name: string;
@@ -129,6 +131,8 @@ export interface Device {
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
   get(name: string): number;
   set(name: string, value: number): void;
+  /** Resolve a numeric constant declared by this generated device family. */
+  constant(name: string): number | undefined;
   methodNames(): readonly string[];
   arity(name: string): number;
   parameters(name: string): readonly string[];
@@ -183,7 +187,7 @@ export function clearGeneratedDevices(): void {
 }
 
 export function hasGeneratedDevice(type: string): boolean {
-  return DEFINITIONS.has(type.toUpperCase());
+  return type.toUpperCase() === 'M68705P5' || DEFINITIONS.has(type.toUpperCase());
 }
 
 export interface GeneratedDeviceOptions {
@@ -202,7 +206,7 @@ export interface GeneratedDeviceOptions {
   slot?: string | number;
   selectors?: Record<string, string | number | undefined>;
   /** Resolve required/optional device finders to host/device proxies. */
-  finder?: (tag: string) => unknown;
+  finder?: (tag: string, member?: string) => unknown;
   regions?: Record<string, Uint8Array>;
   configuration?: unknown;
   banks?: Record<string, GeneratedMemoryBank>;
@@ -217,9 +221,32 @@ export interface GeneratedMemoryBank {
 }
 
 export function createDevice(type: string, options: GeneratedDeviceOptions = {}): Device {
+  if (type.toUpperCase() === 'M68705P5') {
+    return new GeneratedM68705P5Device(options);
+  }
   const definition = DEFINITIONS.get(type.toUpperCase());
   if (!definition) throw new Error(`generated device "${type}" was not registered`);
+  if (definition.type.toUpperCase() === 'Z80PIO') {
+    return new GeneratedZ80PioDevice(definition, options.clock ?? 0);
+  }
   return new IrDevice(definition, options.clock ?? 0, options);
+}
+
+/** Numeric seconds with the attotime method surface used by compiled devices. */
+class IrAttotime {
+  private readonly seconds: number;
+
+  constructor(seconds: number) {
+    this.seconds = seconds;
+  }
+
+  as_ticks(frequency: number): number {
+    return Math.floor(this.seconds * Math.max(0, frequency));
+  }
+
+  valueOf(): number {
+    return this.seconds;
+  }
 }
 
 class IrTimer {
@@ -237,13 +264,15 @@ class IrTimer {
     this.adjustmentGeneration++;
   }
 
-  remaining(): number {
-    return this.remainingSeconds;
+  remaining(): IrAttotime {
+    return new IrAttotime(this.remainingSeconds);
   }
 
-  elapsed(): number {
-    if (!Number.isFinite(this.intervalSeconds)) return 0;
-    return Math.max(0, this.intervalSeconds - Math.max(0, this.remainingSeconds));
+  elapsed(): IrAttotime {
+    const seconds = !Number.isFinite(this.intervalSeconds)
+      ? 0
+      : Math.max(0, this.intervalSeconds - Math.max(0, this.remainingSeconds));
+    return new IrAttotime(seconds);
   }
 
   enabled(): boolean {
@@ -323,7 +352,7 @@ class IrDevice implements Device {
         (inputTag
           ? { read: () => options.inputs?.read(inputTag) ?? 0xff }
           : member.finder?.kind === 'device'
-            ? options.finder?.(member.finder.tag) ?? 0
+            ? options.finder?.(member.finder.tag, member.name) ?? 0
           : member.valueType === 'bitmap_rgb32'
             ? new GeneratedBitmapRgb32()
         : member.memory
@@ -389,6 +418,10 @@ class IrDevice implements Device {
         logerror: () => 0,
         clock: () => clock,
         clocks_to_attotime: ticks => clock > 0 ? ticks / clock : Infinity,
+        'attotime::from_hz': frequency =>
+          frequency > 0 ? 1 / frequency : Infinity,
+        'attotime::from_ticks': (ticks, frequency) =>
+          frequency > 0 ? ticks / frequency : Infinity,
         set_pen_color: (entry, color) => {
           palette[entry] = color >>> 0;
           return 0;
@@ -400,11 +433,14 @@ class IrDevice implements Device {
         DEGREE_TO_RADIAN: value => value * Math.PI / 180,
         'std::clamp': (value, minimum, maximum) =>
           Math.min(maximum, Math.max(minimum, value)),
-        rgb_t: (red, green, blue) =>
-          (0xff000000 |
-            (blue & 0xff) << 16 |
-            (green & 0xff) << 8 |
-            (red & 0xff)) >>> 0,
+        rgb_t: (...components) => {
+          const offset = components.length >= 4 ? 1 : 0;
+          const alpha = components.length >= 4 ? components[0]! & 0xff : 0xff;
+          const red = components[offset]! & 0xff;
+          const green = components[offset + 1]! & 0xff;
+          const blue = components[offset + 2]! & 0xff;
+          return (alpha << 24 | blue << 16 | green << 8 | red) >>> 0;
+        },
         copybitmap: (destination, source) => {
           copyGeneratedBitmap(destination, source);
           return 0;
@@ -521,6 +557,11 @@ class IrDevice implements Device {
   }
 
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown {
+    // A composition capability may replace a source method when the method's
+    // external card/device dependency is supplied by the host (for example a
+    // controller connector backed by live browser input ports).
+    const bound = this.bindings.calls?.[name];
+    if (bound) return bound(...args.map(Number));
     const method = this.selectMethod(name, args);
     if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
     return this.executeMethod(method, this.methodParams.get(method)!, args);
@@ -536,6 +577,11 @@ class IrDevice implements Device {
       this.memberBits.get(name),
       this.memberSigned.has(name),
     );
+  }
+
+  constant(name: string): number | undefined {
+    return this.definition.constants[name] ??
+      this.definition.constants[name.split('::').at(-1)!];
   }
 
   methodNames(): readonly string[] {
@@ -608,12 +654,25 @@ class IrDevice implements Device {
     args: GeneratedCallArgument[],
   ): unknown {
     try {
-      const compiled = this.definition.compiledMethods?.[method.name];
-      if (compiled) return compiled(this.executionContext, ...args);
-      const locals: Record<string, unknown> = {};
+      if (
+        this.definition.type.toUpperCase() === 'GENERIC_LATCH_8' &&
+        method.name === 'write'
+      ) {
+        // generic_latch_8_device defers the store with
+        // scheduler().synchronize(sync_callback, data) so both CPUs observe
+        // it at an execution boundary. Generated CPU method calls already are
+        // such a boundary; run the source callback immediately rather than
+        // dropping the opaque timer_expired_delegate expression.
+        return this.invoke('sync_callback', args[0] ?? 0);
+      }
       const defaults = this.methodDefaults.get(method);
+      const resolvedArgs = parameterNames.map((_name, index) =>
+        args[index] ?? defaults?.[index] ?? 0);
+      const compiled = this.definition.compiledMethods?.[method.name];
+      if (compiled) return compiled(this.executionContext, ...resolvedArgs);
+      const locals: Record<string, unknown> = {};
       for (let index = 0; index < parameterNames.length; index++) {
-        locals[parameterNames[index]!] = args[index] ?? defaults?.[index] ?? 0;
+        locals[parameterNames[index]!] = resolvedArgs[index];
       }
       return executeGeneratedProgram(method.program, this.bindings, locals).value;
     } catch (error) {

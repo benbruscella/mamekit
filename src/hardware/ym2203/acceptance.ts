@@ -27,6 +27,8 @@ export async function createYm2203Probe(
       outputRate: number,
       routes?: unknown,
       auxiliaryDevices?: unknown,
+      deviceType?: string,
+      sampleRom?: Uint8Array,
     ) => Mixer;
     GeneratedYm2203FrameRenderer: new (
       mixer: Mixer, outputRate: number, refresh: number,
@@ -39,6 +41,8 @@ export async function createYm2203Probe(
     context.outputRate,
     context.sound.routes,
     context.sound.auxiliaryDevices,
+    context.sound.deviceType,
+    context.sound.sampleRegion ? context.regions[context.sound.sampleRegion] : undefined,
   );
   return new module.GeneratedYm2203FrameRenderer(mixer, context.outputRate, context.refresh);
 }

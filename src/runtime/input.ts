@@ -29,13 +29,27 @@ export interface FieldBinding {
   label: string;
   /** true (default) = pressed clears bits; false = pressed sets bits */
   activeLow?: boolean;
+  /** Maintained cabinet switch: each keydown flips it and keyup leaves it set. */
+  toggle?: boolean;
+  /** Absolute value driven while an analog control key is held. */
+  activeValue?: number;
+  /** Relative masked delta applied each emulated frame while held. */
+  relativeDelta?: number;
 }
 
 export interface DipDefault { port: string; mask: number; value: number; name: string }
 
 export interface PortSpec { tag: string; init: number }
 
-interface Field { port: string; mask: number; activeLow: boolean; label: string }
+interface Field {
+  port: string;
+  mask: number;
+  activeLow: boolean;
+  label: string;
+  toggle: boolean;
+  activeValue?: number;
+  relativeDelta?: number;
+}
 
 const OPPOSITE_SUFFIX: Record<string, string> = { _LEFT: '_RIGHT', _RIGHT: '_LEFT', _UP: '_DOWN', _DOWN: '_UP' };
 
@@ -45,6 +59,8 @@ export class KeyboardInput implements InputPorts {
   private byKey = new Map<string, Field[]>();
   /** physically-held state per field ("port:mask"), for SOCD restore */
   private held = new Map<string, boolean>();
+  private toggled = new Map<string, boolean>();
+  private fields: Field[] = [];
   /** opposite joystick direction per field id (LEFT<->RIGHT, UP<->DOWN) */
   private opposite = new Map<string, Field>();
   /** when true, every key event + resulting port bytes go to the console */
@@ -55,7 +71,15 @@ export class KeyboardInput implements InputPorts {
     for (const p of ports) { this.init[p.tag] = p.init; this.state[p.tag] = p.init; }
     const fields: Field[] = [];
     for (const b of bindings) {
-      const f: Field = { port: b.port, mask: b.mask, activeLow: b.activeLow !== false, label: b.label };
+      const f: Field = {
+        port: b.port,
+        mask: b.mask,
+        activeLow: b.activeLow !== false,
+        label: b.label,
+        toggle: b.toggle === true,
+        activeValue: b.activeValue,
+        relativeDelta: b.relativeDelta,
+      };
       fields.push(f);
       for (const key of b.keys) {
         let list = this.byKey.get(key);
@@ -63,6 +87,7 @@ export class KeyboardInput implements InputPorts {
         list.push(f);
       }
     }
+    this.fields = fields;
     // SOCD pairs: opposite joystick directions on the same port. Arcade sticks
     // can never assert both, so game code ignores one — with a keyboard,
     // overlapping opposite arrows is routine and the newest press must win.
@@ -76,12 +101,28 @@ export class KeyboardInput implements InputPorts {
     }
   }
 
-  private fid(f: Field): string { return `${f.port}:${f.mask}`; }
+  private fid(f: Field): string { return `${f.port}:${f.mask}:${f.label}`; }
+
+  /**
+   * Advance relative cabinet controls once per emulated frame. MAME's
+   * PORT_KEYDELTA describes a frame-rate input ramp; browser key-repeat is an
+   * OS preference and may be delayed, disabled, or absent in automation.
+   */
+  advance(): void {
+    for (const field of this.fields) {
+      if (field.relativeDelta === undefined || !this.held.get(this.fid(field))) continue;
+      const current = this.state[field.port] & field.mask;
+      this.state[field.port] = (this.state[field.port] & ~field.mask) |
+        ((current + field.relativeDelta) & field.mask);
+    }
+  }
 
   /** drive a field active (pressed) or back to its resting bits */
   private apply(f: Field, active: boolean): void {
     if (active) {
-      this.state[f.port] = f.activeLow ? this.state[f.port] & ~f.mask : this.state[f.port] | f.mask;
+      this.state[f.port] = f.activeValue !== undefined
+        ? (this.state[f.port] & ~f.mask) | (f.activeValue & f.mask)
+        : f.activeLow ? this.state[f.port] & ~f.mask : this.state[f.port] | f.mask;
     } else {
       this.state[f.port] = (this.state[f.port] & ~f.mask) | (this.init[f.port] & f.mask);
     }
@@ -104,8 +145,27 @@ export class KeyboardInput implements InputPorts {
       return;
     }
     ev.preventDefault();
-    if (ev.repeat) return; // auto-repeat carries no new information
     for (const h of hits) {
+      if (h.relativeDelta !== undefined) {
+        if (ev.repeat) continue;
+        this.held.set(this.fid(h), down);
+        if (down) {
+          // Make a tap observable immediately; advance() supplies subsequent
+          // MAME-style per-frame deltas for as long as the key remains held.
+          const current = this.state[h.port] & h.mask;
+          this.state[h.port] = (this.state[h.port] & ~h.mask) |
+            ((current + h.relativeDelta) & h.mask);
+        }
+        continue;
+      }
+      if (ev.repeat) continue; // digital auto-repeat carries no new information
+      if (h.toggle) {
+        if (!down) continue;
+        const active = !(this.toggled.get(this.fid(h)) ?? false);
+        this.toggled.set(this.fid(h), active);
+        this.apply(h, active);
+        continue;
+      }
       this.held.set(this.fid(h), down);
       const opp = this.opposite.get(this.fid(h));
       this.apply(h, down);
@@ -130,6 +190,9 @@ export class KeyboardInput implements InputPorts {
   releaseAll(): void {
     for (const tag of Object.keys(this.state)) this.state[tag] = this.init[tag];
     this.held.clear();
+    for (const field of this.fields) {
+      if (field.toggle && this.toggled.get(this.fid(field))) this.apply(field, true);
+    }
   }
 
   read(tag: string): number {

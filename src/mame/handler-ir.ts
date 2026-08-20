@@ -10,8 +10,9 @@ interface Token {
 const TYPE_WORDS = new Set([
   'auto', 'bool', 'char', 'const', 'constexpr', 'double', 'int', 'offs_t', 'pen_t', 'static',
   'rectangle', 'rgb_t', 'tilemap_memory_index',
-  's8', 's16', 's32', 'u8', 'u16', 'u32',
-  'int8_t', 'int16_t', 'int32_t', 'uint8_t', 'uint16_t', 'uint32_t', 'unsigned',
+  's8', 's16', 's32', 's64', 'u8', 'u16', 'u32', 'u64',
+  'int8_t', 'int16_t', 'int32_t', 'int64_t',
+  'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'unsigned',
 ]);
 
 const BINARY_PRECEDENCE: Record<string, number> = {
@@ -45,7 +46,27 @@ const ASSIGNMENT_OPERATORS = new Set([
  * guess at their behavior.
  */
 export function compileMameHandler(body: string): GeneratedHandlerProgram {
-  const parser = new HandlerParser(tokenize(body));
+  // C++ pointer-to-member invocation has no distinct runtime value in the IR.
+  // Preserve it as a normal call through the member slot; the surrounding
+  // source null check still controls whether the call is reached.
+  const executable = body
+    .replace(
+      /\(\s*this\s*->\s*\*\s*(m_\w+)\s*\)\s*\(/g,
+      '$1(',
+    )
+    // Named C++ casts carry the same numeric/view semantics as an ordinary
+    // cast in handler IR. This common form appears in byte-backed sprite RAM.
+    .replace(
+      /\breinterpret_cast\s*<([^>]+)>\s*\(([^;]+)\)/g,
+      '($1)($2)',
+    )
+    // MAME's frequency literal macros are preprocessing tokens whose leading
+    // digit otherwise looks like a number followed by a stray identifier.
+    .replace(/\b(\d+(?:\.\d+)?)_MHz_XTAL\b/g, (_all, mhz) =>
+      String(Number(mhz) * 1_000_000))
+    .replace(/\b(\d+(?:\.\d+)?)_kHz_XTAL\b/g, (_all, khz) =>
+      String(Number(khz) * 1_000));
+  const parser = new HandlerParser(tokenize(executable));
   return parser.parse();
 }
 
@@ -253,13 +274,15 @@ class HandlerParser {
       }
       initialize = operations;
     }
-    const condition = this.parseExpression();
-    if (!condition || !this.consume(';')) {
+    const condition = this.consume(';')
+      ? { kind: 'number' as const, value: 1 }
+      : this.parseExpression();
+    if (!condition || (this.tokens[this.index - 1]?.text !== ';' && !this.consume(';'))) {
       this.unsupportedStatement('invalid for condition');
       return undefined;
     }
-    const iterate = this.parseMutation(')');
-    if (!iterate) {
+    const iterate = this.parseMutationList(')');
+    if (!iterate?.length) {
       this.unsupportedStatement('invalid for iteration');
       return undefined;
     }
@@ -441,8 +464,9 @@ class HandlerParser {
           this.unsupportedStatement(`invalid array declaration of "${name.text}"`);
           return declarations;
         }
-        if (this.consume('=')) {
-          if (!this.consume('{')) {
+        const directListInitializer = this.consume('{');
+        if (directListInitializer || this.consume('=')) {
+          if (!directListInitializer && !this.consume('{')) {
             this.unsupportedStatement(`invalid array initializer of "${name.text}"`);
             return declarations;
           }
@@ -451,10 +475,14 @@ class HandlerParser {
             this.unsupportedStatement(`invalid array initializer of "${name.text}"`);
             return declarations;
           }
-          value = {
+          value = values.length ? {
             kind: 'call',
             callee: { kind: 'identifier', name: 'ARRAY' },
             args: values,
+          } : {
+            kind: 'call',
+            callee: { kind: 'identifier', name: 'ALLOC' },
+            args: [length ?? { kind: 'number', value: 0 }],
           };
         } else {
           value = {
@@ -687,7 +715,13 @@ class HandlerParser {
 
   private parsePrimary(): GeneratedExpression | undefined {
     const token = this.take();
-    if (token.kind === 'number') return { kind: 'number', value: parseNumber(token.text) };
+    if (token.kind === 'number') {
+      return {
+        kind: 'number',
+        value: parseNumber(token.text),
+        ...(isFloatingNumberLiteral(token.text) ? { floating: true } : {}),
+      };
+    }
     if (token.kind === 'string') return { kind: 'string', value: unquote(token.text) };
     if (token.kind === 'identifier') {
       if (token.text === 'true') return { kind: 'number', value: 1 };
@@ -807,6 +841,11 @@ function parseNumber(text: string): number {
   // C octal literal: leading zero followed by octal digits only.
   if (/^0[0-7]+$/.test(normalized)) return Number.parseInt(normalized, 8);
   return Number(normalized);
+}
+
+function isFloatingNumberLiteral(text: string): boolean {
+  if (/^0[xX]|^0[bB]/.test(text)) return false;
+  return text.includes('.') || /[eEfF]/.test(text);
 }
 
 function unquote(text: string): string {

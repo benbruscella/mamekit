@@ -16,11 +16,15 @@ import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDi
 
 export interface WorkletCoreConfig {
   readonly sampleRate: number;
+  readonly deviceType?: string;
   readonly waveRom?: Uint8Array;
+  readonly sampleRom?: Uint8Array;
   readonly clock?: number;
   readonly voices?: number;
   /** number of chip instances the worklet should host (ay8910 bank) */
   readonly chips?: number;
+  /** MAME device tags in chip-index order, used by dynamic gain writes. */
+  readonly deviceTags?: string[];
   readonly routes?: GeneratedAudioRoute[];
   readonly auxiliary?: GeneratedDacFilterPlan;
   readonly auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
@@ -100,10 +104,13 @@ export class AudioOutput {
 
     node.port.postMessage({
       type: 'init',
+      deviceType: core.deviceType,
       waveRom: core.waveRom ?? new Uint8Array(0x100),
+      sampleRom: core.sampleRom,
       clock: core.clock ?? core.sampleRate,
       voices: core.voices,
       chips: core.chips,
+      deviceTags: core.deviceTags,
       routes: core.routes,
       auxiliary: core.auxiliary,
       auxiliaryDevices: core.auxiliaryDevices,

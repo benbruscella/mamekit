@@ -11,21 +11,21 @@ import type { PortDeclaration } from '../ports.ts';
 export const AY8910_ID = 'ay8910';
 
 /**
- * MSM5205 and R2R DACs are claimed only alongside an AY: on a board with
- * no AY there is no worklet to mix them into, and extraction says so.
+ * MSM5205 is embedded alongside an AY. Parallel DACs have their own generic
+ * capability and may still be routed into the AY mix as auxiliary streams.
  */
 export const AY8910_MAME_TYPES = [
   'AY8910',
+  'AY8912',
+  'YM2149',
   'MSM5205',
-  'DAC_4BIT_R2R',
-  'DAC_8BIT_R2R',
 ] as const;
 
 export const AY8910_IR_ARTIFACT = 'audio/ay8910.audio.ir.json';
 export const AY8910_WORKLET_ARTIFACT = 'audio/ay8910-worklet.ts';
 export const MSM5205_IR_ARTIFACT = 'audio/msm5205.audio.ir.json';
 
-/** The AY bank runs hot against the other cores; this sits it level with them. */
+/** Default for normalized AY stream packages; compiled analog mixers override it. */
 export const AY8910_MASTER_GAIN = 0.7;
 
 export const AY8910_PORTS: readonly PortDeclaration[] = [
