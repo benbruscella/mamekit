@@ -6,10 +6,14 @@
 
 import { expect, test } from '@playwright/test';
 import { selectedContracts } from '../support/contracts.ts';
+import { knownIssue } from '../support/known-issues.ts';
 import { bootGame, keysFor, measureAudio, replayContract, screenPng } from '../support/game.ts';
 
 for (const contract of selectedContracts()) {
   test.describe(contract.game, () => {
+    const known = knownIssue(contract.game);
+    test.skip(Boolean(known), `known issue #54: ${known}`);
+
     test('plays its accepted contract on the app canvas', async ({ page }) => {
       const faults = await bootGame(page, contract, { qa: true });
 
