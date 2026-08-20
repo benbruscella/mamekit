@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadGameContracts } from '../games/contracts.ts';
@@ -32,6 +32,18 @@ check('every discovered module exports a matching contract', () => {
 
 check('every accepted target is a required target', () => {
   assert.deepEqual(ACCEPTED_TARGETS.filter(target => !REQUIRED_TARGETS.includes(target)), []);
+});
+
+// Disabling a game is a move into src/games/disabled, so the guarantee worth
+// testing is that parking a contract there actually takes it out of the build.
+check('disabled contracts are not generated', () => {
+  const disabled = readdirSync(join(projectRoot, 'src/games/disabled'))
+    .filter(name => name.endsWith('.ts') && !name.endsWith('.spec.ts'))
+    .map(name => name.replace(/\.ts$/, ''));
+  assert.ok(disabled.length > 0, 'issue #53 parked broken games in src/games/disabled');
+  for (const game of disabled) {
+    assert.ok(!REQUIRED_TARGETS.includes(game), `disabled game "${game}" is still built`);
+  }
 });
 
 check('required targets are unique', () => {

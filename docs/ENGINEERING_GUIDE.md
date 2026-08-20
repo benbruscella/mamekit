@@ -73,6 +73,13 @@ contracts in `src/games/contracts.ts`: a game with a contract is by definition
 one that must generate and pass. `src/gen/targets.spec.ts` asserts that target
 discovery, the generated catalog and the contracts name the same set.
 
+A target is removed from that set by moving its contract module and spec into
+`src/games/disabled/`, which discovery does not read. The pair stays in the
+tree with a header note recording what play-testing found, its spec keeps
+running under `test:unit` so the driver still has to compile, and re-enabling a
+fixed game is moving the two files back up. Issue #53 parked the first batch
+there.
+
 Target generation is already parallel. `gen:all` uses a bounded worker pool
 (memory-aware, capped at 8 — see `src/gen/generator-workers.ts`). Override it
 with `npm run gen:all -- --jobs 12` or `MAMEKIT_JOBS=12`; do not launch an

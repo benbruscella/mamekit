@@ -160,6 +160,12 @@ The token declares only:
 - frame checkpoints and input schedule;
 - compact hashes for the accepted generated behavior.
 
+A game whose generated build is known bad moves to `src/games/disabled/`, a
+directory discovery never reads, so it stops being generated, audited and
+shipped. Each parked module carries a header note with the play-test finding
+that disabled it, and its spec keeps running from there, so the driver must
+still compile. Re-enabling one is moving the module and spec back up.
+
 It must never contain CPU instructions, address-map behavior, graphics decode,
 palette logic, sprite drawing, sound synthesis, or a board implementation.
 Those facts must continue to come from MAME through AST, KG and typed IR

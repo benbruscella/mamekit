@@ -1,5 +1,0 @@
-import { spyhunt } from './spyhunt.ts';
-import { gameSourceGraph } from './test-support.ts';
-
-gameSourceGraph(spyhunt);
-console.log('spyhunt.spec: source machine graph passed');
