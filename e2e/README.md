@@ -92,6 +92,21 @@ for about fifteen seconds, inserting a coin, pressing start and playing. The
 contract pass drives frames itself and finishes a 600-frame contract in a
 couple of seconds, which is the point of it.
 
+## WHICH MACHINES TO RUN
+
+After a runtime or compiler change, `npm run blast-radius` derives the affected
+machines from the generated artifacts and prints the `MAMEKIT_E2E_GAMES=...`
+command for exactly those, instead of sweeping all of them:
+
+```sh
+node tools/blast-radius.ts --device NAMCO_53XX
+node tools/blast-radius.ts --multi-slot
+node tools/blast-radius.ts                    # infer from the working diff
+```
+
+Query the mechanism you changed, not the file you edited. A generic
+`src/runtime` module reaches every machine and the tool says so.
+
 ## SNAPSHOTS
 
 `snapshots/<game>-final.png` is the canvas backing store — the rotated frame

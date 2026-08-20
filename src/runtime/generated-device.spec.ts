@@ -132,6 +132,31 @@ assert.throws(() => device.call('missing'), /no generated method/);
 assert.throws(() => device.on('missing', () => {}), /no callback signal/);
 assert.throws(() => device.on('q_out_cb', () => {}, 2), /has no slot 2/);
 
+// A MAME devcb is one .set() plus any number of .append()s and the whole chain
+// contributes: reads OR together. Overwriting per listener kept only the last,
+// which collapsed the Namco 53xx K port — three shifted LS259 bits appended to
+// one callback — from (q7<<3)|(q6<<2)|(q5<<1) = 14 down to a single bit, so the
+// MCU selected the wrong mode and answered DIP reads with garbage.
+{
+  const chained = createDevice('FIXTURE', { clock: 1 });
+  chained.on('q_out_cb', () => 8, 0);
+  chained.on('q_out_cb', () => 4, 0);
+  chained.on('q_out_cb', () => 2, 0);
+  assert.equal(
+    (chained as unknown as { members: Record<string, (() => number)[]> }).members.m_q![0]!(),
+    14,
+    'an appended devcb read chain must OR, not overwrite',
+  );
+  // An unbound chain still reports the source's initial value, which is how
+  // MAME's devcb::isunset() paths keep reading high.
+  const unbound = createDevice('FIXTURE', { clock: 1 });
+  assert.equal(
+    (unbound as unknown as { members: Record<string, (() => number)[]> }).members.m_q![0]!(),
+    9,
+    'an unbound devcb must return its declared initial',
+  );
+}
+
 // A required_shared_ptr member binds a board memory share (DEVICE_SELF is the
 // device's own tag), a std::vector member is device-owned, and C++ default
 // arguments apply when a caller omits them.

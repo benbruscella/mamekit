@@ -59,6 +59,7 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run test:generation` | clean-generate every required target and audit all output |
 | `npm run test:games` | deterministic real-ROM contracts for supported games |
 | `npm run test:blast-radius` | run every old and new real-ROM game canary |
+| `npm run blast-radius` | which machines a change can reach, and the e2e command for exactly those |
 | `npm run test:games:record` | record candidate game baselines for review |
 | `npm run serve` | rebuild app shell and serve `dist` on localhost |
 | `npm run deploy -- --artwork` | clean-generate and publish the static site |
@@ -300,6 +301,38 @@ Choose the layer from evidence, not from the visible symptom.
 The default solution is a reusable MAME-source lowering improvement. Never add
 `src/runtime/z80.ts`, `src/runtime/ay8910.ts`, a game-named renderer, or a
 family board adapter.
+
+## 6A. WHICH MACHINES A CHANGE REACHES
+
+`npm run blast-radius` answers "what else could this have moved" from the
+generated artifacts rather than by sweeping. Each `board.json` names the
+devices, callbacks, handlers and CPUs its machine actually composes, so the
+affected set is derivable:
+
+```sh
+node tools/blast-radius.ts --device NAMCO_53XX     # machines with that device
+node tools/blast-radius.ts --signal k_port_callback
+node tools/blast-radius.ts --handler pacman_sound_w
+node tools/blast-radius.ts --cpu z80 --sound wsg
+node tools/blast-radius.ts --multi-slot            # >1 callback on one devcb slot
+node tools/blast-radius.ts --read-transform        # transformed device-method reads
+node tools/blast-radius.ts                         # infer from the working diff
+```
+
+It prints the machines, why each matched, and the `MAMEKIT_E2E_GAMES=...`
+command that exercises exactly them.
+
+Query the *mechanism you changed*, not the file you edited. A generic
+`src/runtime` module reaches every machine and the tool says so rather than
+inventing a narrow answer; the useful question is then which machines compose
+the specific device, signal or handler the change touches. When the 2026-08-20
+devcb read fix landed, `--read-transform` and `--multi-slot` named seven
+candidates out of forty-seven, and running only those found the single machine
+whose behaviour actually moved.
+
+This narrows what to test. It never decides whether a difference is acceptable
+— that still needs the goldens, and a comparison against real MAME when the
+behaviour itself is in question.
 
 ## 7. TEST STRATEGY
 

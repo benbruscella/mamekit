@@ -14,7 +14,6 @@ export const KNOWN_ISSUES: Record<string, string> = {
   '1942': '20 fps',
   carnival: 'sound explosion',
   defender: "can't turn around",
-  digdug: "doesn't reach the centre of the screen in time",
   gunsmoke: 'firing keys do not match direction',
   gyruss: 'swarm sound missing',
   popeye: 'graphic glitches',

@@ -151,6 +151,13 @@ Every other part of the page — input, board, audio, blit — is unchanged.
 machine at a time, so a failure can be watched rather than inferred. Narrow it
 with `MAMEKIT_E2E_GAMES=<game>`.
 
+To decide *which* machines to narrow to after a runtime or compiler change, use
+`npm run blast-radius` rather than sweeping. It derives the affected set from
+the generated artifacts — each `board.json` names the devices, callbacks,
+handlers and CPUs its machine composes — and prints the matching
+`MAMEKIT_E2E_GAMES=...` command. See
+[ENGINEERING GUIDE](ENGINEERING_GUIDE.md) section 6A.
+
 The suite is local only for the same reason `test:games` is: it needs ROMs. See
 [e2e/README](../e2e/README.md) for layout, snapshot recording, the full list of
 environment switches, and the opt-in `rom-search` spec, which requires the
