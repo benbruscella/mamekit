@@ -15,6 +15,7 @@
     "gen:all": "npm run clean && node bin/mamekit.js --all",
     "audit:generated": "node src/gen/audit-generated.ts",
     "audit:game-package": "node tools/audit-game-package.ts",
+    "blast-radius": "node tools/blast-radius.ts",
     "deploy": "bash scripts/deploy-pages.sh --artwork",
     "deploy:noart": "bash scripts/deploy-pages.sh",
     "test": "npm run test:unit && npm run test:current && npm run test:blast-radius",
@@ -23,6 +24,9 @@
     "test:generation": "node src/gen/test-generation.ts",
     "test:games": "for game in $(node src/games/acceptance.ts --list); do node src/games/acceptance.ts \"$game\" || exit 1; sleep 5; done",
     "test:blast-radius": "npm run test:games",
+    "test:e2e": "playwright test --config e2e/playwright.config.ts",
+    "test:e2e:headed": "MAMEKIT_HEADED=1 playwright test --config e2e/playwright.config.ts",
+    "test:e2e:record": "playwright test --config e2e/playwright.config.ts --update-snapshots",
     "test:games:record": "for game in $(node src/games/acceptance.ts --list); do node src/games/record-goldens.ts \"$game\" || exit 1; sleep 5; done",
     "audio:compare": "node tools/compare-game-audio.ts"
   },
@@ -30,7 +34,8 @@
     "node": ">=23.6"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
-    "@types/node": "^22.10.0"
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2"
   }
 }

@@ -61,6 +61,18 @@ export interface BoundEffect {
  * Any connection that cannot be bound aborts board construction, naming the
  * MAME source line — the browser equivalent of the compiler's own check.
  */
+/**
+ * MAME names device accessors by direction: a read ends in _r (q7_r, K_r,
+ * R_r_0) and a write in _w. A devcb bound to a read accessor pulls a value
+ * back, so its transform applies to the value read, not to the emitted
+ * argument. Getting that backwards shifted the argument instead of the result,
+ * which collapsed the Namco 53xx's mode select — three latch bits appended as
+ * (q7<<3)|(q6<<2)|(q5<<1) — into a single unshifted bit.
+ */
+function isSourceReadAccessor(method: string): boolean {
+  return /(?:^|_)r(?:_\d+)?$/.test(method) || /^read(?:_|$)/.test(method);
+}
+
 export function bindBoardEffects(
   machine: BoardIr,
   bindings: EffectBindings,
@@ -86,7 +98,9 @@ export function bindBoardEffects(
     bound.set(connection.callbackId, {
       run,
       transforms: connection.transforms,
-      reads: connection.effect.kind === 'port-read',
+      reads: connection.effect.kind === 'port-read' ||
+        (connection.effect.kind === 'device-method' &&
+          isSourceReadAccessor(connection.effect.method)),
     });
   }
   if (unbound.length) {

@@ -115,6 +115,28 @@ check('port-read effects are marked as reads', () => {
   assert.equal(effects.get('p')!.reads, true);
 });
 
+// A devcb bound to a source read accessor pulls a value back, so its transform
+// applies to what was read. Classifying such a callback as a write shifted the
+// emitted argument instead and threw the result away — that is what collapsed
+// the Namco 53xx K port from (q7<<3)|(q6<<2)|(q5<<1) = 14 down to 1, booting
+// the MCU in the wrong mode.
+check('a device-method read accessor is bound as a read', () => {
+  const effects = bindBoardEffects(machineWith([
+    { callbackId: 'q7', effect: { kind: 'device-method', tag: 'misclatch', method: 'q7_r' }, transforms: [] },
+    { callbackId: 'k', effect: { kind: 'device-method', tag: 'namco53', method: 'K_r' }, transforms: [] },
+    { callbackId: 'r0', effect: { kind: 'device-method', tag: 'namco53', method: 'R_r_0' }, transforms: [] },
+    { callbackId: 'latched', effect: { kind: 'device-method', tag: 'soundlatch', method: 'read' }, transforms: [] },
+    { callbackId: 'w', effect: { kind: 'device-method', tag: 'misclatch', method: 'write_d0' }, transforms: [] },
+    { callbackId: 'select', effect: { kind: 'device-method', tag: 'namco53', method: 'chip_select' }, transforms: [] },
+  ]), bindings);
+  for (const id of ['q7', 'k', 'r0', 'latched']) {
+    assert.equal(effects.get(id)!.reads, true, `${id} must bind as a read`);
+  }
+  for (const id of ['w', 'select']) {
+    assert.equal(effects.get(id)!.reads, false, `${id} must bind as a write`);
+  }
+});
+
 check('duplicate callback connections abort construction', () => {
   const connection = {
     callbackId: 'duplicate',

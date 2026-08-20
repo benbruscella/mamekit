@@ -28,7 +28,7 @@ source forms, generated hardware contracts, and named supported machines.
 | All registered target generation | `npm run test:generation` | yes | no | manual |
 | Generated game behavior | `npm run test:games` | no after generation | yes | local |
 | Shared-core blast radius | `npm run test:blast-radius` | no after generation | yes | local |
-| Browser presentation | `npm run serve` plus browser QA | no after generation | yes | local |
+| Browser presentation | `npm run test:e2e` | no after generation | yes | local |
 
 `npm test` runs every colocated spec, clean generation/audit, and then every
 real-ROM game contract. It is the local shared-core gate and requires the ROMs
@@ -120,6 +120,48 @@ Generated device code must additionally pass a compiled-versus-interpreted
 differential spec. Compare emitted writes, framebuffer effects and every device
 member after identical calls. A relative performance assertion belongs with a
 proven hot loop; absolute real-time acceptance remains in the game token.
+
+### BROWSER PRESENTATION
+
+`test:e2e` is the Playwright suite in `e2e/`. It plays every accepted machine
+through the real app and is what replaces play-testing each one by hand.
+
+The Node contracts above import generated modules directly, so the app is
+absent from them: no DOM, no canvas, no AudioWorklet, no keyboard. A broken
+audio route or a stalled blit passes `test:games` and still ships. The browser
+suite drives `/app/g/<game>/`, feeds the app's own ROM picker from
+`.data/roms`, and replays the same token schedule through window key events,
+then compares:
+
+- assembled region hashes, so the picker built the accepted ROM set;
+- every checkpoint's framebuffer and state hash against the token's golden;
+- the presented canvas against `e2e/snapshots/<game>-final.png`;
+- measured sound on the app's own AudioWorklet graph, which the offline audio
+  probe never touches;
+- emulated frames per wall-clock second against the token's `minimumFps`.
+
+The goldens are the token's, so there is no second baseline to keep in step. A
+browser failure means the app path diverged from the accepted machine.
+
+`?qa=1` parks the shell's wall-clock timestep and hands frame advancement to
+`window.mamekit.step()`, so a browser run is as deterministic as a Node one.
+Every other part of the page — input, board, audio, blit — is unchanged.
+
+`npm run test:e2e:headed` runs the same suite in a real browser window, one
+machine at a time, so a failure can be watched rather than inferred. Narrow it
+with `MAMEKIT_E2E_GAMES=<game>`.
+
+To decide *which* machines to narrow to after a runtime or compiler change, use
+`npm run blast-radius` rather than sweeping. It derives the affected set from
+the generated artifacts — each `board.json` names the devices, callbacks,
+handlers and CPUs its machine composes — and prints the matching
+`MAMEKIT_E2E_GAMES=...` command. See
+[ENGINEERING GUIDE](ENGINEERING_GUIDE.md) section 6A.
+
+The suite is local only for the same reason `test:games` is: it needs ROMs. See
+[e2e/README](../e2e/README.md) for layout, snapshot recording, the full list of
+environment switches, and the opt-in `rom-search` spec, which requires the
+public mirror to hand back a bootable set.
 
 ## 3. GAME TOKENS
 
@@ -292,7 +334,11 @@ changes point toward generated synthesis or resampling.
    described in [CONTRIBUTING](CONTRIBUTING.md), then run
    `npm run audit:game-package -- <game>`.
 8. Run `test:games:record`, review the candidate baseline, and add it.
-9. Run `npm test`, `npm run test:games`, and the relevant browser checks.
+9. Run `npm test` and `npm run test:games`.
+10. Record the browser baseline with
+    `MAMEKIT_E2E_GAMES=<game> npm run test:e2e:record`, then run
+    `npm run test:e2e`. Browser QA needs no registration: the machine is
+    discovered from its token like every other gate.
 
 If a new title requires changes to `acceptance-harness.ts`, first decide
 whether the requirement is a reusable hardware category or an accidental
@@ -330,6 +376,9 @@ source, generation and real-ROM gates before changing the pin.
 | Audio write hash | sound map, latch, callback, sound CPU/device routing |
 | PCM hash only | generated DSP, chip clock, gain, mute or resampling |
 | Browser only | app registry, URL/MIME, canvas, AudioWorklet or scheduler |
+| Browser checkpoint hash while `test:games` passes | ROM picker assembly, shell input dispatch, run-loop frame accounting |
+| Browser snapshot only | canvas geometry, rotation, blit |
+| Browser audio only | AudioWorklet module URL, worklet init message, gain routing |
 
 Always reproduce after a clean generation. A mixed `dist` is not valid test
 evidence.
