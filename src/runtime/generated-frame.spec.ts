@@ -59,7 +59,11 @@ assert.deepEqual(lines, [0, 1, 2]);
 assert.deepEqual(events, ['callback:vblank']);
 assert.equal(vblanks, 1);
 assert.equal(renders, 1);
-assert.deepEqual(timeline, ['cpu', 'cpu', 'cpu', 'render']);
+// MAME presents a frame-mode screen at the start of VBLANK, so the scanlines
+// from vbstart (2 here) to vtotal still run their CPU slices after the frame is
+// drawn. Deferring the render to the frame boundary samples a game that erases
+// and redraws sprites in its VBLANK handler halfway through the update.
+assert.deepEqual(timeline, ['cpu', 'cpu', 'render', 'cpu']);
 assert.equal(runner.frameCount, 1);
 
 const scanlines: number[] = [];
@@ -123,4 +127,32 @@ periodicRunner.reset();
 periodicRunner.frame(new Uint32Array(1));
 assert.equal(periodicCallbacks, 7);
 
-console.log('generated-frame.spec: 13 passed');
+// A board whose vbstart lies outside the emulated line range (asteroid ships
+// vbstart 1183 with vtotal 300) never reaches the in-loop VBLANK presentation,
+// so the end-of-frame fallback must still draw the frame exactly once.
+const offscreenTimeline: string[] = [];
+const offscreenRunner = new GeneratedFrameRunner({
+  machine: {
+    ...machine,
+    callbacks: [],
+    execution: {
+      ...machine.execution,
+      screen: { ...machine.execution.screen, vtotal: 3, vbstart: 99 },
+      frameEvents: [],
+    },
+  },
+  processors: [{ tag: 'maincpu', run: budget => {
+    offscreenTimeline.push('cpu');
+    return budget;
+  } }],
+  video: {
+    width: 1,
+    height: 1,
+    render: () => { offscreenTimeline.push('render'); },
+    vblank: () => { /* unused */ },
+  },
+});
+offscreenRunner.frame(new Uint32Array(1));
+assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
+
+console.log('generated-frame.spec: 14 passed');
