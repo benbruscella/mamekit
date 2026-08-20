@@ -168,29 +168,40 @@ export async function replayContract(page: Page, plan: ReplayPlan): Promise<Repl
 }
 
 /**
- * Peak RMS reaching the speakers over `seconds`, measured on the app's own
- * AudioWorklet graph. Silence here is the failure the Node audio probe cannot
- * see: it renders the DSP offline and never touches this wiring.
+ * Start tracking the loudest moment reaching the speakers, measured on the
+ * app's own AudioWorklet graph. Silence there is the failure the Node audio
+ * probe cannot see: it renders the DSP offline and never touches this wiring.
+ *
+ * Tracking runs for the whole session rather than a fixed window on purpose.
+ * A window has to guess when a machine makes noise, and machines disagree:
+ * Space Invaders is silent until play starts, Commando plays attract music and
+ * then opens a level quietly. Guessing wrong reports a healthy machine as
+ * mute. Peak-over-everything answers the question actually being asked — did
+ * this machine ever make a sound — and a machine whose audio path is broken
+ * still reads exactly 0 throughout.
  */
-export async function measureAudio(page: Page, seconds: number): Promise<number> {
-  return page.evaluate(async (windowSeconds: number) => {
+export async function trackAudioPeak(page: Page): Promise<void> {
+  await page.evaluate(() => {
     const audio = (window as unknown as {
       mamekit: { audio: { monitor(): AnalyserNode | null } };
     }).mamekit.audio;
     const analyser = audio.monitor();
     if (!analyser) throw new Error('audio never started');
     const samples = new Float32Array(analyser.fftSize);
-    let peak = 0;
-    const until = performance.now() + windowSeconds * 1000;
-    while (performance.now() < until) {
-      await new Promise(resolve => setTimeout(resolve, 50));
+    const store = window as unknown as { __qaAudioPeak: number };
+    store.__qaAudioPeak = 0;
+    setInterval(() => {
       analyser.getFloatTimeDomainData(samples);
       let sum = 0;
       for (const sample of samples) sum += sample * sample;
-      peak = Math.max(peak, Math.sqrt(sum / samples.length));
-    }
-    return peak;
-  }, seconds);
+      store.__qaAudioPeak = Math.max(store.__qaAudioPeak, Math.sqrt(sum / samples.length));
+    }, 50);
+  });
+}
+
+/** The loudest RMS seen since trackAudioPeak(). */
+export async function audioPeak(page: Page): Promise<number> {
+  return page.evaluate(() => (window as unknown as { __qaAudioPeak: number }).__qaAudioPeak);
 }
 
 /**
@@ -207,6 +218,18 @@ export async function screenPng(page: Page): Promise<Buffer> {
     canvas => (canvas as HTMLCanvasElement).toDataURL('image/png'),
   );
   return Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64');
+}
+
+/**
+ * Wall-clock seconds this machine needs to reach a given emulated frame, at
+ * the screen refresh the generated board actually runs at (Space Invaders is
+ * 59.54 Hz, not 60).
+ */
+export async function secondsToFrame(page: Page, frame: number): Promise<number> {
+  const refresh = await page.evaluate(() => (window as unknown as {
+    mamekit: { config: { board: { screen: { refresh: number } } } };
+  }).mamekit.config.board.screen.refresh);
+  return frame / refresh;
 }
 
 /** The keys the generated bindings assign to one MAME input, e.g. IPT_COIN1. */

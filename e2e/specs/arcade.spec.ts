@@ -5,9 +5,9 @@
 // MAMEKIT_E2E_GAMES=pacman,galaga while bringing a machine up.
 
 import { expect, test } from '@playwright/test';
-import { selectedContracts } from '../support/contracts.ts';
+import { readyFrame, selectedContracts } from '../support/contracts.ts';
 import { knownIssue } from '../support/known-issues.ts';
-import { bootGame, keysFor, measureAudio, replayContract, screenPng } from '../support/game.ts';
+import { audioPeak, bootGame, keysFor, replayContract, screenPng, secondsToFrame, trackAudioPeak } from '../support/game.ts';
 
 for (const contract of selectedContracts()) {
   test.describe(contract.game, () => {
@@ -50,18 +50,23 @@ for (const contract of selectedContracts()) {
       expect(coin, 'no generated IPT_COIN1 binding').toBeTruthy();
       expect(start, 'no generated IPT_START1 binding').toBeTruthy();
 
-      await page.waitForTimeout(5_000); // attract mode, as a visitor finds it
+      // Wait exactly as long as this machine's token does before coining it.
+      // A fixed wait coins Ghouls'n Ghosts 29 seconds into its boot, where the
+      // coin is ignored and the silent attract screen looks like broken audio.
+      // Listen from boot, so attract music counts as evidence too.
+      await trackAudioPeak(page);
+      await page.waitForTimeout(await secondsToFrame(page, readyFrame(contract)) * 1000);
       await page.keyboard.press(coin!, { delay: 120 });
       await page.waitForTimeout(500);
       await page.keyboard.press(start!, { delay: 120 });
       await page.waitForTimeout(2_000);
 
-      const audible = measureAudio(page, 4);
       for (let shot = 0; shot < 8 && fire; shot++) {
         await page.keyboard.press(fire, { delay: 80 });
         await page.waitForTimeout(400);
       }
-      const peak = await audible;
+      await page.waitForTimeout(1_500);
+      const peak = await audioPeak(page);
       test.info().annotations.push({ type: 'audio', description: `peak rms ${peak.toFixed(4)}` });
       if (contract.soundKind !== 'none') {
         // Silence is the failure the Node audio probe cannot see: it renders

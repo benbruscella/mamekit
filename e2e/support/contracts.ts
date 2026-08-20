@@ -83,6 +83,17 @@ export function selectedContracts(): GameContract[] {
   return contracts;
 }
 
+/**
+ * The frame this machine is first driven at, which its token owns because
+ * machines reach their input-ready attract state at wildly different times —
+ * Pac-Man takes a coin at frame 300, Ghouls'n Ghosts not until 2,050. Wall
+ * clock QA has to wait exactly as long, or it coins into a self-test and then
+ * reports a machine that never started as a machine that makes no sound.
+ */
+export function readyFrame(contract: GameContract): number {
+  return contract.actions[0]?.atFrame ?? 0;
+}
+
 /** One contract by MAME short name. */
 export function contractFor(game: string): GameContract {
   const contract = loadContracts().find(candidate => candidate.game === game);

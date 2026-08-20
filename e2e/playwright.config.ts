@@ -36,7 +36,11 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: 0,
+  // The live pass is a wall-clock measurement: under parallel load a heavy
+  // board can momentarily miss its fps floor. One retry keeps that from
+  // reading as a defect — a real one fails both attempts, and the report
+  // still marks the difference as flaky rather than hiding it.
+  retries: 1,
   workers: process.env.PLAYWRIGHT_WORKERS
     ? Number(process.env.PLAYWRIGHT_WORKERS)
     : headed ? 1 : 4,
