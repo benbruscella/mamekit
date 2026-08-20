@@ -3110,8 +3110,12 @@ export function normalizeMameExecutionSource(source: string): string {
       /\bget_service_attention\s*<\s*([^>]+)\s*>\s*\(\s*\)/g,
       'get_service_attention($1)',
     )
+    // Match within a single line only: with \s+ the type-word chain could
+    // reach back across a newline into a preceding // comment ("// character
+    // palette\n const uint8_t *char_pal = ..."), splicing the declaration into
+    // the comment and silently deleting it (Moon Patrol's init_palette).
     .replace(
-      /\b(?:[\w:<>]+\s+)+\*\s*(\w+)\s*=/g,
+      /\b(?:[\w:<>]+[ \t]+)+\*[ \t]*(\w+)[ \t]*=/g,
       'auto $1 =',
     )
     // Driver lifecycle handlers use the standard spelling when ownership is

@@ -1497,6 +1497,10 @@ class GeneratedTilemap {
             transparentMask = 1 << this.plan.transparentPen;
           }
         }
+        // TILE_FORCE_LAYER0: the tile declares every pixel opaque regardless
+        // of the tilemap's transparent pen (m52 status rows are the canonical
+        // case; the wrapped copy of those rows also covers the bottom lines).
+        if (tile.flags & 0x10) transparentMask = 0;
         for (
           let wrappedX = firstWrappedX;
           wrappedX <= firstWrappedX + mapWidth * 2;
