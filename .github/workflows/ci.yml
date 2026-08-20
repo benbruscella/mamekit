@@ -1,7 +1,11 @@
 name: CI
 
 on:
+  # A push to a PR branch already gets a pull_request run, so pushes are only
+  # interesting for the trunk itself; without this filter every PR commit ran
+  # the 45-minute job twice.
   push:
+    branches: [main]
   pull_request:
 
 permissions:

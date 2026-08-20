@@ -65,13 +65,22 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 
 The broad `test:generation` command is destructive to `dist` and expensive. It
 generates every target in `REQUIRED_TARGETS`, which is the accepted set plus
-consoles that have no acceptance contract yet.
+any console that has no acceptance contract yet. Issue #53 removed the only
+console entry, `nes`, after play-testing found the generated build no longer
+works, so the required set is currently the accepted set exactly.
 
 Neither command holds a target list of its own. `gen:all` is
 `node bin/mamekit.js --all`, and the set is derived from the acceptance
 contracts in `src/games/contracts.ts`: a game with a contract is by definition
 one that must generate and pass. `src/gen/targets.spec.ts` asserts that target
 discovery, the generated catalog and the contracts name the same set.
+
+A target is removed from that set by moving its contract module and spec into
+`src/games/disabled/`, which discovery does not read. The pair stays in the
+tree with a header note recording what play-testing found, its spec keeps
+running under `test:unit` so the driver still has to compile, and re-enabling a
+fixed game is moving the two files back up. Issue #53 parked the first batch
+there.
 
 Target generation is already parallel. `gen:all` uses a bounded worker pool
 (memory-aware, capped at 8 — see `src/gen/generator-workers.ts`). Override it
@@ -324,7 +333,7 @@ npm run test:generation
 ```
 
 This is the highest-confidence compiler contract. It deletes `dist`, generates
-every required arcade game and console, builds one hardware closure and app,
+every required target, builds one hardware closure and app,
 runs the generated audit, and verifies that the generated catalog has no
 blocked target.
 

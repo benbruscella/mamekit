@@ -5,6 +5,13 @@
 // that game. A contract module is now discovered by being there: one
 // src/games/<game>.ts exporting a GameTestContract, with its colocated spec.
 //
+// Disabling a game is the same rule in reverse: move src/games/<game>.ts and
+// its spec down into src/games/disabled/, where discovery does not look, so
+// the target stops being generated, audited and shipped. Each disabled module
+// keeps a header note saying what play-testing found; issue #53 disabled the
+// first batch. The spec still runs from there, so the driver keeps compiling
+// and re-enabling a fixed game is just moving the pair back up.
+//
 // Node-only — this reads the source directory and never reaches the browser.
 
 import { existsSync, readdirSync } from 'node:fs';
@@ -29,7 +36,8 @@ const INFRASTRUCTURE = new Set([
  *
  * A game module is paired with a colocated spec, which is the convention
  * TESTING.md already requires; requiring the pair keeps a stray helper from
- * being mistaken for a target.
+ * being mistaken for a target. Only this one directory is read, so contracts
+ * parked in disabled/ are invisible here by construction.
  */
 export function discoverGameNames(dir = gamesDir): string[] {
   return readdirSync(dir)

@@ -109,6 +109,11 @@ First fix graph, IR and generated-hardware gaps in isolation. The token is the
 registration: discovery adds it to `gen:all` only when both
 `src/games/<target>.ts` and its colocated spec exist.
 
+The reverse holds for a target that regresses: move the module and its spec
+into `src/games/disabled/` with a header note saying what play-testing found,
+and it stops being generated, audited and shipped while its spec keeps
+compiling the driver under `test:unit`. Issue #53 parked the first batch there.
+
 ### STEP 1: IDENTIFY THE TARGET
 
 Use the MAME short name. There is no central target array or package-script
