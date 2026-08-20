@@ -87,6 +87,7 @@ src/runtime/    browser host and generic typed-IR execution
 bin/            CLI entry point
 scripts/        deployment automation
 tools/          engineering diagnostics
+e2e/            browser QA: every accepted machine played through the app
 docs/           current architecture, contribution, engineering and QA references
 sessions/       historical build transcripts; never current instructions
 dist/           disposable generated distribution

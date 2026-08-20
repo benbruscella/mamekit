@@ -201,6 +201,20 @@ export class AudioOutput {
     node.port.postMessage({ type: 'batch', writes: batch });
   }
 
+  /**
+   * QA tap on the post-gain mix. Browser tests need to prove a machine is
+   * actually audible through the shipped AudioWorklet path — the Node
+   * acceptance probe renders the DSP offline and never touches this graph.
+   * Returns null before start(), and never changes what reaches the speakers.
+   */
+  monitor(): AnalyserNode | null {
+    if (!this.ctx || !this.gain) return null;
+    const analyser = this.ctx.createAnalyser();
+    analyser.fftSize = 2048;
+    this.gain.connect(analyser);
+    return analyser;
+  }
+
   /** Master volume 0..1 via the GainNode. */
   setVolume(v: number): void {
     this.volume = Math.min(1, Math.max(0, v));

@@ -4,6 +4,7 @@ import { AudioOutput } from './audio.ts';
 const messages: unknown[] = [];
 const connections: string[] = [];
 let createdFilter: BiquadFilterNode | undefined;
+let createdAnalyser: AnalyserNode | undefined;
 
 class TestAudioContext {
   readonly audioWorklet = { addModule: async () => {} };
@@ -15,8 +16,14 @@ class TestAudioContext {
   createGain(): GainNode {
     return {
       gain: { value: 1 },
-      connect: () => connections.push('gain->destination'),
+      connect: (target: unknown) => connections.push(
+        target === createdAnalyser ? 'gain->analyser' : 'gain->destination'),
     } as unknown as GainNode;
+  }
+
+  createAnalyser(): AnalyserNode {
+    createdAnalyser = { fftSize: 0 } as unknown as AnalyserNode;
+    return createdAnalyser;
   }
 
   createBiquadFilter(): BiquadFilterNode {
@@ -90,4 +97,10 @@ assert.deepEqual(messages.slice(2), [
   { type: 'batch', writes: [] },
 ]);
 
-console.log('audio.spec: 2 passed');
+// The QA tap hangs off the post-gain mix and never re-routes the speakers.
+const analyser = output.monitor();
+assert.equal(analyser?.fftSize, 2048);
+assert.deepEqual(connections.slice(3), ['gain->analyser']);
+assert.equal(new AudioOutput().monitor(), null); // nothing to tap before start()
+
+console.log('audio.spec: 4 passed');

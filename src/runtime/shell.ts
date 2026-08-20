@@ -519,8 +519,32 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   const image = new ImageData(
     new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
 
+  // One emulated frame, exactly as the run loop advances it. Browser QA drives
+  // this directly so a test can run a precise frame count instead of racing the
+  // wall clock; nothing about the machine lives here.
+  const stepFrames = (count: number): void => {
+    for (let index = 0; index < count; index++) {
+      input.advance();
+      board.frame(fb);
+      audio.flush(); // one batch message per emulated frame
+      frames++;
+    }
+    if (count > 0) ui.blit(image);
+  };
+
+  // ?qa=1 parks the wall-clock timestep and hands frame advancement to
+  // window.mamekit.step(). The presentation path is unchanged — the same
+  // input, board, audio and blit calls run — so the app's own canvas can be
+  // compared against the deterministic goldens in src/games.
+  const qaDrive = new URLSearchParams(location.search).has('qa');
+
   // debug/testing handle (also the hook for the future live KG-viewer overlay)
-  (window as unknown as Record<string, unknown>).mamekit = { board, input, config: cfg, audio };
+  (window as unknown as Record<string, unknown>).mamekit = {
+    board, input, config: cfg, audio, regions,
+    framebuffer: fb,
+    step: stepFrames,
+    qaDrive,
+  };
 
   // Start immediately — the menu click that navigated here counts as the
   // user gesture in same-origin sessions. Audio starts in parallel; if the
@@ -575,16 +599,12 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     acc += now - last;
     last = now;
     if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause
-    let ran = false;
+    let due = 0;
     while (acc >= frameMs) {
-      input.advance();
-      board.frame(fb);
-      audio.flush(); // one batch message per emulated frame
       acc -= frameMs;
-      ran = true;
-      frames++;
+      due++;
     }
-    if (ran) ui.blit(image);
+    if (!qaDrive) stepFrames(due);
     if (now - fpsWindowStart >= 1000) {
       const snap = board.snapshot();
       const parts = [`${frames} fps`, `pc=${hex4(snap.cpus[0].pc)}`];
@@ -787,6 +807,7 @@ function buildDom(cfg: ShellConfig) {
   const canvas = document.createElement('canvas');
   canvas.width = dispW; canvas.height = dispH;
   canvas.style.cssText = 'image-rendering:pixelated;background:#000';
+  canvas.dataset.screen = '1'; // stable handle for browser QA screenshots
 
   // optional cabinet bezel: the game canvas sits inside its transparent
   // CRT window, the artwork drawn on top (pointer-events off)
@@ -824,6 +845,7 @@ function buildDom(cfg: ShellConfig) {
 
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;background:rgba(0,0,0,.75);color:#fff;cursor:pointer;padding:20px';
+  overlay.dataset.overlay = '1'; // stable handle for browser QA
   overlay.textContent = 'Loading…';
   holder.appendChild(overlay);
 
