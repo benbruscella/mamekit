@@ -50,6 +50,19 @@ interface GameEntry {
   historyCredit?: string;
 }
 
+/**
+ * Game categories the manifest actually contains, in shelf order.
+ *
+ * Generated purely from the entries, so dropping a target — or a whole
+ * category — from the build removes its tab instead of leaving a dead one.
+ */
+export function menuTabs(
+  games: readonly Pick<GameEntry, 'kind'>[],
+): ('arcade' | 'console')[] {
+  return (['arcade', 'console'] as const).filter(tab =>
+    games.some(game => (game.kind === 'console' ? 'console' : 'arcade') === tab));
+}
+
 export function matchesMenuEntry(
   entry: Pick<GameEntry, 'game' | 'title' | 'manufacturer' | 'year' | 'kind'>,
   tab: 'arcade' | 'console',
@@ -161,10 +174,16 @@ export async function runMenu(): Promise<void> {
   root.appendChild(header);
 
   // --- ARCADE | CONSOLES tab pills ------------------------------------------------
+  // Only tabs the manifest actually fills are offered: a build with no console
+  // target must not show a CONSOLES pill onto an empty shelf, and a single
+  // populated category needs no tab bar at all.
+  const populatedTabs = menuTabs(games);
   // active tab from ?tab=consoles (deep-linkable, Pages-safe); switching
   // rewrites the query via replaceState so reload/share lands on the same tab
-  let activeTab: 'arcade' | 'console' =
+  const requestedTab: 'arcade' | 'console' =
     new URLSearchParams(location.search).get('tab') === 'consoles' ? 'console' : 'arcade';
+  let activeTab: 'arcade' | 'console' =
+    populatedTabs.includes(requestedTab) ? requestedTab : populatedTabs[0] ?? 'arcade';
   const tabsBar = el('div', 'display:flex;gap:14px;justify-content:center;padding:24px 36px 0');
   const pills = new Map<'arcade' | 'console', HTMLElement>();
   const stylePills = () => {
@@ -184,7 +203,8 @@ export async function runMenu(): Promise<void> {
     if (shelf) shelf.style.maxWidth = menuShelfMaxWidth(tab);
     applyFilter();
   };
-  for (const [tab, text] of [['arcade', 'ARCADE'], ['console', 'CONSOLES']] as const) {
+  for (const [tab, text] of ([['arcade', 'ARCADE'], ['console', 'CONSOLES']] as const)
+    .filter(([tab]) => populatedTabs.length > 1 && populatedTabs.includes(tab))) {
     const pill = el('button', `padding:9px 26px;border-radius:20px;border:2px solid #2a3160;
       font:inherit;font-weight:800;letter-spacing:2px;font-size:12px;cursor:pointer`);
     pill.textContent = text;

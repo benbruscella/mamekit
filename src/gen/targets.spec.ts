@@ -52,7 +52,13 @@ check('required targets are unique', () => {
 
 check('gen:all builds every required target', () => {
   assert.deepEqual([...GENERATION_TARGETS], [...REQUIRED_TARGETS]);
-  assert.ok(GENERATION_TARGETS.includes('nes'));
+});
+
+// Issue #53: the generated console stopped working, so it is not in the build
+// either. Consoles have no contract module to park in src/games/disabled, so
+// the only place the decision can be read is targets.ts.
+check('the broken console target is not generated', () => {
+  assert.ok(!GENERATION_TARGETS.includes('nes'));
 });
 
 // gen:all must not restate the target set; it asks the CLI for it.

@@ -71,7 +71,7 @@ imports from `src`, and blocked catalog entries.
 
 ### ALL-TARGET GENERATION
 
-`test:generation` retains the wider 12-arcade-plus-NES compiler contract. It is
+`test:generation` retains the wider all-target compiler contract. It is
 intentionally separate while targets are being restored one at a time. Run it
 before broad parser, KG, IR schema, hardware closure, or app registry changes.
 

@@ -3,6 +3,7 @@ import {
   browseSlug,
   matchesMenuEntry,
   menuShelfMaxWidth,
+  menuTabs,
   runMenu,
 } from './menu.ts';
 
@@ -18,6 +19,12 @@ assert.equal(matchesMenuEntry(pacman, 'arcade', '1980'), true);
 assert.equal(matchesMenuEntry(pacman, 'console', 'pac'), false);
 assert.equal(matchesMenuEntry({ ...pacman, kind: 'console' }, 'console', 'pac'), true);
 assert.equal(matchesMenuEntry(pacman, 'arcade', 'galaga'), false);
+// A category with no generated target must not get a tab: issue #53 dropped
+// the console build, and an empty CONSOLES shelf is worse than no pill.
+assert.deepEqual(menuTabs([{}, {}]), ['arcade']);
+assert.deepEqual(menuTabs([{ kind: 'console' }]), ['console']);
+assert.deepEqual(menuTabs([{}, { kind: 'console' }]), ['arcade', 'console']);
+assert.deepEqual(menuTabs([]), []);
 assert.equal(browseSlug('Aaron Giles'), 'aaron-giles');
 assert.equal(browseSlug('src/mame/irem/m62.cpp'), 'src-mame-irem-m62-cpp');
 assert.equal(menuShelfMaxWidth('arcade'), '1470px');

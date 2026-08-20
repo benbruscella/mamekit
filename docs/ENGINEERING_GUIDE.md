@@ -65,7 +65,9 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 
 The broad `test:generation` command is destructive to `dist` and expensive. It
 generates every target in `REQUIRED_TARGETS`, which is the accepted set plus
-consoles that have no acceptance contract yet.
+any console that has no acceptance contract yet. Issue #53 removed the only
+console entry, `nes`, after play-testing found the generated build no longer
+works, so the required set is currently the accepted set exactly.
 
 Neither command holds a target list of its own. `gen:all` is
 `node bin/mamekit.js --all`, and the set is derived from the acceptance
@@ -331,7 +333,7 @@ npm run test:generation
 ```
 
 This is the highest-confidence compiler contract. It deletes `dist`, generates
-every required arcade game and console, builds one hardware closure and app,
+every required target, builds one hardware closure and app,
 runs the generated audit, and verifies that the generated catalog has no
 blocked target.
 
