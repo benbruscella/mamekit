@@ -94,6 +94,7 @@ export class GeneratedFrameRunner {
 
   frame(framebuffer: Uint32Array): void {
     const screen = this.machine.execution.screen;
+    let rendered = false;
     for (let line = 0; line < screen.vtotal; line++) {
       this.onLine?.(line, 'before-processors', framebuffer);
       if (this.eventPhase === 'before-processors') this.dispatchLine(line, framebuffer);
@@ -102,6 +103,15 @@ export class GeneratedFrameRunner {
       // line. Drawing afterwards can combine sprite RAM from two states across
       // one frame; on a rotated screen that appears as vertical sprite tears.
       if (screen.updateMode === 'scanline') this.video?.renderLine?.(framebuffer, line);
+      // MAME's screen device runs screen_update at the start of VBLANK, not at
+      // the end of the frame. The remaining post-vbstart scanlines still run
+      // their CPU slices afterwards, so a game that erases and redraws sprites
+      // in its VBLANK handler is sampled between the two halves when the
+      // presentation is deferred to the frame boundary (Berzerk's player).
+      if (screen.updateMode !== 'scanline' && line === screen.vbstart) {
+        this.video?.render(framebuffer);
+        rendered = true;
+      }
 
       for (const scheduled of this.processors) {
         if (scheduled.processor.enabled && !scheduled.processor.enabled()) continue;
@@ -114,11 +124,9 @@ export class GeneratedFrameRunner {
       if (this.eventPhase === 'after-processors') this.dispatchLine(line, framebuffer);
     }
     this.frames++;
-    // Keep frame-mode presentation at the established end-of-frame boundary.
-    // Moving it to vbstart changed late-frame video for otherwise unrelated
-    // boards; games that need scanline timing opt into the explicit scanline
-    // mode above.
-    if (screen.updateMode !== 'scanline') this.video?.render(framebuffer);
+    // A board whose vbstart sits outside the emulated line range never hit the
+    // in-loop presentation above; keep the end-of-frame fallback for it.
+    if (screen.updateMode !== 'scanline' && !rendered) this.video?.render(framebuffer);
   }
 
   private dispatchLine(line: number, framebuffer: Uint32Array): void {
