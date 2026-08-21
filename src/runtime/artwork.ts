@@ -1,11 +1,19 @@
 // MAME cabinet artwork loading (browser-only). Artwork zips live in the
 // user's gitignored .data/artwork/ dir (same treatment as .data/roms/) and are
-// mirrored to the artwork bucket the deployed site loads them from
-// (artwork-source.ts). Bezel PNGs carry a transparent window where the CRT
-// sits — findWindow() locates it so the menu can composite covers and the
-// shell can play the game inside the real cabinet art.
+// mirrored to the artwork bucket (artwork-source.ts). Bezel PNGs carry a
+// transparent window where the CRT sits — findWindow() locates it so the menu
+// can composite covers and the shell can play the game inside the real
+// cabinet art.
+//
+// Two ways in, best first. The build resolves each zip's `default.lay` ahead
+// of time and ships the one PNG that view names as a capped `.webp` plus its
+// geometry (src/gen/bezel-artwork.ts), so the common path is two small
+// same-origin requests. The zip stays the fallback, for a game whose artwork
+// arrived after the last build or whose pack has no lay to resolve — the
+// parsing below is what the build calls, so the two can only ever pick the
+// same art.
 
-import { fetchArtworkBytes } from './artwork-source.ts';
+import { fetchArtworkBytes, webArtworkUrl } from './artwork-source.ts';
 import { readZip } from './zip.ts';
 
 export interface ArtWindow { x: number; y: number; w: number; h: number }
@@ -26,7 +34,16 @@ export interface Artwork {
   tints: ArtTint[];
 }
 
-interface LayoutView {
+/**
+ * One resolved cabinet view from a MAME `default.lay`.
+ *
+ * `file` names the art PNG inside the zip; every other field is geometry in
+ * the lay's own view coordinates, which composeBezel() maps onto whatever
+ * pixel size that art actually decodes to. Nothing here is tied to the zip,
+ * so the build can resolve a view once and ship it as JSON beside a re-encoded
+ * `.webp` — see BezelSidecar and src/gen/bezel-artwork.ts.
+ */
+export interface LayoutView {
   name: string;
   bounds?: ArtWindow;
   screen: ArtWindow;
@@ -37,12 +54,20 @@ interface LayoutView {
 }
 
 /**
+ * What the build ships beside a bezel `.webp`: the lay view that produced it,
+ * minus the `file` that named a zip member the site no longer serves.
+ */
+export type BezelSidecar = Omit<LayoutView, 'file'>;
+
+/**
  * Load a game's artwork. The zip's MAME `default.lay` layout is the source
  * of truth when present (which PNG is the bezel + the exact screen bounds,
  * same data MAME renders from); the filename heuristic + alpha flood fill
  * are only the fallback for lay-less zips.
  */
 export async function loadArtwork(game: string, prefer: 'marquee' | 'bezel'): Promise<Artwork | null> {
+  const shipped = await loadShippedBezel(game);
+  if (shipped) return shipped;
   try {
     const bytes = await fetchArtworkBytes(`${game}.zip`);
     if (!bytes) return null;
@@ -66,6 +91,35 @@ export async function loadArtwork(game: string, prefer: 'marquee' | 'bezel'): Pr
   }
 }
 
+/**
+ * The bezel the site ships for a game, or null when it ships none.
+ *
+ * The archival zips are the wrong shape to serve: digdug's is 7.4 MB holding
+ * sixteen PNGs, of which `default.lay` names exactly one, and a zip has to
+ * arrive whole before that one can be read — so the play page spent 4.1 s
+ * pulling 7.4 MB off the bucket to use 1.7 MB of it. shipBezelArtwork resolves
+ * the view at build time and emits just that PNG as a capped `.webp` beside
+ * its geometry, same-origin, which is what this reads.
+ *
+ * The sidecar is fetched first and gates the image: it is the small request,
+ * and a game with no shipped bezel has to fall through to the zip without
+ * having pulled a stray image on the way.
+ */
+async function loadShippedBezel(game: string): Promise<Artwork | null> {
+  try {
+    const res = await fetch(webArtworkUrl(`bezels/${game}.json`));
+    if (!res.ok) return null;
+    const view = await res.json() as BezelSidecar;
+    const art = await fetch(webArtworkUrl(`bezels/${game}.webp`));
+    if (!art.ok) return null;
+    return composeBezel(await createImageBitmap(await art.blob()), view);
+  } catch {
+    // A missing sibling is the normal case for a game whose zip has no lay,
+    // and never a reason to skip the zip fallback below.
+    return null;
+  }
+}
+
 /** Parse MAME default.lay: pick the bezel view, resolve its art PNG + screen bounds. */
 async function layArtwork(files: Map<string, Uint8Array>): Promise<Artwork | null> {
   const layBytes = files.get('default.lay');
@@ -76,7 +130,27 @@ async function layArtwork(files: Map<string, Uint8Array>): Promise<Artwork | nul
   const findFile = (name: string) => files.get(name) ?? files.get(name.toLowerCase());
   const png = findFile(view.file);
   if (!png) return null;
-  let bmp: ImageBitmap | HTMLCanvasElement = await createImageBitmap(new Blob([png.slice().buffer], { type: 'image/png' }));
+  return composeBezel(
+    await createImageBitmap(new Blob([png.slice().buffer], { type: 'image/png' })),
+    view,
+  );
+}
+
+/**
+ * Map a lay view onto decoded art: rotate, crop to the view's bounds, and
+ * express the screen window in that image's own pixels.
+ *
+ * Every step is a ratio of `view.art`, never an absolute pixel count, so this
+ * is indifferent to what the art was decoded from — a 4000px PNG pulled out of
+ * the zip or the 1600px `.webp` the build re-encodes from it land on the same
+ * window, which is what lets the two paths share the arithmetic instead of
+ * keeping two copies of it in step.
+ */
+export function composeBezel(
+  source: ImageBitmap | HTMLCanvasElement,
+  view: LayoutView | BezelSidecar,
+): Artwork {
+  let bmp: ImageBitmap | HTMLCanvasElement = source;
   // honor <orientation rotate="180"> (gyruss ships its bezel upside down):
   // view coords assume the rotated image, so rotate the pixels to match
   if (view.rotate === 180) {

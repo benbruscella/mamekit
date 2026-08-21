@@ -33,17 +33,54 @@ assert.deepEqual(findWindow({ width: 5, height: 5 } as ImageBitmap), {
 alpha[(2 * 5 + 2) * 4 + 3] = 255;
 assert.equal(findWindow({ width: 5, height: 5 } as ImageBitmap), null);
 
-// One request, to the artwork bucket every origin loads from
-// (artwork-source.ts) — a miss returns null rather than throwing. There is no
-// local mount to try first: probing one cost every scan a wasted 404 and gave
-// a developer a different shelf from the deployed site.
+// A game the site ships no bezel for: the sidecar probe misses, then the
+// bucket zip is tried and misses too, and the miss returns null rather than
+// throwing. Order matters — the sidecar is the cheap same-origin request and
+// gates the image, so a game with no shipped bezel reaches the zip without
+// having pulled a stray .webp on the way. There is no local mount before
+// either: probing one cost every scan a wasted 404 and gave a developer a
+// different shelf from the deployed site.
 const requested: string[] = [];
 globalThis.fetch = (async input => {
   requested.push(String(input));
   return { ok: false } as Response;
 }) as typeof fetch;
 assert.equal(await loadArtwork('juno first', 'bezel'), null);
-assert.deepEqual(requested, [`${ARTWORK_BUCKET_BASE}/juno%20first.zip`]);
+assert.deepEqual(requested, [
+  '/artwork/bezels/juno%20first.json',
+  `${ARTWORK_BUCKET_BASE}/juno%20first.zip`,
+]);
+
+// The shipped path: sidecar geometry + a .webp, and no zip fetched at all.
+// The window comes back in the pixels of whatever the .webp decoded to, so
+// the build is free to cap its width without the runtime knowing.
+const originalCreateImageBitmap = globalThis.createImageBitmap;
+globalThis.createImageBitmap = (async () =>
+  ({ width: 1600, height: 1576 } as unknown as ImageBitmap)) as typeof createImageBitmap;
+const shippedSidecar = {
+  name: 'Upright_Artwork',
+  screen: { x: 1000, y: 500, w: 2000, h: 1500 },
+  art: { x: 0, y: 0, w: 4000, h: 3940 },
+  rotate: 0,
+  tints: [],
+};
+requested.length = 0;
+globalThis.fetch = (async input => {
+  const url = String(input);
+  requested.push(url);
+  return {
+    ok: true,
+    json: async () => shippedSidecar,
+    blob: async () => ({}) as Blob,
+  } as Response;
+}) as typeof fetch;
+const shipped = await loadArtwork('digdug', 'bezel');
+assert.deepEqual(requested, ['/artwork/bezels/digdug.json', '/artwork/bezels/digdug.webp']);
+assert.ok(shipped);
+// 1600/4000 = 0.4 across, 1576/3940 = 0.4 down: the same fractions of the
+// image the un-capped 4000px PNG would have produced.
+assert.deepEqual(shipped.window, { x: 400, y: 200, w: 800, h: 600 });
+globalThis.createImageBitmap = originalCreateImageBitmap;
 
 const modernLayout = `
 <mamelayout version="2">

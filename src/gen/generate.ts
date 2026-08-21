@@ -12,6 +12,7 @@ import {
   buildRuntimeReport, runtimeReportMarkdown, type RuntimeConfigShape,
 } from './runtime-report.ts';
 import { cachedDriverGitHistory } from './driver-history.ts';
+import { copyBezelArtwork, deriveBezelArtwork } from './bezel-artwork.ts';
 import {
   cacheIdentityFromEnv,
   cachingDisabled,
@@ -71,6 +72,24 @@ export interface GenerateOptions {
   game: string;
   /** full driver graph (all sets) — enables clone-family ROM alternates */
   fullGraph?: KnowledgeGraph;
+}
+
+/**
+ * The label MAME gives one input.
+ *
+ * Most are literal — PORT_NAME("Smart Bomb") — but common words come from the
+ * shared string table instead, and Defender's turn-around button is one:
+ * PORT_NAME(DEF_STR( Reverse )). Unresolved, it falls back to the raw IPT_
+ * constant and the on-screen legend reads "IPT_BUTTON5".
+ */
+function portLabel(modifiers: string[]): string | undefined {
+  for (const modifier of modifiers) {
+    const literal = /PORT_NAME\("(?:%p )?([^"]+)"\)/.exec(modifier)?.[1];
+    if (literal) return literal;
+    const shared = /PORT_NAME\(\s*DEF_STR\(\s*(\w+)\s*\)\s*\)/.exec(modifier)?.[1];
+    if (shared) return shared.replace(/_/g, ' ');
+  }
+  return undefined;
 }
 
 // keyboard bindings per MAME input type (player 1 / non-cocktail only)
@@ -136,6 +155,24 @@ const GAME_KEYMAP: Record<string, Record<string, string[]>> = {
     IPT_BUTTON1: ['KeyZ'],
     IPT_BUTTON2: ['KeyX'],
     IPT_BUTTON3: ['KeyC'],
+  },
+  defender: {
+    // Defender's stick is PORT_2WAY vertical only — turning around is a
+    // button, not a direction. MAME names all five (Fire, Thrust, Smart Bomb,
+    // Hyperspace, Reverse), so the roles need no probing; what was missing is
+    // that the shared map stops at BUTTON3, and the generator drops any input
+    // it cannot bind. Hyperspace (mask 8) and Reverse (mask 64) were absent
+    // from the emitted bindings entirely, so no key turned the ship around.
+    // Five buttons is more than one hand spans in a row, and which row a
+    // button sits on follows how often Defender needs it: thrust, fire and
+    // reverse are constant, so they share the bottom row under the resting
+    // fingers, while the two panic buttons sit above. Fire keeps the shared
+    // map's BUTTON1 keys, so Space works here exactly as it does everywhere.
+    IPT_BUTTON1: ['KeyX', 'Space'],   // Fire
+    IPT_BUTTON2: ['KeyZ'],            // Thrust
+    IPT_BUTTON3: ['KeyS'],            // Smart Bomb
+    IPT_BUTTON4: ['KeyA'],            // Hyperspace
+    IPT_BUTTON5: ['KeyC'],            // Reverse
   },
   gunsmoke: {
     // Gunsmoke's three buttons aim rather than repeat: BUTTON1 shoots left,
@@ -1291,9 +1328,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         const keyDelta = mods
           .map(modifier => /PORT_KEYDELTA\s*\(\s*([^\)]+)\)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
-        const named = mods
-          .map(modifier => /PORT_NAME\("(?:%p )?([^"]+)"\)/.exec(modifier)?.[1])
-          .find(Boolean);
+        const named = portLabel(mods);
         if (type === 'IPT_DIAL') {
           const delta = keyDelta ? sourceNumber(keyDelta[1]!) : 1;
           bindings.push({
@@ -1347,7 +1382,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           if (mods.includes('PORT_COCKTAIL') || mods.includes('PORT_PLAYER(2)')) continue;
           const keys = inputKeys(opts.game, type);
           if (!keys) continue;
-          const named = mods.map(m => /PORT_NAME\("(?:%p )?([^"]+)"\)/.exec(m)?.[1]).find(Boolean);
+          const named = portLabel(mods);
           bindings.push({
             port: tag,
             mask,
@@ -1776,8 +1811,8 @@ const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets'];
  * Copy the `.webp` siblings into dist/artwork so the site serves its own
  * images.
  *
- * The archival scans stay on the bucket — 779 MB of them, plus the bezel zips
- * — but the bucket is an object store in one datacenter, not an edge CDN: it
+ * The archival scans stay on the bucket — 779 MB of them — but the bucket is
+ * an object store in one datacenter, not an edge CDN: it
  * answers in ~870 ms against Pages' ~30 ms, and it will not negotiate HTTP/2,
  * so the browser caps at six connections and a 47-cover shelf queues eight
  * deep. A captured trace had covers averaging 3321 ms of which 2748 ms was
@@ -1788,10 +1823,15 @@ const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets'];
  * `make images` in .data/ builds these. The whole set is 10.7 MB, against the
  * 779 MB that made shipping artwork impossible when that decision was taken.
  *
+ * Cabinet bezels join them, but they cannot come from `make images`: which PNG
+ * in a pack is the bezel is a question only that pack's `default.lay` answers,
+ * so deriveBezelArtwork resolves it with the runtime's own layout parser
+ * first. See src/gen/bezel-artwork.ts.
+ *
  * Absent .data (CI generates without it, since .data is gitignored) this is a
  * no-op and the runtime falls back to the bucket — slower, never broken.
  */
-function shipWebArtwork(outRoot: string): void {
+async function shipWebArtwork(outRoot: string): Promise<void> {
   const source = join(projectRoot, '.data/artwork');
   const target = join(outRoot, 'artwork');
   rmSync(target, { recursive: true, force: true });
@@ -1810,12 +1850,25 @@ function shipWebArtwork(outRoot: string): void {
       bytes += statSync(dest).size;
     }
   }
+  const bezels = await deriveBezelArtwork(source);
+  if (bezels?.shipped) {
+    copyBezelArtwork(source, target);
+    shipped += bezels.shipped;
+    bytes += bezels.bytes;
+    const saved = bezels.sourceBytes
+      ? ` (re-encoded ${(bezels.sourceBytes / 1048576).toFixed(1)} MB of PNG -> ` +
+        `${(bezels.bytes / 1048576).toFixed(1)} MB)`
+      : '';
+    console.log(
+      `bezels: ${bezels.shipped} resolved${bezels.unresolved ? `, ${bezels.unresolved} without a usable lay` : ''}${saved}`,
+    );
+  }
   if (shipped) {
     console.log(`web artwork: ${shipped} images (${(bytes / 1048576).toFixed(1)} MB) -> dist/artwork`);
   }
 }
 
-export function buildApp(outRoot: string): boolean {
+export async function buildApp(outRoot: string): Promise<boolean> {
   const appDir = join(outRoot, 'app');
   const runtimeCoreDir = join(outRoot, 'runtime/core');
   const buildDir = join(outRoot, '.build');
@@ -2079,7 +2132,7 @@ if (game) {
     });
   }
   const archive = emitArchiveRoutes(outRoot, appDir);
-  shipWebArtwork(outRoot);
+  await shipWebArtwork(outRoot);
   rmSync(buildDir, { recursive: true, force: true });
   console.log(
     `archive ready: ${archive.games} games, ${archive.facetValues} facet pages, ` +
