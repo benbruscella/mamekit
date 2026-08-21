@@ -418,7 +418,7 @@ if (generateAll) {
   buildApp(outRoot);
   const { serve } = await import('./serve.ts');
   const port = await serve(
-    { '': outRoot, artwork: artworkDir(projectRoot) }, // ROMs are never served
+    { '': outRoot }, // neither ROMs nor artwork are served from .data
     Number(opts.serve) || 8280,
   );
   console.log(`\nserving http://localhost:${port}/app/  (menu; games at /app/g/<game>/)`);

@@ -49,7 +49,7 @@ async function runDev(): Promise<void> {
 
   const portArg = process.argv.slice(2).find(arg => /^\d+$/.test(arg));
   const port = await serve(
-    { '': outRoot, artwork: artworkDir(projectRoot) },
+    { '': outRoot }, // neither ROMs nor artwork are served from .data
     Number(portArg) || 8280,
   );
   console.log(`mamekit dev: serving http://localhost:${port}/app/`);

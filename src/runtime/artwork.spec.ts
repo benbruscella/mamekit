@@ -33,19 +33,17 @@ assert.deepEqual(findWindow({ width: 5, height: 5 } as ImageBitmap), {
 alpha[(2 * 5 + 2) * 4 + 3] = 255;
 assert.equal(findWindow({ width: 5, height: 5 } as ImageBitmap), null);
 
-// A miss tries the dev server's local mount first, then the artwork bucket
-// the deployed site loads from (artwork-source.ts); either way the caller
-// gets null rather than a throw.
+// One request, to the artwork bucket every origin loads from
+// (artwork-source.ts) — a miss returns null rather than throwing. There is no
+// local mount to try first: probing one cost every scan a wasted 404 and gave
+// a developer a different shelf from the deployed site.
 const requested: string[] = [];
 globalThis.fetch = (async input => {
   requested.push(String(input));
   return { ok: false } as Response;
 }) as typeof fetch;
 assert.equal(await loadArtwork('juno first', 'bezel'), null);
-assert.deepEqual(requested, [
-  '../artwork/juno%20first.zip',
-  `${ARTWORK_BUCKET_BASE}/juno%20first.zip`,
-]);
+assert.deepEqual(requested, [`${ARTWORK_BUCKET_BASE}/juno%20first.zip`]);
 
 const modernLayout = `
 <mamelayout version="2">

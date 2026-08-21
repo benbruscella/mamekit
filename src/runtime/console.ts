@@ -709,22 +709,11 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
    * The sticker rect matches the label drawn by cartSvg: x 53.5..186.5,
    * y 15.5..166.5 of a 200x250 viewBox.
    */
-  // config.json carries the art index resolved at generation time, which a
-  // deployed site needs. A dev server also offers /cart-art/<list>.json, read
-  // from disk per request, so art added or removed after generation is picked up
-  // on reload; when that route is absent the generated snapshot stands.
+  // config.json carries the art index resolved at generation time. That one
+  // snapshot is what every visitor sees, so it is what a developer sees too: a
+  // dev-only /cart-art route used to re-read .data per request, which quietly
+  // gave localhost a different shelf from the deployed site.
   let cartArt: Record<string, { cart?: string; sticker?: string }> = cfg.cart?.cartArt ?? {};
-  if (cfg.cart?.list) {
-    void fetch(`/cart-art/${encodeURIComponent(cfg.cart.list)}.json`)
-      .then(r => r.ok ? r.json() as Promise<typeof cartArt> : null)
-      .then(live => {
-        if (!live || typeof live !== 'object') return;
-        cartArt = live;
-        renderCatalog();          // library tiles pick the art up
-        for (const other of others) other.refreshArt();
-      })
-      .catch(() => { /* no dev server route — the generated snapshot stands */ });
-  }
   /** does this cart have a label photo about to be composited over the drawing? */
   function hasSticker(name: string): boolean {
     return Boolean(name && cartArt[name]?.sticker);

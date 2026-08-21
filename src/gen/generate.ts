@@ -2,7 +2,7 @@
 // Emits categorized game data, MAME-derived executable modules, one shared
 // runtime, and a small app shell. Everything game-specific comes from the graph.
 
-import { mkdirSync, writeFileSync, cpSync, existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, cpSync, existsSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
@@ -48,7 +48,7 @@ import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
 import { compileDriverRomTransforms } from '../mame/driver-rom-compiler.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
-import { artworkUrl } from '../runtime/artwork-source.ts';
+import { artworkSources } from '../runtime/artwork-source.ts';
 import { artworkDir, romsDir } from '../paths.ts';
 import { cartArtIndex, type CartArt } from './cart-art.ts';
 import {
@@ -1671,11 +1671,11 @@ function machineDossierMarkdown(d: {
   md.push('');
   md.push(`**${d.company} · ${d.year}** — transpiled from the MAME driver \`${d.driverFile}\` by mamekit.`);
   md.push('');
-  md.push(`![marquee](${artworkUrl(`media/marquees/${d.game}.png`)})`);
+  md.push(`![marquee](${artworkSources(`media/marquees/${d.game}.png`)[0]})`);
   md.push('');
   md.push(`| Cover | Cabinet |`);
   md.push(`| --- | --- |`);
-  md.push(`| ![flyer](${artworkUrl(`covers/${d.game}.png`)}) | ![cabinet](${artworkUrl(`media/cabinets/${d.game}.png`)}) |`);
+  md.push(`| ![flyer](${artworkSources(`covers/${d.game}.png`)[0]}) | ![cabinet](${artworkSources(`media/cabinets/${d.game}.png`)[0]}) |`);
   md.push('');
 
   md.push('## The machine');
@@ -1769,6 +1769,52 @@ function machineDossierMarkdown(d: {
 }
 
 /** Build the app, shared runtime, and canonical per-game executable modules. */
+/** Image trees whose `.webp` siblings ship with the site. */
+const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets'];
+
+/**
+ * Copy the `.webp` siblings into dist/artwork so the site serves its own
+ * images.
+ *
+ * The archival scans stay on the bucket — 779 MB of them, plus the bezel zips
+ * — but the bucket is an object store in one datacenter, not an edge CDN: it
+ * answers in ~870 ms against Pages' ~30 ms, and it will not negotiate HTTP/2,
+ * so the browser caps at six connections and a 47-cover shelf queues eight
+ * deep. A captured trace had covers averaging 3321 ms of which 2748 ms was
+ * spent waiting for a socket and 134 ms transferring. Same-origin images are
+ * multiplexed over the connection the app already has, and cost no CORS
+ * preflight, no cache-poisoning hazard and no fetch -> Blob -> re-decode.
+ *
+ * `make images` in .data/ builds these. The whole set is 10.7 MB, against the
+ * 779 MB that made shipping artwork impossible when that decision was taken.
+ *
+ * Absent .data (CI generates without it, since .data is gitignored) this is a
+ * no-op and the runtime falls back to the bucket — slower, never broken.
+ */
+function shipWebArtwork(outRoot: string): void {
+  const source = join(projectRoot, '.data/artwork');
+  const target = join(outRoot, 'artwork');
+  rmSync(target, { recursive: true, force: true });
+  if (!existsSync(source)) return;
+  let shipped = 0;
+  let bytes = 0;
+  for (const tree of WEB_ARTWORK_TREES) {
+    const from = join(source, tree);
+    if (!existsSync(from)) continue;
+    for (const name of readdirSync(from)) {
+      if (!name.endsWith('.webp')) continue;
+      const dest = join(target, tree, name);
+      mkdirSync(dirname(dest), { recursive: true });
+      cpSync(join(from, name), dest);
+      shipped++;
+      bytes += statSync(dest).size;
+    }
+  }
+  if (shipped) {
+    console.log(`web artwork: ${shipped} images (${(bytes / 1048576).toFixed(1)} MB) -> dist/artwork`);
+  }
+}
+
 export function buildApp(outRoot: string): boolean {
   const appDir = join(outRoot, 'app');
   const runtimeCoreDir = join(outRoot, 'runtime/core');
@@ -2033,6 +2079,7 @@ if (game) {
     });
   }
   const archive = emitArchiveRoutes(outRoot, appDir);
+  shipWebArtwork(outRoot);
   rmSync(buildDir, { recursive: true, force: true });
   console.log(
     `archive ready: ${archive.games} games, ${archive.facetValues} facet pages, ` +

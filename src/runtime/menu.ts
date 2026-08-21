@@ -2,8 +2,9 @@
 // live search. Browser-only (like shell.ts). Games come from /games.json
 // (generated-game manifest served by src/serve.ts); box art is, in order of
 // preference:
-//   0. the classic promotional flyer (artwork/covers/<game>.png, user-
-//      supplied — e.g. adb.arcadeitalia.net/media/mame.current/flyers/)
+//   0. the classic promotional flyer (artwork/covers/<game>.cover.webp, the
+//      web-sized sibling of the user-supplied <game>.png scan — e.g.
+//      adb.arcadeitalia.net/media/mame.current/flyers/)
 //   1. cabinet bezel (artwork zip via its default.lay) with a DETERMINISTIC
 //      screenshot in the CRT window — the game's own board emulated for a
 //      fixed frame count, so the cover is permanent across visits
@@ -16,7 +17,7 @@
 import { readZip, crc32 } from './zip.ts';
 import { decodeGfx, type GfxLayout } from './gfx.ts';
 import { loadArtwork } from './artwork.ts';
-import { artworkUrl, fetchArtworkImage } from './artwork-source.ts';
+import { artworkSources, loadArtworkImage } from './artwork-source.ts';
 import {
   findDarkCoverCrop,
   fitCoverCropAspect,
@@ -243,6 +244,12 @@ export async function runMenu(): Promise<void> {
   const boxes: BoxRef[] = [];
   let selected = 0;
 
+  // Every cover is painted up front. This queued badly while the images came
+  // from the artwork bucket -- HTTP/1.1, so six connections and a 47-cover
+  // shelf eight deep, averaging 3321 ms of which 2748 ms was spent waiting for
+  // a socket. They ship with the site now (shipWebArtwork in src/gen/
+  // generate.ts): same origin, multiplexed over the connection the app already
+  // has, ~12 ms each. Deferring them would only trade that for pop-in.
   for (const entry of games) {
     const box = buildBox(entry);
     boxes.push({ entry, box, visible: true });
@@ -407,8 +414,18 @@ export async function runMenu(): Promise<void> {
       return i;
     };
 
+    // Artwork goes through the .webp sibling, falling back to the scan once
+    // before giving up: one added without a sibling still renders, and the
+    // miss costs a request rather than the ~500 KB it saves everywhere else.
+    const artImg = (path: string, css: string): HTMLImageElement => {
+      const [web, archival] = artworkSources(path);
+      const i = img(web, css);
+      i.addEventListener('error', () => { if (!i.src.endsWith(archival)) i.src = archival; });
+      return i;
+    };
+
     // marquee light-box across the top — the sign that pulled you across the arcade
-    scroller.appendChild(img(artworkUrl(`media/marquees/${game}.png`),
+    scroller.appendChild(artImg(`media/marquees/${game}.png`,
       `width:100%;max-height:140px;object-fit:contain;border-radius:10px 10px 0 0;
        background:radial-gradient(ellipse at center,#1c2150,#0a0c1e);
        box-shadow:inset 0 -12px 24px rgba(0,0,0,.5)`));
@@ -418,7 +435,7 @@ export async function runMenu(): Promise<void> {
 
     // hero spread: flyer · title/facts · cabinet
     const hero = el('div', 'display:flex;gap:22px;align-items:flex-start;margin-bottom:18px');
-    const flyer = img(artworkUrl(`covers/${game}.png`),
+    const flyer = artImg(`covers/${game}.png`,
       'width:170px;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.65);flex-shrink:0;transform:rotate(-1.5deg)');
     hero.appendChild(flyer);
     const heroText = el('div', 'flex:1;min-width:220px');
@@ -436,7 +453,7 @@ export async function runMenu(): Promise<void> {
     subh.append(manufacturerLink, document.createTextNode(' · '), yearLink);
     heroText.append(h, subh);
     hero.appendChild(heroText);
-    const cab = img(artworkUrl(`media/cabinets/${game}.png`),
+    const cab = artImg(`media/cabinets/${game}.png`,
       'width:120px;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.65);flex-shrink:0;transform:rotate(1.5deg)');
     hero.appendChild(cab);
     inner.appendChild(hero);
@@ -617,7 +634,9 @@ export async function runMenu(): Promise<void> {
     const ctx = canvas.getContext('2d')!;
     // 0. the classic promotional flyer (artwork/covers/<game>.png,
     //    user-supplied) — real box art beats anything synthesized
-    const flyer = await fetchArtworkImage(`covers/${entry.game}.png`);
+    // The sibling the site ships, falling back to the bucket scan only when one
+    // is missing — a wasted miss rather than the 1.3 MB it saves everywhere.
+    const flyer = await loadArtworkImage(`covers/${entry.game}.png`);
     if (flyer) {
       const source = darkCoverCrop(flyer);
       const s = Math.max(canvas.width / source.width, canvas.height / source.height);

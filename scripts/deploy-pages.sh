@@ -3,20 +3,33 @@
 #
 #   npm run deploy
 #
-# Neither ROMs nor artwork are ever published here. Visitors load their own ROM
-# zip through the in-app drop zone (validated against the chip manifest), and
-# the ~700 MB of cabinet scans is loaded straight from the artwork bucket
-# (src/runtime/artwork-source.ts) — a copy inside dist/ was most of GitHub
-# Pages' 1 GB budget spent on files that never change. `make sync-artwork` in
-# .data/ is what publishes those scans; this script only ships the site.
+# ROMs are never published here: visitors load their own zip through the in-app
+# drop zone, validated against the chip manifest.
+#
+# Artwork is split. The 779 MB of archival scans and bezel zips stays on the
+# bucket, published by `make sync-artwork` in .data/ — a copy inside dist/ was
+# most of GitHub Pages' 1 GB budget spent on files that never change. But the
+# 10.7 MB of `.webp` siblings the app actually displays now ships with the
+# site, because the bucket is an object store in one datacenter rather than an
+# edge CDN: ~870 ms per object against Pages' ~30 ms, and no HTTP/2, so a
+# 47-cover shelf queued eight deep behind six connections and took seconds.
+# buildApp writes dist/artwork; see shipWebArtwork in src/gen/generate.ts.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 npm run gen:all
 
-# a stale dist/ from before the bucket move still holds the scans — a deploy
-# must never carry them, however dist/ got its contents
-rm -rf dist/artwork
+# A stale dist/ from before the bucket move still holds the full scans, and a
+# deploy must never carry those however dist/ got its contents. Only the .webp
+# siblings buildApp just wrote are allowed through, so this prunes by what a
+# file *is* rather than trusting the tree to be clean.
+if [[ -d dist/artwork ]]; then
+  find dist/artwork -type f ! -name '*.webp' -delete
+  find dist/artwork -type d -empty -delete
+fi
+printf 'web artwork shipped: %s images, %s\n' \
+  "$(find dist/artwork -name '*.webp' 2>/dev/null | wc -l | tr -d ' ')" \
+  "$(du -sh dist/artwork 2>/dev/null | cut -f1 || echo 0)"
 
 touch dist/.nojekyll
 

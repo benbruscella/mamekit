@@ -20,35 +20,75 @@ export function encodeArtworkPath(path: string): string {
   return path.split('/').map(encodeURIComponent).join('/');
 }
 
-/** The CDN URL for one artwork path — what an <img> loads. */
+/** The bucket URL for one artwork path — archival scans and bezel zips. */
 export function artworkUrl(path: string): string {
   return `${ARTWORK_BUCKET_BASE}/${encodeArtworkPath(path)}`;
 }
 
-/** The dev server's /artwork mount, relative to the /app/ page (src/dev.ts). */
-export function localArtworkUrl(path: string): string {
-  return `../artwork/${encodeArtworkPath(path)}`;
+/**
+ * The site's own URL for a `.webp` sibling, shipped into dist/artwork by the
+ * build (`shipWebArtwork` in src/gen/generate.ts).
+ *
+ * Root-relative, because dist's root is the site root on Pages and under
+ * `--serve` alike — so localhost and the deployed site read the same bytes
+ * from the same place, which a `.data` mount never managed.
+ */
+export function webArtworkUrl(path: string): string {
+  return `/artwork/${encodeArtworkPath(path)}`;
 }
 
-// The dev server mounts .data/artwork at /artwork, so a developer's local
-// scans answer without a round trip — and without CORS, which the bucket
-// grants to the deployed origin only. A static deploy has no such mount: the
-// first local miss that the bucket then serves proves we are on one, and the
-// mount is not tried again for the rest of the session.
-let localMount = true;
+/**
+ * The two paths to one artwork image, best first.
+ *
+ * Every displayed scan is far larger than the space it is drawn into — covers
+ * average 1279 KB and land in a 300x400 canvas, marquees 545 KB in a 140px
+ * strip, cabinets 550 KB in a 120px thumbnail — and the menu asks for all of
+ * them at once from a bucket that will not negotiate HTTP/2, so the browser
+ * runs ~6 connections against a ~1.8s TTFB. `make images` builds a `.webp`
+ * sibling beside each scan (148.4 MB -> 10.7 MB across the three trees), and
+ * that sibling is what every caller should load.
+ *
+ * The scan stays the fallback rather than the source: one added without a
+ * sibling still renders, just slowly, and `make images-missing` names it.
+ */
+export function artworkPaths(path: string): [web: string, archival: string] {
+  return [path.replace(/\.png$/, '.webp'), path];
+}
 
-/** Artwork bytes for one path, or null when neither source had it. */
+/** Both URLs for one image, best first: the site's sibling, then the bucket scan. */
+export function artworkSources(path: string): [web: string, archival: string] {
+  const [web, archival] = artworkPaths(path);
+  return [webArtworkUrl(web), artworkUrl(archival)];
+}
+
+/**
+ * One image, decoded, preferring the sibling the site ships.
+ *
+ * Same origin buys more than latency: no CORS, and an untainted canvas without
+ * the fetch -> Blob -> re-decode the bucket path needs, so the cover shelf can
+ * sample flyer pixels straight from a plain <img>. Only the bucket fallback
+ * still pays for that round trip.
+ */
+export async function loadArtworkImage(path: string): Promise<HTMLImageElement | null> {
+  const [web] = artworkSources(path);
+  return (await decodeImage(web)) ?? (await fetchArtworkImage(artworkPaths(path)[1]));
+}
+
+// The bucket is the only source, on localhost and on the deployed site alike.
+// A local .data mount used to be probed first, which cost every scan a wasted
+// same-origin round trip: the "stop probing" flag only cleared after a bucket
+// response, and a shelf requests all its covers at once, so every one of them
+// had already issued its 404 before the first reply landed. The menu opened on
+// 40+ failed requests and as many console errors, and a developer's scans
+// silently diverged from what visitors actually see.
+
+/** Artwork bytes for one path, or null when the bucket did not have it. */
 export async function fetchArtworkBytes(path: string): Promise<Uint8Array | null> {
-  if (localMount) {
-    const local = await fetch(localArtworkUrl(path)).catch(() => null);
-    if (local?.ok) return new Uint8Array(await local.arrayBuffer());
-  }
-  // CORS failure (localhost is not on the bucket's allowlist), offline or a
-  // scan the bucket does not hold: a miss is never an error here — every
-  // caller has a fallback that doesn't need artwork at all.
+  // CORS failure (an origin outside the bucket's allowlist), offline or a scan
+  // the bucket does not hold: a miss is never an error here — every caller has
+  // a fallback that doesn't need artwork at all.
   const res = await fetch(artworkUrl(path)).catch(() => null);
   if (!res?.ok) return null;
-  localMount = false;
   return new Uint8Array(await res.arrayBuffer());
 }
 

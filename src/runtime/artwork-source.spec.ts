@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import {
   ARTWORK_BUCKET_BASE,
   artworkUrl,
+  artworkPaths,
+  artworkSources,
+  webArtworkUrl,
   encodeArtworkPath,
   fetchArtworkBytes,
   fetchArtworkImage,
-  localArtworkUrl,
 } from './artwork-source.ts';
 
 // --- path encoding -----------------------------------------------------------------
@@ -18,15 +20,47 @@ assert.equal(
   'carts/nes/Argos%20no%20Senshi%20(J)%20%5BT%2BEng%5D.jpg',
 );
 
-// --- the two bases -----------------------------------------------------------------
+// --- the one base ------------------------------------------------------------------
 assert.equal(
   artworkUrl('media/marquees/dkong.png'),
   `${ARTWORK_BUCKET_BASE}/media/marquees/dkong.png`,
 );
-// relative to the /app/ page, so the dev site works under any base path
-assert.equal(localArtworkUrl('media/marquees/dkong.png'), '../artwork/media/marquees/dkong.png');
 
-// --- fetch order: the dev mount first, then the bucket -----------------------------
+// --- every tree prefers its web sibling ---------------------------------------------
+// One rule for all three trees: the extension alone separates the scan from the
+// sibling, so the pair sorts adjacent and a gap shows up in a plain `ls`. Order
+// matters more than either path — the web one must come first, and the scan
+// must stay reachable so an image added without a sibling renders rather than
+// vanishing.
+assert.deepEqual(
+  artworkPaths('covers/dkong.png'),
+  ['covers/dkong.webp', 'covers/dkong.png'],
+);
+assert.deepEqual(
+  artworkPaths('media/marquees/1942.png'),
+  ['media/marquees/1942.webp', 'media/marquees/1942.png'],
+);
+assert.deepEqual(
+  artworkPaths('media/cabinets/pacman.png'),
+  ['media/cabinets/pacman.webp', 'media/cabinets/pacman.png'],
+);
+// The sibling is served by the site, the scan by the bucket. Two origins, and
+// which one a path lands on is the whole point: same-origin images multiplex
+// over the connection the app already has, where the bucket caps at six and
+// answers in ~870 ms.
+assert.equal(webArtworkUrl('covers/1942.webp'), '/artwork/covers/1942.webp');
+assert.deepEqual(artworkSources('covers/1942.png'), [
+  '/artwork/covers/1942.webp',
+  `${ARTWORK_BUCKET_BASE}/covers/1942.png`,
+]);
+// Root-relative, not relative: the menu lives at /app/ and a dossier at
+// /app/g/<game>/dossier/, and both must resolve to the same file.
+assert.ok(artworkSources('covers/1942.png')[0].startsWith('/'));
+// Only the extension is rewritten: a bezel zip has no sibling and must be left
+// exactly as it is, or the fallback would fetch a path that cannot exist.
+assert.deepEqual(artworkPaths('dkong.zip'), ['dkong.zip', 'dkong.zip']);
+
+// --- the bucket is the only source -------------------------------------------------
 const original = globalThis.fetch;
 function stubFetch(handler: (url: string) => Response): string[] {
   const seen: string[] = [];
@@ -38,21 +72,21 @@ function stubFetch(handler: (url: string) => Response): string[] {
   return seen;
 }
 
-// dev mount miss -> the bucket answers
-let seen = stubFetch(url =>
-  url.startsWith('http')
-    ? new Response(new Uint8Array([1, 2, 3]), { status: 200 })
-    : new Response(null, { status: 404 }));
+// One request, straight to the bucket — no same-origin probe first. A shelf
+// asks for all its covers at once, so a probe that only stops after a bucket
+// reply never stops in time: every cover issues its 404 before the first
+// response lands. The deployed menu opened on 40+ failed requests.
+let seen = stubFetch(() => new Response(new Uint8Array([1, 2, 3]), { status: 200 }));
 assert.deepEqual([...(await fetchArtworkBytes('dkong.zip'))!], [1, 2, 3]);
-assert.deepEqual(seen, ['../artwork/dkong.zip', `${ARTWORK_BUCKET_BASE}/dkong.zip`]);
+assert.deepEqual(seen, [`${ARTWORK_BUCKET_BASE}/dkong.zip`]);
 
-// That miss proved there is no dev mount (a static deploy), so it is not tried
-// again — a shelf of 68 covers must not spend 68 round trips proving it twice.
+// Localhost is no different: a developer's scans must not diverge from what a
+// visitor actually sees.
 seen = stubFetch(() => new Response(new Uint8Array([4]), { status: 200 }));
 assert.deepEqual([...(await fetchArtworkBytes('pacman.zip'))!], [4]);
 assert.deepEqual(seen, [`${ARTWORK_BUCKET_BASE}/pacman.zip`]);
 
-// neither source has it: a miss is never an error, every caller has a fallback
+// the bucket does not have it: a miss is never an error, every caller has a fallback
 // that needs no artwork at all
 seen = stubFetch(() => new Response(null, { status: 404 }));
 assert.equal(await fetchArtworkBytes('nosuchgame.zip'), null);

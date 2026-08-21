@@ -6,7 +6,6 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
 import { buildClosureFailures } from './gen/build-manifest.ts';
 import { ROM_BUCKET_BASE, encodeRomKey } from './runtime/rom-source.ts';
-import { cartArtIndex } from './gen/cart-art.ts';
 import {
   GAME_CATEGORIES,
   gameDataPath,
@@ -18,9 +17,10 @@ import {
 // dev browser can't fetch it cross-origin — /romsearch/<key> proxies it
 // same-origin (dev serve only; the deployed site goes to the bucket direct).
 // The bucket base and key encoding come from runtime/rom-source.ts so there is
-// one definition. Artwork needs no equivalent route: the /artwork mount below
-// serves .data/artwork straight off disk, and artwork-source.ts falls through
-// to the bucket when there is no mount.
+// one definition. Artwork needs no equivalent route: artwork-source.ts always
+// loads it from that same bucket, so a developer sees exactly the scans a
+// visitor does — a /artwork mount reading .data used to make the two diverge,
+// and cost every cover a wasted same-origin 404 first.
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -29,6 +29,10 @@ const MIME: Record<string, string> = {
   '.json': 'application/json; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.png': 'image/png',
+  // The web-sized siblings buildApp ships into dist/artwork — every displayed
+  // cover, marquee and cabinet is one of these.
+  '.webp': 'image/webp',
+  '.jpg': 'image/jpeg',
   '.zip': 'application/zip',
   '.wasm': 'application/wasm',
   '.cypher': 'text/plain; charset=utf-8',
@@ -117,20 +121,6 @@ export function serve(rootDirs: Record<string, string>, port: number): Promise<n
         const manifest = await gamesManifest(rootDirs[''], rootDirs['artwork'] ?? '');
         res.writeHead(200, { 'content-type': MIME['.json'], 'cache-control': 'no-store' });
         res.end(manifest);
-        return;
-      }
-      // Live cartridge-art index. config.json carries a generation-time
-      // snapshot for deployed sites; locally this route reads the directory per
-      // request, so dropping a file in shows up on reload with no regeneration.
-      if (path.startsWith('cart-art/') && path.endsWith('.json')) {
-        const list = path.slice('cart-art/'.length, -'.json'.length);
-        if (!/^[a-z0-9_-]+$/i.test(list) || !rootDirs['artwork']) {
-          res.writeHead(404).end();
-          return;
-        }
-        const index = cartArtIndex(join(rootDirs['artwork'], 'carts', list));
-        res.writeHead(200, { 'content-type': MIME['.json'], 'cache-control': 'no-store' });
-        res.end(JSON.stringify(index));
         return;
       }
       if (path.startsWith('romsearch/')) {
