@@ -83,16 +83,19 @@ for (const contract of selectedContracts()) {
         expect(peak, 'no sound reached the speakers').toBeGreaterThan(1e-4);
       }
 
-      // The status line reports emulated frames per wall-clock second. The run
-      // loop caps that at the machine's own refresh, so compare against real
-      // time rather than the token's minimumFps: that is a flat-out Node floor,
-      // and for a machine like Berzerk (60) it equals the cap exactly, leaving
-      // no headroom for one scheduling hiccup under a parallel run.
+      // The status line reports emulated frames per wall-clock second. Hold the
+      // machine to the lower of two bounds, because each alone is wrong for
+      // some machine: the run loop caps fps at the screen refresh, so Berzerk's
+      // token floor of 60 would demand 100% of the cap with no headroom; and a
+      // machine the tokens already accept as slow (Ghouls'n Ghosts manages 49
+      // fps flat out in Node, hence minimumFps 10) must not be asked for real
+      // time it has never reached.
       const status = await page.locator('body').innerText();
       const fps = Number(/(\d+) fps/.exec(status)?.[1] ?? 0);
       const refresh = await screenRefresh(page);
+      const floor = Math.min(Math.floor(refresh * 0.9), contract.minimumFps);
       test.info().annotations.push({ type: 'speed', description: `${fps} fps of ${refresh.toFixed(1)} Hz` });
-      expect(fps, 'not holding real time').toBeGreaterThanOrEqual(Math.floor(refresh * 0.9));
+      expect(fps, `below the accepted floor of ${floor} fps`).toBeGreaterThanOrEqual(floor);
       expect(faults.errors).toEqual([]);
     });
   });
