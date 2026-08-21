@@ -106,7 +106,7 @@ async function runDev(): Promise<void> {
 
 if (process.argv.includes(buildOnceFlag)) {
   try {
-    if (!buildApp(outRoot)) process.exitCode = 1;
+    if (!await buildApp(outRoot)) process.exitCode = 1;
   } catch (error) {
     console.error(error);
     process.exitCode = 1;

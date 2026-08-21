@@ -1532,7 +1532,23 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
         case 'PORT_MODIFY': port = { tag: resolveStr(args[0]), modify: true, fields: [] }; def.ports.push(port); dip = null; break;
         case 'PORT_BIT': {
           if (!port) break;
-          const mods = [...trailing.matchAll(/PORT_\w+(?:\([^)]*\))?/g)].map(x => x[0]);
+          // A modifier's argument can nest — Defender's turn-around button is
+          // PORT_NAME(DEF_STR( Reverse )) — and `\([^)]*\)` stops at the inner
+          // close, yielding `PORT_NAME(DEF_STR( Reverse )`. Every downstream
+          // PORT_NAME match then fails and the input falls back to its raw
+          // IPT_ constant, so the button reads "IPT_BUTTON5" and, worse, is
+          // indistinguishable from one MAME never named. Balance instead, and
+          // skip hits swallowed by an earlier modifier's arguments.
+          const mods: string[] = [];
+          let consumed = 0;
+          for (const hit of trailing.matchAll(/PORT_\w+/g)) {
+            const start = hit.index ?? 0;
+            if (start < consumed) continue;
+            const after = start + hit[0].length;
+            const end = trailing[after] === '(' ? matchParen(trailing, after) : -1;
+            mods.push(end < 0 ? hit[0] : trailing.slice(start, end + 1));
+            consumed = end < 0 ? after : end + 1;
+          }
           port.fields.push({
             kind: 'bit',
             mask: evalExpr(args[0]) ?? 0,

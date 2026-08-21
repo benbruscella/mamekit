@@ -22,9 +22,29 @@ export const defender = sourceTarget({
     { atFrame: 440, code: 'F2', heldFrames: 4, releasedFrames: 20 },
     { atFrame: 500, code: 'F2', heldFrames: 4, releasedFrames: 20 },
     { atFrame: 620, code: 'Digit5', heldFrames: 8, releasedFrames: 20 },
-    { atFrame: 800, code: 'Digit1', heldFrames: 8, releasedFrames: 20 },
-    { atFrame: 950, code: 'Space', heldFrames: 30, releasedFrames: 10 },
+    // Defender does not start on one press. A coin only lights CREDITS: 1 and
+    // the machine stays in attract — verified by screenshotting frame 1216,
+    // which still showed the SCANNER banner and a demo ship. Six spaced Start
+    // presses are what actually put a ship in play, and until they did, every
+    // gameplay action below was driving the attract loop: the video hash was
+    // byte-identical with and without them.
+    { atFrame: 780, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 900, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 1020, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 1140, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 1260, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 1380, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    // In play from here. Reverse and Hyperspace exist only because MAME names
+    // BUTTON5 and BUTTON4 (issue #61); the shared keymap stopped at BUTTON3
+    // and the generator drops what it cannot bind, so neither reached the
+    // machine and no key turned the ship around. The stick is PORT_2WAY
+    // vertical, so Reverse is the only way the ship changes facing.
+    { atFrame: 1650, code: 'Space', heldFrames: 20, releasedFrames: 20 },
+    { atFrame: 1750, code: 'KeyC', heldFrames: 60, releasedFrames: 40 },
+    { atFrame: 1900, code: 'KeyA', heldFrames: 6, releasedFrames: 34 },
   ],
+  frames: 2100,
+  checkpoints: [1, 60, 180, 300, 600, 900, 1200, 1600, 1700, 1880, 1980, 2100],
   golden: {
     regions: {
       banked: 'e92faf5c',
@@ -38,15 +58,20 @@ export const defender = sourceTarget({
       180: { video: 'd53b927f', state: '74e44278' },
       300: { video: 'ec285eb8', state: '57b6984f' },
       600: { video: '88ef2d54', state: 'a2445e72' },
-      900: { video: '8882498b', state: '2192feb0' },
-      1200: { video: 'aaef91c5', state: '5c1c22a4' },
+      900: { video: '8882498b', state: 'dea7761c' },
+      1200: { video: '34782c98', state: '11dad5b4' },
+      1600: { video: '96f8d07c', state: 'f682835f' },
+      1700: { video: '6bec9e0a', state: '87978d6e' },
+      1880: { video: 'c7c85067', state: '288dd516' },
+      1980: { video: 'da8b7f24', state: '5299d347' },
+      2100: { video: 'ce5be647', state: '648402d5' },
     },
     audio: {
-      writes: 22081,
-      nonzeroWrites: 20000,
-      writeHash: '30531b49',
-      pcmHash: '6da12bb9',
-      rms: 0.833931,
+      writes: 69622,
+      nonzeroWrites: 63646,
+      writeHash: '8b5a97b6',
+      pcmHash: '131d5e11',
+      rms: 0.769578,
     },
   },
 });

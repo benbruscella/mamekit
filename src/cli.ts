@@ -378,7 +378,7 @@ if (generateAll) {
   await generateTargetsInParallel(GENERATION_TARGETS);
   await emitClosureFromGraphs(GENERATION_TARGETS);
   const { buildApp } = await import('./gen/generate.ts');
-  if (!buildApp(outRoot)) process.exitCode = 1;
+  if (!await buildApp(outRoot)) process.exitCode = 1;
   else {
     const { gamesManifest } = await import('./serve.ts');
     const { writeBuildManifest } = await import('./gen/build-manifest.ts');
@@ -402,7 +402,7 @@ if (generateAll) {
   await emitClosureFromGraphs(targets);
   if (!buildAppOnly) process.exit(0);
   const { buildApp } = await import('./gen/generate.ts');
-  if (!buildApp(outRoot)) {
+  if (!await buildApp(outRoot)) {
     process.exitCode = 1;
   } else {
     const { writeBuildManifest } = await import('./gen/build-manifest.ts');
@@ -415,7 +415,7 @@ if (generateAll) {
   }
 } else if (serveOnly) {
   const { buildApp } = await import('./gen/generate.ts');
-  buildApp(outRoot);
+  await buildApp(outRoot);
   const { serve } = await import('./serve.ts');
   const port = await serve(
     { '': outRoot }, // neither ROMs nor artwork are served from .data
@@ -493,7 +493,7 @@ if (command === 'run') {
     // is incorrectly grouped as blocked until the next full --all build.
     const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
     refreshRuntimeReports(root);
-    if (!buildApp(root)) process.exitCode = 1;
+    if (!await buildApp(root)) process.exitCode = 1;
   }
   // static manifest so the built tree is servable as plain files (github
   // pages); the dev server's live /games.json route shadows it locally
@@ -557,7 +557,7 @@ async function pipelineFromGraph(game: string): Promise<void> {
   if (!('skip-app' in opts)) {
     const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
     refreshRuntimeReports(outRoot);
-    if (!buildApp(outRoot)) process.exitCode = 1;
+    if (!await buildApp(outRoot)) process.exitCode = 1;
   }
   const { gamesManifest } = await import('./serve.ts');
   writeFileSync(join(outRoot, 'games.json'),
