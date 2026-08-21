@@ -48,6 +48,7 @@ import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
 import { compileDriverRomTransforms } from '../mame/driver-rom-compiler.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
+import { artworkUrl } from '../runtime/artwork-source.ts';
 import { artworkDir, romsDir } from '../paths.ts';
 import { cartArtIndex, type CartArt } from './cart-art.ts';
 import {
@@ -134,6 +135,18 @@ const GAME_KEYMAP: Record<string, Record<string, string[]>> = {
   bankp: {
     IPT_BUTTON1: ['KeyZ'],
     IPT_BUTTON2: ['KeyX'],
+    IPT_BUTTON3: ['KeyC'],
+  },
+  gunsmoke: {
+    // Gunsmoke's three buttons aim rather than repeat: BUTTON1 shoots left,
+    // BUTTON2 straight ahead and BUTTON3 right. MAME declares them as bare
+    // IPT_BUTTON1..3 with no names, so the direction is only observable by
+    // running the machine — tracking the bullet sprite's screen X across
+    // frames after each press gives 104->52 (left), a constant 113 (straight)
+    // and 136->192 (right). The shared map puts BUTTON1 on X and BUTTON2 on Z,
+    // which fires left from the middle key and straight from the left one.
+    IPT_BUTTON1: ['KeyZ'],
+    IPT_BUTTON2: ['KeyX', 'Space'],
     IPT_BUTTON3: ['KeyC'],
   },
 };
@@ -1658,11 +1671,11 @@ function machineDossierMarkdown(d: {
   md.push('');
   md.push(`**${d.company} · ${d.year}** — transpiled from the MAME driver \`${d.driverFile}\` by mamekit.`);
   md.push('');
-  md.push(`![marquee](/artwork/media/marquees/${d.game}.png)`);
+  md.push(`![marquee](${artworkUrl(`media/marquees/${d.game}.png`)})`);
   md.push('');
   md.push(`| Cover | Cabinet |`);
   md.push(`| --- | --- |`);
-  md.push(`| ![flyer](/artwork/covers/${d.game}.png) | ![cabinet](/artwork/media/cabinets/${d.game}.png) |`);
+  md.push(`| ![flyer](${artworkUrl(`covers/${d.game}.png`)}) | ![cabinet](${artworkUrl(`media/cabinets/${d.game}.png`)}) |`);
   md.push('');
 
   md.push('## The machine');

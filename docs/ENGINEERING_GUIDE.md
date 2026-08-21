@@ -62,7 +62,7 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run blast-radius` | which machines a change can reach, and the e2e command for exactly those |
 | `npm run test:games:record` | record candidate game baselines for review |
 | `npm run serve` | rebuild app shell and serve `dist` on localhost |
-| `npm run deploy -- --artwork` | clean-generate and publish the static site |
+| `npm run deploy` | clean-generate and publish the static site |
 
 The broad `test:generation` command is destructive to `dist` and expensive. It
 generates every target in `REQUIRED_TARGETS`, which is the accepted set plus
@@ -454,16 +454,20 @@ documents always take precedence.
 Production is a static GitHub Pages site at `mamehistory.com`.
 
 ```sh
-npm run deploy -- --artwork
+npm run deploy
 ```
+
+The site carries neither ROMs nor artwork. The ~700 MB of cabinet scans lives
+in the artwork bucket and the browser loads it from there
+(`src/runtime/artwork-source.ts`); `make sync-artwork` in `.data/` publishes
+them. A copy inside `dist` was most of GitHub Pages' 1 GB budget spent on
+files that never change.
 
 The deployment script:
 
 1. runs clean `gen:all`;
-2. optionally copies deployable artwork while excluding development history
-   data;
-3. updates generated artwork flags;
-4. writes `.nojekyll` and the configured `CNAME`;
+2. removes any `dist/artwork` a stale tree left behind;
+3. writes `.nojekyll` and the configured `CNAME`;
 5. creates an ephemeral Git repository inside `dist`;
 6. force-pushes one static snapshot to `gh-pages`;
 7. removes the ephemeral repository.

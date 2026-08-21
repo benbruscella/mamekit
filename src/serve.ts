@@ -14,10 +14,13 @@ import {
   generatedGameOutputs,
 } from './gen/output-layout.ts';
 
-// The bucket sends no CORS headers, so the browser can't fetch it
-// cross-origin — /romsearch/<key> proxies it same-origin (dev serve only; a
-// static deploy needs CORS enabled on the bucket instead). The bucket base and
-// key encoding come from runtime/rom-source.ts so there is one definition.
+// The bucket's CORS rule allowlists the deployed origin, not localhost, so a
+// dev browser can't fetch it cross-origin — /romsearch/<key> proxies it
+// same-origin (dev serve only; the deployed site goes to the bucket direct).
+// The bucket base and key encoding come from runtime/rom-source.ts so there is
+// one definition. Artwork needs no equivalent route: the /artwork mount below
+// serves .data/artwork straight off disk, and artwork-source.ts falls through
+// to the bucket when there is no mount.
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
