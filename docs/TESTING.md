@@ -135,6 +135,11 @@ then compares:
 
 - assembled region hashes, so the picker built the accepted ROM set;
 - every checkpoint's framebuffer and state hash against the token's golden;
+- the sound-register writes the board emitted, against the token's audio
+  golden — the live pass only proves *something* is audible, which a single
+  dead channel passes (Gyruss's silent i8039 percussion, issue #58). This
+  catches a channel going silent; a channel that was never wired agrees with
+  its own golden, and only a register-stream diff against real MAME finds it;
 - the presented canvas against `e2e/snapshots/<game>-final.png`;
 - measured sound on the app's own AudioWorklet graph, which the offline audio
   probe never touches;

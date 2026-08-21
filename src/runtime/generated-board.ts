@@ -498,6 +498,17 @@ class IrBoard implements Board {
       tickGeneratedDevices(seconds);
       tickHostedProcessors(seconds);
     };
+    // MAME's DISCRETE_SOUND network addresses nodes through the NODE(n) macro,
+    // and a driver handler may poke one directly. Gyruss's i8039 does exactly
+    // that (dac_w writes NODE(16)), and both halves were missing: NODE was
+    // unbound, and m_discrete.write was bound only for hosted firmware MCUs.
+    // Gyruss runs its 8039 as a full CPU, so its entire percussion channel —
+    // the swarm the enemies arrive on — reached the sink as nothing at all.
+    calls['NODE'] = (node: number) => node;
+    calls['m_discrete.write'] = (node: number, value: number) => {
+      sinks.soundWrite(node, value, this.soundFraction(), 'discrete');
+      return 0;
+    };
     calls['machine().scheduler().abort_timeslice'] = () => {
       runAutonomousNow();
       return 0;

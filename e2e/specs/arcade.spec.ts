@@ -33,6 +33,14 @@ for (const contract of selectedContracts()) {
       // board and got the accepted machine back.
       expect(result.checkpoints).toEqual(contract.golden.checkpoints);
 
+      // The sound stream the board emitted, against the token's accepted audio
+      // golden. Real-time playback cannot reproduce the offline PCM hash, so
+      // without this a whole silent channel passes every other check — Gyruss
+      // shipped with its entire i8039 percussion channel emitting nothing.
+      expect(result.soundWrites.total, 'sound-register writes').toBe(contract.golden.audio?.writes);
+      expect(result.soundWrites.nonzero, 'nonzero sound writes')
+        .toBe(contract.golden.audio?.nonzeroWrites);
+
       // Hashes come from the framebuffer; this is the canvas that was actually
       // presented, so a shell that stopped blitting still fails here.
       expect(await screenPng(page)).toMatchSnapshot(`${contract.game}-final.png`);

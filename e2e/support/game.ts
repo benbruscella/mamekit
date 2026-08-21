@@ -35,6 +35,8 @@ export interface ReplayResult {
   regions: Record<string, string>;
   /** emulated frames per second while the canvas was being driven flat out */
   fps: number;
+  /** sound-register writes the board emitted, counted at the shell's own sink */
+  soundWrites: { total: number; nonzero: number };
 }
 
 /**
@@ -80,6 +82,7 @@ export async function replayContract(page: Page, plan: ReplayPlan): Promise<Repl
         framebuffer: Uint32Array;
         step(count: number): void;
         qaDrive: boolean;
+        soundWrites: { total: number; nonzero: number };
       };
     }).mamekit;
     if (!mamekit.qaDrive) throw new Error('replay needs the ?qa=1 drive mode');
@@ -163,6 +166,7 @@ export async function replayContract(page: Page, plan: ReplayPlan): Promise<Repl
           .map(([name, bytes]) => [name, hash(bytes)]),
       ),
       fps: input.frames / seconds,
+      soundWrites: { ...mamekit.soundWrites },
     };
   }, plan);
 }

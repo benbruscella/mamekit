@@ -353,16 +353,26 @@ export function compileDiscreteMixer(
   const mixers = Array.from({ length: 7 }, (_, index) => index + 2)
     .flatMap(count => callArgs(body, `DISCRETE_MIXER${count}`).map(args => {
       const descriptor = symbolName(args.at(-1));
-      const resistances = descriptor
-        ? structValues(source, descriptor).firstArray.slice(0, count).map(analog)
+      const values = descriptor ? structValues(source, descriptor) : undefined;
+      const resistances = values
+        ? values.firstArray.slice(0, count).map(analog)
         : [];
       if (resistances.length !== count || resistances.some(value => !(value > 0))) {
         throw new Error(`${netlist}: incomplete ${count}-input resistor mixer`);
       }
+      // discrete_mixer_desc trails its three arrays with rI, rF, cF, cAmp,
+      // vRef and gain. cF low-passes the summing node and cAmp is the
+      // AC-coupling capacitor that strips its DC; a resistor ladder's output
+      // is unipolar, so dropping cAmp leaves every level change as a thump.
+      const scalars = values?.scalars ?? [];
       return {
         node: node(args[0]),
         inputs: args.slice(2, 2 + count).map(node),
         resistances,
+        filterCapacitance: scalars[6] && scalars[6] > 0 ? scalars[6] : 0,
+        couplingCapacitance: scalars[7] && scalars[7] > 0 ? scalars[7] : 0,
+        referenceVoltage: scalars[8] && Number.isFinite(scalars[8]) ? scalars[8] : 0,
+        gain: scalars[9] && Number.isFinite(scalars[9]) && scalars[9] !== 0 ? scalars[9] : 1,
       };
     }));
   const outputs = callArgs(body, 'DISCRETE_OUTPUT').map(args => ({
@@ -2571,7 +2581,17 @@ export interface GeneratedDiscreteMixerPlanData {
     capacitors: number[];
   }[];
   adders: { node: number; inputs: number[] }[];
-  mixers: { node: number; inputs: number[]; resistances: number[] }[];
+  mixers: {
+    node: number;
+    inputs: number[];
+    resistances: number[];
+    /** discrete_mixer_desc cF: low-pass across the summing node. */
+    filterCapacitance: number;
+    /** discrete_mixer_desc cAmp: AC coupling, fixed at 100k in MAME. */
+    couplingCapacitance: number;
+    referenceVoltage: number;
+    gain: number;
+  }[];
   outputs: { node: number; gain: number }[];
   source: { file: string; line: number; netlist: string };
 }
@@ -2933,8 +2953,18 @@ export class GeneratedAy8910Mixer {
     // mixer. Preserve source voltages for that topology; other generated AY
     // packages retain their established normalized stream protocol until
     // their downstream netlists are compiled to the same level of fidelity.
+    //
+    // A lowered DISCRETE_SOUND network is exactly that fidelity: its
+    // DISCRETE_INPUTX_STREAM nodes expect the resistor ladder's own unipolar
+    // voltages, which is what MAME feeds them (build_mixer_table only
+    // normalizes for AY8910_LEGACY_OUTPUT). Handing such a netlist the
+    // normalized bipolar curve instead makes every AY channel about four
+    // times too loud, which is inaudible on its own but silently buries
+    // anything else mixed alongside them — Gyruss's i8039 percussion sat
+    // ~4.4x under its true weight against the AYs for exactly this reason.
     this.sourceAnalogMix = auxiliaryDevices.some(device =>
-      (device.referenceLevels?.length ?? 0) > 0);
+      (device.referenceLevels?.length ?? 0) > 0) ||
+      (discreteMixer?.streamInputs?.length ?? 0) > 0;
     const filterCount = this.routes.reduce(
       (maximum, route) => Math.max(maximum, (route.filter?.index ?? -1) + 1),
       0,
@@ -3165,20 +3195,42 @@ export class GeneratedAy8910Mixer {
         (sum, resistance) => sum + 1 / resistance,
         0,
       );
-      values.set(stage.node, stage.inputs.reduce(
+      // Millman's theorem, exactly as MAME's DISC_MIXER_IS_RESISTOR sums.
+      let value = stage.inputs.reduce(
         (sum, input, index) =>
           sum + (values.get(input) ?? 0) / stage.resistances[index]!,
         0,
-      ) / conductance);
+      ) / conductance;
+      const memory = this.discreteFilterMemory;
+      const step = 1 / this.outputRate;
+      if (stage.filterCapacitance > 0) {
+        const key = stage.node * 2;
+        const exponent = 1 - Math.exp(-step / ((1 / conductance) * stage.filterCapacitance));
+        const held = (memory.get(key) ?? 0) +
+          (value - stage.referenceVoltage - (memory.get(key) ?? 0)) * exponent;
+        memory.set(key, held);
+        value = held;
+      }
+      if (stage.couplingCapacitance > 0) {
+        // MAME fixes this stage's resistance at 100k (disc_mth.hxx).
+        const key = stage.node * 2 + 1;
+        const exponent = 1 - Math.exp(-step / (100_000 * stage.couplingCapacitance));
+        const held = (memory.get(key) ?? 0) + (value - (memory.get(key) ?? 0)) * exponent;
+        memory.set(key, held);
+        value -= held;
+      }
+      values.set(stage.node, value * stage.gain);
     }
-    const outputGain = mixer.outputs.reduce(
-      (sum, output) => sum + Math.abs(output.gain),
-      0,
-    ) || 1;
+    // Each DISCRETE_OUTPUT is one speaker channel carrying its own source gain
+    // (Gyruss routes NODE_50 right and NODE_51 left). Folding them to this
+    // mono sink averages the CHANNELS, so divide by how many there are — not,
+    // as before, by the sum of their gains, which cancelled the very gain that
+    // lifts a discrete network into the stream's range and left the whole mix
+    // an output-gain quieter than the hardware.
     const output = mixer.outputs.reduce(
       (sum, candidate) => sum + (values.get(candidate.node) ?? 0) * candidate.gain,
       0,
-    ) / outputGain;
+    ) / Math.max(1, mixer.outputs.length);
     return Math.max(-1, Math.min(1, output));
   }
 
