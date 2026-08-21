@@ -28,6 +28,7 @@ import {
   type SoftEntry,
 } from './nes-ines.ts';
 import { readZip, crc32 } from './zip.ts';
+import { artworkUrl } from './artwork-source.ts';
 import {
   cartAvailability,
   fetchRomBytes,
@@ -782,7 +783,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       img.style.opacity = '1';
     });
     img.addEventListener('error', () => img.remove());
-    img.src = `../artwork/carts/${encodeURIComponent(list)}/${encodeURIComponent(file)}`;
+    img.src = artworkUrl(`carts/${list}/${file}`);
     cover.appendChild(img);
   }
 

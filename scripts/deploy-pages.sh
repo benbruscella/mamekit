@@ -1,36 +1,22 @@
 #!/usr/bin/env bash
 # Publish dist/ to the gh-pages branch as a single history-free commit.
 #
-#   npm run deploy              # site without artwork (safe default)
-#   npm run deploy -- --artwork # include .data/artwork/ (copyrighted scans — your call)
+#   npm run deploy
 #
-# ROMs are NEVER published: dist/ contains none, and visitors load their own
-# zip through the in-app drop zone (validated against the chip manifest).
+# Neither ROMs nor artwork are ever published here. Visitors load their own ROM
+# zip through the in-app drop zone (validated against the chip manifest), and
+# the ~700 MB of cabinet scans is loaded straight from the artwork bucket
+# (src/runtime/artwork-source.ts) — a copy inside dist/ was most of GitHub
+# Pages' 1 GB budget spent on files that never change. `make sync-artwork` in
+# .data/ is what publishes those scans; this script only ships the site.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-ART="${1:-}"
-
 npm run gen:all
 
-# artwork is copyrighted (same treatment as .data/roms/) — opt-in only
+# a stale dist/ from before the bucket move still holds the scans — a deploy
+# must never carry them, however dist/ got its contents
 rm -rf dist/artwork
-if [[ "$ART" == "--artwork" ]]; then
-  mkdir -p dist/artwork
-  # everything the app fetches at runtime; data/ (61 MB history dat) is
-  # dev-time only — its text is extracted under dist/games/<category>/<game>/
-  rsync -a --exclude 'data' --exclude '.DS_Store' .data/artwork/ dist/artwork/
-fi
-
-# artwork flags match what we shipped (ROMs are never part of the manifest)
-ART="$ART" node --input-type=module -e '
-  import { readFileSync, writeFileSync } from "node:fs";
-  const games = JSON.parse(readFileSync("dist/games.json", "utf8"));
-  for (const g of games) {
-    if (process.env.ART !== "--artwork") g.hasArt = false;
-  }
-  writeFileSync("dist/games.json", JSON.stringify(games));
-'
 
 touch dist/.nojekyll
 

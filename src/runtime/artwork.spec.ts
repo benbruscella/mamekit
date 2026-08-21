@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { findWindow, loadArtwork, parseArtworkLayout } from './artwork.ts';
+import { ARTWORK_BUCKET_BASE } from './artwork-source.ts';
 
 const originalDocument = globalThis.document;
 const originalFetch = globalThis.fetch;
@@ -32,13 +33,19 @@ assert.deepEqual(findWindow({ width: 5, height: 5 } as ImageBitmap), {
 alpha[(2 * 5 + 2) * 4 + 3] = 255;
 assert.equal(findWindow({ width: 5, height: 5 } as ImageBitmap), null);
 
-let requested = '';
+// A miss tries the dev server's local mount first, then the artwork bucket
+// the deployed site loads from (artwork-source.ts); either way the caller
+// gets null rather than a throw.
+const requested: string[] = [];
 globalThis.fetch = (async input => {
-  requested = String(input);
+  requested.push(String(input));
   return { ok: false } as Response;
 }) as typeof fetch;
 assert.equal(await loadArtwork('juno first', 'bezel'), null);
-assert.equal(requested, '../artwork/juno%20first.zip');
+assert.deepEqual(requested, [
+  '../artwork/juno%20first.zip',
+  `${ARTWORK_BUCKET_BASE}/juno%20first.zip`,
+]);
 
 const modernLayout = `
 <mamelayout version="2">
