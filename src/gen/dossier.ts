@@ -1,3 +1,5 @@
+import { artworkUrl } from '../runtime/artwork-source.ts';
+
 export interface DossierData {
   game: string;
   title: string;
@@ -51,11 +53,11 @@ export function machineDossierMarkdown(d: DossierData): string {
   md.push('');
   md.push(`**${d.company} · ${d.year}** — transpiled from the MAME driver \`${d.driverFile}\` by mamekit.`);
   md.push('');
-  md.push(`![marquee](/artwork/media/marquees/${d.game}.png)`);
+  md.push(`![marquee](${artworkUrl(`media/marquees/${d.game}.png`)})`);
   md.push('');
   md.push('| Cover | Cabinet |');
   md.push('| --- | --- |');
-  md.push(`| ![flyer](/artwork/covers/${d.game}.png) | ![cabinet](/artwork/media/cabinets/${d.game}.png) |`);
+  md.push(`| ![flyer](${artworkUrl(`covers/${d.game}.png`)}) | ![cabinet](${artworkUrl(`media/cabinets/${d.game}.png`)}) |`);
   md.push('');
   md.push('## The machine');
   md.push('');
@@ -244,7 +246,7 @@ summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-
   <div class="hero"><div><div class="eyebrow">${escapeHtml(d.company)} · ${escapeHtml(d.year)}</div>
     <h1>${escapeHtml(d.fullname)}</h1>
     <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
-  </div><img src="../../../../artwork/media/marquees/${encodeURIComponent(d.game)}.png" alt=""></div>
+  </div><img src="${artworkUrl(`media/marquees/${d.game}.png`)}" alt=""></div>
   <div class="grid">
     <div class="card"><h2>Machine identity</h2>
       <div class="fact"><span>Set</span><strong>${escapeHtml(d.game)}</strong></div>

@@ -1,9 +1,11 @@
 // MAME cabinet artwork loading (browser-only). Artwork zips live in the
 // user's gitignored .data/artwork/ dir (same treatment as .data/roms/) and are
-// served at /artwork/<game>.zip. Bezel PNGs carry a transparent window where
-// the CRT sits — findWindow() locates it so the menu can composite covers
-// and the shell can play the game inside the real cabinet art.
+// mirrored to the artwork bucket the deployed site loads them from
+// (artwork-source.ts). Bezel PNGs carry a transparent window where the CRT
+// sits — findWindow() locates it so the menu can composite covers and the
+// shell can play the game inside the real cabinet art.
 
+import { fetchArtworkBytes } from './artwork-source.ts';
 import { readZip } from './zip.ts';
 
 export interface ArtWindow { x: number; y: number; w: number; h: number }
@@ -42,11 +44,9 @@ interface LayoutView {
  */
 export async function loadArtwork(game: string, prefer: 'marquee' | 'bezel'): Promise<Artwork | null> {
   try {
-    // relative to the /app/ page so the site works under any base path
-    // (github pages serves the whole tree under /<repo>/)
-    const res = await fetch(`../artwork/${encodeURIComponent(game)}.zip`);
-    if (!res.ok) return null;
-    const files = await readZip(new Uint8Array(await res.arrayBuffer()));
+    const bytes = await fetchArtworkBytes(`${game}.zip`);
+    if (!bytes) return null;
+    const files = await readZip(bytes);
 
     const fromLay = await layArtwork(files);
     if (fromLay) return fromLay;

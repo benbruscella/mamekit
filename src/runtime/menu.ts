@@ -16,6 +16,7 @@
 import { readZip, crc32 } from './zip.ts';
 import { decodeGfx, type GfxLayout } from './gfx.ts';
 import { loadArtwork } from './artwork.ts';
+import { artworkUrl, fetchArtworkImage } from './artwork-source.ts';
 import {
   findDarkCoverCrop,
   fitCoverCropAspect,
@@ -407,7 +408,7 @@ export async function runMenu(): Promise<void> {
     };
 
     // marquee light-box across the top — the sign that pulled you across the arcade
-    scroller.appendChild(img(`../artwork/media/marquees/${game}.png`,
+    scroller.appendChild(img(artworkUrl(`media/marquees/${game}.png`),
       `width:100%;max-height:140px;object-fit:contain;border-radius:10px 10px 0 0;
        background:radial-gradient(ellipse at center,#1c2150,#0a0c1e);
        box-shadow:inset 0 -12px 24px rgba(0,0,0,.5)`));
@@ -417,7 +418,7 @@ export async function runMenu(): Promise<void> {
 
     // hero spread: flyer · title/facts · cabinet
     const hero = el('div', 'display:flex;gap:22px;align-items:flex-start;margin-bottom:18px');
-    const flyer = img(`../artwork/covers/${game}.png`,
+    const flyer = img(artworkUrl(`covers/${game}.png`),
       'width:170px;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.65);flex-shrink:0;transform:rotate(-1.5deg)');
     hero.appendChild(flyer);
     const heroText = el('div', 'flex:1;min-width:220px');
@@ -435,7 +436,7 @@ export async function runMenu(): Promise<void> {
     subh.append(manufacturerLink, document.createTextNode(' · '), yearLink);
     heroText.append(h, subh);
     hero.appendChild(heroText);
-    const cab = img(`../artwork/media/cabinets/${game}.png`,
+    const cab = img(artworkUrl(`media/cabinets/${game}.png`),
       'width:120px;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.65);flex-shrink:0;transform:rotate(1.5deg)');
     hero.appendChild(cab);
     inner.appendChild(hero);
@@ -616,7 +617,7 @@ export async function runMenu(): Promise<void> {
     const ctx = canvas.getContext('2d')!;
     // 0. the classic promotional flyer (artwork/covers/<game>.png,
     //    user-supplied) — real box art beats anything synthesized
-    const flyer = await imageFrom(`../artwork/covers/${encodeURIComponent(entry.game)}.png`);
+    const flyer = await fetchArtworkImage(`covers/${entry.game}.png`);
     if (flyer) {
       const source = darkCoverCrop(flyer);
       const s = Math.max(canvas.width / source.width, canvas.height / source.height);

@@ -594,7 +594,8 @@ letting the browser probe for art it does not have would mean thousands of 404s
 per visit. The live route wins whenever it answers.
 
 These are photographs of copyrighted labels: like every other artwork path they
-are gitignored, and the deploy includes them only with `--artwork`.
+are gitignored, and the deploy never carries them — the browser loads them from
+the artwork bucket (`src/runtime/artwork-source.ts`).
 
 Good first-stop catalogs are
 [progetto-SNAPS](https://www.progettosnaps.net/) for MAME-named cabinets,
@@ -609,8 +610,9 @@ Generation prefers the optional curated `<target>.txt` when it exists,
 otherwise extracts the target's story from Gaming History. It writes
 `history.txt` and creates
 `DOSSIER.md` from MAME source, git history, ROM/input/hardware facts and the
-presentation paths. Artwork is intentionally not committed or included in CI;
-deployment includes it only with `--artwork`. Validate the complete local
+presentation paths. Artwork is intentionally not committed or included in CI,
+and the deployed site loads it from the artwork bucket rather than shipping a
+copy — `make sync-artwork` in `.data/` publishes it. Validate the complete local
 package after generation:
 
 ```sh
