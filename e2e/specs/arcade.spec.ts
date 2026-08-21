@@ -7,7 +7,7 @@
 import { expect, test } from '@playwright/test';
 import { readyFrame, selectedContracts } from '../support/contracts.ts';
 import { knownIssue } from '../support/known-issues.ts';
-import { audioPeak, bootGame, keysFor, replayContract, screenPng, secondsToFrame, trackAudioPeak } from '../support/game.ts';
+import { audioPeak, bootGame, keysFor, replayContract, screenPng, screenRefresh, secondsToFrame, trackAudioPeak } from '../support/game.ts';
 
 for (const contract of selectedContracts()) {
   test.describe(contract.game, () => {
@@ -83,11 +83,16 @@ for (const contract of selectedContracts()) {
         expect(peak, 'no sound reached the speakers').toBeGreaterThan(1e-4);
       }
 
-      // The status line reports emulated frames per wall-clock second.
+      // The status line reports emulated frames per wall-clock second. The run
+      // loop caps that at the machine's own refresh, so compare against real
+      // time rather than the token's minimumFps: that is a flat-out Node floor,
+      // and for a machine like Berzerk (60) it equals the cap exactly, leaving
+      // no headroom for one scheduling hiccup under a parallel run.
       const status = await page.locator('body').innerText();
       const fps = Number(/(\d+) fps/.exec(status)?.[1] ?? 0);
-      test.info().annotations.push({ type: 'speed', description: `${fps} fps` });
-      expect(fps).toBeGreaterThanOrEqual(contract.minimumFps);
+      const refresh = await screenRefresh(page);
+      test.info().annotations.push({ type: 'speed', description: `${fps} fps of ${refresh.toFixed(1)} Hz` });
+      expect(fps, 'not holding real time').toBeGreaterThanOrEqual(Math.floor(refresh * 0.9));
       expect(faults.errors).toEqual([]);
     });
   });

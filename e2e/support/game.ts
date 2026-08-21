@@ -224,16 +224,20 @@ export async function screenPng(page: Page): Promise<Buffer> {
   return Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64');
 }
 
+/** The screen refresh the generated board actually runs at. */
+export async function screenRefresh(page: Page): Promise<number> {
+  return page.evaluate(() => (window as unknown as {
+    mamekit: { config: { board: { screen: { refresh: number } } } };
+  }).mamekit.config.board.screen.refresh);
+}
+
 /**
  * Wall-clock seconds this machine needs to reach a given emulated frame, at
  * the screen refresh the generated board actually runs at (Space Invaders is
  * 59.54 Hz, not 60).
  */
 export async function secondsToFrame(page: Page, frame: number): Promise<number> {
-  const refresh = await page.evaluate(() => (window as unknown as {
-    mamekit: { config: { board: { screen: { refresh: number } } } };
-  }).mamekit.config.board.screen.refresh);
-  return frame / refresh;
+  return frame / await screenRefresh(page);
 }
 
 /** The keys the generated bindings assign to one MAME input, e.g. IPT_COIN1. */

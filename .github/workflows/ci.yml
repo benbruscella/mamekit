@@ -17,9 +17,20 @@ concurrency:
 
 jobs:
   test:
-    name: Unit and current games
+    # The two gates share only their setup: colocated specs never read the
+    # generated tree, and generation never runs a spec. Running them as one job
+    # made every PR wait for their sum rather than the longer of the two.
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Unit and lowering specs
+            command: npm run test:unit
+          - name: Clean generation and audit
+            command: npm run test:current
     env:
       MAME_SRC: ${{ github.workspace }}/.mame
     steps:
@@ -47,8 +58,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run every colocated unit and lowering spec
-        run: npm run test:unit
-
-      - name: Clean-generate and audit the current supported games
-        run: npm run test:current
+      - name: ${{ matrix.name }}
+        # Colocated specs are independent processes with no shared state, so
+        # they fan out across the runner's cores; the sequential loop spent
+        # most of its time idle behind six slow lowering specs.
+        env:
+          SPEC_JOBS: 4
+        run: ${{ matrix.command }}
