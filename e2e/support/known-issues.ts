@@ -13,7 +13,6 @@
 export const KNOWN_ISSUES: Record<string, string> = {
   '1942': '20 fps',
   carnival: 'sound explosion',
-  defender: "can't turn around",
   popeye: 'graphic glitches',
   rampage: 'no sound',
   sf2ce: 'fps',
