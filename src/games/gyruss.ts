@@ -37,11 +37,11 @@ export const gyruss: GameTestContract = {
       1800: { video: '80a09e40', state: '9556c09a' },
     },
     audio: {
-      writes: 72835,
-      nonzeroWrites: 54418,
-      writeHash: '574de1ef',
-      pcmHash: '7113b16c',
-      rms: 0.022845,
+      writes: 193874,
+      nonzeroWrites: 151042,
+      writeHash: 'bce8b85f',
+      pcmHash: 'fc1c390e',
+      rms: 0.097394,
     },
   },
 };

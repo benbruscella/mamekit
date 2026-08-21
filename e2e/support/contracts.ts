@@ -42,7 +42,7 @@ export interface GameContract {
   golden: {
     regions: Record<string, string>;
     checkpoints: Record<string, GameCheckpoint>;
-    audio?: { rms?: number };
+    audio?: { rms?: number; writes?: number; nonzeroWrites?: number };
   };
 }
 

@@ -35,6 +35,8 @@ export interface ReplayResult {
   regions: Record<string, string>;
   /** emulated frames per second while the canvas was being driven flat out */
   fps: number;
+  /** sound-register writes the board emitted, counted at the shell's own sink */
+  soundWrites: { total: number; nonzero: number };
 }
 
 /**
@@ -80,6 +82,7 @@ export async function replayContract(page: Page, plan: ReplayPlan): Promise<Repl
         framebuffer: Uint32Array;
         step(count: number): void;
         qaDrive: boolean;
+        soundWrites: { total: number; nonzero: number };
       };
     }).mamekit;
     if (!mamekit.qaDrive) throw new Error('replay needs the ?qa=1 drive mode');
@@ -163,6 +166,7 @@ export async function replayContract(page: Page, plan: ReplayPlan): Promise<Repl
           .map(([name, bytes]) => [name, hash(bytes)]),
       ),
       fps: input.frames / seconds,
+      soundWrites: { ...mamekit.soundWrites },
     };
   }, plan);
 }
@@ -220,16 +224,20 @@ export async function screenPng(page: Page): Promise<Buffer> {
   return Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64');
 }
 
+/** The screen refresh the generated board actually runs at. */
+export async function screenRefresh(page: Page): Promise<number> {
+  return page.evaluate(() => (window as unknown as {
+    mamekit: { config: { board: { screen: { refresh: number } } } };
+  }).mamekit.config.board.screen.refresh);
+}
+
 /**
  * Wall-clock seconds this machine needs to reach a given emulated frame, at
  * the screen refresh the generated board actually runs at (Space Invaders is
  * 59.54 Hz, not 60).
  */
 export async function secondsToFrame(page: Page, frame: number): Promise<number> {
-  const refresh = await page.evaluate(() => (window as unknown as {
-    mamekit: { config: { board: { screen: { refresh: number } } } };
-  }).mamekit.config.board.screen.refresh);
-  return frame / refresh;
+  return frame / await screenRefresh(page);
 }
 
 /** The keys the generated bindings assign to one MAME input, e.g. IPT_COIN1. */

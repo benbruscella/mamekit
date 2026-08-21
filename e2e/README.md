@@ -36,6 +36,8 @@ the page is untouched. It then compares:
 - assembled region hashes, so the picker built the accepted ROM set;
 - every checkpoint's framebuffer and CPU/device state hash against the golden
   in `src/games/<game>.ts`;
+- the sound-register writes the board emitted, against the token's accepted
+  audio golden;
 - the presented canvas against `snapshots/<game>-final.png`.
 
 The goldens are the ones the Node contract already owns. There is no second
@@ -46,6 +48,28 @@ in real time with real key events. It checks that the machine reaches full
 speed and that sound actually reaches the speakers, measured on the app's own
 AudioWorklet graph. Attract mode measures exactly `0` there, so the threshold
 is not a judgement call.
+
+### WHY BOTH AUDIO CHECKS
+
+The live pass only asks "did *anything* reach the speakers", which a single
+broken channel passes easily. Gyruss shipped with its entire i8039 percussion
+channel emitting nothing — issue #58's missing swarm — while the AYs kept the
+music playing, so every check still went green.
+
+The contract pass therefore also compares the *stream*: how many sound-register
+writes the board emitted, and how many were nonzero, against the token's
+golden. Restoring Gyruss's channel moved that count from 72,835 to 193,874.
+
+Be clear about what this buys. It catches a channel **going** silent, because
+the count collapses against a golden recorded while it worked. It cannot catch
+a channel that was **never** wired: Gyruss's golden was recorded from the
+broken machine, so it agreed with itself. Only a comparison against real MAME
+finds that class of bug — see the register-stream diff described in
+[TESTING](../docs/TESTING.md) and used to find #58.
+
+The offline PCM hash stays in the Node contract. Browser audio is rendered in
+real time by the AudioWorklet and cannot reproduce it, so the browser checks
+what the board *asked for* and the Node gate checks what the DSP *made of it*.
 
 `rom-search.spec.ts` clicks the drop screen's "Try web search" button and
 requires the public mirror to hand back a set that passes the CRC manifest and

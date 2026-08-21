@@ -501,8 +501,18 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   if (input.debug) console.log('[input] debug on — bindings:', cfg.bindings, 'ports:', cfg.ports);
 
   const audio = new AudioOutput();
+  // Counted, not just forwarded: browser QA compares these against the token's
+  // accepted audio golden. Real-time playback cannot reproduce the offline PCM
+  // hash, so without the stream counts a whole silent channel is invisible to
+  // the browser gate — Gyruss shipped with its entire i8039 percussion channel
+  // emitting nothing and every other check still passed.
+  const soundWrites = { total: 0, nonzero: 0 };
   const board = createBoard({ ...cfg.board, game: cfg.game }, regions, input, {
-    soundWrite: (offset, data, frac, method) => audio.write(offset, data, frac, method),
+    soundWrite: (offset, data, frac, method) => {
+      soundWrites.total++;
+      if (offset >= 0 && data !== 0) soundWrites.nonzero++;
+      audio.write(offset, data, frac, method);
+    },
     soundData: (id, bytes) => audio.data(id, bytes),
   });
   // Match MAME's soft-reset key. This is needed by boards such as Qix whose
@@ -544,6 +554,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
     framebuffer: fb,
     step: stepFrames,
     qaDrive,
+    soundWrites,
   };
 
   // Start immediately — the menu click that navigated here counts as the

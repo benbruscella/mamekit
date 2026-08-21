@@ -372,17 +372,22 @@ class IrDevice implements Device {
       this.listeners.set(callback.signal, slots);
       const emitters = slots.map(listeners => {
         const emitter = (...args: number[]) => {
-          if (!listeners.length) return callback.initial ?? 0;
           // A MAME devcb is one .set() plus any number of .append()s, and the
           // whole chain contributes: reads are OR-combined. Overwriting kept
           // only the last entry, which collapsed the Namco 53xx's mode select
           // — (q7<<3)|(q6<<2)|(q5<<1) on one K port — to a single bit.
-          let result = 0;
+          //
+          // A listener that returns nothing (every write callback) contributes
+          // nothing: the declared initial still stands, exactly as it does for
+          // an unbound chain. Folding those into 0 silently changed the value
+          // read back from write-only devcbs.
+          let result: number | undefined;
           for (const listener of listeners) {
             const value = listener(...args);
-            if (value !== undefined) result |= Number(value) || 0;
+            if (value === undefined) continue;
+            result = (result ?? 0) | (Number(value) || 0);
           }
-          return result;
+          return result ?? callback.initial ?? 0;
         };
         // MAME device code uses devcb::isunset() to decide which callback
         // slots override internal latch state.  Treating an unbound slot as a
