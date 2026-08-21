@@ -1,20 +1,23 @@
-// MAME cabinet artwork loading (browser-only). Artwork zips live in the
-// user's gitignored .data/artwork/ dir (same treatment as .data/roms/) and are
-// mirrored to the artwork bucket (artwork-source.ts). Bezel PNGs carry a
-// transparent window where the CRT sits — findWindow() locates it so the menu
-// can composite covers and the shell can play the game inside the real
+// MAME cabinet artwork loading (browser-only). Bezel PNGs carry a transparent
+// window where the CRT sits, so the shell can play a game inside the real
 // cabinet art.
 //
-// Two ways in, best first. The build resolves each zip's `default.lay` ahead
-// of time and ships the one PNG that view names as a capped `.webp` plus its
-// geometry (src/gen/bezel-artwork.ts), so the common path is two small
-// same-origin requests. The zip stays the fallback, for a game whose artwork
-// arrived after the last build or whose pack has no lay to resolve — the
-// parsing below is what the build calls, so the two can only ever pick the
-// same art.
+// There is exactly one way in: the `.webp` + geometry sidecar the build ships
+// under /artwork/bezels (src/gen/bezel-artwork.ts, which calls the layout
+// parser below — so build and browser cannot disagree about which PNG is the
+// bezel). Two small same-origin requests, and if either is missing the game
+// simply plays without a bezel.
+//
+// Deliberately no fallback to the archival pack on the bucket. There used to
+// be one, and it is what let a broken deploy go unnoticed: the publish step
+// stripped every sidecar, all 63 games quietly resumed pulling 7-8 MB packs
+// off an object store with no CDN in front of it, and the only symptom was
+// that the site felt slow. A missing bezel is a visible, cheap failure; a
+// silent multi-megabyte download is neither. Ship the sidecar or show no
+// bezel — scripts/deploy-pages.sh fails the deploy rather than publish a
+// half-shipped pair.
 
-import { fetchArtworkBytes, webArtworkUrl } from './artwork-source.ts';
-import { readZip } from './zip.ts';
+import { webArtworkUrl } from './artwork-source.ts';
 
 export interface ArtWindow { x: number; y: number; w: number; h: number }
 export interface ArtTint {
@@ -60,50 +63,33 @@ export interface LayoutView {
 export type BezelSidecar = Omit<LayoutView, 'file'>;
 
 /**
- * Load a game's artwork. The zip's MAME `default.lay` layout is the source
- * of truth when present (which PNG is the bezel + the exact screen bounds,
- * same data MAME renders from); the filename heuristic + alpha flood fill
- * are only the fallback for lay-less zips.
+ * A game's cabinet bezel, or null when the site ships none for it.
+ *
+ * Null is the whole error path: the caller draws no bezel and the game runs
+ * regardless. Nothing here reaches for the archival pack — see the note at the
+ * top of this file for why that fallback was removed rather than fixed.
  */
-export async function loadArtwork(game: string, prefer: 'marquee' | 'bezel'): Promise<Artwork | null> {
+export async function loadArtwork(game: string): Promise<Artwork | null> {
   const shipped = await loadShippedBezel(game);
-  if (shipped) return shipped;
-  try {
-    const bytes = await fetchArtworkBytes(`${game}.zip`);
-    if (!bytes) return null;
-    const files = await readZip(bytes);
-
-    const fromLay = await layArtwork(files);
-    if (fromLay) return fromLay;
-
-    const pngs = [...files.entries()].filter(([n]) => n.endsWith('.png'));
-    if (!pngs.length) return null;
-    const score = (n: string) => {
-      const bezel = n.includes('bezel') ? (n.includes('upright') ? 3 : 2) : 0;
-      const marquee = n.includes('marquee') ? 4 : 0;
-      return prefer === 'marquee' ? Math.max(marquee, bezel) : (bezel ? bezel + 2 : marquee ? 1 : 0);
-    };
-    pngs.sort((a, b) => score(b[0]) - score(a[0]) || b[1].length - a[1].length);
-    const bmp = await createImageBitmap(new Blob([pngs[0][1].slice().buffer], { type: 'image/png' }));
-    return { bmp, window: findWindow(bmp), tints: [] };
-  } catch {
-    return null;
+  if (!shipped) {
+    console.warn(`no bezel shipped for ${game} (/artwork/bezels/${game}.webp + .json)`);
   }
+  return shipped;
 }
 
 /**
  * The bezel the site ships for a game, or null when it ships none.
  *
- * The archival zips are the wrong shape to serve: digdug's is 7.4 MB holding
+ * The archival packs were the wrong shape to serve: digdug's is 7.4 MB holding
  * sixteen PNGs, of which `default.lay` names exactly one, and a zip has to
  * arrive whole before that one can be read — so the play page spent 4.1 s
- * pulling 7.4 MB off the bucket to use 1.7 MB of it. shipBezelArtwork resolves
- * the view at build time and emits just that PNG as a capped `.webp` beside
- * its geometry, same-origin, which is what this reads.
+ * pulling 7.4 MB off the bucket to use 1.7 MB of it. deriveBezelArtwork
+ * resolves the view at build time and emits just that PNG as a capped `.webp`
+ * beside its geometry, same-origin, which is what this reads.
  *
- * The sidecar is fetched first and gates the image: it is the small request,
- * and a game with no shipped bezel has to fall through to the zip without
- * having pulled a stray image on the way.
+ * The sidecar is fetched first and gates the image: it is the small request
+ * and it carries the screen window, without which the art cannot be placed —
+ * so there is nothing to do with a `.webp` whose sidecar is missing.
  */
 async function loadShippedBezel(game: string): Promise<Artwork | null> {
   try {
@@ -114,26 +100,11 @@ async function loadShippedBezel(game: string): Promise<Artwork | null> {
     if (!art.ok) return null;
     return composeBezel(await createImageBitmap(await art.blob()), view);
   } catch {
-    // A missing sibling is the normal case for a game whose zip has no lay,
-    // and never a reason to skip the zip fallback below.
+    // Offline, or a pack whose lay never resolved at build time (pooyan ships
+    // no default.lay at all). Cosmetic either way — never worth an exception
+    // escaping into the caller's game-launch path.
     return null;
   }
-}
-
-/** Parse MAME default.lay: pick the bezel view, resolve its art PNG + screen bounds. */
-async function layArtwork(files: Map<string, Uint8Array>): Promise<Artwork | null> {
-  const layBytes = files.get('default.lay');
-  if (!layBytes) return null;
-  const view = parseArtworkLayout(new TextDecoder().decode(layBytes));
-  if (!view) return null;
-
-  const findFile = (name: string) => files.get(name) ?? files.get(name.toLowerCase());
-  const png = findFile(view.file);
-  if (!png) return null;
-  return composeBezel(
-    await createImageBitmap(new Blob([png.slice().buffer], { type: 'image/png' })),
-    view,
-  );
 }
 
 /**
@@ -343,32 +314,3 @@ function layoutTints(
     (tint.red !== 1 || tint.green !== 1 || tint.blue !== 1 || tint.alpha !== 1));
 }
 
-/** Bounding box of the transparent CRT cut-out, found by flood fill from the center. */
-export function findWindow(bmp: ImageBitmap): ArtWindow | null {
-  const scale = Math.min(1, 320 / Math.max(bmp.width, bmp.height));
-  const w = Math.max(1, Math.round(bmp.width * scale)), h = Math.max(1, Math.round(bmp.height * scale));
-  const probe = document.createElement('canvas');
-  probe.width = w; probe.height = h;
-  const pctx = probe.getContext('2d', { willReadFrequently: true })!;
-  pctx.drawImage(bmp, 0, 0, w, h);
-  const alpha = pctx.getImageData(0, 0, w, h).data;
-  const clear = (x: number, y: number) => alpha[(y * w + x) * 4 + 3] < 16;
-  const cx = w >> 1, cy = h >> 1;
-  if (!clear(cx, cy)) return null; // center is painted — no window (marquee art etc.)
-  const seen = new Uint8Array(w * h);
-  const stack = [cy * w + cx];
-  seen[stack[0]] = 1;
-  let minX = cx, maxX = cx, minY = cy, maxY = cy;
-  while (stack.length) {
-    const p = stack.pop()!;
-    const x = p % w, y = (p / w) | 0;
-    if (x < minX) minX = x; if (x > maxX) maxX = x;
-    if (y < minY) minY = y; if (y > maxY) maxY = y;
-    for (const [nx, ny] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]] as const) {
-      if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
-      const np = ny * w + nx;
-      if (!seen[np] && clear(nx, ny)) { seen[np] = 1; stack.push(np); }
-    }
-  }
-  return { x: minX / scale, y: minY / scale, w: (maxX - minX + 1) / scale, h: (maxY - minY + 1) / scale };
-}

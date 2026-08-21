@@ -449,7 +449,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   // television viewport from their room and must not probe for an arcade
   // artwork zip that cannot exist.
   if (cfg.kind !== 'console') {
-    void loadArtwork(cfg.game, 'bezel').then(art => {
+    void loadArtwork(cfg.game).then(art => {
       if (art?.window) ui.setBezel(art.bmp, art.window, art.tints);
     });
   }

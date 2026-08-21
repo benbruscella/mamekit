@@ -1,19 +1,9 @@
 import assert from 'node:assert/strict';
-import { findWindow, loadArtwork, parseArtworkLayout } from './artwork.ts';
-import { ARTWORK_BUCKET_BASE } from './artwork-source.ts';
+import { loadArtwork, parseArtworkLayout } from './artwork.ts';
 
 const originalDocument = globalThis.document;
 const originalFetch = globalThis.fetch;
-const alpha = new Uint8ClampedArray(5 * 5 * 4);
-for (let y = 0; y < 5; y++) {
-  for (let x = 0; x < 5; x++) {
-    alpha[(y * 5 + x) * 4 + 3] = x >= 1 && x <= 3 && y >= 1 && y <= 3 ? 0 : 255;
-  }
-}
-const context = {
-  drawImage: () => {},
-  getImageData: () => ({ data: alpha }),
-};
+const context = { drawImage: () => {} };
 Object.defineProperty(globalThis, 'document', {
   configurable: true,
   value: {
@@ -24,32 +14,18 @@ Object.defineProperty(globalThis, 'document', {
   },
 });
 
-assert.deepEqual(findWindow({ width: 5, height: 5 } as ImageBitmap), {
-  x: 1,
-  y: 1,
-  w: 3,
-  h: 3,
-});
-alpha[(2 * 5 + 2) * 4 + 3] = 255;
-assert.equal(findWindow({ width: 5, height: 5 } as ImageBitmap), null);
-
-// A game the site ships no bezel for: the sidecar probe misses, then the
-// bucket zip is tried and misses too, and the miss returns null rather than
-// throwing. Order matters — the sidecar is the cheap same-origin request and
-// gates the image, so a game with no shipped bezel reaches the zip without
-// having pulled a stray .webp on the way. There is no local mount before
-// either: probing one cost every scan a wasted 404 and gave a developer a
-// different shelf from the deployed site.
+// A game the site ships no bezel for: null, and — the point of this
+// assertion — exactly ONE request. There is no fallback to the archival pack
+// on the bucket. Reinstating one would send every game back to pulling 7-8 MB
+// off an object store the moment a deploy dropped the sidecars, which is
+// precisely how that regression shipped unnoticed once already.
 const requested: string[] = [];
 globalThis.fetch = (async input => {
   requested.push(String(input));
   return { ok: false } as Response;
 }) as typeof fetch;
-assert.equal(await loadArtwork('juno first', 'bezel'), null);
-assert.deepEqual(requested, [
-  '/artwork/bezels/juno%20first.json',
-  `${ARTWORK_BUCKET_BASE}/juno%20first.zip`,
-]);
+assert.equal(await loadArtwork('juno first'), null);
+assert.deepEqual(requested, ['/artwork/bezels/juno%20first.json']);
 
 // The shipped path: sidecar geometry + a .webp, and no zip fetched at all.
 // The window comes back in the pixels of whatever the .webp decoded to, so
@@ -74,7 +50,7 @@ globalThis.fetch = (async input => {
     blob: async () => ({}) as Blob,
   } as Response;
 }) as typeof fetch;
-const shipped = await loadArtwork('digdug', 'bezel');
+const shipped = await loadArtwork('digdug');
 assert.deepEqual(requested, ['/artwork/bezels/digdug.json', '/artwork/bezels/digdug.webp']);
 assert.ok(shipped);
 // 1600/4000 = 0.4 across, 1576/3940 = 0.4 down: the same fractions of the
@@ -169,4 +145,4 @@ if (originalDocument === undefined) {
 }
 globalThis.fetch = originalFetch;
 
-console.log('artwork.spec: layout, transparent window and missing artwork fallback passed');
+console.log('artwork.spec: layout parsing, shipped bezel geometry and no-fallback contract passed');

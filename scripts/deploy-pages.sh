@@ -6,29 +6,60 @@
 # ROMs are never published here: visitors load their own zip through the in-app
 # drop zone, validated against the chip manifest.
 #
-# Artwork is split. The 779 MB of archival scans and bezel zips stays on the
+# Artwork is split. The 779 MB of archival scans and bezel packs stays on the
 # bucket, published by `make sync-artwork` in .data/ — a copy inside dist/ was
 # most of GitHub Pages' 1 GB budget spent on files that never change. But the
-# 10.7 MB of `.webp` siblings the app actually displays now ships with the
-# site, because the bucket is an object store in one datacenter rather than an
-# edge CDN: ~870 ms per object against Pages' ~30 ms, and no HTTP/2, so a
-# 47-cover shelf queued eight deep behind six connections and took seconds.
-# buildApp writes dist/artwork; see shipWebArtwork in src/gen/generate.ts.
+# ~24 MB the app actually displays ships with the site, because the bucket is
+# an object store in one datacenter rather than an edge CDN: ~870 ms per object
+# against Pages' ~30 ms, and no HTTP/2, so a 47-cover shelf queued eight deep
+# behind six connections and took seconds.
+#
+# What ships is decided in exactly one place: shipWebArtwork in
+# src/gen/generate.ts, which wipes dist/artwork and rewrites it on every
+# buildApp. This script does not get its own opinion — see the check below.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 npm run gen:all
 
-# A stale dist/ from before the bucket move still holds the full scans, and a
-# deploy must never carry those however dist/ got its contents. Only the .webp
-# siblings buildApp just wrote are allowed through, so this prunes by what a
-# file *is* rather than trusting the tree to be clean.
+# This used to prune the tree to '*.webp' before pushing, on the theory that a
+# stale dist/ might still hold the full archival scans. It cannot: gen:all
+# above starts with `npm run clean`, and shipWebArtwork rm -rf's dist/artwork
+# before writing it. What the prune did instead was quietly re-decide what may
+# ship, using a rule that had to be kept in step with the builder by hand — and
+# it wasn't. The moment bezels began shipping a .json sidecar beside each
+# .webp, the deploy deleted every sidecar, and since the runtime reads the
+# sidecar to find the bezel, all 63 games silently went back to pulling their
+# multi-megabyte pack off the bucket. The site was slower than before the
+# change, and locally everything looked correct.
+#
+# So the intent survives as a check, not an edit. The tree ships exactly as
+# built; anything shipWebArtwork would not have written fails the deploy loudly
+# rather than being swept up on the way out.
 if [[ -d dist/artwork ]]; then
-  find dist/artwork -type f ! -name '*.webp' -delete
-  find dist/artwork -type d -empty -delete
+  strays="$(find dist/artwork -type f ! -name '*.webp' ! -name '*.json' | head -5)"
+  if [[ -n "$strays" ]]; then
+    echo "DEPLOY FAILED: dist/artwork holds files shipWebArtwork did not write:" >&2
+    echo "$strays" >&2
+    echo "the archival scans belong on the bucket (make sync-artwork), not in dist" >&2
+    exit 1
+  fi
+  # A bezel is its .webp *and* its geometry sidecar; either alone is useless,
+  # and a half-shipped pair is exactly what went out last time — silently,
+  # because the .webp still 200s and the runtime just falls back. Assert the
+  # pairing rather than trusting it.
+  for art in dist/artwork/bezels/*.webp; do
+    [[ -e "$art" ]] || break
+    if [[ ! -e "${art%.webp}.json" ]]; then
+      echo "DEPLOY FAILED: $art has no geometry sidecar — every game would fall" >&2
+      echo "back to pulling its full pack off the bucket" >&2
+      exit 1
+    fi
+  done
 fi
-printf 'web artwork shipped: %s images, %s\n' \
+printf 'web artwork shipped: %s images, %s sidecars, %s\n' \
   "$(find dist/artwork -name '*.webp' 2>/dev/null | wc -l | tr -d ' ')" \
+  "$(find dist/artwork -name '*.json' 2>/dev/null | wc -l | tr -d ' ')" \
   "$(du -sh dist/artwork 2>/dev/null | cut -f1 || echo 0)"
 
 touch dist/.nojekyll

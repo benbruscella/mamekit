@@ -684,7 +684,7 @@ export async function runMenu(): Promise<void> {
    */
   async function paintArtwork(entry: GameEntry, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Promise<boolean> {
     try {
-      const art = await loadArtwork(entry.game, 'marquee');
+      const art = await loadArtwork(entry.game);
       if (!art) return false;
       const { bmp, window: win } = art;
 
