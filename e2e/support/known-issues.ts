@@ -16,7 +16,6 @@ export const KNOWN_ISSUES: Record<string, string> = {
   popeye: 'graphic glitches',
   rampage: 'no sound',
   sf2ce: 'fps',
-  venture: 'no sound anymore, was working',
   zaxxon: 'graphic glitches',
   // Found by this suite rather than by play-testing, and not yet in #54.
   // The browser board diverges from the Node contract during boot: maincpu
