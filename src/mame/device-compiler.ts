@@ -195,6 +195,7 @@ export function compileMameDevice(
   };
   const constants = Object.assign(
     {},
+    coreLineStates(mameSrc),
     ...sources.map(({ source }) => numericConstants(source)),
   );
   const sourceTables = Object.assign(
@@ -880,6 +881,36 @@ function constantValue(expression: string, env: Record<string, number>): number 
   if (/^0x[\da-f]+$/i.test(value)) return Number.parseInt(value, 16);
   if (/^-?\d+$/.test(value)) return Number(value);
   return evalExpr(value, env) ?? undefined;
+}
+
+/**
+ * MAME's `line_state` enum, which every device that drives an interrupt line
+ * refers to but no device header declares.
+ *
+ * `numericConstants` only sees a device's own sources, so `ASSERT_LINE` and
+ * `CLEAR_LINE` resolved to nothing and the lowered program read them as zero.
+ * A device could then only ever clear its line: venture's 6532 called
+ * `m_irq_cb(ASSERT_LINE)` 866,442 times, every one of them a zero, so the
+ * audio IRQ never rose, the sound CPU never ran its service routine and the
+ * board was silent. Six generated devices refer to these, including pia6821
+ * and the Namco 5x/6x family.
+ *
+ * Read from MAME rather than written here, so the values stay the source's.
+ */
+function coreLineStates(mameSrc: string): Record<string, number> {
+  const header = join(mameSrc, 'src/emu/diexec.h');
+  if (!existsSync(header)) return {};
+  const body = /enum\s+line_state\s*\{([^}]*)\}/.exec(readFileSync(header, 'utf8'))?.[1];
+  if (!body) return {};
+  const states: Record<string, number> = {};
+  let next = 0;
+  for (const entry of body.split(',')) {
+    const match = /^\s*(\w+)\s*(?:=\s*(-?\d+))?/.exec(entry.replace(/\/\/.*$/gm, ''));
+    if (!match) continue;
+    next = match[2] === undefined ? next : Number(match[2]);
+    states[match[1]!] = next++;
+  }
+  return states;
 }
 
 function numericConstants(source: string): Record<string, number> {
