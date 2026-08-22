@@ -1,0 +1,322 @@
+{
+  "game": "frogger",
+  "title": "Frogger (Konami, 1981)",
+  "fullname": "Frogger",
+  "year": "1981",
+  "manufacturer": "Konami",
+  "family": "galaxian",
+  "driverFile": "src/mame/galaxian/galaxian.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles, Couriersud, Stephane Humbert, Robbbert",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-11",
+    "commits": 659,
+    "contributors": 49,
+    "topAuthors": [
+      "Aaron Giles",
+      "Ivan Vangelista",
+      "Miodrag Milanovic",
+      "ClawGrip",
+      "David Haywood"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 121,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-20"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 120,
+        "firstCommit": "2013-11-07",
+        "lastCommit": "2026-06-11"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 59,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 47,
+        "firstCommit": "2018-09-06",
+        "lastCommit": "2026-04-10"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 40,
+        "firstCommit": "2013-08-07",
+        "lastCommit": "2021-06-08"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 38,
+        "firstCommit": "2015-11-02",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "AJR",
+        "commits": 37,
+        "firstCommit": "2016-03-31",
+        "lastCommit": "2023-10-20"
+      },
+      {
+        "name": "hap",
+        "commits": 31,
+        "firstCommit": "2015-10-31",
+        "lastCommit": "2026-03-30"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 28,
+        "firstCommit": "2011-02-17",
+        "lastCommit": "2014-09-05"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 16,
+        "firstCommit": "2008-03-28",
+        "lastCommit": "2009-10-05"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 15,
+        "firstCommit": "2015-04-12",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 13,
+        "firstCommit": "2010-02-03",
+        "lastCommit": "2021-08-14"
+      },
+      {
+        "name": "smf-",
+        "commits": 13,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2025-05-12"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 8,
+        "firstCommit": "2012-11-21",
+        "lastCommit": "2020-07-25"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 6,
+        "firstCommit": "2010-03-18",
+        "lastCommit": "2010-03-19"
+      },
+      {
+        "name": "Steven Coomber",
+        "commits": 6,
+        "firstCommit": "2022-03-12",
+        "lastCommit": "2022-04-15"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 4,
+        "firstCommit": "2010-03-02",
+        "lastCommit": "2022-03-21"
+      },
+      {
+        "name": "braintro",
+        "commits": 4,
+        "firstCommit": "2019-04-07",
+        "lastCommit": "2019-04-10"
+      },
+      {
+        "name": "couriersud",
+        "commits": 4,
+        "firstCommit": "2015-05-25",
+        "lastCommit": "2020-01-20"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 4,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2014-04-17"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2019-02-15",
+        "lastCommit": "2019-03-31"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 3,
+        "firstCommit": "2009-02-26",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "briantro",
+        "commits": 2,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2015-06-04"
+      },
+      {
+        "name": "Devin Acker",
+        "commits": 2,
+        "firstCommit": "2024-05-09",
+        "lastCommit": "2024-05-16"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "kazblox",
+        "commits": 2,
+        "firstCommit": "2015-10-04",
+        "lastCommit": "2015-10-17"
+      },
+      {
+        "name": "MASHinfo",
+        "commits": 2,
+        "firstCommit": "2016-09-21",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-05-28",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 2,
+        "firstCommit": "2018-05-20",
+        "lastCommit": "2018-05-26"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2013-02-02",
+        "lastCommit": "2013-02-02"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2008-02-10",
+        "lastCommit": "2008-02-10"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 1,
+        "firstCommit": "2017-02-10",
+        "lastCommit": "2017-02-10"
+      },
+      {
+        "name": "ImJezze",
+        "commits": 1,
+        "firstCommit": "2016-02-21",
+        "lastCommit": "2016-02-21"
+      },
+      {
+        "name": "Kaz",
+        "commits": 1,
+        "firstCommit": "2017-02-06",
+        "lastCommit": "2017-02-06"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2015-01-26",
+        "lastCommit": "2015-01-26"
+      },
+      {
+        "name": "Martin Lindhe",
+        "commits": 1,
+        "firstCommit": "2017-11-03",
+        "lastCommit": "2017-11-03"
+      },
+      {
+        "name": "MASH",
+        "commits": 1,
+        "firstCommit": "2016-09-14",
+        "lastCommit": "2016-09-14"
+      },
+      {
+        "name": "mixxmaster",
+        "commits": 1,
+        "firstCommit": "2015-09-25",
+        "lastCommit": "2015-09-25"
+      },
+      {
+        "name": "Osso",
+        "commits": 1,
+        "firstCommit": "2014-11-02",
+        "lastCommit": "2014-11-02"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2008-11-15",
+        "lastCommit": "2008-11-15"
+      },
+      {
+        "name": "Roberto Fresca",
+        "commits": 1,
+        "firstCommit": "2018-09-02",
+        "lastCommit": "2018-09-02"
+      },
+      {
+        "name": "sjy555525",
+        "commits": 1,
+        "firstCommit": "2025-08-23",
+        "lastCommit": "2025-08-23"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 1,
+        "firstCommit": "2008-04-19",
+        "lastCommit": "2008-04-19"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

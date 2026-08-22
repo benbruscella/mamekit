@@ -1,0 +1,419 @@
+{
+  "generatedFrom": "src/mame/pacman/pacman.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3711,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3714,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3715,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3716,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3736,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3738,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3761,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3711,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3714,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3715,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3716,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3738,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3761,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3708,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3733,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3738,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3738,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 362,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3708,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3713,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3725,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3729,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3731,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3733,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3745,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 580,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 606,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 634,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 235,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 241,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1030,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1454,
+      "column": 2
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1455,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1459,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 394,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 208,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 195,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 180,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 170,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 399,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 380,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 3892,
+      "column": 2
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 247,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 493,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 362,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 274,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 362,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1052,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1053,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1054,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1055,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1056,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1057,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1058,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1059,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1060,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1061,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1062,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1063,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1064,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1065,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1066,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/15/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1067,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1049,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1478,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/pacman/pacman.cpp",
+      "line": 1475,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 64,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 208,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/pacman/pacman_v.cpp",
+      "line": 208,
+      "column": 1
+    }
+  ]
+}

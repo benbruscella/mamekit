@@ -1,0 +1,979 @@
+{
+  "schemaVersion": 1,
+  "type": "ER2055",
+  "className": "er2055_device",
+  "hierarchy": [
+    "er2055_device"
+  ],
+  "sourceFiles": [
+    "src/devices/machine/er2055.cpp",
+    "src/devices/machine/er2055.h"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "SIZE_DATA": 64,
+    "CK": 1,
+    "C1": 2,
+    "C2": 4,
+    "CS1": 8,
+    "CS2": 16
+  },
+  "members": [
+    {
+      "name": "m_control_state",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_address",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_data",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_default_data",
+      "valueType": "optional_region_ptr<uint8_t>"
+    },
+    {
+      "name": "m_rom_data",
+      "valueType": "std::unique_ptr<uint8_t[]>",
+      "values": [
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255
+      ]
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_control_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_address"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_rom_data"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SIZE_DATA"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_control_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/er2055.cpp",
+        "line": 52,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_control",
+      "parameters": "uint8_t cs1, uint8_t cs2, uint8_t c1, uint8_t c2",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "oldstate",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "identifier",
+              "name": "m_control_state"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_control_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "oldstate"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "CK"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_control_state"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "c1"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "C1"
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_control_state"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "c2"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "C2"
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_control_state"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "cs1"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "CS1"
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_control_state"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "cs2"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "CS2"
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_control_state"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "CS1"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "CS2"
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "CS1"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "CS2"
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_control_state"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "oldstate"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_state"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/er2055.cpp",
+        "line": 116,
+        "column": 1
+      }
+    },
+    {
+      "name": "update_state",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_control_state"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "identifier",
+                  "name": "C1"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "C2"
+                }
+              }
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_rom_data"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "m_address"
+                      }
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_data"
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "C2"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_rom_data"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "m_address"
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 255
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/er2055.cpp",
+        "line": 140,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_clk",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "oldstate",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "identifier",
+              "name": "m_control_state"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "state"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_control_state"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "CK"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_control_state"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "CK"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_control_state"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "CS1"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "CS2"
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "CS1"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "CS2"
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_control_state"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "oldstate"
+                  }
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_control_state"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "C1"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "C1"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_data"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_rom_data"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "m_address"
+                      }
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_state"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/er2055.cpp",
+        "line": 166,
+        "column": 1
+      }
+    },
+    {
+      "name": "data",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_data"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/er2055.h",
+        "line": 44,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_address",
+      "parameters": "uint8_t address",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_address"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "address"
+              },
+              "right": {
+                "kind": "number",
+                "value": 63
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/er2055.h",
+        "line": 47,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_data",
+      "parameters": "uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/er2055.h",
+        "line": 48,
+        "column": 1
+      }
+    },
+    {
+      "name": "er2055_device::data",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_data"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/er2055.h",
+        "line": 44,
+        "column": 100
+      }
+    },
+    {
+      "name": "er2055_device::set_address",
+      "parameters": "uint8_t address",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_address"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "address"
+              },
+              "right": {
+                "kind": "number",
+                "value": 63
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/er2055.h",
+        "line": 48,
+        "column": 1
+      }
+    },
+    {
+      "name": "er2055_device::set_data",
+      "parameters": "uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/er2055.h",
+        "line": 49,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "summary": {
+    "methods": 10,
+    "compiledMethods": 10,
+    "diagnostics": 0
+  }
+}

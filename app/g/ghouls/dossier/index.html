@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghouls'n Ghosts (World) — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Ghouls'n Ghosts (World)</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/ghouls/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/ghouls/ghouls-dossier.md" download="ghouls-dossier.md">Download ghouls-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Capcom · 1988</div>
+    <h1>Ghouls'n Ghosts (World)</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/ghouls.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>ghouls</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/capcom/cps1.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>cps1</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>ym2151</strong></div>
+      <div class="fact"><span>Screen</span><strong>384×224 @ 59.64 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>landscape</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>M68000</td><td>10.000 MHz</td><td>11</td></tr><tr><td>audiocpu</td><td>Z80</td><td>3.580 MHz</td><td>9</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>dme_29.10h</td><td>0x0</td><td>0x20000</td><td>166a58a2</td></tr><tr><td>maincpu</td><td>dme_30.10j</td><td>0x1</td><td>0x20000</td><td>7ac8407a</td></tr><tr><td>maincpu</td><td>dme_27.9h</td><td>0x40000</td><td>0x20000</td><td>f734b2be</td></tr><tr><td>maincpu</td><td>dme_28.9j</td><td>0x40001</td><td>0x20000</td><td>03d3e714</td></tr><tr><td>maincpu</td><td>dm-17.7j</td><td>0x80000</td><td>0x80000</td><td>3ea1b0f2</td></tr><tr><td>gfx</td><td>dm-05.3a</td><td>0x0</td><td>0x80000</td><td>0ba9c0b0</td></tr><tr><td>gfx</td><td>dm-07.3f</td><td>0x2</td><td>0x80000</td><td>5d760ab9</td></tr><tr><td>gfx</td><td>dm-06.3c</td><td>0x4</td><td>0x80000</td><td>4ba90b59</td></tr><tr><td>gfx</td><td>dm-08.3g</td><td>0x6</td><td>0x80000</td><td>4bdee9de</td></tr><tr><td>gfx</td><td>09.4a</td><td>0x200000</td><td>0x10000</td><td>ae24bb19</td></tr><tr><td>gfx</td><td>18.7a</td><td>0x200001</td><td>0x10000</td><td>d34e271a</td></tr><tr><td>gfx</td><td>13.4e</td><td>0x200002</td><td>0x10000</td><td>3f70dd37</td></tr><tr><td>gfx</td><td>22.7e</td><td>0x200003</td><td>0x10000</td><td>7e69e2e6</td></tr><tr><td>gfx</td><td>11.4c</td><td>0x200004</td><td>0x10000</td><td>37c9b6c6</td></tr><tr><td>gfx</td><td>20.7c</td><td>0x200005</td><td>0x10000</td><td>2f1345b4</td></tr><tr><td>gfx</td><td>15.4g</td><td>0x200006</td><td>0x10000</td><td>3c2a212a</td></tr><tr><td>gfx</td><td>24.7g</td><td>0x200007</td><td>0x10000</td><td>889aac05</td></tr><tr><td>gfx</td><td>10.4b</td><td>0x280000</td><td>0x10000</td><td>bcc0f28c</td></tr><tr><td>gfx</td><td>19.7b</td><td>0x280001</td><td>0x10000</td><td>2a40166a</td></tr><tr><td>gfx</td><td>14.4f</td><td>0x280002</td><td>0x10000</td><td>20f85c03</td></tr><tr><td>gfx</td><td>23.7f</td><td>0x280003</td><td>0x10000</td><td>8426144b</td></tr><tr><td>gfx</td><td>12.4d</td><td>0x280004</td><td>0x10000</td><td>da088d61</td></tr><tr><td>gfx</td><td>21.7d</td><td>0x280005</td><td>0x10000</td><td>17e11df0</td></tr><tr><td>gfx</td><td>16.4h</td><td>0x280006</td><td>0x10000</td><td>f187ba1c</td></tr><tr><td>gfx</td><td>25.7h</td><td>0x280007</td><td>0x10000</td><td>29f79c78</td></tr><tr><td>audiocpu</td><td>26.10a</td><td>0x0</td><td>0x8000</td><td>3692f6e5</td></tr><tr><td>aboardplds</td><td>buf1</td><td>0x0</td><td>0x117</td><td>eb122de7</td></tr><tr><td>aboardplds</td><td>ioa1</td><td>0x0</td><td>0x117</td><td>59c7ee3b</td></tr><tr><td>aboardplds</td><td>prg1</td><td>0x0</td><td>0x117</td><td>f1129744</td></tr><tr><td>aboardplds</td><td>rom1</td><td>0x0</td><td>0x117</td><td>41dc73b9</td></tr><tr><td>aboardplds</td><td>sou1</td><td>0x0</td><td>0x117</td><td>84f4b2fe</td></tr><tr><td>bboardplds</td><td>dm620.2a</td><td>0x0</td><td>0x117</td><td>f6e5f727</td></tr><tr><td>bboardplds</td><td>lwio.8i</td><td>0x0</td><td>0x117</td><td>ad52b90c</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>5</td><td>coin1</td><td>IN0</td><td>0x1</td></tr><tr><td>6</td><td>coin2</td><td>IN0</td><td>0x2</td></tr><tr><td>9</td><td>service1</td><td>IN0</td><td>0x4</td></tr><tr><td>1</td><td>start1</td><td>IN0</td><td>0x10</td></tr><tr><td>2</td><td>start2</td><td>IN0</td><td>0x20</td></tr><tr><td>Space / X</td><td>button1</td><td>IN1</td><td>0x10</td></tr><tr><td>Z</td><td>button2</td><td>IN1</td><td>0x20</td></tr><tr><td>Right</td><td>joystick right</td><td>IN1</td><td>0x1</td></tr><tr><td>Left</td><td>joystick left</td><td>IN1</td><td>0x2</td></tr><tr><td>Down</td><td>joystick down</td><td>IN1</td><td>0x4</td></tr><tr><td>Up</td><td>joystick up</td><td>IN1</td><td>0x8</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/capcom/cps1.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Paul Leaman</strong></div>
+    <div class="fact"><span>Development</span><strong>594 commits by 51 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Ivan Vangelista, Miodrag Milanovic, Vas Crabb, Brian Troha</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 38 years ago:
+
+Ghouls'n Ghosts (c) 1988 Capcom.
+
+Export release. Game developed in Japan. For more information about the game itself, please see the original Japanese release entry; &quot;Daimakaimura [B-Board 88622B-2]&quot;.</p><details><summary>TECHNICAL</summary><p class="story">Runs on the &quot;CP System&quot; hardware
+B-Board ID 88620B-2
+B-Board PALs: DM620
+CPS-B #: CPS-B-01 DL-0411-10001
+
+There is no C-Board on these Export versions, contrary to the original Japanese release.</p></details><details><summary>TRIVIA</summary><p class="story">Ghouls'n Ghosts was released in December 1988 in arcades outside of Japan. It is known in Japan as &quot;Daimakaimura&quot;.</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">Debug features (US VERSION ONLY, it doesn't work on the original Japanese version) : 
+How to activate the debug features.
+1) Set &quot;Game Mode&quot; Dip Switch to &quot;Game&quot;.
+2) Set both &quot;Coin A&quot; and &quot;Coin B&quot; Dip Switches to 1C_1C.
+3) Reset the game.
+4) Insert a coin.
+5) Set &quot;Game Mode&quot; Dip Switch to &quot;Test&quot;.
+6) Set the debug Dip Switches to what you want.
+7) Start a 1 player game.
+
+Some debug features :
+- &quot;Armor on New Life&quot; is effective at the beginning of a new life. Note that even when you start without armor, you need to be hit twice.
+- &quot;Starting Weapon&quot; is effective only when you start a new game or when you continue play.
+- &quot;Starting Level&quot; is effective only when you start a new game (you must NOT continue play !).
+- &quot;Slow Motion&quot; and &quot;Invulnerability&quot; can be changed at any time.</p></details><details><summary>PORTS</summary><p class="story">Here is a list of all ports excluding Japanese ones. To see Japanese ports, please see the original Japanese version entry; &quot;Daimakaimura [B-Board 88622B-2]&quot;.
+
+* CONSOLES: 
+[US] Sega Genesis (1989) 
+Sega Mega Drive [BR] (1990) by Tec Toy 
+Sega Mega Drive [KO] (1990) &quot;Daemagyecheon [Model GM-5008-JM]&quot; 
+Sega Master System [US] [EU] (1990) &quot;Ghouls'n Ghosts [Model 7055]&quot; 
+Sega Master System [BR] (1990) by Tec Toy 
+[EU] Sega Mega Drive (nov.30, 1990) 
+[EU] Sony PlayStation (sept.3, 1999) &quot;Capcom Generations 2 - Chronicles of Arthur [Capcom Generations Disc 2] [Model SLES-11881]&quot; 
+[US] Microsoft XBOX (sept.27, 2005) &quot;Capcom Classics Collection&quot; 
+[US] Sony PS2 (sept.27, 2005) &quot;Capcom Classics Collection [Model SLUS-21316]&quot; 
+[EU] Microsoft XBOX (nov.18, 2005) &quot;Capcom Classics Collection&quot; 
+[EU] Sony PS2 (nov.18, 2005) &quot;Capcom Classics Collection [Model SLES-53661]&quot; 
+
+* HANDHELDS: 
+[US] Sony PSP (oct.24, 2006) &quot;Capcom Classics Collection Reloaded [Model ULUS-10134]&quot; 
+[EU] Sony PSP (nov.10, 2006) &quot;Capcom Classics Collection Reloaded [Model ULES-00377]&quot; 
+[AU] Sony PSP (nov.16, 2006) &quot;Capcom Classics Collection Reloaded&quot; 
+
+* COMPUTERS: 
+[EU] Sinclair ZX Spectrum (1989) 
+[US] Commodore C64 [EU] (1989) 
+[EU] Atari ST (1989) 
+[EU] Amstrad CPC (1989) 
+Commodore Amiga [US] (1989) &quot;Ghouls 'n' Ghosts&quot;
+Commodore Amiga [US] (1991) &quot;Ghouls 'n' Ghosts &amp; Venus the Flytrap [Chart Attack]&quot;
+Commodore Amiga [US] (199?) &quot;Ghouls 'n' Ghosts [Platinum]&quot;
+[EU] Amstrad CPC (1990) &quot;Coin-Op Hits II&quot;
+[EU] Amstrad CPC (1991) &quot;Capcom Collection&quot; 
+[EU] Atari ST (1991) &quot;Capcom Collection&quot; 
+[EU] Commodore C64 (1991) &quot;Capcom Collection&quot; 
+[EU] Commodore Amiga (1991) &quot;Capcom Collection&quot; 
+[EU] Sinclair ZX Spectrum (1991) &quot;Capcom Collection&quot; 
+
+* OTHERS:  
+Street Fighter II' Special Champion Edition Plug 'n Play TV Game [US] (2004) by Radica Games : Genesis version included as a bonus.
+Apple iPhone/iPod [US] (nov.4, 2010) &quot;Capcom Arcade [Model 397347348]&quot;</p></details><details><summary>SERIES</summary><p class="story">MAIN SERIES
+1. Ghosts'n Goblins (1985, Arcade)
+2. Ghouls'n Ghosts [B-Board 88620B-2] (1988, Arcade)
+3. Super Ghouls'n Ghosts [Model SNS-CM-USA] (1991, SNES)
+4. Makaimura Gaiden - The Demon Darkness (1993, Game Boy)
+5. Arthur to Astaroth no Nazomakaimura (1996, PlayStation, Saturn)
+6. Makaimura for WonderSwan (1999, WonderSwan)
+7. Maximo - Ghosts to Glory (2001, PS2)
+8. Choumakaimura R (2002, Game Boy Advance)
+9. Maximo vs. Army of Zin (2003, PS2)
+10. Ultimate Ghosts'n Goblins (2006, PSP)
+11. Goku Makaimura Kai (2007, PSP) 
+12. Ghosts'n Goblins - Gold Knights (2009, iOS)
+13. Ghosts'n Goblins - Gold Knights II (2010, iOS)
+14. Ghosts'n Goblins Resurrection (2021, Switch, PS4, PC, Xbox One)
+
+SPIN-OFF
+1. Gargoyle's Quest (1990, Game Boy)
+2. Gargoyle's Quest II (1992, NES)
+3. Demon's Crest (1994, SNES)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/951/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

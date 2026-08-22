@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Defender (Red label) — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Defender (Red label)</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/defender/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/defender/defender-dossier.md" download="defender-dossier.md">Download defender-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Williams · 1980</div>
+    <h1>Defender (Red label)</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/defender.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>defender</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/williams/williams.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>williams</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>dac</strong></div>
+      <div class="fact"><span>Screen</span><strong>292×240 @ 60.10 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>landscape</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>MC6809E</td><td>1.000 MHz</td><td>11</td></tr><tr><td>soundcpu</td><td>M6808</td><td>3.580 MHz</td><td>3</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>defend.1</td><td>0x0</td><td>0x800</td><td>c3e52d7e</td></tr><tr><td>maincpu</td><td>defend.4</td><td>0x800</td><td>0x800</td><td>9a72348b</td></tr><tr><td>maincpu</td><td>defend.2</td><td>0x1000</td><td>0x1000</td><td>89b75984</td></tr><tr><td>maincpu</td><td>defend.3</td><td>0x2000</td><td>0x1000</td><td>94f51e9b</td></tr><tr><td>banked</td><td>defend.9</td><td>0x0</td><td>0x800</td><td>6870e8a5</td></tr><tr><td>banked</td><td>defend.12</td><td>0x800</td><td>0x800</td><td>f1f88938</td></tr><tr><td>banked</td><td>defend.8</td><td>0x1000</td><td>0x800</td><td>b649e306</td></tr><tr><td>banked</td><td>defend.11</td><td>0x1800</td><td>0x800</td><td>9deaf6d9</td></tr><tr><td>banked</td><td>defend.7</td><td>0x2000</td><td>0x800</td><td>339e092e</td></tr><tr><td>banked</td><td>defend.10</td><td>0x2800</td><td>0x800</td><td>a543b167</td></tr><tr><td>banked</td><td>defend.6</td><td>0x6000</td><td>0x800</td><td>65f4efd1</td></tr><tr><td>soundcpu</td><td>video_sound_rom_1.ic12</td><td>0xf800</td><td>0x800</td><td>fefd5b48</td></tr><tr><td>proms</td><td>decoder.2</td><td>0x0</td><td>0x200</td><td>8dd98da5</td></tr><tr><td>proms</td><td>decoder.3</td><td>0x200</td><td>0x200</td><td>c3f45f70</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>X / Space</td><td>fire</td><td>IN0</td><td>0x1</td></tr><tr><td>Z</td><td>thrust</td><td>IN0</td><td>0x2</td></tr><tr><td>S</td><td>smart bomb</td><td>IN0</td><td>0x4</td></tr><tr><td>A</td><td>hyperspace</td><td>IN0</td><td>0x8</td></tr><tr><td>2</td><td>start2</td><td>IN0</td><td>0x10</td></tr><tr><td>1</td><td>start1</td><td>IN0</td><td>0x20</td></tr><tr><td>C</td><td>reverse</td><td>IN0</td><td>0x40</td></tr><tr><td>Down</td><td>joystick down</td><td>IN0</td><td>0x80</td></tr><tr><td>Up</td><td>joystick up</td><td>IN1</td><td>0x1</td></tr><tr><td>9</td><td>auto up / manual down</td><td>IN2</td><td>0x1</td></tr><tr><td>F2</td><td>advance</td><td>IN2</td><td>0x2</td></tr><tr><td>F3</td><td>high score reset</td><td>IN2</td><td>0x8</td></tr><tr><td>5</td><td>coin1</td><td>IN2</td><td>0x10</td></tr><tr><td>6</td><td>coin2</td><td>IN2</td><td>0x20</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/williams/williams.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Aaron Giles</strong></div>
+    <div class="fact"><span>Development</span><strong>291 commits by 42 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Vas Crabb, Miodrag Milanovic, Ivan Vangelista, AJR</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 46 years ago:
+
+Defender (c) 1980 Williams.
+
+Defender is a legendary sideways-scrolling shoot-em-up - the very first of its genre - in which the aim is to pilot a laser-firing spaceship and protect humanoids stranded on the planet's surface from swarms of alien abductors.
+
+A long-range scanner at the top of the screen shows the positions of both the humanoids and the attacking aliens. The ideal strategy is to shoot down the alien ships before they reach the humanoids. If a humanoid is captured, the alien abductor can still be destroyed, but the player must then catch the falling humanoid and return it to the safety of the planet's surface before it falls to its death.
+
+If an alien is allowed to carry its victim to the very top of the screen, the humanoid will mutate, becoming a permanent part of the alien that captured it. This new and deadly mutation will then immediately join in the alien attack.
+
+The challenge becomes more intense as action progresses. Fighter ships and their mines will soon join the abductors. There are also mother ships that must be destroyed; these are particularly difficult as a direct hit smashes the mother ship into a swarming mass of mini-ships that must also be wiped out. Throughout the entire mission, the player must act quickly or face possible destruction by the cosmic baiter, a fast and dangerous enemy.
+
+Players have two escape options to use as a last resort. The first is the 'smart bomb', which destroys all on-screen enemies. The second option is 'hyperspace', which randomly teleports the player's ship to another part of the level. This is highly risky as it may place the player's ship in a position more dangerous than the one it left.
+
+If all humanoids are successfully abducted, the planet will explode in a blinding flash and the waves remaining until the next planet is reached take place in outer space, and consist solely of destroying enemy waves.</p><details><summary>TECHNICAL</summary><p class="story">Board Number : D75 (top), D71F (A) 
+Prom Stickers : DF 
+
+Main CPU : Motorola M6809 (@ 1 Mhz) 
+Sound CPU : M6808 (@ 894.75 Khz) 
+Sound Chips : DAC 
+
+Players : 2 
+Control : 2-way joystick (vertical) 
+Buttons : 5 
+= &gt; THRUST, FIRE, REVERSE, SMART BOMB, HYPERSPACE</p></details><details><summary>TRIVIA</summary><p class="story">According to Defender development lead Eugene Jarvis: The game was shown at AMOA Chicago October 31, 1980 and released a week or two later on November 15, 1980.
+
+Along with Namco's seminal &quot;Pac-Man&quot;, Defender shares the title of 'Highest Grossing Video Game of All Time' and to date has earned more than one billion dollars. It's interesting to note that when the now-legendary shoot-em-up was first shown at a 1981 Chicago arcade machine trade show, it was deemed to be a flop due to its high level of difficulty. Arcade industry insiders confidently predicted that both Defender and Pac-Man would be commercial flops and that Namco's &quot;Rally-X&quot; would be the next major arcade success. 
+
+Defender's attract mode for the game was programmed in just five hours. 
+
+Defender was noted for both its superb sound and visual effects and, moreover, for its extremely demanding gameplay. This didn't, however, stop players from accumulating millions of points when playing the game. Just minutes after the opening of the AMOA - an arcade industry trade show - Eugene Jarvis and his team - Defender's creators - were burning new ROMs for the game's display due to the fact they plugged the first burn into the board BACKWARDS and fried them. Due to the intimidating controls, hardly anyone at the show played the game and there were even rumours circulating suggesting that both Pac-Man and Defender would flop and that Namco's Rally-X would be the next big hit. Not only did Defender have the highest number of controls (five buttons, in addition to a two-way joystick) but it was also the first video game to feature an artificial 'world', in that game events occurred OUTSIDE the on-screen viewing area presented to the player. 
+
+Chris Hoffman holds the official record for this game on 'Marathon' settings with 79,976,975 points on January 1, 1984. 
+Bill Jones holds the official record for this game on 'Tournament' settings with 543,950 points on August 15, 2008. 
+
+Some bootlegs of this game are known as &quot;Star Trek 1981&quot;, &quot;Defence Command&quot;, &quot;Defense Command&quot;, &quot;Zero&quot; (Jeutel), and &quot;Tornado&quot; (Jeutel). 
+
+Defender inspired a catchy hit song by Buckner and Garcia called 'Defender' released on the 'Pac-Man Fever' album. 
+
+A Defender unit appears in the 1983 movie 'Terms of Endearment', in the 1983 movie 'Joysticks' and in the 1983 movie 'Koyaanisqatsi - Life out of Balance'. 
+
+The official video of the 1982 pop song &quot;Herbergsvater&quot;, by Joachim Witt, begins by featuring a Defender unit and contains long scenes of Defender gameplay.
+
+A mini Defender unit appears in the 1983 music video 'Almost Over You' by Sheena Easton. 
+
+MB (Milton Bradley) released a board game based on this video game (same name) in 1983: win the most points by using your Defender ships to protect Humanoids from waves of aliens. A set of chance cards will bring the different aliens (Bombers, Landers and Humanoids) into play. Movement is determined with a spinner. Players can move their defenders and aliens.</p></details><details><summary>UPDATES</summary><p class="story">Defender ROM sets were distinguished by early and later editions. The early edition supported only upright cabinets. In 1981 Williams released a cocktail cabinet version which necessitated extra code to flip the video display and to support a second set of game controls. The editions had some minor differences in the game's attract mode: The early edition gave an erroneous point value of '100' for alien landers; this was corrected to '150' in the later edition. Also, the high score value for player PGD was '14185' in the early edition and '14285' in the later edition. 
+
+Early edition ROM sets : 
+* Defender (White Label) 
+* Defender (Green Label) 
+* Defender (Blue Label) 
+
+Later edition ROM sets : 
+* Defender (Red Label)</p></details><details><summary>SCORING</summary><p class="story">Lander : 150 points.
+Mutant : 150 points.
+Baiter : 200 points.
+Bomber : 250 points.
+Pod : 1,000 points.
+Swarmer : 150 points.
+Completely destroying a pod with a smart bomb : 1,150, 1,300, 1,450, 1,600, 1,750, 1,900, or 2,050 points. 
+(The chances that a bombed pod will score 1,150, 1,300, or 1,450 points are 1/256 each.)
+
+Getting hit by an enemy bullet : 25 points.
+
+Saving a humanoid from a Lander : 500 points.
+Depositing a humanoid into the ground : 500 points.
+Humanoid landing into the ground safely on his own : 250 points.
+
+Bonus at the end of each wave
+Wave 1 : Humanoids Left X 100.
+Wave 2 : Humanoids Left X 200.
+Wave 3 : Humanoids Left X 300.
+Wave 4 : Humanoids Left X 400.
+Wave 5 and above : Humanoids Left X 500.</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">* The enemies that initially appear in each wave are : 
+Wave 1 : 15 Landers 
+Wave 2 : 20 Landers, 3 Bombers, and 1 Pod 
+Wave 3 : 20 Landers, 4 Bombers, and 3 Pods 
+Waves 4 and up : 20 Landers, 5 Bombers, and 4 Pods 
+
+* Avoid using hyperspace unless you are about to die. Fighting off attacks, regardless of the number of enemies, will make you a better Defender player. 
+
+* Baiters can usually be overcome by hitting the reverse button twice quickly. They will fly past you and be in range for your fire power. Do NOT try to outrun them as baiters are faster than your ship. 
+
+* Swarmers are easy to defeat. You can hit reverse as soon as they fly past you and fly behind them. They cannot shoot backwards so you can blast away at will. 
+
+* Shooting a Pod will release between 1 and 7 Swarmers. The chances that it will try to release 1, 2, or 3 Swarmers is 1/256 for each. Also, the maximum number of Swarmers allowed in the game is 20. So, for example, if there are 18 Swarmers in the game and a Pod is hit, it can only release a maximum of 2 Swarmers. 
+
+* At higher levels, you will need to play God and even sacrifice some Humanoids (by killing them yourself) to preserve the rest of the planet's population. The planet is too large for you protect and you are sparing the Humanoids from a fate worst than death (mutation). Do not worry, these Humanoids reproduce quickly and overpopulation has always been a constant problem. The planet will be fully populated at the start of every fifth attack wave (configurable). 
+
+* The International Date Line : there are reverse lines for Swarmers and Mutants (AKA the 'International Date Line'). If this line is between you and the type of enemy in question, they will travel the opposite direction around the planet to get you (i.e. they won't cross this line to get to you). If a Mutant, say, is following you and you cross the Mutant reverse line (to the left of the big mountain) it will suddenly reverse direction and go around the other way. The same is true for the Swarmer reverse line (located approximately where your ship starts each wave). This doesn't affect Swarmers that you are following behind. If you're on one side of the line and a Pod is on the other and you shoot it open, the Swarmers will fly away from you and you can get in behind them immediately. The best use of these lines is where there are lots of Swarmers and/or Mutants that you don't want to hassle with. You stay near the line and go back and forth over it to keep the enemy on the other side of the planet. This is especially useful in space and waves that get really hairy. 
+
+* Freeze : you can freeze a Defender machine by picking up all ten Humanoids (on any wave, but Wave 1 is your greatest chance at success), stopping all forward motion of your ship, quieting the screen down (i.e. having no enemies moving around on it) and setting all the Humanoids straight down quickly. This seems to work better were the terrain is very close to the bottom of the screen. Everything will freeze, but you can still move your ship up and down. Thrusting will break the spell, so to speak. If you do pick a spot with shallow terrain, some Humanoids will go thru the bottom of the screen and appear suspended in mid-air near the top. This trick is good to use during marathon games when you've reached Wave 256 and need a breather. 
+
+* Some top players begin each round by shooting all the Humanoids except for one, which they pick up. The planet is too large for you protect and you are sparing the Humanoids from mutation, a fate worse than death. This keeps Mutants from developing, but it also means that the planet explodes if you lose your last Humanoid. The planet is fully repopulated at the start of every fifth attack wave (configurable). This can be considered an advanced trick. 
+
+* Due to a bug in the algorithm that computes extra lives, every scoring activity from 990,000 to 999,975 will earn one extra ship and one extra Smart Bomb. If the player suicides on something or gets shot, one ship is lost, but one ship and one smart bomb are awarded; the net effect on the number of ships is zero. Dying on hyperspace re-entry awards nothing, because this awards no points. For winning N ships from 990,000 to 999,975, the player will have to achieve N x 10000 points after passing 1,000,000 before the game's accounting balances, and ships are awarded properly at 10,000 point intervals again. For example, if a player earns 45 extra lives during this interval, he will have to score another 450,000 points before being awarded another extra life. The player gets to keep surplus ships and bombs and can have super long turns where he may bomb two to three times per wave to get out of dangerous situations. 
+* The trick is this: If the player wins 100+ ships between 990,000 and 1,000,000, this causes the game to start awarding extra lives right away again after turning the score over to zero. If the player wins 100 ships, the machine will have to wait 1,000,000 points to begin awarding ships again. However, since 1,000,000 is equivalent to zero, it awards them immediately at 1,010,000. 
+
+* It's possible on a real Defender machine to make the screen color inverted so that all the black space is white while you are playing. It will reset itself when you die and maybe when you use hyperspace. Smart bomb flashes are cool when it's reversed. The trick was to drop a credit in right when you die and the screen flashes white. Somehow the program gets distracted (non-masked interrupt on coin drop?) and the screen stays white. 
+
+* Defender attack waves 'roll over' at Wave 100, which is displayed, after being completed, as Wave 0. The game keeps track of the actual number of waves, even though they are not shown properly. For example, the next wave will be counted as Wave 101, even though it shows being completed as Wave 1. The game will 'roll over' again at Wave 200, which is displayed, after being completed, as Wave 0 as well. 
+The next 'roll over' occurs at Wave 256. Upon completion of Wave 255, the next wave is a 'blank' wave, in which no enemies appear, and the wave immediately ends after the player’s ship appears on screen. This level is counted and displayed as Wave 0, and the player is awarded a bonus of humanoids left X 0 points (the bonus for this wave is always 0 points). The next is Wave 1, and the game now plays just as if the player had started a new game, except the player gets to keep his score and all of his bonus ships and smart bombs.</p></details><details><summary>STAFF</summary><p class="story">Staff : Eugene Jarvis (DRJ), Sam Dicker (SAM), Larry DeMar (LED), Paul Dussault (PGD), (CRB), Mike Stroll (MRS), Steve Ritchie (SSR), (TMH)</p></details><details><summary>PORTS</summary><p class="story">* CONSOLES:
+[US] Atari 2600 (1981) &quot;Defender [Model CX2609]&quot; 
+[US] Atari 5200 (1982) &quot;Defender [Model CX5218]&quot; 
+[US] Entex Adventure Vision (1982) &quot;Defender [Model 6075]&quot; 
+[EU] Emerson Arcadia (1982) &quot;Space Squadron&quot; 
+[US] Atari XEGS 
+[JP] Atari 2600 (1983) 
+[US] Colecovision (1983) &quot;Defender [Model 70002]&quot; 
+[US] Mattel Intellivision (1983) &quot;Defender [Model 70252]&quot; 
+[US] Sega Genesis (1996) &quot;Williams Arcade's Greatest Hits&quot; 
+[EU] Sega Mega Drive (1996) &quot;Arcade's Greatest Hits [Model T-97126-50]&quot; 
+[US] Sega Saturn (1996) &quot;Arcade's Greatest Hits [Model T-9703H]&quot; 
+[US] Sony PlayStation (apr.10, 1996) &quot;Williams Arcade's Greatest Hits [Model SLUS-00201]&quot; 
+[EU] Sony PlayStation (sept.1, 1996) &quot;Williams Arcade's Greatest Hits [Model SLES-00323]&quot; 
+[US] Nintendo SNES (oct.1996) &quot;Williams Arcade's Greatest Hits [Model SNS-AW8E-USA]&quot; 
+[EU] Nintendo SNES (jan.8, 1997) &quot;Williams Arcade's Greatest Hits [Model SNSP-AW8P-EUR]&quot; 
+[US] Sega Dreamcast (june.27, 2000) &quot;Midway's Greatest Arcade Hits Vol. 1 [Model T-9713N]&quot; 
+[EU] Sega Dreamcast (jul.28, 2000) &quot;Midway's Greatest Arcade Hits Vol. 1 [Model T-9710D-50]&quot; 
+[US] Nintendo 64 (nov.14, 2000) &quot;Midway's Greatest Arcade Hits Vol. 1 [Model NUS-NAIE-USA]&quot; 
+[US] Sony PS2 (nov.18, 2003) &quot;Midway Arcade Treasures [Model SLUS-20801]&quot; 
+[US] Microsoft XBOX (nov.24, 2003) &quot;Midway Arcade Treasures&quot; 
+[US] Nintendo GameCube (dec.18, 2003) &quot;Midway Arcade Treasures [Model DOL-GAKE-USA]&quot; 
+[EU] Microsoft XBOX (feb.6, 2004) &quot;Midway Arcade Treasures&quot; 
+[EU] Sony PS2 (feb.6, 2004) &quot;Midway Arcade Treasures [Model SLES-51927]&quot; 
+[US] [EU] Microsoft XBOX 360 [XBLA] (nov.15, 2006) : Retired in 2010
+[US] Microsoft XBOX 360 (nov.6, 2012) &quot;Midway Arcade Origins&quot; 
+[US] Sony PlayStation 3 (nov.6, 2012) &quot;Midway Arcade Origins [Model BLUS-31083]&quot; 
+[EU] Microsoft XBOX 360 (nov.15, 2012) &quot;Midway Arcade Origins&quot; 
+[EU] Sony PlayStation 3 (nov.15, 2012) &quot;Midway Arcade Origins [Model BLES-01768]&quot; 
+
+* HANDHELDS: 
+[EU] Nintendo Game Boy (1995) &quot;Arcade Classic No. 4 - Defender &amp; Joust [Model DMG-ADJP-UKV]&quot; 
+[US] Nintendo Game Boy (oct.1995) &quot;Arcade Classic No. 4 - Defender &amp; Joust [Model DMG-ADJE-USA]&quot; 
+[US] Nintendo Game Boy Color (mar.1999) &quot;Arcade Hits - Joust &amp; Defender [Model DMG-AADE-USA]&quot; 
+[EU] Nintendo Game Boy Color (apr.1999) &quot;Arcade Hits - Joust &amp; Defender [Model DMG-AADP-EUR]&quot; 
+[US] Nintendo Game Boy Advance (nov.22, 2001) &quot;Midway's Greatest Arcade Hits [Model AGB-AM3E-USA]&quot; 
+[EU] Nintendo Game Boy Advance (nov.30, 2001) &quot;Midway's Greatest Arcade Hits [Model AGB-AM3P-EUR]&quot; 
+[US] Sony PSP (dec.13, 2005) &quot;Midway Arcade Treasures Extended Play [Model ULUS-10059]&quot; 
+[EU] Sony PSP (feb.24, 2006) &quot;Midway Arcade Treasures Extended Play [Model ULES-00180]&quot; 
+
+* COMPUTERS: 
+[US] Tandy Color Computer (1982) &quot;Starfire&quot; 
+[US] Tandy Color Computer (1982) &quot;Planet Invasion&quot; 
+[US] Tandy Color Computer (1982) &quot;Offender&quot; 
+[US] Atari 800 (1982) &quot;Defender [Model CXL4025]&quot; 
+[EU] BBC B (1982) by Acornsoft 
+[EU] Sinclair Zx-Spectrum (1982) &quot;Orbiter [Model 1]&quot; by Silversoft
+[US] TI99/4a (1983) &quot;Defender [Model RX8506]&quot; 
+[EU] Commodore C64 (1983) 
+[US] Commodore C64 (1983) &quot;Defender [Model RX8508]&quot; 
+[US] PC [Booter] (1983) 
+[US] Apple II (1983) 
+[EU] Oric-1 (1983) &quot;Defence Force&quot; by Tansoft 
+[US] Commodore VIC-20 (1983) 
+[EU] BBC B (1983) &quot;Super Defender&quot; by Acornsoft 
+[EU] Acorn Electron (1984) &quot;Guardian&quot; by Alligata 
+[EU] Acorn Electron &quot;Gauntlet&quot; by Micropower 
+[EU] BBC B (1984) &quot;Guardian&quot; by Alligata 
+[EU] BBC B &quot;Gauntlet&quot; by Micropower 
+[EU] Sinclair ZX-Spectrum (1984) &quot;Starblitz&quot; by Softek Software 
+[EU] Sinclair ZX-Spectrum (1984) &quot;Defenda&quot; by Interstella Software 
+[EU] Commodore C64 (1984) &quot;Guardian&quot; by Alligata 
+[EU] Commodore C64 (1985) &quot;Guardian II&quot; by Hi-tech Software 
+[EU] Amstrad CPC (1985) &quot;Defend or Die&quot; by Alligata 
+[EU] Amstrad CPC (1985) &quot;Gauntlet&quot; by Micropower 
+[EU] Sinclair ZX-Spectrum (1986) &quot;Defenda&quot; by Interstella Software : 128k version improved sound/graphics. 
+[EU] Sinclair ZX-Spectrum (1990) &quot;Guardian II&quot; by Hi-Tech Software Ltd 'UK' 
+[EU] Atari ST (1990) &quot;Defender II&quot; by ARC developments, Atari UK, limited 
+[EU] Commodore Amiga (1990) &quot;Defender II&quot; by ARC developments, Atari UK, limited 
+[EU] Commodore Amiga (1991) &quot;Zeron&quot; by Acid software 
+[EU] Commodore Amiga (1994) &quot;Defender&quot; : Shareware 
+[US] PC [MS Windows 3.1/DOS, CD-ROM] (1995) &quot;Williams Arcade Classics&quot; 
+[US] PC [MS Windows 95/DOS, CD-ROM] (1996) &quot;Williams Arcade Classics&quot; 
+[EU] Sam Coupe (1998) by Persona 
+[US] PC [MS Windows, CD-ROM] (aug.27, 2004) &quot;Midway Arcade Treasures&quot; 
+[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) &quot;Midway Arcade Treasures&quot; 
+[EU] Tangerine Microtan 65
+
+* OTHERS: 
+VFD handheld game (1982) by Entex 
+VFD handheld game (19??) by Gakken : the screen is a little smaller than the Entex version. 
+[US] Palm OS &quot;Midway Arcade Classic&quot; 
+[US] Tiger Game.com (1997) &quot;Williams Arcade Classics [Model 71-722]&quot; 
+[US] Mobile Phones (june.13, 2003) by THQ Wireless 
+[US] Apple App Store (feb.23, 2012) &quot;Midway Arcade [Model 476467441]&quot;</p></details><details><summary>SERIES</summary><p class="story">1. Defender (1980, ARC)
+2. Stargate (1981, ARC)
+3. Strikeforce (1991, ARC)
+4. Defender 2000 [Model J9041E] (1996, Jaguar)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/614/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

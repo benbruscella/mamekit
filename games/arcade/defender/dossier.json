@@ -1,0 +1,959 @@
+{
+  "game": "defender",
+  "title": "Defender (Red label) (Williams, 1980)",
+  "fullname": "Defender (Red label)",
+  "year": "1980",
+  "company": "Williams",
+  "family": "williams",
+  "driverFile": "src/mame/williams/williams.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "mc6809e",
+      "clock": 1000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 49151,
+          "kind": "ram",
+          "share": "videoram"
+        },
+        {
+          "start": 49152,
+          "end": 53247,
+          "kind": "nop"
+        },
+        {
+          "start": 49152,
+          "end": 49167,
+          "kind": "ram",
+          "mirror": 992,
+          "share": "paletteram",
+          "viewTag": "m_rom_view",
+          "viewEntry": 0,
+          "writeOnly": true
+        },
+        {
+          "start": 50175,
+          "end": 50175,
+          "kind": "handler",
+          "viewTag": "m_rom_view",
+          "viewEntry": 0,
+          "write": "defender_state.watchdog_reset_w"
+        },
+        {
+          "start": 49168,
+          "end": 49183,
+          "kind": "handler",
+          "mirror": 992,
+          "viewTag": "m_rom_view",
+          "viewEntry": 0,
+          "write": "defender_state.video_control_w"
+        },
+        {
+          "start": 50176,
+          "end": 50431,
+          "kind": "ram",
+          "mirror": 768,
+          "share": "nvram",
+          "viewTag": "m_rom_view",
+          "viewEntry": 0,
+          "write": "defender_state.cmos_4bit_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 51200,
+          "end": 52223,
+          "kind": "handler",
+          "viewTag": "m_rom_view",
+          "viewEntry": 0,
+          "read": "defender_state.video_counter_r"
+        },
+        {
+          "start": 52224,
+          "end": 52227,
+          "kind": "handler",
+          "mirror": 992,
+          "viewTag": "m_rom_view",
+          "viewEntry": 0,
+          "read": "pia_1.read",
+          "write": "pia_1.write"
+        },
+        {
+          "start": 52228,
+          "end": 52231,
+          "kind": "handler",
+          "mirror": 992,
+          "viewTag": "m_rom_view",
+          "viewEntry": 0,
+          "read": "pia_0.read",
+          "write": "pia_0.write"
+        },
+        {
+          "start": 53248,
+          "end": 57343,
+          "kind": "handler",
+          "write": "defender_state.bank_select_w"
+        },
+        {
+          "start": 53248,
+          "end": 65535,
+          "kind": "rom",
+          "romOffset": 0
+        }
+      ]
+    },
+    {
+      "tag": "soundcpu",
+      "type": "m6808",
+      "clock": 3579545,
+      "region": "soundcpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 127,
+          "kind": "ram"
+        },
+        {
+          "start": 1024,
+          "end": 1027,
+          "kind": "handler",
+          "mirror": 32768,
+          "read": "pia_2.read",
+          "write": "pia_2.write"
+        },
+        {
+          "start": 45056,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "dac",
+    "clock": 3579545,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.25,
+        "target": "speaker"
+      }
+    ],
+    "masterGain": 0.5,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 292,
+    "height": 240,
+    "xOffset": 6,
+    "yOffset": 7,
+    "refresh": 60.09615384615385,
+    "vtotal": 260,
+    "vbstart": 247,
+    "vbend": 7,
+    "updateMode": "scanline",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 12288,
+      "loads": [
+        {
+          "file": "defend.1",
+          "offset": 0,
+          "size": 2048,
+          "crc": "c3e52d7e",
+          "alt": [
+            {
+              "file": "defeng01.bin",
+              "crc": "6111d74d"
+            }
+          ]
+        },
+        {
+          "file": "defend.4",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "9a72348b",
+          "alt": [
+            {
+              "file": "defeng04.bin",
+              "crc": "3cfc04ce"
+            }
+          ]
+        },
+        {
+          "file": "defend.2",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "89b75984",
+          "alt": [
+            {
+              "file": "defeng02.bin",
+              "crc": "d184ab6b"
+            },
+            {
+              "file": "rom2.bin",
+              "crc": "1126adc9"
+            },
+            {
+              "file": "16",
+              "crc": "03201532"
+            },
+            {
+              "file": "torna3.bin",
+              "crc": "a79213b2"
+            },
+            {
+              "file": "to16.bin",
+              "crc": "46ccd582"
+            },
+            {
+              "file": "2",
+              "crc": "2a4f4f44"
+            }
+          ]
+        },
+        {
+          "file": "defend.3",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "94f51e9b",
+          "alt": [
+            {
+              "file": "defeng03.bin",
+              "crc": "788b76d7"
+            },
+            {
+              "file": "wb03.bin",
+              "crc": "a732d649"
+            },
+            {
+              "file": "rom3.bin",
+              "crc": "4097b46b"
+            },
+            {
+              "file": "17",
+              "crc": "25287eca"
+            },
+            {
+              "file": "torna4.bin",
+              "crc": "f96d3d26"
+            },
+            {
+              "file": "tto17.bin",
+              "crc": "faa3613c"
+            },
+            {
+              "file": "17m5.4a",
+              "crc": "16a3c0dd"
+            },
+            {
+              "file": "defcmnda.3",
+              "crc": "7340209d"
+            },
+            {
+              "file": "3",
+              "crc": "a4112f91"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "banked",
+      "size": 28672,
+      "loads": [
+        {
+          "file": "defend.9",
+          "offset": 0,
+          "size": 2048,
+          "crc": "6870e8a5",
+          "alt": [
+            {
+              "file": "defeng09.bin",
+              "crc": "f57caa62"
+            },
+            {
+              "file": "rom9.bin",
+              "crc": "93012991"
+            },
+            {
+              "file": "df10-1.a1",
+              "crc": "12e2bd1c"
+            },
+            {
+              "file": "defcmnda.10",
+              "crc": "3dddae75"
+            },
+            {
+              "file": "0",
+              "crc": "7a1e5998"
+            }
+          ]
+        },
+        {
+          "file": "defend.12",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "f1f88938",
+          "alt": [
+            {
+              "file": "defeng12.bin",
+              "crc": "33db686f"
+            },
+            {
+              "file": "rom12.bin",
+              "crc": "4bdd8dc4"
+            },
+            {
+              "file": "rom7.bin",
+              "crc": "19e1ac79"
+            },
+            {
+              "file": "defcmnda.7",
+              "crc": "3f1e7cf8"
+            },
+            {
+              "file": "7",
+              "crc": "4c2616a3"
+            },
+            {
+              "file": "7.d5",
+              "crc": "88881cc6"
+            },
+            {
+              "file": "st_rom5.bin",
+              "crc": "c6f0c004"
+            },
+            {
+              "file": "002-12.ic9",
+              "crc": "eb73d8a1"
+            },
+            {
+              "file": "5d-7-2716.bin",
+              "crc": "a9bdacdc"
+            }
+          ]
+        },
+        {
+          "file": "defend.8",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "b649e306",
+          "alt": [
+            {
+              "file": "defeng08.bin",
+              "crc": "9a9eb3d2"
+            },
+            {
+              "file": "rom8.bin",
+              "crc": "5227fc0b"
+            },
+            {
+              "file": "rom9.bin",
+              "crc": "b8ac5966"
+            },
+            {
+              "file": "defcmnda.9",
+              "crc": "8882e1ff"
+            },
+            {
+              "file": "9",
+              "crc": "7b146003"
+            },
+            {
+              "file": "9.d4",
+              "crc": "252605c9"
+            },
+            {
+              "file": "st_rom4.bin",
+              "crc": "b48430bf"
+            },
+            {
+              "file": "002-8.ic11",
+              "crc": "17f7abde"
+            },
+            {
+              "file": "4d-9-2716.bin",
+              "crc": "906dca8f"
+            }
+          ]
+        },
+        {
+          "file": "defend.11",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "9deaf6d9",
+          "alt": [
+            {
+              "file": "defeng11.bin",
+              "crc": "5ca4e860"
+            },
+            {
+              "file": "rom11.bin",
+              "crc": "d068f0c5"
+            },
+            {
+              "file": "6",
+              "crc": "6d748030"
+            }
+          ]
+        },
+        {
+          "file": "defend.7",
+          "offset": 8192,
+          "size": 2048,
+          "crc": "339e092e",
+          "alt": [
+            {
+              "file": "defeng07.bin",
+              "crc": "545c3326"
+            },
+            {
+              "file": "rom7.bin",
+              "crc": "fef4cb77"
+            },
+            {
+              "file": "8",
+              "crc": "52d5438b"
+            }
+          ]
+        },
+        {
+          "file": "defend.10",
+          "offset": 10240,
+          "size": 2048,
+          "crc": "a543b167",
+          "alt": [
+            {
+              "file": "defeng10.bin",
+              "crc": "941cf34e"
+            },
+            {
+              "file": "rom10.bin",
+              "crc": "49b50b40"
+            },
+            {
+              "file": "rom5.bin",
+              "crc": "871f75a0"
+            },
+            {
+              "file": "5",
+              "crc": "4a270340"
+            },
+            {
+              "file": "st_rom1.bin",
+              "crc": "d23d6cdb"
+            },
+            {
+              "file": "002-10.ic7",
+              "crc": "3940d731"
+            }
+          ]
+        },
+        {
+          "file": "defend.6",
+          "offset": 24576,
+          "size": 2048,
+          "crc": "65f4efd1",
+          "alt": [
+            {
+              "file": "defeng06.bin",
+              "crc": "3af34c05"
+            },
+            {
+              "file": "rom6.bin",
+              "crc": "43d42a1b"
+            },
+            {
+              "file": "4",
+              "crc": "e13f457c"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "video_sound_rom_1.ic12",
+          "offset": 63488,
+          "size": 2048,
+          "crc": "fefd5b48",
+          "alt": [
+            {
+              "file": "dr12.i3",
+              "crc": "f122d9c9"
+            },
+            {
+              "file": "s",
+              "crc": "cb79ae42"
+            },
+            {
+              "file": "tornb6.bin",
+              "crc": "3685e033"
+            },
+            {
+              "file": "nextcentury_2732.ic24",
+              "crc": "4c2236cc"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1024,
+      "loads": [
+        {
+          "file": "decoder.2",
+          "offset": 0,
+          "size": 512,
+          "crc": "8dd98da5",
+          "alt": [
+            {
+              "file": "df11.k3",
+              "crc": "25de5d85"
+            }
+          ]
+        },
+        {
+          "file": "decoder.3",
+          "offset": 512,
+          "size": 512,
+          "crc": "c3f45f70"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "KeyX",
+        "Space"
+      ],
+      "label": "Fire",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "Thrust",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "Smart Bomb",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "KeyA"
+      ],
+      "label": "Hyperspace",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "Reverse",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Auto Up / Manual Down",
+      "activeLow": false,
+      "toggle": true
+    },
+    {
+      "port": "IN2",
+      "mask": 2,
+      "keys": [
+        "F2"
+      ],
+      "label": "Advance",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 8,
+      "keys": [
+        "F3"
+      ],
+      "label": "High Score Reset",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-18",
+    "commits": 291,
+    "contributors": 42,
+    "topAuthors": [
+      "Aaron Giles",
+      "Vas Crabb",
+      "Miodrag Milanovic",
+      "Ivan Vangelista",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 73,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-18"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 36,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2026-06-18"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 30,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 19,
+        "firstCommit": "2017-02-06",
+        "lastCommit": "2025-05-14"
+      },
+      {
+        "name": "AJR",
+        "commits": 13,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2023-10-20"
+      },
+      {
+        "name": "hap",
+        "commits": 13,
+        "firstCommit": "2017-05-29",
+        "lastCommit": "2025-06-06"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 13,
+        "firstCommit": "2010-05-23",
+        "lastCommit": "2014-09-03"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 13,
+        "firstCommit": "2016-05-13",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 6,
+        "firstCommit": "2014-06-01",
+        "lastCommit": "2020-09-07"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 6,
+        "firstCommit": "2011-08-23",
+        "lastCommit": "2016-01-14"
+      },
+      {
+        "name": "smf-",
+        "commits": 6,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 5,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-05-04"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 5,
+        "firstCommit": "2018-11-02",
+        "lastCommit": "2025-05-14"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 5,
+        "firstCommit": "2008-06-20",
+        "lastCommit": "2008-06-21"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 5,
+        "firstCommit": "2018-08-10",
+        "lastCommit": "2019-12-24"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2018-06-16",
+        "lastCommit": "2024-04-15"
+      },
+      {
+        "name": "couriersud",
+        "commits": 3,
+        "firstCommit": "2020-03-05",
+        "lastCommit": "2020-05-08"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 3,
+        "firstCommit": "2013-06-01",
+        "lastCommit": "2016-03-24"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 3,
+        "firstCommit": "2017-05-04",
+        "lastCommit": "2020-11-19"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2024-11-30"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 3,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2014-08-09"
+      },
+      {
+        "name": "davidhay",
+        "commits": 2,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-08"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MajorHavocOnKLOV",
+        "commits": 2,
+        "firstCommit": "2025-12-24",
+        "lastCommit": "2025-12-26"
+      },
+      {
+        "name": "MASH",
+        "commits": 2,
+        "firstCommit": "2016-08-24",
+        "lastCommit": "2018-08-31"
+      },
+      {
+        "name": "0kmg",
+        "commits": 1,
+        "firstCommit": "2022-06-24",
+        "lastCommit": "2022-06-24"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "braintro",
+        "commits": 1,
+        "firstCommit": "2020-08-05",
+        "lastCommit": "2020-08-05"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 1,
+        "firstCommit": "2010-03-07",
+        "lastCommit": "2010-03-07"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 1,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2009-04-28"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 1,
+        "firstCommit": "2020-10-09",
+        "lastCommit": "2020-10-09"
+      },
+      {
+        "name": "Michael.S.G",
+        "commits": 1,
+        "firstCommit": "2018-06-25",
+        "lastCommit": "2018-06-25"
+      },
+      {
+        "name": "Nathan Woods",
+        "commits": 1,
+        "firstCommit": "2009-01-11",
+        "lastCommit": "2009-01-11"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2018-01-13",
+        "lastCommit": "2018-01-13"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 1,
+        "firstCommit": "2018-05-21",
+        "lastCommit": "2018-05-21"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-01-29",
+        "lastCommit": "2008-01-29"
+      },
+      {
+        "name": "SynaMax",
+        "commits": 1,
+        "firstCommit": "2026-06-10",
+        "lastCommit": "2026-06-10"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      },
+      {
+        "name": "Zoë Blade",
+        "commits": 1,
+        "firstCommit": "2014-12-01",
+        "lastCommit": "2014-12-01"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 1,
+        "firstCommit": "2008-01-20",
+        "lastCommit": "2008-01-20"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 46 years ago:\n\nDefender (c) 1980 Williams.\n\nDefender is a legendary sideways-scrolling shoot-em-up - the very first of its genre - in which the aim is to pilot a laser-firing spaceship and protect humanoids stranded on the planet's surface from swarms of alien abductors.\n\nA long-range scanner at the top of the screen shows the positions of both the humanoids and the attacking aliens. The ideal strategy is to shoot down the alien ships before they reach the humanoids. If a humanoid is captured, the alien abductor can still be destroyed, but the player must then catch the falling humanoid and return it to the safety of the planet's surface before it falls to its death.\n\nIf an alien is allowed to carry its victim to the very top of the screen, the humanoid will mutate, becoming a permanent part of the alien that captured it. This new and deadly mutation will then immediately join in the alien attack.\n\nThe challenge becomes more intense as action progresses. Fighter ships and their mines will soon join the abductors. There are also mother ships that must be destroyed; these are particularly difficult as a direct hit smashes the mother ship into a swarming mass of mini-ships that must also be wiped out. Throughout the entire mission, the player must act quickly or face possible destruction by the cosmic baiter, a fast and dangerous enemy.\n\nPlayers have two escape options to use as a last resort. The first is the 'smart bomb', which destroys all on-screen enemies. The second option is 'hyperspace', which randomly teleports the player's ship to another part of the level. This is highly risky as it may place the player's ship in a position more dangerous than the one it left.\n\nIf all humanoids are successfully abducted, the planet will explode in a blinding flash and the waves remaining until the next planet is reached take place in outer space, and consist solely of destroying enemy waves.\n\n- TECHNICAL -\n\nBoard Number : D75 (top), D71F (A) \nProm Stickers : DF \n\nMain CPU : Motorola M6809 (@ 1 Mhz) \nSound CPU : M6808 (@ 894.75 Khz) \nSound Chips : DAC \n\nPlayers : 2 \nControl : 2-way joystick (vertical) \nButtons : 5 \n= > THRUST, FIRE, REVERSE, SMART BOMB, HYPERSPACE\n\n- TRIVIA -\n\nAccording to Defender development lead Eugene Jarvis: The game was shown at AMOA Chicago October 31, 1980 and released a week or two later on November 15, 1980.\n\nAlong with Namco's seminal \"Pac-Man\", Defender shares the title of 'Highest Grossing Video Game of All Time' and to date has earned more than one billion dollars. It's interesting to note that when the now-legendary shoot-em-up was first shown at a 1981 Chicago arcade machine trade show, it was deemed to be a flop due to its high level of difficulty. Arcade industry insiders confidently predicted that both Defender and Pac-Man would be commercial flops and that Namco's \"Rally-X\" would be the next major arcade success. \n\nDefender's attract mode for the game was programmed in just five hours. \n\nDefender was noted for both its superb sound and visual effects and, moreover, for its extremely demanding gameplay. This didn't, however, stop players from accumulating millions of points when playing the game. Just minutes after the opening of the AMOA - an arcade industry trade show - Eugene Jarvis and his team - Defender's creators - were burning new ROMs for the game's display due to the fact they plugged the first burn into the board BACKWARDS and fried them. Due to the intimidating controls, hardly anyone at the show played the game and there were even rumours circulating suggesting that both Pac-Man and Defender would flop and that Namco's Rally-X would be the next big hit. Not only did Defender have the highest number of controls (five buttons, in addition to a two-way joystick) but it was also the first video game to feature an artificial 'world', in that game events occurred OUTSIDE the on-screen viewing area presented to the player. \n\nChris Hoffman holds the official record for this game on 'Marathon' settings with 79,976,975 points on January 1, 1984. \nBill Jones holds the official record for this game on 'Tournament' settings with 543,950 points on August 15, 2008. \n\nSome bootlegs of this game are known as \"Star Trek 1981\", \"Defence Command\", \"Defense Command\", \"Zero\" (Jeutel), and \"Tornado\" (Jeutel). \n\nDefender inspired a catchy hit song by Buckner and Garcia called 'Defender' released on the 'Pac-Man Fever' album. \n\nA Defender unit appears in the 1983 movie 'Terms of Endearment', in the 1983 movie 'Joysticks' and in the 1983 movie 'Koyaanisqatsi - Life out of Balance'. \n\nThe official video of the 1982 pop song \"Herbergsvater\", by Joachim Witt, begins by featuring a Defender unit and contains long scenes of Defender gameplay.\n\nA mini Defender unit appears in the 1983 music video 'Almost Over You' by Sheena Easton. \n\nMB (Milton Bradley) released a board game based on this video game (same name) in 1983: win the most points by using your Defender ships to protect Humanoids from waves of aliens. A set of chance cards will bring the different aliens (Bombers, Landers and Humanoids) into play. Movement is determined with a spinner. Players can move their defenders and aliens.\n\n- UPDATES -\n\nDefender ROM sets were distinguished by early and later editions. The early edition supported only upright cabinets. In 1981 Williams released a cocktail cabinet version which necessitated extra code to flip the video display and to support a second set of game controls. The editions had some minor differences in the game's attract mode: The early edition gave an erroneous point value of '100' for alien landers; this was corrected to '150' in the later edition. Also, the high score value for player PGD was '14185' in the early edition and '14285' in the later edition. \n\nEarly edition ROM sets : \n* Defender (White Label) \n* Defender (Green Label) \n* Defender (Blue Label) \n\nLater edition ROM sets : \n* Defender (Red Label)\n\n- SCORING -\n\nLander : 150 points.\nMutant : 150 points.\nBaiter : 200 points.\nBomber : 250 points.\nPod : 1,000 points.\nSwarmer : 150 points.\nCompletely destroying a pod with a smart bomb : 1,150, 1,300, 1,450, 1,600, 1,750, 1,900, or 2,050 points. \n(The chances that a bombed pod will score 1,150, 1,300, or 1,450 points are 1/256 each.)\n\nGetting hit by an enemy bullet : 25 points.\n\nSaving a humanoid from a Lander : 500 points.\nDepositing a humanoid into the ground : 500 points.\nHumanoid landing into the ground safely on his own : 250 points.\n\nBonus at the end of each wave\nWave 1 : Humanoids Left X 100.\nWave 2 : Humanoids Left X 200.\nWave 3 : Humanoids Left X 300.\nWave 4 : Humanoids Left X 400.\nWave 5 and above : Humanoids Left X 500.\n\n- TIPS AND TRICKS -\n\n* The enemies that initially appear in each wave are : \nWave 1 : 15 Landers \nWave 2 : 20 Landers, 3 Bombers, and 1 Pod \nWave 3 : 20 Landers, 4 Bombers, and 3 Pods \nWaves 4 and up : 20 Landers, 5 Bombers, and 4 Pods \n\n* Avoid using hyperspace unless you are about to die. Fighting off attacks, regardless of the number of enemies, will make you a better Defender player. \n\n* Baiters can usually be overcome by hitting the reverse button twice quickly. They will fly past you and be in range for your fire power. Do NOT try to outrun them as baiters are faster than your ship. \n\n* Swarmers are easy to defeat. You can hit reverse as soon as they fly past you and fly behind them. They cannot shoot backwards so you can blast away at will. \n\n* Shooting a Pod will release between 1 and 7 Swarmers. The chances that it will try to release 1, 2, or 3 Swarmers is 1/256 for each. Also, the maximum number of Swarmers allowed in the game is 20. So, for example, if there are 18 Swarmers in the game and a Pod is hit, it can only release a maximum of 2 Swarmers. \n\n* At higher levels, you will need to play God and even sacrifice some Humanoids (by killing them yourself) to preserve the rest of the planet's population. The planet is too large for you protect and you are sparing the Humanoids from a fate worst than death (mutation). Do not worry, these Humanoids reproduce quickly and overpopulation has always been a constant problem. The planet will be fully populated at the start of every fifth attack wave (configurable). \n\n* The International Date Line : there are reverse lines for Swarmers and Mutants (AKA the 'International Date Line'). If this line is between you and the type of enemy in question, they will travel the opposite direction around the planet to get you (i.e. they won't cross this line to get to you). If a Mutant, say, is following you and you cross the Mutant reverse line (to the left of the big mountain) it will suddenly reverse direction and go around the other way. The same is true for the Swarmer reverse line (located approximately where your ship starts each wave). This doesn't affect Swarmers that you are following behind. If you're on one side of the line and a Pod is on the other and you shoot it open, the Swarmers will fly away from you and you can get in behind them immediately. The best use of these lines is where there are lots of Swarmers and/or Mutants that you don't want to hassle with. You stay near the line and go back and forth over it to keep the enemy on the other side of the planet. This is especially useful in space and waves that get really hairy. \n\n* Freeze : you can freeze a Defender machine by picking up all ten Humanoids (on any wave, but Wave 1 is your greatest chance at success), stopping all forward motion of your ship, quieting the screen down (i.e. having no enemies moving around on it) and setting all the Humanoids straight down quickly. This seems to work better were the terrain is very close to the bottom of the screen. Everything will freeze, but you can still move your ship up and down. Thrusting will break the spell, so to speak. If you do pick a spot with shallow terrain, some Humanoids will go thru the bottom of the screen and appear suspended in mid-air near the top. This trick is good to use during marathon games when you've reached Wave 256 and need a breather. \n\n* Some top players begin each round by shooting all the Humanoids except for one, which they pick up. The planet is too large for you protect and you are sparing the Humanoids from mutation, a fate worse than death. This keeps Mutants from developing, but it also means that the planet explodes if you lose your last Humanoid. The planet is fully repopulated at the start of every fifth attack wave (configurable). This can be considered an advanced trick. \n\n* Due to a bug in the algorithm that computes extra lives, every scoring activity from 990,000 to 999,975 will earn one extra ship and one extra Smart Bomb. If the player suicides on something or gets shot, one ship is lost, but one ship and one smart bomb are awarded; the net effect on the number of ships is zero. Dying on hyperspace re-entry awards nothing, because this awards no points. For winning N ships from 990,000 to 999,975, the player will have to achieve N x 10000 points after passing 1,000,000 before the game's accounting balances, and ships are awarded properly at 10,000 point intervals again. For example, if a player earns 45 extra lives during this interval, he will have to score another 450,000 points before being awarded another extra life. The player gets to keep surplus ships and bombs and can have super long turns where he may bomb two to three times per wave to get out of dangerous situations. \n* The trick is this: If the player wins 100+ ships between 990,000 and 1,000,000, this causes the game to start awarding extra lives right away again after turning the score over to zero. If the player wins 100 ships, the machine will have to wait 1,000,000 points to begin awarding ships again. However, since 1,000,000 is equivalent to zero, it awards them immediately at 1,010,000. \n\n* It's possible on a real Defender machine to make the screen color inverted so that all the black space is white while you are playing. It will reset itself when you die and maybe when you use hyperspace. Smart bomb flashes are cool when it's reversed. The trick was to drop a credit in right when you die and the screen flashes white. Somehow the program gets distracted (non-masked interrupt on coin drop?) and the screen stays white. \n\n* Defender attack waves 'roll over' at Wave 100, which is displayed, after being completed, as Wave 0. The game keeps track of the actual number of waves, even though they are not shown properly. For example, the next wave will be counted as Wave 101, even though it shows being completed as Wave 1. The game will 'roll over' again at Wave 200, which is displayed, after being completed, as Wave 0 as well. \nThe next 'roll over' occurs at Wave 256. Upon completion of Wave 255, the next wave is a 'blank' wave, in which no enemies appear, and the wave immediately ends after the player’s ship appears on screen. This level is counted and displayed as Wave 0, and the player is awarded a bonus of humanoids left X 0 points (the bonus for this wave is always 0 points). The next is Wave 1, and the game now plays just as if the player had started a new game, except the player gets to keep his score and all of his bonus ships and smart bombs.\n\n- STAFF -\n\nStaff : Eugene Jarvis (DRJ), Sam Dicker (SAM), Larry DeMar (LED), Paul Dussault (PGD), (CRB), Mike Stroll (MRS), Steve Ritchie (SSR), (TMH)\n\n- PORTS -\n\n* CONSOLES:\n[US] Atari 2600 (1981) \"Defender [Model CX2609]\" \n[US] Atari 5200 (1982) \"Defender [Model CX5218]\" \n[US] Entex Adventure Vision (1982) \"Defender [Model 6075]\" \n[EU] Emerson Arcadia (1982) \"Space Squadron\" \n[US] Atari XEGS \n[JP] Atari 2600 (1983) \n[US] Colecovision (1983) \"Defender [Model 70002]\" \n[US] Mattel Intellivision (1983) \"Defender [Model 70252]\" \n[US] Sega Genesis (1996) \"Williams Arcade's Greatest Hits\" \n[EU] Sega Mega Drive (1996) \"Arcade's Greatest Hits [Model T-97126-50]\" \n[US] Sega Saturn (1996) \"Arcade's Greatest Hits [Model T-9703H]\" \n[US] Sony PlayStation (apr.10, 1996) \"Williams Arcade's Greatest Hits [Model SLUS-00201]\" \n[EU] Sony PlayStation (sept.1, 1996) \"Williams Arcade's Greatest Hits [Model SLES-00323]\" \n[US] Nintendo SNES (oct.1996) \"Williams Arcade's Greatest Hits [Model SNS-AW8E-USA]\" \n[EU] Nintendo SNES (jan.8, 1997) \"Williams Arcade's Greatest Hits [Model SNSP-AW8P-EUR]\" \n[US] Sega Dreamcast (june.27, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model T-9713N]\" \n[EU] Sega Dreamcast (jul.28, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model T-9710D-50]\" \n[US] Nintendo 64 (nov.14, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model NUS-NAIE-USA]\" \n[US] Sony PS2 (nov.18, 2003) \"Midway Arcade Treasures [Model SLUS-20801]\" \n[US] Microsoft XBOX (nov.24, 2003) \"Midway Arcade Treasures\" \n[US] Nintendo GameCube (dec.18, 2003) \"Midway Arcade Treasures [Model DOL-GAKE-USA]\" \n[EU] Microsoft XBOX (feb.6, 2004) \"Midway Arcade Treasures\" \n[EU] Sony PS2 (feb.6, 2004) \"Midway Arcade Treasures [Model SLES-51927]\" \n[US] [EU] Microsoft XBOX 360 [XBLA] (nov.15, 2006) : Retired in 2010\n[US] Microsoft XBOX 360 (nov.6, 2012) \"Midway Arcade Origins\" \n[US] Sony PlayStation 3 (nov.6, 2012) \"Midway Arcade Origins [Model BLUS-31083]\" \n[EU] Microsoft XBOX 360 (nov.15, 2012) \"Midway Arcade Origins\" \n[EU] Sony PlayStation 3 (nov.15, 2012) \"Midway Arcade Origins [Model BLES-01768]\" \n\n* HANDHELDS: \n[EU] Nintendo Game Boy (1995) \"Arcade Classic No. 4 - Defender & Joust [Model DMG-ADJP-UKV]\" \n[US] Nintendo Game Boy (oct.1995) \"Arcade Classic No. 4 - Defender & Joust [Model DMG-ADJE-USA]\" \n[US] Nintendo Game Boy Color (mar.1999) \"Arcade Hits - Joust & Defender [Model DMG-AADE-USA]\" \n[EU] Nintendo Game Boy Color (apr.1999) \"Arcade Hits - Joust & Defender [Model DMG-AADP-EUR]\" \n[US] Nintendo Game Boy Advance (nov.22, 2001) \"Midway's Greatest Arcade Hits [Model AGB-AM3E-USA]\" \n[EU] Nintendo Game Boy Advance (nov.30, 2001) \"Midway's Greatest Arcade Hits [Model AGB-AM3P-EUR]\" \n[US] Sony PSP (dec.13, 2005) \"Midway Arcade Treasures Extended Play [Model ULUS-10059]\" \n[EU] Sony PSP (feb.24, 2006) \"Midway Arcade Treasures Extended Play [Model ULES-00180]\" \n\n* COMPUTERS: \n[US] Tandy Color Computer (1982) \"Starfire\" \n[US] Tandy Color Computer (1982) \"Planet Invasion\" \n[US] Tandy Color Computer (1982) \"Offender\" \n[US] Atari 800 (1982) \"Defender [Model CXL4025]\" \n[EU] BBC B (1982) by Acornsoft \n[EU] Sinclair Zx-Spectrum (1982) \"Orbiter [Model 1]\" by Silversoft\n[US] TI99/4a (1983) \"Defender [Model RX8506]\" \n[EU] Commodore C64 (1983) \n[US] Commodore C64 (1983) \"Defender [Model RX8508]\" \n[US] PC [Booter] (1983) \n[US] Apple II (1983) \n[EU] Oric-1 (1983) \"Defence Force\" by Tansoft \n[US] Commodore VIC-20 (1983) \n[EU] BBC B (1983) \"Super Defender\" by Acornsoft \n[EU] Acorn Electron (1984) \"Guardian\" by Alligata \n[EU] Acorn Electron \"Gauntlet\" by Micropower \n[EU] BBC B (1984) \"Guardian\" by Alligata \n[EU] BBC B \"Gauntlet\" by Micropower \n[EU] Sinclair ZX-Spectrum (1984) \"Starblitz\" by Softek Software \n[EU] Sinclair ZX-Spectrum (1984) \"Defenda\" by Interstella Software \n[EU] Commodore C64 (1984) \"Guardian\" by Alligata \n[EU] Commodore C64 (1985) \"Guardian II\" by Hi-tech Software \n[EU] Amstrad CPC (1985) \"Defend or Die\" by Alligata \n[EU] Amstrad CPC (1985) \"Gauntlet\" by Micropower \n[EU] Sinclair ZX-Spectrum (1986) \"Defenda\" by Interstella Software : 128k version improved sound/graphics. \n[EU] Sinclair ZX-Spectrum (1990) \"Guardian II\" by Hi-Tech Software Ltd 'UK' \n[EU] Atari ST (1990) \"Defender II\" by ARC developments, Atari UK, limited \n[EU] Commodore Amiga (1990) \"Defender II\" by ARC developments, Atari UK, limited \n[EU] Commodore Amiga (1991) \"Zeron\" by Acid software \n[EU] Commodore Amiga (1994) \"Defender\" : Shareware \n[US] PC [MS Windows 3.1/DOS, CD-ROM] (1995) \"Williams Arcade Classics\" \n[US] PC [MS Windows 95/DOS, CD-ROM] (1996) \"Williams Arcade Classics\" \n[EU] Sam Coupe (1998) by Persona \n[US] PC [MS Windows, CD-ROM] (aug.27, 2004) \"Midway Arcade Treasures\" \n[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) \"Midway Arcade Treasures\" \n[EU] Tangerine Microtan 65\n\n* OTHERS: \nVFD handheld game (1982) by Entex \nVFD handheld game (19??) by Gakken : the screen is a little smaller than the Entex version. \n[US] Palm OS \"Midway Arcade Classic\" \n[US] Tiger Game.com (1997) \"Williams Arcade Classics [Model 71-722]\" \n[US] Mobile Phones (june.13, 2003) by THQ Wireless \n[US] Apple App Store (feb.23, 2012) \"Midway Arcade [Model 476467441]\"\n\n- SERIES -\n\n1. Defender (1980, ARC)\n2. Stargate (1981, ARC)\n3. Strikeforce (1991, ARC)\n4. Defender 2000 [Model J9041E] (1996, Jaguar)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/614/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

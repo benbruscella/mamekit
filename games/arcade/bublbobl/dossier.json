@@ -1,0 +1,1036 @@
+{
+  "game": "bublbobl",
+  "title": "Bubble Bobble (Japan, Ver 0.1) (Taito, 1986)",
+  "fullname": "Bubble Bobble (Japan, Ver 0.1)",
+  "year": "1986",
+  "company": "Taito",
+  "family": "bublbobl",
+  "driverFile": "src/mame/taito/bublbobl.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Chris Moore, Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "mcu",
+      "type": "m6801u4",
+      "clock": 4000000,
+      "region": "mcu",
+      "ranges": [
+        {
+          "start": 61440,
+          "end": 65535,
+          "kind": "rom",
+          "romOffset": 0
+        }
+      ]
+    },
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 6000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 49151,
+          "kind": "handler",
+          "read": "bank.bank1"
+        },
+        {
+          "start": 49152,
+          "end": 56575,
+          "kind": "ram",
+          "share": "videoram"
+        },
+        {
+          "start": 56576,
+          "end": 57343,
+          "kind": "ram",
+          "share": "objectram"
+        },
+        {
+          "start": 57344,
+          "end": 63487,
+          "kind": "ram",
+          "share": "share1"
+        },
+        {
+          "start": 63488,
+          "end": 63999,
+          "kind": "ram",
+          "share": "palette",
+          "write": "palette.write8"
+        },
+        {
+          "start": 64000,
+          "end": 64000,
+          "kind": "handler",
+          "mirror": 124,
+          "read": "sound_to_main.read",
+          "write": "main_to_sound.write"
+        },
+        {
+          "start": 64001,
+          "end": 64001,
+          "kind": "handler",
+          "mirror": 124,
+          "read": "bublbobl_state.common_sound_semaphores_r"
+        },
+        {
+          "start": 64003,
+          "end": 64003,
+          "kind": "handler",
+          "mirror": 124,
+          "write": "bublbobl_state.bublbobl_soundcpu_reset_w"
+        },
+        {
+          "start": 64128,
+          "end": 64128,
+          "kind": "handler",
+          "mirror": 127,
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 64256,
+          "end": 64256,
+          "kind": "handler",
+          "mirror": 63,
+          "write": "bublbobl_state.bublbobl_nmitrigger_w"
+        },
+        {
+          "start": 64320,
+          "end": 64320,
+          "kind": "handler",
+          "mirror": 63,
+          "write": "bublbobl_state.bublbobl_bankswitch_w"
+        },
+        {
+          "start": 64512,
+          "end": 65535,
+          "kind": "ram",
+          "share": "mcu_sharedram"
+        }
+      ]
+    },
+    {
+      "tag": "subcpu",
+      "type": "z80",
+      "clock": 6000000,
+      "region": "subcpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 57344,
+          "end": 63487,
+          "kind": "ram",
+          "share": "share1"
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "z80",
+      "clock": 3000000,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 36863,
+          "kind": "ram"
+        },
+        {
+          "start": 36864,
+          "end": 36865,
+          "kind": "handler",
+          "mirror": 4094,
+          "read": "ym2203.read",
+          "write": "ym2203.write"
+        },
+        {
+          "start": 40960,
+          "end": 40961,
+          "kind": "handler",
+          "mirror": 4094,
+          "read": "ym3526.read",
+          "write": "ym3526.write"
+        },
+        {
+          "start": 45056,
+          "end": 45056,
+          "kind": "handler",
+          "mirror": 4092,
+          "read": "main_to_sound.read",
+          "write": "sound_to_main.write"
+        },
+        {
+          "start": 45057,
+          "end": 45057,
+          "kind": "handler",
+          "mirror": 4092,
+          "read": "bublbobl_state.common_sound_semaphores_r",
+          "write": "soundnmi.in_set_0"
+        },
+        {
+          "start": 45058,
+          "end": 45058,
+          "kind": "handler",
+          "mirror": 4092,
+          "write": "soundnmi.in_clear_0"
+        },
+        {
+          "start": 57344,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ym2203",
+    "clock": 3000000,
+    "chips": 1,
+    "deviceType": "YM2203",
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.25,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.25,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.25,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 3,
+        "gain": 0.25,
+        "target": "mono"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "YM3526",
+        "deviceTag": "ym3526",
+        "member": "m_ym3526",
+        "clock": 3000000,
+        "gain": 0.5,
+        "target": "mono",
+        "writeMethods": [
+          "write"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 59.18560606060606,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 196608,
+      "loads": [
+        {
+          "file": "a78-06-1.51",
+          "offset": 0,
+          "size": 32768,
+          "crc": "567934b6",
+          "alt": [
+            {
+              "file": "a78-06.51",
+              "crc": "32c8305b"
+            },
+            {
+              "file": "a78-25.51",
+              "crc": "2d901c9d"
+            },
+            {
+              "file": "maincpu.ic4",
+              "crc": "874ddd6c"
+            },
+            {
+              "file": "bb3",
+              "crc": "01f81936"
+            },
+            {
+              "file": "cpu2-3.bin",
+              "crc": "2d9107b6"
+            },
+            {
+              "file": "1c.bin",
+              "crc": "f304152a"
+            },
+            {
+              "file": "3.bin",
+              "crc": "524cdc4f"
+            },
+            {
+              "file": "1f",
+              "crc": "bde89043"
+            },
+            {
+              "file": "3",
+              "crc": "f2d44846"
+            },
+            {
+              "file": "dl_3.u69",
+              "crc": "01eb3e4f"
+            },
+            {
+              "file": "redux_bb3",
+              "crc": "d51de9f3"
+            },
+            {
+              "file": "bbaladar.3",
+              "crc": "31bfc6fb"
+            },
+            {
+              "file": "bublcave-06.51",
+              "crc": "e8b9af5e"
+            },
+            {
+              "file": "lc12_bb3",
+              "crc": "dddc9a24"
+            },
+            {
+              "file": "bublcave10-06.51",
+              "crc": "185cc219"
+            }
+          ]
+        },
+        {
+          "file": "a78-05-1.52",
+          "offset": 65536,
+          "size": 65536,
+          "crc": "9f8ee242",
+          "alt": [
+            {
+              "file": "a78-05.52",
+              "crc": "53f4bc6e"
+            },
+            {
+              "file": "a78-24.52",
+              "crc": "b7afedc4"
+            },
+            {
+              "file": "a78-21.52",
+              "crc": "2844033d"
+            },
+            {
+              "file": "bublcave-05.52",
+              "crc": "cfe14cb8"
+            },
+            {
+              "file": "bublcave11-05.52",
+              "crc": "b6b02df3"
+            },
+            {
+              "file": "bublcave10-05.52",
+              "crc": "381cdde7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "subcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "a78-08.37",
+          "offset": 0,
+          "size": 32768,
+          "crc": "ae11a07b",
+          "alt": [
+            {
+              "file": "subcpu.ic1",
+              "crc": "e8187e8f"
+            },
+            {
+              "file": "bublcave-08.37",
+              "crc": "a9384086"
+            },
+            {
+              "file": "bublcave11-08.37",
+              "crc": "c5d14e62"
+            },
+            {
+              "file": "bublcave10-08.37",
+              "crc": "026a68e1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "a78-07.46",
+          "offset": 0,
+          "size": 32768,
+          "crc": "4f9a26e8",
+          "alt": [
+            {
+              "file": "audiocpu.ic10",
+              "crc": "c516c26e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "mcu",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "a78-01.17",
+          "offset": 0,
+          "size": 4096,
+          "crc": "b1bfb53d"
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 524288,
+      "invert": true,
+      "loads": [
+        {
+          "file": "a78-09.12",
+          "offset": 0,
+          "size": 32768,
+          "crc": "20358c22",
+          "alt": [
+            {
+              "file": "c1.ic12",
+              "crc": "183d378b"
+            },
+            {
+              "file": "bublcave-09.12",
+              "crc": "b90b7eef"
+            }
+          ]
+        },
+        {
+          "file": "a78-10.13",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "930168a9",
+          "alt": [
+            {
+              "file": "c3.ic13",
+              "crc": "55408ff9"
+            },
+            {
+              "file": "bublcave-10.13",
+              "crc": "4fb22f05"
+            }
+          ]
+        },
+        {
+          "file": "a78-11.14",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "9773e512",
+          "alt": [
+            {
+              "file": "c5.ic14",
+              "crc": "12cc5949"
+            }
+          ]
+        },
+        {
+          "file": "a78-12.15",
+          "offset": 98304,
+          "size": 32768,
+          "crc": "d045549b",
+          "alt": [
+            {
+              "file": "c7.ic15",
+              "crc": "10e24f35"
+            },
+            {
+              "file": "bublcave-12.15",
+              "crc": "e49eb49e"
+            }
+          ]
+        },
+        {
+          "file": "a78-13.16",
+          "offset": 131072,
+          "size": 32768,
+          "crc": "d0af35c5",
+          "alt": [
+            {
+              "file": "c9.ic16",
+              "crc": "dec95961"
+            },
+            {
+              "file": "a78-13.16",
+              "crc": ""
+            },
+            {
+              "file": "bublcave-13.16",
+              "crc": "61919734"
+            }
+          ]
+        },
+        {
+          "file": "a78-14.17",
+          "offset": 163840,
+          "size": 32768,
+          "crc": "7b5369a8",
+          "alt": [
+            {
+              "file": "c11.ic17",
+              "crc": "1c49d228"
+            },
+            {
+              "file": "a78-14.17",
+              "crc": ""
+            },
+            {
+              "file": "bublcave-14.17",
+              "crc": "7e3a13bd"
+            }
+          ]
+        },
+        {
+          "file": "a78-15.30",
+          "offset": 262144,
+          "size": 32768,
+          "crc": "6b61a413",
+          "alt": [
+            {
+              "file": "c0.ic30",
+              "crc": "39d0ce8f"
+            },
+            {
+              "file": "bublcave-15.30",
+              "crc": "c253c73a"
+            }
+          ]
+        },
+        {
+          "file": "a78-16.31",
+          "offset": 294912,
+          "size": 32768,
+          "crc": "b5492d97",
+          "alt": [
+            {
+              "file": "c2.ic31",
+              "crc": "f705a512"
+            },
+            {
+              "file": "bublcave-16.31",
+              "crc": "e66c92ee"
+            }
+          ]
+        },
+        {
+          "file": "a78-17.32",
+          "offset": 327680,
+          "size": 32768,
+          "crc": "d69762d5",
+          "alt": [
+            {
+              "file": "c4.ic32",
+              "crc": "151df0eb"
+            }
+          ]
+        },
+        {
+          "file": "a78-18.33",
+          "offset": 360448,
+          "size": 32768,
+          "crc": "9f243b68",
+          "alt": [
+            {
+              "file": "c6.ic33",
+              "crc": "7b737c1e"
+            },
+            {
+              "file": "bublcave-18.33",
+              "crc": "47ee2544"
+            }
+          ]
+        },
+        {
+          "file": "a78-19.34",
+          "offset": 393216,
+          "size": 32768,
+          "crc": "66e9438c",
+          "alt": [
+            {
+              "file": "c8.ic34",
+              "crc": "1320e15d"
+            },
+            {
+              "file": "a78-19.34",
+              "crc": ""
+            },
+            {
+              "file": "bublcave-19.34",
+              "crc": "1ceeb1fa"
+            }
+          ]
+        },
+        {
+          "file": "a78-20.35",
+          "offset": 425984,
+          "size": 32768,
+          "crc": "9ef863ad",
+          "alt": [
+            {
+              "file": "c10.ic35",
+              "crc": "29c41387"
+            },
+            {
+              "file": "a78-20.35",
+              "crc": ""
+            },
+            {
+              "file": "bublcave-20.35",
+              "crc": "64322e24"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 256,
+      "loads": [
+        {
+          "file": "a71-25.41",
+          "offset": 0,
+          "size": 256,
+          "crc": "2d0f8545"
+        }
+      ]
+    },
+    {
+      "region": "plds",
+      "size": 3,
+      "loads": [
+        {
+          "file": "pal16l8.bin",
+          "offset": 0,
+          "size": 1,
+          "crc": "",
+          "status": "nodump"
+        },
+        {
+          "file": "pal16r4.bin",
+          "offset": 0,
+          "size": 1,
+          "crc": "",
+          "status": "nodump"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW0",
+      "mask": 5,
+      "value": 4,
+      "name": "Mode"
+    },
+    {
+      "port": "DSW0",
+      "mask": 2,
+      "value": 2,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW0",
+      "mask": 8,
+      "value": 8,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW0",
+      "mask": 48,
+      "value": 48,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW0",
+      "mask": 192,
+      "value": 192,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 3,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW1",
+      "mask": 12,
+      "value": 12,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 48,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Unknown"
+    },
+    {
+      "port": "DSW1",
+      "mask": 128,
+      "value": 128,
+      "name": "ROM Type"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-14",
+    "commits": 211,
+    "contributors": 33,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 71,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2021-05-14"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 31,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 19,
+        "firstCommit": "2017-01-12",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 11,
+        "firstCommit": "2014-05-06",
+        "lastCommit": "2020-09-12"
+      },
+      {
+        "name": "AJR",
+        "commits": 8,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2023-11-11"
+      },
+      {
+        "name": "smf-",
+        "commits": 8,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2020-04-02"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 7,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2016-12-28"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 6,
+        "firstCommit": "2016-12-23",
+        "lastCommit": "2018-05-09"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 6,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2014-08-26"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "hap",
+        "commits": 4,
+        "firstCommit": "2021-05-14",
+        "lastCommit": "2025-11-11"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 4,
+        "firstCommit": "2008-01-22",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-27",
+        "lastCommit": "2009-11-29"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2022-06-04"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 2,
+        "firstCommit": "2011-04-28",
+        "lastCommit": "2012-03-25"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 2,
+        "firstCommit": "2020-09-14",
+        "lastCommit": "2020-09-14"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 2,
+        "firstCommit": "2008-08-09",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-12-14",
+        "lastCommit": "2018-12-29"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-01-24",
+        "lastCommit": "2009-10-21"
+      },
+      {
+        "name": "0kmg",
+        "commits": 1,
+        "firstCommit": "2022-08-27",
+        "lastCommit": "2022-08-27"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2009-08-03",
+        "lastCommit": "2009-08-03"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-04-22",
+        "lastCommit": "2008-04-22"
+      },
+      {
+        "name": "ImJezze",
+        "commits": 1,
+        "firstCommit": "2016-02-21",
+        "lastCommit": "2016-02-21"
+      },
+      {
+        "name": "James Charles Taylor",
+        "commits": 1,
+        "firstCommit": "2026-07-14",
+        "lastCommit": "2026-07-14"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 1,
+        "firstCommit": "2010-07-15",
+        "lastCommit": "2010-07-15"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 1,
+        "firstCommit": "2008-11-23",
+        "lastCommit": "2008-11-23"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2012-03-24",
+        "lastCommit": "2012-03-24"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2014-08-25",
+        "lastCommit": "2014-08-25"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 40 years ago:\n\nBubble Bobble (c) 1986 Taito Corp.\n\nOne or two players take on the role of Bub and Bob, two cute dinosaurs who must battle through 100 platform-packed single screen levels to rescue their girlfriends. Bub and Bob are armed only with the ability to blow bubbles, in which the game's many enemies can be trapped and killed. The bubbles can also be used as temporary platforms, to help the dinosaurs reach previously inaccessible areas of a level. \n\nAny trapped enemies who are not killed quickly enough will turn red and escape their bubble prison. These angry enemies are much faster than before, making them harder to kill. Enemies also become angry if players are taking too long to complete a level. Defeated enemies are turned into bonus fruit items that can be collected for points. \n\nOn many levels, bubbles containing fire, water or a lightning bolt appear. These can be burst by players to release their contents and destroy enemies. The fire bubble drops flames down onto the nearest platform, killing any enemies it hits. The lightning bubble sends a lightning bolt horizontally across the screen, its direction dictated by whichever side of the bubble the player hits to burst it. The water bubble releases a torrent of water that will quickly flow down the platforms to the bottom of the screen. Any enemies caught in the flow are killed. \n\nBubbles containing letters also appear. The aim is to collect the letters needed to spell the word E.X.T.E.N.D. which earns players an extra life. \n\nThe game's simple-yet-involving game-play saw Bubble Bobble become an instant classic. Its two-player co-operative mode, coupled with the incredible amount of hidden secrets and potential for strategic play - unheard of in the platform genre - would set the standard by which all other platform games were judged.\n\n- TECHNICAL -\n\nMain CPU : (2x) Zilog Z80 (@ 6 Mhz), Zilog Z80 (@ 3 Mhz), M6801 (@ 1 Mhz)\nSound Chips : YM2203 (@ 3 Mhz), YM3526 (@ 3 Mhz)\n\nPlayers : 2\nControl : 2-Way Joystick\nButtons : 2\n=> [1] Bubble, [2] Jump\n\n- TRIVIA -\n\nBubble Bobble was released in August 1986. \n\nThis was one of the first games to feature multiple endings. \n\nThe title of this game, Bubble Bobble, is a cross between the words 'bubble' and the name of the heroes : Bub and Bob. \n\nThe enemies are named (Round number of initial appearance applies to 'Normal' mode. For information on 'Super' mode, please see the Romstar (US version) entry, Updates section : \n'Zen-Chan' [aka 'Bubble Buster', 'Benzo'] - First appears in Round 1 \n'Mighta' [aka 'Stoner', 'Boris'] - First appears in Round 6 \n'Monsta' [aka 'Beluga', 'Blubba'] - First appears in Round 10 \n'PulPul' [aka 'Hullaballoon', 'Boaboa'] - First appears in Round 20 \n'Banebou' [aka 'Coiley', 'Bonnie-bo'] - First appears in Round 30 \n'Hidegonsu' [aka 'Incendo'] - First appears in round 40 \n'Drunk' [aka 'Willy Whistle', 'Bonner'] - First appears in Round 50 \n'Invader' [aka 'Super Socket'] - First appears in Round 60 \n'Super Drunk' [aka 'Grumple Gromit'] - the boss character whom Bub and Bob fight in the final round \n'Skel-Monsta' [aka 'Baron Von Blubba'] - Appears when you take too much time in a round \n'Rascal' [aka 'Rubblen'] - Appears when you linger too long in a secret room \n\nThe data code contains unused graphics of a full set of slot machine icons. These aren't used anywhere, there's no palette that fits them, and they wouldn't really fit anywhere either. \n\nIn 1996, Taito announced that they lost the original source code program to Bubble Bobble following a reorganization - when it came to the recent ports and sequels, they had to work from program disassembly, playing the game and (mainly) the various home computer ports. \n\nThe game forbids the initials 'SEX' on the high score table. If you try, it gets changed to 'H.!', but go to the Tips and Tricks section for more information about 'SEX' :-) \n\nOlly Cotton holds the official record for this game with 6,060,730 points on February 23, 2011. \n\nSome bootlegs of this game are known as \"Bobble Bobble\" and \"Super Bobble Bobble\". \n\nAlfa Records released a limited-edition soundtrack album for this game (Taito Game Music - 28XA-110) on January 25, 1987. \n\nNES cover band The Advantage cover two songs from Bubble Bobble on their self-titled debut album released on April 6, 2004.\n\n- SCORING -\n\nBursting a bubble : 10 points. \nKilling one monster : 1,000 points. \nKilling two monsters at once : 2,000 points. \nKilling three monsters at once : 4,000 points. \nPoints double for each extra monster killed at any one time. \nNormal Fruit : 700 points. \nBonus Score Items (popcorn, burger etc) : 500 - 4,000 points.\n\n- TIPS AND TRICKS -\n\n* Bubble Bobble is a game heavily relying on game-play and precise technique rather than graphics, and it features a series of special techniques and tricks a player can perform to maximize his or her score, make some rounds of the game easier or faster to finish or just to be able to survive or even finish a round. Some of these techniques have special nicknames, which may differ from player to player and from country to country. \n\n'Kissing monsters' or just kissing means killing a monster by blowing a bubble at almost contact distance : the monster will be instantly bubbled and the bubble will be instantly popped, giving the visual effect of the player killing a monster with a 'kiss'. Some players flip their joysticks in the opposite direction after pressing the bubble buttons, giving more chances of an 'instant pop' and changing flight direction for the dead monster. This technique is useful in stages where monsters move too fast, bubbles last for too short of a time or it's otherwise hard to bubble them normally. Of course good timing is required for this technique to work. \n\n'Riding bubbles' means keeping the jump button pressed when dropping on a bubble: if done correctly, instead of popping the bubble, your dragon will instead jump on it, possibly continuously, enabling him to 'ride' bubbles in order to reach otherwise unreachable areas. Some stages can't be finished without this technique. \n\n'Climbing' is a step up from riding bubbles. It means standing at half a bubble distance from a wall, jumping and blowing a bubble almost simultaneously, jumping up from that bubble and blowing another bubble and so on. This is necessary if the air current pushes down bubbles but you need to climb up. Having the rapid-bubbling power-up (the yellow candy) makes climbing a lot easier, especially if you got the running shoes already. \n\n'Bubbling oneself through' means 'riding a bubble' through the opening at the top of a stage or even just through the ceiling of a stage in order to appear at the lower part, like some flying monsters can do. This technique is required to finish some stages or to get unstuck from some places, or just to save time. \n\n'Blowing against the wall' means blowing bubbles against wall at contact distance : the bubbles will pop immediately thus giving the player 10 points per bubble pop. This can be used to either increase a player's score, or to set a player's score to a specific amount, in order to do other tricks. \n\n'Two equal digits' means using the 'blowing against the wall' technique or other score-adjusting techniques in order to make the two penultimate (100s and 10s places) digits of at least one player equal, e.g., 456770, before the last enemy bubble is burst. If done correctly and the score is not modified when this occurs, then all remaining non-special bubbles on screen will be turned to 700-point bonuses, whose appearance depends on the digit picked. E.g., 7 gives Chocolate Ice Creams, 3 gives Hamburgers, and so on. \nNote : This trick is easier to do with two players (one player adjusts his score and the other bursts the bubbles), but it can also be done with only one player, although calculating exactly how much (and if) one's score will be modified when bursting the last enemy bubbles can be extremely complex, if not unpredictable, especially if there are very large and clustered bubble bunches. \nNote : Rounds with numbers ending with 5 and 0 up to and including level 50 generate bonuses from bubbles automatically, though, and some rounds (including round 1) do it by default. \n\nInternal Counters : An interesting (and exploitable) part of bubble bobble is that powerups are not entirely random. As with the two-digit trick, many internal counters in this game decide which special powers are available for collection. For example, rapid bubble shooting (a sweet in yellow wrapping), fast moving bubbles (a blue sweet), or fast moving bubbles (a blue sweet) appear shortly after either Bub or Bob jumps 51 times, pops 51 bubbles, or blows 51 bubbles. Also, running around a lot causes the speed powerup (red shoe) to appear. Keeping this is mind, it is possible to gain all power-ups with relative ease. Although there are many more counters that control various aspects of the game, one of particular interest is the letters forming the word EXTEND. Getting all 7 letters will end the current level and award the player with an extra life 'NICE 1P!' - these letters have a greater chance of appearing when more enemies are defeated simultaneously. Also, gathering three of the same letter causes candy canes to appear which in turn lead to a special big item at the end of the level! \n\n* Unlimited Run And Rapid Fire : At the main title screen, press Left, Jump, Left, 1P, Left, Fire, Left, 1P. If this is done correctly there will be a message in the bottom left corner of the title screen a red POWER UP!. \n\n* Original Bubble Bobble : At the title screen, press Shoot, Jump, Shoot, Jump, Shoot, Jump, Right, 1P. It will say at the bottom of screen ORIGINAL GAME. The game will give the PORTALS in some screens, if you can get in them you will get LOADS of diamonds. \n\n* The 'Super Bubble Bobble' Code : this will change the Bubble Bobble logo in 'Super Bubble Bobble' and the game will change under several points of view : different platform colors, different order for monster appearances... The code that must be entered at the title screen to access Super Bubble Bobble is displayed at the end of the credits after you beat the game in 2 players, normal mode. The message is coded, but it hints you to enter the secret room in level 20 to get the key for decoding. If you do so, you enter the secret room, on the base of which there is an inscription. The first line is the coding of the alphabet, the other lines are coded advices to beat the final boss. The decoded 'secret message' is : SJBLRJSR (Start - Jump - Bubble - Left - Right - Jump - Start - Right) \n\nThe decoded advices in the secret rooms are : \nRoom in level 20 : IF YOU WANT TO BECOME THE OLD FIGURE, USE THE POWER OF YOUR FRIENDSHIP, AND FIGHT WITH ME! (hint to play in two player mode to defeat the final boss and see the real ending) \nRoom in level 30 : I ENCLOSE THESE MAGICAL MEDICINE HERE, BECAUSE THOSE ARE MY WORST FEARS... (hint to use the lighting bubble to beat the boss) \nRoom in level 40 : IF YOU WANT TO GET BACK YOUR LOVE OF TRUTH, YOU MUST HELP EACH OTHER UNTIL THE LAST... (hint to end the game in two player mode to see the real endings) \n\nA little more trivia on Super Bubble Bobble : If you beat the game in Super mode, two players, you will discover that the final boss is your mother and father that were controlled by some unknown evil. By defeating the boss you free them and your girlfriends, and are reverted back to your original human form (the one you play \"Rainbow Island\" with). \n\n* Secret Tombs : Make it to level 20 without dying and a door appears -- it leads to a 'secret tomb', a level full of diamonds. There are secret tombs at levels 20 and 30, also. Make it to level 50 without dying and a strange, bee-hive-shaped door appears; enter it and you warp to level 70. DON'T kill the Drunks on level 50, or the door disappears; bubble them and wait! Btw, with two players, only one of the players must survive unharmed to get the secret door. \n\n* Paffing A Skel : Skel, also known as 'Baron Von Blubba', is that nasty white monster that comes after you when you've taken too long; with two players, two Skels will appear. If one player is killed by HIS Skel, then he can collide with his partner's Skel 'WHILE HE IS STILL FLICKERING'. If the player's icon is still flickering, the other player's Skel will disappear (poof!), with no harm to the once-slain character. \n\n* Full Ending Sequence : Beat the game with two players in Super mode and you'll get the full end sequence. \n\n* High Score Codes : after getting a high score, enter your initials as : \n'SEX' - Pitch fork-flying cakes/vegetables/etc across the screen, turn enemies into 6k diamonds. \n'TAK' - Octopus-turns bubbles into X's at end of level. \n'STR' - Flamingo-turns bubbles into smiling turds at end of level. \n'KTT' - Beer-turns bubbles into pizzas at end of level, what a perfect match !!! \n'...' - Knife-flying cakes/vegetables/etc across the screen, turn enemies into 6k diamonds. \n'I.F', 'MTJ', 'NSO', 'KIM', 'YSH' - Coke can-flying sunflowers across the screen, turn enemies into 6k diamonds. \n\n* A full map is viewable here: www.arcade-history.com/index.php?page=articles&num=14\n\n- STAFF -\n\nGame design & Character : Fukio Mitsuji (MTJ)\nSoftware programmers : Ichiro Fujisue (ICH), Nishiyori (NSO)\nSound creator : Tadashi Kimijima (KIM)\nInstruction : Yoshida (YSH)\nHardware : Fujimoto (KTU), Seigo Sakamoto (SAK)\n\n- PORTS -\n\nNOTE: These are only non-US ports. For a list ports released in the US, please see the Romstar (US version) entry. \n\n* CONSOLES: \n[JP] Nintendo Famicom Disk System (oct.30, 1987) \"Bubble Bobble [Model TFD-BUB]\" \n[JP] Sega Mark III/Master System (jul.2, 1988) \"Final Bubble Bobble [Model G-1362]\" \n[EU] Nintendo NES [AU] (1990) \"Bubble Bobble [Model NES-B2]\" \n[EU] Sega Master System (1992) \"Bubble Bobble [Model 7077]\" \n[BR] Sega Master System (1994) \"Dragon Maze\" \n[EU] Sega Saturn (1996) \"Bubble Bobble also featuring Rainbow Islands [Model T-8131H-50]\" \n[EU] Sony PlayStation (1996) \"Bubble Bobble also featuring Rainbow Islands [Model SLES-00448]\" \n[JP] Sony PS2 (jul.28, 2005) \"Taito Memories Joukan [Model SLPM-66057]\" \n[EU] Microsoft XBOX (oct.14, 2005) \"Taito Legends\" \n[EU] Sony PS2 (oct.14, 2005) \"Taito Legends [Model SLES-53438]\" \n[KO] Sony PS2 (jul.18, 2006) \"Taito Legends [Model SLKA-15056]\" \n[JP] Sony PS4 [PSN] (jan.29, 2016) \"Arcade Archives - Bubble Bobble [Model CUSA-03711]\" \n[EU] [AU] Sony PlayStation 4 [PSN] (apr.1, 2016) \"Arcade Archives - Bubble Bobble [Model CUSA-03943]\" \n\n* HANDHELDS: \n[EU] Nintendo Game Boy (1991) \"Bubble Bobble [Model DMG-B2-NOE]\" \n[JP] Nintendo Game Boy (dec.7, 1990) \"Bubble Bobble [Model DMG-B2A]\" \n[JP] Nintendo GBA (jul.25, 2002) \"Bubble Bobble - Old & New [Model AGB-A2BJ-JPN]\" \n[EU] Nintendo GBA (mar.14, 2003) \"Bubble Bobble - Old & New [Model AGB-AONP-EUR]\" \n\n* COMPUTERS: \n[EU] Commodore C64 (1987) \n[EU] Sinclair ZX Spectrum (1987) \n[EU] Atari ST (1987) \n[EU] Commodore Amiga (1987) \n[EU] Amstrad CPC (1987) by Firebird : Re-released by Ocean in 1988. \n[EU] Amstrad CPC (1988) \"Les Défis de Taito\"\n[EU] Amstrad CPC (1988) \"Taito Coin-Op Hits\" \n[JP] MSX [Tape] (1988) \n[JP] MSX2 [Disk]\n[JP] Sharp X68000 (1989) \n[EU] Amstrad CPC (199?) \"Les Monuments D'Arcade\" \n[EU] Amstrad CPC (1990) \"Le Monde des Merveilles\" \n[EU] Amstrad CPC (1991) \"Addicted To Fun - Rainbow Collection\" \n[JP] FM Towns PC (1993) \n[EU] PC [MS-DOS, CD-ROM] (sept.30, 1996) \"Bubble Bobble featuring Rainbow Islands\" \n[EU] PC [MS Windows, CD-ROM] (oct.14, 2005) \"Taito Legends\"\n\n- SERIES -\n\n1. Bubble Bobble (1986, Arcade) \n2. Rainbow Islands - The Story of Bubble Bobble 2 (1987, Arcade) \n3. Parasol Stars - The Story of Bubble Bobble III [Model TP03017] (1991, PC-Engine) \n4. Bubble Bobble Part 2 (1993, Famicom) \n5. Bubble Bobble II (1994, Arcade) \n6. Bubble Memories - The Story of Bubble Bobble III (1996, Arcade) \n7. Rainbow Islands - Putty's Party (2000, Wonderswan) \n8. Bubble Bobble Revolution (2005, DS) \n9. New Rainbow Islands (2005, DS) \n10. Bubble Bobble Evolution (2006, PSP) \n11. Bubble Bobble Double Shot (2007, DS) \n12. Rainbow Islands Towering Adventure! (2009, WiiWare) \n13. Bubble Bobble Plus! (2009, WiiWare) \n14. Bubble Bobble Neo! (2009, XBLA)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/343/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

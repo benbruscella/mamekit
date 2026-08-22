@@ -1,0 +1,1041 @@
+{
+  "game": "ddragon",
+  "title": "Double Dragon (World set 1) (Technos Japan (Taito license), 1987)",
+  "family": "ddragon",
+  "dataPath": "games/arcade/ddragon",
+  "board": {
+    "family": "ddragon",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "hd6309e",
+        "clock": 3000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 4095,
+            "kind": "ram",
+            "share": "rambase"
+          },
+          {
+            "start": 4096,
+            "end": 4607,
+            "kind": "ram",
+            "share": "palette",
+            "write": "palette.write8"
+          },
+          {
+            "start": 4608,
+            "end": 5119,
+            "kind": "ram",
+            "share": "palette_ext",
+            "write": "palette.write8_ext"
+          },
+          {
+            "start": 6144,
+            "end": 8191,
+            "kind": "ram",
+            "share": "fgvideoram",
+            "write": "ddragon_state.fgvideoram_w",
+            "writeHandlerOwnsRam": true
+          },
+          {
+            "start": 8192,
+            "end": 8703,
+            "kind": "handler",
+            "mirror": 1536,
+            "read": "ddragon_state.comram_r",
+            "write": "ddragon_state.comram_w"
+          },
+          {
+            "start": 10240,
+            "end": 12287,
+            "kind": "ram",
+            "share": "spriteram"
+          },
+          {
+            "start": 12288,
+            "end": 14335,
+            "kind": "ram",
+            "share": "bgvideoram",
+            "write": "ddragon_state.bgvideoram_w",
+            "writeHandlerOwnsRam": true
+          },
+          {
+            "start": 14336,
+            "end": 14336,
+            "kind": "handler",
+            "read": "port.P1"
+          },
+          {
+            "start": 14337,
+            "end": 14337,
+            "kind": "handler",
+            "read": "port.P2"
+          },
+          {
+            "start": 14338,
+            "end": 14338,
+            "kind": "handler",
+            "read": "port.EXTRA"
+          },
+          {
+            "start": 14339,
+            "end": 14339,
+            "kind": "handler",
+            "read": "port.DSW0"
+          },
+          {
+            "start": 14340,
+            "end": 14340,
+            "kind": "handler",
+            "read": "port.DSW1"
+          },
+          {
+            "start": 14345,
+            "end": 14345,
+            "kind": "ram",
+            "share": "scrollx_lo",
+            "writeOnly": true
+          },
+          {
+            "start": 14346,
+            "end": 14346,
+            "kind": "ram",
+            "share": "scrolly_lo",
+            "writeOnly": true
+          },
+          {
+            "start": 14347,
+            "end": 14351,
+            "kind": "handler",
+            "read": "ddragon_state.interrupt_r",
+            "write": "ddragon_state.interrupt_w"
+          },
+          {
+            "start": 32768,
+            "end": 65535,
+            "kind": "rom"
+          },
+          {
+            "start": 14344,
+            "end": 14344,
+            "kind": "handler",
+            "write": "ddragon_state.bankswitch_w"
+          },
+          {
+            "start": 16384,
+            "end": 32767,
+            "kind": "handler",
+            "read": "bank.mainbank"
+          }
+        ]
+      },
+      {
+        "tag": "sub",
+        "type": "hd63701y0",
+        "clock": 6000000,
+        "region": "sub",
+        "ranges": [
+          {
+            "start": 32768,
+            "end": 33279,
+            "kind": "ram",
+            "share": "comram"
+          },
+          {
+            "start": 49152,
+            "end": 65535,
+            "romOffset": 0,
+            "kind": "rom"
+          }
+        ]
+      },
+      {
+        "tag": "soundcpu",
+        "type": "mc6809",
+        "clock": 6000000,
+        "region": "soundcpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 4095,
+            "kind": "ram"
+          },
+          {
+            "start": 4096,
+            "end": 4096,
+            "kind": "handler",
+            "read": "soundlatch.read"
+          },
+          {
+            "start": 6144,
+            "end": 6144,
+            "kind": "handler",
+            "read": "ddragon_state.ddragon_adpcm_status_r"
+          },
+          {
+            "start": 10240,
+            "end": 10241,
+            "kind": "handler",
+            "read": "fmsnd.read",
+            "write": "fmsnd.write"
+          },
+          {
+            "start": 14336,
+            "end": 14343,
+            "kind": "handler",
+            "write": "ddragon_state.ddragon_adpcm_w"
+          },
+          {
+            "start": 32768,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 4095,
+        "kind": "ram",
+        "share": "rambase"
+      },
+      {
+        "start": 4096,
+        "end": 4607,
+        "kind": "ram",
+        "share": "palette",
+        "write": "palette.write8"
+      },
+      {
+        "start": 4608,
+        "end": 5119,
+        "kind": "ram",
+        "share": "palette_ext",
+        "write": "palette.write8_ext"
+      },
+      {
+        "start": 6144,
+        "end": 8191,
+        "kind": "ram",
+        "share": "fgvideoram",
+        "write": "ddragon_state.fgvideoram_w",
+        "writeHandlerOwnsRam": true
+      },
+      {
+        "start": 8192,
+        "end": 8703,
+        "kind": "handler",
+        "mirror": 1536,
+        "read": "ddragon_state.comram_r",
+        "write": "ddragon_state.comram_w"
+      },
+      {
+        "start": 10240,
+        "end": 12287,
+        "kind": "ram",
+        "share": "spriteram"
+      },
+      {
+        "start": 12288,
+        "end": 14335,
+        "kind": "ram",
+        "share": "bgvideoram",
+        "write": "ddragon_state.bgvideoram_w",
+        "writeHandlerOwnsRam": true
+      },
+      {
+        "start": 14336,
+        "end": 14336,
+        "kind": "handler",
+        "read": "port.P1"
+      },
+      {
+        "start": 14337,
+        "end": 14337,
+        "kind": "handler",
+        "read": "port.P2"
+      },
+      {
+        "start": 14338,
+        "end": 14338,
+        "kind": "handler",
+        "read": "port.EXTRA"
+      },
+      {
+        "start": 14339,
+        "end": 14339,
+        "kind": "handler",
+        "read": "port.DSW0"
+      },
+      {
+        "start": 14340,
+        "end": 14340,
+        "kind": "handler",
+        "read": "port.DSW1"
+      },
+      {
+        "start": 14345,
+        "end": 14345,
+        "kind": "ram",
+        "share": "scrollx_lo",
+        "writeOnly": true
+      },
+      {
+        "start": 14346,
+        "end": 14346,
+        "kind": "ram",
+        "share": "scrolly_lo",
+        "writeOnly": true
+      },
+      {
+        "start": 14347,
+        "end": 14351,
+        "kind": "handler",
+        "read": "ddragon_state.interrupt_r",
+        "write": "ddragon_state.interrupt_w"
+      },
+      {
+        "start": 32768,
+        "end": 65535,
+        "kind": "rom"
+      },
+      {
+        "start": 14344,
+        "end": 14344,
+        "kind": "handler",
+        "write": "ddragon_state.bankswitch_w"
+      },
+      {
+        "start": 16384,
+        "end": 32767,
+        "kind": "handler",
+        "read": "bank.mainbank"
+      }
+    ],
+    "customs": [
+      {
+        "port": "EXTRA",
+        "mask": 8,
+        "member": "vblank",
+        "source": "screen-vblank",
+        "activeLow": false
+      },
+      {
+        "port": "EXTRA",
+        "mask": 16,
+        "member": "subcpu_bus_free_r",
+        "handler": "ddragon_state.subcpu_bus_free_r",
+        "activeLow": true
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 240,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 57.44485294117647,
+      "vtotal": 272,
+      "vbstart": 240,
+      "vbend": 0,
+      "updateMode": "partial",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ym2151",
+    "clock": 3579545,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.35,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.35,
+        "target": "mono"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "MSM5205",
+        "deviceTag": "adpcm1",
+        "member": "m_adpcm[0]",
+        "clock": 375000,
+        "initialMode": "S48_4B",
+        "gain": 1,
+        "target": "mono",
+        "writeMethods": [
+          "data_w",
+          "reset_w",
+          "playmode_w",
+          "s1_w",
+          "s2_w",
+          "vclk_w"
+        ]
+      },
+      {
+        "type": "MSM5205",
+        "deviceTag": "adpcm2",
+        "member": "m_adpcm[1]",
+        "clock": 375000,
+        "initialMode": "S48_4B",
+        "gain": 1,
+        "target": "mono",
+        "writeMethods": [
+          "data_w",
+          "reset_w",
+          "playmode_w",
+          "s1_w",
+          "s2_w",
+          "vclk_w"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 196608,
+      "loads": [
+        {
+          "file": "21j-1.26",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "ae714964",
+          "alt": [
+            {
+              "file": "e1-1.26",
+              "crc": "4b951643"
+            },
+            {
+              "file": "21a-1-5.26",
+              "crc": "e24a6e11"
+            },
+            {
+              "file": "21a-1",
+              "crc": "1d625008"
+            },
+            {
+              "file": "21a-1_6.bin",
+              "crc": "f354b0e1"
+            },
+            {
+              "file": "21j-1-5.26",
+              "crc": "42045dfd"
+            },
+            {
+              "file": "21j-1-8.26",
+              "crc": "54c1ef98"
+            },
+            {
+              "file": "b2_4.bin",
+              "crc": "668dfa19"
+            },
+            {
+              "file": "6809_20.bin",
+              "crc": "67e3b4f1"
+            },
+            {
+              "file": "20.7f",
+              "crc": "c804819f"
+            },
+            {
+              "file": "20.7e",
+              "crc": "5002d27d"
+            }
+          ]
+        },
+        {
+          "file": "21j-2-3.25",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "5779705e",
+          "alt": [
+            {
+              "file": "21a-2-4.25",
+              "crc": "5cd67657"
+            },
+            {
+              "file": "4.bin",
+              "crc": "48045762"
+            },
+            {
+              "file": "6809_19.bin",
+              "crc": "090e2baf"
+            },
+            {
+              "file": "19.7g",
+              "crc": "de08db4d"
+            },
+            {
+              "file": "19.7g",
+              "crc": "398e950d"
+            }
+          ]
+        },
+        {
+          "file": "21a-3.24",
+          "offset": 98304,
+          "size": 32768,
+          "crc": "dbf24897",
+          "alt": [
+            {
+              "file": "21j-3.24",
+              "crc": "3bdea613"
+            },
+            {
+              "file": "6809_18.bin",
+              "crc": "154d50c4"
+            }
+          ]
+        },
+        {
+          "file": "21j-4.23",
+          "offset": 131072,
+          "size": 32768,
+          "crc": "6c9f46fa",
+          "alt": [
+            {
+              "file": "e4-1.23",
+              "crc": "b1e26935"
+            },
+            {
+              "file": "21a-4.23",
+              "crc": "6ea16072"
+            },
+            {
+              "file": "21a-4_2",
+              "crc": "9b019598"
+            },
+            {
+              "file": "21j-4-1.23",
+              "crc": "728f87b9"
+            },
+            {
+              "file": "21j-4-2.23",
+              "crc": "6312767d"
+            },
+            {
+              "file": "6809_17.bin",
+              "crc": "6489d637"
+            },
+            {
+              "file": "17.7j",
+              "crc": "4052f37a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sub",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "21jm-0.ic55",
+          "offset": 0,
+          "size": 16384,
+          "crc": "f5232d03"
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "21j-0-1",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "9efa95bb",
+          "alt": [
+            {
+              "file": "6809_16.bin",
+              "crc": "f4c72690"
+            },
+            {
+              "file": "2.7n",
+              "crc": "d68b5fe7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "chars",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "21j-5",
+          "offset": 0,
+          "size": 32768,
+          "crc": "7a8b8db4"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 524288,
+      "loads": [
+        {
+          "file": "21j-a",
+          "offset": 0,
+          "size": 65536,
+          "crc": "574face3",
+          "alt": [
+            {
+              "file": "1.1t",
+              "crc": "5e810a6d"
+            },
+            {
+              "file": "9.1t",
+              "crc": "a4baa5ba"
+            }
+          ]
+        },
+        {
+          "file": "21j-b",
+          "offset": 65536,
+          "size": 65536,
+          "crc": "40507a76",
+          "alt": [
+            {
+              "file": "2.1r",
+              "crc": "7300b785"
+            }
+          ]
+        },
+        {
+          "file": "21j-c",
+          "offset": 131072,
+          "size": 65536,
+          "crc": "bb0bc76f",
+          "alt": [
+            {
+              "file": "13.bin",
+              "crc": "c8b91e17"
+            },
+            {
+              "file": "3.1q",
+              "crc": "19405de8"
+            },
+            {
+              "file": "11.1q",
+              "crc": "6248bcc4"
+            }
+          ]
+        },
+        {
+          "file": "21j-d",
+          "offset": 196608,
+          "size": 65536,
+          "crc": "cb4f231b",
+          "alt": [
+            {
+              "file": "4.1p",
+              "crc": "4b10defd"
+            }
+          ]
+        },
+        {
+          "file": "21j-e",
+          "offset": 262144,
+          "size": 65536,
+          "crc": "a0a0c261",
+          "alt": [
+            {
+              "file": "5.1n",
+              "crc": "5b1bb493"
+            },
+            {
+              "file": "13.1n",
+              "crc": "15b86326"
+            }
+          ]
+        },
+        {
+          "file": "21j-f",
+          "offset": 327680,
+          "size": 65536,
+          "crc": "6ba152f6",
+          "alt": [
+            {
+              "file": "6.1m",
+              "crc": "e8a2d2e7"
+            },
+            {
+              "file": "14.1m",
+              "crc": "a73bc8f5"
+            }
+          ]
+        },
+        {
+          "file": "21j-g",
+          "offset": 393216,
+          "size": 65536,
+          "crc": "3220a0b6",
+          "alt": [
+            {
+              "file": "7.1l",
+              "crc": "8010fcca"
+            },
+            {
+              "file": "15.1l",
+              "crc": "f80e81a6"
+            }
+          ]
+        },
+        {
+          "file": "21j-h",
+          "offset": 458752,
+          "size": 65536,
+          "crc": "65c7517d",
+          "alt": [
+            {
+              "file": "8.1j",
+              "crc": "bfa4da27"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 262144,
+      "loads": [
+        {
+          "file": "21j-8",
+          "offset": 0,
+          "size": 65536,
+          "crc": "7c435887",
+          "alt": [
+            {
+              "file": "6809_9.bin",
+              "crc": "736eff0f"
+            }
+          ]
+        },
+        {
+          "file": "21j-9",
+          "offset": 65536,
+          "size": 65536,
+          "crc": "c6640aed",
+          "alt": [
+            {
+              "file": "6809_10.bin",
+              "crc": "a670d088"
+            }
+          ]
+        },
+        {
+          "file": "21j-i",
+          "offset": 131072,
+          "size": 65536,
+          "crc": "5effb0a0",
+          "alt": [
+            {
+              "file": "19.bin",
+              "crc": "22d65df2"
+            },
+            {
+              "file": "6809_11.bin",
+              "crc": "4171b70d"
+            }
+          ]
+        },
+        {
+          "file": "21j-j",
+          "offset": 196608,
+          "size": 65536,
+          "crc": "5fb42e7c",
+          "alt": [
+            {
+              "file": "6809_12.bin",
+              "crc": "5f6a6d6f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "adpcm1",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "21j-6",
+          "offset": 0,
+          "size": 65536,
+          "crc": "34755de3"
+        }
+      ]
+    },
+    {
+      "region": "adpcm2",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "21j-7",
+          "offset": 0,
+          "size": 65536,
+          "crc": "904de6f8",
+          "alt": [
+            {
+              "file": "7.bin",
+              "crc": "f9311f72"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 768,
+      "loads": [
+        {
+          "file": "21j-k-0.101",
+          "offset": 0,
+          "size": 256,
+          "crc": "fdb130a9",
+          "alt": [
+            {
+              "file": "27s21.5o",
+              "crc": "673f68c3"
+            },
+            {
+              "file": "27s21.5p",
+              "crc": "2dc270f2"
+            },
+            {
+              "file": "82s129.4h",
+              "crc": "7683cadd"
+            },
+            {
+              "file": "n82s129n_2.4h",
+              "crc": "2078871e"
+            }
+          ]
+        },
+        {
+          "file": "21j-l-0.16",
+          "offset": 256,
+          "size": 512,
+          "crc": "46339529"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 64,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 64,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 128,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "EXTRA",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "EXTRA",
+      "mask": 2,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "IPT_BUTTON3",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW0",
+      "mask": 7,
+      "value": 7,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW0",
+      "mask": 56,
+      "value": 56,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW0",
+      "mask": 64,
+      "value": 64,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW0",
+      "mask": 128,
+      "value": 128,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 3,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 4,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW1",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 48,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 192,
+      "value": 192,
+      "name": "Lives"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "P1",
+      "init": 255
+    },
+    {
+      "tag": "P2",
+      "init": 255
+    },
+    {
+      "tag": "DSW0",
+      "init": 255
+    },
+    {
+      "tag": "DSW1",
+      "init": 255
+    },
+    {
+      "tag": "EXTRA",
+      "init": 23
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

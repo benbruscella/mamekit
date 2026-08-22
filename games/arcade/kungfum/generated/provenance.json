@@ -1,0 +1,659 @@
+{
+  "generatedFrom": "src/mame/irem/m62.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 937,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 966,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 405,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 406,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 407,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 408,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 416,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 417,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 425,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 431,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/10/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 432,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 937,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 405,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 406,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 407,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 408,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 416,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 417,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 425,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 431,
+      "column": 2
+    },
+    {
+      "path": "/connections/9/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 432,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 934,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 403,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 940,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 431,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 432,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 937,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 393,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 934,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 940,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 944,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 945,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 947,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 948,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 951,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 403,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 411,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 413,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 422,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 430,
+      "column": 2
+    },
+    {
+      "path": "/devices/12/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 436,
+      "column": 2
+    },
+    {
+      "path": "/devices/13/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 442,
+      "column": 2
+    },
+    {
+      "path": "/devices/14/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 446,
+      "column": 2
+    },
+    {
+      "path": "/devices/15/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 447,
+      "column": 2
+    },
+    {
+      "path": "/devices/16/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 448,
+      "column": 2
+    },
+    {
+      "path": "/devices/17/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 449,
+      "column": 2
+    },
+    {
+      "path": "/devices/18/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 450,
+      "column": 2
+    },
+    {
+      "path": "/devices/19/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 452,
+      "column": 2
+    },
+    {
+      "path": "/devices/20/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 453,
+      "column": 2
+    },
+    {
+      "path": "/devices/21/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 454,
+      "column": 2
+    },
+    {
+      "path": "/devices/22/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 456,
+      "column": 2
+    },
+    {
+      "path": "/devices/23/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 457,
+      "column": 2
+    },
+    {
+      "path": "/devices/24/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 458,
+      "column": 2
+    },
+    {
+      "path": "/devices/25/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 460,
+      "column": 2
+    },
+    {
+      "path": "/devices/26/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 461,
+      "column": 2
+    },
+    {
+      "path": "/devices/27/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 463,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 246,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 251,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 361,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 84,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 227,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 266,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 218,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 239,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 916,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 430,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 337,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 214,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 411,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 937,
+      "column": 2
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 437,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 279,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 388,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 367,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 393,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 149,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 109,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 160,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 115,
+      "column": 1
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 98,
+      "column": 1
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 178,
+      "column": 1
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 192,
+      "column": 1
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 432,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 184,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 185,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 186,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 187,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 190,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 191,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 182,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 197,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 198,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 199,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 200,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 201,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 194,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 225,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/1/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 226,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/2/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 227,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/3/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 228,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/irem/m62.cpp",
+      "line": 223,
+      "column": 1
+    },
+    {
+      "path": "/maps/3/ranges/0/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 379,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/1/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 380,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/2/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 381,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 377,
+      "column": 1
+    },
+    {
+      "path": "/video/palettes/0/plan/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 175,
+      "column": 1
+    },
+    {
+      "path": "/video/palettes/1/plan/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 182,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 337,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/irem/m62_v.cpp",
+      "line": 388,
+      "column": 1
+    }
+  ]
+}

@@ -1,0 +1,625 @@
+{
+  "game": "carnival",
+  "title": "Carnival (upright, AY8912 music) (Sega, 1980)",
+  "family": "vicdual",
+  "dataPath": "games/arcade/carnival",
+  "board": {
+    "family": "vicdual",
+    "cpus": [
+      {
+        "tag": "audiocpu",
+        "type": "i8035",
+        "clock": 3579545,
+        "region": "audiocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 1023,
+            "kind": "rom"
+          }
+        ]
+      },
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 1933560,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom",
+            "mirror": 16384
+          },
+          {
+            "start": 32768,
+            "end": 33791,
+            "kind": "ram",
+            "mirror": 28672,
+            "share": "videoram",
+            "write": "vicdual_state.videoram_w",
+            "writeHandlerOwnsRam": true
+          },
+          {
+            "start": 33792,
+            "end": 34815,
+            "kind": "ram",
+            "mirror": 28672
+          },
+          {
+            "start": 34816,
+            "end": 36863,
+            "kind": "ram",
+            "mirror": 28672,
+            "share": "characterram",
+            "write": "vicdual_state.characterram_w",
+            "writeHandlerOwnsRam": true
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "mirror": 124,
+              "read": "port.IN0"
+            },
+            {
+              "start": 1,
+              "end": 1,
+              "kind": "handler",
+              "mirror": 124,
+              "read": "port.IN1"
+            },
+            {
+              "start": 2,
+              "end": 2,
+              "kind": "handler",
+              "mirror": 124,
+              "read": "port.IN2"
+            },
+            {
+              "start": 3,
+              "end": 3,
+              "kind": "handler",
+              "mirror": 124,
+              "read": "port.IN3"
+            },
+            {
+              "start": 0,
+              "end": 127,
+              "kind": "handler",
+              "write": "carnival_state.carnival_io_w"
+            }
+          ],
+          "globalMask": 127
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 1023,
+        "kind": "rom"
+      }
+    ],
+    "customs": [
+      {
+        "port": "IN1",
+        "mask": 8,
+        "member": "cblank_comp_r",
+        "handler": "vicdual_state.cblank_comp_r",
+        "activeLow": false
+      },
+      {
+        "port": "IN2",
+        "mask": 8,
+        "member": "timer_value_r",
+        "handler": "vicdual_state.timer_value_r",
+        "activeLow": false
+      },
+      {
+        "port": "IN3",
+        "mask": 8,
+        "member": "coin_status_r",
+        "handler": "vicdual_state.coin_status_r",
+        "activeLow": false
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 60,
+      "vtotal": 262,
+      "vbstart": 224,
+      "vbend": 0,
+      "updateMode": "partial",
+      "rotate": 270
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1193181.6666666667,
+    "chips": 1,
+    "deviceTags": [
+      "psg"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.25,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.25,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.25,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr-651.u33",
+          "offset": 0,
+          "size": 1024,
+          "crc": "9f2736e6",
+          "alt": [
+            {
+              "file": "epr-501.u33",
+              "crc": "688503d2"
+            },
+            {
+              "file": "epr-479.u33",
+              "crc": "620bff59"
+            },
+            {
+              "file": "16mm.u33",
+              "crc": "0230bd0a"
+            },
+            {
+              "file": "16v.u33",
+              "crc": "a47a1c54"
+            }
+          ]
+        },
+        {
+          "file": "epr-652.u32",
+          "offset": 1024,
+          "size": 1024,
+          "crc": "a1f58beb",
+          "alt": [
+            {
+              "file": "epr-480.u32",
+              "crc": "90768717"
+            }
+          ]
+        },
+        {
+          "file": "epr-653.u31",
+          "offset": 2048,
+          "size": 1024,
+          "crc": "67b17922",
+          "alt": [
+            {
+              "file": "epr-481.u31",
+              "crc": "5c903af9"
+            }
+          ]
+        },
+        {
+          "file": "epr-654.u30",
+          "offset": 3072,
+          "size": 1024,
+          "crc": "befb09a5",
+          "alt": [
+            {
+              "file": "epr-482.u30",
+              "crc": "fb2398a1"
+            }
+          ]
+        },
+        {
+          "file": "epr-655.u29",
+          "offset": 4096,
+          "size": 1024,
+          "crc": "623fcdad",
+          "alt": [
+            {
+              "file": "epr-483.u29",
+              "crc": "306f50d2"
+            },
+            {
+              "file": "12mm.u29",
+              "crc": "b5230913"
+            }
+          ]
+        },
+        {
+          "file": "epr-656.u28",
+          "offset": 5120,
+          "size": 1024,
+          "crc": "53040332",
+          "alt": [
+            {
+              "file": "epr-506.u28",
+              "crc": "ba916e97"
+            },
+            {
+              "file": "epr-484.u28",
+              "crc": "e80a6ebc"
+            }
+          ]
+        },
+        {
+          "file": "epr-657.u27",
+          "offset": 6144,
+          "size": 1024,
+          "crc": "f2537467",
+          "alt": [
+            {
+              "file": "epr-507.u27",
+              "crc": "d0bda4a5"
+            },
+            {
+              "file": "epr-485.u27",
+              "crc": "993e2885"
+            },
+            {
+              "file": "10mm.u27",
+              "crc": "a3b9c2db"
+            }
+          ]
+        },
+        {
+          "file": "epr-658.u26",
+          "offset": 7168,
+          "size": 1024,
+          "crc": "fcc3854e",
+          "alt": [
+            {
+              "file": "epr-508.u26",
+              "crc": "f0258cad"
+            },
+            {
+              "file": "epr-486.u26",
+              "crc": "e6b7eb05"
+            }
+          ]
+        },
+        {
+          "file": "epr-659.u8",
+          "offset": 8192,
+          "size": 1024,
+          "crc": "28be8d69",
+          "alt": [
+            {
+              "file": "epr-509.u8",
+              "crc": "dcc8a530"
+            },
+            {
+              "file": "epr-487.u8",
+              "crc": "41abf6f8"
+            }
+          ]
+        },
+        {
+          "file": "epr-660.u7",
+          "offset": 9216,
+          "size": 1024,
+          "crc": "3873ccdb",
+          "alt": [
+            {
+              "file": "epr-510.u7",
+              "crc": "92c2ba51"
+            },
+            {
+              "file": "epr-488.u7",
+              "crc": "b0288f2a"
+            }
+          ]
+        },
+        {
+          "file": "epr-661.u6",
+          "offset": 10240,
+          "size": 1024,
+          "crc": "d9a96dff",
+          "alt": [
+            {
+              "file": "epr-511.u6",
+              "crc": "3af899a0"
+            },
+            {
+              "file": "epr-489.u6",
+              "crc": "c9c529ab"
+            }
+          ]
+        },
+        {
+          "file": "epr-662.u5",
+          "offset": 11264,
+          "size": 1024,
+          "crc": "d893ca72",
+          "alt": [
+            {
+              "file": "epr-512.u5",
+              "crc": "09f7b3e6"
+            },
+            {
+              "file": "epr-490.u5",
+              "crc": "9d4ffe25"
+            }
+          ]
+        },
+        {
+          "file": "epr-663.u4",
+          "offset": 12288,
+          "size": 1024,
+          "crc": "df8c63c5",
+          "alt": [
+            {
+              "file": "epr-513.u4",
+              "crc": "8f41974c"
+            },
+            {
+              "file": "epr-491.u4",
+              "crc": "5d086aec"
+            }
+          ]
+        },
+        {
+          "file": "epr-664.u3",
+          "offset": 13312,
+          "size": 1024,
+          "crc": "689a73e8",
+          "alt": [
+            {
+              "file": "epr-514.u3",
+              "crc": "2788d140"
+            },
+            {
+              "file": "epr-492.u3",
+              "crc": "0e20e4a5"
+            }
+          ]
+        },
+        {
+          "file": "epr-665.u2",
+          "offset": 14336,
+          "size": 1024,
+          "crc": "28e7b2b6",
+          "alt": [
+            {
+              "file": "epr-515.u2",
+              "crc": "10decaa9"
+            },
+            {
+              "file": "epr-493.u2",
+              "crc": "b4a7c5c9"
+            },
+            {
+              "file": "2mm.u2",
+              "crc": "b94ef7ab"
+            }
+          ]
+        },
+        {
+          "file": "epr-666.u1",
+          "offset": 15360,
+          "size": 1024,
+          "crc": "4eec7fae",
+          "alt": [
+            {
+              "file": "epr-516.u1",
+              "crc": "7c32b352"
+            },
+            {
+              "file": "epr-494.u1",
+              "crc": ""
+            },
+            {
+              "file": "1mm.u1",
+              "crc": "6e10c057"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 32,
+      "loads": [
+        {
+          "file": "316-0633.u49",
+          "offset": 0,
+          "size": 32,
+          "crc": "f0084d80"
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 1024,
+      "loads": [
+        {
+          "file": "epr-412.u5",
+          "offset": 0,
+          "size": 1024,
+          "crc": "0dbaa2b0",
+          "alt": [
+            {
+              "file": "epr-647a.u5",
+              "crc": "422abb43"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "user1",
+      "size": 32,
+      "loads": [
+        {
+          "file": "316-0206.u14",
+          "offset": 0,
+          "size": 32,
+          "crc": "9617d796",
+          "alt": [
+            {
+              "file": "bin.u14",
+              "crc": "e60a7960"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 32,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN3",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 4,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "IN2",
+      "mask": 4,
+      "value": 0,
+      "name": "Unused"
+    },
+    {
+      "port": "IN3",
+      "mask": 4,
+      "value": 0,
+      "name": "Unused"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 227
+    },
+    {
+      "tag": "IN1",
+      "init": 243
+    },
+    {
+      "tag": "IN2",
+      "init": 243
+    },
+    {
+      "tag": "IN3",
+      "init": 243
+    },
+    {
+      "tag": "COIN",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

@@ -1,0 +1,449 @@
+{
+  "generatedFrom": "src/mame/galaxian/galaxian.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7500,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7501,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7501,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7489,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7498,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7501,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7501,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 460,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7661,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/galaxian/galaxian_a.cpp",
+      "line": 667,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7489,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7492,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7495,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7496,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7498,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 7504,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/galaxian/galaxian_a.cpp",
+      "line": 702,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/galaxian/galaxian_a.cpp",
+      "line": 734,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/galaxian/galaxian_a.cpp",
+      "line": 713,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/galaxian/galaxian_a.cpp",
+      "line": 718,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/galaxian/galaxian_a.cpp",
+      "line": 728,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/galaxian/galaxian_a.cpp",
+      "line": 723,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/galaxian/galaxian_a.cpp",
+      "line": 697,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 503,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 514,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 795,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 803,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 810,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 779,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 711,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 670,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 822,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 686,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 2865,
+      "column": 2
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 399,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 789,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 433,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 487,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 460,
+      "column": 1
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 568,
+      "column": 1
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 554,
+      "column": 1
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 629,
+      "column": 1
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 761,
+      "column": 1
+    },
+    {
+      "path": "/handlers/27/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 1160,
+      "column": 1
+    },
+    {
+      "path": "/handlers/28/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 950,
+      "column": 1
+    },
+    {
+      "path": "/handlers/29/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 1245,
+      "column": 1
+    },
+    {
+      "path": "/handlers/30/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 1249,
+      "column": 1
+    },
+    {
+      "path": "/handlers/31/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 1140,
+      "column": 1
+    },
+    {
+      "path": "/handlers/32/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 932,
+      "column": 1
+    },
+    {
+      "path": "/handlers/33/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 869,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1741,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1742,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1743,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1739,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1749,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1750,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1751,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1752,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1753,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1754,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1755,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/7/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1756,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/8/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1758,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/9/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1760,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/10/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1761,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/11/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1762,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/12/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1763,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/13/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1764,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/14/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1766,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1746,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/galaxian/galaxian.cpp",
+      "line": 1769,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 238,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 399,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/galaxian/galaxian_v.cpp",
+      "line": 399,
+      "column": 1
+    }
+  ]
+}

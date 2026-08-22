@@ -1,0 +1,184 @@
+{
+  "game": "popeye",
+  "title": "Popeye (revision D) (Nintendo, 1982)",
+  "fullname": "Popeye (revision D)",
+  "year": "1982",
+  "manufacturer": "Nintendo",
+  "family": "popeye",
+  "driverFile": "src/mame/nintendo/popeye.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "smf, Nicola Salmoria, Couriersud",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2024-10-18",
+    "commits": 172,
+    "contributors": 26,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "smf-",
+      "Vas Crabb",
+      "couriersud"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 51,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-09-13"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 28,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "smf-",
+        "commits": 19,
+        "firstCommit": "2013-05-12",
+        "lastCommit": "2019-08-24"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 17,
+        "firstCommit": "2016-09-26",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "couriersud",
+        "commits": 7,
+        "firstCommit": "2015-05-07",
+        "lastCommit": "2019-11-24"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 6,
+        "firstCommit": "2014-05-06",
+        "lastCommit": "2022-08-23"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 6,
+        "firstCommit": "2015-04-12",
+        "lastCommit": "2020-11-02"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 4,
+        "firstCommit": "2008-04-22",
+        "lastCommit": "2014-07-09"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 4,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2016-09-25"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 3,
+        "firstCommit": "2014-02-04",
+        "lastCommit": "2014-05-05"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "hap",
+        "commits": 3,
+        "firstCommit": "2018-01-09",
+        "lastCommit": "2023-06-22"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 3,
+        "firstCommit": "2018-08-23",
+        "lastCommit": "2018-12-22"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "AJR",
+        "commits": 2,
+        "firstCommit": "2017-11-25",
+        "lastCommit": "2019-09-14"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-09-02",
+        "lastCommit": "2008-09-02"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2009-04-30",
+        "lastCommit": "2009-04-30"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "briantro",
+        "commits": 1,
+        "firstCommit": "2017-11-25",
+        "lastCommit": "2017-11-25"
+      },
+      {
+        "name": "Logan B",
+        "commits": 1,
+        "firstCommit": "2017-11-26",
+        "lastCommit": "2017-11-26"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 1,
+        "firstCommit": "2017-11-26",
+        "lastCommit": "2017-11-26"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 1,
+        "firstCommit": "2017-08-08",
+        "lastCommit": "2017-08-08"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

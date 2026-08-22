@@ -1,0 +1,29 @@
+{
+  "type": "I8035",
+  "uses": [
+    {
+      "game": "carnival",
+      "tags": [
+        "audiocpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "I8035",
+    "className": "i8035_device",
+    "shortName": "i8035",
+    "description": "Intel 8035",
+    "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+    "sourceLine": 183,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(I8035,   i8035_device,   \"i8035\",   \"Intel 8035\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/mcs48/mcs48.cpp",
+    "src/devices/cpu/mcs48/mcs48.h",
+    "src/devices/cpu/mcs48/mcs48dsm.h"
+  ]
+}

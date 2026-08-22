@@ -1,0 +1,940 @@
+{
+  "game": "qix",
+  "title": "Qix (Rev 2) (Taito America, 1981)",
+  "fullname": "Qix (Rev 2)",
+  "year": "1981",
+  "company": "Taito America",
+  "family": "qix",
+  "driverFile": "src/mame/taito/qix.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles, Zsolt Vasvari",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "mc6809e",
+      "clock": 1250000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 32768,
+          "end": 33791,
+          "kind": "ram",
+          "share": "sharedram"
+        },
+        {
+          "start": 33792,
+          "end": 34815,
+          "kind": "ram"
+        },
+        {
+          "start": 34816,
+          "end": 35839,
+          "kind": "nop",
+          "writeOnly": true
+        },
+        {
+          "start": 35840,
+          "end": 35840,
+          "kind": "handler",
+          "mirror": 1022,
+          "read": "qix_state.video_firq_r",
+          "write": "qix_state.video_firq_w"
+        },
+        {
+          "start": 35841,
+          "end": 35841,
+          "kind": "handler",
+          "mirror": 1022,
+          "read": "qix_state.data_firq_ack_r",
+          "write": "qix_state.data_firq_ack_w"
+        },
+        {
+          "start": 36864,
+          "end": 37887,
+          "kind": "handler",
+          "read": "sndpia0.read",
+          "write": "sndpia0.write"
+        },
+        {
+          "start": 37888,
+          "end": 38911,
+          "kind": "handler",
+          "read": "pia0.read",
+          "write": "qix_state.pia_w"
+        },
+        {
+          "start": 38912,
+          "end": 39935,
+          "kind": "handler",
+          "read": "pia1.read",
+          "write": "pia1.write"
+        },
+        {
+          "start": 39936,
+          "end": 40959,
+          "kind": "handler",
+          "read": "pia2.read",
+          "write": "pia2.write"
+        },
+        {
+          "start": 40960,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "m6802",
+      "clock": 3686400,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 8192,
+          "end": 8195,
+          "kind": "handler",
+          "mirror": 24572,
+          "read": "sndpia2.read",
+          "write": "sndpia2.write"
+        },
+        {
+          "start": 16384,
+          "end": 16387,
+          "kind": "handler",
+          "mirror": 16380,
+          "read": "sndpia1.read",
+          "write": "sndpia1.write"
+        },
+        {
+          "start": 53248,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    },
+    {
+      "tag": "videocpu",
+      "type": "mc6809e",
+      "clock": 1250000,
+      "region": "videocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "handler",
+          "read": "qix_state.videoram_r",
+          "write": "qix_state.videoram_w"
+        },
+        {
+          "start": 32768,
+          "end": 33791,
+          "kind": "ram",
+          "share": "sharedram"
+        },
+        {
+          "start": 33792,
+          "end": 34815,
+          "kind": "ram",
+          "share": "nvram"
+        },
+        {
+          "start": 34816,
+          "end": 34816,
+          "kind": "handler",
+          "mirror": 1023,
+          "write": "qix_state.palettebank_w"
+        },
+        {
+          "start": 35840,
+          "end": 35840,
+          "kind": "handler",
+          "mirror": 1022,
+          "read": "qix_state.data_firq_r",
+          "write": "qix_state.data_firq_w"
+        },
+        {
+          "start": 35841,
+          "end": 35841,
+          "kind": "handler",
+          "mirror": 1022,
+          "read": "qix_state.video_firq_ack_r",
+          "write": "qix_state.video_firq_ack_w"
+        },
+        {
+          "start": 36864,
+          "end": 37887,
+          "kind": "ram",
+          "share": "palette",
+          "write": "qix_state.paletteram_w"
+        },
+        {
+          "start": 37888,
+          "end": 37888,
+          "kind": "handler",
+          "mirror": 1020,
+          "read": "qix_state.addresslatch_r",
+          "write": "qix_state.addresslatch_w"
+        },
+        {
+          "start": 37890,
+          "end": 37891,
+          "kind": "ram",
+          "mirror": 1020,
+          "share": "videoram_address",
+          "writeOnly": true
+        },
+        {
+          "start": 38912,
+          "end": 38912,
+          "kind": "ram",
+          "mirror": 1023,
+          "share": "scanline_latch",
+          "readOnly": true
+        },
+        {
+          "start": 39936,
+          "end": 39936,
+          "kind": "handler",
+          "mirror": 1022,
+          "write": "vid_u18.address_w"
+        },
+        {
+          "start": 39937,
+          "end": 39937,
+          "kind": "handler",
+          "mirror": 1022,
+          "read": "vid_u18.register_r",
+          "write": "vid_u18.register_w"
+        },
+        {
+          "start": 40960,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "discrete",
+    "clock": 1250000,
+    "worklet": "../../hardware/discrete-dac/discrete-dac",
+    "discreteDac": {
+      "schemaVersion": 1,
+      "type": "DISCRETE_DAC_ATTENUATOR",
+      "dac": {
+        "node": 1,
+        "gain": 128,
+        "offset": -16384,
+        "initial": 128
+      },
+      "volumeNode": 2,
+      "inputNodes": {
+        "QIX_DAC_DATA": 1,
+        "QIX_VOL_DATA": 2
+      },
+      "channels": [
+        {
+          "shift": 4,
+          "mask": 15,
+          "resistances": [
+            22250,
+            10250,
+            5850,
+            3550
+          ],
+          "dividerResistance": 10000,
+          "filterResistance": 1500,
+          "filterCapacitance": 0.000001,
+          "outputGain": 1
+        },
+        {
+          "shift": 0,
+          "mask": 15,
+          "resistances": [
+            22250,
+            10250,
+            5850,
+            3550
+          ],
+          "dividerResistance": 10000,
+          "filterResistance": 1500,
+          "filterCapacitance": 0.000001,
+          "outputGain": 1
+        }
+      ],
+      "source": {
+        "file": "src/mame/taito/qix_a.cpp",
+        "line": 63,
+        "netlist": "qix_discrete"
+      }
+    },
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 256,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 55.83847047261681,
+    "vtotal": 273,
+    "vbstart": 256,
+    "vbend": 0,
+    "updateMode": "partial",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "qq12_rev2.u12",
+          "offset": 49152,
+          "size": 2048,
+          "crc": "aad35508",
+          "alt": [
+            {
+              "file": "u12_",
+              "crc": "5adc046d"
+            },
+            {
+              "file": "qu12",
+              "crc": "1c55b44d"
+            },
+            {
+              "file": "u12.rmb",
+              "crc": "484280fd"
+            }
+          ]
+        },
+        {
+          "file": "qq13_rev2.u13",
+          "offset": 51200,
+          "size": 2048,
+          "crc": "46c13504",
+          "alt": [
+            {
+              "file": "u13_",
+              "crc": "e63283c6"
+            },
+            {
+              "file": "qu13",
+              "crc": "20279e8c"
+            },
+            {
+              "file": "u13.rmb",
+              "crc": "3d089fcb"
+            }
+          ]
+        },
+        {
+          "file": "qq14_rev2.u14",
+          "offset": 53248,
+          "size": 2048,
+          "crc": "5115e896",
+          "alt": [
+            {
+              "file": "u14_",
+              "crc": "a2fd4c28"
+            },
+            {
+              "file": "qu14",
+              "crc": "bafe3ce3"
+            },
+            {
+              "file": "u14.rmb",
+              "crc": "362123a9"
+            }
+          ]
+        },
+        {
+          "file": "qq15_rev2.u15",
+          "offset": 55296,
+          "size": 2048,
+          "crc": "ccd52a1b",
+          "alt": [
+            {
+              "file": "u15_",
+              "crc": "0e5e17d6"
+            },
+            {
+              "file": "u15.rmb",
+              "crc": "60f3913d"
+            }
+          ]
+        },
+        {
+          "file": "qq16_rev2.u16",
+          "offset": 57344,
+          "size": 2048,
+          "crc": "cd1c36ee",
+          "alt": [
+            {
+              "file": "u16_",
+              "crc": "6acfa3b8"
+            },
+            {
+              "file": "qu16",
+              "crc": "db560753"
+            },
+            {
+              "file": "u16.rmb",
+              "crc": "cc139e34"
+            }
+          ]
+        },
+        {
+          "file": "qq17_rev2.u17",
+          "offset": 59392,
+          "size": 2048,
+          "crc": "1acb682d",
+          "alt": [
+            {
+              "file": "u17_",
+              "crc": "bc091f21"
+            },
+            {
+              "file": "qu17",
+              "crc": "8c7aeed8"
+            },
+            {
+              "file": "u17.rmb",
+              "crc": "cf31dc49"
+            }
+          ]
+        },
+        {
+          "file": "qq18_rev2.u18",
+          "offset": 61440,
+          "size": 2048,
+          "crc": "de77728b",
+          "alt": [
+            {
+              "file": "u18_",
+              "crc": "610b19ce"
+            },
+            {
+              "file": "qu18",
+              "crc": "353be980"
+            },
+            {
+              "file": "u18.rmb",
+              "crc": "1f91ed7a"
+            }
+          ]
+        },
+        {
+          "file": "qq19_rev2.u19",
+          "offset": 63488,
+          "size": 2048,
+          "crc": "c0994776",
+          "alt": [
+            {
+              "file": "u19_",
+              "crc": "11f957f4"
+            },
+            {
+              "file": "qu19",
+              "crc": "f46a69ca"
+            },
+            {
+              "file": "u19.rmb",
+              "crc": "68e8d5a6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "videocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "qq4_rev2.u4",
+          "offset": 51200,
+          "size": 2048,
+          "crc": "5b906a09",
+          "alt": [
+            {
+              "file": "u4_",
+              "crc": "e5ee74cd"
+            },
+            {
+              "file": "qu4",
+              "crc": "66a5c260"
+            },
+            {
+              "file": "u4.rmb",
+              "crc": "6cfb4185"
+            }
+          ]
+        },
+        {
+          "file": "qq5_rev2.u5",
+          "offset": 53248,
+          "size": 2048,
+          "crc": "254a3587",
+          "alt": [
+            {
+              "file": "u5_",
+              "crc": "4e939d87"
+            },
+            {
+              "file": "qu5",
+              "crc": "70160ea3"
+            },
+            {
+              "file": "u5.rmb",
+              "crc": "948f53f3"
+            }
+          ]
+        },
+        {
+          "file": "qq6_rev2.u6",
+          "offset": 55296,
+          "size": 2048,
+          "crc": "ace30389",
+          "alt": [
+            {
+              "file": "u6_",
+              "crc": "b42ca7d8"
+            },
+            {
+              "file": "u6.rmb",
+              "crc": "8630120e"
+            }
+          ]
+        },
+        {
+          "file": "qq7_rev2.u7",
+          "offset": 57344,
+          "size": 2048,
+          "crc": "8ebcfa7c",
+          "alt": [
+            {
+              "file": "u7_",
+              "crc": "d6733019"
+            },
+            {
+              "file": "u7.rmb",
+              "crc": "bad037c9"
+            }
+          ]
+        },
+        {
+          "file": "qq8_rev2.u8",
+          "offset": 59392,
+          "size": 2048,
+          "crc": "b8a3c8f9",
+          "alt": [
+            {
+              "file": "u8_",
+              "crc": "8cab8fb2"
+            },
+            {
+              "file": "qu8",
+              "crc": "66870dcc"
+            },
+            {
+              "file": "u8.rmb",
+              "crc": "3159bc00"
+            }
+          ]
+        },
+        {
+          "file": "qq9_rev2.u9",
+          "offset": 61440,
+          "size": 2048,
+          "crc": "26cbcd55",
+          "alt": [
+            {
+              "file": "u9_",
+              "crc": "98fbac76"
+            },
+            {
+              "file": "qu9",
+              "crc": "c99bf94d"
+            },
+            {
+              "file": "u9.rmb",
+              "crc": "e80e9b1d"
+            }
+          ]
+        },
+        {
+          "file": "qq10_rev2.u10",
+          "offset": 63488,
+          "size": 2048,
+          "crc": "568be942",
+          "alt": [
+            {
+              "file": "u10_",
+              "crc": "b40f084a"
+            },
+            {
+              "file": "qu10",
+              "crc": "88b45037"
+            },
+            {
+              "file": "u10.rmb",
+              "crc": "9a55d360"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "qq27.u27",
+          "offset": 63488,
+          "size": 2048,
+          "crc": "f3782bd0"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 64,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Test Advance",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 2,
+      "keys": [
+        "Digit8"
+      ],
+      "label": "Test Next line",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 4,
+      "keys": [
+        "Digit7"
+      ],
+      "label": "Test Slew Up",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 8,
+      "keys": [
+        "Digit0"
+      ],
+      "label": "Test Slew Down",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-14",
+    "commits": 146,
+    "contributors": 31,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Zsolt Vasvari",
+      "smf-"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 54,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2021-06-22"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 19,
+        "firstCommit": "2012-03-31",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 13,
+        "firstCommit": "2017-01-12",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 8,
+        "firstCommit": "2008-02-12",
+        "lastCommit": "2008-03-06"
+      },
+      {
+        "name": "smf-",
+        "commits": 6,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2014-01-11"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 4,
+        "firstCommit": "2014-01-18",
+        "lastCommit": "2024-06-21"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 4,
+        "firstCommit": "2013-06-03",
+        "lastCommit": "2013-06-03"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 4,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2019-11-21"
+      },
+      {
+        "name": "AJR",
+        "commits": 3,
+        "firstCommit": "2017-12-08",
+        "lastCommit": "2023-07-08"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 3,
+        "firstCommit": "2018-08-10",
+        "lastCommit": "2018-12-14"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 3,
+        "firstCommit": "2014-01-17",
+        "lastCommit": "2014-01-20"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "hap",
+        "commits": 2,
+        "firstCommit": "2022-09-12",
+        "lastCommit": "2023-09-20"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2013-01-17"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2012-06-19",
+        "lastCommit": "2012-06-19"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2025-02-22",
+        "lastCommit": "2025-02-22"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 1,
+        "firstCommit": "2010-04-03",
+        "lastCommit": "2010-04-03"
+      },
+      {
+        "name": "James Charles Taylor",
+        "commits": 1,
+        "firstCommit": "2026-07-14",
+        "lastCommit": "2026-07-14"
+      },
+      {
+        "name": "Lord-Nightmare",
+        "commits": 1,
+        "firstCommit": "2015-07-26",
+        "lastCommit": "2015-07-26"
+      },
+      {
+        "name": "MetalliC",
+        "commits": 1,
+        "firstCommit": "2016-11-30",
+        "lastCommit": "2016-11-30"
+      },
+      {
+        "name": "Michael.S.G",
+        "commits": 1,
+        "firstCommit": "2017-01-31",
+        "lastCommit": "2017-01-31"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 1,
+        "firstCommit": "2008-11-16",
+        "lastCommit": "2008-11-16"
+      },
+      {
+        "name": "Osso",
+        "commits": 1,
+        "firstCommit": "2014-11-11",
+        "lastCommit": "2014-11-11"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 1,
+        "firstCommit": "2012-12-23",
+        "lastCommit": "2012-12-23"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 1,
+        "firstCommit": "2010-04-23",
+        "lastCommit": "2010-04-23"
+      },
+      {
+        "name": "Stiletto",
+        "commits": 1,
+        "firstCommit": "2015-08-20",
+        "lastCommit": "2015-08-20"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 45 years ago:\n\nQix (c) 1981 Taito Corp.\n\nThe objective of Qix is to claim a certain proportion of the playing field as your own. At the start of each level, the playing field is just a large, empty rectangle, containing the Qix - a stick-like entity that performs peculiar, erratic motions within the confines of the rectangle. The player controls a small marker that can move around the edges of the rectangle. To claim an area of the screen, the player must detach from an edge and draw Stix within the rectangle. Stix are simply lines traced out by moving the marker. When the marker traces out a closed shape, the area enclosed by the shape becomes solid and has been claimed. The player may draw either Fast Stix, which appear blue when solid, or Slow Stix, which appear red. Slow Stix take longer to draw, but are worth twice as many points. Once the player has claimed an area, the marker can safely move along the border of that claimed area. To complete a level, the player must claim 75% or more of the rectangle's area.\n\n- TECHNICAL -\n\nBoard Number : LKN00003\nProm Stickers : LK / QQ / QU / QX\n\nMain CPU : (2x) M6809 (@ 1.25 Mhz)\nSound CPU : M6802 (@ 921.6 Khz)\nSound Chips : Discrete\n\nPlayers : 2\nControl : 4-way joystick\nButtons : 2 (SLOW, FAST)\n\n- TRIVIA -\n\nQix was released in October 1981 in the USA.\n\nAlso released as a cocktail model. In Japan, the cocktail version is known as \"T.T Qix\". \n\nThe author named the game 'QIX' (pronounced 'KICKS' and not 'QUIX') because his car registration/number plate at the time was : 'JUS4QIX'.\n\nQix is the first 'drawing game', a truly original game. Also the first totally Taito American game, Qix initially did big numbers, but quickly died when players discovered the machine was 'unbeatable'. Having a googolplex of possible combinations, there was no singular pattern to the game and players lost interest.\n\nA Qix unit appears in the 1983 movie 'Joysticks' and in the 1984 movie 'The Karate Kid'.\n\n- SCORING -\n\nThere are a couple of ways you earn points in Qix. The first involves actually claiming areas.\n\nThere are 2 buttons, slow and fast. These buttons determine how fast your Marker goes. In essence, going slow increases the risk of losing your Marker so it is obviously worth more points. Here's how the points work out for making 'boxes':\n1) Slow : It is a base 500 points multiplied by the percentage of area covered by that box. For example, if you create a box that claims 3% of the total area, then points scored would be 500 X 3 or 1500 points. This area fills in with brown.\n2) Fast : It is a base 250 points multiplied by the percentage of area covered by that box. For example, if you create a box that claims 1% of the total area, then points scored would be 250 X 1 or 250 points. This area fills in with blue.\n\nNOTE : The above points may not be exact since the game rounds off the percentages to whole numbers for display but calculates them using decimal percentages.\n\nYou also get bonus points for going above the 75% Threshold. Any percentage above the 75% Threshold is multiplied by 1000 to determine your bonus points.\n\nDuring the split Qix screens, if you successfully split the Qix's into their own compartments, you will get a multiplier bonus that is applied to points scored when you are making boxes. For example, if you had a 250 points and the multiplier was 3X, you now have 750 points. This multiplier increments by one every time you successfully split the Qix's. Of course, when you do this, you don't get the bonus points (if you had any).\n\n- TIPS AND TRICKS -\n\n* When you start the game, your Marker will be at the bottom, middle of the playing screen. It is now up to you to start creating boxes. Keep in mind that you need to be constantly moving or the Sparx will take out your Marker. In addition, when you are moving your Marker around the perimeter, you can only move along the perimeter actually touching the Playing Field.\n\n* First of all, you must be constantly aware of two things. First, you must know where the Qix is located at all times. It moves randomly and can go anywhere on the Playing Field that your boxes haven't blocked. Last, the Sparx are constantly moving around the perimeter of the Playing Field. This can set up a dangerous situation where one Sparx is coming at you from one way and another from the other to make your Marker a 'Sparx Sandwich'.\n\n* Once you have assessed the danger, it is time to start making boxes. There are a few things to note when you are making boxes :\na) When you start to draw the line, the Sparx cannot travel along the new perimeter you are creating until it is filled in.\nb) The Qix, though, is your primary concern. If it touches any part of a line before the box is filled in, you will lose your Marker.\nc) The box must begin and end either at a filled box or on the side of the Playing Field. You cannot connect the line to itself. If you try to do this, you will go into what is called a 'Spiral Death Trap' and a Fuse will follow your line to your Marker and destroy it.\n\n* After the fourth wave, the Qix will split in two. Now you have 2 Qix's bouncing around to deal with. You major goal is to actually 'split' the Qix's into their own areas. This means creating a series of boxes so that each Qix will be in its own compartment.\n\n* For maximum points, you must do two things :\na) First, use the slow button as much as possible since this is where the points are.\nb) Try to claim as much area in each box as possible. That percentage multiplied by the speed value can yield some big point values.\nc) Constantly try to split the Qix's (if you can) to get that bonus multiplier even higher.\nd) When you are close to the Threshold, find an area in the Playing Field that hasn't really been touched and try to make a big box. That way, you will go over the 75% Threshold and claim a bonus.\n\n* As the waves progress, everything gets faster and the game will become less forgiving if you are less then committed to making a box.\n\n* Also, listen for sounds in this game. The only real sound you need to be concerned with is what sounds like a fuse being lit. If you are making a box and you hear this sound, that means you are taking too long or you have unfortunately gotten yourself into a 'Spiral Death Trap'. In the case of delay, once you move the fuse will go out.\n\n* To maximize points, draw narrow, tall boxes, like fingers, from the bottom.  When the Qix goes down between two fingers, go across the top of the fingers at slow speed. This tactic permits percentages of up to 99%.\n\n* It is possible create a 'slide-box' to avoid the sparks. Starting at a corner of a box, draw another box that connects only at that corner. When a spark approaches, the player can slide the diamond through the intersection, while the spark has to go around the perimeter. After the spark passes the intersection, the player can slide back across the intersection and be behind the spark.\n\n- STAFF -\n\nDesigned & programmed by : Randy Pfeiffer, Sandy Pfeiffer\n\n- PORTS -\n\n* CONSOLES: \n[US] Atari 2600 : Release cancelled\n[US] Atari 5200 (1982) \"Qix [Model CX5212]\" \nAtari XEGS\n[US] Nintendo NES (jan.1991) \"Qix [Model NES-QX-USA]\" \n[JP] Sony PS2 (aug.25, 2005) \"Taito Memories Gekan [Model SLPM-66092]\" \n[AU] Sony PlayStation 2 (mar.30, 2006) \"Taito Legends 2 [Model SLES-53852]\" \n[EU] Microsoft XBOX (mar.31, 2006) \"Taito Legends 2\" \n[EU] Sony PS2 (mar.31, 2006) \"Taito Legends 2 [Model SLES-53852]\" \n[US] Sony PS2 (may.16, 2007) \"Taito Legends 2 [Model SLUS-21349]\" \n\n* HANDHELDS: \n[AU] Nintendo Game Boy (1990) \"Qix [Model DMG-QX-AUS]\" \n[EU] Nintendo Game Boy (1990) \"Qix [Model DMG-QX-NOE]\" \n[JP] Nintendo Game Boy (apr.13, 1990) \"Qix [Model DMG-QXA]\" \n[US] Nintendo Game Boy (may.1990) \"Qix [Model DMG-QX-USA]\" \n[US] Atari Lynx (1991) \"Qix [Model LX102]\" by Telegames, Inc. \n[AS] Sony PSP (jan.3, 2006) \"Taito Memories Pocket [Model UCAS-40040]\" \n[JP] Sony PSP (jan.5, 2006) \"Taito Memories Pocket [Model ULJM-05076]\" \n[KO] Sony PSP (feb.10, 2006) \"Taito Memories Pocket\" \n[EU] Sony PSP (oct.6, 2006) \"Taito Legends Power-Up [Model ULES-00473]\" \n[AU] Sony PSP (nov.9, 2006) \"Taito Legends Power-Up [Model ULES-00473]\" \n[US] Sony PSP (may.17, 2007) \"Taito Legends Power-Up [Model ULUS-10208]\" \n\n* COMPUTERS:\n[EU] Acorn Electron (1983) \"Stix\" by Supersoft \n[EU] BBC B (1983) \"Stix\" by Supersoft \n[US] Commodore C64 [EU] (1983) \"Stix\" by Supersoft \n[US] Atari 800 (1983) \"Qix [Model CXL4027]\" \n[JP] Sharp MZ-700 (1983) by Carry Lab\n[US] Tandy Color Computer (1984) \"Qiks\" \n[US] Tandy Color Computer (1984) \"Quix\" \n[US] Commodore Amiga (1989) \n[US] Commodore C64 (1989) \n[US] Apple II (1989) \n[US] PC [MS-DOS] (1989) \n[US] Apple IIGS (1990) \n[US] Oric (2004) \"4kQix\" : PD / Shareware by Stephane Geley\n[EU] PC [MS Windows, CD-ROM] (mar.31, 2006) \"Taito Legends 2\" \n[US] PC [MS Windows, CD-ROM] (jul.10, 2007) \"Taito Legends 2\" \n\n* OTHERS:\n[US] Nokia N-Gage \"Taito Memories\" : Release cancelled\nArcade (2003) \"Space Invaders 25th Silver Anniversary\" \n[US] \"Arcade Legends: Space Invaders TV Game\" (2004) by Radica Games : Also inlcudes Lunar Rescue, Colony 7, Qix and Phoenix.\n\n- SERIES -\n\n1. Qix (1981, ARC)\n2. Qix II - Tournament (1982, ARC)\n3. Super Qix (1987, ARC)\n4. Ultimate Qix (1991, MD)\n5. Twin Qix (1995, ARC)\n6. Battle Qix (2002, ARC)\n7. Qix ++ (2009, XBLA)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2096/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

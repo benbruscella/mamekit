@@ -1,0 +1,3157 @@
+{
+    "schemaVersion": 3,
+    "game": "phoenix",
+    "family": "phoenix",
+    "driverFile": "src/mame/phoenix/phoenix.cpp",
+    "callbacks": [
+        {
+            "id": "device:phoenix_state.phoenix/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "phoenix_state",
+            "targetMethod": "screen_update_phoenix",
+            "source": {
+                "file": "src/mame/phoenix/phoenix.cpp",
+                "line": 464,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "i8085a",
+                "clock": 5500000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 16383,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 16384,
+                        "end": 20479,
+                        "kind": "handler",
+                        "write": "phoenix_state.phoenix_videoram_w",
+                        "read": "bank.bank1"
+                    },
+                    {
+                        "start": 20480,
+                        "end": 21503,
+                        "kind": "handler",
+                        "write": "phoenix_state.phoenix_videoreg_w"
+                    },
+                    {
+                        "start": 22528,
+                        "end": 23551,
+                        "kind": "handler",
+                        "write": "phoenix_state.phoenix_scroll_w"
+                    },
+                    {
+                        "start": 24576,
+                        "end": 25599,
+                        "kind": "handler",
+                        "write": "cust.control_a_w"
+                    },
+                    {
+                        "start": 26624,
+                        "end": 27647,
+                        "kind": "handler",
+                        "write": "cust.control_b_w"
+                    },
+                    {
+                        "start": 28672,
+                        "end": 29695,
+                        "kind": "handler",
+                        "read": "port.IN0"
+                    },
+                    {
+                        "start": 30720,
+                        "end": 31743,
+                        "kind": "handler",
+                        "read": "port.DSW0"
+                    }
+                ],
+                "cycleClock": 2750000,
+                "source": {
+                    "file": "src/mame/phoenix/phoenix.cpp",
+                    "line": 458,
+                    "column": 2
+                }
+            }
+        ],
+        "startHandlers": [
+            "phoenix_state.video_start"
+        ],
+        "banks": [
+            {
+                "tag": "bank1",
+                "member": "bank1",
+                "entryMembers": [
+                    "m_videoram_pg[0]",
+                    "m_videoram_pg[1]"
+                ],
+                "entryOffsets": [
+                    0,
+                    1
+                ],
+                "source": {
+                    "file": "src/mame/phoenix/phoenix_v.cpp",
+                    "line": 166,
+                    "column": 1
+                }
+            }
+        ],
+        "screen": {
+            "width": 256,
+            "height": 208,
+            "xOffset": 0,
+            "yOffset": 0,
+            "refresh": 61.03515625,
+            "vtotal": 256,
+            "vbstart": 208,
+            "vbend": 0,
+            "updateMode": "frame",
+            "rotate": 90,
+            "source": {
+                "file": "src/mame/phoenix/phoenix.cpp",
+                "line": 462,
+                "column": 2
+            }
+        },
+        "customs": [
+            {
+                "port": "IN0",
+                "mask": 240,
+                "member": "player_input_r",
+                "handler": "phoenix_state.player_input_r",
+                "activeLow": false
+            },
+            {
+                "port": "DSW0",
+                "mask": 128,
+                "member": "vblank",
+                "source": "screen-vblank",
+                "activeLow": true
+            }
+        ],
+        "frameEvents": [],
+        "screenUpdate": {
+            "handler": "phoenix_state.screen_update_phoenix",
+            "source": {
+                "file": "src/mame/phoenix/phoenix_v.cpp",
+                "line": 434,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:phoenix_state.phoenix/maincpu",
+            "tag": "maincpu",
+            "type": "I8085A",
+            "member": "m_maincpu",
+            "clock": 5500000,
+            "source": {
+                "file": "src/mame/phoenix/phoenix.cpp",
+                "line": 458,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:phoenix_state.phoenix/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        5500000,
+                        352,
+                        0,
+                        256,
+                        256,
+                        0,
+                        208
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/phoenix/phoenix.cpp",
+                "line": 462,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:phoenix_state.phoenix/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "member": "m_gfxdecode",
+            "source": {
+                "file": "src/mame/phoenix/phoenix.cpp",
+                "line": 467,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:phoenix_state.phoenix/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/phoenix/phoenix.cpp",
+                "line": 468,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:phoenix_state.phoenix/mono",
+            "tag": "mono",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/phoenix/phoenix.cpp",
+                "line": 471,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:phoenix_state.phoenix/tms",
+            "tag": "tms",
+            "type": "TMS36XX",
+            "clock": 372,
+            "configuration": [
+                {
+                    "method": "set_decays",
+                    "args": [
+                        0.5,
+                        0,
+                        0,
+                        1.05,
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "method": "set_tune_speed",
+                    "args": [
+                        0.21
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/phoenix/phoenix.cpp",
+                "line": 473,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:phoenix_state.phoenix/cust",
+            "tag": "cust",
+            "type": "PHOENIX_SOUND",
+            "clock": 0,
+            "source": {
+                "file": "src/mame/phoenix/phoenix.cpp",
+                "line": 479,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:phoenix_state.phoenix/discrete",
+            "tag": "discrete",
+            "type": "DISCRETE",
+            "clock": 120000,
+            "source": {
+                "file": "src/mame/phoenix/phoenix.cpp",
+                "line": 481,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:phoenix_state.phoenix_videoram_w",
+            "ownerClass": "phoenix_state",
+            "method": "phoenix_videoram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "uint8_t *rom = memregion(\"maincpu\")->base();\n\n\tm_videoram_pg[m_videoram_pg_index][offset] = data;\n\n\tif ((offset & 0x7ff) < 0x340)\n\t{\n\t\tif (offset & 0x800)\n\t\t\tm_bg_tilemap->mark_tile_dirty(offset & 0x3ff);\n\t\telse\n\t\t\tm_fg_tilemap->mark_tile_dirty(offset & 0x3ff);\n\t}\n\n\t/* as part of the protection, Survival executes code from $43a4 */\n\trom[offset + 0x4000] = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "rom",
+                        "valueType": "auto",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "memregion"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "string",
+                                            "value": "maincpu"
+                                        }
+                                    ]
+                                },
+                                "property": "base"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram_pg"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram_pg_index"
+                                }
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 2047
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 832
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2048
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_bg_tilemap"
+                                                },
+                                                "property": "mark_tile_dirty"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "offset"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 1023
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ],
+                                "else": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_fg_tilemap"
+                                                },
+                                                "property": "mark_tile_dirty"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "offset"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 1023
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "rom"
+                            },
+                            "index": {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 16384
+                                }
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/phoenix/phoenix_v.cpp",
+                "line": 214,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:phoenix_state.phoenix_videoreg_w",
+            "ownerClass": "phoenix_state",
+            "method": "phoenix_videoreg_w",
+            "parameters": "uint8_t data",
+            "body": "if (m_videoram_pg_index != (data & 1))\n\t{\n\t\t/* set memory bank */\n\t\tm_videoram_pg_index = data & 1;\n\t\tmembank(\"bank1\")->set_entry(m_videoram_pg_index);\n\n\t\tm_cocktail_mode = m_videoram_pg_index && (ioport(\"CAB\")->read() & 0x01);\n\n\t\tmachine().tilemap().set_flip_all(m_cocktail_mode ? (TILEMAP_FLIPX | TILEMAP_FLIPY) : 0);\n\t\tmachine().tilemap().mark_all_dirty();\n\t}\n\n\t/* Phoenix has only one palette select effecting both layers */\n\tif (m_palette_bank != ((data >> 1) & 1))\n\t{\n\t\tm_palette_bank = (data >> 1) & 1;\n\t\tmachine().tilemap().mark_all_dirty();\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_videoram_pg_index"
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram_pg_index"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "membank"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "string",
+                                                    "value": "bank1"
+                                                }
+                                            ]
+                                        },
+                                        "property": "set_entry"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_videoram_pg_index"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_cocktail_mode"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram_pg_index"
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "ioport"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "string",
+                                                            "value": "CAB"
+                                                        }
+                                                    ]
+                                                },
+                                                "property": "read"
+                                            },
+                                            "args": []
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "machine"
+                                                    },
+                                                    "args": []
+                                                },
+                                                "property": "tilemap"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "set_flip_all"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "conditional",
+                                            "condition": {
+                                                "kind": "identifier",
+                                                "name": "m_cocktail_mode"
+                                            },
+                                            "whenTrue": {
+                                                "kind": "binary",
+                                                "operator": "|",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "TILEMAP_FLIPX"
+                                                },
+                                                "right": {
+                                                    "kind": "identifier",
+                                                    "name": "TILEMAP_FLIPY"
+                                                }
+                                            },
+                                            "whenFalse": {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "machine"
+                                                    },
+                                                    "args": []
+                                                },
+                                                "property": "tilemap"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "mark_all_dirty"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_palette_bank"
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_palette_bank"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "machine"
+                                                    },
+                                                    "args": []
+                                                },
+                                                "property": "tilemap"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "mark_all_dirty"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/phoenix/phoenix_v.cpp",
+                "line": 233,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:phoenix_state.phoenix_scroll_w",
+            "ownerClass": "phoenix_state",
+            "method": "phoenix_scroll_w",
+            "parameters": "uint8_t data",
+            "body": "m_bg_tilemap->set_scrollx(0,data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "set_scrollx"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/phoenix/phoenix_v.cpp",
+                "line": 286,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:phoenix_sound_device.control_a_w",
+            "ownerClass": "phoenix_sound_device",
+            "method": "control_a_w",
+            "parameters": "uint8_t data",
+            "body": "m_discrete->write(PHOENIX_EFFECT_2_DATA, data & 0x0f);\n\tm_discrete->write(PHOENIX_EFFECT_2_FREQ, (data & 0x30) >> 4);\n#if 0\n\t/* future handling of noise sounds */\n\tm_discrete->write(PHOENIX_EFFECT_3_EN  , data & 0x40);\n\tm_discrete->write(PHOENIX_EFFECT_4_EN  , data & 0x80);\n#endif\n\tm_channel->update();\n\tm_sound_latch_a = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "PHOENIX_EFFECT_2_DATA"
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "PHOENIX_EFFECT_2_FREQ"
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 48
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_channel"
+                                },
+                                "property": "update"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_sound_latch_a"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/phoenix/phoenix_a.cpp",
+                "line": 497,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:phoenix_sound_device.control_b_w",
+            "ownerClass": "phoenix_sound_device",
+            "method": "control_b_w",
+            "parameters": "uint8_t data",
+            "body": "m_discrete->write(PHOENIX_EFFECT_1_DATA, data & 0x0f);\n\tm_discrete->write(PHOENIX_EFFECT_1_FILT, data & 0x20);\n\tm_discrete->write(PHOENIX_EFFECT_1_FREQ, data & 0x10);\n\n\t/* update the tune that the MM6221AA is playing */\n\tm_tms->mm6221aa_tune_w(data >> 6);",
+            "constants": {
+                "MM6221AA": 21
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "PHOENIX_EFFECT_1_DATA"
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "PHOENIX_EFFECT_1_FILT"
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "PHOENIX_EFFECT_1_FREQ"
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 16
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_tms"
+                                },
+                                "property": "mm6221aa_tune_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 6
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/phoenix/phoenix_a.cpp",
+                "line": 510,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:phoenix_state.video_start",
+            "ownerClass": "phoenix_state",
+            "method": "video_start",
+            "body": "m_videoram_pg[0] = std::make_unique<uint8_t[]>(0x1000);\n\tmemset(m_videoram_pg[0].get(), 0x00, 0x1000 * sizeof(uint8_t));\n\tm_videoram_pg[1] = std::make_unique<uint8_t[]>(0x1000);\n\tmemset(m_videoram_pg[1].get(), 0x00, 0x1000 * sizeof(uint8_t));\n\n\tmembank(\"bank1\")->configure_entry(0, m_videoram_pg[0].get());\n\tmembank(\"bank1\")->configure_entry(1, m_videoram_pg[1].get());\n\tmembank(\"bank1\")->set_entry(0);\n\n\tm_videoram_pg_index = 0;\n\tm_palette_bank = 0;\n\tm_cocktail_mode = 0;\n\n\tm_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(phoenix_state::get_fg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(phoenix_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\n\tm_fg_tilemap->set_transparent_pen(0);\n\n\tsave_pointer(NAME(m_videoram_pg[0]), 0x1000);\n\tsave_pointer(NAME(m_videoram_pg[1]), 0x1000);\n\tsave_item(NAME(m_videoram_pg_index));\n\tsave_item(NAME(m_palette_bank));\n\tsave_item(NAME(m_cocktail_mode));\n\n\t/* some more candidates */\n\tm_pleiads_protection_question = 0;\n\tm_survival_protection_value = 0;\n\tm_survival_sid_value = 0;\n\tm_survival_input_readc = 0;\n\tm_survival_input_latches[0] = 0;\n\tm_survival_input_latches[1] = 0;\n\n\tsave_item(NAME(m_pleiads_protection_question));\n\tsave_item(NAME(m_survival_protection_value));\n\tsave_item(NAME(m_survival_sid_value));\n\tsave_item(NAME(m_survival_input_readc));\n\tsave_item(NAME(m_survival_input_latches));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram_pg"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "ALLOC"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 4096
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "memset"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_videoram_pg"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        },
+                                        "property": "get"
+                                    },
+                                    "args": []
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "*",
+                                    "left": {
+                                        "kind": "number",
+                                        "value": 4096
+                                    },
+                                    "right": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "sizeof"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "identifier",
+                                                "name": "uint8_t"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram_pg"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "ALLOC"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 4096
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "memset"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_videoram_pg"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        "property": "get"
+                                    },
+                                    "args": []
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "*",
+                                    "left": {
+                                        "kind": "number",
+                                        "value": 4096
+                                    },
+                                    "right": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "sizeof"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "identifier",
+                                                "name": "uint8_t"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "membank"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "string",
+                                            "value": "bank1"
+                                        }
+                                    ]
+                                },
+                                "property": "configure_entry"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_videoram_pg"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        },
+                                        "property": "get"
+                                    },
+                                    "args": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "membank"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "string",
+                                            "value": "bank1"
+                                        }
+                                    ]
+                                },
+                                "property": "configure_entry"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_videoram_pg"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        "property": "get"
+                                    },
+                                    "args": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "membank"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "string",
+                                            "value": "bank1"
+                                        }
+                                    ]
+                                },
+                                "property": "set_entry"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_videoram_pg_index"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_palette_bank"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_cocktail_mode"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_fg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "phoenix_state::get_fg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_ROWS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "phoenix_state::get_bg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_ROWS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_fg_tilemap"
+                                },
+                                "property": "set_transparent_pen"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_pointer"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_videoram_pg"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 0
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 4096
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_pointer"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_videoram_pg"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 4096
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_videoram_pg_index"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_palette_bank"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_cocktail_mode"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_pleiads_protection_question"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_survival_protection_value"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_survival_sid_value"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_survival_input_readc"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_survival_input_latches"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_survival_input_latches"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_pleiads_protection_question"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_survival_protection_value"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_survival_sid_value"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_survival_input_readc"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_survival_input_latches"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/phoenix/phoenix_v.cpp",
+                "line": 166,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:phoenix_state.get_fg_tile_info",
+            "ownerClass": "phoenix_state",
+            "method": "get_fg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "int code, col;\n\n\tcode = m_videoram_pg[m_videoram_pg_index][tile_index];\n\tcol = (code >> 5);\n\tcol = col | 0x08 | (m_palette_bank << 4);\n\ttileinfo.set(1,\n\t\t\tcode,\n\t\t\tcol,\n\t\t\t0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "col",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "code"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram_pg"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram_pg_index"
+                                }
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "tile_index"
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "col"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "code"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 5
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "col"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "|",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "col"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 8
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_palette_bank"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "col"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/phoenix/phoenix_v.cpp",
+                "line": 134,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:phoenix_state.get_bg_tile_info",
+            "ownerClass": "phoenix_state",
+            "method": "get_bg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "int code, col;\n\n\tcode = m_videoram_pg[m_videoram_pg_index][tile_index + 0x800];\n\tcol = (code >> 5);\n\tcol = col | 0x00 | (m_palette_bank << 4);\n\ttileinfo.set(0,\n\t\t\tcode,\n\t\t\tcol,\n\t\t\t0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "col",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "code"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram_pg"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram_pg_index"
+                                }
+                            },
+                            "index": {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "tile_index"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 2048
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "col"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "code"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 5
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "col"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "|",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "col"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_palette_bank"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "col"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/phoenix/phoenix_v.cpp",
+                "line": 147,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:phoenix_state.screen_update_phoenix",
+            "ownerClass": "phoenix_state",
+            "method": "screen_update_phoenix",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "m_bg_tilemap->draw(screen, bitmap, cliprect, 0,0);\n\tm_fg_tilemap->draw(screen, bitmap, cliprect, 0,0);\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "draw"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "screen"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_fg_tilemap"
+                                },
+                                "property": "draw"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "screen"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/phoenix/phoenix_v.cpp",
+                "line": 434,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:phoenix_state.player_input_r",
+            "ownerClass": "phoenix_state",
+            "method": "player_input_r",
+            "body": "if (m_cocktail_mode)\n\t\treturn (ioport(\"CTRL\")->read() & 0xf0) >> 4;\n\telse\n\t\treturn (ioport(\"CTRL\")->read() & 0x0f) >> 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_cocktail_mode"
+                        },
+                        "then": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "ioport"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "string",
+                                                            "value": "CTRL"
+                                                        }
+                                                    ]
+                                                },
+                                                "property": "read"
+                                            },
+                                            "args": []
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 240
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "ioport"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "string",
+                                                            "value": "CTRL"
+                                                        }
+                                                    ]
+                                                },
+                                                "property": "read"
+                                            },
+                                            "args": []
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 15
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/phoenix/phoenix_v.cpp",
+                "line": 292,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:phoenix_state.phoenix_memory_map",
+            "className": "phoenix_state",
+            "name": "phoenix_memory_map",
+            "ranges": [
+                {
+                    "id": "map:phoenix_state.phoenix_memory_map/range0",
+                    "start": 0,
+                    "end": 16383,
+                    "raw": "map(0x0000, 0x3fff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 16383,
+                        "raw": "map(0x0000, 0x3fff).rom()",
+                        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+                        "sourceLine": 67,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 67,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/phoenix/phoenix.cpp",
+                        "line": 67,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:phoenix_state.phoenix_memory_map/range1",
+                    "start": 16384,
+                    "end": 20479,
+                    "raw": "map(0x4000, 0x4fff).bankr(\"bank1\").w(FUNC(phoenix_state::phoenix_videoram_w))",
+                    "write": "phoenix_state.phoenix_videoram_w",
+                    "props": {
+                        "start": 16384,
+                        "end": 20479,
+                        "raw": "map(0x4000, 0x4fff).bankr(\"bank1\").w(FUNC(phoenix_state::phoenix_videoram_w))",
+                        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+                        "sourceLine": 68,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 68,
+                        "bankRead": "bank1"
+                    },
+                    "source": {
+                        "file": "src/mame/phoenix/phoenix.cpp",
+                        "line": 68,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:phoenix_state.phoenix_memory_map/range2",
+                    "start": 20480,
+                    "end": 21503,
+                    "raw": "map(0x5000, 0x53ff).w(FUNC(phoenix_state::phoenix_videoreg_w))",
+                    "write": "phoenix_state.phoenix_videoreg_w",
+                    "props": {
+                        "start": 20480,
+                        "end": 21503,
+                        "raw": "map(0x5000, 0x53ff).w(FUNC(phoenix_state::phoenix_videoreg_w))",
+                        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+                        "sourceLine": 69,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 69
+                    },
+                    "source": {
+                        "file": "src/mame/phoenix/phoenix.cpp",
+                        "line": 69,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:phoenix_state.phoenix_memory_map/range3",
+                    "start": 22528,
+                    "end": 23551,
+                    "raw": "map(0x5800, 0x5bff).w(FUNC(phoenix_state::phoenix_scroll_w))",
+                    "write": "phoenix_state.phoenix_scroll_w",
+                    "props": {
+                        "start": 22528,
+                        "end": 23551,
+                        "raw": "map(0x5800, 0x5bff).w(FUNC(phoenix_state::phoenix_scroll_w))",
+                        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+                        "sourceLine": 70,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 70
+                    },
+                    "source": {
+                        "file": "src/mame/phoenix/phoenix.cpp",
+                        "line": 70,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:phoenix_state.phoenix_memory_map/range4",
+                    "start": 24576,
+                    "end": 25599,
+                    "raw": "map(0x6000, 0x63ff).w(\"cust\", FUNC(phoenix_sound_device::control_a_w))",
+                    "write": "cust.control_a_w",
+                    "props": {
+                        "start": 24576,
+                        "end": 25599,
+                        "raw": "map(0x6000, 0x63ff).w(\"cust\", FUNC(phoenix_sound_device::control_a_w))",
+                        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+                        "sourceLine": 71,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 71
+                    },
+                    "source": {
+                        "file": "src/mame/phoenix/phoenix.cpp",
+                        "line": 71,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:phoenix_state.phoenix_memory_map/range5",
+                    "start": 26624,
+                    "end": 27647,
+                    "raw": "map(0x6800, 0x6bff).w(\"cust\", FUNC(phoenix_sound_device::control_b_w))",
+                    "write": "cust.control_b_w",
+                    "props": {
+                        "start": 26624,
+                        "end": 27647,
+                        "raw": "map(0x6800, 0x6bff).w(\"cust\", FUNC(phoenix_sound_device::control_b_w))",
+                        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+                        "sourceLine": 72,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 72
+                    },
+                    "source": {
+                        "file": "src/mame/phoenix/phoenix.cpp",
+                        "line": 72,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:phoenix_state.phoenix_memory_map/range6",
+                    "start": 28672,
+                    "end": 29695,
+                    "raw": "map(0x7000, 0x73ff).portr(\"IN0\")",
+                    "props": {
+                        "start": 28672,
+                        "end": 29695,
+                        "raw": "map(0x7000, 0x73ff).portr(\"IN0\")",
+                        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+                        "sourceLine": 73,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 73,
+                        "portRead": "IN0"
+                    },
+                    "source": {
+                        "file": "src/mame/phoenix/phoenix.cpp",
+                        "line": 73,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:phoenix_state.phoenix_memory_map/range7",
+                    "start": 30720,
+                    "end": 31743,
+                    "raw": "map(0x7800, 0x7bff).portr(\"DSW0\")",
+                    "props": {
+                        "start": 30720,
+                        "end": 31743,
+                        "raw": "map(0x7800, 0x7bff).portr(\"DSW0\")",
+                        "sourceFile": "src/mame/phoenix/phoenix.cpp",
+                        "sourceLine": 74,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 74,
+                        "portRead": "DSW0"
+                    },
+                    "source": {
+                        "file": "src/mame/phoenix/phoenix.cpp",
+                        "line": 74,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/phoenix/phoenix.cpp",
+                "line": 65,
+                "column": 1
+            }
+        }
+    ],
+    "video": {
+        "gfx": [
+            {
+                "region": "bgtiles",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 32,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": 256,
+                    "planes": 2,
+                    "planeOffsets": [
+                        16384,
+                        0
+                    ],
+                    "xOffsets": [
+                        7,
+                        6,
+                        5,
+                        4,
+                        3,
+                        2,
+                        1,
+                        0
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56
+                    ],
+                    "charIncrement": 64
+                }
+            },
+            {
+                "region": "fgtiles",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 32,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": 256,
+                    "planes": 2,
+                    "planeOffsets": [
+                        16384,
+                        0
+                    ],
+                    "xOffsets": [
+                        7,
+                        6,
+                        5,
+                        4,
+                        3,
+                        2,
+                        1,
+                        0
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56
+                    ],
+                    "charIncrement": 64
+                }
+            }
+        ],
+        "palette": {
+            "region": "proms",
+            "colorCount": 256,
+            "min": 0,
+            "max": 255,
+            "scaler": -1,
+            "channels": [
+                {
+                    "channel": "r",
+                    "bits": [
+                        0,
+                        0
+                    ],
+                    "offsets": [
+                        0,
+                        256
+                    ],
+                    "resistances": [
+                        270,
+                        1
+                    ],
+                    "pulldown": 270,
+                    "pullup": 100
+                },
+                {
+                    "channel": "g",
+                    "bits": [
+                        2,
+                        2
+                    ],
+                    "offsets": [
+                        0,
+                        256
+                    ],
+                    "resistances": [
+                        270,
+                        1
+                    ],
+                    "pulldown": 270,
+                    "pullup": 100
+                },
+                {
+                    "channel": "b",
+                    "bits": [
+                        1,
+                        1
+                    ],
+                    "offsets": [
+                        0,
+                        256
+                    ],
+                    "resistances": [
+                        270,
+                        1
+                    ],
+                    "pulldown": 270,
+                    "pullup": 100
+                }
+            ],
+            "normalize": {
+                "start": 0,
+                "end": 255,
+                "lumMin": 0,
+                "lumMax": 255
+            },
+            "colorIndexMap": [
+                0,
+                8,
+                16,
+                24,
+                1,
+                9,
+                17,
+                25,
+                2,
+                10,
+                18,
+                26,
+                3,
+                11,
+                19,
+                27,
+                4,
+                12,
+                20,
+                28,
+                5,
+                13,
+                21,
+                29,
+                6,
+                14,
+                22,
+                30,
+                7,
+                15,
+                23,
+                31,
+                32,
+                40,
+                48,
+                56,
+                33,
+                41,
+                49,
+                57,
+                34,
+                42,
+                50,
+                58,
+                35,
+                43,
+                51,
+                59,
+                36,
+                44,
+                52,
+                60,
+                37,
+                45,
+                53,
+                61,
+                38,
+                46,
+                54,
+                62,
+                39,
+                47,
+                55,
+                63,
+                64,
+                72,
+                80,
+                88,
+                65,
+                73,
+                81,
+                89,
+                66,
+                74,
+                82,
+                90,
+                67,
+                75,
+                83,
+                91,
+                68,
+                76,
+                84,
+                92,
+                69,
+                77,
+                85,
+                93,
+                70,
+                78,
+                86,
+                94,
+                71,
+                79,
+                87,
+                95,
+                96,
+                104,
+                112,
+                120,
+                97,
+                105,
+                113,
+                121,
+                98,
+                106,
+                114,
+                122,
+                99,
+                107,
+                115,
+                123,
+                100,
+                108,
+                116,
+                124,
+                101,
+                109,
+                117,
+                125,
+                102,
+                110,
+                118,
+                126,
+                103,
+                111,
+                119,
+                127,
+                0,
+                8,
+                16,
+                24,
+                1,
+                9,
+                17,
+                25,
+                2,
+                10,
+                18,
+                26,
+                3,
+                11,
+                19,
+                27,
+                4,
+                12,
+                20,
+                28,
+                5,
+                13,
+                21,
+                29,
+                6,
+                14,
+                22,
+                30,
+                7,
+                15,
+                23,
+                31,
+                32,
+                40,
+                48,
+                56,
+                33,
+                41,
+                49,
+                57,
+                34,
+                42,
+                50,
+                58,
+                35,
+                43,
+                51,
+                59,
+                36,
+                44,
+                52,
+                60,
+                37,
+                45,
+                53,
+                61,
+                38,
+                46,
+                54,
+                62,
+                39,
+                47,
+                55,
+                63,
+                64,
+                72,
+                80,
+                88,
+                65,
+                73,
+                81,
+                89,
+                66,
+                74,
+                82,
+                90,
+                67,
+                75,
+                83,
+                91,
+                68,
+                76,
+                84,
+                92,
+                69,
+                77,
+                85,
+                93,
+                70,
+                78,
+                86,
+                94,
+                71,
+                79,
+                87,
+                95,
+                96,
+                104,
+                112,
+                120,
+                97,
+                105,
+                113,
+                121,
+                98,
+                106,
+                114,
+                122,
+                99,
+                107,
+                115,
+                123,
+                100,
+                108,
+                116,
+                124,
+                101,
+                109,
+                117,
+                125,
+                102,
+                110,
+                118,
+                126,
+                103,
+                111,
+                119,
+                127
+            ],
+            "lookupOffset": 0,
+            "lookupCount": 256,
+            "lookupMask": 255,
+            "banks": [
+                {
+                    "penOffset": 0,
+                    "colorOr": 0,
+                    "lookupOffset": 0,
+                    "lookupCount": 256,
+                    "direct": true
+                }
+            ],
+            "transparentIndirect": 0,
+            "source": {
+                "file": "src/mame/phoenix/phoenix_v.cpp",
+                "line": 80,
+                "column": 1
+            }
+        },
+        "tilemaps": [
+            {
+                "member": "m_fg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 8,
+                "tileHeight": 8,
+                "columns": 32,
+                "rows": 32,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "phoenix_state.get_fg_tile_info",
+                "transparentPen": 0,
+                "source": {
+                    "file": "src/mame/phoenix/phoenix_v.cpp",
+                    "line": 166,
+                    "column": 1
+                }
+            },
+            {
+                "member": "m_bg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 8,
+                "tileHeight": 8,
+                "columns": 32,
+                "rows": 32,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "phoenix_state.get_bg_tile_info",
+                "source": {
+                    "file": "src/mame/phoenix/phoenix_v.cpp",
+                    "line": 166,
+                    "column": 1
+                }
+            }
+        ],
+        "initialState": {
+            "m_survival_input_latches": [
+                0,
+                0
+            ],
+            "m_videoram_pg_index": 0,
+            "m_palette_bank": 0,
+            "m_cocktail_mode": 0,
+            "m_pleiads_protection_question": 0,
+            "m_survival_protection_value": 0,
+            "m_survival_sid_value": 0,
+            "m_survival_input_readc": 0
+        },
+        "source": {
+            "file": "src/mame/phoenix/phoenix_v.cpp",
+            "line": 166,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "phoenix",
+        "deviceTag": "cust",
+        "deviceType": "PHOENIX_SOUND",
+        "writeMethods": [
+            "control_a_w",
+            "control_b_w"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1
+    }
+}

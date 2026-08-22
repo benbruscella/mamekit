@@ -1,0 +1,606 @@
+{
+  "game": "jumpbug",
+  "title": "Jump Bug (Hoei (Rock-Ola license), 1981)",
+  "family": "galaxian",
+  "dataPath": "games/arcade/jumpbug",
+  "board": {
+    "family": "galaxian",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3072000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 16384,
+            "end": 18431,
+            "kind": "ram"
+          },
+          {
+            "start": 18432,
+            "end": 19455,
+            "kind": "ram",
+            "mirror": 1024,
+            "share": "videoram",
+            "write": "galaxian_state.galaxian_videoram_w",
+            "writeHandlerOwnsRam": true
+          },
+          {
+            "start": 20480,
+            "end": 20735,
+            "kind": "ram",
+            "mirror": 1792,
+            "share": "spriteram",
+            "write": "galaxian_state.galaxian_objram_w",
+            "writeHandlerOwnsRam": true
+          },
+          {
+            "start": 24576,
+            "end": 24576,
+            "kind": "handler",
+            "mirror": 2047,
+            "read": "port.IN0"
+          },
+          {
+            "start": 24578,
+            "end": 24582,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.galaxian_gfxbank_w"
+          },
+          {
+            "start": 26624,
+            "end": 26624,
+            "kind": "handler",
+            "mirror": 2047,
+            "read": "port.IN1"
+          },
+          {
+            "start": 28672,
+            "end": 28672,
+            "kind": "handler",
+            "mirror": 2047,
+            "read": "port.IN2"
+          },
+          {
+            "start": 28673,
+            "end": 28673,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.irq_enable_w"
+          },
+          {
+            "start": 28674,
+            "end": 28674,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.coin_count_0_w"
+          },
+          {
+            "start": 28676,
+            "end": 28676,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.galaxian_stars_enable_w"
+          },
+          {
+            "start": 28678,
+            "end": 28678,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.galaxian_flip_screen_x_w"
+          },
+          {
+            "start": 28679,
+            "end": 28679,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "galaxian_state.galaxian_flip_screen_y_w"
+          },
+          {
+            "start": 32768,
+            "end": 45055,
+            "kind": "rom"
+          },
+          {
+            "start": 45056,
+            "end": 49151,
+            "kind": "handler",
+            "read": "galaxian_state.jumpbug_protection_r"
+          },
+          {
+            "start": 22528,
+            "end": 22528,
+            "kind": "handler",
+            "mirror": 255,
+            "write": "8910.0.data_w"
+          },
+          {
+            "start": 22784,
+            "end": 22784,
+            "kind": "handler",
+            "mirror": 255,
+            "write": "8910.0.address_w"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 16383,
+        "kind": "rom"
+      },
+      {
+        "start": 16384,
+        "end": 18431,
+        "kind": "ram"
+      },
+      {
+        "start": 18432,
+        "end": 19455,
+        "kind": "ram",
+        "mirror": 1024,
+        "share": "videoram",
+        "write": "galaxian_state.galaxian_videoram_w",
+        "writeHandlerOwnsRam": true
+      },
+      {
+        "start": 20480,
+        "end": 20735,
+        "kind": "ram",
+        "mirror": 1792,
+        "share": "spriteram",
+        "write": "galaxian_state.galaxian_objram_w",
+        "writeHandlerOwnsRam": true
+      },
+      {
+        "start": 24576,
+        "end": 24576,
+        "kind": "handler",
+        "mirror": 2047,
+        "read": "port.IN0"
+      },
+      {
+        "start": 24578,
+        "end": 24582,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.galaxian_gfxbank_w"
+      },
+      {
+        "start": 26624,
+        "end": 26624,
+        "kind": "handler",
+        "mirror": 2047,
+        "read": "port.IN1"
+      },
+      {
+        "start": 28672,
+        "end": 28672,
+        "kind": "handler",
+        "mirror": 2047,
+        "read": "port.IN2"
+      },
+      {
+        "start": 28673,
+        "end": 28673,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.irq_enable_w"
+      },
+      {
+        "start": 28674,
+        "end": 28674,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.coin_count_0_w"
+      },
+      {
+        "start": 28676,
+        "end": 28676,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.galaxian_stars_enable_w"
+      },
+      {
+        "start": 28678,
+        "end": 28678,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.galaxian_flip_screen_x_w"
+      },
+      {
+        "start": 28679,
+        "end": 28679,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "galaxian_state.galaxian_flip_screen_y_w"
+      },
+      {
+        "start": 32768,
+        "end": 45055,
+        "kind": "rom"
+      },
+      {
+        "start": 45056,
+        "end": 49151,
+        "kind": "handler",
+        "read": "galaxian_state.jumpbug_protection_r"
+      },
+      {
+        "start": 22528,
+        "end": 22528,
+        "kind": "handler",
+        "mirror": 255,
+        "write": "8910.0.data_w"
+      },
+      {
+        "start": 22784,
+        "end": 22784,
+        "kind": "handler",
+        "mirror": 255,
+        "write": "8910.0.address_w"
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 16,
+      "refresh": 60.60606060606061,
+      "vtotal": 264,
+      "vbstart": 240,
+      "vbend": 16,
+      "updateMode": "partial",
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1536000,
+    "chips": 1,
+    "deviceTags": [
+      "8910.0"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.5,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.5,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.5,
+        "target": "speaker"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "jb1",
+          "offset": 0,
+          "size": 4096,
+          "crc": "415aa1b7"
+        },
+        {
+          "file": "jb2",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "b1c27510"
+        },
+        {
+          "file": "jb3",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "97c24be2",
+          "alt": [
+            {
+              "file": "jb3b",
+              "crc": "cb8b8a0f"
+            }
+          ]
+        },
+        {
+          "file": "jb4",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "66751d12"
+        },
+        {
+          "file": "jb5",
+          "offset": 32768,
+          "size": 4096,
+          "crc": "e2d66faf",
+          "alt": [
+            {
+              "file": "jb5b",
+              "crc": "7553b5e2"
+            }
+          ]
+        },
+        {
+          "file": "jb6",
+          "offset": 36864,
+          "size": 4096,
+          "crc": "49e0bdfd",
+          "alt": [
+            {
+              "file": "jb6b",
+              "crc": "47be9843"
+            },
+            {
+              "file": "b6.bin",
+              "crc": "bed2e85c"
+            }
+          ]
+        },
+        {
+          "file": "jb7",
+          "offset": 40960,
+          "size": 2048,
+          "crc": "83d71302",
+          "alt": [
+            {
+              "file": "jb7b",
+              "crc": "460aed61"
+            },
+            {
+              "file": "j7_2716_e0572.b2",
+              "crc": "81fdc344"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 12288,
+      "loads": [
+        {
+          "file": "jbl",
+          "offset": 0,
+          "size": 2048,
+          "crc": "9a091b0a"
+        },
+        {
+          "file": "jbm",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "8a0fc082"
+        },
+        {
+          "file": "jbn",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "155186e0",
+          "alt": [
+            {
+              "file": "c4_2532_sub.bin",
+              "crc": "e12e6f3d"
+            },
+            {
+              "file": "b9.bin",
+              "crc": "feb20db0"
+            }
+          ]
+        },
+        {
+          "file": "jbi",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "7749b111",
+          "alt": [
+            {
+              "file": "b11.bin",
+              "crc": "795e81be"
+            }
+          ]
+        },
+        {
+          "file": "jbj",
+          "offset": 8192,
+          "size": 2048,
+          "crc": "06e8d7df"
+        },
+        {
+          "file": "jbk",
+          "offset": 10240,
+          "size": 2048,
+          "crc": "b8dbddf3",
+          "alt": [
+            {
+              "file": "c3_2532_sub.bin",
+              "crc": "5d7df54f"
+            },
+            {
+              "file": "b8.bin",
+              "crc": "9a9d35b3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 32,
+      "loads": [
+        {
+          "file": "l06_prom.bin",
+          "offset": 0,
+          "size": 32,
+          "crc": "6a0c7d87",
+          "alt": [
+            {
+              "file": "82s123.bin",
+              "crc": "4e3caeab"
+            },
+            {
+              "file": "m866l_im5610.6l",
+              "crc": "b549ad5a"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 32,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "value": 0,
+      "name": "Difficulty"
+    },
+    {
+      "port": "IN2",
+      "mask": 3,
+      "value": 1,
+      "name": "Lives"
+    },
+    {
+      "port": "IN2",
+      "mask": 12,
+      "value": 0,
+      "name": "Coinage"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 0
+    },
+    {
+      "tag": "IN1",
+      "init": 0
+    },
+    {
+      "tag": "IN2",
+      "init": 1
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

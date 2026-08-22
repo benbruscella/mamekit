@@ -1,0 +1,3403 @@
+{
+    "schemaVersion": 3,
+    "game": "rocnrope",
+    "family": "rocnrope",
+    "driverFile": "src/mame/konami/rocnrope.cpp",
+    "callbacks": [
+        {
+            "id": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:0",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 0,
+            "targetClass": "rocnrope_state",
+            "targetMethod": "flip_screen_set",
+            "transforms": [
+                "invert"
+            ],
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 396,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:1",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 1,
+            "targetTag": "timeplt_audio",
+            "targetClass": "timeplt_audio_device",
+            "targetMethod": "sh_irqtrigger_w",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 397,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:2",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 2,
+            "targetTag": "timeplt_audio",
+            "targetClass": "timeplt_audio_device",
+            "targetMethod": "mute_w",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 398,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:3",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 3,
+            "targetClass": "rocnrope_state",
+            "targetMethod": "coin_counter_w_0",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 399,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:4",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 4,
+            "targetClass": "rocnrope_state",
+            "targetMethod": "coin_counter_w_1",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 400,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:5",
+            "ownerTag": "mainlatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 7,
+            "targetClass": "rocnrope_state",
+            "targetMethod": "irq_mask_w",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 401,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "rocnrope_state",
+            "targetMethod": "screen_update",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 411,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/screen/callback:screen:1",
+            "ownerTag": "screen",
+            "signal": "screen_vblank",
+            "operation": "set",
+            "targetClass": "rocnrope_state",
+            "targetMethod": "vblank_irq",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 413,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:0",
+            "ownerTag": "timeplt_audio:ay1",
+            "signal": "port_a_read_callback",
+            "operation": "set",
+            "targetTag": "timeplt_audio:soundlatch",
+            "targetClass": "generic_latch_8_device",
+            "targetMethod": "read",
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 201,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:1",
+            "ownerTag": "timeplt_audio:ay1",
+            "signal": "port_b_read_callback",
+            "operation": "set",
+            "targetClass": "timeplt_audio_device",
+            "targetMethod": "portB_r",
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 202,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:0",
+            "effect": {
+                "kind": "video-control",
+                "control": "flip-screen"
+            },
+            "transforms": [
+                {
+                    "kind": "invert"
+                }
+            ],
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 396,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:1",
+            "effect": {
+                "kind": "device-method",
+                "tag": "timeplt_audio",
+                "method": "sh_irqtrigger_w",
+                "ownerClass": "timeplt_audio_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 397,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:2",
+            "effect": {
+                "kind": "audio-control",
+                "tag": "timeplt_audio",
+                "control": "mute"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 398,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:3",
+            "effect": {
+                "kind": "handler",
+                "handler": "rocnrope_state.coin_counter_w_0"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 399,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:4",
+            "effect": {
+                "kind": "handler",
+                "handler": "rocnrope_state.coin_counter_w_1"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 400,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:rocnrope_state.rocnrope/mainlatch/callback:mainlatch:5",
+            "effect": {
+                "kind": "handler",
+                "handler": "rocnrope_state.irq_mask_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 401,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:rocnrope_state.rocnrope/screen/callback:screen:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "rocnrope_state.vblank_irq"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 413,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:0",
+            "effect": {
+                "kind": "device-method",
+                "tag": "timeplt_audio:soundlatch",
+                "method": "read",
+                "ownerClass": "generic_latch_8_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 201,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:timeplt_audio_device.device_add_mconfig/ay1/callback:ay1:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "timeplt_audio_device.portB_r"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 202,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "konami1",
+                "clock": 1536000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 12416,
+                        "end": 12416,
+                        "kind": "handler",
+                        "read": "port.SYSTEM"
+                    },
+                    {
+                        "start": 12417,
+                        "end": 12417,
+                        "kind": "handler",
+                        "read": "port.P1"
+                    },
+                    {
+                        "start": 12418,
+                        "end": 12418,
+                        "kind": "handler",
+                        "read": "port.P2"
+                    },
+                    {
+                        "start": 12419,
+                        "end": 12419,
+                        "kind": "handler",
+                        "read": "port.DSW1"
+                    },
+                    {
+                        "start": 12288,
+                        "end": 12288,
+                        "kind": "handler",
+                        "read": "port.DSW2"
+                    },
+                    {
+                        "start": 12544,
+                        "end": 12544,
+                        "kind": "handler",
+                        "read": "port.DSW3"
+                    },
+                    {
+                        "start": 16384,
+                        "end": 16431,
+                        "kind": "ram",
+                        "share": "spriteram[1]"
+                    },
+                    {
+                        "start": 16432,
+                        "end": 17407,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 17408,
+                        "end": 17455,
+                        "kind": "ram",
+                        "share": "spriteram[0]"
+                    },
+                    {
+                        "start": 17456,
+                        "end": 18431,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 18432,
+                        "end": 19455,
+                        "kind": "ram",
+                        "share": "colorram",
+                        "write": "rocnrope_state.colorram_w",
+                        "writeHandlerOwnsRam": true
+                    },
+                    {
+                        "start": 19456,
+                        "end": 20479,
+                        "kind": "ram",
+                        "share": "videoram",
+                        "write": "rocnrope_state.videoram_w",
+                        "writeHandlerOwnsRam": true
+                    },
+                    {
+                        "start": 20480,
+                        "end": 24575,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 32768,
+                        "end": 32768,
+                        "kind": "handler",
+                        "write": "watchdog.reset_w"
+                    },
+                    {
+                        "start": 32896,
+                        "end": 32903,
+                        "kind": "handler",
+                        "write": "mainlatch.write_d0"
+                    },
+                    {
+                        "start": 33024,
+                        "end": 33024,
+                        "kind": "handler",
+                        "write": "timeplt_audio.sound_data_w"
+                    },
+                    {
+                        "start": 33154,
+                        "end": 33165,
+                        "kind": "handler",
+                        "write": "rocnrope_state.interrupt_vector_w"
+                    },
+                    {
+                        "start": 24576,
+                        "end": 65535,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 65522,
+                        "end": 65533,
+                        "kind": "ram",
+                        "share": "vectors"
+                    }
+                ],
+                "cycleClock": 1536000,
+                "source": {
+                    "file": "src/mame/konami/rocnrope.cpp",
+                    "line": 392,
+                    "column": 2
+                }
+            },
+            {
+                "tag": "timeplt_audio:tpsound",
+                "type": "z80",
+                "clock": 1789772.625,
+                "region": "timeplt_audio:tpsound",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 12287,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 12288,
+                        "end": 13311,
+                        "kind": "ram",
+                        "mirror": 3072
+                    },
+                    {
+                        "start": 16384,
+                        "end": 16384,
+                        "kind": "handler",
+                        "mirror": 4095,
+                        "read": "timeplt_audio:ay1.data_r",
+                        "write": "timeplt_audio:ay1.data_w"
+                    },
+                    {
+                        "start": 20480,
+                        "end": 20480,
+                        "kind": "handler",
+                        "mirror": 4095,
+                        "write": "timeplt_audio:ay1.address_w"
+                    },
+                    {
+                        "start": 24576,
+                        "end": 24576,
+                        "kind": "handler",
+                        "mirror": 4095,
+                        "read": "timeplt_audio:ay2.data_r",
+                        "write": "timeplt_audio:ay2.data_w"
+                    },
+                    {
+                        "start": 28672,
+                        "end": 28672,
+                        "kind": "handler",
+                        "mirror": 4095,
+                        "write": "timeplt_audio:ay2.address_w"
+                    },
+                    {
+                        "start": 32768,
+                        "end": 65535,
+                        "kind": "handler",
+                        "write": "timeplt_audio_device.filter_w"
+                    }
+                ],
+                "cycleClock": 1789772.625,
+                "source": {
+                    "file": "src/mame/shared/timeplt_a.cpp",
+                    "line": 192,
+                    "column": 2
+                }
+            }
+        ],
+        "shareBindings": [
+            {
+                "share": "colorram",
+                "member": "m_colorram"
+            },
+            {
+                "share": "videoram",
+                "member": "m_videoram"
+            }
+        ],
+        "startHandlers": [
+            "rocnrope_state.video_start"
+        ],
+        "screen": {
+            "width": 256,
+            "height": 224,
+            "xOffset": 0,
+            "yOffset": 16,
+            "refresh": 60,
+            "vtotal": 256,
+            "vbstart": 240,
+            "vbend": 16,
+            "updateMode": "frame",
+            "rotate": 270,
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 406,
+                "column": 2
+            }
+        },
+        "frameEvents": [
+            {
+                "callbackId": "device:rocnrope_state.rocnrope/screen/callback:screen:1",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 16,
+                "state": 0,
+                "source": {
+                    "file": "src/mame/konami/rocnrope.cpp",
+                    "line": 413,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:rocnrope_state.rocnrope/screen/callback:screen:1",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 240,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/konami/rocnrope.cpp",
+                    "line": 413,
+                    "column": 2
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "rocnrope_state.screen_update",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 193,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:rocnrope_state.rocnrope/maincpu",
+            "tag": "maincpu",
+            "type": "KONAMI1",
+            "member": "m_maincpu",
+            "clock": 1536000,
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 392,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/mainlatch",
+            "tag": "mainlatch",
+            "type": "LS259",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 395,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/watchdog",
+            "tag": "watchdog",
+            "type": "WATCHDOG_TIMER",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 403,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "configuration": [
+                {
+                    "method": "set_refresh_hz",
+                    "args": [
+                        60
+                    ]
+                },
+                {
+                    "method": "set_size",
+                    "args": [
+                        256,
+                        256
+                    ]
+                },
+                {
+                    "method": "set_visarea",
+                    "args": [
+                        0,
+                        255,
+                        16,
+                        239
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 406,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "member": "m_gfxdecode",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 415,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 416,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:rocnrope_state.rocnrope/timeplt_audio",
+            "tag": "timeplt_audio",
+            "type": "TIMEPLT_AUDIO",
+            "clock": 14318181,
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 419,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:timeplt_audio_device.device_add_mconfig/tpsound",
+            "tag": "timeplt_audio:tpsound",
+            "type": "Z80",
+            "hostTag": "timeplt_audio",
+            "member": "m_soundcpu",
+            "clock": 1789772.625,
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 192,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:timeplt_audio_device.device_add_mconfig/mono",
+            "tag": "timeplt_audio:mono",
+            "type": "SPEAKER",
+            "hostTag": "timeplt_audio",
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 196,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:timeplt_audio_device.device_add_mconfig/soundlatch",
+            "tag": "timeplt_audio:soundlatch",
+            "type": "GENERIC_LATCH_8",
+            "hostTag": "timeplt_audio",
+            "member": "m_soundlatch",
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 198,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:timeplt_audio_device.device_add_mconfig/ay1",
+            "tag": "timeplt_audio:ay1",
+            "type": "AY8910",
+            "hostTag": "timeplt_audio",
+            "clock": 1789772.625,
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 200,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:timeplt_audio_device.device_add_mconfig/ay2",
+            "tag": "timeplt_audio:ay2",
+            "type": "AY8910",
+            "hostTag": "timeplt_audio",
+            "clock": 1789772.625,
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 207,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:rocnrope_state.colorram_w",
+            "ownerClass": "rocnrope_state",
+            "method": "colorram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_colorram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_colorram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 157,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:rocnrope_state.videoram_w",
+            "ownerClass": "rocnrope_state",
+            "method": "videoram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 151,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:watchdog_timer_device.reset_w",
+            "ownerClass": "watchdog_timer_device",
+            "method": "reset_w",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 254,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ls259_device.write_d0",
+            "ownerClass": "ls259_device",
+            "method": "write_d0",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 255,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:timeplt_audio_device.sound_data_w",
+            "ownerClass": "timeplt_audio_device",
+            "method": "sound_data_w",
+            "parameters": "uint8_t data",
+            "body": "m_soundlatch->write(data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_soundlatch"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 127,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:rocnrope_state.interrupt_vector_w",
+            "ownerClass": "rocnrope_state",
+            "method": "interrupt_vector_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_vectors[offset] = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_vectors"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 215,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:ay8910_device.data_r",
+            "ownerClass": "ay8910_device",
+            "method": "data_r",
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 178,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ay8910_device.data_w",
+            "ownerClass": "ay8910_device",
+            "method": "data_w",
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 178,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ay8910_device.address_w",
+            "ownerClass": "ay8910_device",
+            "method": "address_w",
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 179,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:timeplt_audio_device.filter_w",
+            "ownerClass": "timeplt_audio_device",
+            "method": "filter_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "set_filter(1, 0, (offset >>  0) & 3);\n\tset_filter(1, 1, (offset >>  2) & 3);\n\tset_filter(1, 2, (offset >>  4) & 3);\n\tset_filter(0, 0, (offset >>  6) & 3);\n\tset_filter(0, 1, (offset >>  8) & 3);\n\tset_filter(0, 2, (offset >> 10) & 3);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "set_filter"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "set_filter"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "set_filter"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 4
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "set_filter"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 6
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "set_filter"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 8
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "set_filter"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 10
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 109,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:timeplt_audio_device.set_filter",
+            "ownerClass": "timeplt_audio_device",
+            "method": "set_filter",
+            "parameters": "int no, int ch, int data",
+            "body": "int C = 0;\n\n\tif (BIT(data, 0))\n\t\tC += 220000;    /* 220000pF = 0.220uF */\n\tif (BIT(data, 1))\n\t\tC +=  47000;    /*  47000pF = 0.047uF */\n\n\tm_filter[no][ch]->filter_rc_set_RC(filter_rc_device::LOWPASS_3R, 1000, 5100, 0, CAP_P(C));",
+            "constants": {
+                "LOWPASS_3R": 0
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "C",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "C"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 220000
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            ]
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "C"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 47000
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_filter"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "no"
+                                        }
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "ch"
+                                    }
+                                },
+                                "property": "filter_rc_set_RC"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "filter_rc_device::LOWPASS_3R"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 1000
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 5100
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "CAP_P"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "C"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 96,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:rocnrope_state.video_start",
+            "ownerClass": "rocnrope_state",
+            "method": "video_start",
+            "body": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(rocnrope_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "rocnrope_state::get_bg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_ROWS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 173,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:rocnrope_state.get_bg_tile_info",
+            "ownerClass": "rocnrope_state",
+            "method": "get_bg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "int const attr = m_colorram[tile_index];\n\tint const code = m_videoram[tile_index] + 2 * (attr & 0x80);\n\tint const color = attr & 0x0f;\n\tint const flags = ((attr & 0x40) ? TILE_FLIPX : 0) | ((attr & 0x20) ? TILE_FLIPY : 0);\n\n\ttileinfo.set(1, code, color, flags);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "attr",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_colorram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "tile_index"
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "tile_index"
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                    "kind": "number",
+                                    "value": 2
+                                },
+                                "right": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "attr"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 128
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "color",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "attr"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 15
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "flags",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "conditional",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "attr"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 64
+                                    }
+                                },
+                                "whenTrue": {
+                                    "kind": "identifier",
+                                    "name": "TILE_FLIPX"
+                                },
+                                "whenFalse": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            "right": {
+                                "kind": "conditional",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "attr"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                },
+                                "whenTrue": {
+                                    "kind": "identifier",
+                                    "name": "TILE_FLIPY"
+                                },
+                                "whenFalse": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "flags"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 163,
+                "column": 1
+            },
+            "constants": {
+                "TILE_FLIPX": 1,
+                "TILE_FLIPY": 2
+            }
+        },
+        {
+            "id": "handler:rocnrope_state.flip_screen_set",
+            "ownerClass": "rocnrope_state",
+            "method": "flip_screen_set",
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 396,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:timeplt_audio_device.sh_irqtrigger_w",
+            "ownerClass": "timeplt_audio_device",
+            "method": "sh_irqtrigger_w",
+            "parameters": "int state",
+            "body": "if (m_last_irq_state == 0 && state)\n\t{\n\t\t/* setting bit 0 low then high triggers IRQ on the sound CPU */\n\t\tm_soundcpu->set_input_line(0, HOLD_LINE); // Z80 IM1\n\t}\n\n\tm_last_irq_state = state;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "==",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_last_irq_state"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "state"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_soundcpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "HOLD_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_last_irq_state"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "state"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 133,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:timeplt_audio_device.mute_w",
+            "ownerClass": "timeplt_audio_device",
+            "method": "mute_w",
+            "parameters": "int state",
+            "body": "// controls pin 6 (DC audio mute) of LA4460 amplifier\n\tmachine().sound().system_mute(state);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "sound"
+                                    },
+                                    "args": []
+                                },
+                                "property": "system_mute"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "state"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 145,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:rocnrope_state.coin_counter_w_0",
+            "ownerClass": "rocnrope_state",
+            "method": "coin_counter_w_0",
+            "parameters": "int state",
+            "body": "machine().bookkeeping().coin_counter_w(Which, state);",
+            "constants": {
+                "Which": 0
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "Which"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "state"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 228,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:rocnrope_state.coin_counter_w_1",
+            "ownerClass": "rocnrope_state",
+            "method": "coin_counter_w_1",
+            "parameters": "int state",
+            "body": "machine().bookkeeping().coin_counter_w(Which, state);",
+            "constants": {
+                "Which": 1
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "Which"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "state"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 228,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:rocnrope_state.irq_mask_w",
+            "ownerClass": "rocnrope_state",
+            "method": "irq_mask_w",
+            "parameters": "int state",
+            "body": "m_irq_mask = state;\n\tif (!m_irq_mask)\n\t\tm_maincpu->set_input_line(M6809_IRQ_LINE, CLEAR_LINE);",
+            "constants": {
+                "M6809_IRQ_LINE": 0
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_irq_mask"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "state"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "identifier",
+                                "name": "m_irq_mask"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "M6809_IRQ_LINE"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "CLEAR_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 220,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:rocnrope_state.screen_update",
+            "ownerClass": "rocnrope_state",
+            "method": "screen_update",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "m_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\tdraw_sprites(bitmap, cliprect);\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "draw"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "screen"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "draw_sprites"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 193,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:rocnrope_state.draw_sprites",
+            "ownerClass": "rocnrope_state",
+            "method": "draw_sprites",
+            "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "for (int offs = m_spriteram[0].bytes() - 2; offs >= 0; offs -= 2)\n\t{\n\t\tint const color = m_spriteram[1][offs] & 0x0f;\n\n\t\tm_gfxdecode->gfx(0)->transmask(bitmap, cliprect,\n\t\t\t\tm_spriteram[0][offs + 1],\n\t\t\t\tcolor,\n\t\t\t\tm_spriteram[1][offs] & 0x40, ~m_spriteram[1][offs] & 0x80,\n\t\t\t\t240 - m_spriteram[0][offs], m_spriteram[1][offs + 1],\n\t\t\t\tm_palette->transpen_mask(*m_gfxdecode->gfx(0), color, 0));\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "offs",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_spriteram"
+                                                },
+                                                "index": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            },
+                                            "property": "bytes"
+                                        },
+                                        "args": []
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": ">=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offs"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "offs"
+                                },
+                                "operator": "-=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 2
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "color",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_spriteram"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_gfxdecode"
+                                                },
+                                                "property": "gfx"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        },
+                                        "property": "transmask"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_spriteram"
+                                                },
+                                                "index": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "color"
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_spriteram"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                },
+                                                "index": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 64
+                                            }
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "unary",
+                                                "operator": "~",
+                                                "operand": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_spriteram"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    },
+                                                    "index": {
+                                                        "kind": "identifier",
+                                                        "name": "offs"
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 128
+                                            }
+                                        },
+                                        {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 240
+                                            },
+                                            "right": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_spriteram"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 0
+                                                    }
+                                                },
+                                                "index": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_spriteram"
+                                                },
+                                                "index": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_palette"
+                                                },
+                                                "property": "transpen_mask"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "unary",
+                                                    "operator": "*",
+                                                    "operand": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "member",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_gfxdecode"
+                                                            },
+                                                            "property": "gfx"
+                                                        },
+                                                        "args": [
+                                                            {
+                                                                "kind": "number",
+                                                                "value": 0
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "color"
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 178,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:rocnrope_state.vblank_irq",
+            "ownerClass": "rocnrope_state",
+            "method": "vblank_irq",
+            "parameters": "int state",
+            "body": "if (state && m_irq_mask)\n\t\tm_maincpu->set_input_line(M6809_IRQ_LINE, ASSERT_LINE);",
+            "constants": {
+                "M6809_IRQ_LINE": 0
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "state"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "m_irq_mask"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "M6809_IRQ_LINE"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ASSERT_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 383,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:generic_latch_8_device.read",
+            "ownerClass": "generic_latch_8_device",
+            "method": "read",
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 201,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:timeplt_audio_device.portB_r",
+            "ownerClass": "timeplt_audio_device",
+            "method": "portB_r",
+            "body": "return TABLE((m_soundcpu->total_cycles() / 512) % 10, 0x00, 0x10, 0x20, 0x30, 0x40, 0x90, 0xa0, 0xb0, 0xa0, 0xd0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "TABLE"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "%",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "/",
+                                        "left": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_soundcpu"
+                                                },
+                                                "property": "total_cycles"
+                                            },
+                                            "args": []
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 512
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 10
+                                    }
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 16
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 32
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 48
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 64
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 144
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 160
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 176
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 160
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 208
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 78,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:rocnrope_state.main_map",
+            "className": "rocnrope_state",
+            "name": "main_map",
+            "ranges": [
+                {
+                    "id": "map:rocnrope_state.main_map/range0",
+                    "start": 12416,
+                    "end": 12416,
+                    "raw": "map(0x3080, 0x3080).portr(\"SYSTEM\")",
+                    "props": {
+                        "start": 12416,
+                        "end": 12416,
+                        "raw": "map(0x3080, 0x3080).portr(\"SYSTEM\")",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 241,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 241,
+                        "portRead": "SYSTEM"
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 241,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range1",
+                    "start": 12417,
+                    "end": 12417,
+                    "raw": "map(0x3081, 0x3081).portr(\"P1\")",
+                    "props": {
+                        "start": 12417,
+                        "end": 12417,
+                        "raw": "map(0x3081, 0x3081).portr(\"P1\")",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 242,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 242,
+                        "portRead": "P1"
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 242,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range2",
+                    "start": 12418,
+                    "end": 12418,
+                    "raw": "map(0x3082, 0x3082).portr(\"P2\")",
+                    "props": {
+                        "start": 12418,
+                        "end": 12418,
+                        "raw": "map(0x3082, 0x3082).portr(\"P2\")",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 243,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 243,
+                        "portRead": "P2"
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 243,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range3",
+                    "start": 12419,
+                    "end": 12419,
+                    "raw": "map(0x3083, 0x3083).portr(\"DSW1\")",
+                    "props": {
+                        "start": 12419,
+                        "end": 12419,
+                        "raw": "map(0x3083, 0x3083).portr(\"DSW1\")",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 244,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 244,
+                        "portRead": "DSW1"
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 244,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range4",
+                    "start": 12288,
+                    "end": 12288,
+                    "raw": "map(0x3000, 0x3000).portr(\"DSW2\")",
+                    "props": {
+                        "start": 12288,
+                        "end": 12288,
+                        "raw": "map(0x3000, 0x3000).portr(\"DSW2\")",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 245,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 245,
+                        "portRead": "DSW2"
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 245,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range5",
+                    "start": 12544,
+                    "end": 12544,
+                    "raw": "map(0x3100, 0x3100).portr(\"DSW3\")",
+                    "props": {
+                        "start": 12544,
+                        "end": 12544,
+                        "raw": "map(0x3100, 0x3100).portr(\"DSW3\")",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 246,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 246,
+                        "portRead": "DSW3"
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 246,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range6",
+                    "start": 16384,
+                    "end": 16431,
+                    "raw": "map(0x4000, 0x402f).ram().share(m_spriteram[1])",
+                    "props": {
+                        "start": 16384,
+                        "end": 16431,
+                        "raw": "map(0x4000, 0x402f).ram().share(m_spriteram[1])",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 247,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 247,
+                        "ram": true,
+                        "share": "spriteram[1]"
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 247,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range7",
+                    "start": 16432,
+                    "end": 17407,
+                    "raw": "map(0x4030, 0x43ff).ram()",
+                    "props": {
+                        "start": 16432,
+                        "end": 17407,
+                        "raw": "map(0x4030, 0x43ff).ram()",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 248,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 248,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 248,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range8",
+                    "start": 17408,
+                    "end": 17455,
+                    "raw": "map(0x4400, 0x442f).ram().share(m_spriteram[0])",
+                    "props": {
+                        "start": 17408,
+                        "end": 17455,
+                        "raw": "map(0x4400, 0x442f).ram().share(m_spriteram[0])",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 249,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 249,
+                        "ram": true,
+                        "share": "spriteram[0]"
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 249,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range9",
+                    "start": 17456,
+                    "end": 18431,
+                    "raw": "map(0x4430, 0x47ff).ram()",
+                    "props": {
+                        "start": 17456,
+                        "end": 18431,
+                        "raw": "map(0x4430, 0x47ff).ram()",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 250,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 250,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 250,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range10",
+                    "start": 18432,
+                    "end": 19455,
+                    "raw": "map(0x4800, 0x4bff).ram().w(FUNC(rocnrope_state::colorram_w)).share(m_colorram)",
+                    "write": "rocnrope_state.colorram_w",
+                    "props": {
+                        "start": 18432,
+                        "end": 19455,
+                        "raw": "map(0x4800, 0x4bff).ram().w(FUNC(rocnrope_state::colorram_w)).share(m_colorram)",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 251,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 251,
+                        "ram": true,
+                        "share": "colorram"
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 251,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range11",
+                    "start": 19456,
+                    "end": 20479,
+                    "raw": "map(0x4c00, 0x4fff).ram().w(FUNC(rocnrope_state::videoram_w)).share(m_videoram)",
+                    "write": "rocnrope_state.videoram_w",
+                    "props": {
+                        "start": 19456,
+                        "end": 20479,
+                        "raw": "map(0x4c00, 0x4fff).ram().w(FUNC(rocnrope_state::videoram_w)).share(m_videoram)",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 252,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 252,
+                        "ram": true,
+                        "share": "videoram"
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 252,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range12",
+                    "start": 20480,
+                    "end": 24575,
+                    "raw": "map(0x5000, 0x5fff).ram()",
+                    "props": {
+                        "start": 20480,
+                        "end": 24575,
+                        "raw": "map(0x5000, 0x5fff).ram()",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 253,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 253,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 253,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range13",
+                    "start": 32768,
+                    "end": 32768,
+                    "raw": "map(0x8000, 0x8000).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+                    "write": "watchdog.reset_w",
+                    "props": {
+                        "start": 32768,
+                        "end": 32768,
+                        "raw": "map(0x8000, 0x8000).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 254,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 254
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 254,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range14",
+                    "start": 32896,
+                    "end": 32903,
+                    "raw": "map(0x8080, 0x8087).w(\"mainlatch\", FUNC(ls259_device::write_d0))",
+                    "write": "mainlatch.write_d0",
+                    "props": {
+                        "start": 32896,
+                        "end": 32903,
+                        "raw": "map(0x8080, 0x8087).w(\"mainlatch\", FUNC(ls259_device::write_d0))",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 255,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 255
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 255,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range15",
+                    "start": 33024,
+                    "end": 33024,
+                    "raw": "map(0x8100, 0x8100).w(\"timeplt_audio\", FUNC(timeplt_audio_device::sound_data_w))",
+                    "write": "timeplt_audio.sound_data_w",
+                    "props": {
+                        "start": 33024,
+                        "end": 33024,
+                        "raw": "map(0x8100, 0x8100).w(\"timeplt_audio\", FUNC(timeplt_audio_device::sound_data_w))",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 256,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 256
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 256,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range16",
+                    "start": 33154,
+                    "end": 33165,
+                    "raw": "map(0x8182, 0x818d).w(FUNC(rocnrope_state::interrupt_vector_w))",
+                    "write": "rocnrope_state.interrupt_vector_w",
+                    "props": {
+                        "start": 33154,
+                        "end": 33165,
+                        "raw": "map(0x8182, 0x818d).w(FUNC(rocnrope_state::interrupt_vector_w))",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 257,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 257
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 257,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range17",
+                    "start": 24576,
+                    "end": 65535,
+                    "raw": "map(0x6000, 0xffff).rom()",
+                    "props": {
+                        "start": 24576,
+                        "end": 65535,
+                        "raw": "map(0x6000, 0xffff).rom()",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 258,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 258,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 258,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:rocnrope_state.main_map/range18",
+                    "start": 65522,
+                    "end": 65533,
+                    "raw": "map(0xfff2, 0xfffd).ram().share(m_vectors)",
+                    "props": {
+                        "start": 65522,
+                        "end": 65533,
+                        "raw": "map(0xfff2, 0xfffd).ram().share(m_vectors)",
+                        "sourceFile": "src/mame/konami/rocnrope.cpp",
+                        "sourceLine": 259,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 259,
+                        "ram": true,
+                        "share": "vectors"
+                    },
+                    "source": {
+                        "file": "src/mame/konami/rocnrope.cpp",
+                        "line": 259,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 239,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:timeplt_audio_device.timeplt_sound_map",
+            "className": "timeplt_audio_device",
+            "name": "timeplt_sound_map",
+            "ranges": [
+                {
+                    "id": "map:timeplt_audio_device.timeplt_sound_map/range0",
+                    "start": 0,
+                    "end": 12287,
+                    "raw": "map(0x0000, 0x2fff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 12287,
+                        "raw": "map(0x0000, 0x2fff).rom()",
+                        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+                        "sourceLine": 161,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 161,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/shared/timeplt_a.cpp",
+                        "line": 161,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:timeplt_audio_device.timeplt_sound_map/range1",
+                    "start": 12288,
+                    "end": 13311,
+                    "raw": "map(0x3000, 0x33ff).mirror(0x0c00).ram()",
+                    "props": {
+                        "start": 12288,
+                        "end": 13311,
+                        "raw": "map(0x3000, 0x33ff).mirror(0x0c00).ram()",
+                        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+                        "sourceLine": 162,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 162,
+                        "mirror": 3072,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/shared/timeplt_a.cpp",
+                        "line": 162,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:timeplt_audio_device.timeplt_sound_map/range2",
+                    "start": 16384,
+                    "end": 16384,
+                    "raw": "map(0x4000, 0x4000).mirror(0x0fff).rw(\"ay1\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+                    "read": "timeplt_audio:ay1.data_r",
+                    "write": "timeplt_audio:ay1.data_w",
+                    "props": {
+                        "start": 16384,
+                        "end": 16384,
+                        "raw": "map(0x4000, 0x4000).mirror(0x0fff).rw(\"ay1\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+                        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+                        "sourceLine": 163,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 163,
+                        "mirror": 4095
+                    },
+                    "source": {
+                        "file": "src/mame/shared/timeplt_a.cpp",
+                        "line": 163,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:timeplt_audio_device.timeplt_sound_map/range3",
+                    "start": 20480,
+                    "end": 20480,
+                    "raw": "map(0x5000, 0x5000).mirror(0x0fff).w(\"ay1\", FUNC(ay8910_device::address_w))",
+                    "write": "timeplt_audio:ay1.address_w",
+                    "props": {
+                        "start": 20480,
+                        "end": 20480,
+                        "raw": "map(0x5000, 0x5000).mirror(0x0fff).w(\"ay1\", FUNC(ay8910_device::address_w))",
+                        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+                        "sourceLine": 164,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 164,
+                        "mirror": 4095
+                    },
+                    "source": {
+                        "file": "src/mame/shared/timeplt_a.cpp",
+                        "line": 164,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:timeplt_audio_device.timeplt_sound_map/range4",
+                    "start": 24576,
+                    "end": 24576,
+                    "raw": "map(0x6000, 0x6000).mirror(0x0fff).rw(\"ay2\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+                    "read": "timeplt_audio:ay2.data_r",
+                    "write": "timeplt_audio:ay2.data_w",
+                    "props": {
+                        "start": 24576,
+                        "end": 24576,
+                        "raw": "map(0x6000, 0x6000).mirror(0x0fff).rw(\"ay2\", FUNC(ay8910_device::data_r), FUNC(ay8910_device::data_w))",
+                        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+                        "sourceLine": 165,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 165,
+                        "mirror": 4095
+                    },
+                    "source": {
+                        "file": "src/mame/shared/timeplt_a.cpp",
+                        "line": 165,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:timeplt_audio_device.timeplt_sound_map/range5",
+                    "start": 28672,
+                    "end": 28672,
+                    "raw": "map(0x7000, 0x7000).mirror(0x0fff).w(\"ay2\", FUNC(ay8910_device::address_w))",
+                    "write": "timeplt_audio:ay2.address_w",
+                    "props": {
+                        "start": 28672,
+                        "end": 28672,
+                        "raw": "map(0x7000, 0x7000).mirror(0x0fff).w(\"ay2\", FUNC(ay8910_device::address_w))",
+                        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+                        "sourceLine": 166,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 166,
+                        "mirror": 4095
+                    },
+                    "source": {
+                        "file": "src/mame/shared/timeplt_a.cpp",
+                        "line": 166,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:timeplt_audio_device.timeplt_sound_map/range6",
+                    "start": 32768,
+                    "end": 65535,
+                    "raw": "map(0x8000, 0xffff).w(FUNC(timeplt_audio_device::filter_w))",
+                    "write": "timeplt_audio_device.filter_w",
+                    "props": {
+                        "start": 32768,
+                        "end": 65535,
+                        "raw": "map(0x8000, 0xffff).w(FUNC(timeplt_audio_device::filter_w))",
+                        "sourceFile": "src/mame/shared/timeplt_a.cpp",
+                        "sourceLine": 167,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 167
+                    },
+                    "source": {
+                        "file": "src/mame/shared/timeplt_a.cpp",
+                        "line": 167,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/shared/timeplt_a.cpp",
+                "line": 159,
+                "column": 1
+            }
+        }
+    ],
+    "video": {
+        "gfx": [
+            {
+                "region": "sprites",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 16,
+                    "height": 16,
+                    "total": 256,
+                    "planes": 4,
+                    "planeOffsets": [
+                        131076,
+                        131072,
+                        4,
+                        0
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        64,
+                        65,
+                        66,
+                        67,
+                        128,
+                        129,
+                        130,
+                        131,
+                        192,
+                        193,
+                        194,
+                        195
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56,
+                        256,
+                        264,
+                        272,
+                        280,
+                        288,
+                        296,
+                        304,
+                        312
+                    ],
+                    "charIncrement": 512
+                }
+            },
+            {
+                "region": "tiles",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 256,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": 512,
+                    "planes": 4,
+                    "planeOffsets": [
+                        65540,
+                        65536,
+                        4,
+                        0
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        64,
+                        65,
+                        66,
+                        67
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56
+                    ],
+                    "charIncrement": 128
+                }
+            }
+        ],
+        "palette": {
+            "region": "proms",
+            "colorCount": 32,
+            "min": 0,
+            "max": 255,
+            "scaler": -1,
+            "channels": [
+                {
+                    "channel": "r",
+                    "bits": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "resistances": [
+                        1000,
+                        470,
+                        220
+                    ],
+                    "pulldown": 1000,
+                    "pullup": 0
+                },
+                {
+                    "channel": "g",
+                    "bits": [
+                        3,
+                        4,
+                        5
+                    ],
+                    "resistances": [
+                        1000,
+                        470,
+                        220
+                    ],
+                    "pulldown": 1000,
+                    "pullup": 0
+                },
+                {
+                    "channel": "b",
+                    "bits": [
+                        6,
+                        7
+                    ],
+                    "resistances": [
+                        470,
+                        220
+                    ],
+                    "pulldown": 1000,
+                    "pullup": 0
+                }
+            ],
+            "lookupOffset": 32,
+            "lookupCount": 512,
+            "lookupMask": 15,
+            "banks": [
+                {
+                    "penOffset": 0,
+                    "colorOr": 0,
+                    "lookupOffset": 32,
+                    "lookupCount": 512
+                }
+            ],
+            "transparentIndirect": 0,
+            "source": {
+                "file": "src/mame/konami/rocnrope.cpp",
+                "line": 102,
+                "column": 1
+            }
+        },
+        "tilemaps": [
+            {
+                "member": "m_bg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 8,
+                "tileHeight": 8,
+                "columns": 32,
+                "rows": 32,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "rocnrope_state.get_bg_tile_info",
+                "source": {
+                    "file": "src/mame/konami/rocnrope.cpp",
+                    "line": 173,
+                    "column": 1
+                }
+            }
+        ],
+        "initialState": {},
+        "source": {
+            "file": "src/mame/konami/rocnrope.cpp",
+            "line": 173,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "ay8910",
+        "deviceTag": "timeplt_audio:ay1",
+        "deviceTags": [
+            "timeplt_audio:ay1",
+            "timeplt_audio:ay2"
+        ],
+        "deviceType": "AY8910",
+        "writeMethods": [
+            "address_w",
+            "data_w"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "routes": [
+            {
+                "chip": 0,
+                "channel": 0,
+                "gain": 0.6,
+                "target": "filter.0.0",
+                "filter": {
+                    "index": 0,
+                    "bank": 0,
+                    "channel": 0
+                }
+            },
+            {
+                "chip": 0,
+                "channel": 1,
+                "gain": 0.6,
+                "target": "filter.0.1",
+                "filter": {
+                    "index": 1,
+                    "bank": 0,
+                    "channel": 1
+                }
+            },
+            {
+                "chip": 0,
+                "channel": 2,
+                "gain": 0.6,
+                "target": "filter.0.2",
+                "filter": {
+                    "index": 2,
+                    "bank": 0,
+                    "channel": 2
+                }
+            },
+            {
+                "chip": 1,
+                "channel": 0,
+                "gain": 0.6,
+                "target": "filter.1.0",
+                "filter": {
+                    "index": 3,
+                    "bank": 1,
+                    "channel": 0
+                }
+            },
+            {
+                "chip": 1,
+                "channel": 1,
+                "gain": 0.6,
+                "target": "filter.1.1",
+                "filter": {
+                    "index": 4,
+                    "bank": 1,
+                    "channel": 1
+                }
+            },
+            {
+                "chip": 1,
+                "channel": 2,
+                "gain": 0.6,
+                "target": "filter.1.2",
+                "filter": {
+                    "index": 5,
+                    "bank": 1,
+                    "channel": 2
+                }
+            }
+        ],
+        "filterLayout": "matrix"
+    }
+}

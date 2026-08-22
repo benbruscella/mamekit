@@ -1,0 +1,238 @@
+{
+  "game": "ddragon",
+  "title": "Double Dragon (World set 1) (Technos Japan (Taito license), 1987)",
+  "fullname": "Double Dragon (World set 1)",
+  "year": "1987",
+  "manufacturer": "Technos Japan (Taito license)",
+  "family": "ddragon",
+  "driverFile": "src/mame/technos/ddragon.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Philip Bennett,Carlos A. Lozano, Rob Rosenbrock, Phil Stroffolino, Ernesto Corvi, David Haywood, R. Belmont",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2025-12-26",
+    "commits": 257,
+    "contributors": 35,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "AJR"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 92,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2021-05-14"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 38,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 21,
+        "firstCommit": "2017-01-12",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 13,
+        "firstCommit": "2014-03-30",
+        "lastCommit": "2025-03-12"
+      },
+      {
+        "name": "AJR",
+        "commits": 11,
+        "firstCommit": "2017-01-09",
+        "lastCommit": "2023-11-11"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 11,
+        "firstCommit": "2016-06-22",
+        "lastCommit": "2020-11-02"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 6,
+        "firstCommit": "2009-04-02",
+        "lastCommit": "2013-05-28"
+      },
+      {
+        "name": "hap",
+        "commits": 5,
+        "firstCommit": "2016-06-19",
+        "lastCommit": "2025-07-07"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 5,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2013-05-05"
+      },
+      {
+        "name": "smf-",
+        "commits": 5,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2020-04-02"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 5,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-03-15"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 4,
+        "firstCommit": "2018-08-15",
+        "lastCommit": "2019-01-02"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2018-03-21",
+        "lastCommit": "2019-03-30"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 3,
+        "firstCommit": "2015-04-21",
+        "lastCommit": "2015-12-21"
+      },
+      {
+        "name": "davidhay",
+        "commits": 3,
+        "firstCommit": "2008-03-24",
+        "lastCommit": "2009-02-22"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-09",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Roberto Fresca",
+        "commits": 3,
+        "firstCommit": "2025-12-20",
+        "lastCommit": "2025-12-26"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 2,
+        "firstCommit": "2010-04-12",
+        "lastCommit": "2010-06-23"
+      },
+      {
+        "name": "angelosa",
+        "commits": 2,
+        "firstCommit": "2024-12-04",
+        "lastCommit": "2025-12-26"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 2,
+        "firstCommit": "2010-12-24",
+        "lastCommit": "2014-02-24"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2013-09-13"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2010-02-04",
+        "lastCommit": "2012-02-19"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 1,
+        "firstCommit": "2010-03-07",
+        "lastCommit": "2010-03-07"
+      },
+      {
+        "name": "Jose Tejada",
+        "commits": 1,
+        "firstCommit": "2020-01-14",
+        "lastCommit": "2020-01-14"
+      },
+      {
+        "name": "JOTEGO",
+        "commits": 1,
+        "firstCommit": "2023-01-05",
+        "lastCommit": "2023-01-05"
+      },
+      {
+        "name": "Nathan Woods",
+        "commits": 1,
+        "firstCommit": "2013-03-04",
+        "lastCommit": "2013-03-04"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 1,
+        "firstCommit": "2008-05-30",
+        "lastCommit": "2008-05-30"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Steven Coomber",
+        "commits": 1,
+        "firstCommit": "2022-04-02",
+        "lastCommit": "2022-04-02"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

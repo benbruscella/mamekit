@@ -1,0 +1,202 @@
+{
+  "game": "venture",
+  "title": "Venture (version 5 set 1) (Exidy, 1981)",
+  "fullname": "Venture (version 5 set 1)",
+  "year": "1981",
+  "manufacturer": "Exidy",
+  "family": "exidy",
+  "driverFile": "src/mame/exidy/exidy.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 197,
+    "contributors": 29,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Ivan Vangelista",
+      "Vas Crabb",
+      "Scott Stone"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 62,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2013-10-16"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 27,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 19,
+        "firstCommit": "2013-08-05",
+        "lastCommit": "2023-11-14"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 19,
+        "firstCommit": "2017-05-07",
+        "lastCommit": "2026-06-02"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 9,
+        "firstCommit": "2009-08-05",
+        "lastCommit": "2017-05-23"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 7,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 7,
+        "firstCommit": "2008-01-07",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "hap",
+        "commits": 5,
+        "firstCommit": "2017-03-11",
+        "lastCommit": "2025-06-08"
+      },
+      {
+        "name": "AJR",
+        "commits": 4,
+        "firstCommit": "2018-06-03",
+        "lastCommit": "2022-01-26"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 4,
+        "firstCommit": "2010-05-23",
+        "lastCommit": "2014-03-23"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 3,
+        "firstCommit": "2020-08-06",
+        "lastCommit": "2021-02-01"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 3,
+        "firstCommit": "2013-08-05",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2009-12-09"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2022-06-04"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 3,
+        "firstCommit": "2015-01-21",
+        "lastCommit": "2022-03-25"
+      },
+      {
+        "name": "smf-",
+        "commits": 3,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2015-04-12"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 2,
+        "firstCommit": "2011-05-02",
+        "lastCommit": "2011-11-27"
+      },
+      {
+        "name": "Osso13",
+        "commits": 2,
+        "firstCommit": "2015-01-20",
+        "lastCommit": "2015-01-20"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "angelosa",
+        "commits": 1,
+        "firstCommit": "2024-12-04",
+        "lastCommit": "2024-12-04"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-11-14",
+        "lastCommit": "2008-11-14"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 1,
+        "firstCommit": "2017-01-22",
+        "lastCommit": "2017-01-22"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-10",
+        "lastCommit": "2018-08-10"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Ryan Holtz",
+        "commits": 1,
+        "firstCommit": "2009-01-04",
+        "lastCommit": "2009-01-04"
+      },
+      {
+        "name": "TimothyShiels",
+        "commits": 1,
+        "firstCommit": "2023-06-22",
+        "lastCommit": "2023-06-22"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

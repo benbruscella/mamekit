@@ -1,0 +1,409 @@
+{
+  "schemaVersion": 2,
+  "game": "qix",
+  "family": "qix",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "sourceCoverage": {
+    "covered": 136,
+    "total": 166,
+    "percent": 81.9
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:MC6809E",
+        "status": "executable",
+        "source": "src/devices/cpu/m6809/m6809.cpp:137"
+      },
+      {
+        "name": "audiocpu:M6802",
+        "status": "executable",
+        "source": "src/devices/cpu/m6800/m6800.cpp:370"
+      },
+      {
+        "name": "videocpu:MC6809E",
+        "status": "executable",
+        "source": "src/devices/cpu/m6809/m6809.cpp:137"
+      }
+    ],
+    "devices": [
+      {
+        "name": "nvram:NVRAM",
+        "status": "declarative-host",
+        "source": "src/devices/machine/nvram.cpp:19"
+      },
+      {
+        "name": "pia0:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia1:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia2:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "vid_u18:MC6845",
+        "status": "executable",
+        "source": "src/devices/video/mc6845.cpp:61"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "dint:INPUT_MERGER_ANY_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:43"
+      },
+      {
+        "name": "sint:INPUT_MERGER_ANY_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:43"
+      },
+      {
+        "name": "sndpia0:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "sndpia1:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "sndpia2:PIA6821",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "discrete:DISCRETE",
+        "status": "declarative-host",
+        "source": "src/devices/sound/discrete.cpp:50"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "pia0.read",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia1.read",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia1.write",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia2.read",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "pia2.write",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "qix_state.addresslatch_r",
+        "status": "generated",
+        "source": "src/mame/taito/qix_v.cpp:133"
+      },
+      {
+        "name": "qix_state.addresslatch_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_v.cpp:141"
+      },
+      {
+        "name": "qix_state.data_firq_ack_r",
+        "status": "generated",
+        "source": "src/mame/taito/qix_m.cpp:118"
+      },
+      {
+        "name": "qix_state.data_firq_ack_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_m.cpp:104"
+      },
+      {
+        "name": "qix_state.data_firq_r",
+        "status": "generated",
+        "source": "src/mame/taito/qix_m.cpp:110"
+      },
+      {
+        "name": "qix_state.data_firq_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_m.cpp:98"
+      },
+      {
+        "name": "qix_state.palettebank_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_v.cpp:194"
+      },
+      {
+        "name": "qix_state.paletteram_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_v.cpp:177"
+      },
+      {
+        "name": "qix_state.pia_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_m.cpp:260"
+      },
+      {
+        "name": "qix_state.video_firq_ack_r",
+        "status": "generated",
+        "source": "src/mame/taito/qix_m.cpp:153"
+      },
+      {
+        "name": "qix_state.video_firq_ack_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_m.cpp:139"
+      },
+      {
+        "name": "qix_state.video_firq_r",
+        "status": "generated",
+        "source": "src/mame/taito/qix_m.cpp:145"
+      },
+      {
+        "name": "qix_state.video_firq_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_m.cpp:133"
+      },
+      {
+        "name": "qix_state.videoram_r",
+        "status": "generated",
+        "source": "src/mame/taito/qix_v.cpp:79"
+      },
+      {
+        "name": "qix_state.videoram_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_v.cpp:87"
+      },
+      {
+        "name": "sndpia0.read",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "sndpia0.write",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "sndpia1.read",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "sndpia1.write",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "sndpia2.read",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "sndpia2.write",
+        "status": "executable",
+        "source": "src/devices/machine/6821pia.cpp:41"
+      },
+      {
+        "name": "vid_u18.address_w",
+        "status": "executable",
+        "source": "src/devices/video/mc6845.cpp:61"
+      },
+      {
+        "name": "vid_u18.register_r",
+        "status": "executable",
+        "source": "src/devices/video/mc6845.cpp:61"
+      },
+      {
+        "name": "vid_u18.register_w",
+        "status": "executable",
+        "source": "src/devices/video/mc6845.cpp:61"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "pia0.readpa_handler -> P1",
+        "status": "generated",
+        "source": "src/mame/taito/qix.cpp:648"
+      },
+      {
+        "name": "pia0.readpb_handler -> COIN",
+        "status": "generated",
+        "source": "src/mame/taito/qix.cpp:650"
+      },
+      {
+        "name": "pia1.readpa_handler -> SPARE",
+        "status": "generated",
+        "source": "src/mame/taito/qix.cpp:653"
+      },
+      {
+        "name": "pia1.readpb_handler -> IN0",
+        "status": "generated",
+        "source": "src/mame/taito/qix.cpp:655"
+      },
+      {
+        "name": "pia2.readpa_handler -> P2",
+        "status": "generated",
+        "source": "src/mame/taito/qix.cpp:658"
+      },
+      {
+        "name": "pia2.writepb_handler -> qix_state.coinctr_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix.cpp:660"
+      },
+      {
+        "name": "vid_u18.out_de_callback -> qix_state.display_enable_changed",
+        "status": "generated",
+        "source": "src/mame/taito/qix_v.cpp:380"
+      },
+      {
+        "name": "vid_u18.out_vsync_callback -> qix_state.vsync_changed",
+        "status": "generated",
+        "source": "src/mame/taito/qix_v.cpp:381"
+      },
+      {
+        "name": "screen.set_screen_update -> vid_u18.screen_update",
+        "status": "generated",
+        "source": "src/mame/taito/qix_v.cpp:385"
+      },
+      {
+        "name": "dint.output_handler -> maincpu",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:151"
+      },
+      {
+        "name": "sint.output_handler -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:154"
+      },
+      {
+        "name": "sndpia0.writepa_handler -> qix_state.sync_sndpia1_porta_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:157"
+      },
+      {
+        "name": "sndpia0.writepb_handler -> qix_state.vol_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:158"
+      },
+      {
+        "name": "sndpia0.ca2_handler -> sndpia1.ca1_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:160"
+      },
+      {
+        "name": "sndpia0.cb2_handler -> qix_state.flip_screen_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:161"
+      },
+      {
+        "name": "sndpia0.irqa_handler -> dint.in_w_0",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:162"
+      },
+      {
+        "name": "sndpia0.irqb_handler -> dint.in_w_1",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:163"
+      },
+      {
+        "name": "sndpia1.writepa_handler -> sndpia0.porta_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:166"
+      },
+      {
+        "name": "sndpia1.writepb_handler -> qix_state.dac_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:167"
+      },
+      {
+        "name": "sndpia1.ca2_handler -> sndpia0.ca1_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:169"
+      },
+      {
+        "name": "sndpia1.irqa_handler -> sint.in_w_0",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:170"
+      },
+      {
+        "name": "sndpia1.irqb_handler -> sint.in_w_1",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:171"
+      },
+      {
+        "name": "sndpia2.writepa_handler -> qix_state.sndpia_2_warning_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:174"
+      },
+      {
+        "name": "sndpia2.writepb_handler -> qix_state.sndpia_2_warning_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:175"
+      },
+      {
+        "name": "sndpia2.ca2_handler -> qix_state.sndpia_2_warning_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:176"
+      },
+      {
+        "name": "sndpia2.cb2_handler -> qix_state.sndpia_2_warning_w",
+        "status": "generated",
+        "source": "src/mame/taito/qix_a.cpp:177"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/qix/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 26,
+    "compiledMethods": 26,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 15,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 3,
+    "frameCallbacks": 0,
+    "screenUpdate": "mc6845_device.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 26,
+    "generated": 42,
+    "declarative-host": 5,
+    "blocked": 0,
+    "missing": 0
+  }
+}

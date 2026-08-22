@@ -1,0 +1,277 @@
+{
+  "type": "YM2151",
+  "uses": [
+    {
+      "game": "ddragon",
+      "tags": [
+        "fmsnd"
+      ]
+    },
+    {
+      "game": "ghouls",
+      "tags": [
+        "2151"
+      ]
+    },
+    {
+      "game": "sf2ce",
+      "tags": [
+        "2151"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "YM2151",
+    "className": "ym2151_device",
+    "shortName": "ym2151",
+    "description": "YM2151 OPM",
+    "sourceFile": "src/devices/sound/ymopm.cpp",
+    "sourceLine": 12,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(YM2151, ym2151_device, \"ym2151\", \"YM2151 OPM\")"
+  },
+  "methods": [
+    {
+      "name": "write",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/devices/sound/ymopm.cpp",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_reset_state"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "parent::write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "address_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/sound/ymopm.cpp",
+      "sourceLine": 36,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_reset_state"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "parent::address_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/sound/ymopm.cpp",
+      "sourceLine": 43,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_reset_state"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "parent::data_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/sound/ymopm.cpp",
+      "sourceLine": 55,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_reset_state"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_reset_state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_chip"
+                        },
+                        "property": "reset"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/ymopm.cpp",
+    "3rdparty/ymfm/src/ymfm.h",
+    "3rdparty/ymfm/src/ymfm_fm.h",
+    "3rdparty/ymfm/src/ymfm_fm.ipp",
+    "3rdparty/ymfm/src/ymfm_opm.h",
+    "3rdparty/ymfm/src/ymfm_opm.cpp"
+  ]
+}

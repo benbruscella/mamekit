@@ -1,0 +1,3008 @@
+{
+    "schemaVersion": 3,
+    "game": "friskyt",
+    "family": "seicross",
+    "driverFile": "src/mame/nichibutsu/seicross.cpp",
+    "callbacks": [
+        {
+            "id": "device:seicross_state.no_nvram/maincpu/callback:maincpu:0",
+            "ownerTag": "maincpu",
+            "signal": "set_vblank_int",
+            "operation": "set_vblank_int",
+            "targetTag": "screen",
+            "targetClass": "seicross_state",
+            "targetMethod": "vblank_irq",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 627,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "seicross_state",
+            "targetMethod": "screen_update",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 639,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/aysnd/callback:aysnd:0",
+            "ownerTag": "aysnd",
+            "signal": "port_b_read_callback",
+            "operation": "set",
+            "targetClass": "seicross_state",
+            "targetMethod": "portb_r",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 649,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/aysnd/callback:aysnd:1",
+            "ownerTag": "aysnd",
+            "signal": "port_b_write_callback",
+            "operation": "set",
+            "targetClass": "seicross_state",
+            "targetMethod": "portb_w",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 650,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:seicross_state.no_nvram/maincpu/callback:maincpu:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "seicross_state.vblank_irq",
+                "deviceTag": "maincpu"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 627,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:seicross_state.no_nvram/aysnd/callback:aysnd:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "seicross_state.portb_r"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 649,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:seicross_state.no_nvram/aysnd/callback:aysnd:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "seicross_state.portb_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 650,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "z80",
+                "clock": 3072000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 30719,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 30720,
+                        "end": 32767,
+                        "kind": "ram",
+                        "share": "sharedram"
+                    },
+                    {
+                        "start": 34848,
+                        "end": 34943,
+                        "kind": "ram",
+                        "share": "spriteram[0]"
+                    },
+                    {
+                        "start": 36864,
+                        "end": 37887,
+                        "kind": "ram",
+                        "share": "videoram",
+                        "write": "seicross_state.videoram_w",
+                        "writeHandlerOwnsRam": true
+                    },
+                    {
+                        "start": 38912,
+                        "end": 38943,
+                        "kind": "ram",
+                        "share": "row_scroll"
+                    },
+                    {
+                        "start": 39040,
+                        "end": 39071,
+                        "kind": "ram",
+                        "share": "spriteram[1]",
+                        "writeOnly": true
+                    },
+                    {
+                        "start": 39936,
+                        "end": 40959,
+                        "kind": "ram",
+                        "share": "colorram",
+                        "write": "seicross_state.colorram_w",
+                        "writeHandlerOwnsRam": true
+                    },
+                    {
+                        "start": 40960,
+                        "end": 40960,
+                        "kind": "handler",
+                        "read": "port.IN0"
+                    },
+                    {
+                        "start": 43008,
+                        "end": 43008,
+                        "kind": "handler",
+                        "read": "port.IN1"
+                    },
+                    {
+                        "start": 45056,
+                        "end": 45056,
+                        "kind": "handler",
+                        "read": "port.TEST"
+                    },
+                    {
+                        "start": 47104,
+                        "end": 47104,
+                        "kind": "handler",
+                        "read": "watchdog.reset_r"
+                    }
+                ],
+                "io": {
+                    "ranges": [
+                        {
+                            "start": 0,
+                            "end": 1,
+                            "kind": "handler",
+                            "mirror": 8,
+                            "write": "aysnd.address_data_w"
+                        },
+                        {
+                            "start": 4,
+                            "end": 4,
+                            "kind": "handler",
+                            "mirror": 8,
+                            "read": "aysnd.data_r"
+                        }
+                    ],
+                    "globalMask": 255
+                },
+                "cycleClock": 3072000,
+                "source": {
+                    "file": "src/mame/nichibutsu/seicross.cpp",
+                    "line": 624,
+                    "column": 2
+                }
+            },
+            {
+                "tag": "mcu",
+                "type": "nsc8105",
+                "clock": 3072000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 4096,
+                        "end": 4351,
+                        "kind": "ram",
+                        "share": "nvram"
+                    },
+                    {
+                        "start": 8192,
+                        "end": 8192,
+                        "kind": "handler",
+                        "write": "seicross_state.dac_w"
+                    },
+                    {
+                        "start": 32768,
+                        "end": 63487,
+                        "kind": "rom",
+                        "romOffset": 0
+                    },
+                    {
+                        "start": 63488,
+                        "end": 65535,
+                        "kind": "ram",
+                        "share": "sharedram"
+                    }
+                ],
+                "cycleClock": 768000,
+                "source": {
+                    "file": "src/mame/nichibutsu/seicross.cpp",
+                    "line": 629,
+                    "column": 2
+                }
+            }
+        ],
+        "initialShares": [
+            {
+                "share": "nvram",
+                "bytes": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    1,
+                    0,
+                    1,
+                    0,
+                    1,
+                    0,
+                    1,
+                    0,
+                    3,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        ],
+        "shareBindings": [
+            {
+                "share": "videoram",
+                "member": "m_videoram"
+            },
+            {
+                "share": "colorram",
+                "member": "m_colorram"
+            }
+        ],
+        "startHandlers": [
+            "seicross_state.video_start"
+        ],
+        "resetHandlers": [
+            "seicross_state.machine_reset"
+        ],
+        "screen": {
+            "width": 256,
+            "height": 224,
+            "xOffset": 0,
+            "yOffset": 16,
+            "refresh": 60.60606060606061,
+            "vtotal": 264,
+            "vbstart": 240,
+            "vbend": 16,
+            "updateMode": "frame",
+            "rotate": 0,
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 637,
+                "column": 2
+            }
+        },
+        "inputMembers": [
+            {
+                "member": "m_debug_port",
+                "tags": [
+                    "DEBUG"
+                ]
+            }
+        ],
+        "frameEvents": [
+            {
+                "callbackId": "device:seicross_state.no_nvram/maincpu/callback:maincpu:0",
+                "ownerTag": "maincpu",
+                "signal": "set_vblank_int",
+                "line": 240,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/nichibutsu/seicross.cpp",
+                    "line": 627,
+                    "column": 2
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "seicross_state.screen_update",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 299,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:seicross_state.nvram/nvram",
+            "tag": "nvram",
+            "type": "NVRAM",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 664,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/maincpu",
+            "tag": "maincpu",
+            "type": "Z80",
+            "member": "m_maincpu",
+            "clock": 3072000,
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 624,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/mcu",
+            "tag": "mcu",
+            "type": "NSC8105",
+            "member": "m_mcu",
+            "clock": 3072000,
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 629,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/watchdog",
+            "tag": "watchdog",
+            "type": "WATCHDOG_TIMER",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 634,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        6144000,
+                        384,
+                        0,
+                        256,
+                        264,
+                        16,
+                        240
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 637,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "member": "m_gfxdecode",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 642,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 643,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/speaker",
+            "tag": "speaker",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 646,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/aysnd",
+            "tag": "aysnd",
+            "type": "AY8910",
+            "clock": 1536000,
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 648,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:seicross_state.no_nvram/dac",
+            "tag": "dac",
+            "type": "DAC_4BIT_R2R",
+            "member": "m_dac",
+            "clock": 0,
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 653,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:seicross_state.videoram_w",
+            "ownerClass": "seicross_state",
+            "method": "videoram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 234,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:seicross_state.colorram_w",
+            "ownerClass": "seicross_state",
+            "method": "colorram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "// bit 5 of the address is not used for color memory. There is just 512k\n\t// of memory; every two consecutive rows share the same memory region.\n\toffset &= 0xffdf;\n\n\tm_colorram[offset] = data;\n\tm_colorram[offset + 0x20] = data;\n\n\tm_bg_tilemap->mark_tile_dirty(offset);\n\tm_bg_tilemap->mark_tile_dirty(offset + 0x20);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "offset"
+                        },
+                        "operator": "&=",
+                        "value": {
+                            "kind": "number",
+                            "value": 65503
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_colorram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_colorram"
+                            },
+                            "index": {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 32
+                                }
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "mark_tile_dirty"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 240,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:watchdog_timer_device.reset_r",
+            "ownerClass": "watchdog_timer_device",
+            "method": "reset_r",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 358,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ay8910_device.address_data_w",
+            "ownerClass": "ay8910_device",
+            "method": "address_data_w",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 364,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ay8910_device.data_r",
+            "ownerClass": "ay8910_device",
+            "method": "data_r",
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 365,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:seicross_state.dac_w",
+            "ownerClass": "seicross_state",
+            "method": "dac_w",
+            "parameters": "uint8_t data",
+            "body": "m_dac->write(data >> 4);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dac"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 341,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:seicross_state.machine_reset",
+            "ownerClass": "seicross_state",
+            "method": "machine_reset",
+            "body": "// start with the protection MCU halted\n\tm_mcu->set_input_line(INPUT_LINE_HALT, ASSERT_LINE);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_mcu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "INPUT_LINE_HALT"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "ASSERT_LINE"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 183,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:seicross_state.video_start",
+            "ownerClass": "seicross_state",
+            "method": "video_start",
+            "body": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(seicross_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\tm_bg_tilemap->set_transparent_pen(0);\n\tm_bg_tilemap->set_scroll_cols(32);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "seicross_state::get_bg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_ROWS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "set_transparent_pen"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "set_scroll_cols"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 32
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 262,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:seicross_state.get_bg_tile_info",
+            "ownerClass": "seicross_state",
+            "method": "get_bg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "int const code = m_videoram[tile_index] + ((m_colorram[tile_index] & 0x10) << 4);\n\tint const color = m_colorram[tile_index] & 0x0f;\n\tint const flags = ((m_colorram[tile_index] & 0x40) ? TILE_FLIPX : 0) | ((m_colorram[tile_index] & 0x80) ? TILE_FLIPY : 0);\n\n\ttileinfo.set(0, code, color, flags);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "tile_index"
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_colorram"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "tile_index"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 16
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "color",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_colorram"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "tile_index"
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 15
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "flags",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "conditional",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_colorram"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "tile_index"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 64
+                                    }
+                                },
+                                "whenTrue": {
+                                    "kind": "identifier",
+                                    "name": "TILE_FLIPX"
+                                },
+                                "whenFalse": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            "right": {
+                                "kind": "conditional",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_colorram"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "tile_index"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 128
+                                    }
+                                },
+                                "whenTrue": {
+                                    "kind": "identifier",
+                                    "name": "TILE_FLIPY"
+                                },
+                                "whenFalse": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "flags"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 253,
+                "column": 1
+            },
+            "constants": {
+                "TILE_FLIPX": 1,
+                "TILE_FLIPY": 2
+            }
+        },
+        {
+            "id": "handler:seicross_state.vblank_irq",
+            "ownerClass": "seicross_state",
+            "method": "vblank_irq",
+            "parameters": "device_t &device",
+            "body": "if (m_irq_mask)\n\t\tdevice.execute().set_input_line(0, HOLD_LINE);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_irq_mask"
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "device"
+                                                },
+                                                "property": "execute"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "HOLD_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 614,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:seicross_state.screen_update",
+            "ownerClass": "seicross_state",
+            "method": "screen_update",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "bitmap.fill(0, cliprect);\n\n\tfor (int col = 0; col < 32; col++)\n\t\tm_bg_tilemap->set_scrolly(col, m_row_scroll[col]);\n\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\tdraw_sprites(bitmap, cliprect);\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                "property": "fill"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "col",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "col"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 32
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "col"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_bg_tilemap"
+                                        },
+                                        "property": "set_scrolly"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "col"
+                                        },
+                                        {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_row_scroll"
+                                            },
+                                            "index": {
+                                                "kind": "identifier",
+                                                "name": "col"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "draw"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "screen"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "draw_sprites"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 299,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:seicross_state.draw_sprites",
+            "ownerClass": "seicross_state",
+            "method": "draw_sprites",
+            "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "for (int bank = 0; bank < 2; bank++)\n\t{\n\t\tfor (int offs = m_spriteram[bank].bytes() - 4; offs >= 0; offs -= 4)\n\t\t{\n\t\t\tuint8_t const *data = &m_spriteram[bank][offs];\n\t\t\tint const code = (data[0] & 0x3f) | ((data[1] & 0x10) << 2) | (bank ? 0 : 0x80);\n\t\t\tint const color = data[1] & 0x0f;\n\t\t\tint flipx = BIT(data[0], 6);\n\t\t\tint flipy = BIT(data[0], 7);\n\t\t\tint sx = data[3];\n\t\t\tint sy = 240 - data[2];\n\n\t\t\tif (flip_screen())\n\t\t\t{\n\t\t\t\tsx = 240 - sx;\n\t\t\t\tsy = 240 - sy;\n\t\t\t\tflipx = !flipx;\n\t\t\t\tflipy = !flipy;\n\t\t\t}\n\n\t\t\tm_gfxdecode->gfx(1)->transpen(bitmap, cliprect, code, color, flipx, flipy, sx, sy, 0);\n\n\t\t\tconst int dx = flip_screen() ? +256 : -256;\n\t\t\tm_gfxdecode->gfx(1)->transpen(bitmap, cliprect, code, color, flipx, flipy, sx + dx, sy, 0);\n\t\t}\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "bank",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bank"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 2
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "bank"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "for",
+                                "initialize": [
+                                    {
+                                        "op": "declare",
+                                        "name": "offs",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "member",
+                                                    "object": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_spriteram"
+                                                        },
+                                                        "index": {
+                                                            "kind": "identifier",
+                                                            "name": "bank"
+                                                        }
+                                                    },
+                                                    "property": "bytes"
+                                                },
+                                                "args": []
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 4
+                                            }
+                                        }
+                                    }
+                                ],
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": ">=",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offs"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "iterate": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        "operator": "-=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 4
+                                        }
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "declare",
+                                        "name": "data",
+                                        "valueType": "auto",
+                                        "value": {
+                                            "kind": "unary",
+                                            "operator": "&",
+                                            "operand": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "m_spriteram"
+                                                    },
+                                                    "index": {
+                                                        "kind": "identifier",
+                                                        "name": "bank"
+                                                    }
+                                                },
+                                                "index": {
+                                                    "kind": "identifier",
+                                                    "name": "offs"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "code",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "|",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "|",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "index",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "data"
+                                                        },
+                                                        "index": {
+                                                            "kind": "number",
+                                                            "value": 0
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 63
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "binary",
+                                                    "operator": "<<",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": "&",
+                                                        "left": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "data"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 1
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "number",
+                                                            "value": 16
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 2
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "conditional",
+                                                "condition": {
+                                                    "kind": "identifier",
+                                                    "name": "bank"
+                                                },
+                                                "whenTrue": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                },
+                                                "whenFalse": {
+                                                    "kind": "number",
+                                                    "value": 128
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "color",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "index": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 15
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "flipx",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "BIT"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "data"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 0
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 6
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "flipy",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "BIT"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "index",
+                                                    "object": {
+                                                        "kind": "identifier",
+                                                        "name": "data"
+                                                    },
+                                                    "index": {
+                                                        "kind": "number",
+                                                        "value": 0
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 7
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "sx",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "index": {
+                                                "kind": "number",
+                                                "value": 3
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "sy",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "number",
+                                                "value": 240
+                                            },
+                                            "right": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                },
+                                                "index": {
+                                                    "kind": "number",
+                                                    "value": 2
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "flip_screen"
+                                            },
+                                            "args": []
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "sx"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "binary",
+                                                    "operator": "-",
+                                                    "left": {
+                                                        "kind": "number",
+                                                        "value": 240
+                                                    },
+                                                    "right": {
+                                                        "kind": "identifier",
+                                                        "name": "sx"
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "sy"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "binary",
+                                                    "operator": "-",
+                                                    "left": {
+                                                        "kind": "number",
+                                                        "value": 240
+                                                    },
+                                                    "right": {
+                                                        "kind": "identifier",
+                                                        "name": "sy"
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "flipx"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "unary",
+                                                    "operator": "!",
+                                                    "operand": {
+                                                        "kind": "identifier",
+                                                        "name": "flipx"
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "flipy"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                    "kind": "unary",
+                                                    "operator": "!",
+                                                    "operand": {
+                                                        "kind": "identifier",
+                                                        "name": "flipy"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gfxdecode"
+                                                        },
+                                                        "property": "gfx"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    ]
+                                                },
+                                                "property": "transpen"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "bitmap"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "cliprect"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "code"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "color"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "flipx"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "flipy"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "sx"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "sy"
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "dx",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "conditional",
+                                            "condition": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "flip_screen"
+                                                },
+                                                "args": []
+                                            },
+                                            "whenTrue": {
+                                                "kind": "unary",
+                                                "operator": "+",
+                                                "operand": {
+                                                    "kind": "number",
+                                                    "value": 256
+                                                }
+                                            },
+                                            "whenFalse": {
+                                                "kind": "unary",
+                                                "operator": "-",
+                                                "operand": {
+                                                    "kind": "number",
+                                                    "value": 256
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "identifier",
+                                                            "name": "m_gfxdecode"
+                                                        },
+                                                        "property": "gfx"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "number",
+                                                            "value": 1
+                                                        }
+                                                    ]
+                                                },
+                                                "property": "transpen"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "bitmap"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "cliprect"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "code"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "color"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "flipx"
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "flipy"
+                                                },
+                                                {
+                                                    "kind": "binary",
+                                                    "operator": "+",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "sx"
+                                                    },
+                                                    "right": {
+                                                        "kind": "identifier",
+                                                        "name": "dx"
+                                                    }
+                                                },
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "sy"
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 269,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:seicross_state.portb_r",
+            "ownerClass": "seicross_state",
+            "method": "portb_r",
+            "body": "return (m_portb & 0x0f) | (m_debug_port.read_safe(0) & 0xf0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_portb"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_debug_port"
+                                        },
+                                        "property": "read_safe"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 240
+                                }
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 313,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:seicross_state.portb_w",
+            "ownerClass": "seicross_state",
+            "method": "portb_w",
+            "parameters": "offs_t offset, uint8_t data, uint8_t mem_mask",
+            "body": "// ignore if high-impedance (seicross relies on it)\n\tif (mem_mask == 0)\n\t\treturn;\n\n\t// bit 0 is IRQ enable\n\tm_irq_mask = data & 1;\n\n\t// bit 1 flips screen\n\tflip_screen_set(data & 2);\n\n\t// bit 2 resets the microcontroller\n\tif (((m_portb & 4) == 0) && (data & 4))\n\t{\n\t\tm_mcu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);\n\t\tm_mcu->set_input_line(INPUT_LINE_HALT, CLEAR_LINE);\n\t}\n\n\t// other bits unused\n\tm_portb = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "mem_mask"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "return"
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_irq_mask"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "flip_screen_set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "==",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "m_portb"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_mcu"
+                                        },
+                                        "property": "pulse_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INPUT_LINE_RESET"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "attotime::zero"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_mcu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INPUT_LINE_HALT"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "CLEAR_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_portb"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 318,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:seicross_state.main_map",
+            "className": "seicross_state",
+            "name": "main_map",
+            "ranges": [
+                {
+                    "id": "map:seicross_state.main_map/range0",
+                    "start": 0,
+                    "end": 30719,
+                    "raw": "map(0x0000, 0x77ff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 30719,
+                        "raw": "map(0x0000, 0x77ff).rom()",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 348,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 348,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 348,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.main_map/range1",
+                    "start": 30720,
+                    "end": 32767,
+                    "raw": "map(0x7800, 0x7fff).ram().share(m_sharedram)",
+                    "props": {
+                        "start": 30720,
+                        "end": 32767,
+                        "raw": "map(0x7800, 0x7fff).ram().share(m_sharedram)",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 349,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 349,
+                        "ram": true,
+                        "share": "sharedram"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 349,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.main_map/range2",
+                    "start": 34848,
+                    "end": 34943,
+                    "raw": "map(0x8820, 0x887f).ram().share(m_spriteram[0])",
+                    "props": {
+                        "start": 34848,
+                        "end": 34943,
+                        "raw": "map(0x8820, 0x887f).ram().share(m_spriteram[0])",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 350,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 350,
+                        "ram": true,
+                        "share": "spriteram[0]"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 350,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.main_map/range3",
+                    "start": 36864,
+                    "end": 37887,
+                    "raw": "map(0x9000, 0x93ff).ram().w(FUNC(seicross_state::videoram_w)).share(m_videoram)",
+                    "write": "seicross_state.videoram_w",
+                    "props": {
+                        "start": 36864,
+                        "end": 37887,
+                        "raw": "map(0x9000, 0x93ff).ram().w(FUNC(seicross_state::videoram_w)).share(m_videoram)",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 351,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 351,
+                        "ram": true,
+                        "share": "videoram"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 351,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.main_map/range4",
+                    "start": 38912,
+                    "end": 38943,
+                    "raw": "map(0x9800, 0x981f).ram().share(m_row_scroll)",
+                    "props": {
+                        "start": 38912,
+                        "end": 38943,
+                        "raw": "map(0x9800, 0x981f).ram().share(m_row_scroll)",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 352,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 352,
+                        "ram": true,
+                        "share": "row_scroll"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 352,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.main_map/range5",
+                    "start": 39040,
+                    "end": 39071,
+                    "raw": "map(0x9880, 0x989f).writeonly().share(m_spriteram[1])",
+                    "props": {
+                        "start": 39040,
+                        "end": 39071,
+                        "raw": "map(0x9880, 0x989f).writeonly().share(m_spriteram[1])",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 353,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 353,
+                        "writeonly": true,
+                        "share": "spriteram[1]"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 353,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.main_map/range6",
+                    "start": 39936,
+                    "end": 40959,
+                    "raw": "map(0x9c00, 0x9fff).ram().w(FUNC(seicross_state::colorram_w)).share(m_colorram)",
+                    "write": "seicross_state.colorram_w",
+                    "props": {
+                        "start": 39936,
+                        "end": 40959,
+                        "raw": "map(0x9c00, 0x9fff).ram().w(FUNC(seicross_state::colorram_w)).share(m_colorram)",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 354,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 354,
+                        "ram": true,
+                        "share": "colorram"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 354,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.main_map/range7",
+                    "start": 40960,
+                    "end": 40960,
+                    "raw": "map(0xa000, 0xa000).portr(\"IN0\")",
+                    "props": {
+                        "start": 40960,
+                        "end": 40960,
+                        "raw": "map(0xa000, 0xa000).portr(\"IN0\")",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 355,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 355,
+                        "portRead": "IN0"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 355,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.main_map/range8",
+                    "start": 43008,
+                    "end": 43008,
+                    "raw": "map(0xa800, 0xa800).portr(\"IN1\")",
+                    "props": {
+                        "start": 43008,
+                        "end": 43008,
+                        "raw": "map(0xa800, 0xa800).portr(\"IN1\")",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 356,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 356,
+                        "portRead": "IN1"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 356,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.main_map/range9",
+                    "start": 45056,
+                    "end": 45056,
+                    "raw": "map(0xb000, 0xb000).portr(\"TEST\")",
+                    "props": {
+                        "start": 45056,
+                        "end": 45056,
+                        "raw": "map(0xb000, 0xb000).portr(\"TEST\")",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 357,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 357,
+                        "portRead": "TEST"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 357,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.main_map/range10",
+                    "start": 47104,
+                    "end": 47104,
+                    "raw": "map(0xb800, 0xb800).r(\"watchdog\", FUNC(watchdog_timer_device::reset_r))",
+                    "read": "watchdog.reset_r",
+                    "props": {
+                        "start": 47104,
+                        "end": 47104,
+                        "raw": "map(0xb800, 0xb800).r(\"watchdog\", FUNC(watchdog_timer_device::reset_r))",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 358,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 358
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 358,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 346,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:seicross_state.main_portmap",
+            "className": "seicross_state",
+            "name": "main_portmap",
+            "ranges": [
+                {
+                    "id": "map:seicross_state.main_portmap/range0",
+                    "start": 0,
+                    "end": 1,
+                    "raw": "map(0x00, 0x01).mirror(0x08).w(\"aysnd\", FUNC(ay8910_device::address_data_w))",
+                    "write": "aysnd.address_data_w",
+                    "props": {
+                        "start": 0,
+                        "end": 1,
+                        "raw": "map(0x00, 0x01).mirror(0x08).w(\"aysnd\", FUNC(ay8910_device::address_data_w))",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 364,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 364,
+                        "mirror": 8
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 364,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.main_portmap/range1",
+                    "start": 4,
+                    "end": 4,
+                    "raw": "map(0x04, 0x04).mirror(0x08).r(\"aysnd\", FUNC(ay8910_device::data_r))",
+                    "read": "aysnd.data_r",
+                    "props": {
+                        "start": 4,
+                        "end": 4,
+                        "raw": "map(0x04, 0x04).mirror(0x08).r(\"aysnd\", FUNC(ay8910_device::data_r))",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 365,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 365,
+                        "mirror": 8
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 365,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 361,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:seicross_state.mcu_nvram_map",
+            "className": "seicross_state",
+            "name": "mcu_nvram_map",
+            "ranges": [
+                {
+                    "id": "map:seicross_state.mcu_nvram_map/range0",
+                    "start": 4096,
+                    "end": 4351,
+                    "raw": "map(0x1000, 0x10ff).ram().share(\"nvram\")",
+                    "props": {
+                        "start": 4096,
+                        "end": 4351,
+                        "raw": "map(0x1000, 0x10ff).ram().share(\"nvram\")",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 371,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 371,
+                        "ram": true,
+                        "share": "nvram"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 371,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.mcu_nvram_map/range1",
+                    "start": 8192,
+                    "end": 8192,
+                    "raw": "map(0x2000, 0x2000).w(FUNC(seicross_state::dac_w))",
+                    "write": "seicross_state.dac_w",
+                    "props": {
+                        "start": 8192,
+                        "end": 8192,
+                        "raw": "map(0x2000, 0x2000).w(FUNC(seicross_state::dac_w))",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 372,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 372
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 372,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.mcu_nvram_map/range2",
+                    "start": 32768,
+                    "end": 63487,
+                    "raw": "map(0x8000, 0xf7ff).rom().region(\"maincpu\", 0)",
+                    "props": {
+                        "start": 32768,
+                        "end": 63487,
+                        "raw": "map(0x8000, 0xf7ff).rom().region(\"maincpu\", 0)",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 373,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 373,
+                        "rom": true,
+                        "region": "maincpu",
+                        "regionOffset": 0
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 373,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.mcu_nvram_map/range3",
+                    "start": 63488,
+                    "end": 65535,
+                    "raw": "map(0xf800, 0xffff).ram().share(m_sharedram)",
+                    "props": {
+                        "start": 63488,
+                        "end": 65535,
+                        "raw": "map(0xf800, 0xffff).ram().share(m_sharedram)",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 374,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 374,
+                        "ram": true,
+                        "share": "sharedram"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 374,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 369,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:seicross_state.mcu_no_nvram_map",
+            "className": "seicross_state",
+            "name": "mcu_no_nvram_map",
+            "ranges": [
+                {
+                    "id": "map:seicross_state.mcu_no_nvram_map/range0",
+                    "start": 4099,
+                    "end": 4099,
+                    "raw": "map(0x1003, 0x1003).portr(\"DSW1\")",
+                    "props": {
+                        "start": 4099,
+                        "end": 4099,
+                        "raw": "map(0x1003, 0x1003).portr(\"DSW1\")",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 379,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 379,
+                        "portRead": "DSW1"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 379,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.mcu_no_nvram_map/range1",
+                    "start": 4101,
+                    "end": 4101,
+                    "raw": "map(0x1005, 0x1005).portr(\"DSW2\")",
+                    "props": {
+                        "start": 4101,
+                        "end": 4101,
+                        "raw": "map(0x1005, 0x1005).portr(\"DSW2\")",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 380,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 380,
+                        "portRead": "DSW2"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 380,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.mcu_no_nvram_map/range2",
+                    "start": 4102,
+                    "end": 4102,
+                    "raw": "map(0x1006, 0x1006).portr(\"DSW3\")",
+                    "props": {
+                        "start": 4102,
+                        "end": 4102,
+                        "raw": "map(0x1006, 0x1006).portr(\"DSW3\")",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 381,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 381,
+                        "portRead": "DSW3"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 381,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.mcu_no_nvram_map/range3",
+                    "start": 8192,
+                    "end": 8192,
+                    "raw": "map(0x2000, 0x2000).w(FUNC(seicross_state::dac_w))",
+                    "write": "seicross_state.dac_w",
+                    "props": {
+                        "start": 8192,
+                        "end": 8192,
+                        "raw": "map(0x2000, 0x2000).w(FUNC(seicross_state::dac_w))",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 382,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 382
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 382,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.mcu_no_nvram_map/range4",
+                    "start": 32768,
+                    "end": 63487,
+                    "raw": "map(0x8000, 0xf7ff).rom().region(\"maincpu\", 0)",
+                    "props": {
+                        "start": 32768,
+                        "end": 63487,
+                        "raw": "map(0x8000, 0xf7ff).rom().region(\"maincpu\", 0)",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 383,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 383,
+                        "rom": true,
+                        "region": "maincpu",
+                        "regionOffset": 0
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 383,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:seicross_state.mcu_no_nvram_map/range5",
+                    "start": 63488,
+                    "end": 65535,
+                    "raw": "map(0xf800, 0xffff).ram().share(m_sharedram)",
+                    "props": {
+                        "start": 63488,
+                        "end": 65535,
+                        "raw": "map(0xf800, 0xffff).ram().share(m_sharedram)",
+                        "sourceFile": "src/mame/nichibutsu/seicross.cpp",
+                        "sourceLine": 384,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 384,
+                        "ram": true,
+                        "share": "sharedram"
+                    },
+                    "source": {
+                        "file": "src/mame/nichibutsu/seicross.cpp",
+                        "line": 384,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 377,
+                "column": 1
+            }
+        }
+    ],
+    "video": {
+        "gfx": [
+            {
+                "region": "gfx",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": 512,
+                    "planes": 2,
+                    "planeOffsets": [
+                        0,
+                        4
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        8,
+                        9,
+                        10,
+                        11
+                    ],
+                    "yOffsets": [
+                        0,
+                        16,
+                        32,
+                        48,
+                        64,
+                        80,
+                        96,
+                        112
+                    ],
+                    "charIncrement": 128
+                }
+            },
+            {
+                "region": "gfx",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 16,
+                    "height": 16,
+                    "total": 256,
+                    "planes": 2,
+                    "planeOffsets": [
+                        0,
+                        4
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        8,
+                        9,
+                        10,
+                        11,
+                        128,
+                        129,
+                        130,
+                        131,
+                        136,
+                        137,
+                        138,
+                        139
+                    ],
+                    "yOffsets": [
+                        0,
+                        16,
+                        32,
+                        48,
+                        64,
+                        80,
+                        96,
+                        112,
+                        256,
+                        272,
+                        288,
+                        304,
+                        320,
+                        336,
+                        352,
+                        368
+                    ],
+                    "charIncrement": 512
+                }
+            }
+        ],
+        "palette": {
+            "region": "proms",
+            "colorCount": 64,
+            "min": 0,
+            "max": 255,
+            "scaler": 1,
+            "channels": [
+                {
+                    "channel": "r",
+                    "bits": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "offsets": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "weights": [
+                        33,
+                        71,
+                        151
+                    ],
+                    "resistances": [],
+                    "pulldown": 0,
+                    "pullup": 0
+                },
+                {
+                    "channel": "g",
+                    "bits": [
+                        3,
+                        4,
+                        5
+                    ],
+                    "offsets": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "weights": [
+                        33,
+                        71,
+                        151
+                    ],
+                    "resistances": [],
+                    "pulldown": 0,
+                    "pullup": 0
+                },
+                {
+                    "channel": "b",
+                    "bits": [
+                        6,
+                        7
+                    ],
+                    "offsets": [
+                        0,
+                        0
+                    ],
+                    "weights": [
+                        82,
+                        173
+                    ],
+                    "resistances": [],
+                    "pulldown": 0,
+                    "pullup": 0
+                }
+            ],
+            "lookupOffset": 0,
+            "lookupCount": 64,
+            "lookupMask": 255,
+            "banks": [
+                {
+                    "penOffset": 0,
+                    "colorOr": 0,
+                    "lookupOffset": 0,
+                    "lookupCount": 64,
+                    "direct": true
+                }
+            ],
+            "transparentIndirect": 0,
+            "source": {
+                "file": "src/mame/nichibutsu/seicross.cpp",
+                "line": 207,
+                "column": 1
+            }
+        },
+        "tilemaps": [
+            {
+                "member": "m_bg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 8,
+                "tileHeight": 8,
+                "columns": 32,
+                "rows": 32,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "seicross_state.get_bg_tile_info",
+                "scrollColumns": 32,
+                "transparentPen": 0,
+                "source": {
+                    "file": "src/mame/nichibutsu/seicross.cpp",
+                    "line": 262,
+                    "column": 1
+                }
+            }
+        ],
+        "initialState": {},
+        "source": {
+            "file": "src/mame/nichibutsu/seicross.cpp",
+            "line": 262,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "ay8910",
+        "deviceTag": "aysnd",
+        "deviceTags": [
+            "aysnd"
+        ],
+        "deviceType": "AY8910",
+        "writeMethods": [
+            "address_w",
+            "data_w"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "routes": [
+            {
+                "chip": 0,
+                "channel": 0,
+                "gain": 0.25,
+                "target": "speaker"
+            },
+            {
+                "chip": 0,
+                "channel": 1,
+                "gain": 0.25,
+                "target": "speaker"
+            },
+            {
+                "chip": 0,
+                "channel": 2,
+                "gain": 0.25,
+                "target": "speaker"
+            }
+        ],
+        "auxiliaryDevices": [
+            {
+                "type": "DAC_4BIT_R2R",
+                "deviceTag": "dac",
+                "member": "m_dac",
+                "clock": 0,
+                "gain": 0.12,
+                "target": "speaker",
+                "writeMethods": [
+                    "data_w",
+                    "write"
+                ]
+            }
+        ]
+    }
+}

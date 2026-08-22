@@ -1,0 +1,29 @@
+{
+  "type": "HD63701Y0",
+  "uses": [
+    {
+      "game": "ddragon",
+      "tags": [
+        "sub"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "HD63701Y0",
+    "className": "hd63701y0_cpu_device",
+    "shortName": "hd63701y0",
+    "description": "Hitachi HD63701Y0",
+    "sourceFile": "src/devices/cpu/m6800/m6801.cpp",
+    "sourceLine": 418,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(HD63701Y0, hd63701y0_cpu_device, \"hd63701y0\", \"Hitachi HD63701Y0\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/m6800/6800dasm.h",
+    "src/devices/cpu/m6800/m6801.cpp",
+    "src/devices/cpu/m6800/m6801.h"
+  ]
+}

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghosts'n Goblins (World? set 1) — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Ghosts'n Goblins (World? set 1)</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/gng/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/gng/gng-dossier.md" download="gng-dossier.md">Download gng-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Capcom · 1985</div>
+    <h1>Ghosts'n Goblins (World? set 1)</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/gng.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>gng</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/capcom/gng.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>gng</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>ym2203</strong></div>
+      <div class="fact"><span>Screen</span><strong>256×224 @ 59.64 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>landscape</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>MC6809</td><td>6.000 MHz</td><td>19</td></tr><tr><td>audiocpu</td><td>Z80</td><td>3.000 MHz</td><td>5</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>mm_c_04</td><td>0x4000</td><td>0x4000</td><td>4f94130f</td></tr><tr><td>maincpu</td><td>mm_c_03</td><td>0x8000</td><td>0x8000</td><td>1def138a</td></tr><tr><td>maincpu</td><td>mm_c_05</td><td>0x10000</td><td>0x8000</td><td>ed28e86e</td></tr><tr><td>audiocpu</td><td>gg2.bin</td><td>0x0</td><td>0x8000</td><td>615f5b6f</td></tr><tr><td>chars</td><td>gg1.bin</td><td>0x0</td><td>0x4000</td><td>ecfccf07</td></tr><tr><td>tiles</td><td>gg11.bin</td><td>0x0</td><td>0x4000</td><td>ddd56fa9</td></tr><tr><td>tiles</td><td>gg10.bin</td><td>0x4000</td><td>0x4000</td><td>7302529d</td></tr><tr><td>tiles</td><td>gg9.bin</td><td>0x8000</td><td>0x4000</td><td>20035bda</td></tr><tr><td>tiles</td><td>gg8.bin</td><td>0xc000</td><td>0x4000</td><td>f12ba271</td></tr><tr><td>tiles</td><td>gg7.bin</td><td>0x10000</td><td>0x4000</td><td>e525207d</td></tr><tr><td>tiles</td><td>gg6.bin</td><td>0x14000</td><td>0x4000</td><td>2d77e9b2</td></tr><tr><td>sprites</td><td>gg17.bin</td><td>0x0</td><td>0x4000</td><td>93e50a8f</td></tr><tr><td>sprites</td><td>gg16.bin</td><td>0x4000</td><td>0x4000</td><td>06d7e5ca</td></tr><tr><td>sprites</td><td>gg15.bin</td><td>0x8000</td><td>0x4000</td><td>bc1fe02d</td></tr><tr><td>sprites</td><td>gg14.bin</td><td>0x10000</td><td>0x4000</td><td>6aaf12f9</td></tr><tr><td>sprites</td><td>gg13.bin</td><td>0x14000</td><td>0x4000</td><td>e80c3fca</td></tr><tr><td>sprites</td><td>gg12.bin</td><td>0x18000</td><td>0x4000</td><td>7780a925</td></tr><tr><td>proms</td><td>tbp24s10.14k</td><td>0x0</td><td>0x100</td><td>0eaf5158</td></tr><tr><td>proms</td><td>63s141.2e</td><td>0x100</td><td>0x100</td><td>4a1285a4</td></tr><tr><td>plds</td><td>gg-pal10l8.bin</td><td>0x0</td><td>0x2c</td><td>87f1b7e0</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>1</td><td>start1</td><td>SYSTEM</td><td>0x1</td></tr><tr><td>2</td><td>start2</td><td>SYSTEM</td><td>0x2</td></tr><tr><td>9</td><td>service1</td><td>SYSTEM</td><td>0x20</td></tr><tr><td>5</td><td>coin1</td><td>SYSTEM</td><td>0x40</td></tr><tr><td>6</td><td>coin2</td><td>SYSTEM</td><td>0x80</td></tr><tr><td>Right</td><td>joystick right</td><td>P1</td><td>0x1</td></tr><tr><td>Left</td><td>joystick left</td><td>P1</td><td>0x2</td></tr><tr><td>Down</td><td>joystick down</td><td>P1</td><td>0x4</td></tr><tr><td>Up</td><td>joystick up</td><td>P1</td><td>0x8</td></tr><tr><td>Space / X</td><td>button1</td><td>P1</td><td>0x10</td></tr><tr><td>Z</td><td>button2</td><td>P1</td><td>0x20</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/capcom/gng.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Pierpaolo Prazzoli</strong></div>
+    <div class="fact"><span>Development</span><strong>162 commits by 32 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Miodrag Milanovic, Vas Crabb, hap, Ivan Vangelista</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 41 years ago:
+
+Ghosts'n Goblins (c) 1985 Capcom.
+
+Export release. Game developed in Japan. For more information about the game itself, please see the original Japanese version entry; &quot;Makaimura&quot;.</p><details><summary>TRIVIA</summary><p class="story">Ghosts'n Goblins was released in September 1985 outside Japan.
+
+These non-Japanese versions use a shield instead of a cross.</p></details><details><summary>UPDATES</summary><p class="story">A rare prototype version of the game exists with no title logo. It seems to be harder than the final version.</p></details><details><summary>PORTS</summary><p class="story">Here is a list of all ports release outside Japan and North America.
+
+To see Japanese ports, please see the original Japanese version entry; &quot;Makaimura&quot;.
+
+To see North American ports, please see the Taito America version entry.
+
+* CONSOLES: 
+[EU] Nintendo NES (mar.23, 1989) &quot;Ghosts'n Goblins [Model NES-GG-EUR]&quot; 
+[EU] Sony PlayStation (sept.3, 1999) &quot;Capcom Generations 2 - Chronicles of Arthur [Capcom Generations Disc 2] [Model SLES-11881]&quot; 
+[EU] Microsoft XBOX (nov.18, 2005) &quot;Capcom Classics Collection&quot; 
+[EU] Sony PS2 (nov.18, 2005) &quot;Capcom Classics Collection [Model SLES-53661]&quot; 
+Nintendo Wii [Virtual Console Arcade] [EU] (jan.7, 2011) 
+Sony PlayStation 3 [PSN] [EU] (feb.20, 2013) &quot;Capcom Arcade Cabinet&quot; 
+Microsoft XBOX 360 [XBLA] [EU] (feb.20, 2013) &quot;Capcom Arcade Cabinet&quot; 
+Microsoft XBOX 360 [XBLA] [AU] (feb.21, 2013) &quot;Capcom Arcade Cabinet&quot; 
+
+* HANDHELDS: 
+Nintendo Game Boy Color [EU] (aug.24, 2001) &quot;Ghosts'n Goblins [Model DMG-AG9P-EUR]&quot; 
+[EU] Sony PSP (nov.10, 2006) &quot;Capcom Classics Collection Reloaded [Model ULES-00377]&quot; 
+[AU] Sony PSP (nov.16, 2006) &quot;Capcom Classics Collection Reloaded&quot; 
+
+* COMPUTERS: 
+Commodore C16 [EU] (1986) 
+[EU] Commodore C64 (1986) 
+[EU] Sinclair ZX Spectrum (1986) 
+[EU] Amstrad CPC (1986) 
+[EU] Commodore Amiga (1988) 
+[EU] Amstrad CPC (1989) &quot;12 Top Amstrad Hits&quot; 
+PC [MS-DOS] [EU] (1990) 
+[EU] Atari ST (1990)</p></details><details><summary>SERIES</summary><p class="story">MAIN SERIES
+1. Ghosts'n Goblins (1985, Arcade)
+2. Ghouls'n Ghosts [B-Board 88620B-2] (1988, Arcade)
+3. Super Ghouls'n Ghosts [Model SNS-CM-USA] (1991, SNES)
+4. Makaimura Gaiden - The Demon Darkness (1993, Game Boy)
+5. Arthur to Astaroth no Nazomakaimura (1996, PlayStation, Saturn)
+6. Makaimura for WonderSwan (1999, WonderSwan)
+7. Maximo - Ghosts to Glory (2001, PS2)
+8. Choumakaimura R (2002, Game Boy Advance)
+9. Maximo vs. Army of Zin (2003, PS2)
+10. Ultimate Ghosts'n Goblins (2006, PSP)
+11. Goku Makaimura Kai (2007, PSP) 
+12. Ghosts'n Goblins - Gold Knights (2009, iOS)
+13. Ghosts'n Goblins - Gold Knights II (2010, iOS)
+14. Ghosts'n Goblins Resurrection (2021, Switch, PS4, PC, Xbox One)
+
+SPIN-OFF
+1. Gargoyle's Quest (1990, Game Boy)
+2. Gargoyle's Quest II (1992, NES)
+3. Demon's Crest (1994, SNES)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/950/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

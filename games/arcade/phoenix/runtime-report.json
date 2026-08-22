@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 2,
+  "game": "phoenix",
+  "family": "phoenix",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "sourceCoverage": {
+    "covered": 56,
+    "total": 83,
+    "percent": 67.5
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:I8085A",
+        "status": "executable",
+        "source": "src/devices/cpu/i8085/i8085.cpp:210"
+      }
+    ],
+    "devices": [
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "tms:TMS36XX",
+        "status": "executable",
+        "source": "src/devices/sound/tms36xx.cpp:312"
+      },
+      {
+        "name": "cust:PHOENIX_SOUND",
+        "status": "executable",
+        "source": "src/mame/phoenix/phoenix_a.cpp:51"
+      },
+      {
+        "name": "discrete:DISCRETE",
+        "status": "declarative-host",
+        "source": "src/devices/sound/discrete.cpp:50"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.bank1",
+        "status": "generated"
+      },
+      {
+        "name": "cust.control_a_w",
+        "status": "executable",
+        "source": "src/mame/phoenix/phoenix_a.cpp:51"
+      },
+      {
+        "name": "cust.control_b_w",
+        "status": "executable",
+        "source": "src/mame/phoenix/phoenix_a.cpp:51"
+      },
+      {
+        "name": "phoenix_state.phoenix_scroll_w",
+        "status": "generated",
+        "source": "src/mame/phoenix/phoenix_v.cpp:286"
+      },
+      {
+        "name": "phoenix_state.phoenix_videoram_w",
+        "status": "generated",
+        "source": "src/mame/phoenix/phoenix_v.cpp:214"
+      },
+      {
+        "name": "phoenix_state.phoenix_videoreg_w",
+        "status": "generated",
+        "source": "src/mame/phoenix/phoenix_v.cpp:233"
+      },
+      {
+        "name": "port.DSW0",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN0",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "screen.set_screen_update -> phoenix_state.screen_update_phoenix",
+        "status": "generated",
+        "source": "src/mame/phoenix/phoenix.cpp:464"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/phoenix/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 10,
+    "compiledMethods": 10,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 3,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 0,
+    "screenUpdate": "phoenix_state.screen_update_phoenix",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 5,
+    "generated": 8,
+    "declarative-host": 5,
+    "blocked": 0,
+    "missing": 0
+  }
+}

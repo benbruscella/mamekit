@@ -1,0 +1,3437 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/technos/ddragon.cpp",
+    "generatedAt": "2026-08-22T05:52:14.001Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Philip Bennett,Carlos A. Lozano, Rob Rosenbrock, Phil Stroffolino, Ernesto Corvi, David Haywood, R. Belmont"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/technos/ddragon.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/technos/ddragon.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:ddragon.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "ddragon.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6800/m6801.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6800/m6801.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6809/hd6309.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6809/hd6309.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6809/m6809.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6809/m6809.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/okim6295.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/okim6295.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopm.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopm.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopn.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopn.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:ddragon",
+      "label": "Game",
+      "props": {
+        "name": "ddragon",
+        "year": "1987",
+        "company": "Technos Japan (Taito license)",
+        "fullname": "Double Dragon (World set 1)",
+        "monitor": "ROT0",
+        "cls": "ddragon_state",
+        "init": "init_ddragon",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 2438,
+        "sourceColumn": 1,
+        "sourceEndLine": 2438
+      }
+    },
+    {
+      "id": "romset:ddragon",
+      "label": "RomSet",
+      "props": {
+        "name": "ddragon",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1139,
+        "sourceColumn": 1,
+        "sourceEndLine": 1139
+      }
+    },
+    {
+      "id": "region:ddragon/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 196608,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1140,
+        "sourceColumn": 2,
+        "sourceEndLine": 1140
+      }
+    },
+    {
+      "id": "rom:ddragon/maincpu/21j-1.26",
+      "label": "Rom",
+      "props": {
+        "file": "21j-1.26",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "ae714964",
+        "sha1": "072522b97ca4edd099c6b48d7634354dc7088c53",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1141,
+        "sourceColumn": 2,
+        "sourceEndLine": 1141
+      }
+    },
+    {
+      "id": "rom:ddragon/maincpu/21j-2-3.25",
+      "label": "Rom",
+      "props": {
+        "file": "21j-2-3.25",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "5779705e",
+        "sha1": "4b8f22225d10f5414253ce0383bbebd6f720f3af",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1142,
+        "sourceColumn": 2,
+        "sourceEndLine": 1142
+      }
+    },
+    {
+      "id": "rom:ddragon/maincpu/21a-3.24",
+      "label": "Rom",
+      "props": {
+        "file": "21a-3.24",
+        "offset": 98304,
+        "size": 32768,
+        "crc": "dbf24897",
+        "sha1": "1504faaf07c541330cd43b72dc6846911dfd85a3",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1143,
+        "sourceColumn": 2,
+        "sourceEndLine": 1143
+      }
+    },
+    {
+      "id": "rom:ddragon/maincpu/21j-4.23",
+      "label": "Rom",
+      "props": {
+        "file": "21j-4.23",
+        "offset": 131072,
+        "size": 32768,
+        "crc": "6c9f46fa",
+        "sha1": "df251a4aea69b2328f7a543bf085b9c35933e2c1",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1144,
+        "sourceColumn": 2,
+        "sourceEndLine": 1144
+      }
+    },
+    {
+      "id": "region:ddragon/sub",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sub",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1146,
+        "sourceColumn": 2,
+        "sourceEndLine": 1146
+      }
+    },
+    {
+      "id": "rom:ddragon/sub/21jm-0.ic55",
+      "label": "Rom",
+      "props": {
+        "file": "21jm-0.ic55",
+        "offset": 0,
+        "size": 16384,
+        "crc": "f5232d03",
+        "sha1": "e2a194e38633592fd6587690b3cb2669d93985c7",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1147,
+        "sourceColumn": 2,
+        "sourceEndLine": 1147
+      }
+    },
+    {
+      "id": "region:ddragon/soundcpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "soundcpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1149,
+        "sourceColumn": 2,
+        "sourceEndLine": 1149
+      }
+    },
+    {
+      "id": "rom:ddragon/soundcpu/21j-0-1",
+      "label": "Rom",
+      "props": {
+        "file": "21j-0-1",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "9efa95bb",
+        "sha1": "da997d9cc7b9e7b2c70a4b6d30db693086a6f7d8",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1150,
+        "sourceColumn": 2,
+        "sourceEndLine": 1150
+      }
+    },
+    {
+      "id": "region:ddragon/chars",
+      "label": "RomRegion",
+      "props": {
+        "tag": "chars",
+        "size": 32768,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1152,
+        "sourceColumn": 2,
+        "sourceEndLine": 1152
+      }
+    },
+    {
+      "id": "rom:ddragon/chars/21j-5",
+      "label": "Rom",
+      "props": {
+        "file": "21j-5",
+        "offset": 0,
+        "size": 32768,
+        "crc": "7a8b8db4",
+        "sha1": "8368182234f9d4d763d4714fd7567a9e31b7ebeb",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1153,
+        "sourceColumn": 2,
+        "sourceEndLine": 1153
+      }
+    },
+    {
+      "id": "region:ddragon/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 524288,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1155,
+        "sourceColumn": 2,
+        "sourceEndLine": 1155
+      }
+    },
+    {
+      "id": "rom:ddragon/sprites/21j-a",
+      "label": "Rom",
+      "props": {
+        "file": "21j-a",
+        "offset": 0,
+        "size": 65536,
+        "crc": "574face3",
+        "sha1": "481fe574cb79d0159a65ff7486cbc945d50538c5",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1156,
+        "sourceColumn": 2,
+        "sourceEndLine": 1156
+      }
+    },
+    {
+      "id": "rom:ddragon/sprites/21j-b",
+      "label": "Rom",
+      "props": {
+        "file": "21j-b",
+        "offset": 65536,
+        "size": 65536,
+        "crc": "40507a76",
+        "sha1": "74581a4b6f48100bddf20f319903af2fe36f39fa",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1157,
+        "sourceColumn": 2,
+        "sourceEndLine": 1157
+      }
+    },
+    {
+      "id": "rom:ddragon/sprites/21j-c",
+      "label": "Rom",
+      "props": {
+        "file": "21j-c",
+        "offset": 131072,
+        "size": 65536,
+        "crc": "bb0bc76f",
+        "sha1": "37b2225e0593335f636c1e5fded9b21fdeab2f5a",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1158,
+        "sourceColumn": 2,
+        "sourceEndLine": 1158
+      }
+    },
+    {
+      "id": "rom:ddragon/sprites/21j-d",
+      "label": "Rom",
+      "props": {
+        "file": "21j-d",
+        "offset": 196608,
+        "size": 65536,
+        "crc": "cb4f231b",
+        "sha1": "9f2270f9ceedfe51c5e9a9bbb00d6f43dbc4a3ea",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1159,
+        "sourceColumn": 2,
+        "sourceEndLine": 1159
+      }
+    },
+    {
+      "id": "rom:ddragon/sprites/21j-e",
+      "label": "Rom",
+      "props": {
+        "file": "21j-e",
+        "offset": 262144,
+        "size": 65536,
+        "crc": "a0a0c261",
+        "sha1": "25c534d82bd237386d447d72feee8d9541a5ded4",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1160,
+        "sourceColumn": 2,
+        "sourceEndLine": 1160
+      }
+    },
+    {
+      "id": "rom:ddragon/sprites/21j-f",
+      "label": "Rom",
+      "props": {
+        "file": "21j-f",
+        "offset": 327680,
+        "size": 65536,
+        "crc": "6ba152f6",
+        "sha1": "a301ff809be0e1471f4ff8305b30c2fa4aa57fae",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1161,
+        "sourceColumn": 2,
+        "sourceEndLine": 1161
+      }
+    },
+    {
+      "id": "rom:ddragon/sprites/21j-g",
+      "label": "Rom",
+      "props": {
+        "file": "21j-g",
+        "offset": 393216,
+        "size": 65536,
+        "crc": "3220a0b6",
+        "sha1": "24a16ea509e9aff82b9ddd14935d61bb71acff84",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1162,
+        "sourceColumn": 2,
+        "sourceEndLine": 1162
+      }
+    },
+    {
+      "id": "rom:ddragon/sprites/21j-h",
+      "label": "Rom",
+      "props": {
+        "file": "21j-h",
+        "offset": 458752,
+        "size": 65536,
+        "crc": "65c7517d",
+        "sha1": "f177ba9c1c7cc75ff04d5591b9865ee364788f94",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1163,
+        "sourceColumn": 2,
+        "sourceEndLine": 1163
+      }
+    },
+    {
+      "id": "region:ddragon/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 262144,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1165,
+        "sourceColumn": 2,
+        "sourceEndLine": 1165
+      }
+    },
+    {
+      "id": "rom:ddragon/tiles/21j-8",
+      "label": "Rom",
+      "props": {
+        "file": "21j-8",
+        "offset": 0,
+        "size": 65536,
+        "crc": "7c435887",
+        "sha1": "ecb76f2148fa9773426f05aac208eb3ac02747db",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1166,
+        "sourceColumn": 2,
+        "sourceEndLine": 1166
+      }
+    },
+    {
+      "id": "rom:ddragon/tiles/21j-9",
+      "label": "Rom",
+      "props": {
+        "file": "21j-9",
+        "offset": 65536,
+        "size": 65536,
+        "crc": "c6640aed",
+        "sha1": "f156c337f48dfe4f7e9caee9a72c7ea3d53e3098",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1167,
+        "sourceColumn": 2,
+        "sourceEndLine": 1167
+      }
+    },
+    {
+      "id": "rom:ddragon/tiles/21j-i",
+      "label": "Rom",
+      "props": {
+        "file": "21j-i",
+        "offset": 131072,
+        "size": 65536,
+        "crc": "5effb0a0",
+        "sha1": "1f21acb15dad824e831ed9a42b3fde096bb31141",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1168,
+        "sourceColumn": 2,
+        "sourceEndLine": 1168
+      }
+    },
+    {
+      "id": "rom:ddragon/tiles/21j-j",
+      "label": "Rom",
+      "props": {
+        "file": "21j-j",
+        "offset": 196608,
+        "size": 65536,
+        "crc": "5fb42e7c",
+        "sha1": "7953316712c56c6f8ca6bba127319e24b618b646",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1169,
+        "sourceColumn": 2,
+        "sourceEndLine": 1169
+      }
+    },
+    {
+      "id": "region:ddragon/adpcm1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "adpcm1",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1171,
+        "sourceColumn": 2,
+        "sourceEndLine": 1171
+      }
+    },
+    {
+      "id": "rom:ddragon/adpcm1/21j-6",
+      "label": "Rom",
+      "props": {
+        "file": "21j-6",
+        "offset": 0,
+        "size": 65536,
+        "crc": "34755de3",
+        "sha1": "57c06d6ce9497901072fa50a92b6ed0d2d4d6528",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1172,
+        "sourceColumn": 2,
+        "sourceEndLine": 1172
+      }
+    },
+    {
+      "id": "region:ddragon/adpcm2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "adpcm2",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1174,
+        "sourceColumn": 2,
+        "sourceEndLine": 1174
+      }
+    },
+    {
+      "id": "rom:ddragon/adpcm2/21j-7",
+      "label": "Rom",
+      "props": {
+        "file": "21j-7",
+        "offset": 0,
+        "size": 65536,
+        "crc": "904de6f8",
+        "sha1": "3623e5ea05fd7c455992b7ed87e605b87c3850aa",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1175,
+        "sourceColumn": 2,
+        "sourceEndLine": 1175
+      }
+    },
+    {
+      "id": "region:ddragon/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 768,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1177,
+        "sourceColumn": 2,
+        "sourceEndLine": 1177
+      }
+    },
+    {
+      "id": "rom:ddragon/proms/21j-k-0.101",
+      "label": "Rom",
+      "props": {
+        "file": "21j-k-0.101",
+        "offset": 0,
+        "size": 256,
+        "crc": "fdb130a9",
+        "sha1": "4c4f214229b9fab2b5d69c745ec5428787b89e1f",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1178,
+        "sourceColumn": 2,
+        "sourceEndLine": 1178
+      }
+    },
+    {
+      "id": "rom:ddragon/proms/21j-l-0.16",
+      "label": "Rom",
+      "props": {
+        "file": "21j-l-0.16",
+        "offset": 256,
+        "size": 512,
+        "crc": "46339529",
+        "sha1": "64f4c42a826d67b7cbaa8a23a45ebc4eb6248891",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1179,
+        "sourceColumn": 2,
+        "sourceEndLine": 1179
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "ddragon_state",
+        "name": "base_map",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 452,
+        "sourceColumn": 1,
+        "sourceEndLine": 470
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4095,
+        "raw": "map(0x0000, 0x0fff).ram().share(\"rambase\")",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 454,
+        "sourceColumn": 2,
+        "sourceEndLine": 454,
+        "ram": true,
+        "share": "rambase"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 4096,
+        "end": 4607,
+        "raw": "map(0x1000, 0x11ff).ram().w(m_palette, FUNC(palette_device::write8)).share(\"palette\")",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 455,
+        "sourceColumn": 2,
+        "sourceEndLine": 455,
+        "ram": true,
+        "share": "palette"
+      }
+    },
+    {
+      "id": "handler:palette_device.write8",
+      "label": "Handler",
+      "props": {
+        "method": "write8",
+        "ownerClass": "palette_device",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 516,
+        "sourceColumn": 2,
+        "sourceEndLine": 516
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 4608,
+        "end": 5119,
+        "raw": "map(0x1200, 0x13ff).ram().w(m_palette, FUNC(palette_device::write8_ext)).share(\"palette_ext\")",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 456,
+        "sourceColumn": 2,
+        "sourceEndLine": 456,
+        "ram": true,
+        "share": "palette_ext"
+      }
+    },
+    {
+      "id": "handler:palette_device.write8_ext",
+      "label": "Handler",
+      "props": {
+        "method": "write8_ext",
+        "ownerClass": "palette_device",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 517,
+        "sourceColumn": 2,
+        "sourceEndLine": 517
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 6144,
+        "end": 8191,
+        "raw": "map(0x1800, 0x1fff).ram().w(FUNC(ddragon_state::fgvideoram_w)).share(m_fgvideoram)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 457,
+        "sourceColumn": 2,
+        "sourceEndLine": 457,
+        "ram": true,
+        "share": "fgvideoram"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.fgvideoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "fgvideoram_w",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon_v.cpp",
+        "sourceLine": 124,
+        "sourceColumn": 1,
+        "sourceEndLine": 128,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_fgvideoram[offset] = data;\n\tm_fg_tilemap->mark_tile_dirty(offset >> 1);"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 8703,
+        "raw": "map(0x2000, 0x21ff).rw(FUNC(ddragon_state::comram_r), FUNC(ddragon_state::comram_w)).mirror(0x0600)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 458,
+        "sourceColumn": 2,
+        "sourceEndLine": 458,
+        "mirror": 1536
+      }
+    },
+    {
+      "id": "handler:ddragon_state.comram_r",
+      "label": "Handler",
+      "props": {
+        "method": "comram_r",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 367,
+        "sourceColumn": 1,
+        "sourceEndLine": 374,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "// Access to shared RAM is prevented when the sub CPU is active\n\tif (!m_subcpu->suspended(SUSPEND_REASON_RESET | SUSPEND_REASON_HALT))\n\t\treturn 0xff;\n\n\treturn m_comram[offset];"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.comram_w",
+      "label": "Handler",
+      "props": {
+        "method": "comram_w",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 377,
+        "sourceColumn": 1,
+        "sourceEndLine": 383,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "if (!m_subcpu->suspended(SUSPEND_REASON_RESET | SUSPEND_REASON_HALT))\n\t\treturn;\n\n\tm_comram[offset] = data;"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 10240,
+        "end": 12287,
+        "raw": "map(0x2800, 0x2fff).ram().share(m_spriteram)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 459,
+        "sourceColumn": 2,
+        "sourceEndLine": 459,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 14335,
+        "raw": "map(0x3000, 0x37ff).ram().w(FUNC(ddragon_state::bgvideoram_w)).share(m_bgvideoram)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 460,
+        "sourceColumn": 2,
+        "sourceEndLine": 460,
+        "ram": true,
+        "share": "bgvideoram"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.bgvideoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "bgvideoram_w",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon_v.cpp",
+        "sourceLine": 118,
+        "sourceColumn": 1,
+        "sourceEndLine": 122,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_bgvideoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset >> 1);"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 14336,
+        "end": 14336,
+        "raw": "map(0x3800, 0x3800).portr(\"P1\")",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 461,
+        "sourceColumn": 2,
+        "sourceEndLine": 461,
+        "portRead": "P1"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 14337,
+        "end": 14337,
+        "raw": "map(0x3801, 0x3801).portr(\"P2\")",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 462,
+        "sourceColumn": 2,
+        "sourceEndLine": 462,
+        "portRead": "P2"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 14338,
+        "end": 14338,
+        "raw": "map(0x3802, 0x3802).portr(\"EXTRA\")",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 463,
+        "sourceColumn": 2,
+        "sourceEndLine": 463,
+        "portRead": "EXTRA"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 14339,
+        "end": 14339,
+        "raw": "map(0x3803, 0x3803).portr(\"DSW0\")",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 464,
+        "sourceColumn": 2,
+        "sourceEndLine": 464,
+        "portRead": "DSW0"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 14340,
+        "end": 14340,
+        "raw": "map(0x3804, 0x3804).portr(\"DSW1\")",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 465,
+        "sourceColumn": 2,
+        "sourceEndLine": 465,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 14345,
+        "end": 14345,
+        "raw": "map(0x3809, 0x3809).writeonly().share(m_scrollx_lo)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 466,
+        "sourceColumn": 2,
+        "sourceEndLine": 466,
+        "writeonly": true,
+        "share": "scrollx_lo"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 14346,
+        "end": 14346,
+        "raw": "map(0x380a, 0x380a).writeonly().share(m_scrolly_lo)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 467,
+        "sourceColumn": 2,
+        "sourceEndLine": 467,
+        "writeonly": true,
+        "share": "scrolly_lo"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 14347,
+        "end": 14351,
+        "raw": "map(0x380b, 0x380f).rw(FUNC(ddragon_state::interrupt_r), FUNC(ddragon_state::interrupt_w))",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 468,
+        "sourceColumn": 2,
+        "sourceEndLine": 468
+      }
+    },
+    {
+      "id": "handler:ddragon_state.interrupt_r",
+      "label": "Handler",
+      "props": {
+        "method": "interrupt_r",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 286,
+        "sourceColumn": 1,
+        "sourceEndLine": 290,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "interrupt_ack(offset, 0xff);\n\treturn 0xff;"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.interrupt_ack",
+      "label": "Handler",
+      "props": {
+        "method": "interrupt_ack",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 258,
+        "sourceColumn": 1,
+        "sourceEndLine": 283,
+        "sourceConstants": [
+          "M6809_IRQ_LINE=0",
+          "M6809_FIRQ_LINE=1"
+        ],
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "switch (offset)\n\t{\n\t\tcase 0: // 380b - NMI ack\n\t\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);\n\t\t\tbreak;\n\n\t\tcase 1: // 380c - FIRQ ack\n\t\t\tm_maincpu->set_input_line(M6809_FIRQ_LINE, CLEAR_LINE);\n\t\t\tbreak;\n\n\t\tcase 2: // 380d - IRQ ack\n\t\t\tm_maincpu->set_input_line(M6809_IRQ_LINE, CLEAR_LINE);\n\t\t\tbreak;\n\n\t\tcase 3: // 380e - SND IRQ and latch\n\t\t\tm_soundlatch->write(data);\n\t\t\tbreak;\n\n\t\tcase 4: // 380f - MCU IRQ\n\t\t\tif (m_subcpu)\n\t\t\t\tm_subcpu->set_input_line(m_sprite_irq, ASSERT_LINE);\n\t\t\tbreak;\n\t}"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.interrupt_w",
+      "label": "Handler",
+      "props": {
+        "method": "interrupt_w",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 293,
+        "sourceColumn": 1,
+        "sourceEndLine": 296,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "interrupt_ack(offset, data);"
+      }
+    },
+    {
+      "id": "map:ddragon_state.base_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 65535,
+        "raw": "map(0x8000, 0xffff).rom()",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 469,
+        "sourceColumn": 2,
+        "sourceEndLine": 469,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "ddragon_state",
+        "name": "ddragon_main_map",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 472,
+        "sourceColumn": 1,
+        "sourceEndLine": 477,
+        "calls": [
+          "base_map"
+        ]
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 14344,
+        "end": 14344,
+        "raw": "map(0x3808, 0x3808).w(FUNC(ddragon_state::bankswitch_w))",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 475,
+        "sourceColumn": 2,
+        "sourceEndLine": 475
+      }
+    },
+    {
+      "id": "handler:ddragon_state.bankswitch_w",
+      "label": "Handler",
+      "props": {
+        "method": "bankswitch_w",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 163,
+        "sourceColumn": 1,
+        "sourceEndLine": 181,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "/*\n\t    76543210\n\t    .......x    X-scroll D9 (H9BT)\n\t    ......x.    Y-scroll D9 (V9BT)\n\t    .....x..    /Screen flip (*1P/2P)\n\t    ....x...    /Sub CPU reset (*RESET)\n\t    ...x....    /Sub CPU halt (*HALT)\n\t    xxx.....    ROM bank (*BANK)\n\t*/\n\tm_scrollx_hi = data & 0x01;\n\tm_scrolly_hi = (data & 0x02) >> 1;\n\tflip_screen_set(~data & 0x04);\n\n\tm_subcpu->set_input_line(INPUT_LINE_RESET, data & 0x08 ? CLEAR_LINE : ASSERT_LINE);\n\tm_subcpu->set_input_line(INPUT_LINE_HALT, data & 0x10 ? ASSERT_LINE : CLEAR_LINE);\n\tm_mainbank->set_entry((data & 0xe0) >> 5);"
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 32767,
+        "raw": "map(0x4000, 0x7fff).bankr(m_mainbank)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 476,
+        "sourceColumn": 2,
+        "sourceEndLine": 476,
+        "bankRead": "mainbank"
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_sub_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "ddragon_state",
+        "name": "ddragon_sub_map",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 529,
+        "sourceColumn": 1,
+        "sourceEndLine": 532
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_sub_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 33279,
+        "raw": "map(0x8000, 0x81ff).ram().share(m_comram)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 531,
+        "sourceColumn": 2,
+        "sourceEndLine": 531,
+        "ram": true,
+        "share": "comram"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.sub_port6_w",
+      "label": "Handler",
+      "props": {
+        "method": "sub_port6_w",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 347,
+        "sourceColumn": 1,
+        "sourceEndLine": 357,
+        "sourceConstants": [
+          "M6809_IRQ_LINE=0"
+        ],
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// Port 6\n\tif ((data & 0x1) == 0)\n\t\tm_subcpu->set_input_line(m_sprite_irq, CLEAR_LINE);\n\n\tif (!(m_ddragon_sub_port & 0x2) && (data & 0x2))\n\t\tm_maincpu->set_input_line(M6809_IRQ_LINE, ASSERT_LINE);\n\n\tm_ddragon_sub_port = data;"
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "ddragon_state",
+        "name": "ddragon_sound_map",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 571,
+        "sourceColumn": 1,
+        "sourceEndLine": 579
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4095,
+        "raw": "map(0x0000, 0x0fff).ram()",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 573,
+        "sourceColumn": 2,
+        "sourceEndLine": 573,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 4096,
+        "end": 4096,
+        "raw": "map(0x1000, 0x1000).r(m_soundlatch, FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 574,
+        "sourceColumn": 2,
+        "sourceEndLine": 574
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 593,
+        "sourceColumn": 2,
+        "sourceEndLine": 593
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 6144,
+        "end": 6144,
+        "raw": "map(0x1800, 0x1800).r(FUNC(ddragon_state::ddragon_adpcm_status_r))",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 575,
+        "sourceColumn": 2,
+        "sourceEndLine": 575
+      }
+    },
+    {
+      "id": "handler:ddragon_state.ddragon_adpcm_status_r",
+      "label": "Handler",
+      "props": {
+        "method": "ddragon_adpcm_status_r",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 439,
+        "sourceColumn": 1,
+        "sourceEndLine": 442,
+        "sourceParameters": "",
+        "sourceBody": "return (m_adpcm_idle[0] ? 1 : 0) | (m_adpcm_idle[1] ? 2 : 0);"
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 10240,
+        "end": 10241,
+        "raw": "map(0x2800, 0x2801).rw(\"fmsnd\", FUNC(ym2151_device::read), FUNC(ym2151_device::write))",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 576,
+        "sourceColumn": 2,
+        "sourceEndLine": 576
+      }
+    },
+    {
+      "id": "handler:ym2151_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591
+      }
+    },
+    {
+      "id": "handler:ym2151_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 14336,
+        "end": 14343,
+        "raw": "map(0x3800, 0x3807).w(FUNC(ddragon_state::ddragon_adpcm_w))",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 577,
+        "sourceColumn": 2,
+        "sourceEndLine": 577
+      }
+    },
+    {
+      "id": "handler:ddragon_state.ddragon_adpcm_w",
+      "label": "Handler",
+      "props": {
+        "method": "ddragon_adpcm_w",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 393,
+        "sourceColumn": 1,
+        "sourceEndLine": 417,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "int const chip = offset & 1;\n\n\tswitch (offset >> 1)\n\t{\n\t\tcase 3:\n\t\t\tm_adpcm_idle[chip] = true;\n\t\t\tm_adpcm[chip]->reset_w(1);\n\t\t\tbreak;\n\n\t\tcase 2:\n\t\t\tm_adpcm_pos[chip] = (data & 0x7f) << 9;\n\t\t\tbreak;\n\n\t\tcase 1:\n\t\t\tm_adpcm_end[chip] = (data & 0x7f) << 9;\n\t\t\tbreak;\n\n\t\tcase 0:\n\t\t\tm_adpcm_idle[chip] = false;\n\t\t\tm_adpcm[chip]->reset_w(0);\n\t\t\tbreak;\n\t}"
+      }
+    },
+    {
+      "id": "map:ddragon_state.ddragon_sound_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 65535,
+        "raw": "map(0x8000, 0xffff).rom()",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 578,
+        "sourceColumn": 2,
+        "sourceEndLine": 578,
+        "rom": true
+      }
+    },
+    {
+      "id": "machine:ddragon_state.ddragon",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "ddragon_state",
+        "name": "ddragon",
+        "calls": [],
+        "resetHandlers": [
+          "ddragon_state.machine_reset"
+        ],
+        "startHandlers": [
+          "ddragon_state.video_start"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 941,
+        "sourceColumn": 1,
+        "sourceEndLine": 986
+      }
+    },
+    {
+      "id": "handler:ddragon_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 144,
+        "sourceColumn": 1,
+        "sourceEndLine": 153,
+        "sourceParameters": "",
+        "sourceBody": "m_scrollx_hi = 0;\n\tm_scrolly_hi = 0;\n\tm_ddragon_sub_port = 0;\n\tm_adpcm_pos[0] = m_adpcm_pos[1] = 0;\n\tm_adpcm_end[0] = m_adpcm_end[1] = 0;\n\tm_adpcm_idle[0] = m_adpcm_idle[1] = true;\n\tm_adpcm_data[0] = m_adpcm_data[1] = -1;"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon_v.cpp",
+        "sourceLine": 99,
+        "sourceColumn": 1,
+        "sourceEndLine": 109,
+        "sourceParameters": "",
+        "sourceBody": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(ddragon_state::get_bg_tile_info)), tilemap_mapper_delegate(*this, FUNC(ddragon_state::background_scan)), 16, 16, 32, 32);\n\tm_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(ddragon_state::get_fg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\n\tm_fg_tilemap->set_transparent_pen(0);\n\tm_fg_tilemap->set_scrolldx(0, 0);\n\tm_bg_tilemap->set_scrolldx(0, 0);\n\tm_fg_tilemap->set_scrolldy(-8, -8);\n\tm_bg_tilemap->set_scrolldy(-8, -8);"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon_v.cpp",
+        "sourceLine": 62,
+        "sourceColumn": 1,
+        "sourceEndLine": 70,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "tile_index <<= 1;\n\tuint8_t const attr = m_bgvideoram[tile_index];\n\ttileinfo.set(2,\n\t\t\tm_bgvideoram[tile_index | 1] | ((attr & 0x07) << 8),\n\t\t\t(attr >> 3) & 0x07,\n\t\t\tTILE_FLIPYX((attr & 0xc0) >> 6));"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.background_scan",
+      "label": "Handler",
+      "props": {
+        "method": "background_scan",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon_v.cpp",
+        "sourceLine": 56,
+        "sourceColumn": 1,
+        "sourceEndLine": 60,
+        "sourceParameters": "u32 col, u32 row, u32 num_cols, u32 num_rows",
+        "sourceBody": "// logical (col,row) -> memory offset\n\treturn (col & 0x0f) | ((row & 0x0f) << 4) | ((col & 0x10) << 4) | ((row & 0x10) << 5);"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.get_fg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_fg_tile_info",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon_v.cpp",
+        "sourceLine": 72,
+        "sourceColumn": 1,
+        "sourceEndLine": 80,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "tile_index <<= 1;\n\tuint8_t const attr = m_fgvideoram[tile_index];\n\ttileinfo.set(0,\n\t\t\tm_fgvideoram[tile_index | 1] | ((attr & 0x07) << 8),\n\t\t\tattr >> 5,\n\t\t\t0);"
+      }
+    },
+    {
+      "id": "bank:ddragon_state.ddragon/mainbank",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "mainbank",
+        "member": "m_mainbank",
+        "startEntry": 0,
+        "entries": 8,
+        "region": "maincpu",
+        "offset": 65536,
+        "stride": 16384,
+        "raw": "m_mainbank->configure_entries(0, 8, memregion(\"maincpu\")->base() + 0x10000, 0x4000)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 127,
+        "sourceColumn": 1,
+        "sourceEndLine": 141
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "HD6309E",
+        "tag": "maincpu",
+        "clock": 3000000,
+        "config": [
+          "HD6309E(config, m_maincpu, MAIN_CLOCK / 4)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &ddragon_state::ddragon_main_map)"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 944,
+        "sourceColumn": 2,
+        "sourceEndLine": 944
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/scantimer",
+      "label": "Device",
+      "props": {
+        "type": "TIMER",
+        "tag": "scantimer",
+        "clock": null,
+        "config": [
+          "TIMER(config, \"scantimer\").configure_scanline(FUNC(ddragon_state::scanline), \"screen\", 0, 1)"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 946,
+        "sourceColumn": 2,
+        "sourceEndLine": 946
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/scantimer/callback:scantimer:0",
+      "label": "Callback",
+      "props": {
+        "signal": "configure_scanline",
+        "operation": "configure_scanline",
+        "raw": "TIMER(config, \"scantimer\").configure_scanline(FUNC(ddragon_state::scanline), \"screen\", 0, 1)",
+        "ownerTag": "scantimer",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 946,
+        "sourceColumn": 2,
+        "sourceEndLine": 946,
+        "scanlineStart": 0,
+        "scanlineIncrement": 1,
+        "targetClass": "ddragon_state",
+        "targetMethod": "scanline"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.scanline",
+      "label": "Handler",
+      "props": {
+        "method": "scanline",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 99,
+        "sourceColumn": 1,
+        "sourceEndLine": 117,
+        "sourceConstants": [
+          "M6809_FIRQ_LINE=1"
+        ],
+        "sourceParameters": "int param",
+        "sourceBody": "int const scanline = param;\n\tint const screen_height = m_screen->height();\n\tint const vcount_old = scanline_to_vcount((scanline == 0) ? screen_height - 1 : scanline - 1);\n\tint const vcount = scanline_to_vcount(scanline);\n\n\t// update to the current point\n\tif (scanline > 0)\n\t\tm_screen->update_partial(scanline - 1);\n\n\t// on the rising edge of VBLK (vcount == F8), signal an NMI\n\tif (vcount == 0xf8)\n\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);\n\n\t// set 1ms signal on rising edge of vcount & 8\n\tif (!(vcount_old & 8) && (vcount & 8))\n\t\tm_maincpu->set_input_line(M6809_FIRQ_LINE, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.scanline_to_vcount",
+      "label": "Handler",
+      "props": {
+        "method": "scanline_to_vcount",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 90,
+        "sourceColumn": 1,
+        "sourceEndLine": 97,
+        "sourceParameters": "int scanline",
+        "sourceBody": "int vcount = scanline + 8;\n\tif (vcount < 0x100)\n\t\treturn vcount;\n\telse\n\t\treturn (vcount - 0x18) | 0x100;"
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/sub",
+      "label": "Device",
+      "props": {
+        "type": "HD63701Y0",
+        "tag": "sub",
+        "clock": 6000000,
+        "config": [
+          "hd63701y0_cpu_device &subcpu(HD63701Y0(config, m_subcpu, MAIN_CLOCK / 2))",
+          "subcpu.set_addrmap(AS_PROGRAM, &ddragon_state::ddragon_sub_map)",
+          "subcpu.out_p6_cb().set(FUNC(ddragon_state::sub_port6_w))"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 948,
+        "sourceColumn": 2,
+        "sourceEndLine": 948
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/sub/callback:sub:0",
+      "label": "Callback",
+      "props": {
+        "signal": "out_p6_cb",
+        "operation": "set",
+        "raw": "subcpu.out_p6_cb().set(FUNC(ddragon_state::sub_port6_w))",
+        "ownerTag": "sub",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 950,
+        "sourceColumn": 2,
+        "sourceEndLine": 950,
+        "targetClass": "ddragon_state",
+        "targetMethod": "sub_port6_w"
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/soundcpu",
+      "label": "Device",
+      "props": {
+        "type": "MC6809",
+        "tag": "soundcpu",
+        "clock": 6000000,
+        "config": [
+          "MC6809(config, m_soundcpu, MAIN_CLOCK / 2)",
+          "m_soundcpu->set_addrmap(AS_PROGRAM, &ddragon_state::ddragon_sound_map)"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 952,
+        "sourceColumn": 2,
+        "sourceEndLine": 952
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_ddragon)"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 958,
+        "sourceColumn": 2,
+        "sourceEndLine": 958,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_format(palette_device::xBGR_444, 512)"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 959,
+        "sourceColumn": 2,
+        "sourceEndLine": 959
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(PIXEL_CLOCK, 384, 0, 256, 272, 0, 240)",
+          "m_screen->set_screen_update(FUNC(ddragon_state::screen_update))",
+          "m_screen->set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 961,
+        "sourceColumn": 2,
+        "sourceEndLine": 961,
+        "configCalls": [
+          "set_raw(6000000,384,0,256,272,0,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6000000,
+          384,
+          0,
+          256,
+          272,
+          0,
+          240
+        ]
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(ddragon_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 963,
+        "sourceColumn": 2,
+        "sourceEndLine": 963,
+        "targetClass": "ddragon_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon_v.cpp",
+        "sourceLine": 220,
+        "sourceColumn": 1,
+        "sourceEndLine": 232,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "int const scrollx = (m_scrollx_hi << 8) | *m_scrollx_lo;\n\tint const scrolly = (m_scrolly_hi << 8) | *m_scrolly_lo;\n\n\tm_bg_tilemap->set_scrollx(0, scrollx);\n\tm_bg_tilemap->set_scrolly(0, scrolly);\n\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\tdraw_sprites(bitmap, cliprect);\n\tm_fg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon_v.cpp",
+        "sourceLine": 141,
+        "sourceColumn": 1,
+        "sourceEndLine": 215,
+        "sourceParameters": "bitmap_ind16 &bitmap,const rectangle &cliprect",
+        "sourceBody": "gfx_element *gfx = m_gfxdecode->gfx(1);\n\tconst uint8_t *src = m_spriteram;\n\tconst uint32_t bytes = m_spriteram.bytes();\n\n\tfor (uint32_t i = 0; i < bytes; i += 5)\n\t{\n\t\tint const attr = src[i + 1];\n\t\tif (attr & 0x80)  // visible\n\t\t{\n\t\t\tint sx = 240 - src[i + 4] + ((attr & 2) << 7);\n\t\t\tint sy = 232 - src[i + 0] + ((attr & 1) << 8);\n\t\t\tint const size = (attr & 0x30) >> 4;\n\t\t\tint flipx = attr & 8;\n\t\t\tint flipy = attr & 4;\n\t\t\tint dx = -16, dy = -16;\n\n\t\t\tint which;\n\t\t\tint color;\n\n\t\t\tif (m_technos_video_hw == 2)     // Double Dragon 2\n\t\t\t{\n\t\t\t\tcolor = src[i + 2] >> 5;\n\t\t\t\twhich = src[i + 3] | ((src[i + 2] & 0x1f) << 8);\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tif (m_technos_video_hw == 1)     // China Gate\n\t\t\t\t{\n\t\t\t\t\tif ((sx < -7) && (sx > -16)) sx += 256; // fix sprite clip\n\t\t\t\t\tif ((sy < -7) && (sy > -16)) sy += 256; // fix sprite clip\n\t\t\t\t}\n\t\t\t\tcolor = src[i + 2] >> 4;\n\t\t\t\twhich = src[i + 3] | ((src[i + 2] & 0x0f) << 8);\n\t\t\t}\n\n\t\t\tif (flip_screen())\n\t\t\t{\n\t\t\t\tsx = 240 - sx;\n\t\t\t\tsy = 240 - 16 - sy;\n\t\t\t\tflipx = !flipx;\n\t\t\t\tflipy = !flipy;\n\t\t\t\tdx = -dx;\n\t\t\t\tdy = -dy;\n\t\t\t}\n\n\t\t\twhich &= ~size;\n\n\t\t\tswitch (size)\n\t\t\t{\n\t\t\t\tcase 0: // normal\n\t\t\t\tDRAW_SPRITE(0, sx, sy);\n\t\t\t\tbreak;\n\n\t\t\t\tcase 1: // double y\n\t\t\t\tDRAW_SPRITE(0, sx, sy + dy);\n\t\t\t\tDRAW_SPRITE(1, sx, sy);\n\t\t\t\tbreak;\n\n\t\t\t\tcase 2: // double x\n\t\t\t\tDRAW_SPRITE(0, sx + dx, sy);\n\t\t\t\tDRAW_SPRITE(2, sx, sy);\n\t\t\t\tbreak;\n\n\t\t\t\tcase 3:\n\t\t\t\tDRAW_SPRITE(0, sx + dx, sy + dy);\n\t\t\t\tDRAW_SPRITE(1, sx + dx, sy);\n\t\t\t\tDRAW_SPRITE(2, sx, sy + dy);\n\t\t\t\tDRAW_SPRITE(3, sx, sy);\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 967,
+        "sourceColumn": 2,
+        "sourceEndLine": 967
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch)",
+          "m_soundlatch->data_pending_callback().set_inputline(m_soundcpu, M6809_IRQ_LINE)"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 969,
+        "sourceColumn": 2,
+        "sourceEndLine": 969
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/soundlatch/callback:soundlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "data_pending_callback",
+        "operation": "set_inputline",
+        "raw": "m_soundlatch->data_pending_callback().set_inputline(m_soundcpu, M6809_IRQ_LINE)",
+        "ownerTag": "soundlatch",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 970,
+        "sourceColumn": 2,
+        "sourceEndLine": 970,
+        "inputLine": "M6809_IRQ_LINE",
+        "targetTag": "soundcpu"
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/fmsnd",
+      "label": "Device",
+      "props": {
+        "type": "YM2151",
+        "tag": "fmsnd",
+        "clock": 3579545,
+        "config": [
+          "ym2151_device &fmsnd(YM2151(config, \"fmsnd\", SOUND_CLOCK))",
+          "fmsnd.irq_handler().set_inputline(m_soundcpu, M6809_FIRQ_LINE)",
+          "fmsnd.add_route(0, \"mono\", 0.35)",
+          "fmsnd.add_route(1, \"mono\", 0.35)"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 972,
+        "sourceColumn": 2,
+        "sourceEndLine": 972
+      }
+    },
+    {
+      "id": "audioroute:device:ddragon_state.ddragon/fmsnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "mono",
+        "gain": 0.35,
+        "raw": "fmsnd.add_route(0, \"mono\", 0.35)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 974,
+        "sourceColumn": 2,
+        "sourceEndLine": 974
+      }
+    },
+    {
+      "id": "audioroute:device:ddragon_state.ddragon/fmsnd/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "mono",
+        "gain": 0.35,
+        "raw": "fmsnd.add_route(1, \"mono\", 0.35)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 975,
+        "sourceColumn": 2,
+        "sourceEndLine": 975
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/fmsnd/callback:fmsnd:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_handler",
+        "operation": "set_inputline",
+        "raw": "fmsnd.irq_handler().set_inputline(m_soundcpu, M6809_FIRQ_LINE)",
+        "ownerTag": "fmsnd",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 973,
+        "sourceColumn": 2,
+        "sourceEndLine": 973,
+        "inputLine": "M6809_FIRQ_LINE",
+        "targetTag": "soundcpu"
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/adpcm1",
+      "label": "Device",
+      "props": {
+        "type": "MSM5205",
+        "tag": "adpcm1",
+        "clock": 375000,
+        "config": [
+          "MSM5205(config, m_adpcm[0], MAIN_CLOCK / 32)",
+          "m_adpcm[0]->vck_legacy_callback().set(FUNC(ddragon_state::ddragon_adpcm_int<0>))",
+          "m_adpcm[0]->set_prescaler_selector(msm5205_device::S48_4B)",
+          "m_adpcm[0]->add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 977,
+        "sourceColumn": 2,
+        "sourceEndLine": 977
+      }
+    },
+    {
+      "id": "audioroute:device:ddragon_state.ddragon/adpcm1/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "m_adpcm[0]->add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 980,
+        "sourceColumn": 2,
+        "sourceEndLine": 980
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/adpcm1/callback:adpcm1:0",
+      "label": "Callback",
+      "props": {
+        "signal": "vck_legacy_callback",
+        "operation": "set",
+        "raw": "m_adpcm[0]->vck_legacy_callback().set(FUNC(ddragon_state::ddragon_adpcm_int<0>))",
+        "ownerTag": "adpcm1",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 978,
+        "sourceColumn": 2,
+        "sourceEndLine": 978,
+        "targetClass": "ddragon_state",
+        "targetMethod": "ddragon_adpcm_int_0"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.ddragon_adpcm_int_0",
+      "label": "Handler",
+      "props": {
+        "method": "ddragon_adpcm_int_0",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 420,
+        "sourceColumn": 1,
+        "sourceEndLine": 437,
+        "sourceConstants": [
+          "Which=0"
+        ],
+        "sourceParameters": "int state",
+        "sourceBody": "if (m_adpcm_pos[Which] >= m_adpcm_end[Which] || m_adpcm_pos[Which] >= m_adpcm_rom[Which].length())\n\t{\n\t\tm_adpcm_idle[Which] = true;\n\t\tm_adpcm[Which]->reset_w(1);\n\t}\n\telse if (m_adpcm_data[Which] != -1)\n\t{\n\t\tm_adpcm[Which]->data_w(m_adpcm_data[Which] & 0x0f);\n\t\tm_adpcm_data[Which] = -1;\n\t}\n\telse\n\t{\n\t\tm_adpcm_data[Which] = m_adpcm_rom[Which][m_adpcm_pos[Which]++];\n\t\tm_adpcm[Which]->data_w(m_adpcm_data[Which] >> 4);\n\t}"
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/adpcm2",
+      "label": "Device",
+      "props": {
+        "type": "MSM5205",
+        "tag": "adpcm2",
+        "clock": 375000,
+        "config": [
+          "MSM5205(config, m_adpcm[1], MAIN_CLOCK / 32)",
+          "m_adpcm[1]->vck_legacy_callback().set(FUNC(ddragon_state::ddragon_adpcm_int<1>))",
+          "m_adpcm[1]->set_prescaler_selector(msm5205_device::S48_4B)",
+          "m_adpcm[1]->add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 982,
+        "sourceColumn": 2,
+        "sourceEndLine": 982
+      }
+    },
+    {
+      "id": "audioroute:device:ddragon_state.ddragon/adpcm2/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "m_adpcm[1]->add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 985,
+        "sourceColumn": 2,
+        "sourceEndLine": 985
+      }
+    },
+    {
+      "id": "device:ddragon_state.ddragon/adpcm2/callback:adpcm2:0",
+      "label": "Callback",
+      "props": {
+        "signal": "vck_legacy_callback",
+        "operation": "set",
+        "raw": "m_adpcm[1]->vck_legacy_callback().set(FUNC(ddragon_state::ddragon_adpcm_int<1>))",
+        "ownerTag": "adpcm2",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 983,
+        "sourceColumn": 2,
+        "sourceEndLine": 983,
+        "targetClass": "ddragon_state",
+        "targetMethod": "ddragon_adpcm_int_1"
+      }
+    },
+    {
+      "id": "handler:ddragon_state.ddragon_adpcm_int_1",
+      "label": "Handler",
+      "props": {
+        "method": "ddragon_adpcm_int_1",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 420,
+        "sourceColumn": 1,
+        "sourceEndLine": 437,
+        "sourceConstants": [
+          "Which=1"
+        ],
+        "sourceParameters": "int state",
+        "sourceBody": "if (m_adpcm_pos[Which] >= m_adpcm_end[Which] || m_adpcm_pos[Which] >= m_adpcm_rom[Which].length())\n\t{\n\t\tm_adpcm_idle[Which] = true;\n\t\tm_adpcm[Which]->reset_w(1);\n\t}\n\telse if (m_adpcm_data[Which] != -1)\n\t{\n\t\tm_adpcm[Which]->data_w(m_adpcm_data[Which] & 0x0f);\n\t\tm_adpcm_data[Which] = -1;\n\t}\n\telse\n\t{\n\t\tm_adpcm_data[Which] = m_adpcm_rom[Which][m_adpcm_pos[Which]++];\n\t\tm_adpcm[Which]->data_w(m_adpcm_data[Which] >> 4);\n\t}"
+      }
+    },
+    {
+      "id": "inputs:ddragon",
+      "label": "InputPorts",
+      "props": {
+        "name": "ddragon",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 603,
+        "sourceColumn": 8,
+        "sourceEndLine": 603
+      }
+    },
+    {
+      "id": "inputs:ddragon/P1",
+      "label": "Port",
+      "props": {
+        "tag": "P1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ddragon/P1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/P1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/P1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/P1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/P1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1"
+      }
+    },
+    {
+      "id": "inputs:ddragon/P1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2"
+      }
+    },
+    {
+      "id": "inputs:ddragon/P1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:ddragon/P1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:ddragon/P2",
+      "label": "Port",
+      "props": {
+        "tag": "P2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ddragon/P2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/P2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/P2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/P2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/P2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/P2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/P2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_COIN1"
+      }
+    },
+    {
+      "id": "inputs:ddragon/P2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_COIN2"
+      }
+    },
+    {
+      "id": "inputs:ddragon/DSW0",
+      "label": "Port",
+      "props": {
+        "tag": "DSW0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ddragon/DSW0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 7,
+        "name": "Coin A",
+        "defaultValue": 7,
+        "location": "SW1:1,2,3",
+        "settings": [
+          "0=4C 1C",
+          "1=3C 1C",
+          "2=2C 1C",
+          "7=1C 1C",
+          "6=1C 2C",
+          "5=1C 3C",
+          "4=1C 4C",
+          "3=1C 5C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/DSW0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 56,
+        "name": "Coin B",
+        "defaultValue": 56,
+        "location": "SW1:4,5,6",
+        "settings": [
+          "0=4C 1C",
+          "8=3C 1C",
+          "16=2C 1C",
+          "56=1C 1C",
+          "48=1C 2C",
+          "40=1C 3C",
+          "32=1C 4C",
+          "24=1C 5C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/DSW0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Cabinet",
+        "defaultValue": 64,
+        "location": "SW1:7",
+        "settings": [
+          "64=Upright",
+          "0=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/DSW0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Flip Screen",
+        "defaultValue": 128,
+        "location": "SW1:8",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ddragon/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Difficulty",
+        "defaultValue": 3,
+        "location": "SW2:1,2",
+        "settings": [
+          "1=Easy",
+          "3=Medium",
+          "2=Hard",
+          "0=Hardest"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Demo Sounds",
+        "defaultValue": 4,
+        "location": "SW2:3",
+        "settings": [
+          "0=Off",
+          "4=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused"
+      }
+    },
+    {
+      "id": "inputs:ddragon/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "name": "Bonus Life",
+        "defaultValue": 48,
+        "location": "SW2:5,6",
+        "settings": [
+          "16=20k",
+          "0=40k",
+          "48=30k and every 60k",
+          "32=40k and every 80k"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 192,
+        "name": "Lives",
+        "defaultValue": 192,
+        "location": "SW2:7,8",
+        "settings": [
+          "192=2",
+          "128=3",
+          "64=4",
+          "0=Infinite (Cheat)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/EXTRA",
+      "label": "Port",
+      "props": {
+        "tag": "EXTRA",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:ddragon/EXTRA/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_SERVICE1"
+      }
+    },
+    {
+      "id": "inputs:ddragon/EXTRA/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON3"
+      }
+    },
+    {
+      "id": "inputs:ddragon/EXTRA/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/EXTRA/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"screen\", FUNC(screen_device::vblank))"
+        ]
+      }
+    },
+    {
+      "id": "inputs:ddragon/EXTRA/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_MEMBER(FUNC(ddragon_state::subcpu_bus_free_r))"
+        ]
+      }
+    },
+    {
+      "id": "handler:ddragon_state.subcpu_bus_free_r",
+      "label": "Handler",
+      "props": {
+        "method": "subcpu_bus_free_r",
+        "ownerClass": "ddragon_state",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 330,
+        "sourceColumn": 1,
+        "sourceEndLine": 337,
+        "sourceParameters": "",
+        "sourceBody": "// Corresponds to BA (Bus Available) on the HD63701\n\tif (m_subcpu)\n\t\treturn m_subcpu->suspended(SUSPEND_REASON_RESET | SUSPEND_REASON_HALT);\n\telse\n\t\treturn 0;"
+      }
+    },
+    {
+      "id": "inputs:ddragon/EXTRA/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 224,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "gfxlayout:char_layout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "char_layout",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          2,
+          4,
+          6
+        ],
+        "xOffsets": [
+          1,
+          0,
+          65,
+          64,
+          129,
+          128,
+          193,
+          192
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:tile_layout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "tile_layout",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)+0",
+          "RGN_FRAC(1,2)+4",
+          0,
+          4
+        ],
+        "xOffsets": [
+          3,
+          2,
+          1,
+          0,
+          131,
+          130,
+          129,
+          128,
+          259,
+          258,
+          257,
+          256,
+          387,
+          386,
+          385,
+          384
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "charIncrement": 512
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_ddragon",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_ddragon",
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 924,
+        "sourceColumn": 8,
+        "sourceEndLine": 924
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_ddragon/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "chars",
+        "offset": 0,
+        "layout": "char_layout",
+        "colorBase": 0,
+        "colorCount": 8,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_ddragon/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "tile_layout",
+        "colorBase": 128,
+        "colorCount": 8,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_ddragon/e2",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles",
+        "offset": 0,
+        "layout": "tile_layout",
+        "colorBase": 256,
+        "colorCount": 8,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:ddragon",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 2438,
+        "sourceColumn": 1,
+        "sourceEndLine": 2438
+      }
+    },
+    {
+      "from": "game:ddragon",
+      "to": "machine:ddragon_state.ddragon",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:ddragon",
+      "to": "inputs:ddragon",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:ddragon",
+      "to": "romset:ddragon",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/technos/ddragon.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/ddragon.cpp",
+      "to": "file:ddragon.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/ddragon.cpp",
+      "to": "file:cpu/m6800/m6801.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/ddragon.cpp",
+      "to": "file:cpu/m6809/hd6309.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/ddragon.cpp",
+      "to": "file:cpu/m6809/m6809.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/ddragon.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/ddragon.cpp",
+      "to": "file:sound/okim6295.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/ddragon.cpp",
+      "to": "file:sound/ymopm.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/ddragon.cpp",
+      "to": "file:sound/ymopn.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/ddragon.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 941,
+        "sourceColumn": 1,
+        "sourceEndLine": 986
+      }
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "handler:ddragon_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "handler:ddragon_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "bank:ddragon_state.ddragon/mainbank",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/scantimer",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/sub",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/soundcpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "gfxdecode:gfx_ddragon",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/fmsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/adpcm1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:ddragon_state.ddragon",
+      "to": "device:ddragon_state.ddragon/adpcm2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:ddragon",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 603,
+        "sourceColumn": 8,
+        "sourceEndLine": 603
+      }
+    },
+    {
+      "from": "inputs:ddragon",
+      "to": "inputs:ddragon/P1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:ddragon",
+      "to": "inputs:ddragon/P2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:ddragon",
+      "to": "inputs:ddragon/DSW0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:ddragon",
+      "to": "inputs:ddragon/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:ddragon",
+      "to": "inputs:ddragon/EXTRA",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:ddragon",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 1139,
+        "sourceColumn": 1,
+        "sourceEndLine": 1139
+      }
+    },
+    {
+      "from": "romset:ddragon",
+      "to": "region:ddragon/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ddragon",
+      "to": "region:ddragon/sub",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ddragon",
+      "to": "region:ddragon/soundcpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ddragon",
+      "to": "region:ddragon/chars",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ddragon",
+      "to": "region:ddragon/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ddragon",
+      "to": "region:ddragon/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ddragon",
+      "to": "region:ddragon/adpcm1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ddragon",
+      "to": "region:ddragon/adpcm2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:ddragon",
+      "to": "region:ddragon/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:ddragon_state.video_start",
+      "to": "handler:ddragon_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:ddragon_state.video_start",
+      "to": "handler:ddragon_state.background_scan",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:ddragon_state.video_start",
+      "to": "handler:ddragon_state.get_fg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "bank:ddragon_state.ddragon/mainbank",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 127,
+        "sourceColumn": 1,
+        "sourceEndLine": 141
+      }
+    },
+    {
+      "from": "device:ddragon_state.ddragon/maincpu",
+      "to": "map:ddragon_state.ddragon_main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:ddragon_state.ddragon/scantimer",
+      "to": "device:ddragon_state.ddragon/scantimer/callback:scantimer:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/sub",
+      "to": "device:ddragon_state.ddragon/sub/callback:sub:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/sub",
+      "to": "map:ddragon_state.ddragon_sub_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:ddragon_state.ddragon/soundcpu",
+      "to": "map:ddragon_state.ddragon_sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_ddragon",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 924,
+        "sourceColumn": 8,
+        "sourceEndLine": 924
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_ddragon",
+      "to": "gfxdecode:gfx_ddragon/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_ddragon",
+      "to": "gfxdecode:gfx_ddragon/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_ddragon",
+      "to": "gfxdecode:gfx_ddragon/e2",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/screen",
+      "to": "device:ddragon_state.ddragon/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/soundlatch",
+      "to": "device:ddragon_state.ddragon/soundlatch/callback:soundlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/fmsnd",
+      "to": "audioroute:device:ddragon_state.ddragon/fmsnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/fmsnd",
+      "to": "audioroute:device:ddragon_state.ddragon/fmsnd/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/fmsnd",
+      "to": "device:ddragon_state.ddragon/fmsnd/callback:fmsnd:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/adpcm1",
+      "to": "audioroute:device:ddragon_state.ddragon/adpcm1/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/adpcm1",
+      "to": "device:ddragon_state.ddragon/adpcm1/callback:adpcm1:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/adpcm2",
+      "to": "audioroute:device:ddragon_state.ddragon/adpcm2/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/adpcm2",
+      "to": "device:ddragon_state.ddragon/adpcm2/callback:adpcm2:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "inputs:ddragon/P1",
+      "to": "inputs:ddragon/P1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P1",
+      "to": "inputs:ddragon/P1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P1",
+      "to": "inputs:ddragon/P1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P1",
+      "to": "inputs:ddragon/P1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P1",
+      "to": "inputs:ddragon/P1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P1",
+      "to": "inputs:ddragon/P1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P1",
+      "to": "inputs:ddragon/P1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P1",
+      "to": "inputs:ddragon/P1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P2",
+      "to": "inputs:ddragon/P2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P2",
+      "to": "inputs:ddragon/P2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P2",
+      "to": "inputs:ddragon/P2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P2",
+      "to": "inputs:ddragon/P2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P2",
+      "to": "inputs:ddragon/P2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P2",
+      "to": "inputs:ddragon/P2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P2",
+      "to": "inputs:ddragon/P2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/P2",
+      "to": "inputs:ddragon/P2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/DSW0",
+      "to": "inputs:ddragon/DSW0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/DSW0",
+      "to": "inputs:ddragon/DSW0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/DSW0",
+      "to": "inputs:ddragon/DSW0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/DSW0",
+      "to": "inputs:ddragon/DSW0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/DSW1",
+      "to": "inputs:ddragon/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/DSW1",
+      "to": "inputs:ddragon/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/DSW1",
+      "to": "inputs:ddragon/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/DSW1",
+      "to": "inputs:ddragon/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/DSW1",
+      "to": "inputs:ddragon/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/EXTRA",
+      "to": "inputs:ddragon/EXTRA/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/EXTRA",
+      "to": "inputs:ddragon/EXTRA/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/EXTRA",
+      "to": "inputs:ddragon/EXTRA/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/EXTRA",
+      "to": "inputs:ddragon/EXTRA/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/EXTRA",
+      "to": "inputs:ddragon/EXTRA/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:ddragon/EXTRA",
+      "to": "inputs:ddragon/EXTRA/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:ddragon/maincpu",
+      "to": "rom:ddragon/maincpu/21j-1.26",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/maincpu",
+      "to": "rom:ddragon/maincpu/21j-2-3.25",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/maincpu",
+      "to": "rom:ddragon/maincpu/21a-3.24",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/maincpu",
+      "to": "rom:ddragon/maincpu/21j-4.23",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/sub",
+      "to": "rom:ddragon/sub/21jm-0.ic55",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/soundcpu",
+      "to": "rom:ddragon/soundcpu/21j-0-1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/chars",
+      "to": "rom:ddragon/chars/21j-5",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/sprites",
+      "to": "rom:ddragon/sprites/21j-a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/sprites",
+      "to": "rom:ddragon/sprites/21j-b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/sprites",
+      "to": "rom:ddragon/sprites/21j-c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/sprites",
+      "to": "rom:ddragon/sprites/21j-d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/sprites",
+      "to": "rom:ddragon/sprites/21j-e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/sprites",
+      "to": "rom:ddragon/sprites/21j-f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/sprites",
+      "to": "rom:ddragon/sprites/21j-g",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/sprites",
+      "to": "rom:ddragon/sprites/21j-h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/tiles",
+      "to": "rom:ddragon/tiles/21j-8",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/tiles",
+      "to": "rom:ddragon/tiles/21j-9",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/tiles",
+      "to": "rom:ddragon/tiles/21j-i",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/tiles",
+      "to": "rom:ddragon/tiles/21j-j",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/adpcm1",
+      "to": "rom:ddragon/adpcm1/21j-6",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/adpcm2",
+      "to": "rom:ddragon/adpcm2/21j-7",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/proms",
+      "to": "rom:ddragon/proms/21j-k-0.101",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:ddragon/proms",
+      "to": "rom:ddragon/proms/21j-l-0.16",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_main_map",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 472,
+        "sourceColumn": 1,
+        "sourceEndLine": 477
+      }
+    },
+    {
+      "from": "map:ddragon_state.ddragon_main_map",
+      "to": "map:ddragon_state.base_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_main_map",
+      "to": "map:ddragon_state.ddragon_main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_main_map",
+      "to": "map:ddragon_state.ddragon_main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/scantimer/callback:scantimer:0",
+      "to": "handler:ddragon_state.scanline",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/sub/callback:sub:0",
+      "to": "handler:ddragon_state.sub_port6_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sub_map",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 529,
+        "sourceColumn": 1,
+        "sourceEndLine": 532
+      }
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sub_map",
+      "to": "map:ddragon_state.ddragon_sub_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 571,
+        "sourceColumn": 1,
+        "sourceEndLine": 579
+      }
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map",
+      "to": "map:ddragon_state.ddragon_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map",
+      "to": "map:ddragon_state.ddragon_sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map",
+      "to": "map:ddragon_state.ddragon_sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map",
+      "to": "map:ddragon_state.ddragon_sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map",
+      "to": "map:ddragon_state.ddragon_sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map",
+      "to": "map:ddragon_state.ddragon_sound_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "gfxdecode:gfx_ddragon/e0",
+      "to": "gfxlayout:char_layout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_ddragon/e1",
+      "to": "gfxlayout:tile_layout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_ddragon/e2",
+      "to": "gfxlayout:tile_layout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/screen/callback:screen:0",
+      "to": "handler:ddragon_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/soundlatch/callback:soundlatch:0",
+      "to": "device:ddragon_state.ddragon/soundcpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/fmsnd/callback:fmsnd:0",
+      "to": "device:ddragon_state.ddragon/soundcpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/adpcm1/callback:adpcm1:0",
+      "to": "handler:ddragon_state.ddragon_adpcm_int_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:ddragon_state.ddragon/adpcm2/callback:adpcm2:0",
+      "to": "handler:ddragon_state.ddragon_adpcm_int_1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:ddragon/EXTRA/f4",
+      "to": "handler:ddragon_state.subcpu_bus_free_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/ddragon.cpp",
+        "sourceLine": 452,
+        "sourceColumn": 1,
+        "sourceEndLine": 470
+      }
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.base_map",
+      "to": "map:ddragon_state.base_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_main_map/range0",
+      "to": "handler:ddragon_state.bankswitch_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "handler:ddragon_state.scanline",
+      "to": "handler:ddragon_state.scanline_to_vcount",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map/range1",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map/range2",
+      "to": "handler:ddragon_state.ddragon_adpcm_status_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map/range3",
+      "to": "handler:ym2151_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "fmsnd"
+      }
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map/range3",
+      "to": "handler:ym2151_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "fmsnd"
+      }
+    },
+    {
+      "from": "map:ddragon_state.ddragon_sound_map/range4",
+      "to": "handler:ddragon_state.ddragon_adpcm_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "gfxlayout:char_layout",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:tile_layout",
+      "to": "file:src/mame/technos/ddragon.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "handler:ddragon_state.screen_update",
+      "to": "handler:ddragon_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:ddragon_state.base_map/range1",
+      "to": "handler:palette_device.write8",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:ddragon_state.base_map/range2",
+      "to": "handler:palette_device.write8_ext",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:ddragon_state.base_map/range3",
+      "to": "handler:ddragon_state.fgvideoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:ddragon_state.base_map/range4",
+      "to": "handler:ddragon_state.comram_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:ddragon_state.base_map/range4",
+      "to": "handler:ddragon_state.comram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:ddragon_state.base_map/range6",
+      "to": "handler:ddragon_state.bgvideoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:ddragon_state.base_map/range14",
+      "to": "handler:ddragon_state.interrupt_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:ddragon_state.base_map/range14",
+      "to": "handler:ddragon_state.interrupt_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "handler:ddragon_state.interrupt_r",
+      "to": "handler:ddragon_state.interrupt_ack",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:ddragon_state.interrupt_w",
+      "to": "handler:ddragon_state.interrupt_ack",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

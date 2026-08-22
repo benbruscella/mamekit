@@ -1,0 +1,557 @@
+{
+  "generatedFrom": "src/mame/konami/rocnrope.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 396,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 397,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 398,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 399,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 400,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 401,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 411,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 413,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 201,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 202,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 396,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 397,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 398,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 399,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 400,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 401,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 413,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 201,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 202,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 392,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 192,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 406,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 413,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 413,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 193,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 392,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 395,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 403,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 406,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 415,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 416,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 419,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 192,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 196,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 198,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 200,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 207,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 157,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 151,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 254,
+      "column": 2
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 255,
+      "column": 2
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 127,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 215,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 178,
+      "column": 2
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 178,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 179,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 109,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 96,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 173,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 163,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 396,
+      "column": 2
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 133,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 145,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 228,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 228,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 220,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 193,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 178,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 383,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 201,
+      "column": 2
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 78,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 241,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 242,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 243,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 244,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 245,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 246,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 247,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 248,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 249,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 250,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 251,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 252,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 253,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 254,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 255,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/15/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 256,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/16/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 257,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/17/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 258,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/18/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 259,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 239,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 161,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 162,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 163,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 164,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 165,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 166,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 167,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 159,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 102,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 173,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/konami/rocnrope.cpp",
+      "line": 173,
+      "column": 1
+    }
+  ]
+}

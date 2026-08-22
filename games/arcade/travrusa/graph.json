@@ -1,0 +1,2788 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/irem/travrusa.cpp",
+    "generatedAt": "2026-08-22T05:52:47.904Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Lee Taylor"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/irem/travrusa.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/irem/travrusa.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:irem.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "irem.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/irem/irem.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/irem/irem.cpp"
+      }
+    },
+    {
+      "id": "file:cpu/m6800/m6801.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6800/m6801.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/discrete.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/discrete.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:travrusa",
+      "label": "Game",
+      "props": {
+        "name": "travrusa",
+        "year": "1983",
+        "company": "Irem",
+        "fullname": "Traverse USA / Zippy Race",
+        "monitor": "ROT270",
+        "cls": "travrusa_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 1007,
+        "sourceColumn": 1,
+        "sourceEndLine": 1007
+      }
+    },
+    {
+      "id": "romset:travrusa",
+      "label": "RomSet",
+      "props": {
+        "name": "travrusa",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 755,
+        "sourceColumn": 1,
+        "sourceEndLine": 755
+      }
+    },
+    {
+      "id": "region:travrusa/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 756,
+        "sourceColumn": 2,
+        "sourceEndLine": 756
+      }
+    },
+    {
+      "id": "rom:travrusa/maincpu/zr1-0.m3",
+      "label": "Rom",
+      "props": {
+        "file": "zr1-0.m3",
+        "offset": 0,
+        "size": 8192,
+        "crc": "be066c0a",
+        "sha1": "fed0ef114b08519b99d77485b73768a838d2f06e",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 757,
+        "sourceColumn": 2,
+        "sourceEndLine": 757
+      }
+    },
+    {
+      "id": "rom:travrusa/maincpu/zr1-5.l3",
+      "label": "Rom",
+      "props": {
+        "file": "zr1-5.l3",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "145d6b34",
+        "sha1": "c9e2bd1d3e62c496e4c5057c4012b069dfcf592d",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 758,
+        "sourceColumn": 2,
+        "sourceEndLine": 758
+      }
+    },
+    {
+      "id": "rom:travrusa/maincpu/zr1-6a.k3",
+      "label": "Rom",
+      "props": {
+        "file": "zr1-6a.k3",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "e1b51383",
+        "sha1": "34f4476c1bcc28c53c8ffa7b614f443a329aae13",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 759,
+        "sourceColumn": 2,
+        "sourceEndLine": 759
+      }
+    },
+    {
+      "id": "rom:travrusa/maincpu/zr1-7.j3",
+      "label": "Rom",
+      "props": {
+        "file": "zr1-7.j3",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "85cd1a51",
+        "sha1": "7eb046514845cb9d2507ee24d1b2f7cc5402ac02",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 760,
+        "sourceColumn": 2,
+        "sourceEndLine": 760
+      }
+    },
+    {
+      "id": "region:travrusa/irem_audio:iremsound",
+      "label": "RomRegion",
+      "props": {
+        "tag": "irem_audio:iremsound",
+        "size": 32768,
+        "flags": "0",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 762,
+        "sourceColumn": 2,
+        "sourceEndLine": 762
+      }
+    },
+    {
+      "id": "rom:travrusa/irem_audio:iremsound/mr10.1a",
+      "label": "Rom",
+      "props": {
+        "file": "mr10.1a",
+        "offset": 28672,
+        "size": 4096,
+        "crc": "a02ad8a0",
+        "sha1": "aff80b506dbecabed2a36eb743693940f6a22d16",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 763,
+        "sourceColumn": 2,
+        "sourceEndLine": 763
+      }
+    },
+    {
+      "id": "region:travrusa/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 765,
+        "sourceColumn": 2,
+        "sourceEndLine": 765
+      }
+    },
+    {
+      "id": "rom:travrusa/tiles/zippyrac.001",
+      "label": "Rom",
+      "props": {
+        "file": "zippyrac.001",
+        "offset": 0,
+        "size": 8192,
+        "crc": "aa8994dd",
+        "sha1": "9b326ce52a03d723e5c3c1b5fd4aa8fa7f70f904",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 766,
+        "sourceColumn": 2,
+        "sourceEndLine": 766
+      }
+    },
+    {
+      "id": "rom:travrusa/tiles/mr8.3c",
+      "label": "Rom",
+      "props": {
+        "file": "mr8.3c",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "3a046dd1",
+        "sha1": "65c1dd1c0b5fb72ac5c04e11a577308245e4b312",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 767,
+        "sourceColumn": 2,
+        "sourceEndLine": 767
+      }
+    },
+    {
+      "id": "rom:travrusa/tiles/mr9.3a",
+      "label": "Rom",
+      "props": {
+        "file": "mr9.3a",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "1cc3d3f4",
+        "sha1": "e7ee365d43d783cb6b7df37c6edeadbed35318d9",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 768,
+        "sourceColumn": 2,
+        "sourceEndLine": 768
+      }
+    },
+    {
+      "id": "region:travrusa/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 770,
+        "sourceColumn": 2,
+        "sourceEndLine": 770
+      }
+    },
+    {
+      "id": "rom:travrusa/sprites/zr1-8.n3",
+      "label": "Rom",
+      "props": {
+        "file": "zr1-8.n3",
+        "offset": 0,
+        "size": 8192,
+        "crc": "3e2c7a6b",
+        "sha1": "abc9eeb656ab6ed5f14e10fc988f75f21ccf037a",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 771,
+        "sourceColumn": 2,
+        "sourceEndLine": 771
+      }
+    },
+    {
+      "id": "rom:travrusa/sprites/zr1-9.l3",
+      "label": "Rom",
+      "props": {
+        "file": "zr1-9.l3",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "13be6a14",
+        "sha1": "47861910fe4c46cd72634cf7d834be2da2a0a4f9",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 772,
+        "sourceColumn": 2,
+        "sourceEndLine": 772
+      }
+    },
+    {
+      "id": "rom:travrusa/sprites/zr1-10.k3",
+      "label": "Rom",
+      "props": {
+        "file": "zr1-10.k3",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "6fcc9fdb",
+        "sha1": "88f878b9ebf07c5a16f8cb742016cac971ed3f10",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 773,
+        "sourceColumn": 2,
+        "sourceEndLine": 773
+      }
+    },
+    {
+      "id": "region:travrusa/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 800,
+        "flags": "0",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 775,
+        "sourceColumn": 2,
+        "sourceEndLine": 775
+      }
+    },
+    {
+      "id": "rom:travrusa/proms/mmi6349.ij",
+      "label": "Rom",
+      "props": {
+        "file": "mmi6349.ij",
+        "offset": 0,
+        "size": 512,
+        "crc": "c9724350",
+        "sha1": "1fac20cdc0a53d94e8f67b49d7dd71d1b9f1f7ef",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 780,
+        "sourceColumn": 2,
+        "sourceEndLine": 780
+      }
+    },
+    {
+      "id": "rom:travrusa/proms/tbp18s.2",
+      "label": "Rom",
+      "props": {
+        "file": "tbp18s.2",
+        "offset": 512,
+        "size": 32,
+        "crc": "a1130007",
+        "sha1": "9deb0eed75dd06e86f83c819a3393158be7c9dce",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 781,
+        "sourceColumn": 2,
+        "sourceEndLine": 781
+      }
+    },
+    {
+      "id": "rom:travrusa/proms/tbp24s10.3",
+      "label": "Rom",
+      "props": {
+        "file": "tbp24s10.3",
+        "offset": 544,
+        "size": 256,
+        "crc": "76062638",
+        "sha1": "7378a26cf455d9d3df90929dc665870514c34b54",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 782,
+        "sourceColumn": 2,
+        "sourceEndLine": 782
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "travrusa_state",
+        "name": "program_map",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 445,
+        "sourceColumn": 1,
+        "sourceEndLine": 458
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 32767,
+        "raw": "map(0x0000, 0x7fff).rom()",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 447,
+        "sourceColumn": 2,
+        "sourceEndLine": 447,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 36863,
+        "raw": "map(0x8000, 0x8fff).ram().w(FUNC(travrusa_state::videoram_w)).share(m_videoram)",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 448,
+        "sourceColumn": 2,
+        "sourceEndLine": 448,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:travrusa_state.videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w",
+        "ownerClass": "travrusa_state",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 389,
+        "sourceColumn": 1,
+        "sourceEndLine": 393,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset / 2);"
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 36864,
+        "end": 36864,
+        "raw": "map(0x9000, 0x9000).w(FUNC(travrusa_state::scroll_x_low_w))",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 449,
+        "sourceColumn": 2,
+        "sourceEndLine": 449
+      }
+    },
+    {
+      "id": "handler:travrusa_state.scroll_x_low_w",
+      "label": "Handler",
+      "props": {
+        "method": "scroll_x_low_w",
+        "ownerClass": "travrusa_state",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 404,
+        "sourceColumn": 1,
+        "sourceEndLine": 408,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_scrollx[0] = data;\n\tset_scroll();"
+      }
+    },
+    {
+      "id": "handler:travrusa_state.set_scroll",
+      "label": "Handler",
+      "props": {
+        "method": "set_scroll",
+        "ownerClass": "travrusa_state",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 396,
+        "sourceColumn": 1,
+        "sourceEndLine": 402,
+        "sourceParameters": "",
+        "sourceBody": "for (int i = 0; i <= 2; i++)\n\t\tm_bg_tilemap->set_scrollx(i, m_scrollx[0] + 256 * m_scrollx[1]);\n\n\tm_bg_tilemap->set_scrollx(3, 0);"
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 40960,
+        "raw": "map(0xa000, 0xa000).w(FUNC(travrusa_state::scroll_x_high_w))",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 450,
+        "sourceColumn": 2,
+        "sourceEndLine": 450
+      }
+    },
+    {
+      "id": "handler:travrusa_state.scroll_x_high_w",
+      "label": "Handler",
+      "props": {
+        "method": "scroll_x_high_w",
+        "ownerClass": "travrusa_state",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 410,
+        "sourceColumn": 1,
+        "sourceEndLine": 414,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_scrollx[1] = data;\n\tset_scroll();"
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 51200,
+        "end": 51711,
+        "raw": "map(0xc800, 0xc9ff).writeonly().share(m_spriteram)",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 451,
+        "sourceColumn": 2,
+        "sourceEndLine": 451,
+        "writeonly": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 53248,
+        "end": 53248,
+        "raw": "map(0xd000, 0xd000).portr(\"SYSTEM\").w(\"irem_audio\", FUNC(irem_audio_device::cmd_w))",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 452,
+        "sourceColumn": 2,
+        "sourceEndLine": 452,
+        "portRead": "SYSTEM"
+      }
+    },
+    {
+      "id": "handler:irem_audio_device.cmd_w",
+      "label": "Handler",
+      "props": {
+        "method": "cmd_w",
+        "ownerClass": "irem_audio_device",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 84,
+        "sourceColumn": 1,
+        "sourceEndLine": 89,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_soundlatch = data;\n\tif ((data & 0x80) == 0)\n\t\tm_cpu->set_input_line(0, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 53249,
+        "end": 53249,
+        "raw": "map(0xd001, 0xd001).portr(\"P1\").w(FUNC(travrusa_state::flipscreen_w))",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 453,
+        "sourceColumn": 2,
+        "sourceEndLine": 453,
+        "portRead": "P1"
+      }
+    },
+    {
+      "id": "handler:travrusa_state.flipscreen_w",
+      "label": "Handler",
+      "props": {
+        "method": "flipscreen_w",
+        "ownerClass": "travrusa_state",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 417,
+        "sourceColumn": 1,
+        "sourceEndLine": 427,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// screen flip is handled both by software and hardware\n\tflip_screen_set((data & 1) ^ (~m_dsw[1]->read() & 1));\n\n\t// and coincounters (not written by shtrider)\n\tmachine().bookkeeping().coin_counter_w(0, data & 0x02);\n\tmachine().bookkeeping().coin_counter_w(1, data & 0x20);\n\n\tm_flipscreen = data;",
+        "inputMembers": [
+          "m_dsw=DSW1,DSW2"
+        ]
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 53250,
+        "end": 53250,
+        "raw": "map(0xd002, 0xd002).portr(\"P2\")",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 454,
+        "sourceColumn": 2,
+        "sourceEndLine": 454,
+        "portRead": "P2"
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 53251,
+        "end": 53251,
+        "raw": "map(0xd003, 0xd003).portr(\"DSW1\")",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 455,
+        "sourceColumn": 2,
+        "sourceEndLine": 455,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 53252,
+        "end": 53252,
+        "raw": "map(0xd004, 0xd004).portr(\"DSW2\")",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 456,
+        "sourceColumn": 2,
+        "sourceEndLine": 456,
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:travrusa_state.program_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 61439,
+        "raw": "map(0xe000, 0xefff).ram()",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 457,
+        "sourceColumn": 2,
+        "sourceEndLine": 457,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:irem_audio_device.m52_small_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "irem_audio_device",
+        "name": "m52_small_sound_map",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 360,
+        "sourceColumn": 1,
+        "sourceEndLine": 366,
+        "globalMask": 32767
+      }
+    },
+    {
+      "id": "map:irem_audio_device.m52_small_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4095,
+        "raw": "map(0x0000, 0x0fff).w(FUNC(irem_audio_device::m52_adpcm_w))",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 363,
+        "sourceColumn": 2,
+        "sourceEndLine": 363
+      }
+    },
+    {
+      "id": "handler:irem_audio_device.m52_adpcm_w",
+      "label": "Handler",
+      "props": {
+        "method": "m52_adpcm_w",
+        "ownerClass": "irem_audio_device",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 225,
+        "sourceColumn": 1,
+        "sourceEndLine": 236,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "if (offset & 1)\n\t{\n\t\tm_adpcm1->data_w(data);\n\t}\n\tif (offset & 2)\n\t{\n\t\tif (m_adpcm2 != nullptr)\n\t\t\tm_adpcm2->data_w(data);\n\t}"
+      }
+    },
+    {
+      "id": "map:irem_audio_device.m52_small_sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 4096,
+        "end": 8191,
+        "raw": "map(0x1000, 0x1fff).w(FUNC(irem_audio_device::sound_irq_ack_w))",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 364,
+        "sourceColumn": 2,
+        "sourceEndLine": 364
+      }
+    },
+    {
+      "id": "handler:irem_audio_device.sound_irq_ack_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_irq_ack_w",
+        "ownerClass": "irem_audio_device",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 218,
+        "sourceColumn": 1,
+        "sourceEndLine": 222,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "if ((m_soundlatch & 0x80) != 0)\n\t\tm_cpu->set_input_line(0, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "map:irem_audio_device.m52_small_sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 32767,
+        "raw": "map(0x2000, 0x7fff).rom()",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 365,
+        "sourceColumn": 2,
+        "sourceEndLine": 365,
+        "rom": true
+      }
+    },
+    {
+      "id": "machine:travrusa_state.travrusa",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "travrusa_state",
+        "name": "travrusa",
+        "calls": [],
+        "startHandlers": [
+          "travrusa_state.video_start"
+        ],
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 701,
+        "sourceColumn": 1,
+        "sourceEndLine": 722
+      }
+    },
+    {
+      "id": "handler:travrusa_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "travrusa_state",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 316,
+        "sourceColumn": 1,
+        "sourceEndLine": 327,
+        "sourceParameters": "",
+        "sourceBody": "save_item(NAME(m_scrollx));\n\tsave_item(NAME(m_flipscreen));\n\n\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(travrusa_state::get_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);\n\n\tm_bg_tilemap->set_transmask(0, 0xff, 0x00); // split type 0 is totally transparent in front half\n\tm_bg_tilemap->set_transmask(1, 0x3f, 0xc0); // split type 1 has pens 6 and 7 opaque - tunnels\n\n\tm_bg_tilemap->set_scroll_rows(4);"
+      }
+    },
+    {
+      "id": "handler:travrusa_state.get_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_tile_info",
+        "ownerClass": "travrusa_state",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 295,
+        "sourceColumn": 1,
+        "sourceEndLine": 306,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint8_t const attr = m_videoram[2 * tile_index + 1];\n\tint const flags = TILE_FLIPXY((attr & 0x30) >> 4);\n\n\ttileinfo.group = ((attr & 0x0f) == 0x0f) ? 1 : 0; // tunnels\n\n\ttileinfo.set(0,\n\t\t\tm_videoram[2 * tile_index] + ((attr & 0xc0) << 2),\n\t\t\tattr & 0x0f,\n\t\t\tflags);"
+      }
+    },
+    {
+      "id": "device:travrusa_state.travrusa/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 3072000,
+        "config": [
+          "Z80(config, m_maincpu, 18.432_MHz_XTAL / 6)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &travrusa_state::program_map)"
+        ],
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 704,
+        "sourceColumn": 2,
+        "sourceEndLine": 704
+      }
+    },
+    {
+      "id": "device:travrusa_state.travrusa/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_raw(18.432_MHz_XTAL / 3, 384, 8, 248, 282, 0, 256)",
+          "screen.set_screen_update(FUNC(travrusa_state::screen_update))",
+          "screen.set_palette(m_palette)",
+          "screen.screen_vblank().set_inputline(m_maincpu, INPUT_LINE_IRQ0)"
+        ],
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 708,
+        "sourceColumn": 2,
+        "sourceEndLine": 708,
+        "configCalls": [
+          "set_raw(6144000,384,8,248,282,0,256)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6144000,
+          384,
+          8,
+          248,
+          282,
+          0,
+          256
+        ]
+      }
+    },
+    {
+      "id": "device:travrusa_state.travrusa/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(FUNC(travrusa_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 710,
+        "sourceColumn": 2,
+        "sourceEndLine": 710,
+        "targetClass": "travrusa_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:travrusa_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "travrusa_state",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 373,
+        "sourceColumn": 1,
+        "sourceEndLine": 379,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "m_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_LAYER1, 0);\n\tdraw_sprites(bitmap, cliprect);\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_LAYER0, 0);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:travrusa_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "travrusa_state",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 337,
+        "sourceColumn": 1,
+        "sourceEndLine": 370,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "const rectangle spritevisiblearea(1*8, 31*8-1, 0*8, 24*8-1);\n\tconst rectangle spritevisibleareaflip(1*8, 31*8-1, 8*8, 32*8-1);\n\trectangle clip = cliprect;\n\tif (flip_screen())\n\t\tclip &= spritevisibleareaflip;\n\telse\n\t\tclip &= spritevisiblearea;\n\n\tfor (int offs = m_spriteram.bytes() - 4; offs >= 0; offs -= 4)\n\t{\n\t\tint sx = ((m_spriteram[offs + 3] + 8) & 0xff) - 8;\n\t\tint sy = 240 - m_spriteram[offs];\n\t\tint const code = m_spriteram[offs + 2];\n\t\tint const attr = m_spriteram[offs + 1];\n\t\tint flipx = attr & 0x40;\n\t\tint flipy = attr & 0x80;\n\n\t\tif (flip_screen())\n\t\t{\n\t\t\tsx = 240 - sx;\n\t\t\tsy = 240 - sy;\n\t\t\tflipx = !flipx;\n\t\t\tflipy = !flipy;\n\t\t}\n\n\t\tm_gfxdecode->gfx(1)->transpen(bitmap, clip,\n\t\t\t\tcode,\n\t\t\t\tattr & 0x0f,\n\t\t\t\tflipx, flipy,\n\t\t\t\tsx, sy, 0);\n\t}"
+      }
+    },
+    {
+      "id": "device:travrusa_state.travrusa/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set_inputline",
+        "raw": "screen.screen_vblank().set_inputline(m_maincpu, INPUT_LINE_IRQ0)",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 715,
+        "sourceColumn": 2,
+        "sourceEndLine": 715,
+        "inputLine": "INPUT_LINE_IRQ0",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:travrusa_state.travrusa/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_travrusa)"
+        ],
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 717,
+        "sourceColumn": 2,
+        "sourceEndLine": 717,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:travrusa_state.travrusa/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(travrusa_state::travrusa_palette), 16*8+16*8, 128+16)"
+        ],
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 718,
+        "sourceColumn": 2,
+        "sourceEndLine": 718,
+        "clockExpr": "FUNC(travrusa_state::travrusa_palette)"
+      }
+    },
+    {
+      "id": "device:travrusa_state.travrusa/irem_audio",
+      "label": "Device",
+      "props": {
+        "type": "IREM_M52_SOUNDC_AUDIO",
+        "tag": "irem_audio",
+        "clock": 0,
+        "config": [
+          "IREM_M52_SOUNDC_AUDIO(config, \"irem_audio\")"
+        ],
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 721,
+        "sourceColumn": 2,
+        "sourceEndLine": 721
+      }
+    },
+    {
+      "id": "handler:irem_audio_device.soundlatch_r",
+      "label": "Handler",
+      "props": {
+        "method": "soundlatch_r",
+        "ownerClass": "irem_audio_device",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 98,
+        "sourceColumn": 1,
+        "sourceEndLine": 101,
+        "sourceParameters": "",
+        "sourceBody": "return m_soundlatch;"
+      }
+    },
+    {
+      "id": "handler:irem_audio_device.ay8910_45M_portb_w",
+      "label": "Handler",
+      "props": {
+        "method": "ay8910_45M_portb_w",
+        "ownerClass": "irem_audio_device",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 178,
+        "sourceColumn": 1,
+        "sourceEndLine": 189,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "/* bits 2-4 select MSM5205 clock & 3b/4b playback mode */\n\tm_adpcm1->playmode_w((data >> 2) & 7);\n\tif (m_adpcm2 != nullptr)\n\t\tm_adpcm2->playmode_w(((data >> 2) & 4) | 3); /* always in slave mode */\n\n\t/* bits 0 and 1 reset the two chips */\n\tm_adpcm1->reset_w(data & 1);\n\tif (m_adpcm2 != nullptr)\n\t\tm_adpcm2->reset_w(data & 2);"
+      }
+    },
+    {
+      "id": "handler:irem_audio_device.ay8910_45L_porta_w",
+      "label": "Handler",
+      "props": {
+        "method": "ay8910_45L_porta_w",
+        "ownerClass": "irem_audio_device",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 192,
+        "sourceColumn": 1,
+        "sourceEndLine": 208,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "/*\n\t *  45L 21 IOA0  ==> BD\n\t *  45L 20 IOA1  ==> SD\n\t *  45L 19 IOA2  ==> OH\n\t *  45L 18 IOA3  ==> CH\n\t *\n\t */\n\tif (m_audio_BD) m_audio_BD->write_line(data & 0x01 ? 1: 0);\n\tif (m_audio_SD) m_audio_SD->write_line(data & 0x02 ? 1: 0);\n\tif (m_audio_OH) m_audio_OH->write_line(data & 0x04 ? 1: 0);\n\tif (m_audio_CH) m_audio_CH->write_line(data & 0x08 ? 1: 0);\n#ifdef MAME_DEBUG\n\tif (data & 0x0f) popmessage(\"analog sound %x\",data&0x0f);\n#endif"
+      }
+    },
+    {
+      "id": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "m52_soundc_audio_device",
+        "name": "device_add_mconfig",
+        "calls": []
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/iremsound",
+      "label": "Device",
+      "props": {
+        "type": "M6803",
+        "tag": "iremsound",
+        "clock": 3579545,
+        "config": [
+          "m6803_cpu_device &cpu(M6803(config, m_cpu, XTAL(3'579'545)))",
+          "cpu.set_addrmap(AS_PROGRAM, &m52_soundc_audio_device::m52_small_sound_map)",
+          "cpu.in_p1_cb().set(FUNC(m52_soundc_audio_device::m6803_port1_r))",
+          "cpu.out_p1_cb().set(FUNC(m52_soundc_audio_device::m6803_port1_w))",
+          "cpu.in_p2_cb().set(FUNC(m52_soundc_audio_device::m6803_port2_r))",
+          "cpu.out_p2_cb().set(FUNC(m52_soundc_audio_device::m6803_port2_w))"
+        ],
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 403,
+        "sourceColumn": 2,
+        "sourceEndLine": 403
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:0",
+      "label": "Callback",
+      "props": {
+        "signal": "in_p1_cb",
+        "operation": "set",
+        "raw": "cpu.in_p1_cb().set(FUNC(m52_soundc_audio_device::m6803_port1_r))",
+        "ownerTag": "iremsound",
+        "targetClass": "m52_soundc_audio_device",
+        "targetMethod": "m6803_port1_r"
+      }
+    },
+    {
+      "id": "handler:m52_soundc_audio_device.m6803_port1_r",
+      "label": "Handler",
+      "props": {
+        "method": "m6803_port1_r",
+        "ownerClass": "m52_soundc_audio_device",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 149,
+        "sourceColumn": 1,
+        "sourceEndLine": 157,
+        "sourceParameters": "",
+        "sourceBody": "/* PSG 0 or 1? */\n\tif (m_port2 & 0x08)\n\t\treturn m_ay_45M->data_r();\n\tif (m_port2 & 0x10)\n\t\treturn m_ay_45L->data_r();\n\treturn 0xff;"
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:1",
+      "label": "Callback",
+      "props": {
+        "signal": "out_p1_cb",
+        "operation": "set",
+        "raw": "cpu.out_p1_cb().set(FUNC(m52_soundc_audio_device::m6803_port1_w))",
+        "ownerTag": "iremsound",
+        "targetClass": "m52_soundc_audio_device",
+        "targetMethod": "m6803_port1_w"
+      }
+    },
+    {
+      "id": "handler:m52_soundc_audio_device.m6803_port1_w",
+      "label": "Handler",
+      "props": {
+        "method": "m6803_port1_w",
+        "ownerClass": "m52_soundc_audio_device",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 109,
+        "sourceColumn": 1,
+        "sourceEndLine": 112,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_port1 = data;"
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:2",
+      "label": "Callback",
+      "props": {
+        "signal": "in_p2_cb",
+        "operation": "set",
+        "raw": "cpu.in_p2_cb().set(FUNC(m52_soundc_audio_device::m6803_port2_r))",
+        "ownerTag": "iremsound",
+        "targetClass": "m52_soundc_audio_device",
+        "targetMethod": "m6803_port2_r"
+      }
+    },
+    {
+      "id": "handler:m52_soundc_audio_device.m6803_port2_r",
+      "label": "Handler",
+      "props": {
+        "method": "m6803_port2_r",
+        "ownerClass": "m52_soundc_audio_device",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 160,
+        "sourceColumn": 1,
+        "sourceEndLine": 168,
+        "sourceParameters": "",
+        "sourceBody": "/*\n\t * Pin21, 6803 (Port 21) tied with 4.7k to +5V\n\t *\n\t */\n\t//printf(\"port2 read\\n\"); // used by 10yard\n\treturn 0x0;"
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:3",
+      "label": "Callback",
+      "props": {
+        "signal": "out_p2_cb",
+        "operation": "set",
+        "raw": "cpu.out_p2_cb().set(FUNC(m52_soundc_audio_device::m6803_port2_w))",
+        "ownerTag": "iremsound",
+        "targetClass": "m52_soundc_audio_device",
+        "targetMethod": "m6803_port2_w"
+      }
+    },
+    {
+      "id": "handler:m52_soundc_audio_device.m6803_port2_w",
+      "label": "Handler",
+      "props": {
+        "method": "m6803_port2_w",
+        "ownerClass": "m52_soundc_audio_device",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 115,
+        "sourceColumn": 1,
+        "sourceEndLine": 139,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "/* write latch */\n\tif ((m_port2 & 0x01) && !(data & 0x01))\n\t{\n\t\t/* control or data port? */\n\t\tif (m_port2 & 0x04)\n\t\t{\n\t\t\t/* PSG 0 or 1? */\n\t\t\tif (m_port2 & 0x08)\n\t\t\t\tm_ay_45M->address_w(m_port1);\n\t\t\tif (m_port2 & 0x10)\n\t\t\t\tm_ay_45L->address_w(m_port1);\n\t\t}\n\t\telse\n\t\t{\n\t\t\t/* PSG 0 or 1? */\n\t\t\tif (m_port2 & 0x08)\n\t\t\t\tm_ay_45M->data_w(m_port1);\n\t\t\tif (m_port2 & 0x10)\n\t\t\t\tm_ay_45L->data_w(m_port1);\n\t\t}\n\t}\n\tm_port2 = data;"
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 411,
+        "sourceColumn": 2,
+        "sourceEndLine": 411
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay_45m",
+        "clock": 894886.25,
+        "config": [
+          "AY8910(config, m_ay_45M, XTAL(3'579'545)/4)",
+          "m_ay_45M->set_flags(AY8910_SINGLE_OUTPUT | AY8910_DISCRETE_OUTPUT)",
+          "m_ay_45M->set_resistors_load(470, 0, 0)",
+          "m_ay_45M->port_a_read_callback().set(FUNC(irem_audio_device::soundlatch_r))",
+          "m_ay_45M->port_b_write_callback().set(FUNC(irem_audio_device::ay8910_45M_portb_w))",
+          "m_ay_45M->add_route(0, \"filtermix\", 1.0, 0)"
+        ],
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 413,
+        "sourceColumn": 2,
+        "sourceEndLine": 413,
+        "configCalls": [
+          "set_flags(6)",
+          "set_resistors_load(470,0,0)"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:m52_soundc_audio_device.device_add_mconfig/ay_45m/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "filtermix",
+        "gain": 1,
+        "input": 0,
+        "raw": "m_ay_45M->add_route(0, \"filtermix\", 1.0, 0)"
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m/callback:ay_45m:0",
+      "label": "Callback",
+      "props": {
+        "signal": "port_a_read_callback",
+        "operation": "set",
+        "raw": "m_ay_45M->port_a_read_callback().set(FUNC(irem_audio_device::soundlatch_r))",
+        "ownerTag": "ay_45m",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 416,
+        "sourceColumn": 2,
+        "sourceEndLine": 416,
+        "targetClass": "irem_audio_device",
+        "targetMethod": "soundlatch_r"
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m/callback:ay_45m:1",
+      "label": "Callback",
+      "props": {
+        "signal": "port_b_write_callback",
+        "operation": "set",
+        "raw": "m_ay_45M->port_b_write_callback().set(FUNC(irem_audio_device::ay8910_45M_portb_w))",
+        "ownerTag": "ay_45m",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 417,
+        "sourceColumn": 2,
+        "sourceEndLine": 417,
+        "targetClass": "irem_audio_device",
+        "targetMethod": "ay8910_45M_portb_w"
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/ay_45l",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay_45l",
+        "clock": 894886.25,
+        "config": [
+          "AY8910(config, m_ay_45L, XTAL(3'579'545)/4)",
+          "m_ay_45L->set_flags(AY8910_SINGLE_OUTPUT | AY8910_DISCRETE_OUTPUT)",
+          "m_ay_45L->set_resistors_load(470, 0, 0)",
+          "m_ay_45L->port_a_write_callback().set(FUNC(irem_audio_device::ay8910_45L_porta_w))",
+          "m_ay_45L->add_route(0, \"filtermix\", 1.0, 1)"
+        ],
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 422,
+        "sourceColumn": 2,
+        "sourceEndLine": 422,
+        "configCalls": [
+          "set_flags(6)",
+          "set_resistors_load(470,0,0)"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:m52_soundc_audio_device.device_add_mconfig/ay_45l/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "filtermix",
+        "gain": 1,
+        "input": 1,
+        "raw": "m_ay_45L->add_route(0, \"filtermix\", 1.0, 1)"
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/ay_45l/callback:ay_45l:0",
+      "label": "Callback",
+      "props": {
+        "signal": "port_a_write_callback",
+        "operation": "set",
+        "raw": "m_ay_45L->port_a_write_callback().set(FUNC(irem_audio_device::ay8910_45L_porta_w))",
+        "ownerTag": "ay_45l",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 425,
+        "sourceColumn": 2,
+        "sourceEndLine": 425,
+        "targetClass": "irem_audio_device",
+        "targetMethod": "ay8910_45L_porta_w"
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/msm1",
+      "label": "Device",
+      "props": {
+        "type": "MSM5205",
+        "tag": "msm1",
+        "clock": 384000,
+        "config": [
+          "MSM5205(config, m_adpcm1, XTAL(384'000))",
+          "m_adpcm1->vck_callback().set_inputline(m_cpu, INPUT_LINE_NMI)",
+          "m_adpcm1->set_prescaler_selector(msm5205_device::S96_4B)",
+          "m_adpcm1->add_route(0, \"filtermix\", 1.0, 2)"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:m52_soundc_audio_device.device_add_mconfig/msm1/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "filtermix",
+        "gain": 1,
+        "input": 2,
+        "raw": "m_adpcm1->add_route(0, \"filtermix\", 1.0, 2)"
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/msm1/callback:msm1:0",
+      "label": "Callback",
+      "props": {
+        "signal": "vck_callback",
+        "operation": "set_inputline",
+        "raw": "m_adpcm1->vck_callback().set_inputline(m_cpu, INPUT_LINE_NMI)",
+        "ownerTag": "msm1",
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 431,
+        "sourceColumn": 2,
+        "sourceEndLine": 431,
+        "inputLine": "INPUT_LINE_NMI",
+        "targetTag": "iremsound"
+      }
+    },
+    {
+      "id": "device:m52_soundc_audio_device.device_add_mconfig/filtermix",
+      "label": "Device",
+      "props": {
+        "type": "DISCRETE",
+        "tag": "filtermix",
+        "clock": null,
+        "config": [
+          "DISCRETE(config, \"filtermix\", m52_sound_c_discrete).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "clockExpr": "m52_sound_c_discrete"
+      }
+    },
+    {
+      "id": "audioroute:device:m52_soundc_audio_device.device_add_mconfig/filtermix/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "DISCRETE(config, \"filtermix\", m52_sound_c_discrete).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+      }
+    },
+    {
+      "id": "inputs:travrusa",
+      "label": "InputPorts",
+      "props": {
+        "name": "travrusa",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 473,
+        "sourceColumn": 8,
+        "sourceEndLine": 473
+      }
+    },
+    {
+      "id": "inputs:travrusa/SYSTEM",
+      "label": "Port",
+      "props": {
+        "tag": "SYSTEM",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:travrusa/SYSTEM/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:travrusa/SYSTEM/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:travrusa/SYSTEM/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_COIN3",
+        "modifiers": [
+          "PORT_IMPULSE(19)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/SYSTEM/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_COIN1"
+      }
+    },
+    {
+      "id": "inputs:travrusa/SYSTEM/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:travrusa/SYSTEM/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:travrusa/SYSTEM/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:travrusa/SYSTEM/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:travrusa/P1",
+      "label": "Port",
+      "props": {
+        "tag": "P1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:travrusa/P1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/P1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/P1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:travrusa/P1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:travrusa/P1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:travrusa/P1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON1"
+      }
+    },
+    {
+      "id": "inputs:travrusa/P1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:travrusa/P1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_BUTTON2"
+      }
+    },
+    {
+      "id": "inputs:travrusa/P2",
+      "label": "Port",
+      "props": {
+        "tag": "P2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:travrusa/P2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/P2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/P2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:travrusa/P2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:travrusa/P2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_COIN2"
+      }
+    },
+    {
+      "id": "inputs:travrusa/P2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/P2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:travrusa/P2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Fuel Reduced on Collision",
+        "defaultValue": 3,
+        "location": "DSW1:1,2",
+        "settings": [
+          "3=8/120 Dots",
+          "2=10/120 Dots",
+          "1=12/120 Dots",
+          "0=14/120 Dots"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Fuel Consumption",
+        "defaultValue": 4,
+        "location": "DSW1:3",
+        "settings": [
+          "4=Low",
+          "0=High"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Allow Continue",
+        "defaultValue": 0,
+        "location": "DSW1:4",
+        "settings": [
+          "8=No",
+          "0=Yes"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "name": "Coinage",
+        "defaultValue": 240,
+        "location": "DSW1:5,6,7,8",
+        "settings": [
+          "128=Not Used [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "144=Not Used [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "160=6C 1C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "176=5C 1C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "192=4C 1C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "208=3C 1C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "224=2C 1C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "240=1C 1C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "112=1C 2C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "96=1C 3C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "80=1C 4C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "64=1C 5C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "48=1C 6C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "32=1C 7C [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "16=Not Used [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "0=Free Play [if \"DSW2\", 0x04, EQUALS, 0x04]",
+          "128=Free Play [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "144=A 3C_1C / B 1C_3C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "160=A 2C_1C / B 1C_3C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "176=A 1C_1C / B 1C_3C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "192=Free Play [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "208=A 3C_1C / B 1C_2C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "224=A 2C_1C / B 1C_2C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "240=A 1C_1C / B 1C_2C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "112=A 1C_1C / B 1C_5C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "96=A 2C_1C / B 1C_5C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "80=A 3C_1C / B 1C_5C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "64=Free Play [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "48=A 1C_1C / B 1C_6C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "32=A 2C_1C / B 1C_6C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "16=A 3C_1C / B 1C_6C [if \"DSW2\", 0x04, EQUALS, 0x00]",
+          "0=Free Play [if \"DSW2\", 0x04, EQUALS, 0x00]"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Flip Screen",
+        "defaultValue": 1,
+        "location": "DSW2:1",
+        "settings": [
+          "1=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "DSW2:2",
+        "settings": [
+          "0=Upright",
+          "2=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Coin Mode",
+        "defaultValue": 4,
+        "location": "DSW2:3",
+        "settings": [
+          "4=Mode 1",
+          "0=Mode 2"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Speed Type",
+        "defaultValue": 8,
+        "location": "DSW2:4",
+        "settings": [
+          "8=mph",
+          "0=km/h"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Stop Mode (Cheat)",
+        "defaultValue": 16,
+        "location": "DSW2:5",
+        "settings": [
+          "16=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "name": "Title",
+        "defaultValue": 32,
+        "location": "DSW2:6",
+        "settings": [
+          "32=Traverse USA",
+          "0=Zippy Race"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Invulnerability (Cheat)",
+        "defaultValue": 64,
+        "location": "DSW2:7",
+        "settings": [
+          "64=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:travrusa/DSW2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 128,
+        "activeLow": true,
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "gfxlayout:spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(2,3)",
+          "RGN_FRAC(1,3)",
+          "RGN_FRAC(0,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x3_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x3_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(2,3)",
+          "RGN_FRAC(1,3)",
+          "RGN_FRAC(0,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_travrusa",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_travrusa",
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 683,
+        "sourceColumn": 8,
+        "sourceEndLine": 683
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_travrusa/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles",
+        "offset": 0,
+        "layout": "gfx_8x8x3_planar",
+        "colorBase": 0,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_travrusa/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "spritelayout",
+        "colorBase": 128,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:travrusa",
+      "to": "file:src/mame/irem/travrusa.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 1007,
+        "sourceColumn": 1,
+        "sourceEndLine": 1007
+      }
+    },
+    {
+      "from": "game:travrusa",
+      "to": "machine:travrusa_state.travrusa",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:travrusa",
+      "to": "inputs:travrusa",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:travrusa",
+      "to": "romset:travrusa",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/irem/travrusa.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/travrusa.cpp",
+      "to": "file:irem.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/travrusa.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/travrusa.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/travrusa.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/travrusa.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:travrusa_state.travrusa",
+      "to": "file:src/mame/irem/travrusa.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 701,
+        "sourceColumn": 1,
+        "sourceEndLine": 722
+      }
+    },
+    {
+      "from": "machine:travrusa_state.travrusa",
+      "to": "handler:travrusa_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:travrusa_state.travrusa",
+      "to": "device:travrusa_state.travrusa/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:travrusa_state.travrusa",
+      "to": "device:travrusa_state.travrusa/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:travrusa_state.travrusa",
+      "to": "device:travrusa_state.travrusa/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:travrusa_state.travrusa",
+      "to": "gfxdecode:gfx_travrusa",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:travrusa_state.travrusa",
+      "to": "device:travrusa_state.travrusa/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:travrusa_state.travrusa",
+      "to": "device:travrusa_state.travrusa/irem_audio",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:travrusa",
+      "to": "file:src/mame/irem/travrusa.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 473,
+        "sourceColumn": 8,
+        "sourceEndLine": 473
+      }
+    },
+    {
+      "from": "inputs:travrusa",
+      "to": "inputs:travrusa/SYSTEM",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:travrusa",
+      "to": "inputs:travrusa/P1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:travrusa",
+      "to": "inputs:travrusa/P2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:travrusa",
+      "to": "inputs:travrusa/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:travrusa",
+      "to": "inputs:travrusa/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:travrusa",
+      "to": "file:src/mame/irem/travrusa.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 755,
+        "sourceColumn": 1,
+        "sourceEndLine": 755
+      }
+    },
+    {
+      "from": "romset:travrusa",
+      "to": "region:travrusa/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:travrusa",
+      "to": "region:travrusa/irem_audio:iremsound",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:travrusa",
+      "to": "region:travrusa/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:travrusa",
+      "to": "region:travrusa/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:travrusa",
+      "to": "region:travrusa/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:travrusa_state.video_start",
+      "to": "handler:travrusa_state.get_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:travrusa_state.travrusa/maincpu",
+      "to": "map:travrusa_state.program_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:travrusa_state.travrusa/screen",
+      "to": "device:travrusa_state.travrusa/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:travrusa_state.travrusa/screen",
+      "to": "device:travrusa_state.travrusa/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_travrusa",
+      "to": "file:src/mame/irem/travrusa.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 683,
+        "sourceColumn": 8,
+        "sourceEndLine": 683
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_travrusa",
+      "to": "gfxdecode:gfx_travrusa/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_travrusa",
+      "to": "gfxdecode:gfx_travrusa/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:travrusa_state.travrusa/irem_audio",
+      "to": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "inputs:travrusa/SYSTEM",
+      "to": "inputs:travrusa/SYSTEM/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/SYSTEM",
+      "to": "inputs:travrusa/SYSTEM/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/SYSTEM",
+      "to": "inputs:travrusa/SYSTEM/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/SYSTEM",
+      "to": "inputs:travrusa/SYSTEM/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/SYSTEM",
+      "to": "inputs:travrusa/SYSTEM/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/SYSTEM",
+      "to": "inputs:travrusa/SYSTEM/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/SYSTEM",
+      "to": "inputs:travrusa/SYSTEM/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/SYSTEM",
+      "to": "inputs:travrusa/SYSTEM/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P1",
+      "to": "inputs:travrusa/P1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P1",
+      "to": "inputs:travrusa/P1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P1",
+      "to": "inputs:travrusa/P1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P1",
+      "to": "inputs:travrusa/P1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P1",
+      "to": "inputs:travrusa/P1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P1",
+      "to": "inputs:travrusa/P1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P1",
+      "to": "inputs:travrusa/P1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P1",
+      "to": "inputs:travrusa/P1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P2",
+      "to": "inputs:travrusa/P2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P2",
+      "to": "inputs:travrusa/P2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P2",
+      "to": "inputs:travrusa/P2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P2",
+      "to": "inputs:travrusa/P2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P2",
+      "to": "inputs:travrusa/P2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P2",
+      "to": "inputs:travrusa/P2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P2",
+      "to": "inputs:travrusa/P2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/P2",
+      "to": "inputs:travrusa/P2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW1",
+      "to": "inputs:travrusa/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW1",
+      "to": "inputs:travrusa/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW1",
+      "to": "inputs:travrusa/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW1",
+      "to": "inputs:travrusa/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW2",
+      "to": "inputs:travrusa/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW2",
+      "to": "inputs:travrusa/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW2",
+      "to": "inputs:travrusa/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW2",
+      "to": "inputs:travrusa/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW2",
+      "to": "inputs:travrusa/DSW2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW2",
+      "to": "inputs:travrusa/DSW2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW2",
+      "to": "inputs:travrusa/DSW2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:travrusa/DSW2",
+      "to": "inputs:travrusa/DSW2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:travrusa/maincpu",
+      "to": "rom:travrusa/maincpu/zr1-0.m3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/maincpu",
+      "to": "rom:travrusa/maincpu/zr1-5.l3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/maincpu",
+      "to": "rom:travrusa/maincpu/zr1-6a.k3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/maincpu",
+      "to": "rom:travrusa/maincpu/zr1-7.j3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/irem_audio:iremsound",
+      "to": "rom:travrusa/irem_audio:iremsound/mr10.1a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/tiles",
+      "to": "rom:travrusa/tiles/zippyrac.001",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/tiles",
+      "to": "rom:travrusa/tiles/mr8.3c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/tiles",
+      "to": "rom:travrusa/tiles/mr9.3a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/sprites",
+      "to": "rom:travrusa/sprites/zr1-8.n3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/sprites",
+      "to": "rom:travrusa/sprites/zr1-9.l3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/sprites",
+      "to": "rom:travrusa/sprites/zr1-10.k3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/proms",
+      "to": "rom:travrusa/proms/mmi6349.ij",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/proms",
+      "to": "rom:travrusa/proms/tbp18s.2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:travrusa/proms",
+      "to": "rom:travrusa/proms/tbp24s10.3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "file:src/mame/irem/travrusa.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/travrusa.cpp",
+        "sourceLine": 445,
+        "sourceColumn": 1,
+        "sourceEndLine": 458
+      }
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "map:travrusa_state.program_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "map:travrusa_state.program_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "map:travrusa_state.program_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "map:travrusa_state.program_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "map:travrusa_state.program_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "map:travrusa_state.program_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "map:travrusa_state.program_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "map:travrusa_state.program_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "map:travrusa_state.program_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "map:travrusa_state.program_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:travrusa_state.program_map",
+      "to": "map:travrusa_state.program_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:travrusa_state.travrusa/screen/callback:screen:0",
+      "to": "handler:travrusa_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:travrusa_state.travrusa/screen/callback:screen:1",
+      "to": "device:travrusa_state.travrusa/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "gfxdecode:gfx_travrusa/e0",
+      "to": "gfxlayout:gfx_8x8x3_planar",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_travrusa/e1",
+      "to": "gfxlayout:spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "file:src/mame/irem/travrusa.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/iremsound",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/ay_45l",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/msm1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:m52_soundc_audio_device.device_add_mconfig",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/filtermix",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:travrusa_state.program_map/range1",
+      "to": "handler:travrusa_state.videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:travrusa_state.program_map/range2",
+      "to": "handler:travrusa_state.scroll_x_low_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:travrusa_state.program_map/range3",
+      "to": "handler:travrusa_state.scroll_x_high_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:travrusa_state.program_map/range5",
+      "to": "handler:irem_audio_device.cmd_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "irem_audio"
+      }
+    },
+    {
+      "from": "map:travrusa_state.program_map/range6",
+      "to": "handler:travrusa_state.flipscreen_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "handler:travrusa_state.screen_update",
+      "to": "handler:travrusa_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x3_planar",
+      "to": "file:src/mame/irem/travrusa.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:spritelayout",
+      "to": "file:src/mame/irem/travrusa.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/iremsound",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/iremsound",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/iremsound",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/iremsound",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/iremsound",
+      "to": "map:irem_audio_device.m52_small_sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m",
+      "to": "audioroute:device:m52_soundc_audio_device.device_add_mconfig/ay_45m/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m/callback:ay_45m:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m/callback:ay_45m:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/ay_45l",
+      "to": "audioroute:device:m52_soundc_audio_device.device_add_mconfig/ay_45l/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/ay_45l",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/ay_45l/callback:ay_45l:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/msm1",
+      "to": "audioroute:device:m52_soundc_audio_device.device_add_mconfig/msm1/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/msm1",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/msm1/callback:msm1:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/filtermix",
+      "to": "audioroute:device:m52_soundc_audio_device.device_add_mconfig/filtermix/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "handler:travrusa_state.scroll_x_low_w",
+      "to": "handler:travrusa_state.set_scroll",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:travrusa_state.scroll_x_high_w",
+      "to": "handler:travrusa_state.set_scroll",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:0",
+      "to": "handler:m52_soundc_audio_device.m6803_port1_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:1",
+      "to": "handler:m52_soundc_audio_device.m6803_port1_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:2",
+      "to": "handler:m52_soundc_audio_device.m6803_port2_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/iremsound/callback:iremsound:3",
+      "to": "handler:m52_soundc_audio_device.m6803_port2_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map",
+      "to": "file:src/mame/irem/irem.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/irem/irem.cpp",
+        "sourceLine": 360,
+        "sourceColumn": 1,
+        "sourceEndLine": 366
+      }
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map",
+      "to": "map:irem_audio_device.m52_small_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map",
+      "to": "map:irem_audio_device.m52_small_sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map",
+      "to": "map:irem_audio_device.m52_small_sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m/callback:ay_45m:0",
+      "to": "handler:irem_audio_device.soundlatch_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/ay_45m/callback:ay_45m:1",
+      "to": "handler:irem_audio_device.ay8910_45M_portb_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/ay_45l/callback:ay_45l:0",
+      "to": "handler:irem_audio_device.ay8910_45L_porta_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:m52_soundc_audio_device.device_add_mconfig/msm1/callback:msm1:0",
+      "to": "device:m52_soundc_audio_device.device_add_mconfig/iremsound",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "file:src/mame/irem/irem.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/irem.cpp",
+      "to": "file:irem.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/irem.cpp",
+      "to": "file:cpu/m6800/m6801.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/irem.cpp",
+      "to": "file:sound/discrete.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/irem/irem.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map/range0",
+      "to": "handler:irem_audio_device.m52_adpcm_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:irem_audio_device.m52_small_sound_map/range1",
+      "to": "handler:irem_audio_device.sound_irq_ack_w",
+      "rel": "WRITES"
+    }
+  ]
+}

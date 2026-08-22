@@ -1,0 +1,28 @@
+{
+  "type": "YM3526",
+  "uses": [
+    {
+      "game": "bublbobl",
+      "tags": [
+        "ym3526"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "YM3526",
+    "className": "ym3526_device",
+    "shortName": "ym3526",
+    "description": "YM3526 OPL",
+    "sourceFile": "src/devices/sound/ymopl.cpp",
+    "sourceLine": 12,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(YM3526, ym3526_device, \"ym3526\", \"YM3526 OPL\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/ymopl.cpp",
+    "src/devices/sound/ymopl.h"
+  ]
+}

@@ -1,0 +1,1128 @@
+{
+  "type": "PIT8253",
+  "uses": [
+    {
+      "game": "venture",
+      "tags": [
+        "pit"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "PIT8253",
+    "className": "pit8253_device",
+    "shortName": "pit8253",
+    "description": "Intel 8253 PIT",
+    "sourceFile": "src/devices/machine/pit8253.cpp",
+    "sourceLine": 45,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(PIT8253, pit8253_device, \"pit8253\", \"Intel 8253 PIT\")"
+  },
+  "methods": [
+    {
+      "name": "device_resolve_objects",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pit8253.cpp",
+      "sourceLine": 97,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "timer",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "timer"
+              },
+              "right": {
+                "kind": "number",
+                "value": 3
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "timer"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_counter"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "timer"
+                    }
+                  },
+                  "property": "m_index"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "timer"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_counter"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "timer"
+                    }
+                  },
+                  "property": "m_clockin"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_clk"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "timer"
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_counter"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "timer"
+                    }
+                  },
+                  "property": "m_clock_period"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": "!=",
+                    "left": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_clk"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "timer"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "attotime::from_hz"
+                    },
+                    "args": [
+                      {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_clk"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "timer"
+                        }
+                      }
+                    ]
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "attotime::never"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pit8253.cpp",
+      "sourceLine": 167,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/pit8253.cpp",
+      "sourceLine": 878,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 3
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "offset"
+              },
+              "right": {
+                "kind": "number",
+                "value": 3
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_counter"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "offset"
+                      }
+                    },
+                    "property": "read"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "readback_command",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/pit8253.cpp",
+      "sourceLine": 977,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/pit8253.cpp",
+      "sourceLine": 1095,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 3
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "offset"
+              },
+              "right": {
+                "kind": "number",
+                "value": 3
+              }
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "timer",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 6
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "timer"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "readback_command"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "data"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_counter"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "timer"
+                          }
+                        },
+                        "property": "control_w"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "data"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_counter"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "offset"
+                      }
+                    },
+                    "property": "count_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_clk",
+      "parameters": "double clk",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 118,
+      "program": {
+        "operations": [
+          {
+            "op": "return"
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_clk",
+      "parameters": "const XTAL &xtal",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 121,
+      "program": {
+        "operations": [
+          {
+            "op": "return"
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 122,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_out_handler"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_gate0",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 126,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "property": "gate_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_gate1",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 128,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "property": "gate_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_gate2",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 129,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "property": "gate_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_clk0",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 130,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "property": "set_clock_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_clk1",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 142,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "property": "set_clock_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_clk2",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 143,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "property": "set_clock_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_clockin",
+      "parameters": "int timer, double new_clockin",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 144,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "timer"
+                  }
+                },
+                "property": "set_clockin"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "new_clockin"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pit8253_device::set_clk",
+      "parameters": "double clk",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 118,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_clk"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "N"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "clk"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pit8253_device::out_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 123,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_out_handler"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pit8253_device::write_gate0",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 126,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "property": "gate_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pit8253_device::write_gate1",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 129,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "property": "gate_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pit8253_device::write_gate2",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 130,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "property": "gate_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pit8253_device::write_clk0",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 131,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "property": "set_clock_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pit8253_device::write_clk1",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 143,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "property": "set_clock_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pit8253_device::write_clk2",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 144,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "property": "set_clock_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pit8253_device::set_clockin",
+      "parameters": "int timer, double new_clockin",
+      "sourceFile": "src/devices/machine/pit8253.h",
+      "sourceLine": 145,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_counter"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "timer"
+                  }
+                },
+                "property": "set_clockin"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "new_clockin"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/pit8253.cpp",
+    "src/devices/machine/pit8253.h"
+  ],
+  "declaredBy": [
+    "exidy_sh8253_sound_device"
+  ]
+}

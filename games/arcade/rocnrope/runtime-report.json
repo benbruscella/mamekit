@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 2,
+  "game": "rocnrope",
+  "family": "rocnrope",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "sourceCoverage": {
+    "covered": 109,
+    "total": 153,
+    "percent": 71.2
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:KONAMI1",
+        "status": "executable",
+        "source": "src/mame/konami/konami1.cpp:12"
+      },
+      {
+        "name": "timeplt_audio:tpsound:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "mainlatch:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "timeplt_audio:TIMEPLT_AUDIO",
+        "status": "executable",
+        "source": "src/mame/shared/timeplt_a.cpp:22"
+      },
+      {
+        "name": "tpsound:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ay1:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "ay2:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "mainlatch.write_d0",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW2",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW3",
+        "status": "generated"
+      },
+      {
+        "name": "port.P1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P2",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYSTEM",
+        "status": "generated"
+      },
+      {
+        "name": "rocnrope_state.colorram_w",
+        "status": "generated",
+        "source": "src/mame/konami/rocnrope.cpp:157"
+      },
+      {
+        "name": "rocnrope_state.interrupt_vector_w",
+        "status": "generated",
+        "source": "src/mame/konami/rocnrope.cpp:215"
+      },
+      {
+        "name": "rocnrope_state.videoram_w",
+        "status": "generated",
+        "source": "src/mame/konami/rocnrope.cpp:151"
+      },
+      {
+        "name": "timeplt_audio.sound_data_w",
+        "status": "executable",
+        "source": "src/mame/shared/timeplt_a.cpp:22"
+      },
+      {
+        "name": "timeplt_audio:ay1.address_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio:ay1.data_r",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio:ay1.data_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio:ay2.address_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio:ay2.data_r",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio:ay2.data_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "timeplt_audio_device.filter_w",
+        "status": "generated",
+        "source": "src/mame/shared/timeplt_a.cpp:109"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "mainlatch.q_out_cb<0> -> rocnrope_state.flip_screen_set",
+        "status": "generated",
+        "source": "src/mame/konami/rocnrope.cpp:396"
+      },
+      {
+        "name": "mainlatch.q_out_cb<1> -> timeplt_audio.sh_irqtrigger_w",
+        "status": "generated",
+        "source": "src/mame/konami/rocnrope.cpp:397"
+      },
+      {
+        "name": "mainlatch.q_out_cb<2> -> timeplt_audio.mute_w",
+        "status": "generated",
+        "source": "src/mame/konami/rocnrope.cpp:398"
+      },
+      {
+        "name": "mainlatch.q_out_cb<3> -> rocnrope_state.coin_counter_w_0",
+        "status": "generated",
+        "source": "src/mame/konami/rocnrope.cpp:399"
+      },
+      {
+        "name": "mainlatch.q_out_cb<4> -> rocnrope_state.coin_counter_w_1",
+        "status": "generated",
+        "source": "src/mame/konami/rocnrope.cpp:400"
+      },
+      {
+        "name": "mainlatch.q_out_cb<7> -> rocnrope_state.irq_mask_w",
+        "status": "generated",
+        "source": "src/mame/konami/rocnrope.cpp:401"
+      },
+      {
+        "name": "screen.set_screen_update -> rocnrope_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/konami/rocnrope.cpp:411"
+      },
+      {
+        "name": "screen.screen_vblank -> rocnrope_state.vblank_irq",
+        "status": "generated",
+        "source": "src/mame/konami/rocnrope.cpp:413"
+      },
+      {
+        "name": "ay1.port_a_read_callback -> soundlatch.read",
+        "status": "generated",
+        "source": "src/mame/shared/timeplt_a.cpp:201"
+      },
+      {
+        "name": "ay1.port_b_read_callback -> timeplt_audio_device.portB_r",
+        "status": "generated",
+        "source": "src/mame/shared/timeplt_a.cpp:202"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/rocnrope/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 17,
+    "compiledMethods": 17,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 4,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "rocnrope_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 16,
+    "generated": 22,
+    "declarative-host": 5,
+    "blocked": 0,
+    "missing": 0
+  }
+}

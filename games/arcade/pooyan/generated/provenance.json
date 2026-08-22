@@ -1,0 +1,533 @@
+{
+  "generatedFrom": "src/mame/konami/pooyan.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 428,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 429,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 430,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 431,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 432,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 433,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 434,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 441,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 443,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 201,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/10/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 202,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 428,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 429,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 430,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 431,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 432,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 433,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 434,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 443,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 201,
+      "column": 2
+    },
+    {
+      "path": "/connections/9/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 202,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 424,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 192,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 439,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 443,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 443,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 250,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 424,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 427,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 436,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 439,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 445,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 446,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 449,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 192,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 196,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 198,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 200,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 207,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 207,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 200,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 305,
+      "column": 2
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 127,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 307,
+      "column": 2
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 178,
+      "column": 2
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 178,
+      "column": 2
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 179,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 109,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 96,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 187,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 169,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 271,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 133,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 145,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 280,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 280,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 434,
+      "column": 2
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 250,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 221,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 264,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 201,
+      "column": 2
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 78,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 294,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 295,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 296,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 297,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 298,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 299,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 300,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 301,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 302,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 303,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 304,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 305,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 306,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 307,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 292,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 161,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 162,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 163,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 164,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 165,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 166,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 167,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/shared/timeplt_a.cpp",
+      "line": 159,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 105,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 187,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/konami/pooyan.cpp",
+      "line": 187,
+      "column": 1
+    }
+  ]
+}

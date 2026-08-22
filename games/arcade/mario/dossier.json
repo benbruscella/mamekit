@@ -1,0 +1,774 @@
+{
+  "game": "mario",
+  "title": "Mario Bros. (US, revision E) (Nintendo of America, 1983)",
+  "fullname": "Mario Bros. (US, revision E)",
+  "year": "1983",
+  "company": "Nintendo of America",
+  "family": "mario",
+  "driverFile": "src/mame/nintendo/mario.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Mirko Buffoni, Couriersud",
+  "cpus": [
+    {
+      "tag": "audiocpu",
+      "type": "m58715",
+      "clock": 11000000,
+      "region": "soundrom",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "rom",
+          "romOffset": 0
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 255,
+            "kind": "handler",
+            "read": "mario_state.tune_r",
+            "write": "mario_state.dac_w"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 4000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 24575,
+          "kind": "rom"
+        },
+        {
+          "start": 24576,
+          "end": 26623,
+          "kind": "ram"
+        },
+        {
+          "start": 26624,
+          "end": 28671,
+          "kind": "ram",
+          "share": "nvram"
+        },
+        {
+          "start": 28672,
+          "end": 29695,
+          "kind": "ram",
+          "share": "spriteram"
+        },
+        {
+          "start": 29696,
+          "end": 30719,
+          "kind": "ram",
+          "share": "videoram",
+          "write": "mario_state.videoram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 31744,
+          "end": 31744,
+          "kind": "handler",
+          "read": "port.IN0"
+        },
+        {
+          "start": 31872,
+          "end": 31872,
+          "kind": "handler",
+          "read": "port.IN1"
+        },
+        {
+          "start": 32000,
+          "end": 32000,
+          "kind": "handler",
+          "write": "mario_state.scroll_w"
+        },
+        {
+          "start": 32256,
+          "end": 32256,
+          "kind": "handler",
+          "write": "soundlatch0.write"
+        },
+        {
+          "start": 32384,
+          "end": 32391,
+          "kind": "handler",
+          "write": "mainlatch.write_d0"
+        },
+        {
+          "start": 32640,
+          "end": 32640,
+          "kind": "handler",
+          "read": "port.DSW"
+        },
+        {
+          "start": 61440,
+          "end": 65535,
+          "kind": "rom"
+        },
+        {
+          "start": 31744,
+          "end": 31744,
+          "kind": "handler",
+          "write": "mario_state.walk_w_0"
+        },
+        {
+          "start": 31872,
+          "end": 31872,
+          "kind": "handler",
+          "write": "mario_state.walk_w_1"
+        },
+        {
+          "start": 32512,
+          "end": 32519,
+          "kind": "handler",
+          "write": "mario_state.samples_w"
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "read": "z80dma.read",
+            "write": "z80dma.write"
+          }
+        ],
+        "globalMask": 255
+      }
+    }
+  ],
+  "sound": {
+    "kind": "dac",
+    "clock": 11000000,
+    "chips": 1,
+    "routes": [],
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 59.18560606060606,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "tma1-c-7f_e-1.7f",
+          "offset": 0,
+          "size": 8192,
+          "crc": "c0c6e014",
+          "alt": [
+            {
+              "file": "tma1-c-a1.7f",
+              "crc": "b64b6330"
+            },
+            {
+              "file": "tma1-c-7f.7f",
+              "crc": "797770a3"
+            },
+            {
+              "file": "masao-4.rom",
+              "crc": "07a75745"
+            }
+          ]
+        },
+        {
+          "file": "tma1-c-7e_e-3.7e",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "b09ab857",
+          "alt": [
+            {
+              "file": "tma1-c-7e_g.7e",
+              "crc": "116b3856"
+            },
+            {
+              "file": "tma1-c-7e_f.7e",
+              "crc": "94fb60d6"
+            },
+            {
+              "file": "tma1-c-a2.7e",
+              "crc": "290c4977"
+            },
+            {
+              "file": "tma1-c-7e.7e",
+              "crc": "35ef2dc6"
+            },
+            {
+              "file": "masao-3.rom",
+              "crc": "55c629b6"
+            }
+          ]
+        },
+        {
+          "file": "tma1-c-7d_e-1.7d",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "dcceb6c1",
+          "alt": [
+            {
+              "file": "tma1-c-a1.7d",
+              "crc": "f8575f31"
+            },
+            {
+              "file": "tma1-c-7d.7d",
+              "crc": "6e25d1a8"
+            },
+            {
+              "file": "masao-2.rom",
+              "crc": "42e85240"
+            }
+          ]
+        },
+        {
+          "file": "tma1-c-7c_e-3.7c",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "0d31bd1c",
+          "alt": [
+            {
+              "file": "tma1-c-7c_g.7c",
+              "crc": "4a63d96b"
+            },
+            {
+              "file": "tma1-c-a2.7c",
+              "crc": "a3c11e9e"
+            },
+            {
+              "file": "tma1-c-7c.7c",
+              "crc": "4b588f4b"
+            },
+            {
+              "file": "masao-1.rom",
+              "crc": "b2817af9"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 2048,
+      "loads": [
+        {
+          "file": "m58715-051p.5l",
+          "offset": 0,
+          "size": 2048,
+          "crc": "",
+          "status": "nodump"
+        }
+      ]
+    },
+    {
+      "region": "soundrom",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "tma1-c-6k_e.6k",
+          "offset": 0,
+          "size": 4096,
+          "crc": "06b9ff85"
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "tma1-v-3f.3f",
+          "offset": 0,
+          "size": 4096,
+          "crc": "28b0c42c",
+          "alt": [
+            {
+              "file": "tma1-v-a.3f",
+              "crc": "adf49ee0"
+            },
+            {
+              "file": "masao-6.rom",
+              "crc": "1c9e0be2"
+            }
+          ]
+        },
+        {
+          "file": "tma1-v-3j.3j",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "0c8cc04d",
+          "alt": [
+            {
+              "file": "tma1-v-a.3j",
+              "crc": "a5318f2d"
+            },
+            {
+              "file": "masao-7.rom",
+              "crc": "747c1349"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "tma1-v.7m.7m",
+          "offset": 0,
+          "size": 4096,
+          "crc": "d01c0e2c",
+          "alt": [
+            {
+              "file": "tma1-v-7m.7m",
+              "crc": "22b7372e"
+            },
+            {
+              "file": "tma1-v-a.7m",
+              "crc": "186762f8"
+            },
+            {
+              "file": "tma1-v-7m_c.7m",
+              "crc": "eacc5bfa"
+            }
+          ]
+        },
+        {
+          "file": "tma1-v-7n.7n",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "4f3a1f47",
+          "alt": [
+            {
+              "file": "tma1-v-a.7n",
+              "crc": "e0e08bba"
+            },
+            {
+              "file": "masao-9.rom",
+              "crc": "50be3918"
+            }
+          ]
+        },
+        {
+          "file": "tma1-v-7p.7p",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "56be6ccd",
+          "alt": [
+            {
+              "file": "tma1-v-a.7p",
+              "crc": "7b27c8c1"
+            }
+          ]
+        },
+        {
+          "file": "tma1-v.7s.7s",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "ff856e6f",
+          "alt": [
+            {
+              "file": "tma1-v-7s.7s",
+              "crc": "56f1d613"
+            },
+            {
+              "file": "tma1-v-a.7s",
+              "crc": "912ba80a"
+            },
+            {
+              "file": "tma1-v-7s_c.7s",
+              "crc": "385f1076"
+            }
+          ]
+        },
+        {
+          "file": "tma1-v-7t.7t",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "641f0008",
+          "alt": [
+            {
+              "file": "tma1-v-a.7t",
+              "crc": "5cbb92a5"
+            }
+          ]
+        },
+        {
+          "file": "tma1-v.7u.7u",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "d2dbeb75",
+          "alt": [
+            {
+              "file": "tma1-v-7u.7u",
+              "crc": "7baf5309"
+            },
+            {
+              "file": "tma1-v-a.7u",
+              "crc": "13afb9ed"
+            },
+            {
+              "file": "tma1-v-7u_c.7u",
+              "crc": "badb0191"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 512,
+      "loads": [
+        {
+          "file": "tma1-c-4p.4p",
+          "offset": 0,
+          "size": 512,
+          "crc": "afc9bd41",
+          "alt": [
+            {
+              "file": "tma1-c-4p_1.4p",
+              "crc": "8187d286"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "decoder_prom",
+      "size": 32,
+      "loads": [
+        {
+          "file": "tma1-c-5b.5b",
+          "offset": 0,
+          "size": 32,
+          "crc": "58d86098"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 128,
+      "value": 0,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW",
+      "mask": 3,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW",
+      "mask": 12,
+      "value": 0,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW",
+      "mask": 48,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW",
+      "mask": 192,
+      "value": 0,
+      "name": "Difficulty"
+    },
+    {
+      "port": "MONITOR",
+      "mask": 1,
+      "value": 0,
+      "name": "Monitor"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-02-27",
+    "commits": 163,
+    "contributors": 30,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "hap",
+      "Vas Crabb",
+      "Couriersud"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 42,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-17"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 30,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2015-12-06"
+      },
+      {
+        "name": "hap",
+        "commits": 21,
+        "firstCommit": "2024-08-14",
+        "lastCommit": "2026-02-27"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 11,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 10,
+        "firstCommit": "2008-01-01",
+        "lastCommit": "2008-08-30"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 7,
+        "firstCommit": "2014-10-14",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 6,
+        "firstCommit": "2016-06-07",
+        "lastCommit": "2020-05-19"
+      },
+      {
+        "name": "AJR",
+        "commits": 4,
+        "firstCommit": "2017-07-30",
+        "lastCommit": "2020-03-18"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 3,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Westley M. Martinez",
+        "commits": 3,
+        "firstCommit": "2016-05-30",
+        "lastCommit": "2016-05-31"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-11-09"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 2,
+        "firstCommit": "2008-11-25",
+        "lastCommit": "2009-11-08"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-04-30",
+        "lastCommit": "2014-04-29"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 2,
+        "firstCommit": "2008-01-25",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2008-08-30",
+        "lastCommit": "2008-08-30"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-11-29",
+        "lastCommit": "2011-11-29"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2009-06-28",
+        "lastCommit": "2009-06-28"
+      },
+      {
+        "name": "couriersud",
+        "commits": 1,
+        "firstCommit": "2015-07-12",
+        "lastCommit": "2015-07-12"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 1,
+        "firstCommit": "2017-02-11",
+        "lastCommit": "2017-02-11"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-08-11",
+        "lastCommit": "2024-08-11"
+      },
+      {
+        "name": "Jordi Mallach",
+        "commits": 1,
+        "firstCommit": "2016-03-31",
+        "lastCommit": "2016-03-31"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-08-11"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2010-07-08",
+        "lastCommit": "2010-07-08"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2013-01-11"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-02-12",
+        "lastCommit": "2008-02-12"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 43 years ago:\n\nMario Bros. (c) 1983 Nintendo of America, Incorporated.\n\nNorth American version. For more information about the game itself, please see the original Japanese version entry; \"Mario Bros. [No. TMA1-UP]\".\n\n- TECHNICAL -\n\nGame No. TMA1-UP-US\n\n- TRIVIA -\n\nMario Bros. was released on July 20, 1983 in the USA.\n\n- UPDATES -\n\nRevisions E and G:\nYou get an extra life at 20,000, 30,000, 40,000 points, or none at all (depending on the DIP Switch settings, the default is 20,000). You don't get any more free lives afterward.\n\nRevision F:\nYou get an extra life at 20,000, 30,000, or 40,000 points (depending on the DIP Switch settings, the default is 20,000). Afterward you get free lives at every 20,000 points you score. The option to get no free lives at all is not available in Revision F.\n\n- PORTS -\n\nNOTE: Only ports released in North America are listed here. For ports released in other regions, please see the original Japanese version entry; \"Mario Bros. [No. TMA1-UP]\".\n\n* CONSOLES: \n[US] Atari 2600 (1983) \"Mario Bros. [Model CX2697]\" \n[US] Atari 5200 (1983) \"Mario Bros. [Model CX5247]\" \n[US] Nintendo NES (june.1986) \"Mario Bros. [Model NES-MA-USA]\" \n[US] Atari 7800 (1987) \"Mario Bros. [Model CX7850]\" \nAtari XEGS \n\n* COMPUTERS: \n[US] Apple II (1984) \n[US] Commodore C64 (1984)\n[US] Atari 800 (1989) \"Mario Bros. [Model RX8103]\"\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/57554/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

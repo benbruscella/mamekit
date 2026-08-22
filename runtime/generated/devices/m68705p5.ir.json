@@ -1,0 +1,90 @@
+{
+  "type": "M68705P5",
+  "uses": [
+    {
+      "game": "elevator",
+      "tags": [
+        "mcu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "M68705P5",
+    "className": "m68705p5_device",
+    "shortName": "m68705p5",
+    "description": "Motorola MC68705P5",
+    "sourceFile": "src/devices/cpu/m6805/m68705.cpp",
+    "sourceLine": 113,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(M68705P5, m68705p5_device, \"m68705p5\", \"Motorola MC68705P5\")"
+  },
+  "methods": [
+    {
+      "name": "device_rom_region",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/m6805/m68705.cpp",
+      "sourceLine": 780,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ROM_NAME"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m68705p5"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_mask_options",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/m6805/m68705.cpp",
+      "sourceLine": 785,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "get_user_rom"
+                },
+                "args": []
+              },
+              "index": {
+                "kind": "number",
+                "value": 1924
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/m6805/6805dasm.h",
+    "src/devices/cpu/m6805/m6805defs.h",
+    "src/devices/cpu/m6805/m68705.cpp",
+    "src/devices/cpu/m6805/m68705.h"
+  ],
+  "declaredBy": [
+    "taito_sj_security_mcu_device"
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "game": "friskyt",
+  "title": "Frisky Tom (set 1) (Nichibutsu, 1981)",
+  "fullname": "Frisky Tom (set 1)",
+  "year": "1981",
+  "manufacturer": "Nichibutsu",
+  "family": "seicross",
+  "driverFile": "src/mame/nichibutsu/seicross.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-01-20",
+    "commits": 174,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Ivan Vangelista",
+      "Vas Crabb",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 54,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-20"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 23,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 20,
+        "firstCommit": "2014-05-06",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 17,
+        "firstCommit": "2015-11-02",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "hap",
+        "commits": 15,
+        "firstCommit": "2019-02-19",
+        "lastCommit": "2026-01-20"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 7,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2022-05-11"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 5,
+        "firstCommit": "2014-10-12",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-05-01",
+        "lastCommit": "2014-04-04"
+      },
+      {
+        "name": "smf-",
+        "commits": 3,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2016-10-17"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 2,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2012-02-13"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-11-30",
+        "lastCommit": "2011-11-30"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-04-22",
+        "lastCommit": "2008-04-22"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-24",
+        "lastCommit": "2018-08-24"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Oliver Stöneberg",
+        "commits": 1,
+        "firstCommit": "2013-07-16",
+        "lastCommit": "2013-07-16"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Zoë Blade",
+        "commits": 1,
+        "firstCommit": "2015-04-08",
+        "lastCommit": "2015-04-08"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

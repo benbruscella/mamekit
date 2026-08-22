@@ -1,0 +1,672 @@
+{
+  "game": "friskyt",
+  "title": "Frisky Tom (set 1) (Nichibutsu, 1981)",
+  "fullname": "Frisky Tom (set 1)",
+  "year": "1981",
+  "company": "Nichibutsu",
+  "family": "seicross",
+  "driverFile": "src/mame/nichibutsu/seicross.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 30719,
+          "kind": "rom"
+        },
+        {
+          "start": 30720,
+          "end": 32767,
+          "kind": "ram",
+          "share": "sharedram"
+        },
+        {
+          "start": 34848,
+          "end": 34943,
+          "kind": "ram",
+          "share": "spriteram[0]"
+        },
+        {
+          "start": 36864,
+          "end": 37887,
+          "kind": "ram",
+          "share": "videoram",
+          "write": "seicross_state.videoram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 38912,
+          "end": 38943,
+          "kind": "ram",
+          "share": "row_scroll"
+        },
+        {
+          "start": 39040,
+          "end": 39071,
+          "kind": "ram",
+          "share": "spriteram[1]",
+          "writeOnly": true
+        },
+        {
+          "start": 39936,
+          "end": 40959,
+          "kind": "ram",
+          "share": "colorram",
+          "write": "seicross_state.colorram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 40960,
+          "end": 40960,
+          "kind": "handler",
+          "read": "port.IN0"
+        },
+        {
+          "start": 43008,
+          "end": 43008,
+          "kind": "handler",
+          "read": "port.IN1"
+        },
+        {
+          "start": 45056,
+          "end": 45056,
+          "kind": "handler",
+          "read": "port.TEST"
+        },
+        {
+          "start": 47104,
+          "end": 47104,
+          "kind": "handler",
+          "read": "watchdog.reset_r"
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 1,
+            "kind": "handler",
+            "mirror": 8,
+            "write": "aysnd.address_data_w"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "kind": "handler",
+            "mirror": 8,
+            "read": "aysnd.data_r"
+          }
+        ],
+        "globalMask": 255
+      }
+    },
+    {
+      "tag": "mcu",
+      "type": "nsc8105",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 4096,
+          "end": 4351,
+          "kind": "ram",
+          "share": "nvram"
+        },
+        {
+          "start": 8192,
+          "end": 8192,
+          "kind": "handler",
+          "write": "seicross_state.dac_w"
+        },
+        {
+          "start": 32768,
+          "end": 63487,
+          "kind": "rom",
+          "romOffset": 0
+        },
+        {
+          "start": 63488,
+          "end": 65535,
+          "kind": "ram",
+          "share": "sharedram"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1536000,
+    "chips": 1,
+    "deviceTags": [
+      "aysnd"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.25,
+        "target": "speaker"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "DAC_4BIT_R2R",
+        "deviceTag": "dac",
+        "member": "m_dac",
+        "clock": 0,
+        "gain": 0.12,
+        "target": "speaker",
+        "writeMethods": [
+          "data_w",
+          "write"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 60.60606060606061,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 30720,
+      "loads": [
+        {
+          "file": "ftom.01",
+          "offset": 0,
+          "size": 4096,
+          "crc": "bce5d486",
+          "alt": [
+            {
+              "file": "ft.01",
+              "crc": "0ea46e19"
+            },
+            {
+              "file": "1.3a",
+              "crc": "554bdb0f"
+            }
+          ]
+        },
+        {
+          "file": "ftom.02",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "63157d6e",
+          "alt": [
+            {
+              "file": "ft.02",
+              "crc": "4f7b8662"
+            },
+            {
+              "file": "2.3b",
+              "crc": "0658633a"
+            }
+          ]
+        },
+        {
+          "file": "ftom.03",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "c8d9ef2c",
+          "alt": [
+            {
+              "file": "ft.03",
+              "crc": "1eb1b77c"
+            },
+            {
+              "file": "3.3d",
+              "crc": "c8de15ff"
+            }
+          ]
+        },
+        {
+          "file": "ftom.04",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "23a01aac",
+          "alt": [
+            {
+              "file": "ft.04",
+              "crc": "b5c5400d"
+            },
+            {
+              "file": "4.3e",
+              "crc": "970e5d2b"
+            }
+          ]
+        },
+        {
+          "file": "ftom.05",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "bfaf702a",
+          "alt": [
+            {
+              "file": "ft.05",
+              "crc": "b465be8a"
+            },
+            {
+              "file": "5.3f",
+              "crc": "45c8bd32"
+            }
+          ]
+        },
+        {
+          "file": "ftom.06",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "bce70b9c",
+          "alt": [
+            {
+              "file": "ft.06",
+              "crc": "90141317"
+            },
+            {
+              "file": "6.3h",
+              "crc": "2c1b7ecc"
+            }
+          ]
+        },
+        {
+          "file": "ftom.07",
+          "offset": 24576,
+          "size": 4096,
+          "crc": "b2ef303a",
+          "alt": [
+            {
+              "file": "ft.07",
+              "crc": "0ba02b2e"
+            },
+            {
+              "file": "7.3i",
+              "crc": "aa36a6b8"
+            }
+          ]
+        },
+        {
+          "file": "ft8_8.rom",
+          "offset": 28672,
+          "size": 2048,
+          "crc": "10461a24"
+        }
+      ]
+    },
+    {
+      "region": "gfx",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "ftom.11",
+          "offset": 0,
+          "size": 4096,
+          "crc": "1ec6ff65",
+          "alt": [
+            {
+              "file": "ft.11",
+              "crc": "956d924a"
+            },
+            {
+              "file": "11.7l",
+              "crc": "caa93315"
+            }
+          ]
+        },
+        {
+          "file": "ftom.12",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "3b8f40b5",
+          "alt": [
+            {
+              "file": "ft.12",
+              "crc": "c028d3b8"
+            }
+          ]
+        },
+        {
+          "file": "ftom.09",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "60642f25"
+        },
+        {
+          "file": "ftom.10",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "07b9dcfc"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 64,
+      "loads": [
+        {
+          "file": "ft.9c",
+          "offset": 0,
+          "size": 32,
+          "crc": "0032167e"
+        },
+        {
+          "file": "ft.9b",
+          "offset": 32,
+          "size": 32,
+          "crc": "6b364e69"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN1",
+      "mask": 32,
+      "value": 0,
+      "name": "Service Mode"
+    },
+    {
+      "port": "IN1",
+      "mask": 128,
+      "value": 0,
+      "name": "Counter Check"
+    },
+    {
+      "port": "TEST",
+      "mask": 1,
+      "value": 0,
+      "name": "Test Mode"
+    },
+    {
+      "port": "TEST",
+      "mask": 2,
+      "value": 0,
+      "name": "Connection Error"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-01-20",
+    "commits": 174,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Ivan Vangelista",
+      "Vas Crabb",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 54,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-20"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 23,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 20,
+        "firstCommit": "2014-05-06",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 17,
+        "firstCommit": "2015-11-02",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "hap",
+        "commits": 15,
+        "firstCommit": "2019-02-19",
+        "lastCommit": "2026-01-20"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 7,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2022-05-11"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 5,
+        "firstCommit": "2014-10-12",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-05-01",
+        "lastCommit": "2014-04-04"
+      },
+      {
+        "name": "smf-",
+        "commits": 3,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2016-10-17"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 2,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2012-02-13"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-11-30",
+        "lastCommit": "2011-11-30"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-04-22",
+        "lastCommit": "2008-04-22"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-24",
+        "lastCommit": "2018-08-24"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Oliver Stöneberg",
+        "commits": 1,
+        "firstCommit": "2013-07-16",
+        "lastCommit": "2013-07-16"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Zoë Blade",
+        "commits": 1,
+        "firstCommit": "2015-04-08",
+        "lastCommit": "2015-04-08"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 45 years ago:\n\nFrisky Tom (c) 1981 Nichibutsu [Nihon Bussan Company, Limited.].\n\nYou play the plumber Frisky Tom who is trying to get water from the top tank to a shower tank below. Mice interfere with your plans by stealing pipes blowing-up pipes and by biting Tom. If Tom fills enough water the shower tank, he advances to the next level. Depending upon how much water is in the tank, a woman in a bath tub will appear as an interlude between levels.\n\n- TECHNICAL -\n\nUpright model # FTA1001\n\nCRT: 20 inch.\nWidth: 600 mm.\nDepth: 690 mm.\nHeight: 1625 mm.\nPower source: 100V~240V/110W\n\nMain CPU : Zilog Z80 (@ 3.072 Mhz), NSC8105 (@ 1.5 Mhz)\nSound Chips : General Instrument AY8910 (@ 1.536 Mhz), DAC\n\nPlayers : 2\nControl : 4-way joystick\n\n- TRIVIA -\n\nFrisky Tom was released in October 1981. Nichibutsu never released the old version in the U.S. for unknown reasons, although one could guess one of them. Perhaps it was the naked woman in the bath tub in which as you advanced in the game, bubbles would be washed away revealing her breasts?? Probably didn't go over too well with the U.S. arcade owners in the early 80's.\n\nWhen the game was released, the service manual that came with the  original cabinet described the old version (set 2) of game play. That didn't help arcade owners much because it didn't match the system  they received. The game wasn't very popular so there were few complaints.\n\nThe flyer reads 'Nichibutsu original custom C.P.U. was used for the first time in video games'.\n\nCast of Characters :\nFRISKY TOM\nBOMB - When the bomb explodes, you lose a life.\nMOLAR Mouse (Orange) - 50 points awarded if bumped by Tom.\nPYRO Mouse (Pink) - Lights the bomb fuse.\nMEAN Mouse (Blue) - If Tom runs into this mouse he will fall...so stay away!.\nMEGATON Mouse (Violet) - Mouse who plants the bomb.\nKLEPTO Mouse (Green) - Mouse who takes or carries away pieces of pipe.\n\n- UPDATES -\n\nTwo Different Frisky Tom Games ?\n\nThe new version (set 1) differs from the old version (set 2) and has a tremendous impact on game play and strategy. In addition to the differences listed in the Cast of Characters, the following are also noted :\n* Frisky Toms are tracked as 'lives' in the new version while in the old version they are water tanks.\n* In the new version, the bottom tank starts with 4000 points and will gradually slip to 0 if no water gets to it. A life is lost at this point (Frisky Tom). In the old version, water must be filled to maximum to not lose a life (a tank). A song will be played when the bottom tank is filled completely.\n* The bomb fuse can be put out by either dropping on it from the left or all the way to the end of the screen on the right (reappear on the left side) in the new version. In the old version you can only put out the fuse on the left side. You fall just short if you move off to the right side of the screen.\n* MOLAR Mouse is worth 200 points in the new version.\n* MOLAR mouse can be knocked down in any position on the pipes in the new version. MOLAR mouse can only be knocked off in the old version when he is transiting up and down on a pipe.\n* In the new version MEAN Mouse is red.\n* In the new version MEAN Mouse will kill Tom if he touches or falls on it. MEAN mouse doesn't fall in the old version.\n* KLEPTO Mouse is not in the new version\n* The new version has classes of difficulty 'A', 'B' & 'C'. In the old version there are no difficulty classes.\n* In the new version the lady will appear between levels every time the bottom tank has more than 1900 points. Also she wears a bikini. In the old version the lady will appear every 3 levels or so and she is naked!\n* Game config is backed up by 4.5v battery in old version.\n* Old version uses larger board.\n\n- STAFF -\n\nFrisky Tom was developed by game developer company Jorudan.\n\n- PORTS -\n\n* CONSOLES:\nAtari 5200 (1982): prototype was programmed but was never released.\nNintendo Super Famicom (1995) \"Nichibutsu Arcade Classics [Model SHVC-AACJ-JPN]\"\nNintendo Game Boy (1995) \"Frisky Tom [Model DMG-AFTJ-JPN]\"\nSony PlayStation (1995) \"Nichibutsu Arcade Classics [Model SLPS-00184]\"\nSony PlayStation (2002) \"Arcade Hits - Frisky Tom [Major Wave Serie] [Model SLPM-87118]\"\n\n* COMPUTERS:\nX68000 (1995)\n\n* OTHERS:\nLCD Handheld Game (1982) by Bandai.\nLCD Handheld Game (1982) \"Pipe Line\" by Bandai : French release.\nVFD Handheld Game (1982) by Bandai.\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/877/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

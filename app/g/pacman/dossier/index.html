@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pac-Man (Midway) — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Pac-Man (Midway)</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/pacman/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/pacman/pacman-dossier.md" download="pacman-dossier.md">Download pacman-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Namco (Midway license) · 1980</div>
+    <h1>Pac-Man (Midway)</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/pacman.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>pacman</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/pacman/pacman.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>pacman</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>wsg</strong></div>
+      <div class="fact"><span>Screen</span><strong>288×224 @ 60.61 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>90°</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>Z80</td><td>3.072 MHz</td><td>16</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>pacman.6e</td><td>0x0</td><td>0x1000</td><td>c1e6ab10</td></tr><tr><td>maincpu</td><td>pacman.6f</td><td>0x1000</td><td>0x1000</td><td>1a6fb2d4</td></tr><tr><td>maincpu</td><td>pacman.6h</td><td>0x2000</td><td>0x1000</td><td>bcdd1beb</td></tr><tr><td>maincpu</td><td>pacman.6j</td><td>0x3000</td><td>0x1000</td><td>817d94e3</td></tr><tr><td>gfx1</td><td>pacman.5e</td><td>0x0</td><td>0x1000</td><td>0c944964</td></tr><tr><td>gfx1</td><td>pacman.5f</td><td>0x1000</td><td>0x1000</td><td>958fedf9</td></tr><tr><td>proms</td><td>82s123.7f</td><td>0x0</td><td>0x20</td><td>2fc650bd</td></tr><tr><td>proms</td><td>82s126.4a</td><td>0x20</td><td>0x100</td><td>3eb3a8e4</td></tr><tr><td>namco</td><td>82s126.1m</td><td>0x0</td><td>0x100</td><td>a9cc86bf</td></tr><tr><td>namco</td><td>82s126.3m</td><td>0x100</td><td>0x100</td><td>77245b66</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>Up</td><td>joystick up</td><td>IN0</td><td>0x1</td></tr><tr><td>Left</td><td>joystick left</td><td>IN0</td><td>0x2</td></tr><tr><td>Right</td><td>joystick right</td><td>IN0</td><td>0x4</td></tr><tr><td>Down</td><td>joystick down</td><td>IN0</td><td>0x8</td></tr><tr><td>5</td><td>coin1</td><td>IN0</td><td>0x20</td></tr><tr><td>6</td><td>coin2</td><td>IN0</td><td>0x40</td></tr><tr><td>9</td><td>service1</td><td>IN0</td><td>0x80</td></tr><tr><td>1</td><td>start1</td><td>IN1</td><td>0x20</td></tr><tr><td>2</td><td>start2</td><td>IN1</td><td>0x40</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/pacman/pacman.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Nicola Salmoria,Stephane Humbert</strong></div>
+    <div class="fact"><span>Development</span><strong>436 commits by 52 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Ivan Vangelista, Miodrag Milanovic, Michaël Banaan Ananas, Vas Crabb</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 46 years ago:
+
+Pac-Man (c) 1980 Midway Mfg. Co.
+
+Export release by Bally/Midway for North America. Game developed by Namco and originally known as Puckman in Japan. For more information about the game itself, please see the original Japanese release entry, &quot;Puckman [Upright model]&quot;.</p><details><summary>TECHNICAL</summary><p class="story">Upright model
+Game No. 932</p></details><details><summary>TRIVIA</summary><p class="story">Pac-Man was released by Midway Manufacturing, under license from Namco, in the USA on October 10, 1980 (Friday). 96,000 units were produced in America. 
+
+Reportedly, when Bally/Midway obtained the rights to Pac-Man, Namco was offering four different games, which ended up being licensed to Game Plan and Bally/Midway. Game Plan's Ken Anderson reports that he and Bally's Dave Marofske flipped a coin to see who would get first crack at the games. Game Plan won and chose a tank game (which they released as &quot;Tank Battalion&quot;) over Pac-Man. The other game they got was released as &quot;King &amp; Balloon&quot;. Bally/Midway, meanwhile, took Pac-Man and &quot;Rally-X&quot;.
+
+Midway made the following changes to the game (from the original Namco version):
+- The game's name (and likewise its main character) has been changed to Pac-Man. Refer to the Namco Upright version entry, Trivia section, for details behind this name change. 
+- The name/nickname combinations for the ghosts in this version are:
+Shadow - &quot;Blinky&quot; (red ghost)
+Speedy - &quot;Pinky&quot; (pink ghost)
+Bashful - &quot;Inky&quot; (cyan ghost)
+Pokey - &quot;Clyde&quot; (orange ghost)
+- Notice that the pink ghost's nickname remains unchanged from the Japanese version.
+- Unlike the Japanese version, the American version has no DIP switch for alternate ghost names.  
+
+The game's cult status in the early 80's was such that it inspired a hit single by 'Buckner and Garcia' called 'Pac-Man Fever'. Initially released as a single in December, 1981, it eventually reached #9 on the pop charts.  It was so popular the label encouraged them to record an entire album with video game themed songs.  The album 'Pac-Man Fever' was quickly released in January of 1982 featuring 8 songs based on Donkey Kong, Frogger, Asteroids, Centipede, and other popular games.
+
+The game also spawned a virtual cottage industry of best-selling how-to books strategy guides on how to beat the game by using patterns with names like the &quot;Bazo's Breaker&quot;, the &quot;Donut Dazzler&quot; and the &quot;GET pattern&quot; (named after the first initials of the members of a team of players from Davis, California: George Huang, Ed Bazo, and Tom Fertado). 
+
+A Pac-Man unit appears in the movie 'Getting There', in the 1982 movie 'Jekyll &amp; Hyde - Together Again', in the 1982 movie 'Fast Times at Ridgemont High', in the 1983 movie 'WarGames', in the 1983 movie 'Joysticks', in the 1983 movie 'Koyaanisqatsi - Life out of Balance', in the 1985 movie 'The Heavenly Kid', in the 1985 movie 'Better Off Dead', and in the 1986 movie 'The Color of Money'. 
+
+A Pac-Man unit appears in the pilot of Season One of 'The A-Team'. It is where Amy (Melinda Culea) meets Murdock (Dwight Schultz) for the first time. 
+
+MB (Milton Bradley) released a board game based on this video game in 1982 (Pac-Man Game, 'As Much Fun as the Action Packed Arcade Game of the Same Name'). In this board game, the dots in the maze are represented by white marbles. There are also yellow marbles representing the power pills in the maze. There are also two ghosts pawns of the same color in the game. The object is to roll the dice and move your Pac-Man playing piece around the maze gobbling up as many marbles as you can using the count on one die, and move either ghost pawn using the count on the other die. There are yellow dots imprinted on the game board to lay out the path each character must take; these dots do not count as spaces. Use the ghosts to try to catch your opponents. When this happens, that opponent is sent back home and surrenders two marbles to the player who moved the ghost. If a Pac-Man gobbles up a yellow marble, that player earns the right to gobble a ghost. When this happens, the gobbled ghost is returned to the ghost pen, the player takes two marbles away from any opponent, and the player's yellow marble is returned to the game board. Once the maze is cleared of white marbles, the game is over and the player with the most white marbles (yellow marbles do not count) is the winner. 
+
+'Pac-Man' is also the nickname of the Filipino boxing champion Manny Pacquiao. The two-time world champion earned the distinction as the only boxer who has knocked down both future Mexican 'Hall of Famer' Marco Antonio 'Baby Face Assassin' Barrera (knocked out in 11th round) and Erik 'El Terrible' Morales (knocked out in 10th round). Pacquiao has been on the top 10 list of the best 'pound-for-pound' fighters in the world. 
+
+In the multi-racial country of Malaysia, 'Pac-Man' is a slang term coined to describe men who only date ladies of other races. 
+
+The name 'Pac-Man' has been given to a nebula, cataloged as NGC 281. The Pac-Man Nebula is an H II region in the constellation of Cassiopeia. It includes or is near the open cluster IC 1590, the double star HD 5005, and several Bok globules. The shape of the nebula resembles the famous video game icon, Pac-Man. It is visible in amateur telescopes from dark sky locations. 
+
+The Cassini Robotic spacecraft (Cassini-Huygens) were captured images during a close pass to the moon of Saturn named 'Mimas', and collected by the composite infrared spectrometer (CIRS). The images show the fluctuating temperatures experienced by Mimas. The combined map with this images form a shape of this character Pac-Man. 
+
+On May 21, 2010, to celebrate Pac-Man's 30th Anniversary, Google, the famous internet search engine, has created the first ever interactive Doodle! This doodle allowed people to play Pac-Man on the home page (at the place of the original logo).</p></details><details><summary>UPDATES</summary><p class="story">Midway's new revision program for Pac-Man was released in December 1981; the new program increases the difficulty of the game and adds a new challenge to players already familiar with the original.</p></details><details><summary>PORTS</summary><p class="story">NOTE: Only ports released in North America [US] are listed here. For ports released in other regions, please see the original Namco (Japanese version) upright entry. 
+
+* CONSOLES: 
+Bally Astrocade &quot;Muncher&quot; 
+Emerson Arcadia &quot;Gobbler&quot; 
+Atari 2600 (1981) &quot;Pac-Man [Model CX2646]&quot; 
+Atari 5200 (1982) &quot;Pac-Man [Model CX5208]&quot; 
+Mattel Intellivision (1983) &quot;Pac-Man [Model 70251]&quot; 
+Nintendo NES (1987) by Tengen 
+Nintendo NES (nov.1993) &quot;Pac-Man [Model NES-P7]&quot; 
+Sony PlayStation (jul.31, 1996) &quot;Namco Museum Vol.1 [Model SLUS-00215]&quot; 
+Nintendo 64 (oct.31, 1999) &quot;Namco Museum 64 [Model NUS-NNME-USA]&quot; 
+Sega Dreamcast (june.25, 2000) &quot;Namco Museum [Model T-1403N]&quot; 
+Sony PlayStation 2 (dec.4, 2001) &quot;Namco Museum [Model SLUS-20273]&quot; 
+Microsoft XBOX (oct.9, 2002) &quot;Namco Museum&quot; 
+Nintendo GameCube (oct.9, 2002) &quot;Namco Museum [Model DOL-GNME-USA]&quot; 
+Sony PlayStation 2 (aug.30, 2005) &quot;Namco Museum - 50th Anniversary [Model SLUS-21164]&quot; 
+Microsoft XBOX (aug.30, 2005) &quot;Namco Museum - 50th Anniversary [Model NMO-2201A-NM]&quot; 
+Nintendo GameCube (aug.30, 2005) &quot;Namco Museum - 50th Anniversary [Model DOL-G5NE-USA]&quot; 
+Microsoft XBOX 360 [XBLA] (aug.9, 2006) 
+Microsoft XBOX 360 [XBLA] (nov.4, 2008) &quot;Namco Museum - Virtual Arcade [Model 21022]&quot; 
+Sony PlayStation 3 (jul.16, 2009) &quot;Namco Museum Essentials [Model NPUB-30086]&quot; 
+Nintendo Wii (nov.16, 2010) &quot;Namco Museum Megamix&quot; 
+Sony PlayStation 3 [PSN] (feb.25, 2014) &quot;Pac-Man Museum [Model NPUB-31383]&quot; 
+Microsoft XBOX 360 [XBLA] (feb.26, 2014) &quot;Pac-Man Museum&quot;
+Microsoft XBOX One [XBOX Store] (apr.20, 2016) &quot;Arcade Game Series - Pac-Man&quot;
+Sony PlayStation 4 [PSN] (apr.20, 2016) &quot;Arcade Game Series - Pac-Man [Model CUSA-03955]&quot; 
+
+* HANDHELDS: 
+Sega Game Gear (1991) &quot;Pac-Man [Model T-14018]&quot; 
+Nintendo Game Boy (apr.1991) &quot;Pac-Man [Model DMG-PC-USA]&quot;  
+SNK Neo-Geo Pocket Color (jul.31, 1999) &quot;Pac-Man [Model NEOP00551]&quot; 
+Nintendo Game Boy Color (aug.1999) &quot;Pac-Man - Special Color Edition [Model DMG-AACE-USA]&quot; 
+Nintendo Game Boy Advance (jul.12, 2001) &quot;Pac-Man Collection [Model AGB-APCE-USA]&quot; 
+Sony PSP (aug.23, 2005) &quot;Namco Museum Battle Collection [Model ULUS-10035]&quot; 
+Nintendo DS (sept.18, 2007) &quot;Namco Museum DS [Model NTR-YNME-USA]&quot; 
+Nintendo 3DS (jul.26, 2011) &quot;Pac-Man &amp; Galaga Dimensions [Model CTR-APGE-USA]&quot; 
+
+* COMPUTERS: 
+Tandy Color Computer (1981) &quot;Pac-Tac&quot; 
+Atari 400 (1982) 
+Atari 800 (1982) &quot;Pac-Man [Model CXL4022]&quot; 
+Commodore VIC-20 (1982) 
+PC [Booter] (1982) &quot;PC-Man&quot; 
+Tandy Color Computer (1982) &quot;Ghost Gobbler&quot; 
+Tandy Color Computer (1982) &quot;Pack Maze&quot; 
+Apple II (1983) 
+Commodore C64 (1983) by Thunder Mountain 
+Commodore C64 (1983) &quot;Pac-Man [Model RX8502]&quot; 
+PC [Booter] (1983) 
+PC [Booter] (1983) &quot;Ascii Man&quot; : Part of the &quot;Friendlyware PC Arcade&quot; suite 
+PC [MS-DOS] (1983) 
+Tandy Color Computer (1983) &quot;Pac Jaws&quot; 
+Tandy Color Computer (1983) &quot;Pac-Tac II&quot; 
+Texas Instruments TI-99/4A (1983) &quot;Pac-Man [Model RX8500]&quot;
+Tandy Color Computer (1990) &quot;Pac-Dude&quot;
+Apple II GS (1992) &quot;Pac Man GS&quot;
+NEC PC-9801 (1992) Pac Man
+Apple Macintosh (1992) &quot;Mac-Man&quot;
+PC [MS Windows 95, CD-ROM] (1995) &quot;Mac-Man&quot; : Part of &quot;Windows Arcade Pack&quot; 
+PC [MS Windows 95, 3.5&quot;] (mar.31, 1996) &quot;Microsoft Return of Arcade&quot; 
+Tandy Color Computer 3 (1997) 
+PC [MS-DOS] (1997) &quot;Champ Pac-Em&quot; by CHAMProgramming 
+PC [MS Windows, CD-ROM] (2000) &quot;Microsoft Return of Arcade Anniversary Edition&quot; 
+PC [MS Windows, CD-ROM] (oct.25, 2005) &quot;Namco Museum - 50th Anniversary&quot; 
+PC [MS Windows, Online] (2009) &quot;Namco All Stars: Pac-Man and Dig Dug&quot; by WildTangent Games 
+Apple iPhone/iPad (mar.31, 2010) &quot;Pac-Man for iPad [Model 363297482]&quot;  
+PC [MS Windows, Online] (aug.4, 2010) &quot;Namco All-Stars: PAC-MAN&quot; by WildTangent Games 
+Steam (feb.25, 2014) &quot;Pac-Man Museum [Model 236470]&quot; 
+Steam (apr.19, 2016) &quot;Arcade Game Series - Pac-Man [Model 394160]&quot; 
+
+* OTHERS: 
+VFD handheld game (1981) by Coleco. 
+LCD handheld game (1992) by Micro Games of America 
+Arcade (1996) &quot;Namco Classics Collection Vol.2&quot; 
+LCD handheld color game (1999) by Micro Games of America 
+Arcade (2000) &quot;Ms. Pac-Man/Galaga - 20th Anniversary Class of 1981 Reunion&quot; : as a hidden game. 
+Namco Classics TV game (2003) by Jakks Pacific 
+Mobile Phones (june.13, 2003) 
+Arcade (2005) &quot;Pac-Man - 25th Anniversary Edition&quot; 
+Super Pac-Man TV game (2006) by Jakks Pacific 
+Arcade Gold featuring Pac-Man (2007) by Jakks Pacific 
+Retro Arcade featuring Pac-Man (2008) by Jakks Pacific 
+Apple iPhone/iPod (jul.9, 2008) &quot;Pac-Man [Model 281656475]&quot; 
+Android Market (sept.23, 2008)
+BlackBerry (june.30, 2009) &quot;Pac-Man [Model 967]&quot; 
+Android (jan.11, 2010) 
+Windows Mobile (mar.15, 2010)
+Apple iPhone/iPod (mar.31, 2010) &quot;Pac-Man for iPad [Model 363297482]&quot; 
+Arcade (2010) &quot;Pac-Man's Arcade Party&quot; 
+Android Market (2011) 
+Pac-Man Connect and Play (2012) by Bandai 
+Apple iPhone/iPod (mar.13, 2012) &quot;Namco Arcade [Model 465606050]&quot; 
+Android Market (apr.6, 2012) by Namco Networks America 
+Android (mar.22, 2013) &quot;Pac-Man + Tournaments&quot;
+Arcade (2018) &quot;Pac-Man's Pixel Bash&quot;</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/1914/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

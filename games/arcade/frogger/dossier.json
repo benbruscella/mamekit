@@ -1,0 +1,826 @@
+{
+  "game": "frogger",
+  "title": "Frogger (Konami, 1981)",
+  "fullname": "Frogger",
+  "year": "1981",
+  "company": "Konami",
+  "family": "galaxian",
+  "driverFile": "src/mame/galaxian/galaxian.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles, Couriersud, Stephane Humbert, Robbbert",
+  "cpus": [
+    {
+      "tag": "audiocpu",
+      "type": "z80",
+      "clock": 1789772.625,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 8191,
+          "kind": "rom"
+        },
+        {
+          "start": 16384,
+          "end": 17407,
+          "kind": "ram",
+          "mirror": 7168
+        },
+        {
+          "start": 24576,
+          "end": 28671,
+          "kind": "handler",
+          "mirror": 4096,
+          "write": "galaxian_state.konami_sound_filter_w"
+        }
+      ],
+      "mask": 32767,
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 255,
+            "kind": "handler",
+            "read": "galaxian_state.frogger_ay8910_r",
+            "write": "galaxian_state.frogger_ay8910_w"
+          }
+        ],
+        "globalMask": 255
+      }
+    },
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 34815,
+          "kind": "ram"
+        },
+        {
+          "start": 34816,
+          "end": 34816,
+          "kind": "handler",
+          "mirror": 2047,
+          "read": "watchdog.reset_r"
+        },
+        {
+          "start": 43008,
+          "end": 44031,
+          "kind": "ram",
+          "mirror": 1024,
+          "share": "videoram",
+          "write": "galaxian_state.galaxian_videoram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 45056,
+          "end": 45311,
+          "kind": "ram",
+          "mirror": 1792,
+          "share": "spriteram",
+          "write": "galaxian_state.galaxian_objram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 47112,
+          "end": 47112,
+          "kind": "handler",
+          "mirror": 2019,
+          "write": "galaxian_state.irq_enable_w"
+        },
+        {
+          "start": 47116,
+          "end": 47116,
+          "kind": "handler",
+          "mirror": 2019,
+          "write": "galaxian_state.galaxian_flip_screen_y_w"
+        },
+        {
+          "start": 47120,
+          "end": 47120,
+          "kind": "handler",
+          "mirror": 2019,
+          "write": "galaxian_state.galaxian_flip_screen_x_w"
+        },
+        {
+          "start": 47128,
+          "end": 47128,
+          "kind": "handler",
+          "mirror": 2019,
+          "write": "galaxian_state.coin_count_0_w"
+        },
+        {
+          "start": 47132,
+          "end": 47132,
+          "kind": "handler",
+          "mirror": 2019,
+          "write": "galaxian_state.coin_count_1_w"
+        },
+        {
+          "start": 49152,
+          "end": 65535,
+          "kind": "handler",
+          "read": "galaxian_state.frogger_ppi8255_r",
+          "write": "galaxian_state.frogger_ppi8255_w"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1789772.625,
+    "chips": 1,
+    "deviceTags": [
+      "8910.0"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "konami",
+        "targetInput": 0
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 1,
+        "target": "konami",
+        "targetInput": 1
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 1,
+        "target": "konami",
+        "targetInput": 2
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 60.60606060606061,
+    "vtotal": 264,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "partial",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "frogger.26",
+          "offset": 0,
+          "size": 4096,
+          "crc": "597696d6",
+          "alt": [
+            {
+              "file": "epr-1012.ic5",
+              "crc": "efab0c79"
+            },
+            {
+              "file": "29",
+              "crc": "a58e43a7"
+            },
+            {
+              "file": "epr-1031.15",
+              "crc": "4b7c8d11"
+            },
+            {
+              "file": "6.bin",
+              "crc": "8ff0a973"
+            },
+            {
+              "file": "frog4.bin",
+              "crc": "4d563992"
+            },
+            {
+              "file": "epr-1398.2c",
+              "crc": "cd6d3b43"
+            }
+          ]
+        },
+        {
+          "file": "frogger.27",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "b6e6fcc3",
+          "alt": [
+            {
+              "file": "epr-1013a.ic6",
+              "crc": "aeca9c13"
+            },
+            {
+              "file": "30",
+              "crc": "119bbedb"
+            },
+            {
+              "file": "epr-1032.16",
+              "crc": "ac00b9d9"
+            },
+            {
+              "file": "7.bin",
+              "crc": "3087bb4b"
+            },
+            {
+              "file": "frog5.bin",
+              "crc": "d8b8c06e"
+            },
+            {
+              "file": "epr-1399.2e",
+              "crc": "71c365d4"
+            }
+          ]
+        },
+        {
+          "file": "frsm3.7",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "aca22ae0",
+          "alt": [
+            {
+              "file": "epr-34.ic7",
+              "crc": "ed866bab"
+            },
+            {
+              "file": "epr-1014.ic7",
+              "crc": "dd251066"
+            },
+            {
+              "file": "31",
+              "crc": "405595e9"
+            },
+            {
+              "file": "epr-1033.33",
+              "crc": "bc1d6fbc"
+            },
+            {
+              "file": "8.bin",
+              "crc": "c3869d12"
+            },
+            {
+              "file": "frog6.bin",
+              "crc": "b55a1cb5"
+            },
+            {
+              "file": "ic7",
+              "crc": "a9947b9a"
+            },
+            {
+              "file": "epr-1400.2f",
+              "crc": "5bd230b5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "frogger.608",
+          "offset": 0,
+          "size": 2048,
+          "crc": "e8ab0256",
+          "alt": [
+            {
+              "file": "frogvd_r11-ot1.bc5",
+              "crc": "79326efe"
+            },
+            {
+              "file": "a.bin",
+              "crc": "b4c2180e"
+            }
+          ]
+        },
+        {
+          "file": "frogger.609",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "7380a48f",
+          "alt": [
+            {
+              "file": "b.bin",
+              "crc": "a1aae0bc"
+            }
+          ]
+        },
+        {
+          "file": "frogger.610",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "31d7eb27",
+          "alt": [
+            {
+              "file": "epr-1035.43",
+              "crc": "14e74148"
+            },
+            {
+              "file": "frog3.bin",
+              "crc": "837c16ab"
+            },
+            {
+              "file": "c.bin",
+              "crc": "9d88fd0a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "frogger.607",
+          "offset": 0,
+          "size": 2048,
+          "crc": "05f7d883",
+          "alt": [
+            {
+              "file": "7h.bin",
+              "crc": "28350f17"
+            }
+          ]
+        },
+        {
+          "file": "frogger.606",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "f524ee30",
+          "alt": [
+            {
+              "file": "epr-1036.1k",
+              "crc": "658745f8"
+            },
+            {
+              "file": "8h.bin",
+              "crc": "e080f942"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 32,
+      "loads": [
+        {
+          "file": "pr-91.6l",
+          "offset": 0,
+          "size": 32,
+          "crc": "413703bf",
+          "alt": [
+            {
+              "file": "82s123.bin",
+              "crc": "c5f12bc3"
+            },
+            {
+              "file": "n82s123.bin",
+              "crc": "a35ec965"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 128,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 64,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN1",
+      "mask": 3,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "IN2",
+      "mask": 6,
+      "value": 0,
+      "name": "Coinage"
+    },
+    {
+      "port": "IN2",
+      "mask": 8,
+      "value": 0,
+      "name": "Cabinet"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-11",
+    "commits": 659,
+    "contributors": 49,
+    "topAuthors": [
+      "Aaron Giles",
+      "Ivan Vangelista",
+      "Miodrag Milanovic",
+      "ClawGrip",
+      "David Haywood"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 121,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-10-20"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 120,
+        "firstCommit": "2013-11-07",
+        "lastCommit": "2026-06-11"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 59,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 47,
+        "firstCommit": "2018-09-06",
+        "lastCommit": "2026-04-10"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 40,
+        "firstCommit": "2013-08-07",
+        "lastCommit": "2021-06-08"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 38,
+        "firstCommit": "2015-11-02",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "AJR",
+        "commits": 37,
+        "firstCommit": "2016-03-31",
+        "lastCommit": "2023-10-20"
+      },
+      {
+        "name": "hap",
+        "commits": 31,
+        "firstCommit": "2015-10-31",
+        "lastCommit": "2026-03-30"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 28,
+        "firstCommit": "2011-02-17",
+        "lastCommit": "2014-09-05"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 16,
+        "firstCommit": "2008-03-28",
+        "lastCommit": "2009-10-05"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 15,
+        "firstCommit": "2015-04-12",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 13,
+        "firstCommit": "2010-02-03",
+        "lastCommit": "2021-08-14"
+      },
+      {
+        "name": "smf-",
+        "commits": 13,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2025-05-12"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 8,
+        "firstCommit": "2012-11-21",
+        "lastCommit": "2020-07-25"
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "commits": 6,
+        "firstCommit": "2010-03-18",
+        "lastCommit": "2010-03-19"
+      },
+      {
+        "name": "Steven Coomber",
+        "commits": 6,
+        "firstCommit": "2022-03-12",
+        "lastCommit": "2022-04-15"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 4,
+        "firstCommit": "2010-03-02",
+        "lastCommit": "2022-03-21"
+      },
+      {
+        "name": "braintro",
+        "commits": 4,
+        "firstCommit": "2019-04-07",
+        "lastCommit": "2019-04-10"
+      },
+      {
+        "name": "couriersud",
+        "commits": 4,
+        "firstCommit": "2015-05-25",
+        "lastCommit": "2020-01-20"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 4,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2014-04-17"
+      },
+      {
+        "name": "cam900",
+        "commits": 3,
+        "firstCommit": "2019-02-15",
+        "lastCommit": "2019-03-31"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 3,
+        "firstCommit": "2009-02-26",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 3,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "briantro",
+        "commits": 2,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2015-06-04"
+      },
+      {
+        "name": "Devin Acker",
+        "commits": 2,
+        "firstCommit": "2024-05-09",
+        "lastCommit": "2024-05-16"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "kazblox",
+        "commits": 2,
+        "firstCommit": "2015-10-04",
+        "lastCommit": "2015-10-17"
+      },
+      {
+        "name": "MASHinfo",
+        "commits": 2,
+        "firstCommit": "2016-09-21",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-05-28",
+        "lastCommit": "2018-09-03"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "wilbertpol",
+        "commits": 2,
+        "firstCommit": "2018-05-20",
+        "lastCommit": "2018-05-26"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2013-02-02",
+        "lastCommit": "2013-02-02"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 1,
+        "firstCommit": "2008-02-10",
+        "lastCommit": "2008-02-10"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 1,
+        "firstCommit": "2017-02-10",
+        "lastCommit": "2017-02-10"
+      },
+      {
+        "name": "ImJezze",
+        "commits": 1,
+        "firstCommit": "2016-02-21",
+        "lastCommit": "2016-02-21"
+      },
+      {
+        "name": "Kaz",
+        "commits": 1,
+        "firstCommit": "2017-02-06",
+        "lastCommit": "2017-02-06"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2015-01-26",
+        "lastCommit": "2015-01-26"
+      },
+      {
+        "name": "Martin Lindhe",
+        "commits": 1,
+        "firstCommit": "2017-11-03",
+        "lastCommit": "2017-11-03"
+      },
+      {
+        "name": "MASH",
+        "commits": 1,
+        "firstCommit": "2016-09-14",
+        "lastCommit": "2016-09-14"
+      },
+      {
+        "name": "mixxmaster",
+        "commits": 1,
+        "firstCommit": "2015-09-25",
+        "lastCommit": "2015-09-25"
+      },
+      {
+        "name": "Osso",
+        "commits": 1,
+        "firstCommit": "2014-11-02",
+        "lastCommit": "2014-11-02"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "R. Belmont",
+        "commits": 1,
+        "firstCommit": "2008-11-15",
+        "lastCommit": "2008-11-15"
+      },
+      {
+        "name": "Roberto Fresca",
+        "commits": 1,
+        "firstCommit": "2018-09-02",
+        "lastCommit": "2018-09-02"
+      },
+      {
+        "name": "sjy555525",
+        "commits": 1,
+        "firstCommit": "2025-08-23",
+        "lastCommit": "2025-08-23"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 1,
+        "firstCommit": "2008-04-19",
+        "lastCommit": "2008-04-19"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 45 years ago:\n\nFrogger (c) 1981 Konami Industry Company, Limited.\n\nFrogger is a one or two-player game in which players must overcome a number of hazards to safely guide the green amphibian from the bottom of the screen to one of five home bases situated at the top of the screen.\n\nThe lower half of the screen consists of a bi-directional flow of traffic moving across five lanes. To navigate across the road safely, Frogger's hops must be timed to avoid the vehicles, which include buses, civilian traffic and racing cars, with different vehicle types moving at different speeds. As well as being able to hop vertically, Frogger can also move left and right, allowing him to move with the flow of traffic. \n\nThe upper half of the screen consists of a fast-flowing river populated with logs, crocodiles and turtles. Frogger will drown if he has any contact with the water and these act as platforms onto which Frogger can hop. He must be careful to avoid contact with crocodiles' snapping jaws, however and some of the turtles will periodically dive below the water's surface, drowning Frogger. Frogger will also die if he is on a log, turtle or crocodile when it reaches the edge of the screen.\n\nOn the logs of the river section a female frog will occasionally appear and bonus points are awarded if Frogger successfully escorts her safely home. A fly also appears randomly in a home base and bonus points are awarded if Frogger enters the base when the fly is present. Conversely, a crocodile may also appear in a home base and a life is lost if Frogger enters the base while the crocodile is present.\n\nA round is completed once five frogs have been guided safely home, after which the next round begins with an increased level of difficulty. This includes faster-moving vehicles on the road section and new, deadly hazards on the river section, including crocodiles, otters and snakes.\n\n- TECHNICAL -\n\nGame ID : GX392\n\nMain CPU : Zilog Z80 (@ 3.072 Mhz)\nSound CPU : Zilog Z80 (@ 1.78975 Mhz)\nSound Chips : General Instrument AY8910 (@ 1.78975 Mhz)\n\nPlayers : 2\nControl : 4-Way Joystick\n\n- TRIVIA -\n\nFrogger was released by Konami in June 1981 in Japan; it became a runaway hit. \n\n1981 was a big year in video games. A lot of companies were putting some pretty popular games on the market and it created a very competitive atmosphere as to what company was putting out the most popular ones. In addition, 1981 continued on the trend of the 'cute' type games such as \"Ms. Pac-Man\", \"Qix\", and a host of Pac-Man clones. Konami was already becoming a force to be reckoned with in the video gaming world. With such hits as \"Space War\", \"Scramble\", and \"Super Cobra\", Konami was making its mark. \n\nThe sound that can be heard when a coin is inserted into the machine was sampled by producer Richard X for the Sugababes' song, 'Freak Like Me' (and is the very first sound on the track). \n\nFrogger has numerous bugs, although many of these are not immediately apparent to the average player : \n1. Sections of the music will occasionally cut out, although the main melody will continue to play. \n2. On occasion, Frogger displays a somewhat haphazard approach to collision detection. One side effect of this is that the player can sometimes make a perfectly legal and safe jump and still lose a life. Another side effect of this is that the player can jump up onto the first row of turtles, and then immediately jump back. This will place the player 'off the grid', and it is now possible to jump right off the side of the screen, leading to a loss of life. \n3. There are several other odd jumps that can be made as well. Firstly, the player can 'hang off' the left side of a turtle, but attempting to do the same on the right side results in death. If the player jumps onto a home base with an alligator (and the 'gator vanishes after you jump, but before the player lands), Frogger will be killed, but he will ALSO make it home. Finally, left and right jumps on the top row of logs are sometimes much slower than usual - this is more likely to occur after previously eating a fly. \n4. Another in-game bug is that the lady frog will sometimes be invisible, but will flash red when the player jumps onto the spot where she is. \n\nMark Robichek holds the official record for this game with 442,330 points. \n\nA Frogger unit appears in the 1999 movie 'Magnolia' and the sitcom 'Two and a Half Men'; Season 5, Episode 2 (People Who Love Peepholes). \n\nFrogger inspired a catchy hit song by Buckner and Garcia called 'Froggy's Lament' released on the 'Pac-Man Fever' album. \n\nThe TV show, Seinfeld, has an episode named 'The Frogger'. George and Jerry are in Mario's Pizza which is closing down, and they find a Frogger game still there. They realize that the high score of 860,630 points has George's initials GLC [George Louis Costanza]. They reminisce about the night it happened : \"I was unstoppable!... Just the right amount of grease on the joystick\". George decides to buy the Frogger machine to immortalize his high score, but Jerry informs him that unplugging the game will erase all of the scores. Later, George tries in vain to call an electrician to help : \"I need a guy that can rig a Frogger machine so that I can move it without losing power, 'cause I have the high score. H-hello?\". Kramer suggests an electrician who can help. George says, \"Kramer, listen to me. I'm never gonna have a child. If I lose this Frogger high score, that's it for me\". George assembles a team and hatches a plan to salvage the game. But when he arrives, he finds the team playing the game, which has only three minutes of battery life left. They can't get it back in the closed pizzeria, but there is an open pharmacy across the street where it could be plugged in. George decides to push the machine across the highway, and an overhead shot of this feat looks much like the Frogger game itself, and the music from the game is played. At the end, George is unable to push the game onto the sidewalk and it gets destroyed by an oncoming truck. \n\nMB (Milton Bradley) released a board game based on this video game (same name) the same year, 'One Wrong Leap Will Get You Squished And Splattered' : in this version of the game, 2 players face off, each with their own army of frogs, logs, and automobiles. Each turn, a player spends his movement points either moving his frogs toward their goal (the other side of the board), or moving logs and cars in an attempt to block or squash the other player's frogs. Complete with 'bonus points' for landing on flies, this is actually a pretty faithful interpretation of the video-game, but far too simple to have any long-lasting interest. More of a curiosity for video game enthusiasts than anything. \n\nFrogger also spawned a cartoon series of the same name : Ruby-Spears Productions. Produced By Joe Ruby, Ken Spears. Originally aired September 17, 1983 as part of 'Saturday Supercade' on CBS. \n\nMichael Jackson used to own this game. It was sold at the official Michael Jackson Auction on April 24, 2009.\n\nThe main character appears on the 2012 animation movie \"Wreck-It Ralph\" from Walt Disney Animation Studios.\n\n- SCORING -\n\nForward Hop : 10 points (max points per home is 100)\nFrog Safely Put in Home : 50 points\nCompleting a Level : 1,000 points\nBringing a Lady Frog to Your Home : 200 points\nEating a Fly : 200 points\n\nYou also get a time bonus of 10 x the remaining seconds added to your score.\n\n- TIPS AND TRICKS -\n\n* When you start the game, your frog will start at the bottom of the screen. You will have 60 seconds to move your frog up 10 spaces and successfully put it in one of the homes. If you are successful, then you will try to put another frog in another home and so on until you fill up all five homes with frogs. When you do this, you progress to the next level. \n\n* Note the traffic flow of the two parts. The cars travel on the roadway while the logs, turtles, crocodiles, etc. travel on the water lanes in the following direction : \na) Lanes #1, #3, and #5 go from right to left. \nb) Lanes #2 and #4 go from left to right. \n\n* First, you must cross the highway. You will become roadkill if a vehicle hits you or you hit a vehicle. Try to find 'lanes' in between the vehicles. You must plan for gaps to form in the first three lanes so you don't become trapped. The vehicles in the first three lanes move slowly enough that you can jump side to side with reasonable safety. \n\n* Lane #4 is the dangerous lane. Depending on how much time you are taking, the cars may pick up speed even though it shows slow on the chart. Keep this in mind when you are moving your frog. \n\n* At level 3, a snake will either be in the median or on the log in water lane #3. The snake is deadly to your frog and you cannot hop over it. \n\n* The turtles are pretty easy to navigate over in water lanes #1 and #4. Be wary of the diving turtles and only use them as a quick bypass to a more solid footing. If your frog is on a diving turtle when it dives, your frog will drown. \n\n* Again, time your jumps to coincide with the logs and turtles to ensure you will always have a solid footing to jump to. As the levels progress, you will have less things you can jump to. \n\n* You can jump on the backs of the crocodiles and otters. Just don't get near their mouths or they are apt to turn your frog into a meal. \n\n* You may see a purple lady frog hopping around on a log in water lane #2. Just cross over her to give her a piggyback ride to your home and get an extra 200 points. \n\n* Watch out for the snakes, they sometimes like to ride on the logs. If you see a snake on a log, jump back to solid footing. \n\n* Your frog cannot 'wrap-around' the screen so make sure you bail off before that footing disappears off the edge of the screen or your frog will come out the other side in a squished condition. \n\n* By that same token, if you have the time and necessary footing, you can hold out until the fly appears in your home before you settle your frog in. That's another 200 points. \n\n* Try to fill in the two end homes before going for the middle. The hardest home to get into is the left-hand one (home #1) since everything in water lane #5 goes from right to left. This means you may have to bounce back to water lane #4 so you can get a good shot at your home. \n\n* Speaking of getting your frogs into their homes, you must hit exact center or your frog will die. Also, keep in mind that crocodiles like to randomly appear in your home. Make sure that your home is clear before trying to settle your frog down into it. \n\n* Again, if you waste too much time, the things on the river will move quicker so you will have to adjust your strategy accordingly. \n\n* When the game is playing in attract mode, you can control the frog. When the frog reaches water lane #4, you can control the frog's movements until you move either up or down. \n\n* If you jump into your home at the same time the crocodile is leaving your home, you will be credited with making to your home but you will still lose a frog in the process. \n\n* You can dangle your frog from the left side of the turtles but not the right side. \n\n* Your side-to-side movements in water lane #5 may be slow and sluggish. \n\n* The lady frog will sometimes be invisible. In this case, the only time you know she's there is when you jump on her. She will then ride on your back to your home.\n\n- PORTS -\n\n* CONSOLES: \n[EU] Magnavox Odyssey 2 (1982) \n[BR] Magnavox Odyssey 2 (1984) \n[AU] Atari 2600 (1990) \"2 Pak Special: Star Warrior & Frogger\"\n[EU] [JP] Microsoft XBOX 360 [XBLA] (jul.12, 2006) \n\n* HANDHELDS: \n[EU] Nintendo Game Boy Color (1997) \"Frogger [Model DMG-AFRP-EUR]\" \n[JP] Nintendo GBA (may.2, 2002) \"Konami Arcade Game Collection [Model AGB-AKCJ-JPN]\" \n[EU] Nintendo GBA (june.21, 2002) \"Konami Collector's Series - Arcade Classics [Model AGB-AKCP-EUR]\" \n\n* COMPUTERS: \n[EU] Sinclair ZX 81 (1981) by Sega \n[EU] BBC Micro (1982) by A&F Software \n[EU] BBC Micro (1983) \"Froggy\" by Superior Software \n[EU] Commodore C64 (1983) \n[EU] Sinclair ZX Spectrum (1983) by Rabbit Software \n[EU] Sinclair ZX Spectrum (1983) \"Froggy\" by DJL Software \n[JP] Tomy Tutor (1983)\n[JP] MSX (dec.1983) \"Frogger [Model RC704]\" \n[EU] Acorn Electron (1984) \"Hopper\" \n[EU] Amstrad CPC (1985) \"Froggy\" by R&B Software \n[EU] Oric I (1983) \"Hopper\" by PSS (Personal Software Services)\n[JP] Sharp X68000 (1991) \n\n* OTHERS: \nVFD handheld game (19??) by Computer Games Limited\n[JP] VFD handheld game by Gakken\n\n- SERIES -\n\n1. Frogger (1981)\n2. Frogger II - Three Deep (1984, Colecovision)\n3. Frogger [Unreleased Prototype] (1991, Sega Game Gear)\n4. Frogger [3D remake] (1997, Sony PlayStation, PC CD-ROM)\n5. Frogger 2 - Swampy's Revenge (2000, PC CD-ROM, Sony PlayStation, Sega Dreamcast)\n6. Frogger's Adventures Temple of the Frog (2001, Nintendo Game Boy Advance)\n7. Frogger's Adventures 2 - The Lost Wand (2002, Nintendo Game Boy Advance)\n8. Frogger - The Great Quest (2002, PC CD-ROM, Sony PS2)\n9. Frogger Beyond (2003, PC CD-ROM, Microsoft XBOX, Nintendo GameCube)\n10. Frogger's Adventures: The Rescue (2003, PC CD-ROM, Nintendo GameCube, Sony PS2)\n11. Frogger - Ancient Shadow (2005, Microsoft XBOX, Sony PlayStation 2, Nintendo GameCube)\n12. Frogger Helmet Chaos (2005, Nintendo DS, Nintendo GameCube, Sony PS2)\n13. My Frogger Toy Trials (2007, Nintendo DS)\n14. Frogger - Hyper Arcade Edition (2012, PSN)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/879/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

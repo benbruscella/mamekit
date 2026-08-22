@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "type": "OKIM6295",
+  "voices": 4,
+  "addressMask": 262143,
+  "divisors": {
+    "pin7Low": 165,
+    "pin7High": 132
+  },
+  "command": {
+    "sampleMask": 127,
+    "startMask": 128,
+    "voiceShift": 4,
+    "stopShift": 3
+  },
+  "sourceFiles": [
+    "src/devices/sound/okim6295.cpp",
+    "src/devices/sound/okim6295.h",
+    "src/devices/sound/okiadpcm.cpp",
+    "src/devices/sound/okiadpcm.h"
+  ]
+}

@@ -1,0 +1,2795 @@
+{
+    "schemaVersion": 3,
+    "game": "asteroid",
+    "family": "asteroid",
+    "driverFile": "src/mame/atari/asteroid.cpp",
+    "callbacks": [
+        {
+            "id": "device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0",
+            "ownerTag": "maincpu",
+            "signal": "set_periodic_int",
+            "operation": "set_periodic_int",
+            "targetClass": "asteroid_state",
+            "targetMethod": "asteroid_interrupt",
+            "periodHz": 246.09375,
+            "periodExpr": "attotime::from_hz(CLOCK_3KHZ/12)",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 839,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:0",
+            "ownerTag": "outlatch",
+            "signal": "bit_handler",
+            "operation": "append",
+            "slot": 2,
+            "targetClass": "asteroid_state",
+            "targetMethod": "cocktail_inv_w",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 850,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:1",
+            "ownerTag": "outlatch",
+            "signal": "bit_handler",
+            "operation": "set",
+            "slot": 3,
+            "targetClass": "asteroid_state",
+            "targetMethod": "coin_counter_left_w",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 851,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:2",
+            "ownerTag": "outlatch",
+            "signal": "bit_handler",
+            "operation": "set",
+            "slot": 4,
+            "targetClass": "asteroid_state",
+            "targetMethod": "coin_counter_center_w",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 852,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:3",
+            "ownerTag": "outlatch",
+            "signal": "bit_handler",
+            "operation": "set",
+            "slot": 5,
+            "targetClass": "asteroid_state",
+            "targetMethod": "coin_counter_right_w",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 853,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_base/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetTag": "vector",
+            "targetClass": "vector_device",
+            "targetMethod": "screen_update",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 861,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:0",
+            "ownerTag": "audiolatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 0,
+            "targetTag": "discrete",
+            "targetClass": "discrete_device",
+            "targetMethod": "write_line_ASTEROID_SAUCER_SND_EN",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 325,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:1",
+            "ownerTag": "audiolatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 1,
+            "targetTag": "discrete",
+            "targetClass": "discrete_device",
+            "targetMethod": "write_line_ASTEROID_SAUCER_FIRE_EN",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 326,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:2",
+            "ownerTag": "audiolatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 2,
+            "targetTag": "discrete",
+            "targetClass": "discrete_device",
+            "targetMethod": "write_line_ASTEROID_SAUCER_SEL",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 327,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:3",
+            "ownerTag": "audiolatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 3,
+            "targetTag": "discrete",
+            "targetClass": "discrete_device",
+            "targetMethod": "write_line_ASTEROID_THRUST_EN",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 328,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:4",
+            "ownerTag": "audiolatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 4,
+            "targetTag": "discrete",
+            "targetClass": "discrete_device",
+            "targetMethod": "write_line_ASTEROID_SHIP_FIRE_EN",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 329,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:5",
+            "ownerTag": "audiolatch",
+            "signal": "q_out_cb",
+            "operation": "set",
+            "slot": 5,
+            "targetTag": "discrete",
+            "targetClass": "discrete_device",
+            "targetMethod": "write_line_ASTEROID_LIFE_EN",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 330,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "asteroid_state.asteroid_interrupt",
+                "deviceTag": "maincpu"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 839,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "asteroid_state.cocktail_inv_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 850,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "asteroid_state.coin_counter_left_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 851,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:2",
+            "effect": {
+                "kind": "handler",
+                "handler": "asteroid_state.coin_counter_center_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 852,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:3",
+            "effect": {
+                "kind": "handler",
+                "handler": "asteroid_state.coin_counter_right_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 853,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:0",
+            "effect": {
+                "kind": "audio-write",
+                "tag": "discrete",
+                "method": "write_line_ASTEROID_SAUCER_SND_EN"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 325,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:1",
+            "effect": {
+                "kind": "audio-write",
+                "tag": "discrete",
+                "method": "write_line_ASTEROID_SAUCER_FIRE_EN"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 326,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:2",
+            "effect": {
+                "kind": "audio-write",
+                "tag": "discrete",
+                "method": "write_line_ASTEROID_SAUCER_SEL"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 327,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:3",
+            "effect": {
+                "kind": "audio-write",
+                "tag": "discrete",
+                "method": "write_line_ASTEROID_THRUST_EN"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 328,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:4",
+            "effect": {
+                "kind": "audio-write",
+                "tag": "discrete",
+                "method": "write_line_ASTEROID_SHIP_FIRE_EN"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 329,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:5",
+            "effect": {
+                "kind": "audio-write",
+                "tag": "discrete",
+                "method": "write_line_ASTEROID_LIFE_EN"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 330,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "m6502",
+                "clock": 1512000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 511,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 512,
+                        "end": 767,
+                        "kind": "handler",
+                        "read": "bank.ram1",
+                        "write": "bank.ram1"
+                    },
+                    {
+                        "start": 768,
+                        "end": 1023,
+                        "kind": "handler",
+                        "read": "bank.ram2",
+                        "write": "bank.ram2"
+                    },
+                    {
+                        "start": 8192,
+                        "end": 8199,
+                        "kind": "handler",
+                        "readOnly": true,
+                        "read": "asteroid_state.asteroid_IN0_r"
+                    },
+                    {
+                        "start": 9216,
+                        "end": 9223,
+                        "kind": "handler",
+                        "read": "asteroid_state.asteroid_IN1_r"
+                    },
+                    {
+                        "start": 10240,
+                        "end": 10243,
+                        "kind": "handler",
+                        "readOnly": true,
+                        "read": "asteroid_state.asteroid_DSW1_r"
+                    },
+                    {
+                        "start": 12288,
+                        "end": 12288,
+                        "kind": "handler",
+                        "write": "dvg.go_w"
+                    },
+                    {
+                        "start": 12800,
+                        "end": 12800,
+                        "kind": "handler",
+                        "write": "outlatch.write"
+                    },
+                    {
+                        "start": 13312,
+                        "end": 13312,
+                        "kind": "handler",
+                        "write": "watchdog.reset_w"
+                    },
+                    {
+                        "start": 13824,
+                        "end": 13824,
+                        "kind": "handler",
+                        "write": "asteroid_state.asteroid_explode_w"
+                    },
+                    {
+                        "start": 14848,
+                        "end": 14848,
+                        "kind": "handler",
+                        "write": "asteroid_state.asteroid_thump_w"
+                    },
+                    {
+                        "start": 15360,
+                        "end": 15367,
+                        "kind": "handler",
+                        "write": "audiolatch.write_d7"
+                    },
+                    {
+                        "start": 15872,
+                        "end": 15872,
+                        "kind": "handler",
+                        "write": "asteroid_state.asteroid_noise_reset_w"
+                    },
+                    {
+                        "start": 16384,
+                        "end": 18431,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 20480,
+                        "end": 22527,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 26624,
+                        "end": 32767,
+                        "kind": "rom"
+                    }
+                ],
+                "mask": 32767,
+                "cycleClock": 1512000,
+                "source": {
+                    "file": "src/mame/atari/asteroid.cpp",
+                    "line": 837,
+                    "column": 2
+                }
+            }
+        ],
+        "resetHandlers": [
+            "asteroid_state.machine_reset"
+        ],
+        "banks": [
+            {
+                "tag": "ram1",
+                "member": "m_ram1",
+                "entryMembers": [
+                    "m_sram1",
+                    "m_sram2"
+                ],
+                "entryOffsets": [
+                    0,
+                    0
+                ],
+                "source": {
+                    "file": "src/mame/atari/asteroid_m.cpp",
+                    "line": 114,
+                    "column": 1
+                }
+            },
+            {
+                "tag": "ram2",
+                "member": "m_ram2",
+                "entryMembers": [
+                    "m_sram2",
+                    "m_sram1"
+                ],
+                "entryOffsets": [
+                    0,
+                    0
+                ],
+                "source": {
+                    "file": "src/mame/atari/asteroid_m.cpp",
+                    "line": 114,
+                    "column": 1
+                }
+            }
+        ],
+        "screen": {
+            "width": 1045,
+            "height": 789,
+            "xOffset": 522,
+            "yOffset": 394,
+            "refresh": 61.5234375,
+            "vtotal": 300,
+            "vbstart": 1183,
+            "vbend": 394,
+            "updateMode": "frame",
+            "rotate": 0,
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 857,
+                "column": 2
+            }
+        },
+        "customs": [
+            {
+                "port": "IN0",
+                "mask": 2,
+                "member": "clock_r",
+                "handler": "asteroid_state.clock_r",
+                "activeLow": false
+            }
+        ],
+        "inputMembers": [
+            {
+                "member": "m_dsw1",
+                "tags": [
+                    "DSW1"
+                ]
+            },
+            {
+                "member": "m_cocktail",
+                "tags": [
+                    "COCKTAIL"
+                ]
+            }
+        ],
+        "frameEvents": [
+            {
+                "callbackId": "device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0",
+                "ownerTag": "maincpu",
+                "signal": "set_periodic_int",
+                "line": 0,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/atari/asteroid.cpp",
+                    "line": 839,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0",
+                "ownerTag": "maincpu",
+                "signal": "set_periodic_int",
+                "line": 75,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/atari/asteroid.cpp",
+                    "line": 839,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0",
+                "ownerTag": "maincpu",
+                "signal": "set_periodic_int",
+                "line": 150,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/atari/asteroid.cpp",
+                    "line": 839,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0",
+                "ownerTag": "maincpu",
+                "signal": "set_periodic_int",
+                "line": 225,
+                "state": 1,
+                "source": {
+                    "file": "src/mame/atari/asteroid.cpp",
+                    "line": 839,
+                    "column": 2
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "vector_device.screen_update",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 861,
+                "column": 2
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:asteroid_state.asteroid_base/maincpu",
+            "tag": "maincpu",
+            "type": "M6502",
+            "member": "m_maincpu",
+            "clock": 1512000,
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 837,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_base/watchdog",
+            "tag": "watchdog",
+            "type": "WATCHDOG_TIMER",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 841,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_base/dsw_sel",
+            "tag": "dsw_sel",
+            "type": "TTL153",
+            "member": "m_dsw_sel",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 843,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_base/outlatch",
+            "tag": "outlatch",
+            "type": "OUTPUT_LATCH",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 845,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_base/vector",
+            "tag": "vector",
+            "type": "VECTOR",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 856,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_base/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "configuration": [
+                {
+                    "method": "set_refresh_hz",
+                    "args": [
+                        61.5234375
+                    ]
+                },
+                {
+                    "method": "set_size",
+                    "args": [
+                        400,
+                        300
+                    ]
+                },
+                {
+                    "method": "set_visarea",
+                    "args": [
+                        522,
+                        1566,
+                        394,
+                        1182
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 857,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_base/dvg",
+            "tag": "dvg",
+            "type": "DVG",
+            "member": "m_dvg",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 863,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_sound/mono",
+            "tag": "mono",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 320,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_sound/discrete",
+            "tag": "discrete",
+            "type": "DISCRETE",
+            "member": "m_discrete",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 322,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:asteroid_state.asteroid_sound/audiolatch",
+            "tag": "audiolatch",
+            "type": "LS259",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 324,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:asteroid_state.asteroid_IN0_r",
+            "ownerClass": "asteroid_state",
+            "method": "asteroid_IN0_r",
+            "parameters": "offs_t offset",
+            "body": "int res = ioport(\"IN0\")->read();\n\tint bitmask = (1 << offset);\n\n\tif (res & bitmask)\n\t\tres = 0x80;\n\telse\n\t\tres = ~0x80;\n\n\treturn res;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "res",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "ioport"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "string",
+                                            "value": "IN0"
+                                        }
+                                    ]
+                                },
+                                "property": "read"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "bitmask",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                                "kind": "number",
+                                "value": 1
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "res"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "bitmask"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "res"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 128
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "res"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "number",
+                                        "value": 128
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "res"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid_m.cpp",
+                "line": 45,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:asteroid_state.asteroid_IN1_r",
+            "ownerClass": "asteroid_state",
+            "method": "asteroid_IN1_r",
+            "parameters": "offs_t offset",
+            "body": "int res = ioport(\"IN1\")->read();\n\tint bitmask = (1 << (offset & 0x7));\n\n\tif (res & bitmask)\n\t\tres = 0x80;\n\telse\n\t\tres = ~0x80;\n\n\treturn res;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "res",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "ioport"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "string",
+                                            "value": "IN1"
+                                        }
+                                    ]
+                                },
+                                "property": "read"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "bitmask",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                                "kind": "number",
+                                "value": 1
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 7
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "res"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "bitmask"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "res"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 128
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "res"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "number",
+                                        "value": 128
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "res"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid_m.cpp",
+                "line": 77,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:asteroid_state.asteroid_DSW1_r",
+            "ownerClass": "asteroid_state",
+            "method": "asteroid_DSW1_r",
+            "parameters": "offs_t offset",
+            "body": "// 765432--  not used\n\t// ------1-  ls253 dsw selector 2y\n\t// -------0  ls253 dsw selector 1y\n\n\tuint8_t val = m_dsw1->read();\n\n\tm_dsw_sel->i3a_w(BIT(val, 0));\n\tm_dsw_sel->i3b_w(BIT(val, 1));\n\tm_dsw_sel->i2a_w(BIT(val, 2));\n\tm_dsw_sel->i2b_w(BIT(val, 3));\n\tm_dsw_sel->i1a_w(BIT(val, 4));\n\tm_dsw_sel->i1b_w(BIT(val, 5));\n\tm_dsw_sel->i0a_w(BIT(val, 6));\n\tm_dsw_sel->i0b_w(BIT(val, 7));\n\n\tm_dsw_sel->s_w(offset & 0x03);\n\n\treturn 0xfc | (m_dsw_sel->zb_r() << 1) | m_dsw_sel->za_r();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "val",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dsw1"
+                                },
+                                "property": "read"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dsw_sel"
+                                },
+                                "property": "i3a_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dsw_sel"
+                                },
+                                "property": "i3b_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dsw_sel"
+                                },
+                                "property": "i2a_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dsw_sel"
+                                },
+                                "property": "i2b_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dsw_sel"
+                                },
+                                "property": "i1a_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 4
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dsw_sel"
+                                },
+                                "property": "i1b_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 5
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dsw_sel"
+                                },
+                                "property": "i0a_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 6
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dsw_sel"
+                                },
+                                "property": "i0b_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "val"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 7
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dsw_sel"
+                                },
+                                "property": "s_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 3
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "|",
+                                "left": {
+                                    "kind": "number",
+                                    "value": 252
+                                },
+                                "right": {
+                                    "kind": "binary",
+                                    "operator": "<<",
+                                    "left": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_dsw_sel"
+                                            },
+                                            "property": "zb_r"
+                                        },
+                                        "args": []
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_dsw_sel"
+                                    },
+                                    "property": "za_r"
+                                },
+                                "args": []
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid_m.cpp",
+                "line": 91,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:dvg_device.go_w",
+            "ownerClass": "dvg_device",
+            "method": "go_w",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 473,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:output_latch_device.write",
+            "ownerClass": "output_latch_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 474,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:watchdog_timer_device.reset_w",
+            "ownerClass": "watchdog_timer_device",
+            "method": "reset_w",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 475,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:asteroid_state.asteroid_explode_w",
+            "ownerClass": "asteroid_state",
+            "method": "asteroid_explode_w",
+            "parameters": "uint8_t data",
+            "body": "m_discrete->write(ASTEROID_EXPLODE_DATA,(data&0x3c)>>2);                // Volume\n\t/* We will modify the pitch data to send the divider value. */\n\tswitch ((data&0xc0))\n\t{\n\t\tcase 0x00:\n\t\t\tdata = 12;\n\t\t\tbreak;\n\t\tcase 0x40:\n\t\t\tdata = 6;\n\t\t\tbreak;\n\t\tcase 0x80:\n\t\t\tdata = 3;\n\t\t\tbreak;\n\t\tcase 0xc0:\n\t\t\tdata = 5;\n\t\t\tbreak;\n\t}\n\tm_discrete->write(ASTEROID_EXPLODE_PITCH, data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "ASTEROID_EXPLODE_DATA"
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 60
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "switch",
+                        "expression": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 192
+                            }
+                        },
+                        "cases": [
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 12
+                                        }
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 64
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 6
+                                        }
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 128
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            },
+                            {
+                                "values": [
+                                    {
+                                        "kind": "number",
+                                        "value": 192
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 5
+                                        }
+                                    },
+                                    {
+                                        "op": "break"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "ASTEROID_EXPLODE_PITCH"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 284,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:asteroid_state.asteroid_thump_w",
+            "ownerClass": "asteroid_state",
+            "method": "asteroid_thump_w",
+            "parameters": "uint8_t data",
+            "body": "m_discrete->write(ASTEROID_THUMP_EN,   data & 0x10);\n\tm_discrete->write(ASTEROID_THUMP_DATA, data & 0x0f);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "ASTEROID_THUMP_EN"
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 16
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "ASTEROID_THUMP_DATA"
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 306,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:ls259_device.write_d7",
+            "ownerClass": "ls259_device",
+            "method": "write_d7",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 457,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:asteroid_state.asteroid_noise_reset_w",
+            "ownerClass": "asteroid_state",
+            "method": "asteroid_noise_reset_w",
+            "parameters": "uint8_t data",
+            "body": "m_discrete->write(ASTEROID_NOISE_RESET, 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_discrete"
+                                },
+                                "property": "write"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "ASTEROID_NOISE_RESET"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 312,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:asteroid_state.earom_control_w",
+            "ownerClass": "asteroid_state",
+            "method": "earom_control_w",
+            "parameters": "uint8_t data",
+            "body": "// CK = DB0, C1 = /DB2, C2 = DB1, CS1 = DB3, /CS2 = GND\n\tm_earom->set_control(BIT(data, 3), 1, !BIT(data, 2), BIT(data, 1));\n\tm_earom->set_clk(BIT(data, 0));",
+            "constants": {
+                "CK": 1,
+                "C1": 2,
+                "C2": 4,
+                "CS1": 8,
+                "CS2": 16
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_earom"
+                                },
+                                "property": "set_control"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "BIT"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_earom"
+                                },
+                                "property": "set_clk"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 404,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:asteroid_state.machine_reset",
+            "ownerClass": "asteroid_state",
+            "method": "machine_reset",
+            "body": "m_dvg->reset_w();\n\tif (m_earom.found())\n\t\tearom_control_w(0);\n\n\t/* reset RAM banks if present */\n\tif (m_ram1.target() != nullptr)\n\t{\n\t\tm_ram1->set_entry(0);\n\t\tm_ram2->set_entry(0);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dvg"
+                                },
+                                "property": "reset_w"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_earom"
+                                },
+                                "property": "found"
+                            },
+                            "args": []
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "earom_control_w"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_ram1"
+                                    },
+                                    "property": "target"
+                                },
+                                "args": []
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_ram1"
+                                        },
+                                        "property": "set_entry"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_ram2"
+                                        },
+                                        "property": "set_entry"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid_m.cpp",
+                "line": 128,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:asteroid_state.asteroid_interrupt",
+            "ownerClass": "asteroid_state",
+            "method": "asteroid_interrupt",
+            "parameters": "device_t &device",
+            "body": "/* Turn off interrupts if self-test is enabled */\n\tif (!(ioport(\"IN0\")->read() & 0x80))\n\t\tdevice.execute().pulse_input_line(INPUT_LINE_NMI, attotime::zero);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "ioport"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "string",
+                                                    "value": "IN0"
+                                                }
+                                            ]
+                                        },
+                                        "property": "read"
+                                    },
+                                    "args": []
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 128
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "device"
+                                                },
+                                                "property": "execute"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "pulse_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INPUT_LINE_NMI"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "attotime::zero"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid_m.cpp",
+                "line": 16,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:asteroid_state.cocktail_inv_w",
+            "ownerClass": "asteroid_state",
+            "method": "cocktail_inv_w",
+            "parameters": "int state",
+            "body": "// Inverter circuit is only hooked up for Cocktail Asteroids\n\tint flip = state && m_cocktail->read();\n\tm_dvg->set_flip_x(flip);\n\tm_dvg->set_flip_y(flip);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "flip",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "state"
+                            },
+                            "right": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_cocktail"
+                                    },
+                                    "property": "read"
+                                },
+                                "args": []
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dvg"
+                                },
+                                "property": "set_flip_x"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "flip"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_dvg"
+                                },
+                                "property": "set_flip_y"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "flip"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid_m.cpp",
+                "line": 37,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:asteroid_state.coin_counter_left_w",
+            "ownerClass": "asteroid_state",
+            "method": "coin_counter_left_w",
+            "parameters": "int state",
+            "body": "machine().bookkeeping().coin_counter_w(0, state);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "state"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 370,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:asteroid_state.coin_counter_center_w",
+            "ownerClass": "asteroid_state",
+            "method": "coin_counter_center_w",
+            "parameters": "int state",
+            "body": "machine().bookkeeping().coin_counter_w(1, state);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "state"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 375,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:asteroid_state.coin_counter_right_w",
+            "ownerClass": "asteroid_state",
+            "method": "coin_counter_right_w",
+            "parameters": "int state",
+            "body": "machine().bookkeeping().coin_counter_w(2, state);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "state"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 380,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:vector_device.screen_update",
+            "ownerClass": "vector_device",
+            "method": "screen_update",
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 861,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:discrete_device.write_line_ASTEROID_SAUCER_SND_EN",
+            "ownerClass": "discrete_device",
+            "method": "write_line_ASTEROID_SAUCER_SND_EN",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 325,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:discrete_device.write_line_ASTEROID_SAUCER_FIRE_EN",
+            "ownerClass": "discrete_device",
+            "method": "write_line_ASTEROID_SAUCER_FIRE_EN",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 326,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:discrete_device.write_line_ASTEROID_SAUCER_SEL",
+            "ownerClass": "discrete_device",
+            "method": "write_line_ASTEROID_SAUCER_SEL",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 327,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:discrete_device.write_line_ASTEROID_THRUST_EN",
+            "ownerClass": "discrete_device",
+            "method": "write_line_ASTEROID_THRUST_EN",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 341,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:discrete_device.write_line_ASTEROID_SHIP_FIRE_EN",
+            "ownerClass": "discrete_device",
+            "method": "write_line_ASTEROID_SHIP_FIRE_EN",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 329,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:discrete_device.write_line_ASTEROID_LIFE_EN",
+            "ownerClass": "discrete_device",
+            "method": "write_line_ASTEROID_LIFE_EN",
+            "source": {
+                "file": "src/mame/atari/asteroid_a.cpp",
+                "line": 330,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:asteroid_state.clock_r",
+            "ownerClass": "asteroid_state",
+            "method": "clock_r",
+            "body": "return (m_maincpu->total_cycles() & 0x100) ? 1 : 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "conditional",
+                            "condition": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "total_cycles"
+                                    },
+                                    "args": []
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 256
+                                }
+                            },
+                            "whenTrue": {
+                                "kind": "number",
+                                "value": 1
+                            },
+                            "whenFalse": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 492,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:asteroid_state.asteroid_map",
+            "className": "asteroid_state",
+            "name": "asteroid_map",
+            "ranges": [
+                {
+                    "id": "map:asteroid_state.asteroid_map/range0",
+                    "start": 0,
+                    "end": 511,
+                    "raw": "map(0x0000, 0x01ff).ram()",
+                    "props": {
+                        "start": 0,
+                        "end": 511,
+                        "raw": "map(0x0000, 0x01ff).ram()",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 422,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 422,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 422,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range1",
+                    "start": 512,
+                    "end": 767,
+                    "raw": "map(0x0200, 0x02ff).bankrw(\"ram1\")",
+                    "props": {
+                        "start": 512,
+                        "end": 767,
+                        "raw": "map(0x0200, 0x02ff).bankrw(\"ram1\")",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 423,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 423,
+                        "bankRead": "ram1",
+                        "bankWrite": "ram1"
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 423,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range2",
+                    "start": 768,
+                    "end": 1023,
+                    "raw": "map(0x0300, 0x03ff).bankrw(\"ram2\")",
+                    "props": {
+                        "start": 768,
+                        "end": 1023,
+                        "raw": "map(0x0300, 0x03ff).bankrw(\"ram2\")",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 424,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 424,
+                        "bankRead": "ram2",
+                        "bankWrite": "ram2"
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 424,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range3",
+                    "start": 8192,
+                    "end": 8199,
+                    "raw": "map(0x2000, 0x2007).r(FUNC(asteroid_state::asteroid_IN0_r)).nopw()",
+                    "read": "asteroid_state.asteroid_IN0_r",
+                    "props": {
+                        "start": 8192,
+                        "end": 8199,
+                        "raw": "map(0x2000, 0x2007).r(FUNC(asteroid_state::asteroid_IN0_r)).nopw()",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 425,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 425,
+                        "nopw": true
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 425,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range4",
+                    "start": 9216,
+                    "end": 9223,
+                    "raw": "map(0x2400, 0x2407).r(FUNC(asteroid_state::asteroid_IN1_r))",
+                    "read": "asteroid_state.asteroid_IN1_r",
+                    "props": {
+                        "start": 9216,
+                        "end": 9223,
+                        "raw": "map(0x2400, 0x2407).r(FUNC(asteroid_state::asteroid_IN1_r))",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 426,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 426
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 426,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range5",
+                    "start": 10240,
+                    "end": 10243,
+                    "raw": "map(0x2800, 0x2803).r(FUNC(asteroid_state::asteroid_DSW1_r)).nopw()",
+                    "read": "asteroid_state.asteroid_DSW1_r",
+                    "props": {
+                        "start": 10240,
+                        "end": 10243,
+                        "raw": "map(0x2800, 0x2803).r(FUNC(asteroid_state::asteroid_DSW1_r)).nopw()",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 427,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 427,
+                        "nopw": true
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 427,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range6",
+                    "start": 12288,
+                    "end": 12288,
+                    "raw": "map(0x3000, 0x3000).w(m_dvg, FUNC(dvg_device::go_w))",
+                    "write": "dvg.go_w",
+                    "props": {
+                        "start": 12288,
+                        "end": 12288,
+                        "raw": "map(0x3000, 0x3000).w(m_dvg, FUNC(dvg_device::go_w))",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 428,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 428
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 428,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range7",
+                    "start": 12800,
+                    "end": 12800,
+                    "raw": "map(0x3200, 0x3200).w(\"outlatch\", FUNC(output_latch_device::write))",
+                    "write": "outlatch.write",
+                    "props": {
+                        "start": 12800,
+                        "end": 12800,
+                        "raw": "map(0x3200, 0x3200).w(\"outlatch\", FUNC(output_latch_device::write))",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 429,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 429
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 429,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range8",
+                    "start": 13312,
+                    "end": 13312,
+                    "raw": "map(0x3400, 0x3400).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+                    "write": "watchdog.reset_w",
+                    "props": {
+                        "start": 13312,
+                        "end": 13312,
+                        "raw": "map(0x3400, 0x3400).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 430,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 430
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 430,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range9",
+                    "start": 13824,
+                    "end": 13824,
+                    "raw": "map(0x3600, 0x3600).w(FUNC(asteroid_state::asteroid_explode_w))",
+                    "write": "asteroid_state.asteroid_explode_w",
+                    "props": {
+                        "start": 13824,
+                        "end": 13824,
+                        "raw": "map(0x3600, 0x3600).w(FUNC(asteroid_state::asteroid_explode_w))",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 431,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 431
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 431,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range10",
+                    "start": 14848,
+                    "end": 14848,
+                    "raw": "map(0x3a00, 0x3a00).w(FUNC(asteroid_state::asteroid_thump_w))",
+                    "write": "asteroid_state.asteroid_thump_w",
+                    "props": {
+                        "start": 14848,
+                        "end": 14848,
+                        "raw": "map(0x3a00, 0x3a00).w(FUNC(asteroid_state::asteroid_thump_w))",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 432,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 432
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 432,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range11",
+                    "start": 15360,
+                    "end": 15367,
+                    "raw": "map(0x3c00, 0x3c07).w(\"audiolatch\", FUNC(ls259_device::write_d7))",
+                    "write": "audiolatch.write_d7",
+                    "props": {
+                        "start": 15360,
+                        "end": 15367,
+                        "raw": "map(0x3c00, 0x3c07).w(\"audiolatch\", FUNC(ls259_device::write_d7))",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 433,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 433
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 433,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range12",
+                    "start": 15872,
+                    "end": 15872,
+                    "raw": "map(0x3e00, 0x3e00).w(FUNC(asteroid_state::asteroid_noise_reset_w))",
+                    "write": "asteroid_state.asteroid_noise_reset_w",
+                    "props": {
+                        "start": 15872,
+                        "end": 15872,
+                        "raw": "map(0x3e00, 0x3e00).w(FUNC(asteroid_state::asteroid_noise_reset_w))",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 434,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 434
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 434,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range13",
+                    "start": 16384,
+                    "end": 18431,
+                    "raw": "map(0x4000, 0x47ff).ram()",
+                    "props": {
+                        "start": 16384,
+                        "end": 18431,
+                        "raw": "map(0x4000, 0x47ff).ram()",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 435,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 435,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 435,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range14",
+                    "start": 20480,
+                    "end": 22527,
+                    "raw": "map(0x5000, 0x57ff).rom()",
+                    "props": {
+                        "start": 20480,
+                        "end": 22527,
+                        "raw": "map(0x5000, 0x57ff).rom()",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 436,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 436,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 436,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:asteroid_state.asteroid_map/range15",
+                    "start": 26624,
+                    "end": 32767,
+                    "raw": "map(0x6800, 0x7fff).rom()",
+                    "props": {
+                        "start": 26624,
+                        "end": 32767,
+                        "raw": "map(0x6800, 0x7fff).rom()",
+                        "sourceFile": "src/mame/atari/asteroid.cpp",
+                        "sourceLine": 437,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 437,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/atari/asteroid.cpp",
+                        "line": 437,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/atari/asteroid.cpp",
+                "line": 419,
+                "column": 1
+            }
+        }
+    ],
+    "video": {
+        "gfx": [],
+        "tilemaps": [],
+        "initialState": {},
+        "vector": {
+            "type": "DVG",
+            "memoryBase": 16384,
+            "coordinateBits": 10,
+            "doneInput": {
+                "port": "IN0",
+                "mask": 4,
+                "activeLow": true
+            }
+        },
+        "source": {
+            "file": "src/mame/atari/asteroid.cpp",
+            "line": 868,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "discrete",
+        "deviceTag": "discrete",
+        "deviceType": "DISCRETE",
+        "writeMethods": [
+            "write"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "writeOffsets": {
+            "ASTEROID_SAUCER_SND_EN": 1,
+            "ASTEROID_SAUCER_FIRE_EN": 2,
+            "ASTEROID_SAUCER_SEL": 3,
+            "ASTEROID_THRUST_EN": 4,
+            "ASTEROID_SHIP_FIRE_EN": 5,
+            "ASTEROID_LIFE_EN": 6,
+            "ASTEROID_NOISE_RESET": 7,
+            "ASTEROID_THUMP_EN": 8,
+            "ASTEROID_THUMP_DATA": 9,
+            "ASTEROID_EXPLODE_DATA": 10,
+            "ASTEROID_EXPLODE_PITCH": 11
+        }
+    }
+}

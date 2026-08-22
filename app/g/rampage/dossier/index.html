@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rampage (Rev 3, 8/27/86) — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Rampage (Rev 3, 8/27/86)</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/rampage/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/rampage/rampage-dossier.md" download="rampage-dossier.md">Download rampage-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Bally Midway · 1986</div>
+    <h1>Rampage (Rev 3, 8/27/86)</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/rampage.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>rampage</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/bally/mcr3.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>mcr3</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>dac</strong></div>
+      <div class="fact"><span>Screen</span><strong>256×480 @ 30.00 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>landscape</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>sg:cpu</td><td>M68000</td><td>8.000 MHz</td><td>3</td></tr><tr><td>maincpu</td><td>Z80</td><td>5.000 MHz</td><td>7</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>pro-0_3b_rev_3_8-27-86.3b</td><td>0x0</td><td>0x8000</td><td>2f7ca03c</td></tr><tr><td>maincpu</td><td>pro-1_5b_rev_3_8-27-86.5b</td><td>0x8000</td><td>0x8000</td><td>d89bd9a4</td></tr><tr><td>sg:cpu</td><td>u-7_rev.2_8-14-86.u7</td><td>0x0</td><td>0x8000</td><td>cffd7fa5</td></tr><tr><td>sg:cpu</td><td>u-17_rev.2_8-14-86.u17</td><td>0x1</td><td>0x8000</td><td>e92c596b</td></tr><tr><td>sg:cpu</td><td>u-8_rev.2_8-14-86.u8</td><td>0x10000</td><td>0x8000</td><td>11f787e4</td></tr><tr><td>sg:cpu</td><td>u-18_rev.2_8-14-86.u18</td><td>0x10001</td><td>0x8000</td><td>6b8bf5e1</td></tr><tr><td>gfx1</td><td>bg-0_u15_7-23-86.15a</td><td>0x0</td><td>0x4000</td><td>c0d8b7a5</td></tr><tr><td>gfx1</td><td>bg-1_u14_7-23-86.14b</td><td>0x4000</td><td>0x4000</td><td>2f6e3aa1</td></tr><tr><td>gfx2</td><td>fg-0_8e_6-30-86.8e</td><td>0x0</td><td>0x10000</td><td>0974be5d</td></tr><tr><td>gfx2</td><td>fg-1_6e_6-30-86.6e</td><td>0x10000</td><td>0x10000</td><td>8728532b</td></tr><tr><td>gfx2</td><td>fg-2_5e_6-30-86.5e</td><td>0x20000</td><td>0x10000</td><td>9489f714</td></tr><tr><td>gfx2</td><td>fg-3_4e_6-30-86.4e</td><td>0x30000</td><td>0x10000</td><td>81e1de40</td></tr><tr><td>sg:pal</td><td>e36a31axnaxqd.u15.bin</td><td>0x0</td><td>0x1</td><td></td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>5</td><td>coin1</td><td>MONO.IP0</td><td>0x1</td></tr><tr><td>6</td><td>coin2</td><td>MONO.IP0</td><td>0x2</td></tr><tr><td>9</td><td>service1</td><td>MONO.IP0</td><td>0x40</td></tr><tr><td>Up</td><td>joystick up</td><td>MONO.IP1</td><td>0x1</td></tr><tr><td>Right</td><td>joystick right</td><td>MONO.IP1</td><td>0x2</td></tr><tr><td>Down</td><td>joystick down</td><td>MONO.IP1</td><td>0x4</td></tr><tr><td>Left</td><td>joystick left</td><td>MONO.IP1</td><td>0x8</td></tr><tr><td>Space / X</td><td>button1</td><td>MONO.IP1</td><td>0x10</td></tr><tr><td>Z</td><td>button2</td><td>MONO.IP1</td><td>0x20</td></tr><tr><td>Up</td><td>joystick up</td><td>MONO.IP4</td><td>0x1</td></tr><tr><td>Right</td><td>joystick right</td><td>MONO.IP4</td><td>0x2</td></tr><tr><td>Down</td><td>joystick down</td><td>MONO.IP4</td><td>0x4</td></tr><tr><td>Left</td><td>joystick left</td><td>MONO.IP4</td><td>0x8</td></tr><tr><td>Space / X</td><td>button1</td><td>MONO.IP4</td><td>0x10</td></tr><tr><td>Z</td><td>button2</td><td>MONO.IP4</td><td>0x20</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/bally/mcr3.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Aaron Giles</strong></div>
+    <div class="fact"><span>Development</span><strong>210 commits by 27 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Miodrag Milanovic, Vas Crabb, David Haywood, AJR</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 40 years ago:
+
+Rampage (c) 1986 Bally Midway.
+
+Rampage is a classic B-movie inspired smash-em-up in which up to three players take on the roles of three mutated monsters - George the giant ape, Lizzie the giant lizard and Ralph the giant wolf - who move from city to city destroying skyscrapers and vehicles, while eating or killing any people that get in their way. 
+
+The monsters' health can be damaged in a number of ways: by being shot by National Guardsmen, by being hit by another monster, by falling from a building, by being hit by police cars or tanks, by going underwater, by being struck by lightning, or by eating something bad, such as dynamite. Health is replenished by eating food found in damaged buildings. 
+
+If the players' health gauge diminishes completely, the monsters will revert back to their original human form and walk sideways off the screen. Rampage has a &quot;buy back in&quot; option, however; if players chose to continue the game before the human figure leaves the play area, the game will continue from that stage. 
+
+Rampage is set over the course of 128 days in cities across North America. The game starts in Peoria, Illinois and ends in Plano, Illinois. In Plano, players receive a mega vitamin bonus which heals all the monsters and provides a large point bonus. After this, the cycle of cities repeats five times. After 768 days, the game resets back to Day One. 
+
+* Examples of bonuses and hazards found inside damaged buildings: 
+Food: Milk, Turkey, Hot Toast, Fruit 
+Bonus: Flower Pot, TV Set, Money Bag 
+Hazard: Cactus, Poison, Toaster 
+
+* Examples of bonuses and hazards found outside damaged buildings: 
+Bonus: Auto (or Truck), Commuter Train, Person in Manhole 
+Hazard: National Guard Tank, Police Car, Storm Cloud 
+
+Further bonus points can be earned by grabbing a fleeing 'Townie' from a building window. This has two benefits: 1) While holding the Townie, all swat team members disappear from the building windows and 2) accumulating points are scored during the time the Townie is held.</p><details><summary>TECHNICAL</summary><p class="story">Bally Midway MCR 3 hardware
+Game No. 0E36
+
+Main CPU: Zilog Z80 (@ 5 Mhz)
+Sound CPU: Motorola 68000 (@ 8 Mhz)
+Sound Chips: DAC
+
+Players: 3
+Control: 8-way joystick
+Buttons: 2</p></details><details><summary>TRIVIA</summary><p class="story">Rampage was released in October 1986.
+
+It was also released as a conversion kit for Star Guards as &quot;Rampage [No. 00F06]&quot;.
+
+Rampage incorporates Bally Midway's JOIN THE ACTION feature : each set of game controls includes a corresponding start (Jump) button, which is activated independently. This allows a person, after inserting the proper coinage, to begin play at any time including while the other sets of game controls are in use.
+
+Rampage has an impressive 768 different levels. The 128th level of the game is 'Plano, Illinois', and was the only level in the game with less than three buildings. Brian, one of the designers, said : Plano Illinois was only two buildings because Plano Il is a Tiny town, in which my partner Jeff was born and raised.
+
+These are the random headlines you may encounter during the game. These headlines appear when the next day begins :
+EX-MUTANT IS ARRESTED FOR STREAKING!
+LAB SCREW-UP WEARS OFF...FILM AT 11
+SPOUSE OF MUTANT FILES LEGAL ACTION
+FORMER BEAST SAYS IT MAY HAPPEN AGAIN
+STILL AT LARGE...VERY LARGE!
+IS THERE NO END TO THIS RAMPAGE???
+PROPERTY VALUES AT ALL TIME LOW
+YOUR AD HERE CALL NOW! 1-800-ZOO-KEEP
+JOB OPENINGS IN NATIONAL GUARD!
+REAL LIFE JEKYLL AND HYDE STORY!!
+
+A Rampage unit appears in the 1991 movie 'Terminator 2 - Judgment Day'.
+
+Rampage was included as a bonus in &quot;Rampage - Total Destruction&quot; for the Nintendo GameCube, Sony PlayStation 2, and Nintendo Wii.</p></details><details><summary>SCORING</summary><p class="story">Scoring in this game is relatively complicated due to the various numbers of enemies. In addition, you also score points for hitting buildings and collecting bonus and/or food items. 
+
+* ITEMS 
+Bag of loot : 100-500 points. 
+Boater : 750 points. 
+Building destroyed : 2,500 points.
+Car (parked) : 100 points. 
+Car (moving slowly) : 200 points. 
+Car (parked then takes off quickly) : 750 points. 
+Food such as turkey, milk, fruit, hamburger, or toast : 175 points. 
+Eating one of the civilians : 500 points. 
+Flower pot : 500 points. 
+Helicopter : 750 points. 
+Holding designated victim : 4,000 - 6,000 points. 
+Light bulb (off) : 500 points. 
+Manhole cover (per hit) : 500 points. 
+Mega-vitamin bonus (every 128 days) : 5,000 points. 
+National guardsman : 50 points. 
+Neon sign : 1,000 points. 
+Paratrooper : 50 points. 
+Photographer : 750 points. 
+Police car : 750 points. 
+Punch causes partial break in building : 25 points. 
+Punch cause full break/hole in building : 225 points. 
+Safe (after opening) : 100-500 points. 
+Tank : 200 points. 
+Television (off) : 500 points. 
+Train (per hit) : 500 points.</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">You start the game with your monsters at the bottom of the screen. After the game starts, it is time for you to start the 'urban renewal' process.
+
+* After you start, you will start being attacked. There is no real way to avoid a lot of the attacks by the National Guardsmen due to the sheer volume of fire they are laying down. Your best bet is to keep moving and make yourself a hard target to hit.
+
+* To move quickly from building to building, jump toward the building and push up to grab the building. This enables you to use your monster's ability to both jump and climb at the same time.
+
+* To relieve some pressure from the National Guardsmen, climb up the buildings and smash the windows where they pop out from or just eat them when they are leaning out the window. Move quickly since their buddies are still shooting or throwing dynamite at your monster.
+
+* Unless you are totally obsessed with points, let the National Guardsmen do your work for you. A great example of this is that about midway through a day, a National Guard-man will rush out from the side of the screen with explosives. They will place them at the base of a building. This demolishes the building and helps you along to the next day.
+
+* Another way to destroy buildings is to weaken it up, then jump on the roof. Your monster's weight will cause the building to collapse.
+
+* The air units can be rather dangerous. During the beginning days, the helicopters will overfly your monster, turn around, and then dive in for the attack. You can destroy the helicopters when they are coming in to prevent their attack. Also, when you are moving around, you make it harder for them to get a bead on your monster.
+
+* During the later days, helicopters will drop bombs. Again, paying attention to everything that is going on will allow you to easily escape the bomb being dropped. You can also entice the helicopter to drop a bomb when you are on top of a building. When the bomb is dropped, jump out of the way and let the bomb do the damage to the building for you.
+
+* Make sure that you either grab the food or eat the National Guardsmen to keep your health up. If you can hold out for 128 days, you will get all of your health restored for that day and days 256, 384, 512, 640, and 768. Also keep in mind that if you punch too fast, you may end up getting something that will harm your monster.
+
+* Paratroopers can be a particular pain. If you plan to attack a building with a Paratrooper unit on it, make sure you quickly scale the building and eat said unit. It makes life a lot easier since their rapid fire can put a major hurting on your monster.
+
+* Ground units such as Tanks and Police Cars can be a real nuisance. They fire some pretty heavy shells which not only cause a lot of damage, but they also can knock back your monster for quite a distance. There are some ways to combat these units :
+1) Climb quickly up a building. When the unit passes below you, jump down and give it a good punch.
+2) Time the shots and rush the ground unit in-between shots to get a good punch in.
+3) Use available weapons such as manhole covers, flower pots, or safes to drop on them. These things also allow you to hit them at a distance.
+
+* Be sure and watch what your monster grabs at. There are a lot of hazards in the buildings and it is pretty bad when your monster buys the farm doing dumb stuff such as grabbing electrical items such as toasters and light bulbs.
+
+* In addition to the above, dynamite is sometimes in the middle of buildings. When uncovered, you have about two to three seconds to get your monster out of there before they are blown off the building. Eating it will only decrease your monster's health so run far away when it is uncovered.</p></details><details><summary>STAFF</summary><p class="story">Artist : Brian Colin
+Software : Jeff Nauman
+Sounds : Michael Bartlow
+
+Other people involved : Jim Belt, Neil Falconer, Walter Godlewski, Joe Ketza, John Kubik, Tom Leon, Bob Libbe, Sue Lohse, Cary Mednick, Gary Oglesby, Sharon Perry</p></details><details><summary>PORTS</summary><p class="story">* CONSOLES:
+[US] Nintendo NES (dec.1988) &quot;Rampage [Model NES-RP]&quot;
+
+Sega Master System
+[US] (1988) &quot;Rampage [Model 5001]&quot;
+[EU] (1988)
+[AU] (1988) 
+
+[US] Atari 2600 (1989) &quot;Rampage [Model AG-049]&quot;
+[US] Atari 7800 (1989) &quot;Rampage [Model AM-049-03]&quot;
+
+Sony PlayStation
+[US] (sept.30, 1999) &quot;Arcade Party Pak [Model SLUS-00952]&quot;
+[EU] (feb.23, 2001) &quot;Arcade Party Pak [Model SLES-02339]&quot;
+
+[US] Sega Dreamcast (nov.15, 2001) &quot;Midway's Greatest Arcade Hits Vol. 2 [Model T-9714N]&quot;
+
+Microsoft XBOX
+[US] (nov.24, 2003) &quot;Midway Arcade Treasures&quot;
+[EU] (feb.6, 2004) &quot;Midway Arcade Treasures&quot;
+
+Nintendo GameCube
+[US] (dec.18, 2003) &quot;Midway Arcade Treasures [Model DOL-GAKE-USA]&quot;
+
+Sony PlayStation 2
+[US] (nov.18, 2003) &quot;Midway Arcade Treasures [Model SLUS-20801]&quot;
+[EU] (feb.6, 2004) &quot;Midway Arcade Treasures [Model SLES-51927]&quot;
+
+Microsoft XBOX 360
+[US] (nov.6, 2012) &quot;Midway Arcade Origins&quot;
+[EU] (nov.15, 2012) &quot;Midway Arcade Origins&quot;
+
+Sony PlayStation 3
+[US] (nov.6, 2012) &quot;Midway Arcade Origins [Model BLUS-31083]&quot;
+[EU] (nov.15, 2012) &quot;Midway Arcade Origins [Model BLES-01768]&quot;
+
+* HANDHELDS: 
+[US] Atari Lynx (1992) &quot;Rampage [Model PA2022]&quot;
+
+Nintendo Game Boy Advance
+[US] (aug.21, 2005) &quot;2 Games in One! Paperboy + Rampage [Model AGB-B6BE-USA]&quot;
+[EU] (sept.16, 2005) &quot;2 Games in One! Paperboy + Rampage [Model AGB-B6BP]&quot;
+
+Sony PSP
+[US] (dec.13, 2005) &quot;Midway Arcade Treasures Extended Play [Model ULUS-10059]&quot;
+[EU] (feb.24, 2006) &quot;Midway Arcade Treasures Extended Play [Model ULES-00180]&quot;
+
+* COMPUTERS: 
+[US] Atari ST (1986) 
+[US] [EU] Commodore C64 (1987) 
+[US] Apple II (1988) 
+[US] PC [MS-DOS] (1988) 
+[EU] Sinclair ZX Spectrum (1988) 
+[EU] Amstrad CPC (1988) 
+[EU] Commodore Amiga (1989) 
+[US] Tandy Color Computer (1989) 
+
+PC [MS Windows, CD-ROM]
+[US] (jan.1, 1999) &quot;Arcade's Greatest Hits - The Atari Collection 2&quot;
+[US] (aug.27, 2004) &quot;Midway Arcade Treasures&quot;
+[EU] (nov.23, 2004) &quot;Midway Arcade Treasures&quot;
+
+* OTHERS: 
+[US] Apple iPhone/iPod (feb.23, 2012) &quot;Midway Arcade [Model 476467441]&quot;</p></details><details><summary>SERIES</summary><p class="story">1. Rampage [No. 0E36] (1986, Arcade) 
+2. Rampage - World Tour (1997, Arcade)
+3. Rampage 2 - Universal Tour (1999, Nintendo 64) 
+4. Rampage Through Time (2000, Sony PlayStation) 
+5. Rampage - Total Destruction (2006, GameCube/PS2/Wii)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/2174/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

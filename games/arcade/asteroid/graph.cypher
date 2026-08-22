@@ -1,0 +1,364 @@
+// mamekit knowledge graph — driver src/mame/atari/asteroid.cpp
+// generated 2026-08-22T05:52:09.813Z
+CREATE CONSTRAINT mamekit_id IF NOT EXISTS FOR (n:KG) REQUIRE n.id IS UNIQUE;
+MERGE (n:KG {id: 'file:src/mame/atari/asteroid.cpp'}) SET n:SourceFile SET n += {path: 'src/mame/atari/asteroid.cpp'};
+MERGE (n:KG {id: 'file:emu.h'}) SET n:SourceFile SET n += {path: 'emu.h', external: true};
+MERGE (n:KG {id: 'file:asteroid.h'}) SET n:SourceFile SET n += {path: 'asteroid.h', external: true};
+MERGE (n:KG {id: 'file:cpu/m6502/m6502.h'}) SET n:SourceFile SET n += {path: 'cpu/m6502/m6502.h', external: true};
+MERGE (n:KG {id: 'file:machine/74259.h'}) SET n:SourceFile SET n += {path: 'machine/74259.h', external: true};
+MERGE (n:KG {id: 'file:machine/output_latch.h'}) SET n:SourceFile SET n += {path: 'machine/output_latch.h', external: true};
+MERGE (n:KG {id: 'file:machine/rescap.h'}) SET n:SourceFile SET n += {path: 'machine/rescap.h', external: true};
+MERGE (n:KG {id: 'file:machine/watchdog.h'}) SET n:SourceFile SET n += {path: 'machine/watchdog.h', external: true};
+MERGE (n:KG {id: 'file:sound/discrete.h'}) SET n:SourceFile SET n += {path: 'sound/discrete.h', external: true};
+MERGE (n:KG {id: 'file:sound/pokey.h'}) SET n:SourceFile SET n += {path: 'sound/pokey.h', external: true};
+MERGE (n:KG {id: 'file:video/vector.h'}) SET n:SourceFile SET n += {path: 'video/vector.h', external: true};
+MERGE (n:KG {id: 'file:screen.h'}) SET n:SourceFile SET n += {path: 'screen.h', external: true};
+MERGE (n:KG {id: 'file:speaker.h'}) SET n:SourceFile SET n += {path: 'speaker.h', external: true};
+MERGE (n:KG {id: 'file:astdelux.lh'}) SET n:SourceFile SET n += {path: 'astdelux.lh', external: true};
+MERGE (n:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) SET n:SourceFile SET n += {path: 'src/mame/atari/asteroid_m.cpp'};
+MERGE (n:KG {id: 'file:src/mame/atari/asteroid_a.cpp'}) SET n:SourceFile SET n += {path: 'src/mame/atari/asteroid_a.cpp'};
+MERGE (n:KG {id: 'game:asteroid'}) SET n:Game SET n += {name: 'asteroid', year: '1979', company: 'Atari', fullname: 'Asteroids (rev 4)', monitor: 'ROT0', cls: 'asteroid_state', init: 'empty_init', flags: 'MACHINE_SUPPORTS_SAVE', kind: 'arcade', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 1334, sourceColumn: 1, sourceEndLine: 1334};
+MERGE (n:KG {id: 'romset:asteroid'}) SET n:RomSet SET n += {name: 'asteroid', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 948, sourceColumn: 1, sourceEndLine: 948};
+MERGE (n:KG {id: 'region:asteroid/maincpu'}) SET n:RomRegion SET n += {tag: 'maincpu', size: 32768, flags: '0', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 949, sourceColumn: 2, sourceEndLine: 949};
+MERGE (n:KG {id: 'rom:asteroid/maincpu/035145-04e.ef2'}) SET n:Rom SET n += {file: '035145-04e.ef2', offset: 26624, size: 2048, crc: 'b503eaf7', sha1: '5369dcfe01c0b9e48b15a96a0de8d23ee8ef9145', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 950, sourceColumn: 2, sourceEndLine: 950};
+MERGE (n:KG {id: 'rom:asteroid/maincpu/035144-04e.h2'}) SET n:Rom SET n += {file: '035144-04e.h2', offset: 28672, size: 2048, crc: '25233192', sha1: '51b2865fa897cdaa84ac6500c4b4833a80827019', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 951, sourceColumn: 2, sourceEndLine: 951};
+MERGE (n:KG {id: 'rom:asteroid/maincpu/035143-02.j2'}) SET n:Rom SET n += {file: '035143-02.j2', offset: 30720, size: 2048, crc: '312caa02', sha1: '1ce2eac1ab90b972e3f1fc3d250908f26328d6cb', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 952, sourceColumn: 2, sourceEndLine: 952};
+MERGE (n:KG {id: 'rom:asteroid/maincpu/035127-02.np3'}) SET n:Rom SET n += {file: '035127-02.np3', offset: 20480, size: 2048, crc: '8b71fd9e', sha1: '8cd5005e531eafa361d6b7e9eed159d164776c70', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 954, sourceColumn: 2, sourceEndLine: 954};
+MERGE (n:KG {id: 'region:asteroid/dvg:prom'}) SET n:RomRegion SET n += {tag: 'dvg:prom', size: 256, flags: '0', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 957, sourceColumn: 2, sourceEndLine: 957};
+MERGE (n:KG {id: 'rom:asteroid/dvg:prom/034602-01.c8'}) SET n:Rom SET n += {file: '034602-01.c8', offset: 0, size: 256, crc: '97953db8', sha1: '8cbded64d1dd35b18c4d5cece00f77e7b2cab2ad', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 958, sourceColumn: 2, sourceEndLine: 958};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map'}) SET n:AddressMap SET n += {cls: 'asteroid_state', name: 'asteroid_map', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 419, sourceColumn: 1, sourceEndLine: 438, globalMask: 32767};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range0'}) SET n:AddressRange SET n += {start: 0, end: 511, raw: 'map(0x0000, 0x01ff).ram()', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 422, sourceColumn: 2, sourceEndLine: 422, ram: true};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range1'}) SET n:AddressRange SET n += {start: 512, end: 767, raw: 'map(0x0200, 0x02ff).bankrw("ram1")', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 423, sourceColumn: 2, sourceEndLine: 423, bankRead: 'ram1', bankWrite: 'ram1'};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range2'}) SET n:AddressRange SET n += {start: 768, end: 1023, raw: 'map(0x0300, 0x03ff).bankrw("ram2")', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 424, sourceColumn: 2, sourceEndLine: 424, bankRead: 'ram2', bankWrite: 'ram2'};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range3'}) SET n:AddressRange SET n += {start: 8192, end: 8199, raw: 'map(0x2000, 0x2007).r(FUNC(asteroid_state::asteroid_IN0_r)).nopw()', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 425, sourceColumn: 2, sourceEndLine: 425, nopw: true};
+MERGE (n:KG {id: 'handler:asteroid_state.asteroid_IN0_r'}) SET n:Handler SET n += {method: 'asteroid_IN0_r', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 45, sourceColumn: 1, sourceEndLine: 56, sourceParameters: 'offs_t offset', sourceBody: 'int res = ioport("IN0")->read();
+	int bitmask = (1 << offset);
+
+	if (res & bitmask)
+		res = 0x80;
+	else
+		res = ~0x80;
+
+	return res;'};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range4'}) SET n:AddressRange SET n += {start: 9216, end: 9223, raw: 'map(0x2400, 0x2407).r(FUNC(asteroid_state::asteroid_IN1_r))', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 426, sourceColumn: 2, sourceEndLine: 426};
+MERGE (n:KG {id: 'handler:asteroid_state.asteroid_IN1_r'}) SET n:Handler SET n += {method: 'asteroid_IN1_r', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 77, sourceColumn: 1, sourceEndLine: 88, sourceParameters: 'offs_t offset', sourceBody: 'int res = ioport("IN1")->read();
+	int bitmask = (1 << (offset & 0x7));
+
+	if (res & bitmask)
+		res = 0x80;
+	else
+		res = ~0x80;
+
+	return res;'};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range5'}) SET n:AddressRange SET n += {start: 10240, end: 10243, raw: 'map(0x2800, 0x2803).r(FUNC(asteroid_state::asteroid_DSW1_r)).nopw()', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 427, sourceColumn: 2, sourceEndLine: 427, nopw: true};
+MERGE (n:KG {id: 'handler:asteroid_state.asteroid_DSW1_r'}) SET n:Handler SET n += {method: 'asteroid_DSW1_r', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 91, sourceColumn: 1, sourceEndLine: 111, sourceParameters: 'offs_t offset', sourceBody: '// 765432--  not used
+	// ------1-  ls253 dsw selector 2y
+	// -------0  ls253 dsw selector 1y
+
+	uint8_t val = m_dsw1->read();
+
+	m_dsw_sel->i3a_w(BIT(val, 0));
+	m_dsw_sel->i3b_w(BIT(val, 1));
+	m_dsw_sel->i2a_w(BIT(val, 2));
+	m_dsw_sel->i2b_w(BIT(val, 3));
+	m_dsw_sel->i1a_w(BIT(val, 4));
+	m_dsw_sel->i1b_w(BIT(val, 5));
+	m_dsw_sel->i0a_w(BIT(val, 6));
+	m_dsw_sel->i0b_w(BIT(val, 7));
+
+	m_dsw_sel->s_w(offset & 0x03);
+
+	return 0xfc | (m_dsw_sel->zb_r() << 1) | m_dsw_sel->za_r();', inputMembers: ['m_dsw1=DSW1']};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range6'}) SET n:AddressRange SET n += {start: 12288, end: 12288, raw: 'map(0x3000, 0x3000).w(m_dvg, FUNC(dvg_device::go_w))', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 428, sourceColumn: 2, sourceEndLine: 428};
+MERGE (n:KG {id: 'handler:dvg_device.go_w'}) SET n:Handler SET n += {method: 'go_w', ownerClass: 'dvg_device', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 473, sourceColumn: 2, sourceEndLine: 473};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range7'}) SET n:AddressRange SET n += {start: 12800, end: 12800, raw: 'map(0x3200, 0x3200).w("outlatch", FUNC(output_latch_device::write))', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 429, sourceColumn: 2, sourceEndLine: 429};
+MERGE (n:KG {id: 'handler:output_latch_device.write'}) SET n:Handler SET n += {method: 'write', ownerClass: 'output_latch_device', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 474, sourceColumn: 2, sourceEndLine: 474};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range8'}) SET n:AddressRange SET n += {start: 13312, end: 13312, raw: 'map(0x3400, 0x3400).w("watchdog", FUNC(watchdog_timer_device::reset_w))', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 430, sourceColumn: 2, sourceEndLine: 430};
+MERGE (n:KG {id: 'handler:watchdog_timer_device.reset_w'}) SET n:Handler SET n += {method: 'reset_w', ownerClass: 'watchdog_timer_device', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 475, sourceColumn: 2, sourceEndLine: 475};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range9'}) SET n:AddressRange SET n += {start: 13824, end: 13824, raw: 'map(0x3600, 0x3600).w(FUNC(asteroid_state::asteroid_explode_w))', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 431, sourceColumn: 2, sourceEndLine: 431};
+MERGE (n:KG {id: 'handler:asteroid_state.asteroid_explode_w'}) SET n:Handler SET n += {method: 'asteroid_explode_w', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 284, sourceColumn: 1, sourceEndLine: 304, sourceParameters: 'uint8_t data', sourceBody: 'm_discrete->write(ASTEROID_EXPLODE_DATA,(data&0x3c)>>2);                // Volume
+	/* We will modify the pitch data to send the divider value. */
+	switch ((data&0xc0))
+	{
+		case 0x00:
+			data = 12;
+			break;
+		case 0x40:
+			data = 6;
+			break;
+		case 0x80:
+			data = 3;
+			break;
+		case 0xc0:
+			data = 5;
+			break;
+	}
+	m_discrete->write(ASTEROID_EXPLODE_PITCH, data);'};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range10'}) SET n:AddressRange SET n += {start: 14848, end: 14848, raw: 'map(0x3a00, 0x3a00).w(FUNC(asteroid_state::asteroid_thump_w))', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 432, sourceColumn: 2, sourceEndLine: 432};
+MERGE (n:KG {id: 'handler:asteroid_state.asteroid_thump_w'}) SET n:Handler SET n += {method: 'asteroid_thump_w', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 306, sourceColumn: 1, sourceEndLine: 310, sourceParameters: 'uint8_t data', sourceBody: 'm_discrete->write(ASTEROID_THUMP_EN,   data & 0x10);
+	m_discrete->write(ASTEROID_THUMP_DATA, data & 0x0f);'};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range11'}) SET n:AddressRange SET n += {start: 15360, end: 15367, raw: 'map(0x3c00, 0x3c07).w("audiolatch", FUNC(ls259_device::write_d7))', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 433, sourceColumn: 2, sourceEndLine: 433};
+MERGE (n:KG {id: 'handler:ls259_device.write_d7'}) SET n:Handler SET n += {method: 'write_d7', ownerClass: 'ls259_device', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 457, sourceColumn: 2, sourceEndLine: 457};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range12'}) SET n:AddressRange SET n += {start: 15872, end: 15872, raw: 'map(0x3e00, 0x3e00).w(FUNC(asteroid_state::asteroid_noise_reset_w))', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 434, sourceColumn: 2, sourceEndLine: 434};
+MERGE (n:KG {id: 'handler:asteroid_state.asteroid_noise_reset_w'}) SET n:Handler SET n += {method: 'asteroid_noise_reset_w', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 312, sourceColumn: 1, sourceEndLine: 315, sourceParameters: 'uint8_t data', sourceBody: 'm_discrete->write(ASTEROID_NOISE_RESET, 0);'};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range13'}) SET n:AddressRange SET n += {start: 16384, end: 18431, raw: 'map(0x4000, 0x47ff).ram()', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 435, sourceColumn: 2, sourceEndLine: 435, ram: true};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range14'}) SET n:AddressRange SET n += {start: 20480, end: 22527, raw: 'map(0x5000, 0x57ff).rom()', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 436, sourceColumn: 2, sourceEndLine: 436, rom: true};
+MERGE (n:KG {id: 'map:asteroid_state.asteroid_map/range15'}) SET n:AddressRange SET n += {start: 26624, end: 32767, raw: 'map(0x6800, 0x7fff).rom()', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 437, sourceColumn: 2, sourceEndLine: 437, rom: true};
+MERGE (n:KG {id: 'handler:asteroid_state.earom_control_w'}) SET n:Handler SET n += {method: 'earom_control_w', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 404, sourceColumn: 1, sourceEndLine: 409, sourceConstants: ['CK=1', 'C1=2', 'C2=4', 'CS1=8', 'CS2=16'], sourceParameters: 'uint8_t data', sourceBody: '// CK = DB0, C1 = /DB2, C2 = DB1, CS1 = DB3, /CS2 = GND
+	m_earom->set_control(BIT(data, 3), 1, !BIT(data, 2), BIT(data, 1));
+	m_earom->set_clk(BIT(data, 0));'};
+MERGE (n:KG {id: 'handler:asteroid_state.machine_reset'}) SET n:Handler SET n += {method: 'machine_reset', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 128, sourceColumn: 1, sourceEndLine: 140, sourceParameters: '', sourceBody: 'm_dvg->reset_w();
+	if (m_earom.found())
+		earom_control_w(0);
+
+	/* reset RAM banks if present */
+	if (m_ram1.target() != nullptr)
+	{
+		m_ram1->set_entry(0);
+		m_ram2->set_entry(0);
+	}'};
+MERGE (n:KG {id: 'machine:asteroid_state.asteroid_base'}) SET n:MachineConfig SET n += {cls: 'asteroid_state', name: 'asteroid_base', calls: [], resetHandlers: ['asteroid_state.machine_reset'], sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 834, sourceColumn: 1, sourceEndLine: 866};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid_base/ram1/0'}) SET n:MemoryBank SET n += {tag: 'ram1', member: 'm_ram1', startEntry: 1, entries: 1, entryMember: 'm_sram2', offset: 0, stride: 0, raw: 'm_ram1->configure_entry(1, m_sram2)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid_base/ram2/1'}) SET n:MemoryBank SET n += {tag: 'ram2', member: 'm_ram2', startEntry: 1, entries: 1, entryMember: 'm_sram1', offset: 0, stride: 0, raw: 'm_ram2->configure_entry(1, m_sram1)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid_base/ram1/2'}) SET n:MemoryBank SET n += {tag: 'ram1', member: 'm_ram1', startEntry: 0, entries: 1, entryMember: 'm_sram1', offset: 0, stride: 0, raw: 'm_ram1->configure_entry(0, m_sram1)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid_base/ram2/3'}) SET n:MemoryBank SET n += {tag: 'ram2', member: 'm_ram2', startEntry: 0, entries: 1, entryMember: 'm_sram2', offset: 0, stride: 0, raw: 'm_ram2->configure_entry(0, m_sram2)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/maincpu'}) SET n:Device SET n += {type: 'M6502', tag: 'maincpu', clock: 1512000, config: ['M6502(config, m_maincpu, MASTER_CLOCK/8)', 'm_maincpu->set_addrmap(AS_PROGRAM, &asteroid_state::asteroid_map)', 'm_maincpu->set_periodic_int(FUNC(asteroid_state::asteroid_interrupt), attotime::from_hz(CLOCK_3KHZ/12))'], sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 837, sourceColumn: 2, sourceEndLine: 837};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0'}) SET n:Callback SET n += {signal: 'set_periodic_int', operation: 'set_periodic_int', raw: 'm_maincpu->set_periodic_int(FUNC(asteroid_state::asteroid_interrupt), attotime::from_hz(CLOCK_3KHZ/12))', ownerTag: 'maincpu', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 839, sourceColumn: 2, sourceEndLine: 839, periodHz: 246.09375, periodExpr: 'attotime::from_hz(CLOCK_3KHZ/12)', targetClass: 'asteroid_state', targetMethod: 'asteroid_interrupt'};
+MERGE (n:KG {id: 'handler:asteroid_state.asteroid_interrupt'}) SET n:Handler SET n += {method: 'asteroid_interrupt', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 16, sourceColumn: 1, sourceEndLine: 21, sourceParameters: 'device_t &device', sourceBody: '/* Turn off interrupts if self-test is enabled */
+	if (!(ioport("IN0")->read() & 0x80))
+		device.execute().pulse_input_line(INPUT_LINE_NMI, attotime::zero);'};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/watchdog'}) SET n:Device SET n += {type: 'WATCHDOG_TIMER', tag: 'watchdog', clock: null, config: ['WATCHDOG_TIMER(config, "watchdog").set_time(attotime::from_hz(CLOCK_3KHZ / 256))'], sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 841, sourceColumn: 2, sourceEndLine: 841};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/dsw_sel'}) SET n:Device SET n += {type: 'TTL153', tag: 'dsw_sel', clock: null, config: ['TTL153(config, m_dsw_sel)'], sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 843, sourceColumn: 2, sourceEndLine: 843};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/outlatch'}) SET n:Device SET n += {type: 'OUTPUT_LATCH', tag: 'outlatch', clock: null, config: ['output_latch_device &outlatch(OUTPUT_LATCH(config, "outlatch"))', 'outlatch.bit_handler<0>().set_output("led1").invert()', 'outlatch.bit_handler<1>().set_output("led0").invert()', 'outlatch.bit_handler<2>().set_membank("ram1")', 'outlatch.bit_handler<2>().append_membank("ram2")', 'outlatch.bit_handler<2>().append(FUNC(asteroid_state::cocktail_inv_w))', 'outlatch.bit_handler<3>().set(FUNC(asteroid_state::coin_counter_left_w))', 'outlatch.bit_handler<4>().set(FUNC(asteroid_state::coin_counter_center_w))', 'outlatch.bit_handler<5>().set(FUNC(asteroid_state::coin_counter_right_w))'], sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 845, sourceColumn: 2, sourceEndLine: 845};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:0'}) SET n:Callback SET n += {signal: 'bit_handler', operation: 'append', raw: 'outlatch.bit_handler<2>().append(FUNC(asteroid_state::cocktail_inv_w))', ownerTag: 'outlatch', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 850, sourceColumn: 2, sourceEndLine: 850, slot: '2', targetClass: 'asteroid_state', targetMethod: 'cocktail_inv_w'};
+MERGE (n:KG {id: 'handler:asteroid_state.cocktail_inv_w'}) SET n:Handler SET n += {method: 'cocktail_inv_w', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 37, sourceColumn: 1, sourceEndLine: 43, sourceParameters: 'int state', sourceBody: '// Inverter circuit is only hooked up for Cocktail Asteroids
+	int flip = state && m_cocktail->read();
+	m_dvg->set_flip_x(flip);
+	m_dvg->set_flip_y(flip);', inputMembers: ['m_cocktail=COCKTAIL']};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:1'}) SET n:Callback SET n += {signal: 'bit_handler', operation: 'set', raw: 'outlatch.bit_handler<3>().set(FUNC(asteroid_state::coin_counter_left_w))', ownerTag: 'outlatch', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 851, sourceColumn: 2, sourceEndLine: 851, slot: '3', targetClass: 'asteroid_state', targetMethod: 'coin_counter_left_w'};
+MERGE (n:KG {id: 'handler:asteroid_state.coin_counter_left_w'}) SET n:Handler SET n += {method: 'coin_counter_left_w', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 370, sourceColumn: 1, sourceEndLine: 373, sourceParameters: 'int state', sourceBody: 'machine().bookkeeping().coin_counter_w(0, state);'};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:2'}) SET n:Callback SET n += {signal: 'bit_handler', operation: 'set', raw: 'outlatch.bit_handler<4>().set(FUNC(asteroid_state::coin_counter_center_w))', ownerTag: 'outlatch', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 852, sourceColumn: 2, sourceEndLine: 852, slot: '4', targetClass: 'asteroid_state', targetMethod: 'coin_counter_center_w'};
+MERGE (n:KG {id: 'handler:asteroid_state.coin_counter_center_w'}) SET n:Handler SET n += {method: 'coin_counter_center_w', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 375, sourceColumn: 1, sourceEndLine: 378, sourceParameters: 'int state', sourceBody: 'machine().bookkeeping().coin_counter_w(1, state);'};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:3'}) SET n:Callback SET n += {signal: 'bit_handler', operation: 'set', raw: 'outlatch.bit_handler<5>().set(FUNC(asteroid_state::coin_counter_right_w))', ownerTag: 'outlatch', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 853, sourceColumn: 2, sourceEndLine: 853, slot: '5', targetClass: 'asteroid_state', targetMethod: 'coin_counter_right_w'};
+MERGE (n:KG {id: 'handler:asteroid_state.coin_counter_right_w'}) SET n:Handler SET n += {method: 'coin_counter_right_w', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 380, sourceColumn: 1, sourceEndLine: 383, sourceParameters: 'int state', sourceBody: 'machine().bookkeeping().coin_counter_w(2, state);'};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/vector'}) SET n:Device SET n += {type: 'VECTOR', tag: 'vector', clock: null, config: ['VECTOR(config, "vector")'], sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 856, sourceColumn: 2, sourceEndLine: 856};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/screen'}) SET n:Device SET n += {type: 'SCREEN', tag: 'screen', clock: null, config: ['screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_VECTOR))', 'screen.set_refresh_hz(CLOCK_3KHZ/12/4)', 'screen.set_size(400, 300)', 'screen.set_visarea(522, 1566, 394, 1182)', 'screen.set_screen_update("vector", FUNC(vector_device::screen_update))'], sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 857, sourceColumn: 2, sourceEndLine: 857, configCalls: ['set_refresh_hz(61.5234375)', 'set_size(400,300)', 'set_visarea(522,1566,394,1182)'], clockExpr: 'SCREEN_TYPE_VECTOR', screenRefreshHz: 61.5234375, screenSize: [400, 300], screenVisarea: [522, 1566, 394, 1182]};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/screen/callback:screen:0'}) SET n:Callback SET n += {signal: 'set_screen_update', operation: 'set_screen_update', raw: 'screen.set_screen_update("vector", FUNC(vector_device::screen_update))', ownerTag: 'screen', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 861, sourceColumn: 2, sourceEndLine: 861, targetTag: 'vector', targetClass: 'vector_device', targetMethod: 'screen_update'};
+MERGE (n:KG {id: 'handler:vector_device.screen_update'}) SET n:Handler SET n += {method: 'screen_update', ownerClass: 'vector_device', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 861, sourceColumn: 2, sourceEndLine: 861};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_base/dvg'}) SET n:Device SET n += {type: 'DVG', tag: 'dvg', clock: null, config: ['DVG(config, m_dvg)', 'm_dvg->set_vector("vector")', 'm_dvg->set_memory(m_maincpu, AS_PROGRAM, 0x4000)'], sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 863, sourceColumn: 2, sourceEndLine: 863};
+MERGE (n:KG {id: 'machine:asteroid_state.asteroid'}) SET n:MachineConfig SET n += {cls: 'asteroid_state', name: 'asteroid', calls: ['asteroid_base', 'asteroid_sound'], resetHandlers: ['asteroid_state.machine_reset'], sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 868, sourceColumn: 1, sourceEndLine: 874};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid/ram1/0'}) SET n:MemoryBank SET n += {tag: 'ram1', member: 'm_ram1', startEntry: 1, entries: 1, entryMember: 'm_sram2', offset: 0, stride: 0, raw: 'm_ram1->configure_entry(1, m_sram2)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid/ram2/1'}) SET n:MemoryBank SET n += {tag: 'ram2', member: 'm_ram2', startEntry: 1, entries: 1, entryMember: 'm_sram1', offset: 0, stride: 0, raw: 'm_ram2->configure_entry(1, m_sram1)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid/ram1/2'}) SET n:MemoryBank SET n += {tag: 'ram1', member: 'm_ram1', startEntry: 0, entries: 1, entryMember: 'm_sram1', offset: 0, stride: 0, raw: 'm_ram1->configure_entry(0, m_sram1)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid/ram2/3'}) SET n:MemoryBank SET n += {tag: 'ram2', member: 'm_ram2', startEntry: 0, entries: 1, entryMember: 'm_sram2', offset: 0, stride: 0, raw: 'm_ram2->configure_entry(0, m_sram2)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'machine:asteroid_state.asteroid_sound'}) SET n:MachineConfig SET n += {cls: 'asteroid_state', name: 'asteroid_sound', calls: [], resetHandlers: ['asteroid_state.machine_reset'], sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 318, sourceColumn: 1, sourceEndLine: 331};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid_sound/ram1/0'}) SET n:MemoryBank SET n += {tag: 'ram1', member: 'm_ram1', startEntry: 1, entries: 1, entryMember: 'm_sram2', offset: 0, stride: 0, raw: 'm_ram1->configure_entry(1, m_sram2)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid_sound/ram2/1'}) SET n:MemoryBank SET n += {tag: 'ram2', member: 'm_ram2', startEntry: 1, entries: 1, entryMember: 'm_sram1', offset: 0, stride: 0, raw: 'm_ram2->configure_entry(1, m_sram1)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid_sound/ram1/2'}) SET n:MemoryBank SET n += {tag: 'ram1', member: 'm_ram1', startEntry: 0, entries: 1, entryMember: 'm_sram1', offset: 0, stride: 0, raw: 'm_ram1->configure_entry(0, m_sram1)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'bank:asteroid_state.asteroid_sound/ram2/3'}) SET n:MemoryBank SET n += {tag: 'ram2', member: 'm_ram2', startEntry: 0, entries: 1, entryMember: 'm_sram2', offset: 0, stride: 0, raw: 'm_ram2->configure_entry(0, m_sram2)', sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_sound/mono'}) SET n:Device SET n += {type: 'SPEAKER', tag: 'mono', clock: null, config: ['SPEAKER(config, "mono").front_center()'], sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 320, sourceColumn: 2, sourceEndLine: 320};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_sound/discrete'}) SET n:Device SET n += {type: 'DISCRETE', tag: 'discrete', clock: null, config: ['DISCRETE(config, m_discrete, asteroid_discrete).add_route(ALL_OUTPUTS, "mono", 1.4)'], sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 322, sourceColumn: 2, sourceEndLine: 322, clockExpr: 'asteroid_discrete'};
+MERGE (n:KG {id: 'audioroute:device:asteroid_state.asteroid_sound/discrete/0'}) SET n:AudioRoute SET n += {output: 'ALL_OUTPUTS', target: 'mono', gain: 1.4, raw: 'DISCRETE(config, m_discrete, asteroid_discrete).add_route(ALL_OUTPUTS, "mono", 1.4)', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 322, sourceColumn: 2, sourceEndLine: 322};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch'}) SET n:Device SET n += {type: 'LS259', tag: 'audiolatch', clock: null, config: ['ls259_device &audiolatch(LS259(config, "audiolatch"))', 'audiolatch.q_out_cb<0>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_SAUCER_SND_EN>))', 'audiolatch.q_out_cb<1>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_SAUCER_FIRE_EN>))', 'audiolatch.q_out_cb<2>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_SAUCER_SEL>))', 'audiolatch.q_out_cb<3>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_THRUST_EN>))', 'audiolatch.q_out_cb<4>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_SHIP_FIRE_EN>))', 'audiolatch.q_out_cb<5>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_LIFE_EN>))'], sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 324, sourceColumn: 2, sourceEndLine: 324};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:0'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'audiolatch.q_out_cb<0>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_SAUCER_SND_EN>))', ownerTag: 'audiolatch', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 325, sourceColumn: 2, sourceEndLine: 325, slot: '0', targetTag: 'discrete', targetClass: 'discrete_device', targetMethod: 'write_line_ASTEROID_SAUCER_SND_EN'};
+MERGE (n:KG {id: 'handler:discrete_device.write_line_ASTEROID_SAUCER_SND_EN'}) SET n:Handler SET n += {method: 'write_line_ASTEROID_SAUCER_SND_EN', ownerClass: 'discrete_device', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 325, sourceColumn: 2, sourceEndLine: 325};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:1'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'audiolatch.q_out_cb<1>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_SAUCER_FIRE_EN>))', ownerTag: 'audiolatch', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 326, sourceColumn: 2, sourceEndLine: 326, slot: '1', targetTag: 'discrete', targetClass: 'discrete_device', targetMethod: 'write_line_ASTEROID_SAUCER_FIRE_EN'};
+MERGE (n:KG {id: 'handler:discrete_device.write_line_ASTEROID_SAUCER_FIRE_EN'}) SET n:Handler SET n += {method: 'write_line_ASTEROID_SAUCER_FIRE_EN', ownerClass: 'discrete_device', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 326, sourceColumn: 2, sourceEndLine: 326};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:2'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'audiolatch.q_out_cb<2>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_SAUCER_SEL>))', ownerTag: 'audiolatch', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 327, sourceColumn: 2, sourceEndLine: 327, slot: '2', targetTag: 'discrete', targetClass: 'discrete_device', targetMethod: 'write_line_ASTEROID_SAUCER_SEL'};
+MERGE (n:KG {id: 'handler:discrete_device.write_line_ASTEROID_SAUCER_SEL'}) SET n:Handler SET n += {method: 'write_line_ASTEROID_SAUCER_SEL', ownerClass: 'discrete_device', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 327, sourceColumn: 2, sourceEndLine: 327};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:3'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'audiolatch.q_out_cb<3>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_THRUST_EN>))', ownerTag: 'audiolatch', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 328, sourceColumn: 2, sourceEndLine: 328, slot: '3', targetTag: 'discrete', targetClass: 'discrete_device', targetMethod: 'write_line_ASTEROID_THRUST_EN'};
+MERGE (n:KG {id: 'handler:discrete_device.write_line_ASTEROID_THRUST_EN'}) SET n:Handler SET n += {method: 'write_line_ASTEROID_THRUST_EN', ownerClass: 'discrete_device', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 341, sourceColumn: 2, sourceEndLine: 341};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:4'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'audiolatch.q_out_cb<4>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_SHIP_FIRE_EN>))', ownerTag: 'audiolatch', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 329, sourceColumn: 2, sourceEndLine: 329, slot: '4', targetTag: 'discrete', targetClass: 'discrete_device', targetMethod: 'write_line_ASTEROID_SHIP_FIRE_EN'};
+MERGE (n:KG {id: 'handler:discrete_device.write_line_ASTEROID_SHIP_FIRE_EN'}) SET n:Handler SET n += {method: 'write_line_ASTEROID_SHIP_FIRE_EN', ownerClass: 'discrete_device', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 329, sourceColumn: 2, sourceEndLine: 329};
+MERGE (n:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:5'}) SET n:Callback SET n += {signal: 'q_out_cb', operation: 'set', raw: 'audiolatch.q_out_cb<5>().set("discrete", FUNC(discrete_device::write_line<ASTEROID_LIFE_EN>))', ownerTag: 'audiolatch', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 330, sourceColumn: 2, sourceEndLine: 330, slot: '5', targetTag: 'discrete', targetClass: 'discrete_device', targetMethod: 'write_line_ASTEROID_LIFE_EN'};
+MERGE (n:KG {id: 'handler:discrete_device.write_line_ASTEROID_LIFE_EN'}) SET n:Handler SET n += {method: 'write_line_ASTEROID_LIFE_EN', ownerClass: 'discrete_device', sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 330, sourceColumn: 2, sourceEndLine: 330};
+MERGE (n:KG {id: 'inputs:asteroid'}) SET n:InputPorts SET n += {name: 'asteroid', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 497, sourceColumn: 8, sourceEndLine: 497};
+MERGE (n:KG {id: 'inputs:asteroid/IN0'}) SET n:Port SET n += {tag: 'IN0', modify: false};
+MERGE (n:KG {id: 'inputs:asteroid/IN0/f0'}) SET n:PortField SET n += {kind: 'bit', mask: 1, activeLow: false, type: 'IPT_UNKNOWN'};
+MERGE (n:KG {id: 'inputs:asteroid/IN0/f1'}) SET n:PortField SET n += {kind: 'bit', mask: 2, activeLow: false, type: 'IPT_CUSTOM', modifiers: ['PORT_READ_LINE_MEMBER(FUNC(asteroid_state::clock_r))']};
+MERGE (n:KG {id: 'handler:asteroid_state.clock_r'}) SET n:Handler SET n += {method: 'clock_r', ownerClass: 'asteroid_state', sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 492, sourceColumn: 1, sourceEndLine: 495, sourceParameters: '', sourceBody: 'return (m_maincpu->total_cycles() & 0x100) ? 1 : 0;'};
+MERGE (n:KG {id: 'inputs:asteroid/IN0/f2'}) SET n:PortField SET n += {kind: 'bit', mask: 4, activeLow: true, type: 'IPT_CUSTOM', modifiers: ['PORT_READ_LINE_DEVICE_MEMBER("dvg", FUNC(dvg_device::done_r))']};
+MERGE (n:KG {id: 'inputs:asteroid/IN0/f3'}) SET n:PortField SET n += {kind: 'bit', mask: 8, activeLow: false, type: 'IPT_BUTTON5', modifiers: ['PORT_CODE(KEYCODE_SPACE)', 'PORT_CODE(JOYCODE_BUTTON3)']};
+MERGE (n:KG {id: 'inputs:asteroid/IN0/f4'}) SET n:PortField SET n += {kind: 'bit', mask: 16, activeLow: false, type: 'IPT_BUTTON3', modifiers: ['PORT_CODE(KEYCODE_LCONTROL)', 'PORT_CODE(JOYCODE_BUTTON1)']};
+MERGE (n:KG {id: 'inputs:asteroid/IN0/f5'}) SET n:PortField SET n += {kind: 'bit', mask: 32, activeLow: false, type: 'IPT_SERVICE1', modifiers: ['PORT_NAME("Diagnostic Step")']};
+MERGE (n:KG {id: 'inputs:asteroid/IN0/f6'}) SET n:PortField SET n += {kind: 'bit', mask: 64, activeLow: false, type: 'IPT_TILT'};
+MERGE (n:KG {id: 'inputs:asteroid/IN0/f7'}) SET n:PortField SET n += {kind: 'service', mask: 128, activeLow: false, defaultValue: 0};
+MERGE (n:KG {id: 'inputs:asteroid/IN1'}) SET n:Port SET n += {tag: 'IN1', modify: false};
+MERGE (n:KG {id: 'inputs:asteroid/IN1/f0'}) SET n:PortField SET n += {kind: 'bit', mask: 1, activeLow: false, type: 'IPT_COIN1'};
+MERGE (n:KG {id: 'inputs:asteroid/IN1/f1'}) SET n:PortField SET n += {kind: 'bit', mask: 2, activeLow: false, type: 'IPT_COIN2'};
+MERGE (n:KG {id: 'inputs:asteroid/IN1/f2'}) SET n:PortField SET n += {kind: 'bit', mask: 4, activeLow: false, type: 'IPT_COIN3'};
+MERGE (n:KG {id: 'inputs:asteroid/IN1/f3'}) SET n:PortField SET n += {kind: 'bit', mask: 8, activeLow: false, type: 'IPT_START1'};
+MERGE (n:KG {id: 'inputs:asteroid/IN1/f4'}) SET n:PortField SET n += {kind: 'bit', mask: 16, activeLow: false, type: 'IPT_START2'};
+MERGE (n:KG {id: 'inputs:asteroid/IN1/f5'}) SET n:PortField SET n += {kind: 'bit', mask: 32, activeLow: false, type: 'IPT_BUTTON4', modifiers: ['PORT_CODE(KEYCODE_LALT)', 'PORT_CODE(JOYCODE_BUTTON2)']};
+MERGE (n:KG {id: 'inputs:asteroid/IN1/f6'}) SET n:PortField SET n += {kind: 'bit', mask: 64, activeLow: false, type: 'IPT_BUTTON2', modifiers: ['PORT_CODE(KEYCODE_RIGHT)', 'PORT_CODE(JOYCODE_X_RIGHT_SWITCH)']};
+MERGE (n:KG {id: 'inputs:asteroid/IN1/f7'}) SET n:PortField SET n += {kind: 'bit', mask: 128, activeLow: false, type: 'IPT_BUTTON1', modifiers: ['PORT_CODE(KEYCODE_LEFT)', 'PORT_CODE(JOYCODE_X_LEFT_SWITCH)']};
+MERGE (n:KG {id: 'inputs:asteroid/DSW1'}) SET n:Port SET n += {tag: 'DSW1', modify: false};
+MERGE (n:KG {id: 'inputs:asteroid/DSW1/f0'}) SET n:PortField SET n += {kind: 'dip', mask: 3, name: 'Language', defaultValue: 0, location: 'SW:1,2', settings: ['0=English', '1=German', '2=French', '3=Spanish']};
+MERGE (n:KG {id: 'inputs:asteroid/DSW1/f1'}) SET n:PortField SET n += {kind: 'dip', mask: 4, name: 'Lives', defaultValue: 4, location: 'SW:3', settings: ['4=3', '0=4']};
+MERGE (n:KG {id: 'inputs:asteroid/DSW1/f2'}) SET n:PortField SET n += {kind: 'dip', mask: 8, name: 'Center Mech', defaultValue: 0, location: 'SW:4', settings: ['0=X 1', '8=X 2']};
+MERGE (n:KG {id: 'inputs:asteroid/DSW1/f3'}) SET n:PortField SET n += {kind: 'dip', mask: 48, name: 'Right Mech', defaultValue: 0, location: 'SW:5,6', settings: ['0=X 1', '16=X 4', '32=X 5', '48=X 6']};
+MERGE (n:KG {id: 'inputs:asteroid/DSW1/f4'}) SET n:PortField SET n += {kind: 'dip', mask: 192, name: 'Coinage', defaultValue: 128, location: 'SW:7,8', settings: ['192=2C 1C', '128=1C 1C', '64=1C 2C', '0=Free Play']};
+MERGE (n:KG {id: 'inputs:asteroid/COCKTAIL'}) SET n:Port SET n += {tag: 'COCKTAIL', modify: false};
+MERGE (n:KG {id: 'inputs:asteroid/COCKTAIL/f0'}) SET n:PortField SET n += {kind: 'dip', mask: 1, name: 'Cabinet', defaultValue: 0, settings: ['0=Upright', '1=Cocktail']};
+MATCH (a:KG {id: 'game:asteroid'}), (b:KG {id: 'file:src/mame/atari/asteroid.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 1334, sourceColumn: 1, sourceEndLine: 1334};
+MATCH (a:KG {id: 'game:asteroid'}), (b:KG {id: 'machine:asteroid_state.asteroid'}) MERGE (a)-[r:USES_MACHINE]->(b);
+MATCH (a:KG {id: 'game:asteroid'}), (b:KG {id: 'inputs:asteroid'}) MERGE (a)-[r:USES_INPUTS]->(b);
+MATCH (a:KG {id: 'game:asteroid'}), (b:KG {id: 'romset:asteroid'}) MERGE (a)-[r:USES_ROMSET]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:emu.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:asteroid.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:cpu/m6502/m6502.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:machine/74259.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:machine/output_latch.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:machine/rescap.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:machine/watchdog.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:sound/discrete.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:sound/pokey.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:video/vector.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:screen.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:speaker.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid.cpp'}), (b:KG {id: 'file:astdelux.lh'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid'}), (b:KG {id: 'file:src/mame/atari/asteroid.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 868, sourceColumn: 1, sourceEndLine: 874};
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid'}), (b:KG {id: 'handler:asteroid_state.machine_reset'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid'}), (b:KG {id: 'machine:asteroid_state.asteroid_base'}) MERGE (a)-[r:CALLS]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid'}), (b:KG {id: 'machine:asteroid_state.asteroid_sound'}) MERGE (a)-[r:CALLS]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid'}), (b:KG {id: 'bank:asteroid_state.asteroid/ram1/0'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid'}), (b:KG {id: 'bank:asteroid_state.asteroid/ram2/1'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid'}), (b:KG {id: 'bank:asteroid_state.asteroid/ram1/2'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid'}), (b:KG {id: 'bank:asteroid_state.asteroid/ram2/3'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'inputs:asteroid'}), (b:KG {id: 'file:src/mame/atari/asteroid.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 497, sourceColumn: 8, sourceEndLine: 497};
+MATCH (a:KG {id: 'inputs:asteroid'}), (b:KG {id: 'inputs:asteroid/IN0'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'inputs:asteroid'}), (b:KG {id: 'inputs:asteroid/IN1'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'inputs:asteroid'}), (b:KG {id: 'inputs:asteroid/DSW1'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'inputs:asteroid'}), (b:KG {id: 'inputs:asteroid/COCKTAIL'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'romset:asteroid'}), (b:KG {id: 'file:src/mame/atari/asteroid.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 948, sourceColumn: 1, sourceEndLine: 948};
+MATCH (a:KG {id: 'romset:asteroid'}), (b:KG {id: 'region:asteroid/maincpu'}) MERGE (a)-[r:HAS_REGION]->(b);
+MATCH (a:KG {id: 'romset:asteroid'}), (b:KG {id: 'region:asteroid/dvg:prom'}) MERGE (a)-[r:HAS_REGION]->(b);
+MATCH (a:KG {id: 'handler:asteroid_state.machine_reset'}), (b:KG {id: 'handler:asteroid_state.earom_control_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'file:src/mame/atari/asteroid.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 834, sourceColumn: 1, sourceEndLine: 866};
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'handler:asteroid_state.machine_reset'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'bank:asteroid_state.asteroid_base/ram1/0'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'bank:asteroid_state.asteroid_base/ram2/1'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'bank:asteroid_state.asteroid_base/ram1/2'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'bank:asteroid_state.asteroid_base/ram2/3'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'device:asteroid_state.asteroid_base/maincpu'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'device:asteroid_state.asteroid_base/watchdog'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'device:asteroid_state.asteroid_base/dsw_sel'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'device:asteroid_state.asteroid_base/outlatch'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'device:asteroid_state.asteroid_base/vector'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'device:asteroid_state.asteroid_base/screen'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_base'}), (b:KG {id: 'device:asteroid_state.asteroid_base/dvg'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_sound'}), (b:KG {id: 'file:src/mame/atari/asteroid_a.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_a.cpp', sourceLine: 318, sourceColumn: 1, sourceEndLine: 331};
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_sound'}), (b:KG {id: 'handler:asteroid_state.machine_reset'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_sound'}), (b:KG {id: 'bank:asteroid_state.asteroid_sound/ram1/0'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_sound'}), (b:KG {id: 'bank:asteroid_state.asteroid_sound/ram2/1'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_sound'}), (b:KG {id: 'bank:asteroid_state.asteroid_sound/ram1/2'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_sound'}), (b:KG {id: 'bank:asteroid_state.asteroid_sound/ram2/3'}) MERGE (a)-[r:HAS_BANK]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_sound'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/mono'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_sound'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/discrete'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:asteroid_state.asteroid_sound'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid/ram1/0'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid/ram2/1'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid/ram1/2'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid/ram2/3'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'inputs:asteroid/IN0'}), (b:KG {id: 'inputs:asteroid/IN0/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN0'}), (b:KG {id: 'inputs:asteroid/IN0/f1'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN0'}), (b:KG {id: 'inputs:asteroid/IN0/f2'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN0'}), (b:KG {id: 'inputs:asteroid/IN0/f3'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN0'}), (b:KG {id: 'inputs:asteroid/IN0/f4'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN0'}), (b:KG {id: 'inputs:asteroid/IN0/f5'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN0'}), (b:KG {id: 'inputs:asteroid/IN0/f6'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN0'}), (b:KG {id: 'inputs:asteroid/IN0/f7'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN1'}), (b:KG {id: 'inputs:asteroid/IN1/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN1'}), (b:KG {id: 'inputs:asteroid/IN1/f1'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN1'}), (b:KG {id: 'inputs:asteroid/IN1/f2'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN1'}), (b:KG {id: 'inputs:asteroid/IN1/f3'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN1'}), (b:KG {id: 'inputs:asteroid/IN1/f4'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN1'}), (b:KG {id: 'inputs:asteroid/IN1/f5'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN1'}), (b:KG {id: 'inputs:asteroid/IN1/f6'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN1'}), (b:KG {id: 'inputs:asteroid/IN1/f7'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/DSW1'}), (b:KG {id: 'inputs:asteroid/DSW1/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/DSW1'}), (b:KG {id: 'inputs:asteroid/DSW1/f1'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/DSW1'}), (b:KG {id: 'inputs:asteroid/DSW1/f2'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/DSW1'}), (b:KG {id: 'inputs:asteroid/DSW1/f3'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/DSW1'}), (b:KG {id: 'inputs:asteroid/DSW1/f4'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/COCKTAIL'}), (b:KG {id: 'inputs:asteroid/COCKTAIL/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'region:asteroid/maincpu'}), (b:KG {id: 'rom:asteroid/maincpu/035145-04e.ef2'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:asteroid/maincpu'}), (b:KG {id: 'rom:asteroid/maincpu/035144-04e.h2'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:asteroid/maincpu'}), (b:KG {id: 'rom:asteroid/maincpu/035143-02.j2'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:asteroid/maincpu'}), (b:KG {id: 'rom:asteroid/maincpu/035127-02.np3'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:asteroid/dvg:prom'}), (b:KG {id: 'rom:asteroid/dvg:prom/034602-01.c8'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid_base/ram1/0'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid_base/ram2/1'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid_base/ram1/2'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid_base/ram2/3'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/maincpu'}), (b:KG {id: 'device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/maincpu'}), (b:KG {id: 'map:asteroid_state.asteroid_map'}) MERGE (a)-[r:HAS_MAP]->(b) SET r += {space: 'AS_PROGRAM'};
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/outlatch'}), (b:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/outlatch'}), (b:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:1'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/outlatch'}), (b:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:2'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/outlatch'}), (b:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:3'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/screen'}), (b:KG {id: 'device:asteroid_state.asteroid_base/screen/callback:screen:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid_a.cpp'}), (b:KG {id: 'file:emu.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid_a.cpp'}), (b:KG {id: 'file:asteroid.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid_a.cpp'}), (b:KG {id: 'file:machine/74259.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid_a.cpp'}), (b:KG {id: 'file:speaker.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid_sound/ram1/0'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid_sound/ram2/1'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid_sound/ram1/2'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'bank:asteroid_state.asteroid_sound/ram2/3'}), (b:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid_m.cpp', sourceLine: 114, sourceColumn: 1, sourceEndLine: 126};
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/discrete'}), (b:KG {id: 'audioroute:device:asteroid_state.asteroid_sound/discrete/0'}) MERGE (a)-[r:HAS_AUDIO_ROUTE]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:1'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:2'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:3'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:4'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:5'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}), (b:KG {id: 'file:emu.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/atari/asteroid_m.cpp'}), (b:KG {id: 'file:asteroid.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'inputs:asteroid/IN0/f1'}), (b:KG {id: 'handler:asteroid_state.clock_r'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0'}), (b:KG {id: 'handler:asteroid_state.asteroid_interrupt'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'file:src/mame/atari/asteroid.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/atari/asteroid.cpp', sourceLine: 419, sourceColumn: 1, sourceEndLine: 438};
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range0'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range1'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range2'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range3'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range4'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range5'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range6'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range7'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range8'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range9'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range10'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range11'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range12'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range13'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range14'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map'}), (b:KG {id: 'map:asteroid_state.asteroid_map/range15'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:0'}), (b:KG {id: 'handler:asteroid_state.cocktail_inv_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:1'}), (b:KG {id: 'handler:asteroid_state.coin_counter_left_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:2'}), (b:KG {id: 'handler:asteroid_state.coin_counter_center_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/outlatch/callback:outlatch:3'}), (b:KG {id: 'handler:asteroid_state.coin_counter_right_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/screen/callback:screen:0'}), (b:KG {id: 'handler:vector_device.screen_update'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_base/screen/callback:screen:0'}), (b:KG {id: 'device:asteroid_state.asteroid_base/vector'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:0'}), (b:KG {id: 'handler:discrete_device.write_line_ASTEROID_SAUCER_SND_EN'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:0'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/discrete'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:1'}), (b:KG {id: 'handler:discrete_device.write_line_ASTEROID_SAUCER_FIRE_EN'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:1'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/discrete'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:2'}), (b:KG {id: 'handler:discrete_device.write_line_ASTEROID_SAUCER_SEL'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:2'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/discrete'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:3'}), (b:KG {id: 'handler:discrete_device.write_line_ASTEROID_THRUST_EN'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:3'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/discrete'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:4'}), (b:KG {id: 'handler:discrete_device.write_line_ASTEROID_SHIP_FIRE_EN'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:4'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/discrete'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:5'}), (b:KG {id: 'handler:discrete_device.write_line_ASTEROID_LIFE_EN'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:5'}), (b:KG {id: 'device:asteroid_state.asteroid_sound/discrete'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map/range3'}), (b:KG {id: 'handler:asteroid_state.asteroid_IN0_r'}) MERGE (a)-[r:READS]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map/range4'}), (b:KG {id: 'handler:asteroid_state.asteroid_IN1_r'}) MERGE (a)-[r:READS]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map/range5'}), (b:KG {id: 'handler:asteroid_state.asteroid_DSW1_r'}) MERGE (a)-[r:READS]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map/range6'}), (b:KG {id: 'handler:dvg_device.go_w'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'dvg'};
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map/range7'}), (b:KG {id: 'handler:output_latch_device.write'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'outlatch'};
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map/range8'}), (b:KG {id: 'handler:watchdog_timer_device.reset_w'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'watchdog'};
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map/range9'}), (b:KG {id: 'handler:asteroid_state.asteroid_explode_w'}) MERGE (a)-[r:WRITES]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map/range10'}), (b:KG {id: 'handler:asteroid_state.asteroid_thump_w'}) MERGE (a)-[r:WRITES]->(b);
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map/range11'}), (b:KG {id: 'handler:ls259_device.write_d7'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'audiolatch'};
+MATCH (a:KG {id: 'map:asteroid_state.asteroid_map/range12'}), (b:KG {id: 'handler:asteroid_state.asteroid_noise_reset_w'}) MERGE (a)-[r:WRITES]->(b);

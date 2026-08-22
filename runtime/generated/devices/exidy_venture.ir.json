@@ -1,0 +1,801 @@
+{
+  "type": "EXIDY_VENTURE",
+  "uses": [
+    {
+      "game": "venture",
+      "tags": [
+        "soundbd"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "EXIDY_VENTURE",
+    "className": "venture_sound_device",
+    "shortName": "venture_sound",
+    "description": "Exidy SFX+PSG",
+    "sourceFile": "src/mame/shared/exidysound.cpp",
+    "sourceLine": 513,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(EXIDY_VENTURE, venture_sound_device, \"venture_sound\", \"Exidy SFX+PSG\")"
+  },
+  "methods": [
+    {
+      "name": "filter_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/shared/exidysound.cpp",
+      "sourceLine": 552,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "logerror"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "exidy_sound_filter_w = %02X\n"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "venture_audio_map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/mame/shared/exidysound.cpp",
+      "sourceLine": 562,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "map"
+                },
+                "property": "global_mask"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 32767
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "number",
+                          "value": 127
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1920
+                    }
+                  ]
+                },
+                "property": "m"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_riot"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::ram_map"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 2048
+                        },
+                        {
+                          "kind": "number",
+                          "value": 2079
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 2016
+                    }
+                  ]
+                },
+                "property": "m"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_riot"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::io_map"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 4096
+                        },
+                        {
+                          "kind": "number",
+                          "value": 4099
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 2044
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_pia"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "pia6821_device::read"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "pia6821_device::write"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "map"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 6144
+                            },
+                            {
+                              "kind": "number",
+                              "value": 6147
+                            }
+                          ]
+                        },
+                        "property": "mirror"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 2044
+                        }
+                      ]
+                    },
+                    "property": "w"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "venture_sound_device::sh8253_w"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "property": "nopr"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 8192
+                        },
+                        {
+                          "kind": "number",
+                          "value": 8192
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 2047
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "venture_sound_device::filter_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 10240
+                        },
+                        {
+                          "kind": "number",
+                          "value": 10247
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 2040
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "venture_sound_device::sh6840_r"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "venture_sound_device::sh6840_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 12288
+                        },
+                        {
+                          "kind": "number",
+                          "value": 12291
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 2044
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "venture_sound_device::sfxctrl_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 22528
+                    },
+                    {
+                      "kind": "number",
+                      "value": 32767
+                    }
+                  ]
+                },
+                "property": "rom"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/mame/shared/exidysound.cpp",
+      "sourceLine": 580,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "exidy_sh8253_sound_device::device_add_mconfig"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "audiocpu",
+            "valueType": "m6502_device&",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m6502_device"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "M6502"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "config"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "audiocpu"
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "number",
+                        "value": 3579545
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "audiocpu"
+                },
+                "property": "set_addrmap"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AS_PROGRAM"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "venture_sound_device::venture_audio_map"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_pia"
+                    },
+                    "property": "writepa_handler"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "venture_sound_device::pia_pa_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_pia"
+                    },
+                    "property": "writepb_handler"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "venture_sound_device::pia_pb_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_pia"
+                    },
+                    "property": "ca2_handler"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "venture_sound_device::pia_ca2_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_pia"
+                    },
+                    "property": "cb2_handler"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "venture_sound_device::pia_cb2_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/shared/exidysound.cpp",
+    "src/devices/sound/s14001a.cpp",
+    "src/devices/sound/flt_vol.cpp",
+    "src/mame/stern/berzerk.cpp"
+  ],
+  "composedOf": [
+    "M6502"
+  ]
+}

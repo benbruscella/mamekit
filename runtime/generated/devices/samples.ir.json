@@ -1,0 +1,5365 @@
+{
+  "type": "SAMPLES",
+  "uses": [
+    {
+      "game": "carnival",
+      "tags": [
+        "samples"
+      ]
+    },
+    {
+      "game": "panic",
+      "tags": [
+        "samples"
+      ]
+    },
+    {
+      "game": "zaxxon",
+      "tags": [
+        "samples"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SAMPLES",
+    "className": "samples_device",
+    "shortName": "samples",
+    "description": "Samples",
+    "sourceFile": "src/devices/sound/samples.cpp",
+    "sourceLine": 38,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SAMPLES, samples_device, \"samples\", \"Samples\")"
+  },
+  "methods": [
+    {
+      "name": "start",
+      "parameters": "uint8_t channel, uint32_t samplenum, bool loop",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 72,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sample"
+                },
+                "property": "empty"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "samplenum"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_sample"
+                      },
+                      "property": "size"
+                    },
+                    "args": []
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "channel"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_channels"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "chan",
+            "valueType": "channel_t&",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_channel"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "channel"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "sample",
+            "valueType": "sample_t&",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_sample"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "samplenum"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "source"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": ">",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "sample"
+                      },
+                      "property": "data"
+                    },
+                    "property": "size"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "unary",
+                "operator": "&",
+                "operand": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "sample"
+                    },
+                    "property": "data"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "source_num"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": ">",
+                "left": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "source_len"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "samplenum"
+              },
+              "whenFalse": {
+                "kind": "unary",
+                "operator": "-",
+                "operand": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "source_len"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "sample"
+                  },
+                  "property": "data"
+                },
+                "property": "size"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "pos"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0,
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "basefreq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "sample"
+              },
+              "property": "frequency"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "curfreq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "sample"
+              },
+              "property": "frequency"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "loop"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "loop"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "stream"
+                },
+                "property": "set_sample_rate"
+              },
+              "args": [
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "sample"
+                  },
+                  "property": "frequency"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "start_raw",
+      "parameters": "uint8_t channel, const int16_t *sampledata, uint32_t samples, uint32_t frequency, bool loop",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 103,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "channel"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_channels"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "chan",
+            "valueType": "channel_t&",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_channel"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "channel"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "source"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "sampledata"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "source_num"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "-",
+              "operand": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "source_len"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "samples"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "pos"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0,
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "basefreq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "frequency"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "curfreq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "frequency"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "loop"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "loop"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "stream"
+                },
+                "property": "set_sample_rate"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "frequency"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_frequency",
+      "parameters": "uint8_t channel, uint32_t frequency",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 128,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "channel"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_channels"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "chan",
+            "valueType": "channel_t&",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_channel"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "channel"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "curfreq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "frequency"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_volume",
+      "parameters": "uint8_t channel, float volume",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 144,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "channel"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_channels"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_output_gain"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "channel"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "volume"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pause",
+      "parameters": "uint8_t channel, bool pause",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 155,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "channel"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_channels"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "chan",
+            "valueType": "channel_t&",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_channel"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "channel"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "paused"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "pause"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "stop",
+      "parameters": "uint8_t channel",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 170,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "channel"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_channels"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "chan",
+            "valueType": "channel_t&",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_channel"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "channel"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "source"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "chan"
+              },
+              "property": "source_num"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "-",
+              "operand": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "stop_all",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 186,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "channel",
+                "valueType": "uint8_t",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "channel"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_channels"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "channel"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "stop"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "channel"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "base_frequency",
+      "parameters": "uint8_t channel",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 199,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "channel"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_channels"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "channel"
+                }
+              },
+              "property": "basefreq"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "playing",
+      "parameters": "uint8_t channel",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 211,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "channel"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_channels"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "channel_t"
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "chan"
+                },
+                "property": "source"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": [
+          "invalid declaration of \"channel_t\""
+        ]
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 231,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "load_samples"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_channels"
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "channel",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "channel"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_channels"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "channel"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "rate",
+                "valueType": "uint32_t",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "sample_rate"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "declare",
+                "name": "chan",
+                "valueType": "channel_t&",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_channel"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "channel"
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "stream"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "stream_alloc"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "rate"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "source"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "source_num"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "pos"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0,
+                  "floating": true
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "basefreq"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "rate"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "curfreq"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "rate"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "loop"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "paused"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "source_num"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "channel"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "source_len"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "channel"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "pos"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "channel"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "basefreq"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "channel"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "curfreq"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "channel"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "loop"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "channel"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "paused"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "channel"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 270,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stop_all"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_post_load",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 281,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "channel",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "channel"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_channels"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "channel"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "chan",
+                "valueType": "channel_t&",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_channel"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "channel"
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">=",
+                    "left": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chan"
+                      },
+                      "property": "source_num"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<",
+                    "left": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chan"
+                      },
+                      "property": "source_num"
+                    },
+                    "right": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_sample"
+                        },
+                        "property": "size"
+                      },
+                      "args": []
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "sample",
+                    "valueType": "sample_t&",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_sample"
+                      },
+                      "index": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "chan"
+                        },
+                        "property": "source_num"
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chan"
+                      },
+                      "property": "source"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "sample"
+                          },
+                          "property": "data"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chan"
+                      },
+                      "property": "source_len"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "sample"
+                          },
+                          "property": "data"
+                        },
+                        "property": "size"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chan"
+                      },
+                      "property": "basefreq"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "sample"
+                      },
+                      "property": "frequency"
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "sample"
+                          },
+                          "property": "data"
+                        },
+                        "property": "empty"
+                      },
+                      "args": []
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "source_num"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "unary",
+                          "operator": "-",
+                          "operand": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "endpos",
+                "valueType": "double",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  },
+                  "property": "source_len"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "!=",
+                    "left": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chan"
+                      },
+                      "property": "source"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": ">=",
+                    "left": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chan"
+                      },
+                      "property": "pos"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "endpos"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chan"
+                      },
+                      "property": "loop"
+                    },
+                    "then": [
+                      {
+                        "op": "declare",
+                        "name": "posfloor",
+                        "valueType": "double",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "floor"
+                          },
+                          "args": [
+                            {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "chan"
+                              },
+                              "property": "pos"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "pos"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "posfloor"
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "pos"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "double"
+                          },
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "operator": "%",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "int32_t"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "identifier",
+                                    "name": "posfloor"
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "chan"
+                                },
+                                "property": "source_len"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "source"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "source_num"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "unary",
+                          "operator": "-",
+                          "operand": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "chan"
+                    },
+                    "property": "source"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "stream"
+                        },
+                        "property": "set_sample_rate"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "basefreq"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 326,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "sound_stream"
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "channel",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "channel"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_channels"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "channel"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "unary",
+                    "operator": "&",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    }
+                  },
+                  "right": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_channel"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "channel"
+                      }
+                    },
+                    "property": "stream"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "chan",
+                    "valueType": "channel_t&",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_channel"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "channel"
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "source"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "!",
+                        "operand": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "paused"
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "declare",
+                        "name": "step",
+                        "valueType": "double",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "double"
+                            },
+                            "args": [
+                              {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "chan"
+                                },
+                                "property": "curfreq"
+                              }
+                            ]
+                          },
+                          "right": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "double"
+                            },
+                            "args": [
+                              {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "stream"
+                                  },
+                                  "property": "sample_rate"
+                                },
+                                "args": []
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "op": "declare",
+                        "name": "endpos",
+                        "valueType": "double",
+                        "value": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "source_len"
+                        }
+                      },
+                      {
+                        "op": "declare",
+                        "name": "sample",
+                        "valueType": "int16_t*",
+                        "value": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "chan"
+                          },
+                          "property": "source"
+                        }
+                      },
+                      {
+                        "op": "for",
+                        "initialize": [
+                          {
+                            "op": "declare",
+                            "name": "sampindex",
+                            "valueType": "int",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ],
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "sampindex"
+                          },
+                          "right": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "stream"
+                              },
+                              "property": "samples"
+                            },
+                            "args": []
+                          }
+                        },
+                        "iterate": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "sampindex"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "declare",
+                            "name": "pos_floor",
+                            "valueType": "double",
+                            "value": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "floor"
+                              },
+                              "args": [
+                                {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "chan"
+                                  },
+                                  "property": "pos"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "declare",
+                            "name": "frac",
+                            "valueType": "double",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "chan"
+                                },
+                                "property": "pos"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "pos_floor"
+                              }
+                            }
+                          },
+                          {
+                            "op": "declare",
+                            "name": "ipos",
+                            "valueType": "int32_t",
+                            "value": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "int32_t"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "pos_floor"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "stream"
+                                },
+                                "property": "put"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "sampindex"
+                                },
+                                {
+                                  "kind": "binary",
+                                  "operator": "*",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "sample_scale"
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "*",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": "-",
+                                        "left": {
+                                          "kind": "number",
+                                          "value": 1,
+                                          "floating": true
+                                        },
+                                        "right": {
+                                          "kind": "identifier",
+                                          "name": "frac"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "sample1"
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "*",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "frac"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "sample2"
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "chan"
+                              },
+                              "property": "pos"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "step"
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": ">=",
+                              "left": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "chan"
+                                },
+                                "property": "pos"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "endpos"
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "chan"
+                                  },
+                                  "property": "loop"
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "chan"
+                                      },
+                                      "property": "pos"
+                                    },
+                                    "operator": "-=",
+                                    "value": {
+                                      "kind": "identifier",
+                                      "name": "endpos"
+                                    }
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "chan"
+                                      },
+                                      "property": "source"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 0
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "chan"
+                                      },
+                                      "property": "source_num"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "unary",
+                                      "operator": "-",
+                                      "operand": {
+                                        "kind": "number",
+                                        "value": 1
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "op": "break"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": [
+          "invalid declaration of \"sound_stream\"",
+          "unsupported expression statement at byte 795",
+          "unsupported expression statement at byte 873"
+        ]
+      }
+    },
+    {
+      "name": "read_sample",
+      "parameters": "emu_file &file, sample_t &sample",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 386,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "buf",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ALLOC"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "offset",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                "property": "read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "buf"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "offset"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_warning"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Unable to read %s, 0-byte file?\n"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        "property": "filename"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "memcmp"
+                },
+                "args": [
+                  {
+                    "kind": "unary",
+                    "operator": "&",
+                    "operand": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "buf"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  },
+                  {
+                    "kind": "string",
+                    "value": "RIFF"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 4
+                  }
+                ]
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "read_wav_sample"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sample"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "memcmp"
+                    },
+                    "args": [
+                      {
+                        "kind": "unary",
+                        "operator": "&",
+                        "operand": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "buf"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      },
+                      {
+                        "kind": "string",
+                        "value": "fLaC"
+                      },
+                      {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "read_flac_sample"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "sample"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "osd_printf_warning"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "Unable to read %s, corrupt file?\n"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    "property": "filename"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_wav_sample",
+      "parameters": "emu_file &file, sample_t &sample",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 413,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "offset",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "number",
+              "value": 4
+            }
+          },
+          {
+            "op": "declare",
+            "name": "filesize",
+            "valueType": "uint32_t"
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                "property": "read"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "filesize"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "offset"
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_warning"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Unexpected size offset %u (%s)\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        "property": "filename"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "filesize"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "little_endianize_int32"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "filesize"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "buf",
+            "valueType": "char",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ALLOC"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 32
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                "property": "read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "buf"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "offset"
+              },
+              "right": {
+                "kind": "number",
+                "value": 12
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_warning"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Unexpected WAVE offset %u (%s)\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        "property": "filename"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "memcmp"
+                },
+                "args": [
+                  {
+                    "kind": "unary",
+                    "operator": "&",
+                    "operand": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "buf"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  },
+                  {
+                    "kind": "string",
+                    "value": "WAVE"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 4
+                  }
+                ]
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_warning"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Could not find WAVE header (%s)\n"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        "property": "filename"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "length",
+            "valueType": "uint32_t"
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "number",
+              "value": 1
+            },
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    "property": "read"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "buf"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    "property": "read"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "length"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "length"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "little_endianize_int32"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "length"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "memcmp"
+                    },
+                    "args": [
+                      {
+                        "kind": "unary",
+                        "operator": "&",
+                        "operand": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "buf"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      },
+                      {
+                        "kind": "string",
+                        "value": "fmt "
+                      },
+                      {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    "property": "seek"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "length"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "SEEK_CUR"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "length"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "filesize"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "osd_printf_warning"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "Could not find fmt tag (%s)\n"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "file"
+                            },
+                            "property": "filename"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "temp16",
+            "valueType": "uint16_t"
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                "property": "read"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "temp16"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "temp16"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "little_endianize_int16"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "temp16"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "temp16"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_warning"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "unsupported format %u - only PCM is supported (%s)\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "temp16"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        "property": "filename"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                "property": "read"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "temp16"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "temp16"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "little_endianize_int16"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "temp16"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "temp16"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_warning"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "unsupported number of channels %u - only mono is supported (%s)\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "temp16"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        "property": "filename"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "rate",
+            "valueType": "uint32_t"
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                "property": "read"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "rate"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "rate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "little_endianize_int32"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "rate"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                "property": "read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "buf"
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "bits",
+            "valueType": "uint16_t"
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                "property": "read"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "bits"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "bits"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "little_endianize_int16"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "bits"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "bits"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 8
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "bits"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 16
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_warning"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "unsupported bits/sample %u - only 8 and 16 are supported (%s)\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "bits"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        "property": "filename"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                "property": "seek"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "length"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SEEK_CUR"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "length"
+              },
+              "right": {
+                "kind": "number",
+                "value": 16
+              }
+            }
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "number",
+              "value": 1
+            },
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    "property": "read"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "buf"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    "property": "read"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "length"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "length"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "little_endianize_int32"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "length"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "memcmp"
+                    },
+                    "args": [
+                      {
+                        "kind": "unary",
+                        "operator": "&",
+                        "operand": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "buf"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      },
+                      {
+                        "kind": "string",
+                        "value": "data"
+                      },
+                      {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    "property": "seek"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "length"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "SEEK_CUR"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "length"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "filesize"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "osd_printf_warning"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "Could not find data tag (%s)\n"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "file"
+                            },
+                            "property": "filename"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "length"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_warning"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "empty data block (%s)\n"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        "property": "filename"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "sample"
+              },
+              "property": "frequency"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "rate"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "bits"
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "sample"
+                      },
+                      "property": "data"
+                    },
+                    "property": "resize"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "length"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    "property": "read"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "sample"
+                          },
+                          "property": "data"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "length"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "declare",
+                "name": "tempptr",
+                "valueType": "uint8_t*",
+                "value": {
+                  "kind": "cast",
+                  "valueType": "uint8_t",
+                  "operand": {
+                    "kind": "unary",
+                    "operator": "&",
+                    "operand": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sample"
+                        },
+                        "property": "data"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "sindex",
+                    "valueType": "int32_t",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "length"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "sindex"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "sindex"
+                    },
+                    "operator": "-=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sample"
+                        },
+                        "property": "data"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "sindex"
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "int8_t"
+                        },
+                        "args": [
+                          {
+                            "kind": "binary",
+                            "operator": "^",
+                            "left": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "tempptr"
+                              },
+                              "index": {
+                                "kind": "identifier",
+                                "name": "sindex"
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 128
+                            }
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 256
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "sample"
+                      },
+                      "property": "data"
+                    },
+                    "property": "resize"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "length"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    "property": "read"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "sample"
+                          },
+                          "property": "data"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "length"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "ENDIANNESS_NATIVE"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "ENDIANNESS_LITTLE"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "sindex",
+                        "valueType": "uint32_t",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "sindex"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "/",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "length"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sindex"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "sample"
+                            },
+                            "property": "data"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "sindex"
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "little_endianize_int16"
+                          },
+                          "args": [
+                            {
+                              "kind": "index",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "sample"
+                                },
+                                "property": "data"
+                              },
+                              "index": {
+                                "kind": "identifier",
+                                "name": "sindex"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_flac_sample",
+      "parameters": "emu_file &file, sample_t &sample",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 562,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                "property": "seek"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SEEK_SET"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "sample"
+              },
+              "property": "frequency"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "decoder"
+                },
+                "property": "sample_rate"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "decoder"
+                  },
+                  "property": "channels"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "decoder"
+                  },
+                  "property": "bits_per_sample"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 16
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "sample"
+                  },
+                  "property": "data"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "decoder"
+                    },
+                    "property": "total_samples"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "decoder"
+                  },
+                  "property": "decode_interleaved"
+                },
+                "args": [
+                  {
+                    "kind": "unary",
+                    "operator": "&",
+                    "operand": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sample"
+                        },
+                        "property": "data"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  },
+                  {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sample"
+                        },
+                        "property": "data"
+                      },
+                      "property": "size"
+                    },
+                    "args": []
+                  }
+                ]
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "decoder"
+                },
+                "property": "finish"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": [
+          "invalid constructor declaration of \"decoder\""
+        ]
+      }
+    },
+    {
+      "name": "load_samples",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/samples.cpp",
+      "sourceLine": 594,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "ok",
+            "valueType": "bool",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "machine"
+                        },
+                        "args": []
+                      },
+                      "property": "options"
+                    },
+                    "args": []
+                  },
+                  "property": "samples"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "std"
+          },
+          {
+            "op": "declare",
+            "name": "iter",
+            "valueType": "samples_iterator",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "samples_iterator"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "this"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "altbasename",
+            "valueType": "char*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "iter"
+                },
+                "property": "altbasename"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sample"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "iter"
+                    },
+                    "property": "count"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "index",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "samplename",
+                "valueType": "char*",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "iter"
+                    },
+                    "property": "first"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "condition": {
+              "kind": "identifier",
+              "name": "samplename"
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "samplename"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "iter"
+                    },
+                    "property": "next"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "file",
+                "valueType": "emu_file",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "emu_file"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "machine"
+                              },
+                              "args": []
+                            },
+                            "property": "options"
+                          },
+                          "args": []
+                        },
+                        "property": "sample_path"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "OPEN_FLAG_READ"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "filerr"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "altbasename"
+                  }
+                },
+                "then": []
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "filerr"
+                },
+                "then": []
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "filerr"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "altbasename"
+                  }
+                },
+                "then": []
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "filerr"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "read_sample"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "file"
+                        },
+                        {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_sample"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "index"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "logerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "Error opening sample '%s' (%s:%d %s)\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "samplename"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "filerr"
+                                },
+                                "property": "category"
+                              },
+                              "args": []
+                            },
+                            "property": "name"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "filerr"
+                            },
+                            "property": "value"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "filerr"
+                            },
+                            "property": "message"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ok"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "ok"
+            }
+          }
+        ],
+        "diagnostics": [
+          "invalid declaration of \"std\"",
+          "unsupported expression statement at byte 572",
+          "could not parse statement at byte 719",
+          "could not parse statement at byte 858",
+          "could not parse statement at byte 983"
+        ]
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/samples.cpp",
+    "src/devices/sound/samples.h"
+  ]
+}

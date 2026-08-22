@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scramble — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Scramble</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/scramble/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/scramble/scramble-dossier.md" download="scramble-dossier.md">Download scramble-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Konami · 1981</div>
+    <h1>Scramble</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/scramble.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>scramble</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/galaxian/galaxian.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>galaxian</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>ay8910</strong></div>
+      <div class="fact"><span>Screen</span><strong>256×224 @ 60.61 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>90°</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>audiocpu</td><td>Z80</td><td>1.790 MHz</td><td>3</td></tr><tr><td>maincpu</td><td>Z80</td><td>3.072 MHz</td><td>13</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>s1.2d</td><td>0x0</td><td>0x800</td><td>ea35ccaa</td></tr><tr><td>maincpu</td><td>s2.2e</td><td>0x800</td><td>0x800</td><td>e7bba1b3</td></tr><tr><td>maincpu</td><td>s3.2f</td><td>0x1000</td><td>0x800</td><td>12d7fc3e</td></tr><tr><td>maincpu</td><td>s4.2h</td><td>0x1800</td><td>0x800</td><td>b59360eb</td></tr><tr><td>maincpu</td><td>s5.2j</td><td>0x2000</td><td>0x800</td><td>4919a91c</td></tr><tr><td>maincpu</td><td>s6.2l</td><td>0x2800</td><td>0x800</td><td>26a4547b</td></tr><tr><td>maincpu</td><td>s7.2m</td><td>0x3000</td><td>0x800</td><td>0bb49470</td></tr><tr><td>maincpu</td><td>s8.2p</td><td>0x3800</td><td>0x800</td><td>6a5740e5</td></tr><tr><td>audiocpu</td><td>ot1.5c</td><td>0x0</td><td>0x800</td><td>bcd297f0</td></tr><tr><td>audiocpu</td><td>ot2.5d</td><td>0x800</td><td>0x800</td><td>de7912da</td></tr><tr><td>audiocpu</td><td>ot3.5e</td><td>0x1000</td><td>0x800</td><td>ba2fa933</td></tr><tr><td>gfx1</td><td>c2.5f</td><td>0x0</td><td>0x800</td><td>4708845b</td></tr><tr><td>gfx1</td><td>c1.5h</td><td>0x800</td><td>0x800</td><td>11fd2887</td></tr><tr><td>proms</td><td>c01s.6e</td><td>0x0</td><td>0x20</td><td>4e3caeab</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>Z</td><td>button2</td><td>IN0</td><td>0x2</td></tr><tr><td>9</td><td>service1</td><td>IN0</td><td>0x4</td></tr><tr><td>Space / X</td><td>button1</td><td>IN0</td><td>0x8</td></tr><tr><td>Right</td><td>joystick right</td><td>IN0</td><td>0x10</td></tr><tr><td>Left</td><td>joystick left</td><td>IN0</td><td>0x20</td></tr><tr><td>6</td><td>coin2</td><td>IN0</td><td>0x40</td></tr><tr><td>5</td><td>coin1</td><td>IN0</td><td>0x80</td></tr><tr><td>2</td><td>start2</td><td>IN1</td><td>0x40</td></tr><tr><td>1</td><td>start1</td><td>IN1</td><td>0x80</td></tr><tr><td>Up</td><td>joystick up</td><td>IN2</td><td>0x10</td></tr><tr><td>Down</td><td>joystick down</td><td>IN2</td><td>0x40</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/galaxian/galaxian.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Aaron Giles, Couriersud, Stephane Humbert, Robbbert</strong></div>
+    <div class="fact"><span>Development</span><strong>659 commits by 49 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Ivan Vangelista, Miodrag Milanovic, ClawGrip, David Haywood</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 45 years ago:
+
+Scramble (c) 1981 Konami Industry Company, Limited.
+
+Scramble is a sideways scrolling shoot-em-up in which a single player takes control of a spaceship and must try to fight through six different enemy-packed levels - destroying as many fuel tanks and ground intallations as possible - before reaching the enemy base and destroying it. 
+
+Contact with any scenery, ground installations, enemy ships or projectyles results in an instant loss of life. The Scramble ship is armed with both a blaster and bombs. The blaster is forward-firing only while the bombs drop downwards to target ground-based enemy installations and to collect fuel from fuel dumps. 
+
+The fuel dumps are of particular importance, as the player ship's fuel gauge constantly depletes as the player progresses through the game and the only way to re-fuel is by bombing the fuel tanks that are located on the ground throughout the levels. Fuel usage increases as the game progresses, until fuel usage actually outstrips the amount of fuel dumps available and the game becomes impossible. 
+
+Scramble is rightly considered to be a classic and was the world's first ever 'multi-level' shoot-em-up.</p><details><summary>TECHNICAL</summary><p class="story">The Scramble cabinet was the same basic cabinet design that Stern used for all its games. It featured a monitor that was set back at a 45 degree angle, and a very large marquee that was angled towards the player. Most cabinets have straight up and down marquees, so Stern ones are easy to spot. This title features rather primitive painted sideart that only uses two colours, but it makes up for it with the impressive comic-book style art on the control panel and monitor bezel.
+
+The marquee has a roundish 'Scramble' logo, with some sort of space castle in the background. The control panel is aluminium, and it has a mostly yellow design, with game instructions and a red ball-top 8-Way leaf switch joystick mounted centrally. It has fire buttons on both sides of the panel, so it can be played either left handed or right handed. The industry later forgot about lefties altogether and went completely right handed. Most of these machines were uprights, but there were several cocktail units made as well.
+
+Game ID : GX387
+
+Main CPU : Zilog Z80 (@ 3.072 Mhz)
+Sound CPU : Zilog Z80 (@ 1.78975 Mhz)
+Sound Chips : (2x) General Instrument AY8910 (@ 1.78975 Mhz), (6x) RC (@ 1.78975 Mhz)
+
+Players : 2
+Control : 8-Way Joystick
+Buttons : 2
+=&gt; Laser, Bomb</p></details><details><summary>TRIVIA</summary><p class="story">Scramble was released in February 1981 in Japan.
+
+Sometimes unfairly referred to as a 'poor man's Defender', Scramble was not only the world's first multi-level shoot-em-up, it was also the first of its type to feature a re-fueling system. These innovations helped to ensure that Scramble was a well deserved commercial success for Konami. 
+
+This game was the first title to use the 'Scramble Hardware', which was later used for &quot;Super Cobra&quot;, &quot;Lost Tomb&quot;, &quot;The End&quot; and a number of other titles. Many of these titles were actually bootlegs of other games, such as Namco's &quot;Pac-Man&quot;. This was because Konami neglected to give Scramble ANY copy protection whatsoever; making it incredibly easy to run just about anything that used a Z80 processor, which, at the time, was pretty much every game out there. There were, of course, a lot of Bootleg copies of Scramble itself floating around, such as &quot;Explorer&quot; or &quot;Strafe Bomb&quot;.
+
+Scramble is considered the first in the &quot;Gradius&quot; series according to the Nintendo Game Boy Advance &quot;Gradius Galaxies&quot; intro sequence.
+
+This game had a Bulgarian bootleg called &quot;Memory Devices Facility&quot;.
+
+A Scramble unit appears in the 1983 movie 'Joysticks'.</p></details><details><summary>SCORING</summary><p class="story">10 points per second of flying.
+
+Missile on ground : 50 points
+Missile in air : 80 points
+UFO : 100 points
+Fuel Tank : 150 points
+Mystery Base : 100, 200, or 300 points
+Main Base : 800 points</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">A) Always watch what passes below you as you fly, especially in Sectors One through Four.
+
+B) Ignore the 10 points added to your score every second : you want to finish each round quickly, because running out of fuel is bad news.
+
+Try also to hit as many fuel tanks as you can, even in preference to mystery bases. One hundred and fifty points plus fuel is more desirable than an average mystery score of 200 points.
+
+C) When you fuel gets low, the rule is to ignore everything but speed survival, and getting more fuel.
+
+D) In Sector One, fly close to the ground. Your object should be scoring points rather than precise maneuvering, so keep in mind just a few simple rules : 
+1. Fly slowly only when you must to destroy a rich cluster of targets.
+2. Release a couple of bombs just as you top each mountain, then descend quickly into the valley.
+3. Once there, shoot any threatening rockets by slowing down for a second and using your laser. Descend to the lowest plateau at the earliest opportunity, shooting lasers constantly to clear your path of targets.
+4. Rise with the terrain, using your laser against targets in the foothills, and go all the way up only when the next mountain forces you to.
+5. After the last mountain, be prepared for the UFOs.
+
+E) Through Sector Two, simply fly relatively low at medium speed, pressing LASER and BOMB constantly. The laser shots will take care of almost all the UFOs in your way. If one or two survive until you reach them, shift to full speed until you pass them, dodging vertically if necessary.
+
+Try to time the release of your bombs so that they hit fuel tanks, compensating for your middling speed.
+
+F) Don't try to stay alive among the fireballs. Staying below them makes sense for two reasons - you keep your jet, and you even have a chance to pick up some points from the sparse targets below.
+
+As for making if from valley to valley, just go where the fireballs aren't. Fly quickly through each valley, then stop just before you leave shelter. Wait there until a fireball passes just over you; then chances are that you will have a second in which to duck swiftly over and into the next valley. You will find there is definitely a rhythm to it.
+
+G) If you fly through the city too fast, you might not be able to react in time to a juicy cluster of targets or to a rocket rising in your path. Fly at medium speed, lasering and bombing for all you are worth, especially at rockets in front of you and fuel tanks beneath you.
+
+When you fly over silos too deep for your bombs to penetrate, accelerate for a moment in case the rockets suddenly take off toward your underside.
+
+Treat a low roof just as you would a Sector One valley; descend and laser the row of targets into oblivion. Be careful, though, when reascending; the rises here are much more abrupt than Sector One.
+
+H) Without excellent vertical control, you will never make it through Sector Five. Blasting away the fuel tanks blocking your path is vital, but requires much less of your concentration than does piloting the jet through such a tortuous maze.
+
+As soon as you emerge from a passageway, stop. Then move up or down, whichever you need, as far as you can until the screen catches up with you and pushes you forward. Keep the joystick to the left; while the screen propels you, you should have time to find just the right height for entering the next passage.
+
+Once you are in the next passage, speed up right away, giving yourself a head start for the next cavern; you will have to stop once again when you enter it. The cycle requires concentration even once you know the rhythm.
+
+Sometimes, you will enter a cavern at top left and need to leave it through a passage at bottom right, but fuel tanks will block the mouth of the passage, cluttering even the cavern floor. If you are worried about crashing into these tanks from above before you have a chance to laser them, just drop a couple of bombs at the right moment in your descent. The tanks will stand in your way no longer.
+
+I) Once you know its secrets, the base may actually be slightly easier than Sector Five. To destroy the enemy octagon, all you have to do is gun your engine before you enter its canyon, then pull sharply down and back, and nose up to it. If you are on its level, fire your laser; if just above, drop a bomb. You will destroy the base.
+
+You will also crash your own ship, but no matter : you will start the next round with a free replacement. Most players are afraid of crashing, so they fly too high for their bombs to have any hope of reaching the base. Eventually, they crash or run out of fuel.
+
+J) By now, you have probably realized the one step essential to mastering SCRAMBLE; memorization. Since the pattern repeats itself every round, being prepared for upcoming opportunities and dangers is what the game is about.</p></details><details><summary>PORTS</summary><p class="story">* CONSOLES: 
+[JP] GCE Vectrex (1982) &quot;Scramble Wars&quot;
+[EU] GCE Vectrex (1983) &quot;Scramble [Model 8120]&quot; 
+[JP] Sony PlayStation (may.13, 1999) &quot;Konami 80's Arcade Gallery [Model SLPM-86228]&quot; 
+[JP] Sony PS2 (jul.21, 2005) &quot;Scramble [Oretachi Geasen Zoku] [Model SLPM-62626]&quot; 
+[EU] [JP]Microsoft XBOX 360 [XBLA] (sept.13, 2006) 
+[JP] Sony PS4 [PSN] (dec.25, 2014) &quot;Arcade Archives - Scramble [Model CUSA-01409]&quot; 
+[AS] Sony PlayStation 4 [PSN] (jul.9, 2015) &quot;Arcade Archives - Scramble&quot; 
+[AU] Sony PlayStation 4 [PSN] (sept.22, 2015) &quot;Arcade Archives - Scramble [Model CUSA-02485]&quot; 
+
+* HANDHELDS: 
+[JP] Nintendo GBA (may.2, 2002) &quot;Konami Arcade Game Collection [Model AGB-AKCJ-JPN]&quot; 
+[EU] Nintendo GBA (june.21, 2002) &quot;Konami Collector's Series - Arcade Classics [Model AGB-AKCP-EUR]&quot; 
+[JP] Nintendo DS (mar.15, 2007) &quot;Konami Arcade Collection [Model NTR-A5KJ-JPN]&quot; 
+[EU] Nintendo DS (oct.26, 2007) &quot;Konami Arcade Classics [Model NTR-ACXP-EUR]&quot; 
+[AU] Nintendo DS (oct.29, 2007) &quot;Konami Arcade Classics&quot; 
+
+* COMPUTERS:
+[EU] BBC B (1982) &quot;Rocket Raid&quot; by Acornsoft
+[EU] Sinclair ZX Spectrum (1982) &quot;Penetrator&quot; by Melbourne House 
+[EU] Sinclair ZX Spectrum (1983) &quot;Cavern Fighter&quot; by Bug-Byte 
+[EU] Commodore C64 (1983) &quot;Skramble!&quot; 
+[EU] Commodore C64 (1984) &quot;Penetrator&quot; by Melbourne House
+
+* OTHERS:
+[EU] VFD portable game(1982) &quot;Rambler&quot; by Tomy : German version 
+[EU] VFD portable game (1982) &quot;Astro Blaster&quot; by Tomy : Hales UK version 
+[EU] [AU] [KO] Arcade (nov.1998) &quot;Konami 80's AC Special&quot; 
+[JP] Arcade (nov.1998) &quot;Konami 80's Arcade Gallery&quot;</p></details><details><summary>SERIES</summary><p class="story">1. Scramble (1981)
+2. Super Cobra (1981)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/2328/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

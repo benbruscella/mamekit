@@ -1,0 +1,1743 @@
+{
+  "type": "OKIM6295",
+  "uses": [
+    {
+      "game": "ghouls",
+      "tags": [
+        "oki"
+      ]
+    },
+    {
+      "game": "sf2ce",
+      "tags": [
+        "oki"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "OKIM6295",
+    "className": "okim6295_device",
+    "shortName": "okim6295",
+    "description": "OKI MSM6295 ADPCM",
+    "sourceFile": "src/devices/sound/okim6295.cpp",
+    "sourceLine": 54,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(OKIM6295, okim6295_device, \"okim6295\", \"OKI MSM6295 ADPCM\")"
+  },
+  "methods": [
+    {
+      "name": "device_validity_check",
+      "parameters": "validity_checker &valid",
+      "sourceFile": "src/devices/sound/okim6295.cpp",
+      "sourceLine": 104,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "PIN7_LOW"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_pin7_state"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "PIN7_HIGH"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_pin7_state"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_error"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Initial pin 7 state not configured\n"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/okim6295.cpp",
+      "sourceLine": 114,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "PIN7_LOW"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_pin7_state"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "PIN7_HIGH"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_pin7_state"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_pin7_state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "divisor",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_pin7_state"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 132
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 165
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "clock"
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "divisor"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_command"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pin7_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "voicenum",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "voicenum"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "OKIM6295_VOICES"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "voicenum"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_voice"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "voicenum"
+                            }
+                          },
+                          "property": "m_playing"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "voicenum"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_voice"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "voicenum"
+                            }
+                          },
+                          "property": "m_sample"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "voicenum"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_voice"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "voicenum"
+                            }
+                          },
+                          "property": "m_count"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "voicenum"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_voice"
+                              },
+                              "index": {
+                                "kind": "identifier",
+                                "name": "voicenum"
+                              }
+                            },
+                            "property": "m_adpcm"
+                          },
+                          "property": "m_signal"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "voicenum"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_voice"
+                              },
+                              "index": {
+                                "kind": "identifier",
+                                "name": "voicenum"
+                              }
+                            },
+                            "property": "m_adpcm"
+                          },
+                          "property": "m_step"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "voicenum"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_voice"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "voicenum"
+                            }
+                          },
+                          "property": "m_volume"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "voicenum"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_voice"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "voicenum"
+                            }
+                          },
+                          "property": "m_base_offset"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "voicenum"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/okim6295.cpp",
+      "sourceLine": 143,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": [
+          "invalid declaration of \"elem\"",
+          "invalid for condition"
+        ]
+      }
+    },
+    {
+      "name": "device_post_load",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/okim6295.cpp",
+      "sourceLine": 155,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "device_clock_changed"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_clock_changed",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/okim6295.cpp",
+      "sourceLine": 166,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "divisor",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_pin7_state"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 132
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 165
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "set_sample_rate"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "clock"
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "divisor"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/devices/sound/okim6295.cpp",
+      "sourceLine": 178,
+      "program": {
+        "operations": [],
+        "diagnostics": [
+          "invalid declaration of \"elem\"",
+          "invalid for condition"
+        ]
+      }
+    },
+    {
+      "name": "rom_bank_pre_change",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/okim6295.cpp",
+      "sourceLine": 191,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_pin7",
+      "parameters": "int pin7",
+      "sourceFile": "src/devices/sound/okim6295.cpp",
+      "sourceLine": 202,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "started"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pin7_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "pin7"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "device_clock_changed"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/okim6295.cpp",
+      "sourceLine": 214,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "result",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "number",
+              "value": 240
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "voicenum",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "voicenum"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "OKIM6295_VOICES"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "voicenum"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_voice"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "voicenum"
+                    }
+                  },
+                  "property": "m_playing"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "result"
+                    },
+                    "operator": "|=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "voicenum"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "result"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "uint8_t command",
+      "sourceFile": "src/devices/sound/okim6295.cpp",
+      "sourceLine": 232,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_command"
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "-",
+                "operand": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "voicemask",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "command"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "voicenum",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "voicenum"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "OKIM6295_VOICES"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "voicenum"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "voicemask"
+                    },
+                    "operator": ">>=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "voicemask"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "declare",
+                        "name": "voice",
+                        "valueType": "okim_voice&",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_voice"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "voicenum"
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "unary",
+                          "operator": "!",
+                          "operand": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "voice"
+                            },
+                            "property": "m_playing"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "declare",
+                            "name": "base",
+                            "valueType": "offs_t",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "*",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_command"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          },
+                          {
+                            "op": "declare",
+                            "name": "start",
+                            "valueType": "offs_t",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "read_byte"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "base"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 0
+                                    }
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 16
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "start"
+                            },
+                            "operator": "|=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "read_byte"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "base"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "start"
+                            },
+                            "operator": "|=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "read_byte"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "base"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 2
+                                    }
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "start"
+                            },
+                            "operator": "&=",
+                            "value": {
+                              "kind": "number",
+                              "value": 262143
+                            }
+                          },
+                          {
+                            "op": "declare",
+                            "name": "stop",
+                            "valueType": "offs_t",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "read_byte"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "base"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 3
+                                    }
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 16
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "stop"
+                            },
+                            "operator": "|=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "read_byte"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "base"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 4
+                                    }
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "stop"
+                            },
+                            "operator": "|=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "read_byte"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "base"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 5
+                                    }
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "stop"
+                            },
+                            "operator": "&=",
+                            "value": {
+                              "kind": "number",
+                              "value": 262143
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "<",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "start"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "stop"
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "voice"
+                                  },
+                                  "property": "m_playing"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "voice"
+                                  },
+                                  "property": "m_base_offset"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "start"
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "voice"
+                                  },
+                                  "property": "m_sample"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "voice"
+                                  },
+                                  "property": "m_count"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "binary",
+                                  "operator": "*",
+                                  "left": {
+                                    "kind": "number",
+                                    "value": 2
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "-",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "stop"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "start"
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "voice"
+                                      },
+                                      "property": "m_adpcm"
+                                    },
+                                    "property": "reset"
+                                  },
+                                  "args": []
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "voice"
+                                  },
+                                  "property": "m_volume"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "s_volume_table"
+                                  },
+                                  "index": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "command"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  }
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "logerror"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "string",
+                                      "value": "Requested to play invalid sample %02x\n"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "m_command"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "logerror"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": "Requested to play sample %02x on non-stopped voice\n"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_command"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_command"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "command"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 128
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_command"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "command"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 127
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_stream"
+                        },
+                        "property": "update"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "voicemask",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "command"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  },
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "voicenum",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "voicenum"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "OKIM6295_VOICES"
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "voicenum"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "voicemask"
+                        },
+                        "operator": ">>=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "voicemask"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_voice"
+                                },
+                                "index": {
+                                  "kind": "identifier",
+                                  "name": "voicenum"
+                                }
+                              },
+                              "property": "m_playing"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/okim6295.cpp",
+    "src/devices/sound/okim6295.h",
+    "src/devices/sound/okiadpcm.cpp",
+    "src/devices/sound/okiadpcm.h"
+  ]
+}

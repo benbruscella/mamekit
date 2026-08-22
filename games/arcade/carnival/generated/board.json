@@ -1,0 +1,2797 @@
+{
+    "schemaVersion": 3,
+    "game": "carnival",
+    "family": "vicdual",
+    "driverFile": "src/mame/sega/vicdual.cpp",
+    "callbacks": [
+        {
+            "id": "device:carnival_state.carnivala_audio/audiocpu/callback:audiocpu:0",
+            "ownerTag": "audiocpu",
+            "signal": "p1_out_cb",
+            "operation": "set",
+            "targetClass": "carnival_state",
+            "targetMethod": "carnivala_music_port_1_w",
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 287,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:carnival_state.carnivala_audio/audiocpu/callback:audiocpu:1",
+            "ownerTag": "audiocpu",
+            "signal": "p2_out_cb",
+            "operation": "set",
+            "targetClass": "carnival_state",
+            "targetMethod": "carnivala_music_port_2_w",
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 288,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:carnival_state.carnivala_audio/audiocpu/callback:audiocpu:2",
+            "ownerTag": "audiocpu",
+            "signal": "t1_in_cb",
+            "operation": "set",
+            "targetClass": "carnival_state",
+            "targetMethod": "carnival_music_port_t1_r",
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 289,
+                "column": 2
+            }
+        },
+        {
+            "id": "machine:vicdual_state.vicdual_dualgame_root/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "vicdual_state",
+            "targetMethod": "screen_update_color",
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 2979,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:carnival_state.carnivala_audio/audiocpu/callback:audiocpu:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "carnival_state.carnivala_music_port_1_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 287,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:carnival_state.carnivala_audio/audiocpu/callback:audiocpu:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "carnival_state.carnivala_music_port_2_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 288,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:carnival_state.carnivala_audio/audiocpu/callback:audiocpu:2",
+            "effect": {
+                "kind": "handler",
+                "handler": "carnival_state.carnival_music_port_t1_r"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 289,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "audiocpu",
+                "type": "i8035",
+                "clock": 3579545,
+                "region": "audiocpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 1023,
+                        "kind": "rom"
+                    }
+                ],
+                "cycleClock": 238636.33333333334,
+                "source": {
+                    "file": "src/mame/sega/vicdual.cpp",
+                    "line": 285,
+                    "column": 2
+                }
+            },
+            {
+                "tag": "maincpu",
+                "type": "z80",
+                "clock": 1933560,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 16383,
+                        "kind": "rom",
+                        "mirror": 16384
+                    },
+                    {
+                        "start": 32768,
+                        "end": 33791,
+                        "kind": "ram",
+                        "mirror": 28672,
+                        "share": "videoram",
+                        "write": "vicdual_state.videoram_w",
+                        "writeHandlerOwnsRam": true
+                    },
+                    {
+                        "start": 33792,
+                        "end": 34815,
+                        "kind": "ram",
+                        "mirror": 28672
+                    },
+                    {
+                        "start": 34816,
+                        "end": 36863,
+                        "kind": "ram",
+                        "mirror": 28672,
+                        "share": "characterram",
+                        "write": "vicdual_state.characterram_w",
+                        "writeHandlerOwnsRam": true
+                    }
+                ],
+                "io": {
+                    "ranges": [
+                        {
+                            "start": 0,
+                            "end": 0,
+                            "kind": "handler",
+                            "mirror": 124,
+                            "read": "port.IN0"
+                        },
+                        {
+                            "start": 1,
+                            "end": 1,
+                            "kind": "handler",
+                            "mirror": 124,
+                            "read": "port.IN1"
+                        },
+                        {
+                            "start": 2,
+                            "end": 2,
+                            "kind": "handler",
+                            "mirror": 124,
+                            "read": "port.IN2"
+                        },
+                        {
+                            "start": 3,
+                            "end": 3,
+                            "kind": "handler",
+                            "mirror": 124,
+                            "read": "port.IN3"
+                        },
+                        {
+                            "start": 0,
+                            "end": 127,
+                            "kind": "handler",
+                            "write": "carnival_state.carnival_io_w"
+                        }
+                    ],
+                    "globalMask": 127
+                },
+                "cycleClock": 1933560,
+                "source": {
+                    "file": "src/mame/sega/vicdual.cpp",
+                    "line": 921,
+                    "column": 2
+                }
+            }
+        ],
+        "shareBindings": [
+            {
+                "share": "videoram",
+                "member": "m_videoram"
+            },
+            {
+                "share": "characterram",
+                "member": "m_characterram"
+            }
+        ],
+        "screen": {
+            "width": 256,
+            "height": 224,
+            "xOffset": 0,
+            "yOffset": 0,
+            "refresh": 60,
+            "vtotal": 262,
+            "vbstart": 224,
+            "vbend": 0,
+            "updateMode": "partial",
+            "rotate": 270,
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 926,
+                "column": 2
+            }
+        },
+        "customs": [
+            {
+                "port": "IN1",
+                "mask": 8,
+                "member": "cblank_comp_r",
+                "handler": "vicdual_state.cblank_comp_r",
+                "activeLow": false
+            },
+            {
+                "port": "IN2",
+                "mask": 8,
+                "member": "timer_value_r",
+                "handler": "vicdual_state.timer_value_r",
+                "activeLow": false
+            },
+            {
+                "port": "IN3",
+                "mask": 8,
+                "member": "coin_status_r",
+                "handler": "vicdual_state.coin_status_r",
+                "activeLow": false
+            }
+        ],
+        "frameEvents": [],
+        "screenUpdate": {
+            "handler": "vicdual_state.screen_update_color",
+            "source": {
+                "file": "src/mame/sega/vicdual_v.cpp",
+                "line": 81,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:carnival_state.carnival/mono",
+            "tag": "mono",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 3053,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:carnival_state.carnivala_audio/audiocpu",
+            "tag": "audiocpu",
+            "type": "I8035",
+            "member": "m_audiocpu",
+            "clock": 3579545,
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 285,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:carnival_state.carnivala_audio/psg",
+            "tag": "psg",
+            "type": "AY8912",
+            "member": "m_psg",
+            "clock": 1193181.6666666667,
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 291,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:carnival_state.carnivala_audio/samples",
+            "tag": "samples",
+            "type": "SAMPLES",
+            "member": "m_samples",
+            "configuration": [
+                {
+                    "method": "set_channels",
+                    "args": [
+                        10
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 294,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:vicdual_state.vicdual_root/maincpu",
+            "tag": "maincpu",
+            "type": "Z80",
+            "member": "m_maincpu",
+            "clock": 1933560,
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 921,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:vicdual_state.vicdual_root/coinstate",
+            "tag": "coinstate",
+            "type": "TIMER",
+            "member": "m_coinstate_timer",
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 923,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:vicdual_state.vicdual_root/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "member": "m_screen",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        5156160,
+                        328,
+                        0,
+                        256,
+                        262,
+                        0,
+                        224
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 926,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:vicdual_state.videoram_w",
+            "ownerClass": "vicdual_state",
+            "method": "videoram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "//  m_screen->update_now();\n\tm_screen->update_partial(m_screen->vpos());\n\tm_videoram[offset] = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_screen"
+                                },
+                                "property": "update_partial"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "vpos"
+                                    },
+                                    "args": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 849,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:vicdual_state.characterram_w",
+            "ownerClass": "vicdual_state",
+            "method": "characterram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "//  m_screen->update_now();\n\tm_screen->update_partial(m_screen->vpos());\n\tm_characterram[offset] = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_screen"
+                                },
+                                "property": "update_partial"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "vpos"
+                                    },
+                                    "args": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_characterram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 857,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:vicdual_state.assert_coin_status",
+            "ownerClass": "vicdual_state",
+            "method": "assert_coin_status",
+            "body": "m_coin_status = 1;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_coin_status"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 1
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 714,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:vicdual_state.palette_bank_w",
+            "ownerClass": "vicdual_state",
+            "method": "palette_bank_w",
+            "parameters": "uint8_t data",
+            "body": "m_screen->update_partial(m_screen->vpos());\n\tm_palette_bank = data & 3;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_screen"
+                                },
+                                "property": "update_partial"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "vpos"
+                                    },
+                                    "args": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_palette_bank"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 3
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual_v.cpp",
+                "line": 26,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:carnival_state.carnival_io_w",
+            "ownerClass": "carnival_state",
+            "method": "carnival_io_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "if (offset & 0x01) carnival_audio_1_w(data);\n\tif (offset & 0x02) carnival_audio_2_w(data);\n\tif (offset & 0x08) assert_coin_status();\n\tif (offset & 0x40) palette_bank_w(data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "carnival_audio_1_w"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 2
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "carnival_audio_2_w"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 8
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "assert_coin_status"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 64
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "palette_bank_w"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 1866,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:carnival_state.carnival_audio_1_w",
+            "ownerClass": "carnival_state",
+            "method": "carnival_audio_1_w",
+            "parameters": "uint8_t data",
+            "body": "int bitsChanged;\n\tint bitsGoneHigh;\n\tint bitsGoneLow;\n\n\tbitsChanged  = m_port1State ^ data;\n\tbitsGoneHigh = bitsChanged & data;\n\tbitsGoneLow  = bitsChanged & ~data;\n\n\tm_port1State = data;\n\n\tif (bitsGoneLow & OUT_CARNIVAL_PORT_1_RIFLE)\n\t{\n\t\tPLAY(m_samples, SND_CARNIVAL_RIFLE, 0);\n\t}\n\n\tif (bitsGoneLow & OUT_CARNIVAL_PORT_1_CLANG)\n\t{\n\t\tPLAY(m_samples, SND_CARNIVAL_CLANG, 0);\n\t}\n\n\tif (bitsGoneLow & OUT_CARNIVAL_PORT_1_DUCK1)\n\t{\n\t\tPLAY(m_samples, SND_CARNIVAL_DUCK1, 1);\n\t}\n\tif (bitsGoneHigh & OUT_CARNIVAL_PORT_1_DUCK1)\n\t{\n\t\tSTOP(m_samples, SND_CARNIVAL_DUCK1);\n\t}\n\n\tif (bitsGoneLow & OUT_CARNIVAL_PORT_1_DUCK2)\n\t{\n\t\tPLAY(m_samples, SND_CARNIVAL_DUCK2, 1);\n\t}\n\tif (bitsGoneHigh & OUT_CARNIVAL_PORT_1_DUCK2)\n\t{\n\t\tSTOP(m_samples, SND_CARNIVAL_DUCK2);\n\t}\n\n\tif (bitsGoneLow & OUT_CARNIVAL_PORT_1_DUCK3)\n\t{\n\t\tPLAY(m_samples, SND_CARNIVAL_DUCK3, 1);\n\t}\n\tif (bitsGoneHigh & OUT_CARNIVAL_PORT_1_DUCK3)\n\t{\n\t\tSTOP(m_samples, SND_CARNIVAL_DUCK3);\n\t}\n\n\tif (bitsGoneLow & OUT_CARNIVAL_PORT_1_PIPEHIT)\n\t{\n\t\tPLAY(m_samples, SND_CARNIVAL_PIPEHIT, 0);\n\t}\n\n\tif (bitsGoneLow & OUT_CARNIVAL_PORT_1_BONUS1)\n\t{\n\t\tPLAY(m_samples, SND_CARNIVAL_BONUS1, 0);\n\t}\n\n\tif (bitsGoneLow & OUT_CARNIVAL_PORT_1_BONUS2)\n\t{\n\t\tPLAY(m_samples, SND_CARNIVAL_BONUS2, 0);\n\t}",
+            "constants": {
+                "OUT_CARNIVAL_PORT_1_RIFLE": 1,
+                "OUT_CARNIVAL_PORT_1_CLANG": 2,
+                "OUT_CARNIVAL_PORT_1_DUCK1": 4,
+                "OUT_CARNIVAL_PORT_1_DUCK2": 8,
+                "OUT_CARNIVAL_PORT_1_DUCK3": 16,
+                "OUT_CARNIVAL_PORT_1_PIPEHIT": 32,
+                "OUT_CARNIVAL_PORT_1_BONUS1": 64,
+                "OUT_CARNIVAL_PORT_1_BONUS2": 128
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "bitsChanged",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "bitsGoneHigh",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "bitsGoneLow",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "bitsChanged"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "^",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_port1State"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "data"
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "bitsGoneHigh"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsChanged"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "data"
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "bitsGoneLow"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsChanged"
+                            },
+                            "right": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_port1State"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneLow"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_1_RIFLE"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "PLAY"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_RIFLE"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneLow"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_1_CLANG"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "PLAY"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_CLANG"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneLow"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_1_DUCK1"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "PLAY"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_DUCK1"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneHigh"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_1_DUCK1"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "STOP"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_DUCK1"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneLow"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_1_DUCK2"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "PLAY"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_DUCK2"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneHigh"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_1_DUCK2"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "STOP"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_DUCK2"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneLow"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_1_DUCK3"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "PLAY"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_DUCK3"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneHigh"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_1_DUCK3"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "STOP"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_DUCK3"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneLow"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_1_PIPEHIT"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "PLAY"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_PIPEHIT"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneLow"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_1_BONUS1"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "PLAY"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_BONUS1"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneLow"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_1_BONUS2"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "PLAY"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_BONUS2"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 145,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:carnival_state.carnival_audio_2_w",
+            "ownerClass": "carnival_state",
+            "method": "carnival_audio_2_w",
+            "parameters": "uint8_t data",
+            "body": "int bitsChanged;\n\t//int bitsGoneHigh;\n\tint bitsGoneLow;\n\n\tbitsChanged  = m_port2State ^ data;\n\t//bitsGoneHigh = bitsChanged & data;\n\tbitsGoneLow  = bitsChanged & ~data;\n\n\tm_port2State = data;\n\n\tif (bitsGoneLow & OUT_CARNIVAL_PORT_2_BEAR)\n\t{\n\t\tPLAY(m_samples, SND_CARNIVAL_BEAR, 0);\n\t}\n\n\tif (bitsGoneLow & OUT_CARNIVAL_PORT_2_RANKING)\n\t{\n\t\tPLAY(m_samples, SND_CARNIVAL_RANKING, 0);\n\t}\n\n\t// d4: music board MCU reset\n\tm_audiocpu->set_input_line(INPUT_LINE_RESET, (data & 0x10) ? CLEAR_LINE : ASSERT_LINE);",
+            "constants": {
+                "OUT_CARNIVAL_PORT_2_BEAR": 4,
+                "OUT_CARNIVAL_PORT_2_RANKING": 32
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "bitsChanged",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "bitsGoneLow",
+                        "valueType": "int"
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "bitsChanged"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "^",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_port2State"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "data"
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "bitsGoneLow"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsChanged"
+                            },
+                            "right": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_port2State"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneLow"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_2_BEAR"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "PLAY"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_BEAR"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "bitsGoneLow"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "OUT_CARNIVAL_PORT_2_RANKING"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "PLAY"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_samples"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "SND_CARNIVAL_RANKING"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_audiocpu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "INPUT_LINE_RESET"
+                                },
+                                {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 16
+                                        }
+                                    },
+                                    "whenTrue": {
+                                        "kind": "identifier",
+                                        "name": "CLEAR_LINE"
+                                    },
+                                    "whenFalse": {
+                                        "kind": "identifier",
+                                        "name": "ASSERT_LINE"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 210,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:carnival_state.carnivala_music_port_1_w",
+            "ownerClass": "carnival_state",
+            "method": "carnivala_music_port_1_w",
+            "parameters": "uint8_t data",
+            "body": "// P1: AY8912 d0-d7\n\tm_musicdata = data;\n\tcarnival_psg_latch();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_musicdata"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "carnival_psg_latch"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 267,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:carnival_state.carnival_psg_latch",
+            "ownerClass": "carnival_state",
+            "method": "carnival_psg_latch",
+            "body": "if (m_musicbus & 1)\n\t{\n\t\t// BDIR W, BC1 selects address or data\n\t\tif (m_musicbus & 2)\n\t\t\tm_psg->address_w(m_musicdata);\n\t\telse\n\t\t\tm_psg->data_w(m_musicdata);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_musicbus"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "m_musicbus"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_psg"
+                                                },
+                                                "property": "address_w"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "m_musicdata"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ],
+                                "else": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_psg"
+                                                },
+                                                "property": "data_w"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "m_musicdata"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 255,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:carnival_state.carnivala_music_port_2_w",
+            "ownerClass": "carnival_state",
+            "method": "carnivala_music_port_2_w",
+            "parameters": "uint8_t data",
+            "body": "// P2 d6: AY8912 BDIR(R/W)\n\t// P2 d7: AY8912 BC1\n\tm_musicbus = data >> 6 & 3;\n\tcarnival_psg_latch();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_musicbus"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 6
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 3
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "carnival_psg_latch"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 274,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:carnival_state.carnival_music_port_t1_r",
+            "ownerClass": "carnival_state",
+            "method": "carnival_music_port_t1_r",
+            "body": "// T1: comms from audio port 2 d3\n\treturn ~m_port2State >> 3 & 1;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "m_port2State"
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 246,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:vicdual_state.screen_update_color",
+            "ownerClass": "vicdual_state",
+            "method": "screen_update_color",
+            "parameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+            "body": "uint8_t const *const color_prom = (uint8_t *)m_proms->base();\n\tuint8_t x = 0;\n\tuint8_t y = cliprect.min_y;\n\tuint8_t video_data = 0;\n\tpen_t back_pen = 0;\n\tpen_t fore_pen = 0;\n\n\twhile (1)\n\t{\n\t\tif ((x & 0x07) == 0)\n\t\t{\n\t\t\toffs_t offs;\n\n\t\t\t/* read the character code */\n\t\t\toffs = (y >> 3 << 5) | (x >> 3);\n\t\t\tuint8_t char_code = m_videoram[offs];\n\n\t\t\t/* read the appropriate line of the character ram */\n\t\t\toffs = (char_code << 3) | (y & 0x07);\n\t\t\tvideo_data = m_characterram[offs];\n\n\t\t\t/* get the foreground and background colors from the PROM */\n\t\t\toffs = (char_code >> 5) | (m_palette_bank << 3);\n\t\t\tback_pen = TABLE((color_prom[offs, rgb_t::black(), rgb_t(0x00, 0xff, 0x00), rgb_t(0x00, 0x00, 0xff), rgb_t(0x00, 0xff, 0xff), rgb_t(0xff, 0x00, 0x00), rgb_t(0xff, 0xff, 0x00), rgb_t(0xff, 0x00, 0xff), rgb_t::white()) >> 1) & 0x07];\n\t\t\tfore_pen = TABLE((color_prom[offs, rgb_t::black(), rgb_t(0x00, 0xff, 0x00), rgb_t(0x00, 0x00, 0xff), rgb_t(0x00, 0xff, 0xff), rgb_t(0xff, 0x00, 0x00), rgb_t(0xff, 0xff, 0x00), rgb_t(0xff, 0x00, 0xff), rgb_t::white()) >> 5) & 0x07];\n\t\t}\n\n\t\t// this does nothing by default, but is used to enable overrides\n\t\tback_pen = choose_pen(x, y, back_pen);\n\n\t\t/* plot the current pixel */\n\t\tpen_t pen = (video_data & 0x80) ? fore_pen : back_pen;\n\t\tbitmap.pix(y, x) = pen;\n\n\t\t/* next pixel */\n\t\tvideo_data <<= 1;\n\t\tx++;\n\n\t\t/* end of line? */\n\t\tif (x == 0)\n\t\t{\n\t\t\t/* end of region to update? */\n\t\t\tif (y == cliprect.max_y)\n\t\t\t{\n\t\t\t\tbreak;\n\t\t\t}\n\n\t\t\t/* next row */\n\t\t\ty = y + 1;\n\t\t}\n\t}\n\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "color_prom",
+                        "valueType": "uint8_t*",
+                        "value": {
+                            "kind": "cast",
+                            "valueType": "uint8_t",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_proms"
+                                    },
+                                    "property": "base"
+                                },
+                                "args": []
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "x",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "y",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "member",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "cliprect"
+                            },
+                            "property": "min_y"
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "video_data",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "back_pen",
+                        "valueType": "pen_t",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "fore_pen",
+                        "valueType": "pen_t",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "while",
+                        "condition": {
+                            "kind": "number",
+                            "value": 1
+                        },
+                        "body": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "x"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 7
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "declare",
+                                        "name": "offs",
+                                        "valueType": "offs_t"
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "|",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "<<",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": ">>",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "y"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 3
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 5
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": ">>",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "x"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "declare",
+                                        "name": "char_code",
+                                        "valueType": "uint8_t",
+                                        "value": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_videoram"
+                                            },
+                                            "index": {
+                                                "kind": "identifier",
+                                                "name": "offs"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "|",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "<<",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "char_code"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "y"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 7
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "video_data"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_characterram"
+                                            },
+                                            "index": {
+                                                "kind": "identifier",
+                                                "name": "offs"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "|",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": ">>",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "char_code"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 5
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "<<",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "m_palette_bank"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "back_pen"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "choose_pen"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "x"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "back_pen"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "pen",
+                                "valueType": "pen_t",
+                                "value": {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "video_data"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 128
+                                        }
+                                    },
+                                    "whenTrue": {
+                                        "kind": "identifier",
+                                        "name": "fore_pen"
+                                    },
+                                    "whenFalse": {
+                                        "kind": "identifier",
+                                        "name": "back_pen"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        "property": "pix"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "x"
+                                        }
+                                    ]
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "pen"
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "video_data"
+                                },
+                                "operator": "<<=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "x"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "binary",
+                                            "operator": "==",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "y"
+                                            },
+                                            "right": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "cliprect"
+                                                },
+                                                "property": "max_y"
+                                            }
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "break"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "y"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": [
+                    "could not parse statement at byte 599",
+                    "could not parse statement at byte 834"
+                ]
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual_v.cpp",
+                "line": 81,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:vicdual_state.choose_pen",
+            "ownerClass": "vicdual_state",
+            "method": "choose_pen",
+            "parameters": "uint8_t x, uint8_t y, pen_t back_pen",
+            "body": "return back_pen;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "back_pen"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual_v.cpp",
+                "line": 150,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:vicdual_state.get_vcounter",
+            "ownerClass": "vicdual_state",
+            "method": "get_vcounter",
+            "body": "int vcounter = m_screen->vpos();\n\n\t/* the vertical synch counter gets incremented at the end of HSYNC,\n\t   compensate for this */\n\tif (m_screen->hpos() >= VICDUAL_HSEND)\n\t\tvcounter = (vcounter + 1) % VICDUAL_VTOTAL;\n\n\treturn vcounter;",
+            "constants": {
+                "VICDUAL_HSEND": 304,
+                "VICDUAL_VTOTAL": 262
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "vcounter",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_screen"
+                                },
+                                "property": "vpos"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": ">=",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_screen"
+                                    },
+                                    "property": "hpos"
+                                },
+                                "args": []
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "VICDUAL_HSEND"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "vcounter"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "%",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "vcounter"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "VICDUAL_VTOTAL"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "vcounter"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 781,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:vicdual_state.coin_status_r",
+            "ownerClass": "vicdual_state",
+            "method": "coin_status_r",
+            "body": "return m_coin_status;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "m_coin_status"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 719,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:vicdual_state.cblank_comp_r",
+            "ownerClass": "vicdual_state",
+            "method": "cblank_comp_r",
+            "body": "return (vblank_comp_r() && !m_screen->hblank());",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "identifier",
+                                    "name": "vblank_comp_r"
+                                },
+                                "args": []
+                            },
+                            "right": {
+                                "kind": "unary",
+                                "operator": "!",
+                                "operand": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "hblank"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 806,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:vicdual_state.vblank_comp_r",
+            "ownerClass": "vicdual_state",
+            "method": "vblank_comp_r",
+            "body": "return (get_vcounter() < VICDUAL_VBSTART);",
+            "constants": {
+                "VICDUAL_VBSTART": 224
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "identifier",
+                                    "name": "get_vcounter"
+                                },
+                                "args": []
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "VICDUAL_VBSTART"
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 800,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:vicdual_state.timer_value_r",
+            "ownerClass": "vicdual_state",
+            "method": "timer_value_r",
+            "body": "// return the state of the timer (old code claims \"4MHz square wave\", but it was toggled once every 2msec, or 500Hz)\n\treturn machine().time().as_ticks(500) & 1;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "time"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "as_ticks"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "number",
+                                        "value": 500
+                                    }
+                                ]
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 812,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:carnival_state.mboard_map",
+            "className": "carnival_state",
+            "name": "mboard_map",
+            "ranges": [
+                {
+                    "id": "map:carnival_state.mboard_map/range0",
+                    "start": 0,
+                    "end": 1023,
+                    "raw": "map(0x0000, 0x03ff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 1023,
+                        "raw": "map(0x0000, 0x03ff).rom()",
+                        "sourceFile": "src/mame/sega/vicdual.cpp",
+                        "sourceLine": 243,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 243,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/sega/vicdual.cpp",
+                        "line": 243,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 241,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:vicdual_state.vicdual_dualgame_map",
+            "className": "vicdual_state",
+            "name": "vicdual_dualgame_map",
+            "ranges": [
+                {
+                    "id": "map:vicdual_state.vicdual_dualgame_map/range0",
+                    "start": 0,
+                    "end": 16383,
+                    "raw": "map(0x0000, 0x3fff).mirror(0x4000).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 16383,
+                        "raw": "map(0x0000, 0x3fff).mirror(0x4000).rom()",
+                        "sourceFile": "src/mame/sega/vicdual.cpp",
+                        "sourceLine": 1926,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1926,
+                        "mirror": 16384,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/sega/vicdual.cpp",
+                        "line": 1926,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:vicdual_state.vicdual_dualgame_map/range1",
+                    "start": 32768,
+                    "end": 33791,
+                    "raw": "map(0x8000, 0x83ff).mirror(0x7000).ram().w(FUNC(vicdual_state::videoram_w)).share(\"videoram\")",
+                    "write": "vicdual_state.videoram_w",
+                    "props": {
+                        "start": 32768,
+                        "end": 33791,
+                        "raw": "map(0x8000, 0x83ff).mirror(0x7000).ram().w(FUNC(vicdual_state::videoram_w)).share(\"videoram\")",
+                        "sourceFile": "src/mame/sega/vicdual.cpp",
+                        "sourceLine": 1927,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1927,
+                        "mirror": 28672,
+                        "ram": true,
+                        "share": "videoram"
+                    },
+                    "source": {
+                        "file": "src/mame/sega/vicdual.cpp",
+                        "line": 1927,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:vicdual_state.vicdual_dualgame_map/range2",
+                    "start": 33792,
+                    "end": 34815,
+                    "raw": "map(0x8400, 0x87ff).mirror(0x7000).ram()",
+                    "props": {
+                        "start": 33792,
+                        "end": 34815,
+                        "raw": "map(0x8400, 0x87ff).mirror(0x7000).ram()",
+                        "sourceFile": "src/mame/sega/vicdual.cpp",
+                        "sourceLine": 1928,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1928,
+                        "mirror": 28672,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/sega/vicdual.cpp",
+                        "line": 1928,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:vicdual_state.vicdual_dualgame_map/range3",
+                    "start": 34816,
+                    "end": 36863,
+                    "raw": "map(0x8800, 0x8fff).mirror(0x7000).ram().w(FUNC(vicdual_state::characterram_w)).share(\"characterram\")",
+                    "write": "vicdual_state.characterram_w",
+                    "props": {
+                        "start": 34816,
+                        "end": 36863,
+                        "raw": "map(0x8800, 0x8fff).mirror(0x7000).ram().w(FUNC(vicdual_state::characterram_w)).share(\"characterram\")",
+                        "sourceFile": "src/mame/sega/vicdual.cpp",
+                        "sourceLine": 1929,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 1929,
+                        "mirror": 28672,
+                        "ram": true,
+                        "share": "characterram"
+                    },
+                    "source": {
+                        "file": "src/mame/sega/vicdual.cpp",
+                        "line": 1929,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 1924,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:carnival_state.carnival_io_map",
+            "className": "carnival_state",
+            "name": "carnival_io_map",
+            "ranges": [
+                {
+                    "id": "map:carnival_state.carnival_io_map/range0",
+                    "start": 0,
+                    "end": 0,
+                    "raw": "map(0x00, 0x00).mirror(0x7c).portr(\"IN0\")",
+                    "props": {
+                        "start": 0,
+                        "end": 0,
+                        "raw": "map(0x00, 0x00).mirror(0x7c).portr(\"IN0\")",
+                        "sourceFile": "src/mame/sega/vicdual.cpp",
+                        "sourceLine": 2124,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2124,
+                        "mirror": 124,
+                        "portRead": "IN0"
+                    },
+                    "source": {
+                        "file": "src/mame/sega/vicdual.cpp",
+                        "line": 2124,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:carnival_state.carnival_io_map/range1",
+                    "start": 1,
+                    "end": 1,
+                    "raw": "map(0x01, 0x01).mirror(0x7c).portr(\"IN1\")",
+                    "props": {
+                        "start": 1,
+                        "end": 1,
+                        "raw": "map(0x01, 0x01).mirror(0x7c).portr(\"IN1\")",
+                        "sourceFile": "src/mame/sega/vicdual.cpp",
+                        "sourceLine": 2125,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2125,
+                        "mirror": 124,
+                        "portRead": "IN1"
+                    },
+                    "source": {
+                        "file": "src/mame/sega/vicdual.cpp",
+                        "line": 2125,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:carnival_state.carnival_io_map/range2",
+                    "start": 2,
+                    "end": 2,
+                    "raw": "map(0x02, 0x02).mirror(0x7c).portr(\"IN2\")",
+                    "props": {
+                        "start": 2,
+                        "end": 2,
+                        "raw": "map(0x02, 0x02).mirror(0x7c).portr(\"IN2\")",
+                        "sourceFile": "src/mame/sega/vicdual.cpp",
+                        "sourceLine": 2126,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2126,
+                        "mirror": 124,
+                        "portRead": "IN2"
+                    },
+                    "source": {
+                        "file": "src/mame/sega/vicdual.cpp",
+                        "line": 2126,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:carnival_state.carnival_io_map/range3",
+                    "start": 3,
+                    "end": 3,
+                    "raw": "map(0x03, 0x03).mirror(0x7c).portr(\"IN3\")",
+                    "props": {
+                        "start": 3,
+                        "end": 3,
+                        "raw": "map(0x03, 0x03).mirror(0x7c).portr(\"IN3\")",
+                        "sourceFile": "src/mame/sega/vicdual.cpp",
+                        "sourceLine": 2127,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2127,
+                        "mirror": 124,
+                        "portRead": "IN3"
+                    },
+                    "source": {
+                        "file": "src/mame/sega/vicdual.cpp",
+                        "line": 2127,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:carnival_state.carnival_io_map/range4",
+                    "start": 0,
+                    "end": 127,
+                    "raw": "map(0x00, 0x7f).w(FUNC(carnival_state::carnival_io_w))",
+                    "write": "carnival_state.carnival_io_w",
+                    "props": {
+                        "start": 0,
+                        "end": 127,
+                        "raw": "map(0x00, 0x7f).w(FUNC(carnival_state::carnival_io_w))",
+                        "sourceFile": "src/mame/sega/vicdual.cpp",
+                        "sourceLine": 2130,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 2130
+                    },
+                    "source": {
+                        "file": "src/mame/sega/vicdual.cpp",
+                        "line": 2130,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/sega/vicdual.cpp",
+                "line": 2120,
+                "column": 1
+            }
+        }
+    ],
+    "video": {
+        "gfx": [],
+        "regionBindings": {
+            "m_prom_ptr": "s97269pb"
+        },
+        "tilemaps": [],
+        "initialState": {
+            "m_tranqgun_prot_return": 0,
+            "m_nsub_coin_counter": 0,
+            "m_nsub_play_counter": 0,
+            "m_prot_value": 0,
+            "m_musicdata": 0,
+            "m_musicbus": 0,
+            "m_previousaddress": 0,
+            "m_previousvalue": 0,
+            "m_state": 0,
+            "m_palette_bank": 0
+        },
+        "source": {
+            "file": "src/mame/sega/vicdual_v.cpp",
+            "line": 81,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "ay8910",
+        "deviceTag": "psg",
+        "deviceTags": [
+            "psg"
+        ],
+        "deviceType": "AY8910",
+        "writeMethods": [
+            "address_w",
+            "data_w"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "routes": [
+            {
+                "chip": 0,
+                "channel": 0,
+                "gain": 0.25,
+                "target": "mono"
+            },
+            {
+                "chip": 0,
+                "channel": 1,
+                "gain": 0.25,
+                "target": "mono"
+            },
+            {
+                "chip": 0,
+                "channel": 2,
+                "gain": 0.25,
+                "target": "mono"
+            }
+        ]
+    }
+}

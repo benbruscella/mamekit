@@ -1,0 +1,3340 @@
+{
+  "type": "EXIDY",
+  "uses": [
+    {
+      "game": "berzerk",
+      "tags": [
+        "exidy"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "EXIDY",
+    "className": "exidy_sound_device",
+    "shortName": "exidy_sfx",
+    "description": "Exidy SFX",
+    "sourceFile": "src/mame/shared/exidysound.cpp",
+    "sourceLine": 145,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(EXIDY, exidy_sound_device, \"exidy_sfx\", \"Exidy SFX\")"
+  },
+  "methods": [
+    {
+      "name": "sh6840_apply_clock",
+      "parameters": "exidy_sound_device::sh6840_timer_channel *t, int clocks",
+      "sourceFile": "src/mame/shared/exidysound.cpp",
+      "sourceLine": 51,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "t"
+                },
+                "property": "cr"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "then": [
+              {
+                "op": "while",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "clocks"
+                  },
+                  "right": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "t"
+                        },
+                        "property": "counter"
+                      },
+                      "property": "b"
+                    },
+                    "property": "l"
+                  }
+                },
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "clocks"
+                    },
+                    "operator": "-=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "t"
+                            },
+                            "property": "counter"
+                          },
+                          "property": "b"
+                        },
+                        "property": "l"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "counter"
+                        },
+                        "property": "b"
+                      },
+                      "property": "l"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "t"
+                      },
+                      "property": "timer"
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "t"
+                              },
+                              "property": "counter"
+                            },
+                            "property": "b"
+                          },
+                          "property": "h"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "postfix": true
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "state"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "t"
+                            },
+                            "property": "counter"
+                          },
+                          "property": "w"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "timer"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "unary",
+                          "operator": "!",
+                          "operand": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "t"
+                                },
+                                "property": "counter"
+                              },
+                              "property": "b"
+                            },
+                            "property": "h"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "t"
+                              },
+                              "property": "state"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "t"
+                              },
+                              "property": "clocks"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "t"
+                      },
+                      "property": "counter"
+                    },
+                    "property": "b"
+                  },
+                  "property": "l"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "clocks"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "while",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "clocks"
+                  },
+                  "right": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "t"
+                      },
+                      "property": "counter"
+                    },
+                    "property": "w"
+                  }
+                },
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "clocks"
+                    },
+                    "operator": "-=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "counter"
+                        },
+                        "property": "w"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "t"
+                      },
+                      "property": "state"
+                    },
+                    "operator": "^=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "t"
+                      },
+                      "property": "clocks"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "t"
+                      },
+                      "property": "state"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "t"
+                        },
+                        "property": "counter"
+                      },
+                      "property": "w"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "t"
+                      },
+                      "property": "timer"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "t"
+                    },
+                    "property": "counter"
+                  },
+                  "property": "w"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "clocks"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sh6840_update_noise",
+      "parameters": "int clocks",
+      "sourceFile": "src/mame/shared/exidysound.cpp",
+      "sourceLine": 106,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "newxor",
+            "valueType": "uint32_t"
+          },
+          {
+            "op": "declare",
+            "name": "noise_clocks",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "clocks"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "newxor"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "^",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_sh6840_LFSR_3"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_sh6840_LFSR_2"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 31
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_LFSR_3"
+                },
+                "operator": "<<=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_LFSR_3"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_sh6840_LFSR_2"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 31
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_LFSR_2"
+                },
+                "operator": "<<=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_LFSR_2"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_sh6840_LFSR_1"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 31
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_LFSR_1"
+                },
+                "operator": "<<=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_LFSR_1"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_sh6840_LFSR_0"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 31
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_LFSR_0"
+                },
+                "operator": "<<=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_LFSR_0"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "^",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "newxor"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_sh6840_LFSR_oldxor"
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_LFSR_oldxor"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "newxor"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_sh6840_LFSR_2"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "noise_clocks"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "noise_clocks"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/shared/exidysound.cpp",
+      "sourceLine": 212,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "sample_rate",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "SH8253_CLOCK"
+                },
+                "property": "value"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sh6840_clocks_per_sample"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "int"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "/",
+                    "left": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "SH6840_CLOCK"
+                        },
+                        "property": "dvalue"
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "double"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "sample_rate"
+                        }
+                      ]
+                    }
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "double"
+                    },
+                    "args": [
+                      {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 24
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "sample_rate"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_timer"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "cr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_timer"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_timer"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "leftovers"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_timer"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "timer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_timer"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "clocks"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_sh6840_timer"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "property": "counter"
+                      },
+                      "property": "w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_sh6840_timer"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "property": "counter"
+                      },
+                      "property": "w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_sh6840_timer"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        },
+                        "property": "counter"
+                      },
+                      "property": "w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_volume"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_MSB_latch"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_LSB_latch"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_LFSR_oldxor"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_LFSR_0"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_LFSR_1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_LFSR_2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_LFSR_3"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sh6840_clock_count"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sfxctrl"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/shared/exidysound.cpp",
+      "sourceLine": 247,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_sh6840_volume"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_sh6840_volume"
+              },
+              "index": {
+                "kind": "number",
+                "value": 2
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sh6840_clock_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sfxctrl"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sh6840_LFSR_oldxor"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sh6840_LFSR_0"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 4294967295
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sh6840_LFSR_1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 4294967295
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sh6840_LFSR_2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 4294967295
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sh6840_LFSR_3"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 4294967295
+            }
+          }
+        ],
+        "diagnostics": [
+          "invalid declaration of \"channel\"",
+          "invalid for iteration"
+        ]
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/mame/shared/exidysound.cpp",
+      "sourceLine": 280,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "sh6840_timer",
+            "valueType": "sh6840_timer_channel*",
+            "value": {
+              "kind": "identifier",
+              "name": "m_sh6840_timer"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "noisy",
+            "valueType": "bool",
+            "value": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sh6840_timer"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "property": "cr"
+                    },
+                    "right": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sh6840_timer"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "property": "cr"
+                    }
+                  },
+                  "right": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "sh6840_timer"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    },
+                    "property": "cr"
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "sampindex",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "sampindex"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "stream"
+                  },
+                  "property": "samples"
+                },
+                "args": []
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sampindex"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "t",
+                "valueType": "sh6840_timer_channel*"
+              },
+              {
+                "op": "declare",
+                "name": "clocks",
+                "valueType": "int"
+              },
+              {
+                "op": "declare",
+                "name": "sample",
+                "valueType": "s32",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_clock_count"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_clocks_per_sample"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "clocks_this_sample",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_sh6840_clock_count"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 24
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sh6840_clock_count"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 24
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sh6840_timer"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "property": "cr"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "noise_clocks_this_sample",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "chan0_clocks",
+                    "valueType": "uint32_t"
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "noisy"
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "!",
+                        "operand": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_sfxctrl"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "noise_clocks_this_sample"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "sh6840_update_noise"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "clocks_this_sample"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "t"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sh6840_timer"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "chan0_clocks"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "t"
+                      },
+                      "property": "clocks"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "clocks"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "cr"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "clocks_this_sample"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "noise_clocks_this_sample"
+                      }
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "sh6840_apply_clock"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "t"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "clocks"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "state"
+                        },
+                        "right": {
+                          "kind": "unary",
+                          "operator": "!",
+                          "operand": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_sfxctrl"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "cr"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 128
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sample"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_sh6840_volume"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "noisy"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_sfxctrl"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "noise_clocks_this_sample"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "sh6840_update_noise"
+                          },
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "t"
+                                },
+                                "property": "clocks"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "chan0_clocks"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "t"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sh6840_timer"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "clocks"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "cr"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "clocks_this_sample"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "noise_clocks_this_sample"
+                      }
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "sh6840_apply_clock"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "t"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "clocks"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "t"
+                        },
+                        "property": "state"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "cr"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 128
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sample"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_sh6840_volume"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "t"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sh6840_timer"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "clocks"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "cr"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "clocks_this_sample"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "noise_clocks_this_sample"
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "t"
+                        },
+                        "property": "cr"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "clocks"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "leftovers"
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "leftovers"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "%",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "clocks"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "clocks"
+                        },
+                        "operator": "/=",
+                        "value": {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "sh6840_apply_clock"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "t"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "clocks"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "t"
+                        },
+                        "property": "state"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "t"
+                          },
+                          "property": "cr"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 128
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sample"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_sh6840_volume"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sample"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "generate_music_sample"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "put_int"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sampindex"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sample"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 32768
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sh6840_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/shared/exidysound.cpp",
+      "sourceLine": 396,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "logerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "%s:exidy_sh6840_r - unexpected read, status register is TODO!\n"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "machine"
+                              },
+                              "args": []
+                            },
+                            "property": "describe_context"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 2
+                  },
+                  {
+                    "kind": "number",
+                    "value": 4
+                  },
+                  {
+                    "kind": "number",
+                    "value": 6
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "machine"
+                            },
+                            "args": []
+                          },
+                          "property": "side_effects_disabled"
+                        },
+                        "args": []
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_sh6840_LSB_latch"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_sh6840_timer"
+                                },
+                                "index": {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "offset"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                }
+                              },
+                              "property": "counter"
+                            },
+                            "property": "b"
+                          },
+                          "property": "l"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_sh6840_timer"
+                            },
+                            "index": {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "offset"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          "property": "counter"
+                        },
+                        "property": "b"
+                      },
+                      "property": "h"
+                    }
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_sh6840_LSB_latch"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sh6840_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/mame/shared/exidysound.cpp",
+      "sourceLine": 425,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "sh6840_timer",
+            "valueType": "sh6840_timer_channel*",
+            "value": {
+              "kind": "identifier",
+              "name": "m_sh6840_timer"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "sh6840_timer"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "property": "cr"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "sh6840_timer"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          "property": "cr"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "data"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "sh6840_timer"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          },
+                          "property": "cr"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "data"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "!=",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": ">>",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "data"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 5
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "fatalerror"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "exidy_sh6840_w - channel %d configured for mode %d\n"
+                            },
+                            {
+                              "kind": "conditional",
+                              "condition": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "sh6840_timer"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  "property": "cr"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "whenTrue": {
+                                "kind": "number",
+                                "value": 0
+                              },
+                              "whenFalse": {
+                                "kind": "number",
+                                "value": 2
+                              }
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "data"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 7
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sh6840_timer"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "property": "cr"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "!=",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": ">>",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "data"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 5
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "fatalerror"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "exidy_sh6840_w - channel 1 configured for mode %d\n"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "data"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 7
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 2
+                  },
+                  {
+                    "kind": "number",
+                    "value": 4
+                  },
+                  {
+                    "kind": "number",
+                    "value": 6
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_sh6840_MSB_latch"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 3
+                  },
+                  {
+                    "kind": "number",
+                    "value": 5
+                  },
+                  {
+                    "kind": "number",
+                    "value": 7
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "declare",
+                    "name": "ch",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "offset"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 3
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sh6840_timer"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "ch"
+                        }
+                      },
+                      "property": "timer"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_sh6840_MSB_latch"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 255
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "sh6840_timer"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "ch"
+                            }
+                          },
+                          "property": "cr"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "sh6840_timer"
+                              },
+                              "index": {
+                                "kind": "identifier",
+                                "name": "ch"
+                              }
+                            },
+                            "property": "counter"
+                          },
+                          "property": "w"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "sh6840_timer"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "ch"
+                            }
+                          },
+                          "property": "timer"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sfxctrl_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/mame/shared/exidysound.cpp",
+      "sourceLine": 487,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_sfxctrl"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  {
+                    "kind": "number",
+                    "value": 2
+                  },
+                  {
+                    "kind": "number",
+                    "value": 3
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_sh6840_volume"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "offset"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "data"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 7
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "BASE_VOLUME"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 7
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/shared/exidysound.cpp",
+    "src/devices/sound/s14001a.cpp",
+    "src/devices/sound/flt_vol.cpp",
+    "src/mame/stern/berzerk.cpp"
+  ]
+}

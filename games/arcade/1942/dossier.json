@@ -1,0 +1,939 @@
+{
+  "game": "1942",
+  "title": "1942 (Revision B) (Capcom, 1984)",
+  "fullname": "1942 (Revision B)",
+  "year": "1984",
+  "company": "Capcom",
+  "family": "1942",
+  "driverFile": "src/mame/capcom/1942.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Paul Leaman, Couriersud",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 49151,
+          "kind": "handler",
+          "read": "bank.bank1"
+        },
+        {
+          "start": 49152,
+          "end": 49152,
+          "kind": "handler",
+          "read": "port.SYSTEM"
+        },
+        {
+          "start": 49153,
+          "end": 49153,
+          "kind": "handler",
+          "read": "port.P1"
+        },
+        {
+          "start": 49154,
+          "end": 49154,
+          "kind": "handler",
+          "read": "port.P2"
+        },
+        {
+          "start": 49155,
+          "end": 49155,
+          "kind": "handler",
+          "read": "port.DSWA"
+        },
+        {
+          "start": 49156,
+          "end": 49156,
+          "kind": "handler",
+          "read": "port.DSWB"
+        },
+        {
+          "start": 51200,
+          "end": 51200,
+          "kind": "handler",
+          "write": "soundlatch0.write"
+        },
+        {
+          "start": 51201,
+          "end": 51201,
+          "kind": "handler",
+          "write": "soundlatch1.write"
+        },
+        {
+          "start": 51202,
+          "end": 51203,
+          "kind": "handler",
+          "write": "_1942_state.scroll_w"
+        },
+        {
+          "start": 51204,
+          "end": 51204,
+          "kind": "handler",
+          "write": "_1942_state.control_w"
+        },
+        {
+          "start": 51205,
+          "end": 51205,
+          "kind": "handler",
+          "write": "_1942_state.palette_bank_w"
+        },
+        {
+          "start": 51206,
+          "end": 51206,
+          "kind": "handler",
+          "write": "_1942_state.bankswitch_w"
+        },
+        {
+          "start": 52224,
+          "end": 52351,
+          "kind": "ram",
+          "share": "spriteram",
+          "writeOnly": true
+        },
+        {
+          "start": 53248,
+          "end": 55295,
+          "kind": "ram",
+          "share": "fg_videoram",
+          "write": "_1942_state.fgvideoram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 55296,
+          "end": 56319,
+          "kind": "ram",
+          "share": "bg_videoram",
+          "write": "_1942_state.bgvideoram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 57344,
+          "end": 61439,
+          "kind": "ram"
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "z80",
+      "clock": 3000000,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom"
+        },
+        {
+          "start": 16384,
+          "end": 18431,
+          "kind": "ram"
+        },
+        {
+          "start": 24576,
+          "end": 24576,
+          "kind": "handler",
+          "read": "soundlatch0.read"
+        },
+        {
+          "start": 24577,
+          "end": 24577,
+          "kind": "handler",
+          "read": "soundlatch1.read"
+        },
+        {
+          "start": 32768,
+          "end": 32769,
+          "kind": "handler",
+          "write": "ay1.address_data_w"
+        },
+        {
+          "start": 49152,
+          "end": 49153,
+          "kind": "handler",
+          "write": "ay2.address_data_w"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1500000,
+    "chips": 2,
+    "deviceTags": [
+      "ay1",
+      "ay2"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 0
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 1
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 2
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 3
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 4
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 1,
+        "target": "snd_nl",
+        "targetInput": 5
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 59.63740458015267,
+    "vtotal": 262,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 131072,
+      "fill": 255,
+      "loads": [
+        {
+          "file": "srb-03.m3",
+          "offset": 0,
+          "size": 16384,
+          "crc": "d9dafcc3",
+          "alt": [
+            {
+              "file": "sra-03.m3",
+              "crc": "40201bab"
+            },
+            {
+              "file": "supercharger_1942_@3.m3",
+              "crc": "ec70785f"
+            },
+            {
+              "file": "sr-03.m3",
+              "crc": "612975f2"
+            },
+            {
+              "file": "sw-03.m3",
+              "crc": "afd79770"
+            }
+          ]
+        },
+        {
+          "file": "srb-04.m4",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "da0cf924",
+          "alt": [
+            {
+              "file": "sr-04.m4",
+              "crc": "a60ac644"
+            },
+            {
+              "file": "supercharger_1942_@4.m4",
+              "crc": "cc11355f"
+            },
+            {
+              "file": "sw-04.m4",
+              "crc": "933d9910"
+            }
+          ]
+        },
+        {
+          "file": "srb-05.m5",
+          "offset": 65536,
+          "size": 16384,
+          "crc": "d102911c",
+          "alt": [
+            {
+              "file": "sr-05.m5",
+              "crc": "835f7b24"
+            },
+            {
+              "file": "supercharger_1942_@5.m5",
+              "crc": "42746d75"
+            },
+            {
+              "file": "sw-05.m5",
+              "crc": "e9a71bb6"
+            },
+            {
+              "file": "2.bin",
+              "crc": "793a8fbc"
+            }
+          ]
+        },
+        {
+          "file": "srb-06.m6",
+          "offset": 81920,
+          "size": 8192,
+          "crc": "466f8248",
+          "alt": [
+            {
+              "file": "sr-06.m6",
+              "crc": "821c6481"
+            }
+          ]
+        },
+        {
+          "file": "srb-07.m7",
+          "offset": 98304,
+          "size": 16384,
+          "crc": "0d31038c",
+          "alt": [
+            {
+              "file": "sr-07.m7",
+              "crc": "5df525e1"
+            },
+            {
+              "file": "sw-07.m7",
+              "crc": "ec41655e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "sr-01.c11",
+          "offset": 0,
+          "size": 16384,
+          "crc": "bd87f06b",
+          "alt": [
+            {
+              "file": "04.bin",
+              "crc": "b4efd1af"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "sr-02.f2",
+          "offset": 0,
+          "size": 8192,
+          "crc": "6ebca191",
+          "alt": [
+            {
+              "file": "sw-02.f2",
+              "crc": "f8e9ada2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 49152,
+      "loads": [
+        {
+          "file": "sr-08.a1",
+          "offset": 0,
+          "size": 8192,
+          "crc": "3884d9eb"
+        },
+        {
+          "file": "sr-09.a2",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "999cf6e0"
+        },
+        {
+          "file": "sr-10.a3",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "8edb273a"
+        },
+        {
+          "file": "sr-11.a4",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "3a2726c3"
+        },
+        {
+          "file": "sr-12.a5",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "1bd3d8bb"
+        },
+        {
+          "file": "sr-13.a6",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "658f02c4"
+        }
+      ]
+    },
+    {
+      "region": "gfx3",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "sr-14.l1",
+          "offset": 0,
+          "size": 16384,
+          "crc": "2528bec6",
+          "alt": [
+            {
+              "file": "9.bin",
+              "crc": "755a4762"
+            }
+          ]
+        },
+        {
+          "file": "sr-15.l2",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "f89287aa",
+          "alt": [
+            {
+              "file": "14.bin",
+              "crc": "df2345ef"
+            },
+            {
+              "file": "10.bin",
+              "crc": "4a5a9084"
+            }
+          ]
+        },
+        {
+          "file": "sr-16.n1",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "024418f8",
+          "alt": [
+            {
+              "file": "11.bin",
+              "crc": "d2ce3eb6"
+            }
+          ]
+        },
+        {
+          "file": "sr-17.n2",
+          "offset": 49152,
+          "size": 16384,
+          "crc": "e2c7e489",
+          "alt": [
+            {
+              "file": "16.bin",
+              "crc": "c106b1ed"
+            },
+            {
+              "file": "12.bin",
+              "crc": "aaa86493"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "palproms",
+      "size": 768,
+      "loads": [
+        {
+          "file": "sb-5.e8",
+          "offset": 0,
+          "size": 256,
+          "crc": "93ab8153"
+        },
+        {
+          "file": "sb-6.e9",
+          "offset": 256,
+          "size": 256,
+          "crc": "8ab44f7d"
+        },
+        {
+          "file": "sb-7.e10",
+          "offset": 512,
+          "size": 256,
+          "crc": "f4ade9a4"
+        }
+      ]
+    },
+    {
+      "region": "charprom",
+      "size": 256,
+      "loads": [
+        {
+          "file": "sb-0.f1",
+          "offset": 0,
+          "size": 256,
+          "crc": "6047d91b"
+        }
+      ]
+    },
+    {
+      "region": "tileprom",
+      "size": 256,
+      "loads": [
+        {
+          "file": "sb-4.d6",
+          "offset": 0,
+          "size": 256,
+          "crc": "4858968d"
+        }
+      ]
+    },
+    {
+      "region": "sprprom",
+      "size": 256,
+      "loads": [
+        {
+          "file": "sb-8.k3",
+          "offset": 0,
+          "size": 256,
+          "crc": "f6fad943"
+        }
+      ]
+    },
+    {
+      "region": "irqprom",
+      "size": 256,
+      "loads": [
+        {
+          "file": "sb-1.k6",
+          "offset": 0,
+          "size": 256,
+          "crc": "712ac508"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 768,
+      "loads": [
+        {
+          "file": "sb-2.d1",
+          "offset": 0,
+          "size": 256,
+          "crc": "8bb8b3df",
+          "alt": [
+            {
+              "file": "ic22.bin",
+              "crc": "f6fad943"
+            }
+          ]
+        },
+        {
+          "file": "sb-3.d2",
+          "offset": 256,
+          "size": 256,
+          "crc": "3b0c99af"
+        },
+        {
+          "file": "sb-9.m11",
+          "offset": 512,
+          "size": 256,
+          "crc": "4921635c"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 64,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 128,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSWA",
+      "mask": 7,
+      "value": 7,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSWA",
+      "mask": 8,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSWA",
+      "mask": 48,
+      "value": 48,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSWA",
+      "mask": 192,
+      "value": 192,
+      "name": "Lives"
+    },
+    {
+      "port": "DSWB",
+      "mask": 7,
+      "value": 7,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSWB",
+      "mask": 8,
+      "value": 8,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSWB",
+      "mask": 16,
+      "value": 16,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSWB",
+      "mask": 96,
+      "value": 96,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSWB",
+      "mask": 128,
+      "value": 128,
+      "name": "Screen Stop"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-17",
+    "commits": 174,
+    "contributors": 29,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 46,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-09-13"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 33,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 15,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 11,
+        "firstCommit": "2014-05-06",
+        "lastCommit": "2022-11-26"
+      },
+      {
+        "name": "hap",
+        "commits": 9,
+        "firstCommit": "2024-04-12",
+        "lastCommit": "2026-06-17"
+      },
+      {
+        "name": "couriersud",
+        "commits": 6,
+        "firstCommit": "2015-05-25",
+        "lastCommit": "2019-10-13"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 6,
+        "firstCommit": "2014-02-04",
+        "lastCommit": "2014-07-14"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 6,
+        "firstCommit": "2013-11-17",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 6,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2021-05-17"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 4,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2020-02-17"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 3,
+        "firstCommit": "2008-04-20",
+        "lastCommit": "2008-04-24"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2012-09-22",
+        "lastCommit": "2014-08-10"
+      },
+      {
+        "name": "smf-",
+        "commits": 3,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2020-02-17"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-11-18",
+        "lastCommit": "2009-11-29"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-05-16",
+        "lastCommit": "2020-02-17"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-10-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2011-08-23",
+        "lastCommit": "2016-04-27"
+      },
+      {
+        "name": "Vinicius Sa",
+        "commits": 2,
+        "firstCommit": "2018-06-26",
+        "lastCommit": "2018-07-14"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 2,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "AJR",
+        "commits": 1,
+        "firstCommit": "2017-09-09",
+        "lastCommit": "2017-09-09"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2010-10-19",
+        "lastCommit": "2010-10-19"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-11",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Kaz",
+        "commits": 1,
+        "firstCommit": "2017-02-06",
+        "lastCommit": "2017-02-06"
+      },
+      {
+        "name": "kazblox",
+        "commits": 1,
+        "firstCommit": "2015-10-08",
+        "lastCommit": "2015-10-08"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2009-05-27"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 42 years ago:\n\n1942 (c) 1984 Capcom.\n\n1942 is a vertically-scrolling shoot-em-up set in the Pacific theatre during World War II, in which the goal is to reach Tokyo and destroy the entire Japanese air fleet. \n\nThe player pilots a plane dubbed the 'Super Ace' and has to shoot down waves of enemy planes while avoiding incoming enemy fire. The 'Super Ace' can perform a limited number of rolls or 'loop-the-loops' to evade enemy planes and shots. Just two lives are given to the player.\n\nDuring the game, waves of red enemy planes periodically appear. If the player manages to destroy a red wave, a power-up, in the form of a 'POW' symbol, will be dropped and can be picked up. The power-up will award either increased fire-power (doubling the player's guns from two to four), a smart bomb that destroys all on-screen enemy planes the instant it's collected, two wingmen planes that flank the Super Ace and increase fire power, or simply extra points.\n\nAt the end of each stage the 'Super Ace' lands on an aircraft carrier and bonus points are awarded based on player performance. 1942 differs from other games in that its levels are numbered in reverse order, so the game begins at stage 32 and ends at stage 1.\n\n- TECHNICAL -\n\nMain CPU: Zilog Z80 (@ 4 Mhz)\nSound CPU: Zilog Z80 (@ 3 Mhz)\nSound Chips: (2x) General Instrument AY8910 (@ 1.5 Mhz)\n\nPlayers: 2\nControl: 8-way joystick.\nButtons: 2\n\n- TRIVIA -\n\n1942 was released on November 30,1984 in Japan. 1942 wasn't a Yoshiki Okamoto title, but designed by his former-classmate who joined Capcom a few years afterwards.\n\nThe plane is a lockheed P-38 Lightning, the same type which was flown by Richard Bong in the Second World War. He was America's top ace, credited with shooting down 40 Japanese planes.\n\nIt was the first Capcom title to spawn a successful series of sequels, with six titles in the 19XX line released from 1984 to 2000.\n\nStage names:\nStages 32–29: Midway\nStages 28–25: Marshall\nStages 24–21: Attu\nStages 20–17: Rabaul\nStages 16–13: Leyte\nStages 12–09: Saipan\nStages 08–05: Iwojima\nStages 04–01: Okinawa\n\nAfter the last boss plane on stage 02 is destroyed the screen displays: \nCONGRATULATION\nYOU ARE THE BEST OF PLAYER !\nFIGHT LAST ONE STAGE\n\nStage 01 is displayed as LAST STAGE.\n\nAfter the last stage is complete the screen displays : \nWE GIVE UP!\nSPECIAL BONUS\n10000000 PTS\nGAME OVER\nPRESENTED BY CAPCOM\nPS. HOPE OUR NEXT GAME.\n(c) CAPCOM\n\nDefault High-score table ('Top 5 ranking score!!') :\nTOP 40000 (c) CAPCOM 0\n2ND 35000 ALL 0\n3RD 30000 RIGHT 0\n4TH 25000 RESERVED 0\n5TH 20000 EXEDEXES 0\n\nIn the default high-score table, some previous Capcom Games appear. Since the Demo Mode only shows the top five, you need to play the game and to make a score of approximately 10,000 points (To enter in the top ten).\nThe number 5 (20,000 points) appears as 'EXEDEXES'.\nNumber 6 is 'VULGUS' (9,999 points).\nNumber 7 is 'SONSON' (8,888 points).\nNumber 8 is 'HIGEMARU' (7,777 points).\nNumber 9 is again 'EXEDEXES' (6,666 points).\n\nThe game ROM contains an unused Bomb sprite and an unused Star bonus items sprite.\n\nMartin Bedard of Saint-Lazare, Quebec, Canada holds the record for this game with 13,360,960 points on November 19, 2006.\n\nSoundtrack album releases :\nCapcom Game Music (28XA-94) (August 25, 1986) [Alfa Record]\nCapcom Game Music [Reprint] (SCDC-00193) (June 19, 2002) [Scitron Discs]\nLegend of Game Music~Premium Box (SCDC-00410~7) (March 24, 2005) [Scitron Discs]\n\n- UPDATES -\n\nIn the two oldest versions of the game, there's a bug in the scoring system for earning bonus lives. This bug was fixed in Revision B.\n\n- SCORING -\n\nSmall planes are 30, 50, 70, 100, 150, or 200 points each.\n\nThe small red planes that fly formations of five or ten are 100 points each. Shooting all the planes in the five-plane formation awards 500 bonus points. Shooting all the planes in the ten-plane formation awards 1,000 bonus points. In both cases, when the last plane of a formation is destroyed, a power-up marker appears and is worth 1,000 points when picked up.\n\nOccasionally a small airplane comes slowly out of the lower left or lower right hand side of the screen and flies towards the top. When hit, it turns into a special figure which awards 5,000 points when picked up.\n\nMedium size planes are 1,000 or 1,500 points each.\n\nLarge bomber planes start at 2,000 points each. The score for each consecutive bomber destroyed without the player dying is 500 points more than the previous one, up to a maximum of 9,000 points. When the player’s ship is destroyed, the score for the bombers is reset back to 2,000 points.\n\nThere are four boss planes. They appear at the end of stages 26, 18, 10, and 02:\nThe stage 26 boss plane is worth 20,000 points.\nThe stage 18 boss plane is worth 30,000 points.\nThe stage 10 boss plane is worth 40,000 points.\nThe stage 02 boss plane is worth 50,000 points.\n\nFor all enemy planes that require more than one hit to kill, each hit on them gives 100 points.\n\nAt the end of each stage a bonus is awarded for shooting down percentage and for unused loops :\n100% = Special bonus 50,000 points (in older revisions, the game displays 10,000 points bonus but 50,000 points are actually awarded).\n95-99% = 20,000 points\n90-94% = 10,000 points\n85-89% = 5,000 points\n80-84% = 4,000 points\n70-79% = 3,000 points\n60-69% = 2,000 points\n50-59% = 1,000 points\nUnder 50% = 0 points\nUnused loops are 1,000 points each.\n\nFinishing the final stage awards 10,000,000 points.\n\n- TIPS AND TRICKS -\n\n* On Stages 27, 20, 15, 08, and 04, a V-formation of red planes will come straight down from the top. If all five of the planes are destroyed, a Black/Red POW appears, giving the player an extra airplane when picked up.\n\n* On stages with the wingman power-ups, use them to kill off the large bombers easily by crashing a wingman into them. You will get a second chance to get them back later on.\n\n* On the stages with the boss planes, save all your loops; shoot at it quickly, loop down to avoid the shots, shoot at it again and THEN loop. You should be able to kill it this way.\n\n* Most of the time it is easier to keep only one wingman rather than both; that way it's easier to maneuver around enemies. If you miss the red airplanes that give you the wingman powerup, kill off your plane (assuming you have some remaining) and the game will place you back before them.\n\n* An interesting bug:\nIf you win an extra plane from points when killing a boss plane, no extra planes will be awarded on the basis of points. Extra planes can still be obtained by getting the Black/Red POW, but no point-based bonuses will be awarded for the rest of the game.\n\n* The end of stage bonus for 100% shooting down is actually 50,000 points, even though the game displays a 'special' bonus of only 10,000 points.\n\nWhen the player loses all of his ships, the game offers to continue for another credit. If this option is chosen, the game continues where it left off but the score is reset to zero.\n\n* There are six kinds of powerups:\nQuad fire, destroy all enemies on screen, two wingmen, make enemies stop shooting temporarily, extra loop, and extra life. Note that the destroy all enemies powerup does not destroy the small slow plane that has the 5,000 bonus item pickup.\n\nQuad fire power-ups are found on Stages 32, 28, 24, 20, 16, 12, 08, and 04.\nDestroy all enemies power-ups are found on Stages 31, 21, 19, 18, 11, 07, 03, and 01.\nWingman power-ups are found on Stages 30, 26, 22, 18, 14, 10, 06, and 02.\nExtra life power-ups are found on Stages 27, 20, 15, 08, and 04.\nStop shooting power-ups are found on Stages 27 and 15. \nExtra loop power-ups are found on Stages 23, 18, 17, 13, 09, and 05.\n\n* % and point up Stages are 29, 25, 21, 17, 13, 09, 05, 01. During these stages none of the enemies fire on the player except the large bomber planes.\n\n* If the player earns enough bonus planes so that ten ships or more are in the reserve, the ten remaining ships indicators are replaced by the Greek letter Sigma (?).\n\n- STAFF -\n\nDesigned by: Yasushi Okawara\nProgrammed by: Tamio Nakazato\nBackgrounds by: Kuramo-san\nMusic by: Ayako Mori\nHardware designed by: Hiroshi Maki\n\n- PORTS -\n\n* CONSOLES: \n[JP] Nintendo Famicom (dec.11, 1985) \"1942 [Model CAP-19]\" \n[US] Nintendo NES (nov.1986) \"1942 [Model NES-NF-USA]\" \n[JP] Sega Saturn (aug.27, 1998) \"Capcom Generation Dai 1 Shou Gekkitsui Oh no Jidai [Model T-1232G]\" \n[JP] Sony PlayStation (aug.27, 1998) \"Capcom Generation Dai 1 Shou Gekkitsui Oh no Jidai [Model SLPS-01535]\" \n[EU] Sony PlayStation (sept.3, 1999) \"Capcom Generations 1 - Wings of Destiny [Capcom Generations Disc 1] [Model SLES-01881]\" \n[US] Microsoft XBOX (sept.27, 2005) \"Capcom Classics Collection\" \n[US] Sony PS2 (sept.27, 2005) \"Capcom Classics Collection [Model SLUS-21316]\" \n[EU] Microsoft XBOX (nov.18, 2005) \"Capcom Classics Collection\" \n[EU] Sony PS2 (nov.18, 2005) \"Capcom Classics Collection [Model SLES-53661]\" \n[JP] Sony PS2 (mar.2, 2006) \"Capcom Classics Collection [Model SLPM-66317]\" \n[JP] Nintendo Wii [Virtual Console Arcade] (dec.21, 2010) \n[AU] [EU] Nintendo Wii [Virtual Console Arcade] (jan.21, 2011) \n[US] Nintendo Wii [Virtual Console Arcade] (jan.24, 2011) \n[JP] Sony PlayStation 3 [PSN] (feb.19, 2013) \"Capcom Arcade Cabinet [Model NPJB-00210]\" \n[EU] Sony PlayStation 3 [PSN] (feb.20, 2013) \"Capcom Arcade Cabinet\" \n[JP] Microsoft XBOX 360 [XBLA] (feb.20, 2013) \"Capcom Arcade Cabinet\" \n[EU] Microsoft XBOX 360 [XBLA] (feb.20, 2013) \"Capcom Arcade Cabinet\" \n[AU] Microsoft XBOX 360 [XBLA] (feb.21, 2013) \"Capcom Arcade Cabinet\" \n[US] Sony PlayStation 3 [PSN] (apr.16, 2013) \"Capcom Arcade Cabinet: Game Pack 5 [DLC]\" \n[US] Microsoft XBOX 360 [XBLA] (apr.17, 2013) \"Capcom Arcade Cabinet: Game Pack 5 [DLC]\" \n[US] Sony PlayStation 3 [PSN] (may.21, 2013) \"Capcom Arcade Cabinet: All-In-One Pack [DLC]\" \n[US] Microsoft XBOX 360 [XBLA] (may.22, 2013) \"Capcom Arcade Cabinet: All-In-One Pack [DLC]\" \n\n* HANDHELDS: \n[US] Nintendo Game Boy Color (may.2000) \"1942 [Model CGB-AQ4E-USA]\" \n[EU] Nintendo Game Boy Color (aug.24, 2001) \"1942 [Model CGB-AQ4E-EUR]\" \n[JP] Sony PSP (sept.7, 2006) \"Capcom Classics Collection [Model ULJM-05104]\" \n[US] Sony PSP (oct.24, 2006) \"Capcom Classics Collection Reloaded [Model ULUS-10134]\" \n[EU] Sony PSP (nov.10, 2006) \"Capcom Classics Collection Reloaded [Model ULES-00377]\" \n[AU] Sony PSP (nov.16, 2006) \"Capcom Classics Collection Reloaded\" \n\n* COMPUTERS: \n[EU] Sinclair ZX Spectrum (1986) \n[US] [EU] Commodore C64 (1986) \n[JP] MSX (1986) \n[JP] MSX2 (1986) \n[EU] Amstrad CPC [Disk] (1986) by Elite \n[EU] Amstrad CPC [Tape] (1986) by Encore [MCM]\n[EU] Amstrad CPC [Tape] (1986) by Elite \n[EU] Sinclair ZX Spectrum (1987) : Budget Edition \n[EU] Sinclair ZX Spectrum (1987) by Encore [Elite]\n[EU] Sinclair ZX Spectrum (1987) by Encore [MCM]\n[JP] FM-7 (may.1987) \n[EU] Amstrad CPC (1987) \"6-Pak\" \n[EU] Amstrad CPC (1988) \"Frank Bruno's Big Box\" \n[EU] Amstrad CPC (1989) \"12 Top Amstrad Hits\" \n[EU] Amstrad CPC (1990) \"Top 17\" \n[US] PC [CD-ROM] (2003) \"Capcom Arcade Hits Volume 2\" \n[US] PC [CD-ROM] (dec.21, 2004) \"Capcom Coin-Op Collection Volume 1\"\n\n* OTHERS: \n[US] Apple iPhone/iPad (nov.4, 2010) \"Capcom Arcade [Model 397347348]\"\n\n- SERIES -\n\n1. 1942 (1984) \n2. 1943 - Midway Kaisen (1987) \n3. 1943 Kai - Midway Kaisen (1988) \n4. 1941 - Counter Attack [B-Board 89625B-1] (1990) \n5. 19XX - The War Against Destiny [Green Board] (1995) \n6. 1944 - The Loop Master [Green Board] (2000)\n7. 1942 - Joint Strike (2008, PSN/XBLA)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/6/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

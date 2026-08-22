@@ -1,0 +1,3213 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/sega/zaxxon.cpp",
+    "generatedAt": "2026-08-22T05:52:49.989Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/sega/zaxxon.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/sega/zaxxon.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:zaxxon.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "zaxxon.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:segausb.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "segausb.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/segacrpt_device.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/segacrpt_device.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/i8255.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/i8255.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/samples.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/samples.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/sn76496.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/sn76496.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/sega/zaxxon_a.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/sega/zaxxon_a.cpp"
+      }
+    },
+    {
+      "id": "game:zaxxon",
+      "label": "Game",
+      "props": {
+        "name": "zaxxon",
+        "year": "1982",
+        "company": "Sega",
+        "fullname": "Zaxxon (set 1, rev D)",
+        "monitor": "ROT90",
+        "cls": "zaxxon_state",
+        "init": "empty_init",
+        "flags": "MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1625,
+        "sourceColumn": 1,
+        "sourceEndLine": 1625
+      }
+    },
+    {
+      "id": "romset:zaxxon",
+      "label": "RomSet",
+      "props": {
+        "name": "zaxxon",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1126,
+        "sourceColumn": 1,
+        "sourceEndLine": 1126
+      }
+    },
+    {
+      "id": "region:zaxxon/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1127,
+        "sourceColumn": 2,
+        "sourceEndLine": 1127
+      }
+    },
+    {
+      "id": "rom:zaxxon/maincpu/zaxxon_rom3d.u27",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom3d.u27",
+        "offset": 0,
+        "size": 8192,
+        "crc": "6e2b4a30",
+        "sha1": "80ac53c554c84226b119cbe3cf3470bcdbcd5762",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1128,
+        "sourceColumn": 2,
+        "sourceEndLine": 1128
+      }
+    },
+    {
+      "id": "rom:zaxxon/maincpu/zaxxon_rom2d.u28",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom2d.u28",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "1c9ea398",
+        "sha1": "0cd259be3fa80f3d53dfa76d5ca06773cdfe5945",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1129,
+        "sourceColumn": 2,
+        "sourceEndLine": 1129
+      }
+    },
+    {
+      "id": "rom:zaxxon/maincpu/zaxxon_rom1d.u29",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom1d.u29",
+        "offset": 16384,
+        "size": 4096,
+        "crc": "1c123ef9",
+        "sha1": "2588be06ea7baca6112d58c78a1eeb98aad8a02e",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1130,
+        "sourceColumn": 2,
+        "sourceEndLine": 1130
+      }
+    },
+    {
+      "id": "region:zaxxon/gfx_tx",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx_tx",
+        "size": 4096,
+        "flags": "0",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1132,
+        "sourceColumn": 2,
+        "sourceEndLine": 1132
+      }
+    },
+    {
+      "id": "rom:zaxxon/gfx_tx/zaxxon_rom14.u68",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom14.u68",
+        "offset": 0,
+        "size": 2048,
+        "crc": "07bf8c52",
+        "sha1": "425157a1625b1bd5169c3218b958010bf6af12bb",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1133,
+        "sourceColumn": 2,
+        "sourceEndLine": 1133
+      }
+    },
+    {
+      "id": "rom:zaxxon/gfx_tx/zaxxon_rom15.u69",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom15.u69",
+        "offset": 2048,
+        "size": 2048,
+        "crc": "c215edcb",
+        "sha1": "f1ded2173eb139f48d2ca86c5ef00acbe6c11cd3",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1134,
+        "sourceColumn": 2,
+        "sourceEndLine": 1134
+      }
+    },
+    {
+      "id": "region:zaxxon/gfx_bg",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx_bg",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1136,
+        "sourceColumn": 2,
+        "sourceEndLine": 1136
+      }
+    },
+    {
+      "id": "rom:zaxxon/gfx_bg/zaxxon_rom6.u113",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom6.u113",
+        "offset": 0,
+        "size": 8192,
+        "crc": "6e07bb68",
+        "sha1": "a002f3441b0f0044615ce71ecbd14edadba16270",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1137,
+        "sourceColumn": 2,
+        "sourceEndLine": 1137
+      }
+    },
+    {
+      "id": "rom:zaxxon/gfx_bg/zaxxon_rom5.u112",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom5.u112",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "0a5bce6a",
+        "sha1": "a86543727389931244ba8a576b543d7ac05a2585",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1138,
+        "sourceColumn": 2,
+        "sourceEndLine": 1138
+      }
+    },
+    {
+      "id": "rom:zaxxon/gfx_bg/zaxxon_rom4.u111",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom4.u111",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "a5bf1465",
+        "sha1": "a8cd27dfb4a606bae8bfddcf936e69e980fb1977",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1139,
+        "sourceColumn": 2,
+        "sourceEndLine": 1139
+      }
+    },
+    {
+      "id": "region:zaxxon/gfx_spr",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx_spr",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1141,
+        "sourceColumn": 2,
+        "sourceEndLine": 1141
+      }
+    },
+    {
+      "id": "rom:zaxxon/gfx_spr/zaxxon_rom11.u77",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom11.u77",
+        "offset": 0,
+        "size": 8192,
+        "crc": "eaf0dd4b",
+        "sha1": "194e2ca0a806e0cb6bb7cc8341d1fc6f2ea911f6",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1142,
+        "sourceColumn": 2,
+        "sourceEndLine": 1142
+      }
+    },
+    {
+      "id": "rom:zaxxon/gfx_spr/zaxxon_rom12.u78",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom12.u78",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "1c5369c7",
+        "sha1": "af6a5984c3cedfa8c9efcd669f4f205b51a433b2",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1143,
+        "sourceColumn": 2,
+        "sourceEndLine": 1143
+      }
+    },
+    {
+      "id": "rom:zaxxon/gfx_spr/zaxxon_rom13.u79",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom13.u79",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "ab4e8a9a",
+        "sha1": "4ac79cccc30e4adfa878b36101e97e20ac010438",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1144,
+        "sourceColumn": 2,
+        "sourceEndLine": 1144
+      }
+    },
+    {
+      "id": "region:zaxxon/tilemap_dat",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tilemap_dat",
+        "size": 32768,
+        "flags": "0",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1146,
+        "sourceColumn": 2,
+        "sourceEndLine": 1146
+      }
+    },
+    {
+      "id": "rom:zaxxon/tilemap_dat/zaxxon_rom8.u91",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom8.u91",
+        "offset": 0,
+        "size": 8192,
+        "crc": "28d65063",
+        "sha1": "e1f90716236c61df61bdc6915a8e390cb4dcbf15",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1147,
+        "sourceColumn": 2,
+        "sourceEndLine": 1147
+      }
+    },
+    {
+      "id": "rom:zaxxon/tilemap_dat/zaxxon_rom7.u90",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom7.u90",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "6284c200",
+        "sha1": "d26a9049541479b8b19f5aa0690cf4aaa787c9b5",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1148,
+        "sourceColumn": 2,
+        "sourceEndLine": 1148
+      }
+    },
+    {
+      "id": "rom:zaxxon/tilemap_dat/zaxxon_rom10.u93",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom10.u93",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "a95e61fd",
+        "sha1": "a0f8c15ff75affa3532abf8f340811cf415421fd",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1149,
+        "sourceColumn": 2,
+        "sourceEndLine": 1149
+      }
+    },
+    {
+      "id": "rom:zaxxon/tilemap_dat/zaxxon_rom9.u92",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon_rom9.u92",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "7e42691f",
+        "sha1": "2124363be8f590b74e2b15dd3f90d77dd9ca9528",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1150,
+        "sourceColumn": 2,
+        "sourceEndLine": 1150
+      }
+    },
+    {
+      "id": "region:zaxxon/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 512,
+        "flags": "0",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1152,
+        "sourceColumn": 2,
+        "sourceEndLine": 1152
+      }
+    },
+    {
+      "id": "rom:zaxxon/proms/mro16.u76",
+      "label": "Rom",
+      "props": {
+        "file": "mro16.u76",
+        "offset": 0,
+        "size": 256,
+        "crc": "6cc6695b",
+        "sha1": "01ae8450ccc302e1a5ae74230d44f6f531a962e2",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1153,
+        "sourceColumn": 2,
+        "sourceEndLine": 1153
+      }
+    },
+    {
+      "id": "rom:zaxxon/proms/zaxxon.u72",
+      "label": "Rom",
+      "props": {
+        "file": "zaxxon.u72",
+        "offset": 256,
+        "size": 256,
+        "crc": "deaa21f7",
+        "sha1": "0cf08fb62f77d93ff7cb883c633e0db35906e11d",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1154,
+        "sourceColumn": 2,
+        "sourceEndLine": 1154
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "zaxxon_state",
+        "name": "zaxxon_map",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 453,
+        "sourceColumn": 1,
+        "sourceEndLine": 467
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 24575,
+        "raw": "map(0x0000, 0x5fff).rom()",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 455,
+        "sourceColumn": 2,
+        "sourceEndLine": 455,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 28671,
+        "raw": "map(0x6000, 0x6fff).ram()",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 456,
+        "sourceColumn": 2,
+        "sourceEndLine": 456,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 33791,
+        "raw": "map(0x8000, 0x83ff).mirror(0x1c00).ram().w(FUNC(zaxxon_state::zaxxon_videoram_w)).share(\"videoram\")",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 457,
+        "sourceColumn": 2,
+        "sourceEndLine": 457,
+        "mirror": 7168,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.zaxxon_videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "zaxxon_videoram_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 238,
+        "sourceColumn": 1,
+        "sourceEndLine": 242,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;\n\tm_fg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 41215,
+        "raw": "map(0xa000, 0xa0ff).mirror(0x1f00).ram().share(\"spriteram\")",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 458,
+        "sourceColumn": 2,
+        "sourceEndLine": 458,
+        "mirror": 7936,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 49152,
+        "raw": "map(0xc000, 0xc000).mirror(0x18fc).portr(\"SW00\")",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 459,
+        "sourceColumn": 2,
+        "sourceEndLine": 459,
+        "mirror": 6396,
+        "portRead": "SW00"
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 49153,
+        "end": 49153,
+        "raw": "map(0xc001, 0xc001).mirror(0x18fc).portr(\"SW01\")",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 460,
+        "sourceColumn": 2,
+        "sourceEndLine": 460,
+        "mirror": 6396,
+        "portRead": "SW01"
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 49154,
+        "end": 49154,
+        "raw": "map(0xc002, 0xc002).mirror(0x18fc).portr(\"DSW02\")",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 461,
+        "sourceColumn": 2,
+        "sourceEndLine": 461,
+        "mirror": 6396,
+        "portRead": "DSW02"
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 49155,
+        "end": 49155,
+        "raw": "map(0xc003, 0xc003).mirror(0x18fc).portr(\"DSW03\")",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 462,
+        "sourceColumn": 2,
+        "sourceEndLine": 462,
+        "mirror": 6396,
+        "portRead": "DSW03"
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 49408,
+        "end": 49408,
+        "raw": "map(0xc100, 0xc100).mirror(0x18ff).portr(\"SW100\")",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 463,
+        "sourceColumn": 2,
+        "sourceEndLine": 463,
+        "mirror": 6399,
+        "portRead": "SW100"
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 49159,
+        "raw": "map(0xc000, 0xc007).mirror(0x18f8).w(\"mainlatch1\", FUNC(ls259_device::write_d0))",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 464,
+        "sourceColumn": 2,
+        "sourceEndLine": 464,
+        "mirror": 6392
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_d0",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 518,
+        "sourceColumn": 2,
+        "sourceEndLine": 518
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 57404,
+        "end": 57407,
+        "raw": "map(0xe03c, 0xe03f).mirror(0x1f00).rw(\"ppi8255\", FUNC(i8255_device::read), FUNC(i8255_device::write))",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 465,
+        "sourceColumn": 2,
+        "sourceEndLine": 465,
+        "mirror": 7936
+      }
+    },
+    {
+      "id": "handler:i8255_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "i8255_device",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 531,
+        "sourceColumn": 2,
+        "sourceEndLine": 531
+      }
+    },
+    {
+      "id": "handler:i8255_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "i8255_device",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 531,
+        "sourceColumn": 2,
+        "sourceEndLine": 531
+      }
+    },
+    {
+      "id": "map:zaxxon_state.zaxxon_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 57584,
+        "end": 57587,
+        "raw": "map(0xe0f0, 0xe0f3).mirror(0x1f00).select(0x0008).w(FUNC(zaxxon_state::zaxxon_control_w))",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 466,
+        "sourceColumn": 2,
+        "sourceEndLine": 466,
+        "mirror": 7936
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.zaxxon_control_w",
+      "label": "Handler",
+      "props": {
+        "method": "zaxxon_control_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 397,
+        "sourceColumn": 1,
+        "sourceEndLine": 404,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "// address decode for E0F8/E0F9 (74LS138 @ U57) has its G2B enable input in common with this latch\n\tbool a3 = BIT(offset, 3);\n\tm_mainlatch[1]->write_bit((a3 ? 4 : 0) | (offset & 3), BIT(data, 0));\n\tif (a3 && !BIT(offset, 1))\n\t\tbg_position_w(offset & 1, data);"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.bg_position_w",
+      "label": "Handler",
+      "props": {
+        "method": "bg_position_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 191,
+        "sourceColumn": 1,
+        "sourceEndLine": 198,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "/* 11 bits of scroll position are stored */\n\tif (offset == 0)\n\t\tm_bg_position = (m_bg_position & 0x700) | ((data << 0) & 0x0ff);\n\telse\n\t\tm_bg_position = (m_bg_position & 0x0ff) | ((data << 8) & 0x700);"
+      }
+    },
+    {
+      "id": "machine:zaxxon_state.root",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "zaxxon_state",
+        "name": "root",
+        "calls": [],
+        "startHandlers": [
+          "zaxxon_state.video_start"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 945,
+        "sourceColumn": 1,
+        "sourceEndLine": 982
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 145,
+        "sourceColumn": 1,
+        "sourceEndLine": 148,
+        "sourceParameters": "",
+        "sourceBody": "video_start_common(tilemap_get_info_delegate(*this, FUNC(zaxxon_state::zaxxon_get_fg_tile_info)));"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.video_start_common",
+      "label": "Handler",
+      "props": {
+        "method": "video_start_common",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 117,
+        "sourceColumn": 1,
+        "sourceEndLine": 142,
+        "sourceParameters": "tilemap_get_info_delegate &&fg_tile_info",
+        "sourceBody": "/* reset globals */\n\tm_bg_enable = 0;\n\tm_bg_color = 0;\n\tm_bg_position = 0;\n\tm_fg_color = 0;\n\tm_flip_screen = false;\n\tm_congo_fg_bank = 0;\n\tm_congo_color_bank = 0;\n\tmemset(m_congo_custom, 0, sizeof(m_congo_custom));\n\n\t// create a background and foreground tilemap\n\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(zaxxon_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8,8, 32,512);\n\tm_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, std::move(fg_tile_info), TILEMAP_SCAN_ROWS, 8,8, 32,32);\n\n\t// configure the foreground tilemap\n\tm_fg_tilemap->set_transparent_pen(0);\n\n\t// register for save states\n\tsave_item(NAME(m_bg_enable));\n\tsave_item(NAME(m_bg_color));\n\tsave_item(NAME(m_bg_position));\n\tsave_item(NAME(m_fg_color));\n\tsave_item(NAME(m_flip_screen));"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 69,
+        "sourceColumn": 1,
+        "sourceEndLine": 78,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "const uint8_t *source = memregion(\"tilemap_dat\")->base();\n\tint size = memregion(\"tilemap_dat\")->bytes() / 2;\n\tint eff_index = tile_index & (size - 1);\n\tint code = source[eff_index] + 256 * (source[eff_index + size] & 3);\n\tint color = source[eff_index + size] >> 4;\n\n\ttileinfo.set(1, code, color, 0);"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.zaxxon_get_fg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "zaxxon_get_fg_tile_info",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 81,
+        "sourceColumn": 1,
+        "sourceEndLine": 89,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int sx = tile_index % 32;\n\tint sy = tile_index / 32;\n\tint code = m_videoram[tile_index];\n\tint color = m_color_codes[sx + 32 * (sy / 4)] & 0x0f;\n\n\ttileinfo.set(0, code, color * 2, 0);"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 3041250,
+        "config": [
+          "Z80(config, m_maincpu, MASTER_CLOCK/16)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &zaxxon_state::zaxxon_map)"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 948,
+        "sourceColumn": 2,
+        "sourceEndLine": 948
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/ppi8255",
+      "label": "Device",
+      "props": {
+        "type": "I8255A",
+        "tag": "ppi8255",
+        "clock": null,
+        "config": [
+          "I8255A(config, m_ppi)",
+          "m_ppi->out_pa_callback().set(FUNC(zaxxon_state::zaxxon_sound_a_w))",
+          "m_ppi->out_pb_callback().set(FUNC(zaxxon_state::zaxxon_sound_b_w))",
+          "m_ppi->out_pc_callback().set(FUNC(zaxxon_state::zaxxon_sound_c_w))",
+          "m_ppi->tri_pa_callback().set_constant(0)",
+          "m_ppi->tri_pb_callback().set_constant(0)",
+          "m_ppi->tri_pc_callback().set_constant(0)"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 951,
+        "sourceColumn": 2,
+        "sourceEndLine": 951
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/ppi8255/callback:ppi8255:0",
+      "label": "Callback",
+      "props": {
+        "signal": "out_pa_callback",
+        "operation": "set",
+        "raw": "m_ppi->out_pa_callback().set(FUNC(zaxxon_state::zaxxon_sound_a_w))",
+        "ownerTag": "ppi8255",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 952,
+        "sourceColumn": 2,
+        "sourceEndLine": 952,
+        "targetClass": "zaxxon_state",
+        "targetMethod": "zaxxon_sound_a_w"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.zaxxon_sound_a_w",
+      "label": "Handler",
+      "props": {
+        "method": "zaxxon_sound_a_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_a.cpp",
+        "sourceLine": 111,
+        "sourceColumn": 1,
+        "sourceEndLine": 142,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "uint8_t diff = data ^ m_sound_state[0];\n\tm_sound_state[0] = data;\n\n\t/* PLAYER SHIP A/B: volume */\n\tm_samples->set_volume(10, 0.5 + 0.157 * (data & 0x03));\n\tm_samples->set_volume(11, 0.5 + 0.157 * (data & 0x03));\n\n\t/* PLAYER SHIP C: channel 10 */\n\tif ((diff & 0x04) && !(data & 0x04)) m_samples->start(10, 10, true);\n\tif ((diff & 0x04) &&  (data & 0x04)) m_samples->stop(10);\n\n\t/* PLAYER SHIP D: channel 11 */\n\tif ((diff & 0x08) && !(data & 0x08)) m_samples->start(11, 11, true);\n\tif ((diff & 0x08) &&  (data & 0x08)) m_samples->stop(11);\n\n\t/* HOMING MISSILE: channel 0 */\n\tif ((diff & 0x10) && !(data & 0x10)) m_samples->start(0, 0, true);\n\tif ((diff & 0x10) &&  (data & 0x10)) m_samples->stop(0);\n\n\t/* BASE MISSILE: channel 1 */\n\tif ((diff & 0x20) && !(data & 0x20)) m_samples->start(1, 1);\n\n\t/* LASER: channel 2 */\n\tif ((diff & 0x40) && !(data & 0x40)) m_samples->start(2, 2, true);\n\tif ((diff & 0x40) &&  (data & 0x40)) m_samples->stop(2);\n\n\t/* BATTLESHIP: channel 3 */\n\tif ((diff & 0x80) && !(data & 0x80)) m_samples->start(3, 3, true);\n\tif ((diff & 0x80) &&  (data & 0x80)) m_samples->stop(3);"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/ppi8255/callback:ppi8255:1",
+      "label": "Callback",
+      "props": {
+        "signal": "out_pb_callback",
+        "operation": "set",
+        "raw": "m_ppi->out_pb_callback().set(FUNC(zaxxon_state::zaxxon_sound_b_w))",
+        "ownerTag": "ppi8255",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 953,
+        "sourceColumn": 2,
+        "sourceEndLine": 953,
+        "targetClass": "zaxxon_state",
+        "targetMethod": "zaxxon_sound_b_w"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.zaxxon_sound_b_w",
+      "label": "Handler",
+      "props": {
+        "method": "zaxxon_sound_b_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_a.cpp",
+        "sourceLine": 145,
+        "sourceColumn": 1,
+        "sourceEndLine": 158,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "uint8_t diff = data ^ m_sound_state[1];\n\tm_sound_state[1] = data;\n\n\t/* S-EXP: channel 4 */\n\tif ((diff & 0x10) && !(data & 0x10)) m_samples->start(4, 4);\n\n\t/* M-EXP: channel 5 */\n\tif ((diff & 0x20) && !(data & 0x20) && !m_samples->playing(5)) m_samples->start(5, 5);\n\n\t/* CANNON: channel 6 */\n\tif ((diff & 0x80) && !(data & 0x80)) m_samples->start(6, 6);"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/ppi8255/callback:ppi8255:2",
+      "label": "Callback",
+      "props": {
+        "signal": "out_pc_callback",
+        "operation": "set",
+        "raw": "m_ppi->out_pc_callback().set(FUNC(zaxxon_state::zaxxon_sound_c_w))",
+        "ownerTag": "ppi8255",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 954,
+        "sourceColumn": 2,
+        "sourceEndLine": 954,
+        "targetClass": "zaxxon_state",
+        "targetMethod": "zaxxon_sound_c_w"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.zaxxon_sound_c_w",
+      "label": "Handler",
+      "props": {
+        "method": "zaxxon_sound_c_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_a.cpp",
+        "sourceLine": 161,
+        "sourceColumn": 1,
+        "sourceEndLine": 174,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "uint8_t diff = data ^ m_sound_state[2];\n\tm_sound_state[2] = data;\n\n\t/* SHOT: channel 7 */\n\tif ((diff & 0x01) && !(data & 0x01)) m_samples->start(7, 7);\n\n\t/* ALARM2: channel 8 */\n\tif ((diff & 0x04) && !(data & 0x04)) m_samples->start(8, 8);\n\n\t/* ALARM3: channel 9 */\n\tif ((diff & 0x08) && !(data & 0x08) && !m_samples->playing(9)) m_samples->start(9, 9);"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch1",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "mainlatch1",
+        "clock": null,
+        "config": [
+          "LS259(config, m_mainlatch[0])",
+          "m_mainlatch[0]->q_out_cb<0>().set(FUNC(zaxxon_state::coin_enable_w))",
+          "m_mainlatch[0]->q_out_cb<1>().set(FUNC(zaxxon_state::coin_enable_w))",
+          "m_mainlatch[0]->q_out_cb<2>().set(FUNC(zaxxon_state::coin_enable_w))",
+          "m_mainlatch[0]->q_out_cb<3>().set(FUNC(zaxxon_state::coin_counter_a_w))",
+          "m_mainlatch[0]->q_out_cb<4>().set(FUNC(zaxxon_state::coin_counter_b_w))",
+          "m_mainlatch[0]->q_out_cb<6>().set(FUNC(zaxxon_state::flipscreen_w))"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 959,
+        "sourceColumn": 2,
+        "sourceEndLine": 959
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch[0]->q_out_cb<0>().set(FUNC(zaxxon_state::coin_enable_w))",
+        "ownerTag": "mainlatch1",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 960,
+        "sourceColumn": 2,
+        "sourceEndLine": 960,
+        "slot": "0",
+        "targetClass": "zaxxon_state",
+        "targetMethod": "coin_enable_w"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.coin_enable_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_enable_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 423,
+        "sourceColumn": 1,
+        "sourceEndLine": 428,
+        "sourceParameters": "int state",
+        "sourceBody": "for (int n = 0; n < 3; n++)\n\t\tif (!BIT(m_mainlatch[0]->output_state(), n))\n\t\t\tm_coin_status[n] = 0;"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch[0]->q_out_cb<1>().set(FUNC(zaxxon_state::coin_enable_w))",
+        "ownerTag": "mainlatch1",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 961,
+        "sourceColumn": 2,
+        "sourceEndLine": 961,
+        "slot": "1",
+        "targetClass": "zaxxon_state",
+        "targetMethod": "coin_enable_w"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch[0]->q_out_cb<2>().set(FUNC(zaxxon_state::coin_enable_w))",
+        "ownerTag": "mainlatch1",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 962,
+        "sourceColumn": 2,
+        "sourceEndLine": 962,
+        "slot": "2",
+        "targetClass": "zaxxon_state",
+        "targetMethod": "coin_enable_w"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:3",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch[0]->q_out_cb<3>().set(FUNC(zaxxon_state::coin_counter_a_w))",
+        "ownerTag": "mainlatch1",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 963,
+        "sourceColumn": 2,
+        "sourceEndLine": 963,
+        "slot": "3",
+        "targetClass": "zaxxon_state",
+        "targetMethod": "coin_counter_a_w"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.coin_counter_a_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_a_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 407,
+        "sourceColumn": 1,
+        "sourceEndLine": 410,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(0, state);"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:4",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch[0]->q_out_cb<4>().set(FUNC(zaxxon_state::coin_counter_b_w))",
+        "ownerTag": "mainlatch1",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 964,
+        "sourceColumn": 2,
+        "sourceEndLine": 964,
+        "slot": "4",
+        "targetClass": "zaxxon_state",
+        "targetMethod": "coin_counter_b_w"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.coin_counter_b_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_b_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 413,
+        "sourceColumn": 1,
+        "sourceEndLine": 416,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(1, state);"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:5",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch[0]->q_out_cb<6>().set(FUNC(zaxxon_state::flipscreen_w))",
+        "ownerTag": "mainlatch1",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 965,
+        "sourceColumn": 2,
+        "sourceEndLine": 965,
+        "slot": "6",
+        "targetClass": "zaxxon_state",
+        "targetMethod": "flipscreen_w"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.flipscreen_w",
+      "label": "Handler",
+      "props": {
+        "method": "flipscreen_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 175,
+        "sourceColumn": 1,
+        "sourceEndLine": 180,
+        "sourceParameters": "int state",
+        "sourceBody": "/* low bit controls flip; background and sprite flip are handled at render time */\n\tm_flip_screen = !state;\n\tm_fg_tilemap->set_flip(m_flip_screen ? (TILEMAP_FLIPX | TILEMAP_FLIPY) : 0);"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch2",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "mainlatch2",
+        "clock": null,
+        "config": [
+          "LS259(config, m_mainlatch[1])",
+          "m_mainlatch[1]->q_out_cb<0>().set(FUNC(zaxxon_state::int_enable_w))",
+          "m_mainlatch[1]->q_out_cb<1>().set(FUNC(zaxxon_state::fg_color_w))",
+          "m_mainlatch[1]->q_out_cb<6>().set(FUNC(zaxxon_state::bg_color_w))",
+          "m_mainlatch[1]->q_out_cb<7>().set(FUNC(zaxxon_state::bg_enable_w))"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 967,
+        "sourceColumn": 2,
+        "sourceEndLine": 967
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch[1]->q_out_cb<0>().set(FUNC(zaxxon_state::int_enable_w))",
+        "ownerTag": "mainlatch2",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 968,
+        "sourceColumn": 2,
+        "sourceEndLine": 968,
+        "slot": "0",
+        "targetClass": "zaxxon_state",
+        "targetMethod": "int_enable_w"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.int_enable_w",
+      "label": "Handler",
+      "props": {
+        "method": "int_enable_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 313,
+        "sourceColumn": 1,
+        "sourceEndLine": 318,
+        "sourceParameters": "int state",
+        "sourceBody": "m_int_enabled = state;\n\tif (!m_int_enabled)\n\t\tm_maincpu->set_input_line(0, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch[1]->q_out_cb<1>().set(FUNC(zaxxon_state::fg_color_w))",
+        "ownerTag": "mainlatch2",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 969,
+        "sourceColumn": 2,
+        "sourceEndLine": 969,
+        "slot": "1",
+        "targetClass": "zaxxon_state",
+        "targetMethod": "fg_color_w"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.fg_color_w",
+      "label": "Handler",
+      "props": {
+        "method": "fg_color_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 183,
+        "sourceColumn": 1,
+        "sourceEndLine": 188,
+        "sourceParameters": "int state",
+        "sourceBody": "/* low bit selects high color palette index */\n\tm_fg_color = state * 0x80;\n\tm_fg_tilemap->set_palette_offset(m_fg_color + (m_congo_color_bank << 8));"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch[1]->q_out_cb<6>().set(FUNC(zaxxon_state::bg_color_w))",
+        "ownerTag": "mainlatch2",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 970,
+        "sourceColumn": 2,
+        "sourceEndLine": 970,
+        "slot": "6",
+        "targetClass": "zaxxon_state",
+        "targetMethod": "bg_color_w"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.bg_color_w",
+      "label": "Handler",
+      "props": {
+        "method": "bg_color_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 201,
+        "sourceColumn": 1,
+        "sourceEndLine": 205,
+        "sourceParameters": "int state",
+        "sourceBody": "/* low bit selects high color palette index */\n\tm_bg_color = state * 0x80;"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:3",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch[1]->q_out_cb<7>().set(FUNC(zaxxon_state::bg_enable_w))",
+        "ownerTag": "mainlatch2",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 971,
+        "sourceColumn": 2,
+        "sourceEndLine": 971,
+        "slot": "7",
+        "targetClass": "zaxxon_state",
+        "targetMethod": "bg_enable_w"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.bg_enable_w",
+      "label": "Handler",
+      "props": {
+        "method": "bg_enable_w",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 208,
+        "sourceColumn": 1,
+        "sourceEndLine": 212,
+        "sourceParameters": "int state",
+        "sourceBody": "/* low bit enables/disables the background layer */\n\tm_bg_enable = state;"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_zaxxon)"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 974,
+        "sourceColumn": 2,
+        "sourceEndLine": 974,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(zaxxon_state::zaxxon_palette), 256)"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 975,
+        "sourceColumn": 2,
+        "sourceEndLine": 975,
+        "clockExpr": "FUNC(zaxxon_state::zaxxon_palette)"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_raw(PIXEL_CLOCK, HTOTAL, HBEND, HBSTART, VTOTAL, VBEND, VBSTART)",
+          "screen.set_screen_update(FUNC(zaxxon_state::screen_update_zaxxon))",
+          "screen.set_palette(m_palette)",
+          "screen.screen_vblank().set(FUNC(zaxxon_state::vblank_int))"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 977,
+        "sourceColumn": 2,
+        "sourceEndLine": 977,
+        "configCalls": [
+          "set_raw(6082500,384,0,256,264,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6082500,
+          384,
+          0,
+          256,
+          264,
+          16,
+          240
+        ]
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(FUNC(zaxxon_state::screen_update_zaxxon))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 979,
+        "sourceColumn": 2,
+        "sourceEndLine": 979,
+        "targetClass": "zaxxon_state",
+        "targetMethod": "screen_update_zaxxon"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.screen_update_zaxxon",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update_zaxxon",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 440,
+        "sourceColumn": 1,
+        "sourceEndLine": 446,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "draw_background(bitmap, cliprect, true);\n\tdraw_sprites(bitmap, cliprect, 0x140, 0x180);\n\tm_fg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.draw_background",
+      "label": "Handler",
+      "props": {
+        "method": "draw_background",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 293,
+        "sourceColumn": 1,
+        "sourceEndLine": 351,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, int skew",
+        "sourceBody": "/* only draw if enabled */\n\tif (m_bg_enable)\n\t{\n\t\tbitmap_ind16 &pixmap = m_bg_tilemap->pixmap();\n\t\tint colorbase = m_bg_color + (m_congo_color_bank << 8);\n\t\tint xmask = pixmap.width() - 1;\n\t\tint ymask = pixmap.height() - 1;\n\t\tint flipmask = m_flip_screen ? 0xff : 0x00;\n\t\tint flipoffs = m_flip_screen ? 0x38 : 0x40;\n\n\t\t/* the starting X value is offset by 1 pixel (normal) or 7 pixels */\n\t\t/* (flipped) due to a delay in the loading */\n\t\tif (!m_flip_screen)\n\t\t\tflipoffs -= 1;\n\t\telse\n\t\t\tflipoffs += 7;\n\n\t\t/* loop over visible rows */\n\t\tfor (int y = cliprect.min_y; y <= cliprect.max_y; y++)\n\t\t{\n\t\t\tuint16_t *const dst = &bitmap.pix(y);\n\n\t\t\t/* VF = flipped V signals */\n\t\t\tint vf = y ^ flipmask;\n\n\t\t\t/* base of the source row comes from VF plus the scroll value */\n\t\t\t/* this is done by the 3 4-bit adders at U56, U74, U75 */\n\t\t\tint srcy = vf + ((m_bg_position << 1) ^ 0xfff) + 1;\n\t\t\tuint16_t const *src = &pixmap.pix(srcy & ymask);\n\n\t\t\t/* loop over visible columns */\n\t\t\tfor (int x = cliprect.min_x; x <= cliprect.max_x; x++)\n\t\t\t{\n\t\t\t\t/* start with HF = flipped H signals */\n\t\t\t\tint srcx = x ^ flipmask;\n\t\t\t\tif (skew)\n\t\t\t\t{\n\t\t\t\t\t/* position within source row is a two-stage addition */\n\t\t\t\t\t/* first stage is HF plus half the VF, done by the 2 4-bit */\n\t\t\t\t\t/* adders at U53, U54 */\n\t\t\t\t\tsrcx += ((vf >> 1) ^ 0xff) + 1;\n\n\t\t\t\t\t/* second stage is first stage plus a constant based on the flip */\n\t\t\t\t\t/* value is 0x40 for non-flipped, or 0x38 for flipped */\n\t\t\t\t\tsrcx += flipoffs;\n\t\t\t\t}\n\n\t\t\t\t/* store the pixel, offset by the color offset */\n\t\t\t\tdst[x] = src[srcx & xmask] + colorbase;\n\t\t\t}\n\t\t}\n\t}\n\n\t/* if not enabled, fill the background with black */\n\telse\n\t\tbitmap.fill(m_palette->black_pen(), cliprect);"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 406,
+        "sourceColumn": 1,
+        "sourceEndLine": 430,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, uint16_t flipxmask, uint16_t flipymask",
+        "sourceBody": "uint8_t *spriteram = m_spriteram;\n\tgfx_element *gfx = m_gfxdecode->gfx(2);\n\tint flip = m_flip_screen;\n\tint flipmask = flip ? 0xff : 0x00;\n\tint offs;\n\n\t/* only the lower half of sprite RAM is read during rendering */\n\tfor (offs = 0x7c; offs >= 0; offs -= 4)\n\t{\n\t\tint sy = find_minimum_y(spriteram[offs], flip);\n\t\tint flipy = (spriteram[offs + (flipymask >> 8)] ^ flipmask) & flipymask;\n\t\tint flipx = (spriteram[offs + (flipxmask >> 8)] ^ flipmask) & flipxmask;\n\t\tint code = spriteram[offs + 1];\n\t\tint color = (spriteram[offs + 2] & 0x1f) + (m_congo_color_bank << 5);\n\t\tint sx = find_minimum_x(spriteram[offs + 3], flip);\n\n\t\t/* draw with 256 pixel offsets to ensure we wrap properly */\n\t\t\tgfx->transpen(bitmap,cliprect, code, color, flipx, flipy, sx, sy, 0);\n\t\t\tgfx->transpen(bitmap,cliprect, code, color, flipx, flipy, sx, sy - 0x100, 0);\n\t\t\tgfx->transpen(bitmap,cliprect, code, color, flipx, flipy, sx - 0x100, sy, 0);\n\t\t\tgfx->transpen(bitmap,cliprect, code, color, flipx, flipy, sx - 0x100, sy - 0x100, 0);\n\t}"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.find_minimum_y",
+      "label": "Handler",
+      "props": {
+        "method": "find_minimum_y",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 361,
+        "sourceColumn": 1,
+        "sourceEndLine": 389,
+        "sourceParameters": "uint8_t value, int flip",
+        "sourceBody": "int flipmask = flip ? 0xff : 0x00;\n\tint flipconst = flip ? 0xef : 0xf1;\n\tint y;\n\n\t/* the sum of the Y position plus a constant based on the flip state */\n\t/* is added to the current flipped VF; if the top 3 bits are 1, we hit */\n\n\t/* first find a 16-pixel bucket where we hit */\n\tfor (y = 0; y < 256; y += 16)\n\t{\n\t\tint sum = (value + flipconst + 1) + (y ^ flipmask);\n\t\tif ((sum & 0xe0) == 0xe0)\n\t\t\tbreak;\n\t}\n\n\t/* then scan backwards until we no longer match */\n\twhile (1)\n\t{\n\t\tint sum = (value + flipconst + 1) + ((y - 1) ^ flipmask);\n\t\tif ((sum & 0xe0) != 0xe0)\n\t\t\tbreak;\n\t\ty--;\n\t}\n\n\t/* add one line since we draw sprites on the previous line */\n\treturn (y + 1) & 0xff;"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.find_minimum_x",
+      "label": "Handler",
+      "props": {
+        "method": "find_minimum_x",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon_v.cpp",
+        "sourceLine": 392,
+        "sourceColumn": 1,
+        "sourceEndLine": 403,
+        "sourceParameters": "uint8_t value, int flip",
+        "sourceBody": "int flipmask = flip ? 0xff : 0x00;\n\tint x;\n\n\t/* the sum of the X position plus a constant specifies the address within */\n\t/* the line bufer; if we're flipped, we will write backwards */\n\tx = (value + 0xef + 1) ^ flipmask;\n\tif (flipmask)\n\t\tx -= 31;\n\treturn x & 0xff;"
+      }
+    },
+    {
+      "id": "device:zaxxon_state.root/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set",
+        "raw": "screen.screen_vblank().set(FUNC(zaxxon_state::vblank_int))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 981,
+        "sourceColumn": 2,
+        "sourceEndLine": 981,
+        "targetClass": "zaxxon_state",
+        "targetMethod": "vblank_int"
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.vblank_int",
+      "label": "Handler",
+      "props": {
+        "method": "vblank_int",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 306,
+        "sourceColumn": 1,
+        "sourceEndLine": 310,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state && m_int_enabled)\n\t\tm_maincpu->set_input_line(0, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "machine:zaxxon_state.zaxxon",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "zaxxon_state",
+        "name": "zaxxon",
+        "calls": [
+          "root",
+          "zaxxon_samples"
+        ],
+        "startHandlers": [
+          "zaxxon_state.video_start"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 985,
+        "sourceColumn": 1,
+        "sourceEndLine": 992
+      }
+    },
+    {
+      "id": "device:zaxxon_state.zaxxon/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"speaker\").front_center()"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 990,
+        "sourceColumn": 2,
+        "sourceEndLine": 990
+      }
+    },
+    {
+      "id": "machine:zaxxon_state.zaxxon_samples",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "zaxxon_state",
+        "name": "zaxxon_samples",
+        "calls": [],
+        "startHandlers": [
+          "zaxxon_state.video_start"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon_a.cpp",
+        "sourceLine": 95,
+        "sourceColumn": 1,
+        "sourceEndLine": 101
+      }
+    },
+    {
+      "id": "device:zaxxon_state.zaxxon_samples/samples",
+      "label": "Device",
+      "props": {
+        "type": "SAMPLES",
+        "tag": "samples",
+        "clock": null,
+        "config": [
+          "SAMPLES(config, m_samples)",
+          "m_samples->set_channels(12)",
+          "m_samples->set_samples_names(zaxxon_sample_names)",
+          "m_samples->add_route(ALL_OUTPUTS, \"speaker\", 0.25)"
+        ],
+        "sourceFile": "src/mame/sega/zaxxon_a.cpp",
+        "sourceLine": 97,
+        "sourceColumn": 2,
+        "sourceEndLine": 97,
+        "configCalls": [
+          "set_channels(12)"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:zaxxon_state.zaxxon_samples/samples/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.25,
+        "raw": "m_samples->add_route(ALL_OUTPUTS, \"speaker\", 0.25)",
+        "sourceFile": "src/mame/sega/zaxxon_a.cpp",
+        "sourceLine": 100,
+        "sourceColumn": 2,
+        "sourceEndLine": 100
+      }
+    },
+    {
+      "id": "inputs:zaxxon",
+      "label": "InputPorts",
+      "props": {
+        "name": "zaxxon",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 543,
+        "sourceColumn": 8,
+        "sourceEndLine": 543
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW00",
+      "label": "Port",
+      "props": {
+        "tag": "SW00",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW00/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW00/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW00/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW00/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW00/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON1"
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW00/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 224,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW01",
+      "label": "Port",
+      "props": {
+        "tag": "SW01",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW01/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW01/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW01/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW01/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW01/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW01/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 224,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW100",
+      "label": "Port",
+      "props": {
+        "tag": "SW100",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW100/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 3,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW100/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW100/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW100/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW100/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_MEMBER(FUNC(zaxxon_state::zaxxon_coin_r<0>))"
+        ]
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.zaxxon_coin_r_0",
+      "label": "Handler",
+      "props": {
+        "method": "zaxxon_coin_r_0",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 439,
+        "sourceColumn": 1,
+        "sourceEndLine": 442,
+        "sourceConstants": [
+          "Num=0"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "return m_coin_status[Num];"
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW100/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_MEMBER(FUNC(zaxxon_state::zaxxon_coin_r<1>))"
+        ]
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.zaxxon_coin_r_1",
+      "label": "Handler",
+      "props": {
+        "method": "zaxxon_coin_r_1",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 439,
+        "sourceColumn": 1,
+        "sourceEndLine": 442,
+        "sourceConstants": [
+          "Num=1"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "return m_coin_status[Num];"
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SW100/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_MEMBER(FUNC(zaxxon_state::zaxxon_coin_r<2>))"
+        ]
+      }
+    },
+    {
+      "id": "handler:zaxxon_state.zaxxon_coin_r_2",
+      "label": "Handler",
+      "props": {
+        "method": "zaxxon_coin_r_2",
+        "ownerClass": "zaxxon_state",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 439,
+        "sourceColumn": 1,
+        "sourceEndLine": 442,
+        "sourceConstants": [
+          "Num=2"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "return m_coin_status[Num];"
+      }
+    },
+    {
+      "id": "inputs:zaxxon/COIN",
+      "label": "Port",
+      "props": {
+        "tag": "COIN",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:zaxxon/COIN/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_COIN1",
+        "modifiers": [
+          "PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(zaxxon_state::zaxxon_coin_inserted), 0)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/COIN/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_COIN2",
+        "modifiers": [
+          "PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(zaxxon_state::zaxxon_coin_inserted), 1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/COIN/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_SERVICE1",
+        "modifiers": [
+          "PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(zaxxon_state::zaxxon_coin_inserted), 2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SERVICESW",
+      "label": "Port",
+      "props": {
+        "tag": "SERVICESW",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:zaxxon/SERVICESW/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 1,
+        "activeLow": false,
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:zaxxon/DSW02",
+      "label": "Port",
+      "props": {
+        "tag": "DSW02",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:zaxxon/DSW02/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Bonus Life",
+        "defaultValue": 3,
+        "location": "SW1:!1,!2",
+        "settings": [
+          "3=10000",
+          "1=20000",
+          "2=30000",
+          "0=40000"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/DSW02/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Unused",
+        "defaultValue": 4,
+        "location": "SW1:!3",
+        "settings": [
+          "0=Off",
+          "4=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/DSW02/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Unused",
+        "defaultValue": 8,
+        "location": "SW1:!4",
+        "settings": [
+          "0=Off",
+          "8=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/DSW02/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "name": "Lives",
+        "defaultValue": 48,
+        "location": "SW1:!5,!6",
+        "settings": [
+          "48=3",
+          "16=4",
+          "32=5",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/DSW02/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Sound",
+        "defaultValue": 64,
+        "location": "SW1:!7",
+        "settings": [
+          "0=Off",
+          "64=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/DSW02/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW1:!8",
+        "settings": [
+          "0=Upright",
+          "128=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/DSW03",
+      "label": "Port",
+      "props": {
+        "tag": "DSW03",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:zaxxon/DSW03/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 15,
+        "name": "DEF_STR ( Coin_B )",
+        "defaultValue": 3,
+        "location": "SW2:!1,!2,!3,!4",
+        "settings": [
+          "15=DEF_STR ( 4C_1C )",
+          "7=DEF_STR ( 3C_1C )",
+          "11=DEF_STR ( 2C_1C )",
+          "6=2C/1C 5C/3C 6C/4C",
+          "10=2C/1C 3C/2C 4C/3C",
+          "3=DEF_STR ( 1C_1C )",
+          "2=1C/1C 5C/6C",
+          "12=1C/1C 4C/5C",
+          "4=1C/1C 2C/3C",
+          "13=DEF_STR ( 1C_2C )",
+          "8=1C/2C 5C/11C",
+          "0=1C/2C 4C/9C",
+          "5=DEF_STR ( 1C_3C )",
+          "9=DEF_STR ( 1C_4C )",
+          "1=DEF_STR ( 1C_5C )",
+          "14=DEF_STR ( 1C_6C )"
+        ]
+      }
+    },
+    {
+      "id": "inputs:zaxxon/DSW03/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "name": "DEF_STR ( Coin_A )",
+        "defaultValue": 48,
+        "location": "SW2:!5,!6,!7,!8",
+        "settings": [
+          "240=DEF_STR ( 4C_1C )",
+          "112=DEF_STR ( 3C_1C )",
+          "176=DEF_STR ( 2C_1C )",
+          "96=2C/1C 5C/3C 6C/4C",
+          "160=2C/1C 3C/2C 4C/3C",
+          "48=DEF_STR ( 1C_1C )",
+          "32=1C/1C 5C/6C",
+          "192=1C/1C 4C/5C",
+          "64=1C/1C 2C/3C",
+          "208=DEF_STR ( 1C_2C )",
+          "128=1C/2C 5C/11C",
+          "0=1C/2C 4C/9C",
+          "80=DEF_STR ( 1C_3C )",
+          "144=DEF_STR ( 1C_4C )",
+          "16=DEF_STR ( 1C_5C )",
+          "224=DEF_STR ( 1C_6C )"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:zaxxon_spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "zaxxon_spritelayout",
+        "width": 32,
+        "height": 32,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(2,3)",
+          "RGN_FRAC(1,3)",
+          "RGN_FRAC(0,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          192,
+          193,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          256,
+          264,
+          272,
+          280,
+          288,
+          296,
+          304,
+          312,
+          512,
+          520,
+          528,
+          536,
+          544,
+          552,
+          560,
+          568,
+          768,
+          776,
+          784,
+          792,
+          800,
+          808,
+          816,
+          824
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x2_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x2_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 2,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)",
+          "RGN_FRAC(0,2)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x3_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x3_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(2,3)",
+          "RGN_FRAC(1,3)",
+          "RGN_FRAC(0,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_zaxxon",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_zaxxon",
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 8,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_zaxxon/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx_tx",
+        "offset": 0,
+        "layout": "gfx_8x8x2_planar",
+        "colorBase": 0,
+        "colorCount": 128,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_zaxxon/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx_bg",
+        "offset": 0,
+        "layout": "gfx_8x8x3_planar",
+        "colorBase": 0,
+        "colorCount": 64,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_zaxxon/e2",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx_spr",
+        "offset": 0,
+        "layout": "zaxxon_spritelayout",
+        "colorBase": 0,
+        "colorCount": 64,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:zaxxon",
+      "to": "file:src/mame/sega/zaxxon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1625,
+        "sourceColumn": 1,
+        "sourceEndLine": 1625
+      }
+    },
+    {
+      "from": "game:zaxxon",
+      "to": "machine:zaxxon_state.zaxxon",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:zaxxon",
+      "to": "inputs:zaxxon",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:zaxxon",
+      "to": "romset:zaxxon",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon.cpp",
+      "to": "file:zaxxon.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon.cpp",
+      "to": "file:segausb.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon.cpp",
+      "to": "file:machine/segacrpt_device.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon.cpp",
+      "to": "file:machine/i8255.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon.cpp",
+      "to": "file:sound/samples.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon.cpp",
+      "to": "file:sound/sn76496.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:zaxxon_state.zaxxon",
+      "to": "file:src/mame/sega/zaxxon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 985,
+        "sourceColumn": 1,
+        "sourceEndLine": 992
+      }
+    },
+    {
+      "from": "machine:zaxxon_state.zaxxon",
+      "to": "handler:zaxxon_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:zaxxon_state.zaxxon",
+      "to": "machine:zaxxon_state.root",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:zaxxon_state.zaxxon",
+      "to": "machine:zaxxon_state.zaxxon_samples",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:zaxxon_state.zaxxon",
+      "to": "device:zaxxon_state.zaxxon/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:zaxxon",
+      "to": "file:src/mame/sega/zaxxon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 543,
+        "sourceColumn": 8,
+        "sourceEndLine": 543
+      }
+    },
+    {
+      "from": "inputs:zaxxon",
+      "to": "inputs:zaxxon/SW00",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:zaxxon",
+      "to": "inputs:zaxxon/SW01",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:zaxxon",
+      "to": "inputs:zaxxon/SW100",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:zaxxon",
+      "to": "inputs:zaxxon/COIN",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:zaxxon",
+      "to": "inputs:zaxxon/SERVICESW",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:zaxxon",
+      "to": "inputs:zaxxon/DSW02",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:zaxxon",
+      "to": "inputs:zaxxon/DSW03",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:zaxxon",
+      "to": "file:src/mame/sega/zaxxon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 1126,
+        "sourceColumn": 1,
+        "sourceEndLine": 1126
+      }
+    },
+    {
+      "from": "romset:zaxxon",
+      "to": "region:zaxxon/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:zaxxon",
+      "to": "region:zaxxon/gfx_tx",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:zaxxon",
+      "to": "region:zaxxon/gfx_bg",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:zaxxon",
+      "to": "region:zaxxon/gfx_spr",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:zaxxon",
+      "to": "region:zaxxon/tilemap_dat",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:zaxxon",
+      "to": "region:zaxxon/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:zaxxon_state.video_start",
+      "to": "handler:zaxxon_state.video_start_common",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:zaxxon_state.video_start",
+      "to": "handler:zaxxon_state.zaxxon_get_fg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:zaxxon_state.root",
+      "to": "file:src/mame/sega/zaxxon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 945,
+        "sourceColumn": 1,
+        "sourceEndLine": 982
+      }
+    },
+    {
+      "from": "machine:zaxxon_state.root",
+      "to": "handler:zaxxon_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:zaxxon_state.root",
+      "to": "device:zaxxon_state.root/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:zaxxon_state.root",
+      "to": "device:zaxxon_state.root/ppi8255",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:zaxxon_state.root",
+      "to": "device:zaxxon_state.root/mainlatch1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:zaxxon_state.root",
+      "to": "device:zaxxon_state.root/mainlatch2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:zaxxon_state.root",
+      "to": "device:zaxxon_state.root/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:zaxxon_state.root",
+      "to": "gfxdecode:gfx_zaxxon",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:zaxxon_state.root",
+      "to": "device:zaxxon_state.root/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:zaxxon_state.root",
+      "to": "device:zaxxon_state.root/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:zaxxon_state.zaxxon_samples",
+      "to": "file:src/mame/sega/zaxxon_a.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sega/zaxxon_a.cpp",
+        "sourceLine": 95,
+        "sourceColumn": 1,
+        "sourceEndLine": 101
+      }
+    },
+    {
+      "from": "machine:zaxxon_state.zaxxon_samples",
+      "to": "handler:zaxxon_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:zaxxon_state.zaxxon_samples",
+      "to": "device:zaxxon_state.zaxxon_samples/samples",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:zaxxon/SW00",
+      "to": "inputs:zaxxon/SW00/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW00",
+      "to": "inputs:zaxxon/SW00/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW00",
+      "to": "inputs:zaxxon/SW00/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW00",
+      "to": "inputs:zaxxon/SW00/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW00",
+      "to": "inputs:zaxxon/SW00/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW00",
+      "to": "inputs:zaxxon/SW00/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW01",
+      "to": "inputs:zaxxon/SW01/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW01",
+      "to": "inputs:zaxxon/SW01/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW01",
+      "to": "inputs:zaxxon/SW01/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW01",
+      "to": "inputs:zaxxon/SW01/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW01",
+      "to": "inputs:zaxxon/SW01/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW01",
+      "to": "inputs:zaxxon/SW01/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW100",
+      "to": "inputs:zaxxon/SW100/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW100",
+      "to": "inputs:zaxxon/SW100/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW100",
+      "to": "inputs:zaxxon/SW100/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW100",
+      "to": "inputs:zaxxon/SW100/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW100",
+      "to": "inputs:zaxxon/SW100/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW100",
+      "to": "inputs:zaxxon/SW100/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SW100",
+      "to": "inputs:zaxxon/SW100/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/COIN",
+      "to": "inputs:zaxxon/COIN/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/COIN",
+      "to": "inputs:zaxxon/COIN/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/COIN",
+      "to": "inputs:zaxxon/COIN/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/SERVICESW",
+      "to": "inputs:zaxxon/SERVICESW/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/DSW02",
+      "to": "inputs:zaxxon/DSW02/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/DSW02",
+      "to": "inputs:zaxxon/DSW02/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/DSW02",
+      "to": "inputs:zaxxon/DSW02/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/DSW02",
+      "to": "inputs:zaxxon/DSW02/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/DSW02",
+      "to": "inputs:zaxxon/DSW02/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/DSW02",
+      "to": "inputs:zaxxon/DSW02/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/DSW03",
+      "to": "inputs:zaxxon/DSW03/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:zaxxon/DSW03",
+      "to": "inputs:zaxxon/DSW03/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:zaxxon/maincpu",
+      "to": "rom:zaxxon/maincpu/zaxxon_rom3d.u27",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/maincpu",
+      "to": "rom:zaxxon/maincpu/zaxxon_rom2d.u28",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/maincpu",
+      "to": "rom:zaxxon/maincpu/zaxxon_rom1d.u29",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/gfx_tx",
+      "to": "rom:zaxxon/gfx_tx/zaxxon_rom14.u68",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/gfx_tx",
+      "to": "rom:zaxxon/gfx_tx/zaxxon_rom15.u69",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/gfx_bg",
+      "to": "rom:zaxxon/gfx_bg/zaxxon_rom6.u113",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/gfx_bg",
+      "to": "rom:zaxxon/gfx_bg/zaxxon_rom5.u112",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/gfx_bg",
+      "to": "rom:zaxxon/gfx_bg/zaxxon_rom4.u111",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/gfx_spr",
+      "to": "rom:zaxxon/gfx_spr/zaxxon_rom11.u77",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/gfx_spr",
+      "to": "rom:zaxxon/gfx_spr/zaxxon_rom12.u78",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/gfx_spr",
+      "to": "rom:zaxxon/gfx_spr/zaxxon_rom13.u79",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/tilemap_dat",
+      "to": "rom:zaxxon/tilemap_dat/zaxxon_rom8.u91",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/tilemap_dat",
+      "to": "rom:zaxxon/tilemap_dat/zaxxon_rom7.u90",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/tilemap_dat",
+      "to": "rom:zaxxon/tilemap_dat/zaxxon_rom10.u93",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/tilemap_dat",
+      "to": "rom:zaxxon/tilemap_dat/zaxxon_rom9.u92",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/proms",
+      "to": "rom:zaxxon/proms/mro16.u76",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:zaxxon/proms",
+      "to": "rom:zaxxon/proms/zaxxon.u72",
+      "rel": "LOADS"
+    },
+    {
+      "from": "handler:zaxxon_state.video_start_common",
+      "to": "handler:zaxxon_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/maincpu",
+      "to": "map:zaxxon_state.zaxxon_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:zaxxon_state.root/ppi8255",
+      "to": "device:zaxxon_state.root/ppi8255/callback:ppi8255:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/ppi8255",
+      "to": "device:zaxxon_state.root/ppi8255/callback:ppi8255:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/ppi8255",
+      "to": "device:zaxxon_state.root/ppi8255/callback:ppi8255:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1",
+      "to": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1",
+      "to": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1",
+      "to": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1",
+      "to": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1",
+      "to": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1",
+      "to": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch2",
+      "to": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch2",
+      "to": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch2",
+      "to": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch2",
+      "to": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_zaxxon",
+      "to": "file:src/mame/sega/zaxxon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 932,
+        "sourceColumn": 8,
+        "sourceEndLine": 932
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_zaxxon",
+      "to": "gfxdecode:gfx_zaxxon/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_zaxxon",
+      "to": "gfxdecode:gfx_zaxxon/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_zaxxon",
+      "to": "gfxdecode:gfx_zaxxon/e2",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:zaxxon_state.root/screen",
+      "to": "device:zaxxon_state.root/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:zaxxon_state.root/screen",
+      "to": "device:zaxxon_state.root/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon_a.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon_a.cpp",
+      "to": "file:sound/samples.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sega/zaxxon_a.cpp",
+      "to": "file:zaxxon.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "device:zaxxon_state.zaxxon_samples/samples",
+      "to": "audioroute:device:zaxxon_state.zaxxon_samples/samples/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:zaxxon/SW100/f4",
+      "to": "handler:zaxxon_state.zaxxon_coin_r_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:zaxxon/SW100/f5",
+      "to": "handler:zaxxon_state.zaxxon_coin_r_1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:zaxxon/SW100/f6",
+      "to": "handler:zaxxon_state.zaxxon_coin_r_2",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "file:src/mame/sega/zaxxon.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sega/zaxxon.cpp",
+        "sourceLine": 453,
+        "sourceColumn": 1,
+        "sourceEndLine": 467
+      }
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map",
+      "to": "map:zaxxon_state.zaxxon_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:zaxxon_state.root/ppi8255/callback:ppi8255:0",
+      "to": "handler:zaxxon_state.zaxxon_sound_a_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/ppi8255/callback:ppi8255:1",
+      "to": "handler:zaxxon_state.zaxxon_sound_b_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/ppi8255/callback:ppi8255:2",
+      "to": "handler:zaxxon_state.zaxxon_sound_c_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:0",
+      "to": "handler:zaxxon_state.coin_enable_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:1",
+      "to": "handler:zaxxon_state.coin_enable_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:2",
+      "to": "handler:zaxxon_state.coin_enable_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:3",
+      "to": "handler:zaxxon_state.coin_counter_a_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:4",
+      "to": "handler:zaxxon_state.coin_counter_b_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch1/callback:mainlatch1:5",
+      "to": "handler:zaxxon_state.flipscreen_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:0",
+      "to": "handler:zaxxon_state.int_enable_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:1",
+      "to": "handler:zaxxon_state.fg_color_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:2",
+      "to": "handler:zaxxon_state.bg_color_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/mainlatch2/callback:mainlatch2:3",
+      "to": "handler:zaxxon_state.bg_enable_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_zaxxon/e0",
+      "to": "gfxlayout:gfx_8x8x2_planar",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_zaxxon/e1",
+      "to": "gfxlayout:gfx_8x8x3_planar",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_zaxxon/e2",
+      "to": "gfxlayout:zaxxon_spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:zaxxon_state.root/screen/callback:screen:0",
+      "to": "handler:zaxxon_state.screen_update_zaxxon",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:zaxxon_state.root/screen/callback:screen:1",
+      "to": "handler:zaxxon_state.vblank_int",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map/range2",
+      "to": "handler:zaxxon_state.zaxxon_videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map/range9",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mainlatch1"
+      }
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map/range10",
+      "to": "handler:i8255_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ppi8255"
+      }
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map/range10",
+      "to": "handler:i8255_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ppi8255"
+      }
+    },
+    {
+      "from": "map:zaxxon_state.zaxxon_map/range11",
+      "to": "handler:zaxxon_state.zaxxon_control_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x2_planar",
+      "to": "file:src/mame/sega/zaxxon.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x3_planar",
+      "to": "file:src/mame/sega/zaxxon.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:zaxxon_spritelayout",
+      "to": "file:src/mame/sega/zaxxon.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "handler:zaxxon_state.screen_update_zaxxon",
+      "to": "handler:zaxxon_state.draw_background",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:zaxxon_state.screen_update_zaxxon",
+      "to": "handler:zaxxon_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:zaxxon_state.zaxxon_control_w",
+      "to": "handler:zaxxon_state.bg_position_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:zaxxon_state.draw_sprites",
+      "to": "handler:zaxxon_state.find_minimum_y",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:zaxxon_state.draw_sprites",
+      "to": "handler:zaxxon_state.find_minimum_x",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

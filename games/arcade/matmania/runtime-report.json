@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 2,
+  "game": "matmania",
+  "family": "matmania",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "sourceCoverage": {
+    "covered": 98,
+    "total": 136,
+    "percent": 72.1
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      },
+      {
+        "name": "audiocpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      }
+    ],
+    "devices": [
+      {
+        "name": "scantimer:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ay1:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "ay2:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "dac:DAC_8BIT_R2R",
+        "status": "executable",
+        "source": "src/devices/sound/dac.h:237"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "ay1.data_address_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "ay2.data_address_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "dac.data_w",
+        "status": "executable",
+        "source": "src/devices/sound/dac.h:237"
+      },
+      {
+        "name": "matmania_state.paletteram_w",
+        "status": "generated",
+        "source": "src/mame/technos/matmania.cpp:206"
+      },
+      {
+        "name": "matmania_state.sound_nmi_enable_w",
+        "status": "generated",
+        "source": "src/mame/technos/matmania.cpp:104"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW2",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN0",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN1",
+        "status": "generated"
+      },
+      {
+        "name": "soundlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.set_vblank_int -> screen.irq0_line_hold",
+        "status": "generated",
+        "source": "src/mame/technos/matmania.cpp:640"
+      },
+      {
+        "name": "scantimer.configure_scanline -> matmania_state.scanline",
+        "status": "generated",
+        "source": "src/mame/technos/matmania.cpp:645"
+      },
+      {
+        "name": "screen.set_screen_update -> matmania_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/technos/matmania.cpp:650"
+      },
+      {
+        "name": "soundlatch.data_pending_callback -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/technos/matmania.cpp:659"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/matmania/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 5,
+    "compiledMethods": 5,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 2,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 2,
+    "screenUpdate": "matmania_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 11,
+    "generated": 11,
+    "declarative-host": 5,
+    "blocked": 0,
+    "missing": 0
+  }
+}

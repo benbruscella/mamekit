@@ -1,0 +1,291 @@
+{
+  "type": "SCREEN",
+  "uses": [
+    {
+      "game": "1942",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "asteroid",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "bankp",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "berzerk",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "bublbobl",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "carnival",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "commando",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "crush",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "ddragon",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "defender",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "dkong",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "dkongjr",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "elevator",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "friskyt",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "frogger",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "ghouls",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "gunsmoke",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "invaders",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "jumpbug",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "junglek",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "mario",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "matmania",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "pacman",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "panic",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "pengo",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "phoenix",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "popeye",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "qix",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "rampage",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "sf2ce",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "travrusa",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "tutankhm",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "venture",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "zaxxon",
+      "tags": [
+        "screen"
+      ]
+    },
+    {
+      "game": "zigzagb",
+      "tags": [
+        "screen"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

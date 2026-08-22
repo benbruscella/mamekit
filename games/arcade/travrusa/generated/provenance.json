@@ -1,0 +1,395 @@
+{
+  "generatedFrom": "src/mame/irem/travrusa.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 710,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 715,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 416,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 417,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 425,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 431,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 715,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 416,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 417,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 425,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 431,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 704,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 403,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 708,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 431,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 715,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 715,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 373,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 704,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 708,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 717,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 718,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 721,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 403,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 411,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 413,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 422,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 389,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 404,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 396,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 410,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 84,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 417,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 225,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 218,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 316,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 295,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 373,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 337,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 98,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 178,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 192,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 149,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 109,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 160,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 115,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 447,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 448,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 449,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 450,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 451,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 452,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 453,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 454,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 455,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 456,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 457,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 445,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 363,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 364,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 365,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/irem/irem.cpp",
+      "line": 360,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 149,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 316,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/irem/travrusa.cpp",
+      "line": 316,
+      "column": 1
+    }
+  ]
+}

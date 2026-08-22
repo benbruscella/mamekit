@@ -1,0 +1,3037 @@
+{
+    "schemaVersion": 3,
+    "game": "defender",
+    "family": "williams",
+    "driverFile": "src/mame/williams/williams.cpp",
+    "callbacks": [
+        {
+            "id": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+            "ownerTag": "scan_timer",
+            "signal": "configure_scanline",
+            "operation": "configure_scanline",
+            "targetClass": "williams_state",
+            "targetMethod": "va11_callback",
+            "scanlineStart": 0,
+            "scanlineIncrement": 32,
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1546,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/240_timer/callback:240_timer:0",
+            "ownerTag": "240_timer",
+            "signal": "configure_scanline",
+            "operation": "configure_scanline",
+            "targetClass": "williams_state",
+            "targetMethod": "count240_callback",
+            "scanlineStart": 0,
+            "scanlineIncrement": 240,
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1549,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "williams_state",
+            "targetMethod": "screen_update",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1557,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/mainirq/callback:mainirq:0",
+            "ownerTag": "mainirq",
+            "signal": "output_handler",
+            "operation": "set_inputline",
+            "targetTag": "maincpu",
+            "inputLine": "M6809_IRQ_LINE",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1566,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/soundirq/callback:soundirq:0",
+            "ownerTag": "soundirq",
+            "signal": "output_handler",
+            "operation": "set_inputline",
+            "targetTag": "soundcpu",
+            "inputLine": "M6808_IRQ_LINE",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1568,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_0/callback:pia_0:0",
+            "ownerTag": "pia_0",
+            "signal": "readpa_handler",
+            "operation": "set_ioport",
+            "targetTag": "IN0",
+            "targetPort": "IN0",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1571,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_0/callback:pia_0:1",
+            "ownerTag": "pia_0",
+            "signal": "readpb_handler",
+            "operation": "set_ioport",
+            "targetTag": "IN1",
+            "targetPort": "IN1",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1572,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_1/callback:pia_1:0",
+            "ownerTag": "pia_1",
+            "signal": "readpa_handler",
+            "operation": "set_ioport",
+            "targetTag": "IN2",
+            "targetPort": "IN2",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1575,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_1/callback:pia_1:1",
+            "ownerTag": "pia_1",
+            "signal": "writepb_handler",
+            "operation": "set",
+            "targetClass": "williams_state",
+            "targetMethod": "snd_cmd_w",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1576,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_1/callback:pia_1:2",
+            "ownerTag": "pia_1",
+            "signal": "irqa_handler",
+            "operation": "set",
+            "targetTag": "mainirq",
+            "targetClass": "input_merger_any_high_device",
+            "targetMethod": "in_w_0",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1577,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_1/callback:pia_1:3",
+            "ownerTag": "pia_1",
+            "signal": "irqb_handler",
+            "operation": "set",
+            "targetTag": "mainirq",
+            "targetClass": "input_merger_any_high_device",
+            "targetMethod": "in_w_1",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1578,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_2/callback:pia_2:0",
+            "ownerTag": "pia_2",
+            "signal": "writepa_handler",
+            "operation": "set",
+            "targetTag": "dac",
+            "targetClass": "dac_byte_interface",
+            "targetMethod": "data_w",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1581,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_2/callback:pia_2:1",
+            "ownerTag": "pia_2",
+            "signal": "irqa_handler",
+            "operation": "set",
+            "targetTag": "soundirq",
+            "targetClass": "input_merger_any_high_device",
+            "targetMethod": "in_w_0",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1582,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_2/callback:pia_2:2",
+            "ownerTag": "pia_2",
+            "signal": "irqb_handler",
+            "operation": "set",
+            "targetTag": "soundirq",
+            "targetClass": "input_merger_any_high_device",
+            "targetMethod": "in_w_1",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1583,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "williams_state.va11_callback"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1546,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/240_timer/callback:240_timer:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "williams_state.count240_callback"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1549,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/mainirq/callback:mainirq:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "maincpu",
+                "line": "irq",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1566,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/soundirq/callback:soundirq:0",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "soundcpu",
+                "line": "irq",
+                "delivery": "level"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1568,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/pia_0/callback:pia_0:0",
+            "effect": {
+                "kind": "port-read",
+                "port": "IN0"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1571,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/pia_0/callback:pia_0:1",
+            "effect": {
+                "kind": "port-read",
+                "port": "IN1"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1572,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/pia_1/callback:pia_1:0",
+            "effect": {
+                "kind": "port-read",
+                "port": "IN2"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1575,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/pia_1/callback:pia_1:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "williams_state.snd_cmd_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1576,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/pia_1/callback:pia_1:2",
+            "effect": {
+                "kind": "device-method",
+                "tag": "mainirq",
+                "method": "in_w_0",
+                "ownerClass": "input_merger_any_high_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1577,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/pia_1/callback:pia_1:3",
+            "effect": {
+                "kind": "device-method",
+                "tag": "mainirq",
+                "method": "in_w_1",
+                "ownerClass": "input_merger_any_high_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1578,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/pia_2/callback:pia_2:0",
+            "effect": {
+                "kind": "audio-write",
+                "tag": "dac",
+                "method": "data_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1581,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/pia_2/callback:pia_2:1",
+            "effect": {
+                "kind": "device-method",
+                "tag": "soundirq",
+                "method": "in_w_0",
+                "ownerClass": "input_merger_any_high_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1582,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:williams_state.williams_base/pia_2/callback:pia_2:2",
+            "effect": {
+                "kind": "device-method",
+                "tag": "soundirq",
+                "method": "in_w_1",
+                "ownerClass": "input_merger_any_high_device"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1583,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "mc6809e",
+                "clock": 1000000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 49151,
+                        "kind": "ram",
+                        "share": "videoram"
+                    },
+                    {
+                        "start": 49152,
+                        "end": 53247,
+                        "kind": "nop"
+                    },
+                    {
+                        "start": 49152,
+                        "end": 49167,
+                        "kind": "ram",
+                        "mirror": 992,
+                        "share": "paletteram",
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0,
+                        "writeOnly": true
+                    },
+                    {
+                        "start": 50175,
+                        "end": 50175,
+                        "kind": "handler",
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0,
+                        "write": "defender_state.watchdog_reset_w"
+                    },
+                    {
+                        "start": 49168,
+                        "end": 49183,
+                        "kind": "handler",
+                        "mirror": 992,
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0,
+                        "write": "defender_state.video_control_w"
+                    },
+                    {
+                        "start": 50176,
+                        "end": 50431,
+                        "kind": "ram",
+                        "mirror": 768,
+                        "share": "nvram",
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0,
+                        "write": "defender_state.cmos_4bit_w",
+                        "writeHandlerOwnsRam": true
+                    },
+                    {
+                        "start": 51200,
+                        "end": 52223,
+                        "kind": "handler",
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0,
+                        "read": "defender_state.video_counter_r"
+                    },
+                    {
+                        "start": 52224,
+                        "end": 52227,
+                        "kind": "handler",
+                        "mirror": 992,
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0,
+                        "read": "pia_1.read",
+                        "write": "pia_1.write"
+                    },
+                    {
+                        "start": 52228,
+                        "end": 52231,
+                        "kind": "handler",
+                        "mirror": 992,
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0,
+                        "read": "pia_0.read",
+                        "write": "pia_0.write"
+                    },
+                    {
+                        "start": 53248,
+                        "end": 57343,
+                        "kind": "handler",
+                        "write": "defender_state.bank_select_w"
+                    },
+                    {
+                        "start": 53248,
+                        "end": 65535,
+                        "kind": "rom",
+                        "romOffset": 0
+                    }
+                ],
+                "cycleClock": 1000000,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1537,
+                    "column": 2
+                }
+            },
+            {
+                "tag": "soundcpu",
+                "type": "m6808",
+                "clock": 3579545,
+                "region": "soundcpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 127,
+                        "kind": "ram"
+                    },
+                    {
+                        "start": 1024,
+                        "end": 1027,
+                        "kind": "handler",
+                        "mirror": 32768,
+                        "read": "pia_2.read",
+                        "write": "pia_2.write"
+                    },
+                    {
+                        "start": 45056,
+                        "end": 65535,
+                        "kind": "rom"
+                    }
+                ],
+                "cycleClock": 894886.25,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1540,
+                    "column": 2
+                }
+            }
+        ],
+        "shareBindings": [
+            {
+                "share": "nvram",
+                "member": "m_nvram"
+            }
+        ],
+        "startHandlers": [
+            "williams_state.video_start"
+        ],
+        "resetHandlers": [
+            "defender_state.machine_reset"
+        ],
+        "screen": {
+            "width": 292,
+            "height": 240,
+            "xOffset": 6,
+            "yOffset": 7,
+            "refresh": 60.09615384615385,
+            "vtotal": 260,
+            "vbstart": 247,
+            "vbend": 7,
+            "updateMode": "scanline",
+            "rotate": 0,
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1554,
+                "column": 2
+            }
+        },
+        "frameEvents": [
+            {
+                "callbackId": "device:williams_state.williams_base/240_timer/callback:240_timer:0",
+                "ownerTag": "240_timer",
+                "signal": "configure_scanline",
+                "line": 0,
+                "state": 0,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1549,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+                "ownerTag": "scan_timer",
+                "signal": "configure_scanline",
+                "line": 0,
+                "state": 0,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1546,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+                "ownerTag": "scan_timer",
+                "signal": "configure_scanline",
+                "line": 32,
+                "state": 32,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1546,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+                "ownerTag": "scan_timer",
+                "signal": "configure_scanline",
+                "line": 64,
+                "state": 64,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1546,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+                "ownerTag": "scan_timer",
+                "signal": "configure_scanline",
+                "line": 96,
+                "state": 96,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1546,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+                "ownerTag": "scan_timer",
+                "signal": "configure_scanline",
+                "line": 128,
+                "state": 128,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1546,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+                "ownerTag": "scan_timer",
+                "signal": "configure_scanline",
+                "line": 160,
+                "state": 160,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1546,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+                "ownerTag": "scan_timer",
+                "signal": "configure_scanline",
+                "line": 192,
+                "state": 192,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1546,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+                "ownerTag": "scan_timer",
+                "signal": "configure_scanline",
+                "line": 224,
+                "state": 224,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1546,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:williams_state.williams_base/240_timer/callback:240_timer:0",
+                "ownerTag": "240_timer",
+                "signal": "configure_scanline",
+                "line": 240,
+                "state": 240,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1549,
+                    "column": 2
+                }
+            },
+            {
+                "callbackId": "device:williams_state.williams_base/scan_timer/callback:scan_timer:0",
+                "ownerTag": "scan_timer",
+                "signal": "configure_scanline",
+                "line": 256,
+                "state": 256,
+                "source": {
+                    "file": "src/mame/williams/williams.cpp",
+                    "line": 1546,
+                    "column": 2
+                }
+            }
+        ],
+        "screenUpdate": {
+            "handler": "williams_state.screen_update",
+            "source": {
+                "file": "src/mame/williams/williams_v.cpp",
+                "line": 200,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:williams_state.williams_base/maincpu",
+            "tag": "maincpu",
+            "type": "MC6809E",
+            "member": "m_maincpu",
+            "clock": 1000000,
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1537,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/soundcpu",
+            "tag": "soundcpu",
+            "type": "M6808",
+            "member": "m_soundcpu",
+            "clock": 3579545,
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1540,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/nvram",
+            "tag": "nvram",
+            "type": "NVRAM",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1543,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/scan_timer",
+            "tag": "scan_timer",
+            "type": "TIMER",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1546,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/240_timer",
+            "tag": "240_timer",
+            "type": "TIMER",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1549,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/watchdog",
+            "tag": "watchdog",
+            "type": "WATCHDOG_TIMER",
+            "member": "m_watchdog",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1551,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "member": "m_screen",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        8000000,
+                        512,
+                        6,
+                        298,
+                        260,
+                        7,
+                        247
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1554,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1559,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/speaker",
+            "tag": "speaker",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1562,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/dac",
+            "tag": "dac",
+            "type": "MC1408",
+            "clock": 0,
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1563,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/mainirq",
+            "tag": "mainirq",
+            "type": "INPUT_MERGER_ANY_HIGH",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1566,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/soundirq",
+            "tag": "soundirq",
+            "type": "INPUT_MERGER_ANY_HIGH",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1568,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_0",
+            "tag": "pia_0",
+            "type": "PIA6821",
+            "member": "m_pia[0]",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1570,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_1",
+            "tag": "pia_1",
+            "type": "PIA6821",
+            "member": "m_pia[1]",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1574,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:williams_state.williams_base/pia_2",
+            "tag": "pia_2",
+            "type": "PIA6821",
+            "member": "m_pia[2]",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1580,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:defender_state.watchdog_reset_w",
+            "ownerClass": "defender_state",
+            "method": "watchdog_reset_w",
+            "parameters": "u8 data",
+            "body": "// yes, the data bits are checked for this specific value\n\tif (data == 0x39)\n\t\tm_watchdog->watchdog_reset();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 57
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_watchdog"
+                                        },
+                                        "property": "watchdog_reset"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 247,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:defender_state.video_control_w",
+            "ownerClass": "defender_state",
+            "method": "video_control_w",
+            "parameters": "u8 data",
+            "body": "m_cocktail = BIT(data, 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_cocktail"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 335,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:defender_state.cmos_4bit_w",
+            "ownerClass": "defender_state",
+            "method": "cmos_4bit_w",
+            "parameters": "offs_t offset, u8 data",
+            "body": "// only 4 bits are valid\n\tm_nvram[offset] = data | 0xf0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_nvram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 240
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 233,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:defender_state.video_counter_r",
+            "ownerClass": "defender_state",
+            "method": "video_counter_r",
+            "body": "if (m_screen->vpos() < 0x100)\n\t\treturn m_screen->vpos() & 0xfc;\n\telse\n\t\treturn 0xfc;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_screen"
+                                    },
+                                    "property": "vpos"
+                                },
+                                "args": []
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 256
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_screen"
+                                            },
+                                            "property": "vpos"
+                                        },
+                                        "args": []
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 252
+                                    }
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 252
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_v.cpp",
+                "line": 485,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:pia6821_device.read",
+            "ownerClass": "pia6821_device",
+            "method": "read",
+            "source": {
+                "file": "src/mame/shared/williamssound.cpp",
+                "line": 1223,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:pia6821_device.write",
+            "ownerClass": "pia6821_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/shared/williamssound.cpp",
+                "line": 1223,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:defender_state.bank_select_w",
+            "ownerClass": "defender_state",
+            "method": "bank_select_w",
+            "parameters": "u8 data",
+            "body": "m_rom_view.select(data & 0x0f);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_rom_view"
+                                },
+                                "property": "select"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 341,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:williams_state.vram_select_w",
+            "ownerClass": "williams_state",
+            "method": "vram_select_w",
+            "parameters": "u8 data",
+            "body": "// VRAM/ROM banking from bit 0\n\tif (BIT(data, 0))\n\t\tm_rom_view.select(0);\n\telse\n\t\tm_rom_view.disable();\n\n\t// cocktail flip from bit 1\n\tm_cocktail = BIT(data, 1);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_rom_view"
+                                        },
+                                        "property": "select"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_rom_view"
+                                        },
+                                        "property": "disable"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_cocktail"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 112,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:williams_state.video_counter_r",
+            "ownerClass": "williams_state",
+            "method": "video_counter_r",
+            "body": "if (m_screen->vpos() < 0x100)\n\t\treturn m_screen->vpos() & 0xfc;\n\telse\n\t\treturn 0xfc;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_screen"
+                                    },
+                                    "property": "vpos"
+                                },
+                                "args": []
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 256
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_screen"
+                                            },
+                                            "property": "vpos"
+                                        },
+                                        "args": []
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 252
+                                    }
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 252
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_v.cpp",
+                "line": 485,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:williams_state.watchdog_reset_w",
+            "ownerClass": "williams_state",
+            "method": "watchdog_reset_w",
+            "parameters": "u8 data",
+            "body": "// yes, the data bits are checked for this specific value\n\tif (data == 0x39)\n\t\tm_watchdog->watchdog_reset();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 57
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_watchdog"
+                                        },
+                                        "property": "watchdog_reset"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 247,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:williams_state.cmos_4bit_w",
+            "ownerClass": "williams_state",
+            "method": "cmos_4bit_w",
+            "parameters": "offs_t offset, u8 data",
+            "body": "// only 4 bits are valid\n\tm_nvram[offset] = data | 0xf0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_nvram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 240
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 233,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:dac_byte_interface.data_w",
+            "ownerClass": "dac_byte_interface",
+            "method": "data_w",
+            "source": {
+                "file": "src/mame/shared/williamssound.cpp",
+                "line": 1242,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:williams_state.machine_reset",
+            "ownerClass": "williams_state",
+            "method": "machine_reset",
+            "body": "m_rom_view.disable();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_rom_view"
+                                },
+                                "property": "disable"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 47,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:williams_state.video_start",
+            "ownerClass": "williams_state",
+            "method": "video_start",
+            "body": "save_item(NAME(m_cocktail));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_cocktail"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_v.cpp",
+                "line": 163,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:williams_state.va11_callback",
+            "ownerClass": "williams_state",
+            "method": "va11_callback",
+            "parameters": "int param",
+            "body": "int const scanline = param;\n\n\t// must not fire at line 256\n\tif (scanline == 256)\n\t\treturn;\n\n\t// the IRQ signal comes into CB1, and is set to VA11\n\tm_pia[1]->cb1_w(BIT(scanline, 5));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "scanline",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "param"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "scanline"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 256
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "return"
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_pia"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                },
+                                "property": "cb1_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "scanline"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 5
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 19,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:williams_state.count240_callback",
+            "ownerClass": "williams_state",
+            "method": "count240_callback",
+            "parameters": "int param",
+            "body": "int const scanline = param;\n\n\t// the COUNT240 signal comes into CA1, and is set to the logical AND of VA10-VA13\n\tm_pia[1]->ca1_w(scanline >= 240 ? 1 : 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "scanline",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "param"
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_pia"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                },
+                                "property": "ca1_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "binary",
+                                        "operator": ">=",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "scanline"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 240
+                                        }
+                                    },
+                                    "whenTrue": {
+                                        "kind": "number",
+                                        "value": 1
+                                    },
+                                    "whenFalse": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 32,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:williams_state.screen_update",
+            "ownerClass": "williams_state",
+            "method": "screen_update",
+            "parameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+            "body": "// precompute the palette\n\trgb_t pens[16];\n\tfor (int x = 0; x < 16; x++)\n\t\tpens[x] = m_palette->pen_color(m_paletteram[x]);\n\n\t// loop over rows\n\tfor (int y = cliprect.min_y; y <= cliprect.max_y; y++)\n\t{\n\t\tuint8_t const *const source = &m_videoram[y];\n\t\tuint32_t *const dest = &bitmap.pix(y);\n\n\t\t// loop over columns\n\t\tfor (int x = cliprect.min_x & ~1; x <= cliprect.max_x; x += 2)\n\t\t{\n\t\t\tuint8_t const pix = source[(x / 2) * 256];\n\t\t\tdest[x + 0] = pens[pix >> 4];\n\t\t\tdest[x + 1] = pens[pix & 0x0f];\n\t\t}\n\t}\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "pens",
+                        "valueType": "rgb_t",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "ALLOC"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 16
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "x",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "x"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 16
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "x"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "pens"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                    }
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_palette"
+                                        },
+                                        "property": "pen_color"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_paletteram"
+                                            },
+                                            "index": {
+                                                "kind": "identifier",
+                                                "name": "x"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "y",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "cliprect"
+                                    },
+                                    "property": "min_y"
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "y"
+                            },
+                            "right": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                "property": "max_y"
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "y"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "source",
+                                "valueType": "uint8_t*",
+                                "value": {
+                                    "kind": "unary",
+                                    "operator": "&",
+                                    "operand": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_videoram"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "dest",
+                                "valueType": "uint32_t*",
+                                "value": {
+                                    "kind": "unary",
+                                    "operator": "&",
+                                    "operand": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "bitmap"
+                                            },
+                                            "property": "pix"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "identifier",
+                                                "name": "y"
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                "op": "for",
+                                "initialize": [
+                                    {
+                                        "op": "declare",
+                                        "name": "x",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "cliprect"
+                                                },
+                                                "property": "min_x"
+                                            },
+                                            "right": {
+                                                "kind": "unary",
+                                                "operator": "~",
+                                                "operand": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                ],
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "<=",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                    },
+                                    "right": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        "property": "max_x"
+                                    }
+                                },
+                                "iterate": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "x"
+                                        },
+                                        "operator": "+=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "declare",
+                                        "name": "pix",
+                                        "valueType": "uint8_t",
+                                        "value": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "source"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "*",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "/",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "x"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 2
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 256
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "dest"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "x"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            }
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "pens"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": ">>",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "pix"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 4
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "dest"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "x"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 1
+                                                }
+                                            }
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "pens"
+                                            },
+                                            "index": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "pix"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 15
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_v.cpp",
+                "line": 200,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:williams_state.snd_cmd_w",
+            "ownerClass": "williams_state",
+            "method": "snd_cmd_w",
+            "parameters": "u8 data",
+            "body": "// the high two bits are set externally, and should be 1\n\tmachine().scheduler().synchronize(timer_expired_delegate(FUNC(williams_state::deferred_snd_cmd_w<2>), this), data | 0xc0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "scheduler"
+                                    },
+                                    "args": []
+                                },
+                                "property": "synchronize"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "timer_expired_delegate"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "FUNC"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "williams_state::deferred_snd_cmd_w"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "this"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 192
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 171,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:williams_state.deferred_snd_cmd_w_2",
+            "ownerClass": "williams_state",
+            "method": "deferred_snd_cmd_w_2",
+            "parameters": "int param",
+            "body": "m_pia[A]->portb_w(param);\n\tm_pia[A]->cb1_w((param == 0xff) ? 0 : 1);\n\n\tif constexpr (sizeof...(B) > 0)\n\t\tdeferred_snd_cmd_w<B...>(param);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_pia"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "A"
+                                    }
+                                },
+                                "property": "portb_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "param"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_pia"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "A"
+                                    }
+                                },
+                                "property": "cb1_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "binary",
+                                        "operator": "==",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "param"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 255
+                                        }
+                                    },
+                                    "whenTrue": {
+                                        "kind": "number",
+                                        "value": 0
+                                    },
+                                    "whenFalse": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": [
+                    "if without condition"
+                ]
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 162,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:input_merger_any_high_device.in_w_0",
+            "ownerClass": "input_merger_any_high_device",
+            "method": "in_w_0",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1964,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:input_merger_any_high_device.in_w_1",
+            "ownerClass": "input_merger_any_high_device",
+            "method": "in_w_1",
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 1965,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:defender_state.machine_reset",
+            "ownerClass": "defender_state",
+            "method": "machine_reset",
+            "body": "williams_state::machine_reset();\n\n\tbank_select_w(0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "williams_state::machine_reset"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "bank_select_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/williams/williams_m.cpp",
+                "line": 327,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:defender_state.defender_main_map",
+            "className": "defender_state",
+            "name": "defender_main_map",
+            "ranges": [
+                {
+                    "id": "map:defender_state.defender_main_map/range0",
+                    "start": 0,
+                    "end": 49151,
+                    "raw": "map(0x0000, 0xbfff).ram().share(m_videoram)",
+                    "props": {
+                        "start": 0,
+                        "end": 49151,
+                        "raw": "map(0x0000, 0xbfff).ram().share(m_videoram)",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 496,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 496,
+                        "ram": true,
+                        "share": "videoram"
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 496,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_main_map/range1",
+                    "start": 49152,
+                    "end": 53247,
+                    "raw": "map(0xc000, 0xcfff).view(m_rom_view)",
+                    "props": {
+                        "start": 49152,
+                        "end": 53247,
+                        "raw": "map(0xc000, 0xcfff).view(m_rom_view)",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 497,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 497
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 497,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_main_map/range2",
+                    "start": 49152,
+                    "end": 49167,
+                    "raw": "m_rom_view[0](0xc000, 0xc00f).mirror(0x03e0).writeonly().share(m_paletteram)",
+                    "props": {
+                        "start": 49152,
+                        "end": 49167,
+                        "raw": "m_rom_view[0](0xc000, 0xc00f).mirror(0x03e0).writeonly().share(m_paletteram)",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 498,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 498,
+                        "mirror": 992,
+                        "writeonly": true,
+                        "share": "paletteram",
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 498,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_main_map/range3",
+                    "start": 50175,
+                    "end": 50175,
+                    "raw": "m_rom_view[0](0xc3ff, 0xc3ff).w(FUNC(defender_state::watchdog_reset_w))",
+                    "write": "defender_state.watchdog_reset_w",
+                    "props": {
+                        "start": 50175,
+                        "end": 50175,
+                        "raw": "m_rom_view[0](0xc3ff, 0xc3ff).w(FUNC(defender_state::watchdog_reset_w))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 499,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 499,
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 499,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_main_map/range4",
+                    "start": 49168,
+                    "end": 49183,
+                    "raw": "m_rom_view[0](0xc010, 0xc01f).mirror(0x03e0).w(FUNC(defender_state::video_control_w))",
+                    "write": "defender_state.video_control_w",
+                    "props": {
+                        "start": 49168,
+                        "end": 49183,
+                        "raw": "m_rom_view[0](0xc010, 0xc01f).mirror(0x03e0).w(FUNC(defender_state::video_control_w))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 500,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 500,
+                        "mirror": 992,
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 500,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_main_map/range5",
+                    "start": 50176,
+                    "end": 50431,
+                    "raw": "m_rom_view[0](0xc400, 0xc4ff).mirror(0x0300).ram().w(FUNC(defender_state::cmos_4bit_w)).share(\"nvram\")",
+                    "write": "defender_state.cmos_4bit_w",
+                    "props": {
+                        "start": 50176,
+                        "end": 50431,
+                        "raw": "m_rom_view[0](0xc400, 0xc4ff).mirror(0x0300).ram().w(FUNC(defender_state::cmos_4bit_w)).share(\"nvram\")",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 501,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 501,
+                        "mirror": 768,
+                        "ram": true,
+                        "share": "nvram",
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 501,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_main_map/range6",
+                    "start": 51200,
+                    "end": 52223,
+                    "raw": "m_rom_view[0](0xc800, 0xcbff).r(FUNC(defender_state::video_counter_r))",
+                    "read": "defender_state.video_counter_r",
+                    "props": {
+                        "start": 51200,
+                        "end": 52223,
+                        "raw": "m_rom_view[0](0xc800, 0xcbff).r(FUNC(defender_state::video_counter_r))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 502,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 502,
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 502,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_main_map/range7",
+                    "start": 52224,
+                    "end": 52227,
+                    "raw": "m_rom_view[0](0xcc00, 0xcc03).mirror(0x03e0).rw(m_pia[1], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                    "read": "pia_1.read",
+                    "write": "pia_1.write",
+                    "props": {
+                        "start": 52224,
+                        "end": 52227,
+                        "raw": "m_rom_view[0](0xcc00, 0xcc03).mirror(0x03e0).rw(m_pia[1], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 503,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 503,
+                        "mirror": 992,
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 503,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_main_map/range8",
+                    "start": 52228,
+                    "end": 52231,
+                    "raw": "m_rom_view[0](0xcc04, 0xcc07).mirror(0x03e0).rw(m_pia[0], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                    "read": "pia_0.read",
+                    "write": "pia_0.write",
+                    "props": {
+                        "start": 52228,
+                        "end": 52231,
+                        "raw": "m_rom_view[0](0xcc04, 0xcc07).mirror(0x03e0).rw(m_pia[0], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 504,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 504,
+                        "mirror": 992,
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 504,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_main_map/range9",
+                    "start": 53248,
+                    "end": 57343,
+                    "raw": "map(0xd000, 0xdfff).w(FUNC(defender_state::bank_select_w))",
+                    "write": "defender_state.bank_select_w",
+                    "props": {
+                        "start": 53248,
+                        "end": 57343,
+                        "raw": "map(0xd000, 0xdfff).w(FUNC(defender_state::bank_select_w))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 505,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 505
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 505,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_main_map/range10",
+                    "start": 53248,
+                    "end": 65535,
+                    "raw": "map(0xd000, 0xffff).rom().region(\"maincpu\", 0)",
+                    "props": {
+                        "start": 53248,
+                        "end": 65535,
+                        "raw": "map(0xd000, 0xffff).rom().region(\"maincpu\", 0)",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 506,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 506,
+                        "rom": true,
+                        "region": "maincpu",
+                        "regionOffset": 0
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 506,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 494,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:williams_state.main_map",
+            "className": "williams_state",
+            "name": "main_map",
+            "ranges": [
+                {
+                    "id": "map:williams_state.main_map/range0",
+                    "start": 0,
+                    "end": 49151,
+                    "raw": "map(0x0000, 0xbfff).ram().share(m_videoram)",
+                    "props": {
+                        "start": 0,
+                        "end": 49151,
+                        "raw": "map(0x0000, 0xbfff).ram().share(m_videoram)",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 532,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 532,
+                        "ram": true,
+                        "share": "videoram"
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 532,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.main_map/range1",
+                    "start": 0,
+                    "end": 36863,
+                    "raw": "map(0x0000, 0x8fff).view(m_rom_view)",
+                    "props": {
+                        "start": 0,
+                        "end": 36863,
+                        "raw": "map(0x0000, 0x8fff).view(m_rom_view)",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 533,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 533
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 533,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.main_map/range2",
+                    "start": 0,
+                    "end": 36863,
+                    "raw": "m_rom_view[0](0x0000, 0x8fff).rom().region(\"maincpu\", 0x00000)",
+                    "props": {
+                        "start": 0,
+                        "end": 36863,
+                        "raw": "m_rom_view[0](0x0000, 0x8fff).rom().region(\"maincpu\", 0x00000)",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 534,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 534,
+                        "rom": true,
+                        "viewTag": "m_rom_view",
+                        "viewEntry": 0,
+                        "region": "maincpu",
+                        "regionOffset": 0
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 534,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.main_map/range3",
+                    "start": 49152,
+                    "end": 49167,
+                    "raw": "map(0xc000, 0xc00f).mirror(0x03f0).writeonly().share(m_paletteram)",
+                    "props": {
+                        "start": 49152,
+                        "end": 49167,
+                        "raw": "map(0xc000, 0xc00f).mirror(0x03f0).writeonly().share(m_paletteram)",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 535,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 535,
+                        "mirror": 1008,
+                        "writeonly": true,
+                        "share": "paletteram"
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 535,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.main_map/range4",
+                    "start": 51204,
+                    "end": 51207,
+                    "raw": "map(0xc804, 0xc807).mirror(0x00f0).rw(m_pia[0], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                    "read": "pia_0.read",
+                    "write": "pia_0.write",
+                    "props": {
+                        "start": 51204,
+                        "end": 51207,
+                        "raw": "map(0xc804, 0xc807).mirror(0x00f0).rw(m_pia[0], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 536,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 536,
+                        "mirror": 240
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 536,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.main_map/range5",
+                    "start": 51212,
+                    "end": 51215,
+                    "raw": "map(0xc80c, 0xc80f).mirror(0x00f0).rw(m_pia[1], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                    "read": "pia_1.read",
+                    "write": "pia_1.write",
+                    "props": {
+                        "start": 51212,
+                        "end": 51215,
+                        "raw": "map(0xc80c, 0xc80f).mirror(0x00f0).rw(m_pia[1], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 537,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 537,
+                        "mirror": 240
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 537,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.main_map/range6",
+                    "start": 51456,
+                    "end": 51711,
+                    "raw": "map(0xc900, 0xc9ff).w(FUNC(williams_state::vram_select_w))",
+                    "write": "williams_state.vram_select_w",
+                    "props": {
+                        "start": 51456,
+                        "end": 51711,
+                        "raw": "map(0xc900, 0xc9ff).w(FUNC(williams_state::vram_select_w))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 538,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 538
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 538,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.main_map/range7",
+                    "start": 51968,
+                    "end": 52223,
+                    "raw": "map(0xcb00, 0xcbff).r(FUNC(williams_state::video_counter_r))",
+                    "read": "williams_state.video_counter_r",
+                    "props": {
+                        "start": 51968,
+                        "end": 52223,
+                        "raw": "map(0xcb00, 0xcbff).r(FUNC(williams_state::video_counter_r))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 539,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 539
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 539,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.main_map/range8",
+                    "start": 52223,
+                    "end": 52223,
+                    "raw": "map(0xcbff, 0xcbff).w(FUNC(williams_state::watchdog_reset_w))",
+                    "write": "williams_state.watchdog_reset_w",
+                    "props": {
+                        "start": 52223,
+                        "end": 52223,
+                        "raw": "map(0xcbff, 0xcbff).w(FUNC(williams_state::watchdog_reset_w))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 540,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 540
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 540,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.main_map/range9",
+                    "start": 52224,
+                    "end": 53247,
+                    "raw": "map(0xcc00, 0xcfff).ram().w(FUNC(williams_state::cmos_4bit_w)).share(\"nvram\")",
+                    "write": "williams_state.cmos_4bit_w",
+                    "props": {
+                        "start": 52224,
+                        "end": 53247,
+                        "raw": "map(0xcc00, 0xcfff).ram().w(FUNC(williams_state::cmos_4bit_w)).share(\"nvram\")",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 541,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 541,
+                        "ram": true,
+                        "share": "nvram"
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 541,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.main_map/range10",
+                    "start": 53248,
+                    "end": 65535,
+                    "raw": "map(0xd000, 0xffff).rom()",
+                    "props": {
+                        "start": 53248,
+                        "end": 65535,
+                        "raw": "map(0xd000, 0xffff).rom()",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 542,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 542,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 542,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 530,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:defender_state.defender_sound_map",
+            "className": "defender_state",
+            "name": "defender_sound_map",
+            "ranges": [
+                {
+                    "id": "map:defender_state.defender_sound_map/range0",
+                    "start": 0,
+                    "end": 127,
+                    "raw": "map(0x0000, 0x007f).ram()",
+                    "props": {
+                        "start": 0,
+                        "end": 127,
+                        "raw": "map(0x0000, 0x007f).ram()",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 678,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 678,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 678,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_sound_map/range1",
+                    "start": 1024,
+                    "end": 1027,
+                    "raw": "map(0x0400, 0x0403).mirror(0x8000).rw(m_pia[2], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                    "read": "pia_2.read",
+                    "write": "pia_2.write",
+                    "props": {
+                        "start": 1024,
+                        "end": 1027,
+                        "raw": "map(0x0400, 0x0403).mirror(0x8000).rw(m_pia[2], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 679,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 679,
+                        "mirror": 32768
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 679,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:defender_state.defender_sound_map/range2",
+                    "start": 45056,
+                    "end": 65535,
+                    "raw": "map(0xb000, 0xffff).rom()",
+                    "props": {
+                        "start": 45056,
+                        "end": 65535,
+                        "raw": "map(0xb000, 0xffff).rom()",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 680,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 680,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 680,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 676,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:williams_state.sound_map",
+            "className": "williams_state",
+            "name": "sound_map",
+            "ranges": [
+                {
+                    "id": "map:williams_state.sound_map/range0",
+                    "start": 0,
+                    "end": 127,
+                    "raw": "map(0x0000, 0x007f).ram()",
+                    "props": {
+                        "start": 0,
+                        "end": 127,
+                        "raw": "map(0x0000, 0x007f).ram()",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 693,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 693,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 693,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.sound_map/range1",
+                    "start": 128,
+                    "end": 255,
+                    "raw": "map(0x0080, 0x00ff).ram()",
+                    "props": {
+                        "start": 128,
+                        "end": 255,
+                        "raw": "map(0x0080, 0x00ff).ram()",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 694,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 694,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 694,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.sound_map/range2",
+                    "start": 1024,
+                    "end": 1027,
+                    "raw": "map(0x0400, 0x0403).mirror(0x8000).rw(m_pia[2], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                    "read": "pia_2.read",
+                    "write": "pia_2.write",
+                    "props": {
+                        "start": 1024,
+                        "end": 1027,
+                        "raw": "map(0x0400, 0x0403).mirror(0x8000).rw(m_pia[2], FUNC(pia6821_device::read), FUNC(pia6821_device::write))",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 695,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 695,
+                        "mirror": 32768
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 695,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:williams_state.sound_map/range3",
+                    "start": 45056,
+                    "end": 65535,
+                    "raw": "map(0xb000, 0xffff).rom()",
+                    "props": {
+                        "start": 45056,
+                        "end": 65535,
+                        "raw": "map(0xb000, 0xffff).rom()",
+                        "sourceFile": "src/mame/williams/williams.cpp",
+                        "sourceLine": 696,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 696,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/williams/williams.cpp",
+                        "line": 696,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/williams/williams.cpp",
+                "line": 691,
+                "column": 1
+            }
+        }
+    ],
+    "video": {
+        "gfx": [],
+        "tilemaps": [],
+        "initialState": {
+            "m_tilemap_xscroll": 0,
+            "m_fg_color": 0,
+            "m_bg_color": 0,
+            "m_current_sound_data": 0
+        },
+        "source": {
+            "file": "src/mame/williams/williams_v.cpp",
+            "line": 200,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "dac",
+        "deviceTag": "dac",
+        "deviceTags": [
+            "dac"
+        ],
+        "deviceType": "MC1408",
+        "writeMethods": [
+            "data_w",
+            "write"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "routes": [
+            {
+                "chip": 0,
+                "channel": 0,
+                "gain": 0.25,
+                "target": "speaker"
+            },
+            {
+                "chip": 0,
+                "channel": 1,
+                "gain": 0.25,
+                "target": "speaker"
+            },
+            {
+                "chip": 0,
+                "channel": 2,
+                "gain": 0.25,
+                "target": "speaker"
+            }
+        ]
+    }
+}

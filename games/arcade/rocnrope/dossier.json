@@ -1,0 +1,783 @@
+{
+  "game": "rocnrope",
+  "title": "Roc'n Rope (Konami, 1983)",
+  "fullname": "Roc'n Rope",
+  "year": "1983",
+  "company": "Konami",
+  "family": "rocnrope",
+  "driverFile": "src/mame/konami/rocnrope.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Chris Hardy",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "konami1",
+      "clock": 1536000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 12416,
+          "end": 12416,
+          "kind": "handler",
+          "read": "port.SYSTEM"
+        },
+        {
+          "start": 12417,
+          "end": 12417,
+          "kind": "handler",
+          "read": "port.P1"
+        },
+        {
+          "start": 12418,
+          "end": 12418,
+          "kind": "handler",
+          "read": "port.P2"
+        },
+        {
+          "start": 12419,
+          "end": 12419,
+          "kind": "handler",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 12288,
+          "end": 12288,
+          "kind": "handler",
+          "read": "port.DSW2"
+        },
+        {
+          "start": 12544,
+          "end": 12544,
+          "kind": "handler",
+          "read": "port.DSW3"
+        },
+        {
+          "start": 16384,
+          "end": 16431,
+          "kind": "ram",
+          "share": "spriteram[1]"
+        },
+        {
+          "start": 16432,
+          "end": 17407,
+          "kind": "ram"
+        },
+        {
+          "start": 17408,
+          "end": 17455,
+          "kind": "ram",
+          "share": "spriteram[0]"
+        },
+        {
+          "start": 17456,
+          "end": 18431,
+          "kind": "ram"
+        },
+        {
+          "start": 18432,
+          "end": 19455,
+          "kind": "ram",
+          "share": "colorram",
+          "write": "rocnrope_state.colorram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 19456,
+          "end": 20479,
+          "kind": "ram",
+          "share": "videoram",
+          "write": "rocnrope_state.videoram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 20480,
+          "end": 24575,
+          "kind": "ram"
+        },
+        {
+          "start": 32768,
+          "end": 32768,
+          "kind": "handler",
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 32896,
+          "end": 32903,
+          "kind": "handler",
+          "write": "mainlatch.write_d0"
+        },
+        {
+          "start": 33024,
+          "end": 33024,
+          "kind": "handler",
+          "write": "timeplt_audio.sound_data_w"
+        },
+        {
+          "start": 33154,
+          "end": 33165,
+          "kind": "handler",
+          "write": "rocnrope_state.interrupt_vector_w"
+        },
+        {
+          "start": 24576,
+          "end": 65535,
+          "kind": "rom"
+        },
+        {
+          "start": 65522,
+          "end": 65533,
+          "kind": "ram",
+          "share": "vectors"
+        }
+      ]
+    },
+    {
+      "tag": "timeplt_audio:tpsound",
+      "type": "z80",
+      "clock": 1789772.625,
+      "region": "timeplt_audio:tpsound",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 12287,
+          "kind": "rom"
+        },
+        {
+          "start": 12288,
+          "end": 13311,
+          "kind": "ram",
+          "mirror": 3072
+        },
+        {
+          "start": 16384,
+          "end": 16384,
+          "kind": "handler",
+          "mirror": 4095,
+          "read": "timeplt_audio:ay1.data_r",
+          "write": "timeplt_audio:ay1.data_w"
+        },
+        {
+          "start": 20480,
+          "end": 20480,
+          "kind": "handler",
+          "mirror": 4095,
+          "write": "timeplt_audio:ay1.address_w"
+        },
+        {
+          "start": 24576,
+          "end": 24576,
+          "kind": "handler",
+          "mirror": 4095,
+          "read": "timeplt_audio:ay2.data_r",
+          "write": "timeplt_audio:ay2.data_w"
+        },
+        {
+          "start": 28672,
+          "end": 28672,
+          "kind": "handler",
+          "mirror": 4095,
+          "write": "timeplt_audio:ay2.address_w"
+        },
+        {
+          "start": 32768,
+          "end": 65535,
+          "kind": "handler",
+          "write": "timeplt_audio_device.filter_w"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1789772.625,
+    "chips": 2,
+    "deviceTags": [
+      "timeplt_audio:ay1",
+      "timeplt_audio:ay2"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.6,
+        "target": "filter.0.0",
+        "filter": {
+          "index": 0,
+          "bank": 0,
+          "channel": 0
+        }
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.6,
+        "target": "filter.0.1",
+        "filter": {
+          "index": 1,
+          "bank": 0,
+          "channel": 1
+        }
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.6,
+        "target": "filter.0.2",
+        "filter": {
+          "index": 2,
+          "bank": 0,
+          "channel": 2
+        }
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.6,
+        "target": "filter.1.0",
+        "filter": {
+          "index": 3,
+          "bank": 1,
+          "channel": 0
+        }
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.6,
+        "target": "filter.1.1",
+        "filter": {
+          "index": 4,
+          "bank": 1,
+          "channel": 1
+        }
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.6,
+        "target": "filter.1.2",
+        "filter": {
+          "index": 5,
+          "bank": 1,
+          "channel": 2
+        }
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 60,
+    "vtotal": 256,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "rr1.1h",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "83093134",
+          "alt": [
+            {
+              "file": "rnr_h1.vid",
+              "crc": "0fddc1f6"
+            },
+            {
+              "file": "r1.1j",
+              "crc": "6310a1fe"
+            }
+          ]
+        },
+        {
+          "file": "rr2.2h",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "75af8697",
+          "alt": [
+            {
+              "file": "rnr_h2.vid",
+              "crc": "ce9db49a"
+            }
+          ]
+        },
+        {
+          "file": "rr3.3h",
+          "offset": 40960,
+          "size": 8192,
+          "crc": "b21372b1",
+          "alt": [
+            {
+              "file": "rnr_h3.vid",
+              "crc": "6d278459"
+            }
+          ]
+        },
+        {
+          "file": "rr4.4h",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "7acb2a05",
+          "alt": [
+            {
+              "file": "rnr_h4.vid",
+              "crc": "9b2e5f2a"
+            }
+          ]
+        },
+        {
+          "file": "rnr_h5.vid",
+          "offset": 57344,
+          "size": 8192,
+          "crc": "150a6264"
+        }
+      ]
+    },
+    {
+      "region": "timeplt_audio:tpsound",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "rnr_7a.snd",
+          "offset": 0,
+          "size": 4096,
+          "crc": "75d2c4e2"
+        },
+        {
+          "file": "rnr_8a.snd",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "ca4325ae"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "rnr_a11.vid",
+          "offset": 0,
+          "size": 8192,
+          "crc": "afdaba5e"
+        },
+        {
+          "file": "rnr_a12.vid",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "054cafeb"
+        },
+        {
+          "file": "rnr_a9.vid",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "9d2166b2"
+        },
+        {
+          "file": "rnr_a10.vid",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "aff6e22f"
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "rnr_h12.vid",
+          "offset": 0,
+          "size": 8192,
+          "crc": "e2114539",
+          "alt": [
+            {
+              "file": "r7.12j",
+              "crc": "cd8ac4bf"
+            }
+          ]
+        },
+        {
+          "file": "rnr_h11.vid",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "169a8f3f",
+          "alt": [
+            {
+              "file": "r6.11j",
+              "crc": "35891835"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 544,
+      "loads": [
+        {
+          "file": "a17_prom.bin",
+          "offset": 0,
+          "size": 32,
+          "crc": "22ad2c3e"
+        },
+        {
+          "file": "b16_prom.bin",
+          "offset": 32,
+          "size": 256,
+          "crc": "750a9677"
+        },
+        {
+          "file": "rocnrope.pr3",
+          "offset": 288,
+          "size": 256,
+          "crc": "b5c75a27"
+        }
+      ]
+    },
+    {
+      "region": "pal_cpuvidbd",
+      "size": 1,
+      "loads": [
+        {
+          "file": "h100.6g",
+          "offset": 0,
+          "size": 1,
+          "crc": "",
+          "status": "nodump"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 15,
+      "value": 15,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW2",
+      "mask": 3,
+      "value": 3,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 120,
+      "value": 88,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW3",
+      "mask": 7,
+      "value": 6,
+      "name": "First Bonus"
+    },
+    {
+      "port": "DSW3",
+      "mask": 56,
+      "value": 16,
+      "name": "Repeated Bonus"
+    },
+    {
+      "port": "DSW3",
+      "mask": 64,
+      "value": 0,
+      "name": "Grant Repeated Bonus"
+    },
+    {
+      "port": "DSW3",
+      "mask": 128,
+      "value": 128,
+      "name": "Unused"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2024-09-25",
+    "commits": 116,
+    "contributors": 22,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Olivier Galibert"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 34,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-12"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 23,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 10,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 9,
+        "firstCommit": "2016-06-01",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 7,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2019-05-06"
+      },
+      {
+        "name": "AJR",
+        "commits": 5,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2018-03-28"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 4,
+        "firstCommit": "2011-03-18",
+        "lastCommit": "2019-11-02"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 3,
+        "firstCommit": "2009-04-28",
+        "lastCommit": "2012-01-29"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-01",
+        "lastCommit": "2009-12-09"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2014-08-09"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 2,
+        "firstCommit": "2008-02-06",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2009-02-23",
+        "lastCommit": "2009-02-23"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "hap",
+        "commits": 1,
+        "firstCommit": "2015-08-18",
+        "lastCommit": "2015-08-18"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-08-11"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2013-01-11"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 43 years ago:\n\nRoc'n Rope (c) 1983 Konami.\n\nRoc'n Rope is an incredibly difficult yet playable platform game featuring four different levels. The player takes on the role of a an archaeologist whose mission is to return the missing tail feathers to the golden Phoenix. The archaeologist is armed with a harpoon gun and uses it to fire a rope into a platform above, in order to climb up the rope and progress up the level. This is vaguely similar to the superb 'telescopic arm' feature that appeared in Capcom's superb \"Bionic Commando\".\n\nAll levels are patrolled by enemies in the form of dinosaurs and cavemen and all are deadly to the touch. Some cavemen will pull on the harpoon rope while the archaeologist is climbing it. This will result in the player falling from the rope and losing a life. The archaeologist is armed with a light ray that will kill the enemies.\n\nA breakdown of the game's four levels :\n\n* The first level is possibly the most difficult in the game. Players begin at the bottom left of the screen and must work their way up to the Roc, who is sitting at the upper right of the screen. There are many layers of ledges coming out from the sides of the screen. While the middle of the screen is open to the sky (except for a few floating platforms). To reach the top, players must use the harpoon gun to climb diagonally back and forth until they reach the top (ensuring that the Phoenix feathers have been collected on the way).\n\n* The second level is set underground. There are a lot of dinosaurs on this screen and far fewer platforms than on the first level. Many of the platforms stretch completely across the screen, so there aren't many pitfalls to be wary of. Once again, players must get the archaeologist to the top of the screen to complete the level.\n\n* The third level is set outdoors. A 'ferris wheel' style rotating platform sits in the center of the screen, but this can be avoided if players don't wish to use it. The easiest route to the top is on the right-hand side of the level.\n\n* The fourth and final level is shaped a little like a mountain. The player's main concern here is a large waterfall in the center of the screen. Players must time their harpoon climb just right to avoid being killed by the deadly waters. Once this level is finished, the game starts over with an increased level of difficulty.\n\n- TECHNICAL -\n\nRoc'n Rope was only available in an upright configuration. This upright was in a wood-grained cabinet that was similar in construction to the \"Frogger\" cabinet. The sideart was a large sticker showing an adventurer posing with a harpoon gun and a bird. The marquee shows this same adventurer firing his harpoon gun across a chasm at an unsuspecting dinosaur, while a cartoon caveman looks on suspiciously. The monitor bezel was unadorned, although most machines had a little instruction card underneath the glass. The control panel was a solid green and featured a single joystick mounted centrally, with two buttons to either side, which allowed for the game to be played with either hand.\n\nGame ID : GX364\n\nMain CPU : Motorola M6809 (@ 1.6 Mhz)\nSound CPU : Zilog Z80 (@ 1.789772 Mhz)\nSound Chips : (2x) General Instrument AY8910 (@ 1.789772 Mhz), (6x) RC (@ 1.789772 Mhz)\n\nPlayers : 2\nControl : 4-way joystick\nButtons : 2\n\n- TRIVIA -\n\nRoc'n Rope was released in March 1983.\n\n- TIPS AND TRICKS -\n\n* Learn the angle at which you throw the rope : The rope is thrown at a very shallow angle. The rope ends up hown long distances. Learning this angle is the first step to mastering this game.\n\n* Be careful of heights : If you fall a distance longer than the height of you character, that couns as a miss. Be careful when you fall.\n\n* Use the rope to beat enemies : If you cut the rope when the enemy is hanging from it, you can beat the enemy. Attacking with the rope is extremely fun.\n\n* Keep an eye on enemy movements : Right before the enemy moves up or down or hangs from the rope, the enemy always moves n a certain way. Learn the enemy's behavior and take action quickly.\n\n* Make good use of the power food : Not only do you become invincible when you obtain the power food, but you also speed up! While taking out enemies is a good idea, you may want to consider traveling the level instead.\n\n- STAFF -\n\nDirector: Tokuro Fujiwara\nProgrammed by: H. Fujinaka\n\n- PORTS -\n\n* CONSOLES:\n[US] Atari 2600 (1984) \"Roc'n Rope [Model 2667]\" \nColecovision [US] (1984) \"Roc 'n Rope [Model 2668]\" \n[JP] Sony PlayStation (may.13, 1999) \"Konami 80's Arcade Gallery [Model SLPM-86228]\" \n[US] Sony PlayStation (nov.30, 1999) \"Konami Arcade Classics [Model SLUS-00945]\" \n\n* HANDHELDS: \n[JP] Nintendo DS (mar.15, 2007) \"Konami Arcade Collection [Model NTR-A5KJ-JPN]\" \n[US] Nintendo DS (mar.27, 2007) \"Konami Classic Series - Arcade Hits [Model NTR-ACXE-USA]\" \n[EU] Nintendo DS (oct.26, 2007) \"Konami Arcade Classics [Model NTR-ACXP-EUR]\" \n[AU] Nintendo DS (oct.29, 2007) \"Konami Arcade Classics\" \n\n* OTHERS: \nArcade [US] [EU] [AU] [KO] (nov.1998) \"Konami 80's AC Special\" \nArcade [JP] (nov.1998) \"Konami 80's Arcade Gallery\"\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2244/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,5312 @@
+{
+  "type": "INPUT_MERGER_ALL_HIGH",
+  "uses": [
+    {
+      "game": "bublbobl",
+      "tags": [
+        "soundnmi"
+      ]
+    },
+    {
+      "game": "elevator",
+      "tags": [
+        "soundnmi1"
+      ]
+    },
+    {
+      "game": "junglek",
+      "tags": [
+        "soundnmi1"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "INPUT_MERGER_ALL_HIGH",
+    "className": "input_merger_all_high_device",
+    "shortName": "ipt_merge_all_hi",
+    "description": "Input Merger (all high)",
+    "sourceFile": "src/devices/machine/input_merger.cpp",
+    "sourceLine": 44,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(INPUT_MERGER_ALL_HIGH, input_merger_all_high_device, \"ipt_merge_all_hi\", \"Input Merger (all high)\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 4294967295
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_0",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_0",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_0"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_0",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_0"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_1",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_1",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_1"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_1",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_1"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_2",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 4
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_2",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_2"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_2",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_2"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_3",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 8
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_3",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_3"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_3",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_3"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_4",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 16
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_4",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_4"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_4",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_4"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_5",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 5
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 32
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_5",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_5"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_5",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_5"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_6",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 6
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 64
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_6",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_6"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_6",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_6"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_7",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 7
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 128
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_7",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_7"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_7",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_7"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_8",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 256
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_8",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_8"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_8",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_8"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_9",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 9
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 512
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_9",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_9"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_9",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_9"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_10",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 10
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 1024
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_10",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_10"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_10",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_10"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_11",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 11
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 2048
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_11",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_11"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_11",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_11"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_12",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 12
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 4096
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_12",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_12"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_12",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_12"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_13",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 13
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 8192
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_13",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_13"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_13",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_13"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_14",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 14
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 16384
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_14",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_14"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_14",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_14"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_15",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 32768
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_15",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_15"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_15",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_15"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_16",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 65536
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_16",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_16"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_16",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_16"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_17",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 17
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 131072
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_17",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_17"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_17",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_17"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_18",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 18
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 262144
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_18",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_18"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_18",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_18"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_19",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 19
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 524288
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_19",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_19"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_19",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_19"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_20",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 20
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 1048576
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_20",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_20"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_20",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_20"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_21",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 21
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 2097152
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_21",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_21"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_21",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_21"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_22",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 22
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 4194304
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_22",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_22"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_22",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_22"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_23",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 23
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 8388608
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_23",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_23"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_23",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_23"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_24",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 24
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 16777216
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_24",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_24"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_24",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_24"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_25",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 25
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 33554432
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_25",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_25"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_25",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_25"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_26",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 26
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 67108864
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_26",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_26"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_26",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_26"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_27",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 27
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 134217728
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_27",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_27"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_27",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_27"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_28",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 28
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 268435456
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_28",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_28"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_28",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_28"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_29",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 29
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 536870912
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_29",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_29"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_29",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_29"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_30",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 30
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 1073741824
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_30",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_30"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_30",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_30"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_31",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 31
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 2147483648
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_output_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_state"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4294967295
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set_31",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_31"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear_31",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w_31"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/input_merger.cpp",
+    "src/devices/machine/input_merger.h"
+  ]
+}

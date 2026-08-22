@@ -1,0 +1,845 @@
+{
+  "game": "berzerk",
+  "title": "Berzerk (revision RC31A) (Stern Electronics, 1980)",
+  "family": "berzerk",
+  "dataPath": "games/arcade/berzerk",
+  "board": {
+    "family": "berzerk",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 2500000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 2047,
+            "kind": "rom"
+          },
+          {
+            "start": 2048,
+            "end": 3071,
+            "kind": "ram",
+            "mirror": 1024,
+            "share": "nvram"
+          },
+          {
+            "start": 4096,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 16384,
+            "end": 24575,
+            "kind": "ram",
+            "share": "videoram"
+          },
+          {
+            "start": 24576,
+            "end": 32767,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "berzerk_state.magicram_w",
+            "writeHandlerOwnsRam": true
+          },
+          {
+            "start": 32768,
+            "end": 34815,
+            "kind": "ram",
+            "mirror": 14336,
+            "share": "colorram"
+          },
+          {
+            "start": 49152,
+            "end": 65535,
+            "kind": "nop"
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 63,
+              "kind": "nop"
+            },
+            {
+              "start": 64,
+              "end": 71,
+              "kind": "handler",
+              "read": "berzerk_state.audio_r",
+              "write": "berzerk_state.audio_w"
+            },
+            {
+              "start": 72,
+              "end": 72,
+              "kind": "handler",
+              "readOnly": true,
+              "read": "port.P1"
+            },
+            {
+              "start": 73,
+              "end": 73,
+              "kind": "handler",
+              "readOnly": true,
+              "read": "port.SYSTEM"
+            },
+            {
+              "start": 74,
+              "end": 74,
+              "kind": "handler",
+              "readOnly": true,
+              "read": "port.P2"
+            },
+            {
+              "start": 75,
+              "end": 75,
+              "kind": "handler",
+              "writeOnly": true,
+              "write": "berzerk_state.magicram_control_w"
+            },
+            {
+              "start": 76,
+              "end": 76,
+              "kind": "handler",
+              "read": "berzerk_state.nmi_enable_r",
+              "write": "berzerk_state.nmi_enable_w"
+            },
+            {
+              "start": 77,
+              "end": 77,
+              "kind": "handler",
+              "read": "berzerk_state.nmi_disable_r",
+              "write": "berzerk_state.nmi_disable_w"
+            },
+            {
+              "start": 78,
+              "end": 78,
+              "kind": "handler",
+              "readOnly": true,
+              "read": "berzerk_state.intercept_v256_r"
+            },
+            {
+              "start": 79,
+              "end": 79,
+              "kind": "handler",
+              "writeOnly": true,
+              "write": "berzerk_state.irq_enable_w"
+            },
+            {
+              "start": 80,
+              "end": 87,
+              "kind": "nop"
+            },
+            {
+              "start": 88,
+              "end": 95,
+              "kind": "nop"
+            },
+            {
+              "start": 96,
+              "end": 96,
+              "kind": "handler",
+              "mirror": 24,
+              "readOnly": true,
+              "read": "port.F3"
+            },
+            {
+              "start": 97,
+              "end": 97,
+              "kind": "handler",
+              "mirror": 24,
+              "readOnly": true,
+              "read": "port.F2"
+            },
+            {
+              "start": 98,
+              "end": 98,
+              "kind": "handler",
+              "mirror": 24,
+              "readOnly": true,
+              "read": "port.F6"
+            },
+            {
+              "start": 99,
+              "end": 99,
+              "kind": "handler",
+              "mirror": 24,
+              "readOnly": true,
+              "read": "port.F5"
+            },
+            {
+              "start": 100,
+              "end": 100,
+              "kind": "handler",
+              "mirror": 24,
+              "readOnly": true,
+              "read": "port.F4"
+            },
+            {
+              "start": 101,
+              "end": 101,
+              "kind": "handler",
+              "mirror": 24,
+              "readOnly": true,
+              "read": "port.SW2"
+            },
+            {
+              "start": 102,
+              "end": 102,
+              "kind": "handler",
+              "mirror": 24,
+              "read": "berzerk_state.led_off_r",
+              "write": "berzerk_state.led_off_w"
+            },
+            {
+              "start": 103,
+              "end": 103,
+              "kind": "handler",
+              "mirror": 24,
+              "read": "berzerk_state.led_on_r",
+              "write": "berzerk_state.led_on_w"
+            },
+            {
+              "start": 128,
+              "end": 255,
+              "kind": "nop"
+            }
+          ],
+          "globalMask": 255
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 2047,
+        "kind": "rom"
+      },
+      {
+        "start": 2048,
+        "end": 3071,
+        "kind": "ram",
+        "mirror": 1024,
+        "share": "nvram"
+      },
+      {
+        "start": 4096,
+        "end": 16383,
+        "kind": "rom"
+      },
+      {
+        "start": 16384,
+        "end": 24575,
+        "kind": "ram",
+        "share": "videoram"
+      },
+      {
+        "start": 24576,
+        "end": 32767,
+        "kind": "ram",
+        "share": "videoram",
+        "write": "berzerk_state.magicram_w",
+        "writeHandlerOwnsRam": true
+      },
+      {
+        "start": 32768,
+        "end": 34815,
+        "kind": "ram",
+        "mirror": 14336,
+        "share": "colorram"
+      },
+      {
+        "start": 49152,
+        "end": 65535,
+        "kind": "nop"
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 0,
+          "end": 63,
+          "kind": "nop"
+        },
+        {
+          "start": 64,
+          "end": 71,
+          "kind": "handler",
+          "read": "berzerk_state.audio_r",
+          "write": "berzerk_state.audio_w"
+        },
+        {
+          "start": 72,
+          "end": 72,
+          "kind": "handler",
+          "readOnly": true,
+          "read": "port.P1"
+        },
+        {
+          "start": 73,
+          "end": 73,
+          "kind": "handler",
+          "readOnly": true,
+          "read": "port.SYSTEM"
+        },
+        {
+          "start": 74,
+          "end": 74,
+          "kind": "handler",
+          "readOnly": true,
+          "read": "port.P2"
+        },
+        {
+          "start": 75,
+          "end": 75,
+          "kind": "handler",
+          "writeOnly": true,
+          "write": "berzerk_state.magicram_control_w"
+        },
+        {
+          "start": 76,
+          "end": 76,
+          "kind": "handler",
+          "read": "berzerk_state.nmi_enable_r",
+          "write": "berzerk_state.nmi_enable_w"
+        },
+        {
+          "start": 77,
+          "end": 77,
+          "kind": "handler",
+          "read": "berzerk_state.nmi_disable_r",
+          "write": "berzerk_state.nmi_disable_w"
+        },
+        {
+          "start": 78,
+          "end": 78,
+          "kind": "handler",
+          "readOnly": true,
+          "read": "berzerk_state.intercept_v256_r"
+        },
+        {
+          "start": 79,
+          "end": 79,
+          "kind": "handler",
+          "writeOnly": true,
+          "write": "berzerk_state.irq_enable_w"
+        },
+        {
+          "start": 80,
+          "end": 87,
+          "kind": "nop"
+        },
+        {
+          "start": 88,
+          "end": 95,
+          "kind": "nop"
+        },
+        {
+          "start": 96,
+          "end": 96,
+          "kind": "handler",
+          "mirror": 24,
+          "readOnly": true,
+          "read": "port.F3"
+        },
+        {
+          "start": 97,
+          "end": 97,
+          "kind": "handler",
+          "mirror": 24,
+          "readOnly": true,
+          "read": "port.F2"
+        },
+        {
+          "start": 98,
+          "end": 98,
+          "kind": "handler",
+          "mirror": 24,
+          "readOnly": true,
+          "read": "port.F6"
+        },
+        {
+          "start": 99,
+          "end": 99,
+          "kind": "handler",
+          "mirror": 24,
+          "readOnly": true,
+          "read": "port.F5"
+        },
+        {
+          "start": 100,
+          "end": 100,
+          "kind": "handler",
+          "mirror": 24,
+          "readOnly": true,
+          "read": "port.F4"
+        },
+        {
+          "start": 101,
+          "end": 101,
+          "kind": "handler",
+          "mirror": 24,
+          "readOnly": true,
+          "read": "port.SW2"
+        },
+        {
+          "start": 102,
+          "end": 102,
+          "kind": "handler",
+          "mirror": 24,
+          "read": "berzerk_state.led_off_r",
+          "write": "berzerk_state.led_off_w"
+        },
+        {
+          "start": 103,
+          "end": 103,
+          "kind": "handler",
+          "mirror": 24,
+          "read": "berzerk_state.led_on_r",
+          "write": "berzerk_state.led_on_w"
+        },
+        {
+          "start": 128,
+          "end": 255,
+          "kind": "nop"
+        }
+      ],
+      "globalMask": 255
+    },
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 32,
+      "refresh": 59.63740458015267,
+      "vtotal": 262,
+      "vbstart": 256,
+      "vbend": 32,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "berzerk",
+    "deviceType": "EXIDY",
+    "clock": 2500000,
+    "worklet": "berzerk-sound",
+    "sampleRegion": "speech",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "fills": [
+        {
+          "offset": 14336,
+          "size": 2048,
+          "value": 255
+        }
+      ],
+      "loads": [
+        {
+          "file": "berzerk_rc31_1c.rom0.1c",
+          "offset": 0,
+          "size": 2048,
+          "crc": "ca566dbc",
+          "alt": [
+            {
+              "file": "berzerk_rc28_1c.rom0.1c",
+              "crc": "5b7eb77d"
+            },
+            {
+              "file": "berzerk_rc31f_1c.rom0.1c",
+              "crc": "3ba6e56e"
+            },
+            {
+              "file": "berzerk_rc32_1c.rom0.1c",
+              "crc": "77923a9e"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_rc31_1d.rom1.1d",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "7ba69fde",
+          "alt": [
+            {
+              "file": "berzerk_rc28_1d.rom1.1d",
+              "crc": "e58c8678"
+            },
+            {
+              "file": "berzerk_rc31f_1d.rom1.1d",
+              "crc": "a1de2a3e"
+            },
+            {
+              "file": "berzerk_rc32_1d.rom1.1d",
+              "crc": "19bb3aac"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_rc31_3d.rom2.3d",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "a1d5248b",
+          "alt": [
+            {
+              "file": "berzerk_rc28_3d.rom2.3d",
+              "crc": "705bb339"
+            },
+            {
+              "file": "berzerk_rc31f_3d.rom2.3d",
+              "crc": "bc31c478"
+            },
+            {
+              "file": "berzerk_rc32g_3d.rom2.3d",
+              "crc": "b0888ff7"
+            },
+            {
+              "file": "berzerk_rc32_3d.rom2.3d",
+              "crc": "5423ea87"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_rc31_5d.rom3.5d",
+          "offset": 8192,
+          "size": 2048,
+          "crc": "fcaefa95",
+          "alt": [
+            {
+              "file": "berzerk_rc28_5d.rom3.5d",
+              "crc": "6a1936b4"
+            },
+            {
+              "file": "berzerk_rc31f_5d.rom3.5d",
+              "crc": "316192b5"
+            },
+            {
+              "file": "berzerk_rc32_5d.rom3.5d",
+              "crc": "e23239a9"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_rc31_6d.rom4.6d",
+          "offset": 10240,
+          "size": 2048,
+          "crc": "1e35b9a0",
+          "alt": [
+            {
+              "file": "berzerk_rc28_6d.rom4.6d",
+              "crc": "fa5dce40"
+            },
+            {
+              "file": "berzerk_rc31f_6d.rom4.6d",
+              "crc": "cd51238c"
+            },
+            {
+              "file": "berzerk_rc32g_6d.rom4.6d",
+              "crc": "651b31b7"
+            },
+            {
+              "file": "berzerk_rc32_6d.rom4.6d",
+              "crc": "959efd86"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_rc31a_5c.rom5.5c",
+          "offset": 12288,
+          "size": 2048,
+          "crc": "e0fab8f5",
+          "alt": [
+            {
+              "file": "berzerk_rc31_5c.rom5.5c",
+              "crc": "c8c665e5"
+            },
+            {
+              "file": "berzerk_rc28_5c.rom5.5c",
+              "crc": "2579b9f4"
+            },
+            {
+              "file": "berzerk_rc31f_5c.rom5.5c",
+              "crc": "563b13b6"
+            },
+            {
+              "file": "berzerk_rc32g_5c.rom5.5c",
+              "crc": "8a403bba"
+            },
+            {
+              "file": "berzerk_rc32s_5c.rom5.5c",
+              "crc": "9ad80e4e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "speech",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "berzerk_r_vo_1c.1c",
+          "offset": 0,
+          "size": 2048,
+          "crc": "2cfe825d",
+          "alt": [
+            {
+              "file": "berzerk_rvof_1c.1c",
+              "crc": "d7bfaca2"
+            },
+            {
+              "file": "berzerk_rvog_1c.1c",
+              "crc": "fc1da15f"
+            },
+            {
+              "file": "berzerk_rvos_1c.1c",
+              "crc": "0b51409c"
+            }
+          ]
+        },
+        {
+          "file": "berzerk_r_vo_2c.2c",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "d2b6324e",
+          "alt": [
+            {
+              "file": "berzerk_rvof_2c.2c",
+              "crc": "7bdc3573"
+            },
+            {
+              "file": "berzerk_rvog_2c.2c",
+              "crc": "7f6808fb"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 64,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 128,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SW2",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Free Game (not logged in bookkeeping)",
+      "activeLow": false
+    },
+    {
+      "port": "SW2",
+      "mask": 128,
+      "keys": [
+        "Digit8"
+      ],
+      "label": "Bookkeeping",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "P2",
+      "mask": 128,
+      "value": 128,
+      "name": "Cabinet"
+    },
+    {
+      "port": "MONITOR_TYPE",
+      "mask": 1,
+      "value": 0,
+      "name": "Monitor Type"
+    },
+    {
+      "port": "F2",
+      "mask": 3,
+      "value": 0,
+      "name": "Color Test"
+    },
+    {
+      "port": "F2",
+      "mask": 192,
+      "value": 192,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "F3",
+      "mask": 1,
+      "value": 0,
+      "name": "Input Test Mode"
+    },
+    {
+      "port": "F3",
+      "mask": 2,
+      "value": 0,
+      "name": "Crosshair Pattern"
+    },
+    {
+      "port": "F3",
+      "mask": 192,
+      "value": 0,
+      "name": "Language"
+    },
+    {
+      "port": "F4",
+      "mask": 15,
+      "value": 0,
+      "name": "\"Coin \"#1"
+    },
+    {
+      "port": "F5",
+      "mask": 15,
+      "value": 0,
+      "name": "\"Coin \"#2"
+    },
+    {
+      "port": "F6",
+      "mask": 15,
+      "value": 0,
+      "name": "\"Coin \"#3"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "P1",
+      "init": 255
+    },
+    {
+      "tag": "P2",
+      "init": 255
+    },
+    {
+      "tag": "SYSTEM",
+      "init": 255
+    },
+    {
+      "tag": "MONITOR_TYPE",
+      "init": 0
+    },
+    {
+      "tag": "SW2",
+      "init": 126
+    },
+    {
+      "tag": "F2",
+      "init": 252
+    },
+    {
+      "tag": "F3",
+      "init": 60
+    },
+    {
+      "tag": "F4",
+      "init": 240
+    },
+    {
+      "tag": "F5",
+      "init": 240
+    },
+    {
+      "tag": "F6",
+      "init": 240
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

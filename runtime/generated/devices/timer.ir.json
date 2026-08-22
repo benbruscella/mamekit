@@ -1,0 +1,80 @@
+{
+  "type": "TIMER",
+  "uses": [
+    {
+      "game": "1942",
+      "tags": [
+        "scantimer"
+      ]
+    },
+    {
+      "game": "carnival",
+      "tags": [
+        "coinstate"
+      ]
+    },
+    {
+      "game": "commando",
+      "tags": [
+        "scantimer"
+      ]
+    },
+    {
+      "game": "ddragon",
+      "tags": [
+        "scantimer"
+      ]
+    },
+    {
+      "game": "defender",
+      "tags": [
+        "240_timer",
+        "scan_timer"
+      ]
+    },
+    {
+      "game": "matmania",
+      "tags": [
+        "scantimer"
+      ]
+    },
+    {
+      "game": "panic",
+      "tags": [
+        "scantimer"
+      ]
+    },
+    {
+      "game": "rampage",
+      "tags": [
+        "scantimer"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "stars"
+      ]
+    },
+    {
+      "game": "tutankhm",
+      "tags": [
+        "stars"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "TIMER",
+    "className": "timer_device",
+    "shortName": "timer",
+    "description": "Timer",
+    "sourceFile": "src/devices/machine/timer.cpp",
+    "sourceLine": 30,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TIMER, timer_device, \"timer\", \"Timer\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

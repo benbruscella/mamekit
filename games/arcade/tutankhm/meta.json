@@ -1,0 +1,178 @@
+{
+  "game": "tutankhm",
+  "title": "Tutankham (Konami, 1982)",
+  "fullname": "Tutankham",
+  "year": "1982",
+  "manufacturer": "Konami",
+  "family": "tutankhm",
+  "driverFile": "src/mame/konami/tutankhm.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Mirko Buffoni",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2025-08-05",
+    "commits": 125,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "AJR",
+      "Ivan Vangelista"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 49,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-12"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 21,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-01-10"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 9,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "AJR",
+        "commits": 6,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2018-03-28"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 5,
+        "firstCommit": "2016-06-01",
+        "lastCommit": "2021-02-11"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 5,
+        "firstCommit": "2010-05-12",
+        "lastCommit": "2014-01-23"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 5,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2018-03-13"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-01",
+        "lastCommit": "2009-12-09"
+      },
+      {
+        "name": "couriersud",
+        "commits": 2,
+        "firstCommit": "2019-05-07",
+        "lastCommit": "2019-05-09"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 2,
+        "firstCommit": "2009-03-01",
+        "lastCommit": "2010-05-13"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2013-07-12",
+        "lastCommit": "2020-07-09"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "braintro",
+        "commits": 1,
+        "firstCommit": "2019-04-09",
+        "lastCommit": "2019-04-09"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2025-02-07",
+        "lastCommit": "2025-02-07"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 1,
+        "firstCommit": "2025-08-05",
+        "lastCommit": "2025-08-05"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Dirk Best",
+        "commits": 1,
+        "firstCommit": "2015-07-31",
+        "lastCommit": "2015-07-31"
+      },
+      {
+        "name": "hap",
+        "commits": 1,
+        "firstCommit": "2019-05-30",
+        "lastCommit": "2019-05-30"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-08-11"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2013-01-11"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 1,
+        "firstCommit": "2008-02-29",
+        "lastCommit": "2008-02-29"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

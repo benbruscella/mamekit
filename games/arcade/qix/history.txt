@@ -1,0 +1,139 @@
+Arcade Video game published 45 years ago:
+
+Qix (c) 1981 Taito Corp.
+
+The objective of Qix is to claim a certain proportion of the playing field as your own. At the start of each level, the playing field is just a large, empty rectangle, containing the Qix - a stick-like entity that performs peculiar, erratic motions within the confines of the rectangle. The player controls a small marker that can move around the edges of the rectangle. To claim an area of the screen, the player must detach from an edge and draw Stix within the rectangle. Stix are simply lines traced out by moving the marker. When the marker traces out a closed shape, the area enclosed by the shape becomes solid and has been claimed. The player may draw either Fast Stix, which appear blue when solid, or Slow Stix, which appear red. Slow Stix take longer to draw, but are worth twice as many points. Once the player has claimed an area, the marker can safely move along the border of that claimed area. To complete a level, the player must claim 75% or more of the rectangle's area.
+
+- TECHNICAL -
+
+Board Number : LKN00003
+Prom Stickers : LK / QQ / QU / QX
+
+Main CPU : (2x) M6809 (@ 1.25 Mhz)
+Sound CPU : M6802 (@ 921.6 Khz)
+Sound Chips : Discrete
+
+Players : 2
+Control : 4-way joystick
+Buttons : 2 (SLOW, FAST)
+
+- TRIVIA -
+
+Qix was released in October 1981 in the USA.
+
+Also released as a cocktail model. In Japan, the cocktail version is known as "T.T Qix". 
+
+The author named the game 'QIX' (pronounced 'KICKS' and not 'QUIX') because his car registration/number plate at the time was : 'JUS4QIX'.
+
+Qix is the first 'drawing game', a truly original game. Also the first totally Taito American game, Qix initially did big numbers, but quickly died when players discovered the machine was 'unbeatable'. Having a googolplex of possible combinations, there was no singular pattern to the game and players lost interest.
+
+A Qix unit appears in the 1983 movie 'Joysticks' and in the 1984 movie 'The Karate Kid'.
+
+- SCORING -
+
+There are a couple of ways you earn points in Qix. The first involves actually claiming areas.
+
+There are 2 buttons, slow and fast. These buttons determine how fast your Marker goes. In essence, going slow increases the risk of losing your Marker so it is obviously worth more points. Here's how the points work out for making 'boxes':
+1) Slow : It is a base 500 points multiplied by the percentage of area covered by that box. For example, if you create a box that claims 3% of the total area, then points scored would be 500 X 3 or 1500 points. This area fills in with brown.
+2) Fast : It is a base 250 points multiplied by the percentage of area covered by that box. For example, if you create a box that claims 1% of the total area, then points scored would be 250 X 1 or 250 points. This area fills in with blue.
+
+NOTE : The above points may not be exact since the game rounds off the percentages to whole numbers for display but calculates them using decimal percentages.
+
+You also get bonus points for going above the 75% Threshold. Any percentage above the 75% Threshold is multiplied by 1000 to determine your bonus points.
+
+During the split Qix screens, if you successfully split the Qix's into their own compartments, you will get a multiplier bonus that is applied to points scored when you are making boxes. For example, if you had a 250 points and the multiplier was 3X, you now have 750 points. This multiplier increments by one every time you successfully split the Qix's. Of course, when you do this, you don't get the bonus points (if you had any).
+
+- TIPS AND TRICKS -
+
+* When you start the game, your Marker will be at the bottom, middle of the playing screen. It is now up to you to start creating boxes. Keep in mind that you need to be constantly moving or the Sparx will take out your Marker. In addition, when you are moving your Marker around the perimeter, you can only move along the perimeter actually touching the Playing Field.
+
+* First of all, you must be constantly aware of two things. First, you must know where the Qix is located at all times. It moves randomly and can go anywhere on the Playing Field that your boxes haven't blocked. Last, the Sparx are constantly moving around the perimeter of the Playing Field. This can set up a dangerous situation where one Sparx is coming at you from one way and another from the other to make your Marker a 'Sparx Sandwich'.
+
+* Once you have assessed the danger, it is time to start making boxes. There are a few things to note when you are making boxes :
+a) When you start to draw the line, the Sparx cannot travel along the new perimeter you are creating until it is filled in.
+b) The Qix, though, is your primary concern. If it touches any part of a line before the box is filled in, you will lose your Marker.
+c) The box must begin and end either at a filled box or on the side of the Playing Field. You cannot connect the line to itself. If you try to do this, you will go into what is called a 'Spiral Death Trap' and a Fuse will follow your line to your Marker and destroy it.
+
+* After the fourth wave, the Qix will split in two. Now you have 2 Qix's bouncing around to deal with. You major goal is to actually 'split' the Qix's into their own areas. This means creating a series of boxes so that each Qix will be in its own compartment.
+
+* For maximum points, you must do two things :
+a) First, use the slow button as much as possible since this is where the points are.
+b) Try to claim as much area in each box as possible. That percentage multiplied by the speed value can yield some big point values.
+c) Constantly try to split the Qix's (if you can) to get that bonus multiplier even higher.
+d) When you are close to the Threshold, find an area in the Playing Field that hasn't really been touched and try to make a big box. That way, you will go over the 75% Threshold and claim a bonus.
+
+* As the waves progress, everything gets faster and the game will become less forgiving if you are less then committed to making a box.
+
+* Also, listen for sounds in this game. The only real sound you need to be concerned with is what sounds like a fuse being lit. If you are making a box and you hear this sound, that means you are taking too long or you have unfortunately gotten yourself into a 'Spiral Death Trap'. In the case of delay, once you move the fuse will go out.
+
+* To maximize points, draw narrow, tall boxes, like fingers, from the bottom.  When the Qix goes down between two fingers, go across the top of the fingers at slow speed. This tactic permits percentages of up to 99%.
+
+* It is possible create a 'slide-box' to avoid the sparks. Starting at a corner of a box, draw another box that connects only at that corner. When a spark approaches, the player can slide the diamond through the intersection, while the spark has to go around the perimeter. After the spark passes the intersection, the player can slide back across the intersection and be behind the spark.
+
+- STAFF -
+
+Designed & programmed by : Randy Pfeiffer, Sandy Pfeiffer
+
+- PORTS -
+
+* CONSOLES: 
+[US] Atari 2600 : Release cancelled
+[US] Atari 5200 (1982) "Qix [Model CX5212]" 
+Atari XEGS
+[US] Nintendo NES (jan.1991) "Qix [Model NES-QX-USA]" 
+[JP] Sony PS2 (aug.25, 2005) "Taito Memories Gekan [Model SLPM-66092]" 
+[AU] Sony PlayStation 2 (mar.30, 2006) "Taito Legends 2 [Model SLES-53852]" 
+[EU] Microsoft XBOX (mar.31, 2006) "Taito Legends 2" 
+[EU] Sony PS2 (mar.31, 2006) "Taito Legends 2 [Model SLES-53852]" 
+[US] Sony PS2 (may.16, 2007) "Taito Legends 2 [Model SLUS-21349]" 
+
+* HANDHELDS: 
+[AU] Nintendo Game Boy (1990) "Qix [Model DMG-QX-AUS]" 
+[EU] Nintendo Game Boy (1990) "Qix [Model DMG-QX-NOE]" 
+[JP] Nintendo Game Boy (apr.13, 1990) "Qix [Model DMG-QXA]" 
+[US] Nintendo Game Boy (may.1990) "Qix [Model DMG-QX-USA]" 
+[US] Atari Lynx (1991) "Qix [Model LX102]" by Telegames, Inc. 
+[AS] Sony PSP (jan.3, 2006) "Taito Memories Pocket [Model UCAS-40040]" 
+[JP] Sony PSP (jan.5, 2006) "Taito Memories Pocket [Model ULJM-05076]" 
+[KO] Sony PSP (feb.10, 2006) "Taito Memories Pocket" 
+[EU] Sony PSP (oct.6, 2006) "Taito Legends Power-Up [Model ULES-00473]" 
+[AU] Sony PSP (nov.9, 2006) "Taito Legends Power-Up [Model ULES-00473]" 
+[US] Sony PSP (may.17, 2007) "Taito Legends Power-Up [Model ULUS-10208]" 
+
+* COMPUTERS:
+[EU] Acorn Electron (1983) "Stix" by Supersoft 
+[EU] BBC B (1983) "Stix" by Supersoft 
+[US] Commodore C64 [EU] (1983) "Stix" by Supersoft 
+[US] Atari 800 (1983) "Qix [Model CXL4027]" 
+[JP] Sharp MZ-700 (1983) by Carry Lab
+[US] Tandy Color Computer (1984) "Qiks" 
+[US] Tandy Color Computer (1984) "Quix" 
+[US] Commodore Amiga (1989) 
+[US] Commodore C64 (1989) 
+[US] Apple II (1989) 
+[US] PC [MS-DOS] (1989) 
+[US] Apple IIGS (1990) 
+[US] Oric (2004) "4kQix" : PD / Shareware by Stephane Geley
+[EU] PC [MS Windows, CD-ROM] (mar.31, 2006) "Taito Legends 2" 
+[US] PC [MS Windows, CD-ROM] (jul.10, 2007) "Taito Legends 2" 
+
+* OTHERS:
+[US] Nokia N-Gage "Taito Memories" : Release cancelled
+Arcade (2003) "Space Invaders 25th Silver Anniversary" 
+[US] "Arcade Legends: Space Invaders TV Game" (2004) by Radica Games : Also inlcudes Lunar Rescue, Colony 7, Qix and Phoenix.
+
+- SERIES -
+
+1. Qix (1981, ARC)
+2. Qix II - Tournament (1982, ARC)
+3. Super Qix (1987, ARC)
+4. Ultimate Qix (1991, MD)
+5. Twin Qix (1995, ARC)
+6. Battle Qix (2002, ARC)
+7. Qix ++ (2009, XBLA)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/2096/?o=2
+
+— Gaming History (arcade-history.com)

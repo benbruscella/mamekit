@@ -1,0 +1,650 @@
+{
+  "game": "venture",
+  "title": "Venture (version 5 set 1) (Exidy, 1981)",
+  "family": "exidy",
+  "dataPath": "games/arcade/venture",
+  "board": {
+    "family": "exidy",
+    "cpus": [
+      {
+        "tag": "soundbd:audiocpu",
+        "type": "m6502",
+        "clock": 894886.25,
+        "region": "soundbd:audiocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 127,
+            "kind": "handler",
+            "mirror": 1920,
+            "read": "soundbd:riot.ram_read",
+            "write": "soundbd:riot.ram_write"
+          },
+          {
+            "start": 2048,
+            "end": 2079,
+            "kind": "handler",
+            "mirror": 2016,
+            "read": "soundbd:riot.io_read",
+            "write": "soundbd:riot.io_write"
+          },
+          {
+            "start": 4096,
+            "end": 4099,
+            "kind": "handler",
+            "mirror": 2044,
+            "read": "soundbd:pia.read",
+            "write": "soundbd:pia.write"
+          },
+          {
+            "start": 6144,
+            "end": 6147,
+            "kind": "handler",
+            "mirror": 2044,
+            "writeOnly": true,
+            "write": "venture_sound_device.sh8253_w"
+          },
+          {
+            "start": 8192,
+            "end": 8192,
+            "kind": "handler",
+            "mirror": 2047,
+            "write": "venture_sound_device.filter_w"
+          },
+          {
+            "start": 10240,
+            "end": 10247,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "venture_sound_device.sh6840_r",
+            "write": "venture_sound_device.sh6840_w"
+          },
+          {
+            "start": 12288,
+            "end": 12291,
+            "kind": "handler",
+            "mirror": 2044,
+            "write": "venture_sound_device.sfxctrl_w"
+          },
+          {
+            "start": 22528,
+            "end": 32767,
+            "kind": "rom"
+          }
+        ],
+        "mask": 32767
+      },
+      {
+        "tag": "maincpu",
+        "type": "m6502",
+        "clock": 705562.5,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 1023,
+            "kind": "ram"
+          },
+          {
+            "start": 16384,
+            "end": 17407,
+            "kind": "ram",
+            "mirror": 1024,
+            "share": "videoram"
+          },
+          {
+            "start": 20480,
+            "end": 20480,
+            "kind": "ram",
+            "mirror": 63,
+            "share": "sprite1_xpos",
+            "writeOnly": true
+          },
+          {
+            "start": 20544,
+            "end": 20544,
+            "kind": "ram",
+            "mirror": 63,
+            "share": "sprite1_ypos",
+            "writeOnly": true
+          },
+          {
+            "start": 20608,
+            "end": 20608,
+            "kind": "ram",
+            "mirror": 63,
+            "share": "sprite2_xpos",
+            "writeOnly": true
+          },
+          {
+            "start": 20672,
+            "end": 20672,
+            "kind": "ram",
+            "mirror": 63,
+            "share": "sprite2_ypos",
+            "writeOnly": true
+          },
+          {
+            "start": 20736,
+            "end": 20736,
+            "kind": "handler",
+            "mirror": 252,
+            "read": "port.DSW"
+          },
+          {
+            "start": 20736,
+            "end": 20736,
+            "kind": "ram",
+            "mirror": 252,
+            "share": "spriteno",
+            "writeOnly": true
+          },
+          {
+            "start": 20737,
+            "end": 20737,
+            "kind": "handler",
+            "mirror": 252,
+            "read": "port.IN0"
+          },
+          {
+            "start": 20737,
+            "end": 20737,
+            "kind": "ram",
+            "mirror": 252,
+            "share": "sprite_enable",
+            "writeOnly": true
+          },
+          {
+            "start": 20739,
+            "end": 20739,
+            "kind": "handler",
+            "mirror": 252,
+            "read": "exidy_state.exidy_interrupt_r"
+          },
+          {
+            "start": 21008,
+            "end": 21010,
+            "kind": "ram",
+            "share": "color_latch",
+            "writeOnly": true
+          },
+          {
+            "start": 21011,
+            "end": 21011,
+            "kind": "handler",
+            "read": "port.IN2"
+          },
+          {
+            "start": 18432,
+            "end": 20479,
+            "kind": "ram",
+            "share": "characterram"
+          },
+          {
+            "start": 20992,
+            "end": 21007,
+            "kind": "handler",
+            "read": "pia.read",
+            "write": "pia.write"
+          },
+          {
+            "start": 32768,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 127,
+        "kind": "handler",
+        "mirror": 1920,
+        "read": "soundbd:riot.ram_read",
+        "write": "soundbd:riot.ram_write"
+      },
+      {
+        "start": 2048,
+        "end": 2079,
+        "kind": "handler",
+        "mirror": 2016,
+        "read": "soundbd:riot.io_read",
+        "write": "soundbd:riot.io_write"
+      },
+      {
+        "start": 4096,
+        "end": 4099,
+        "kind": "handler",
+        "mirror": 2044,
+        "read": "soundbd:pia.read",
+        "write": "soundbd:pia.write"
+      },
+      {
+        "start": 6144,
+        "end": 6147,
+        "kind": "handler",
+        "mirror": 2044,
+        "writeOnly": true,
+        "write": "venture_sound_device.sh8253_w"
+      },
+      {
+        "start": 8192,
+        "end": 8192,
+        "kind": "handler",
+        "mirror": 2047,
+        "write": "venture_sound_device.filter_w"
+      },
+      {
+        "start": 10240,
+        "end": 10247,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "venture_sound_device.sh6840_r",
+        "write": "venture_sound_device.sh6840_w"
+      },
+      {
+        "start": 12288,
+        "end": 12291,
+        "kind": "handler",
+        "mirror": 2044,
+        "write": "venture_sound_device.sfxctrl_w"
+      },
+      {
+        "start": 22528,
+        "end": 32767,
+        "kind": "rom"
+      }
+    ],
+    "customs": [
+      {
+        "port": "INTSOURCE",
+        "mask": 96,
+        "member": "intsource_coins_r",
+        "handler": "exidy_state.intsource_coins_r",
+        "activeLow": false
+      },
+      {
+        "port": "INTSOURCE",
+        "mask": 128,
+        "member": "vblank",
+        "source": "screen-vblank",
+        "activeLow": true
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 256,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 59.9968112244898,
+      "vtotal": 280,
+      "vbstart": 256,
+      "vbend": 0,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "exidy",
+    "deviceType": "EXIDY_VENTURE",
+    "clock": 894886.25,
+    "worklet": "berzerk-sound",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "13a-cpu",
+          "offset": 32768,
+          "size": 4096,
+          "crc": "f4e4d991",
+          "alt": [
+            {
+              "file": "vel_13a-57e.a13",
+              "crc": "4c833f99"
+            },
+            {
+              "file": "vel_13a-4.13a",
+              "crc": "1c5448f9"
+            },
+            {
+              "file": "d2732.2s",
+              "crc": "87d69fe9"
+            }
+          ]
+        },
+        {
+          "file": "12a-cpu",
+          "offset": 36864,
+          "size": 4096,
+          "crc": "c6d8cb04",
+          "alt": [
+            {
+              "file": "vel_12a-5.a12",
+              "crc": "8163cefc"
+            },
+            {
+              "file": "vel_12a-4.12a",
+              "crc": "e62491cc"
+            }
+          ]
+        },
+        {
+          "file": "11a-cpu",
+          "offset": 40960,
+          "size": 4096,
+          "crc": "3bdb01f4",
+          "alt": [
+            {
+              "file": "vel_11a-5.a11",
+              "crc": "324a5054"
+            },
+            {
+              "file": "vel_11a-4.11a",
+              "crc": "e91faeaf"
+            }
+          ]
+        },
+        {
+          "file": "10a-cpu",
+          "offset": 45056,
+          "size": 4096,
+          "crc": "0da769e9",
+          "alt": [
+            {
+              "file": "vel_10a-5.a10",
+              "crc": "24358203"
+            },
+            {
+              "file": "vel_10a-4.10a",
+              "crc": "da3a2991"
+            }
+          ]
+        },
+        {
+          "file": "9a-cpu",
+          "offset": 49152,
+          "size": 4096,
+          "crc": "0ae05855",
+          "alt": [
+            {
+              "file": "vel_9a-5.a9",
+              "crc": "04428165"
+            },
+            {
+              "file": "vel_9a-4.a9",
+              "crc": "d1887b11"
+            }
+          ]
+        },
+        {
+          "file": "8a-cpu",
+          "offset": 53248,
+          "size": 4096,
+          "crc": "4ae59676",
+          "alt": [
+            {
+              "file": "vel_8a-5.a8",
+              "crc": "4c1a702a"
+            },
+            {
+              "file": "vel_8a-4.a8",
+              "crc": "8e8153fc"
+            }
+          ]
+        },
+        {
+          "file": "7a-cpu",
+          "offset": 57344,
+          "size": 4096,
+          "crc": "48d66220",
+          "alt": [
+            {
+              "file": "vel_7a-5.a7",
+              "crc": "1aab27c2"
+            },
+            {
+              "file": "vel_7a-4.a7",
+              "crc": "0a091701"
+            }
+          ]
+        },
+        {
+          "file": "6a-cpu",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "7b78cf49",
+          "alt": [
+            {
+              "file": "vel_6a-5.a6",
+              "crc": "767bdd71"
+            },
+            {
+              "file": "vel_6a-4.a6",
+              "crc": "7b165f67"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundbd:audiocpu",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "vea_3a-3.3a",
+          "offset": 22528,
+          "size": 2048,
+          "crc": "4ea1c3d9",
+          "alt": [
+            {
+              "file": "vea_3a-2.3a",
+              "crc": "83b8836f"
+            }
+          ]
+        },
+        {
+          "file": "vea_4a-3.4a",
+          "offset": 24576,
+          "size": 2048,
+          "crc": "5154c39e"
+        },
+        {
+          "file": "vea_5a-3.5a",
+          "offset": 26624,
+          "size": 2048,
+          "crc": "1e1e3916"
+        },
+        {
+          "file": "vea_6a-3.6a",
+          "offset": 28672,
+          "size": 2048,
+          "crc": "80f3357a"
+        },
+        {
+          "file": "vea_7a-3.7a",
+          "offset": 30720,
+          "size": 2048,
+          "crc": "466addc7"
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 2048,
+      "loads": [
+        {
+          "file": "vel_11d-2.11d",
+          "offset": 0,
+          "size": 2048,
+          "crc": "ea6fd981"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 320,
+      "loads": [
+        {
+          "file": "hrl14h-1.h14",
+          "offset": 0,
+          "size": 32,
+          "crc": "f76b4fcf"
+        },
+        {
+          "file": "vel5c-1.c5",
+          "offset": 32,
+          "size": 256,
+          "crc": "43b35bb7"
+        },
+        {
+          "file": "hrl6d-1.d6",
+          "offset": 288,
+          "size": 32,
+          "crc": "e26f9053"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "DSW",
+      "mask": 1,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW",
+      "mask": 6,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW",
+      "mask": 152,
+      "value": 144,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW",
+      "mask": 96,
+      "value": 32,
+      "name": "Lives"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "DSW",
+      "init": 176
+    },
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "INTSOURCE",
+      "init": 128
+    },
+    {
+      "tag": "IN2",
+      "init": 255
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

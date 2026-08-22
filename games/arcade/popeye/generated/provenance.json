@@ -1,0 +1,419 @@
+{
+  "generatedFrom": "src/mame/nintendo/popeye.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 544,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 554,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 555,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 564,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 565,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 544,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 555,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 564,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 565,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 541,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 548,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 555,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 555,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 399,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 582,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 586,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 587,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 588,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 590,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 541,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 548,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 557,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 558,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 561,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 563,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 206,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 212,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 193,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 147,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 160,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 199,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 222,
+      "column": 2
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 226,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 226,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 218,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 88,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 399,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 153,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/nintendo/popeye.h",
+      "line": 71,
+      "column": 47
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 354,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 249,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/nintendo/popeye.h",
+      "line": 110,
+      "column": 49
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 107,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 529,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 290,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 379,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 177,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 178,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 179,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 180,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 181,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 182,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 183,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 175,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 189,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 190,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 186,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 197,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/1/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 198,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 193,
+      "column": 1
+    },
+    {
+      "path": "/maps/3/ranges/0/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 222,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/1/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 223,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/2/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 224,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/3/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 225,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/4/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 226,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/source",
+      "file": "src/mame/nintendo/popeye.cpp",
+      "line": 219,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 139,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 226,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/nintendo/popeye_v.cpp",
+      "line": 226,
+      "column": 1
+    }
+  ]
+}

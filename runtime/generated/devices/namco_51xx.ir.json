@@ -1,0 +1,878 @@
+{
+  "type": "NAMCO_51XX",
+  "uses": [
+    {
+      "game": "digdug",
+      "tags": [
+        "51xx"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "51xx"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NAMCO_51XX",
+    "className": "namco_51xx_device",
+    "shortName": "namco51",
+    "description": "Namco 51xx",
+    "sourceFile": "src/mame/namco/namco51.cpp",
+    "sourceLine": 141,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NAMCO_51XX, namco_51xx_device, \"namco51\", \"Namco 51xx\")"
+  },
+  "methods": [
+    {
+      "name": "reset",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_reset"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "state"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "CLEAR_LINE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "ASSERT_LINE"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vblank",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 70,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "MB88XX_TC_LINE"
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "state"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "CLEAR_LINE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "ASSERT_LINE"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rw",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 76,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "synchronize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "timer_expired_delegate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "namco_51xx_device::rw_sync"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "chip_select",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 86,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "MB88XX_IRQ_LINE"
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "state"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "ASSERT_LINE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "CLEAR_LINE"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 91,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_portO"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 96,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "synchronize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "timer_expired_delegate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "namco_51xx_device::write_sync"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "K_r",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 106,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_rw"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 3
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_portO"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 7
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R_r_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 112,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R_r_1",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 112,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R_r_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 112,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R_r_3",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 112,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 3
+                }
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "O_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "synchronize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "timer_expired_delegate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "namco_51xx_device::O_w_sync"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "P_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 127,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_out"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 158,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_portO"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_rw"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rw_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 81,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_rw"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "param"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 101,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_portO"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "param"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "O_w_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 122,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_portO"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "param"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_callback",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_in"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "output_callback",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 16,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "lockout_callback",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_lockout"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_51xx_device::input_callback",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_in"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_51xx_device::output_callback",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_51xx_device::lockout_callback",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_lockout"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/namco/namco51.cpp",
+    "src/mame/namco/namco51.h"
+  ],
+  "composedOf": [
+    "MB8843"
+  ]
+}

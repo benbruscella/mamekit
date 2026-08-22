@@ -1,0 +1,647 @@
+const H = 0x10;
+const I = 0x08;
+const N = 0x04;
+const Z = 0x02;
+const C = 0x01;
+// MC68705P3/P5 are HMOS parts.  Their cycle counts differ substantially from
+// the CMOS 68HC05 family (bit branches are the most visible example: ten
+// cycles rather than five).  The programmable timer advances from these
+// machine cycles, so using approximate instruction costs changes firmware
+// control flow, not just its wall-clock speed.
+const HMOS_CYCLES = Uint8Array.from([
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    6, 4, 4, 6, 6, 4, 6, 6, 6, 6, 6, 4, 6, 6, 4, 6,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    7, 4, 4, 7, 7, 4, 7, 7, 7, 7, 7, 4, 7, 7, 4, 7,
+    6, 4, 4, 6, 6, 4, 6, 6, 6, 6, 6, 4, 6, 6, 4, 6,
+    9, 6, 4, 11, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
+    2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 4, 8, 2, 4,
+    4, 4, 4, 4, 4, 4, 4, 5, 4, 4, 4, 4, 3, 7, 4, 5,
+    5, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 4, 8, 5, 6,
+    6, 6, 6, 6, 6, 6, 6, 7, 6, 6, 6, 6, 5, 9, 6, 7,
+    5, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 4, 8, 5, 6,
+    4, 4, 4, 4, 4, 4, 4, 5, 4, 4, 4, 4, 3, 7, 4, 5,
+]);
+/** Motorola 68705P5 core used by source-composed protection devices. */
+export class GeneratedM68705P5Device {
+    clock;
+    rom;
+    ram = new Uint8Array(0x80);
+    listeners = new Map();
+    calls = {};
+    portLatch = Uint8Array.from([0xff, 0xff, 0xff]);
+    portDdr = new Uint8Array(3);
+    a = 0;
+    x = 0;
+    pc = 0;
+    sp = 0x7f;
+    cc = I;
+    irq = false;
+    irqLine = false;
+    timerIrq = false;
+    timerData = 0xff;
+    timerControl = 0x7f;
+    timerPrescale = 0x7f;
+    timerDivisor = 7;
+    timerSource = 0;
+    waiting = false;
+    icount = 0;
+    constructor(options) {
+        this.clock = options.clock ?? 0;
+        const regions = options.regions ?? {};
+        const leaf = options.tag?.split(':').at(-1) ?? 'mcu';
+        this.rom = regions[options.tag ?? ''] ?? regions[Object.keys(regions).find(name => name.endsWith(`:${leaf}`)) ?? ''] ?? new Uint8Array(0x800);
+        this.reset();
+    }
+    reset() {
+        this.portDdr.fill(0);
+        this.a = 0;
+        this.x = 0;
+        this.sp = 0x7f;
+        this.cc = I;
+        this.irq = false;
+        this.irqLine = false;
+        this.timerIrq = false;
+        this.timerData = 0xff;
+        this.timerControl = 0x7f;
+        this.timerPrescale = 0x7f;
+        this.timerDivisor = 7;
+        this.timerSource = 0;
+        this.waiting = false;
+        this.icount = 0;
+        this.pc = this.word(0x7fe);
+    }
+    tick(_seconds) { }
+    call(name, ...args) {
+        return Number(this.invoke(name, ...args) ?? 0);
+    }
+    invoke(name, ...args) {
+        if (name === 'execute_run')
+            return this.run();
+        if (name === 'execute_set_input' || name === 'set_input_line') {
+            const line = Number(args[0] ?? 0);
+            const active = Number(args[1] ?? 0) !== 0;
+            if (line === -2) {
+                if (active)
+                    this.reset();
+                return 0;
+            }
+            if (line === 0 && active !== this.irqLine) {
+                this.irqLine = active;
+                if (active)
+                    this.irq = true;
+            }
+            return 0;
+        }
+        return this.calls[name]?.(...args) ?? 0;
+    }
+    get(name) {
+        if (name === 'm_icount')
+            return this.icount;
+        if (name === 'm_a' || name === 'A')
+            return this.a;
+        if (name === 'm_x' || name === 'X')
+            return this.x;
+        if (name === 'm_pc' || name === 'PC')
+            return this.pc;
+        if (name === 'm_s' || name === 'SP')
+            return this.sp;
+        if (name === 'm_cc' || name === 'CC')
+            return this.cc;
+        const port = /^(?:LATCH|DDR)([ABC])$/.exec(name);
+        if (port) {
+            const index = port[1].charCodeAt(0) - 65;
+            return name.startsWith('LATCH')
+                ? this.portLatch[index] ?? 0xff
+                : this.portDdr[index] ?? 0;
+        }
+        if (name === 'TDR')
+            return this.timerData;
+        if (name === 'TCR')
+            return this.timerControl;
+        if (name === 'm_state')
+            return this.pc;
+        return 0;
+    }
+    set(name, value) {
+        if (name === 'm_icount')
+            this.icount = value | 0;
+        else if (name === 'm_a' || name === 'A')
+            this.a = value & 0xff;
+        else if (name === 'm_x' || name === 'X')
+            this.x = value & 0xff;
+        else if (name === 'm_pc' || name === 'PC')
+            this.pc = value & 0x7ff;
+        else if (name === 'm_s' || name === 'SP')
+            this.sp = this.adjustSp(value);
+        else if (name === 'm_cc' || name === 'CC')
+            this.cc = value & 0xff;
+        else {
+            const port = /^(?:LATCH|DDR)([ABC])$/.exec(name);
+            if (port) {
+                const index = port[1].charCodeAt(0) - 65;
+                if (name.startsWith('LATCH')) {
+                    this.portLatch[index] = value & (index === 2 ? 0x0f : 0xff);
+                }
+                else {
+                    this.portDdr[index] = value & (index === 2 ? 0x0f : 0xff);
+                }
+            }
+            else if (name === 'TDR') {
+                this.timerData = value & 0xff;
+            }
+            else if (name === 'TCR') {
+                this.timerControl = value & 0xff;
+                this.timerDivisor = value & 7;
+                this.timerSource = (value & 0x30) >>> 4;
+                this.timerIrq = Boolean((this.timerControl & 0x80) && !(this.timerControl & 0x40));
+            }
+        }
+    }
+    constant(name) {
+        const constants = {
+            INPUT_LINE_IRQ0: 0,
+            INPUT_LINE_RESET: 1,
+        };
+        return constants[name] ?? constants[name.split('::').at(-1)];
+    }
+    methodNames() {
+        return ['execute_run', 'execute_set_input', 'set_input_line'];
+    }
+    arity(name) {
+        return name === 'execute_set_input' || name === 'set_input_line' ? 2 : 0;
+    }
+    parameters(name) {
+        return name === 'execute_set_input' ? ['inputnum', 'state'] : [];
+    }
+    signalNames() {
+        return [
+            'porta_r', 'portb_r', 'portc_r',
+            'porta_w', 'portb_w', 'portc_w',
+        ];
+    }
+    on(signal, listener, slot = 0) {
+        const values = this.listeners.get(signal) ?? [];
+        values[slot] = listener;
+        this.listeners.set(signal, values);
+        return this;
+    }
+    bindCall(name, listener) {
+        this.calls[name] = listener;
+        return this;
+    }
+    cycleClock() { return this.clock / 4; }
+    dataAddressBits() { return 11; }
+    bus() { return undefined; }
+    role() { return undefined; }
+    links() { return []; }
+    invokeSlot(name, ...args) {
+        return this.invoke(name, ...args);
+    }
+    run() {
+        const target = Math.max(0, this.icount | 0);
+        let used = 0;
+        while (used < target) {
+            if ((this.irq || this.timerIrq) && !(this.cc & I)) {
+                this.pushWord(this.pc);
+                this.push(this.x);
+                this.push(this.a);
+                this.push(this.cc);
+                this.cc |= I;
+                if (this.irq) {
+                    this.pc = this.word(0x7fa);
+                    this.irq = false;
+                }
+                else {
+                    this.pc = this.word(0x7f8);
+                }
+                this.waiting = false;
+                used += 11;
+                this.tickTimer(11);
+                continue;
+            }
+            if (this.waiting) {
+                // WAIT consumes no instructions until an interrupt wakes the core.
+                // Advancing one idle cycle per JavaScript loop made protection MCUs
+                // spend almost all host time counting clocks while their parent CPU
+                // was doing the useful work. Timer state still advances by the exact
+                // elapsed cycle count; a newly pending timer interrupt is serviced at
+                // the next scheduler boundary, like an externally asserted IRQ.
+                const idle = target - used;
+                this.tickTimer(idle);
+                used += idle;
+                continue;
+            }
+            const op = this.fetch();
+            this.execute(op);
+            const cycles = HMOS_CYCLES[op] ?? 4;
+            used += cycles;
+            this.tickTimer(cycles);
+        }
+        this.icount -= used;
+        return used;
+    }
+    execute(op) {
+        if (op < 0x10) {
+            const address = this.fetch();
+            const relative = this.fetchSigned();
+            const bit = 1 << (op >>> 1);
+            const set = Boolean(this.read(address) & bit);
+            const take = op & 1 ? !set : set;
+            this.cc = set ? this.cc | C : this.cc & ~C;
+            if (take)
+                this.pc = (this.pc + relative) & 0x7ff;
+            return 5;
+        }
+        if (op < 0x20) {
+            const address = this.fetch();
+            const bit = 1 << ((op - 0x10) >>> 1);
+            const value = this.read(address);
+            this.write(address, op & 1 ? value & ~bit : value | bit);
+            return 5;
+        }
+        if (op < 0x30) {
+            const relative = this.fetchSigned();
+            const base = op & 0x0e;
+            let take = false;
+            if (base === 0x00)
+                take = true;
+            else if (base === 0x02)
+                take = !(this.cc & (C | Z));
+            else if (base === 0x04)
+                take = !(this.cc & C);
+            else if (base === 0x06)
+                take = !(this.cc & Z);
+            else if (base === 0x08)
+                take = !(this.cc & H);
+            else if (base === 0x0a)
+                take = !(this.cc & N);
+            else if (base === 0x0c)
+                take = !(this.cc & I);
+            // BIH/BIL sample the physical IRQ pin, not the edge-latched pending
+            // interrupt.  The handler uses this to distinguish its external IRQ
+            // entry from the shared timer path before acknowledging 68LRD.
+            else if (base === 0x0e)
+                take = this.irqLine;
+            if (op & 1)
+                take = !take;
+            if (take)
+                this.pc = (this.pc + relative) & 0x7ff;
+            return 3;
+        }
+        if (op < 0x80) {
+            const group = op >>> 4;
+            const operation = op & 0x0f;
+            if (group === 4 || group === 5) {
+                const source = group === 4 ? this.a : this.x;
+                const result = this.unary(operation, source);
+                if (result !== undefined) {
+                    if (group === 4)
+                        this.a = result;
+                    else
+                        this.x = result;
+                }
+                return 3;
+            }
+            const address = group === 3 ? this.fetch() :
+                group === 6 ? (this.x + this.fetch()) & 0x7ff : this.x;
+            const result = this.unary(operation, this.read(address));
+            if (result !== undefined && operation !== 0x0d)
+                this.write(address, result);
+            return group === 3 ? 5 : 6;
+        }
+        if (op === 0x80) {
+            this.cc = this.pull();
+            this.a = this.pull();
+            this.x = this.pull();
+            this.pc = this.pullWord();
+            return 9;
+        }
+        if (op === 0x81) {
+            this.pc = this.pullWord();
+            return 6;
+        }
+        if (op === 0x83) {
+            this.pushWord(this.pc);
+            this.push(this.x);
+            this.push(this.a);
+            this.push(this.cc);
+            this.cc |= I;
+            this.pc = this.word(0x7fc);
+            return 11;
+        }
+        if (op === 0x8e || op === 0x8f) {
+            this.waiting = true;
+            return 2;
+        }
+        if (op === 0x97) {
+            this.x = this.a;
+            return 2;
+        }
+        if (op === 0x98) {
+            this.cc &= ~C;
+            return 2;
+        }
+        if (op === 0x99) {
+            this.cc |= C;
+            return 2;
+        }
+        if (op === 0x9a) {
+            this.cc &= ~I;
+            return 2;
+        }
+        if (op === 0x9b) {
+            this.cc |= I;
+            return 2;
+        }
+        if (op === 0x9c) {
+            this.sp = 0x7f;
+            return 2;
+        }
+        if (op === 0x9d)
+            return 2;
+        if (op === 0x9f) {
+            this.a = this.x;
+            return 2;
+        }
+        if (op >= 0xa0)
+            return this.alu(op);
+        return 2;
+    }
+    unary(operation, source) {
+        let result = source & 0xff;
+        if (operation === 0x00) {
+            const wide = -result;
+            this.clear(N | Z | C);
+            this.setNzc(wide);
+            result = wide;
+        }
+        else if (operation === 0x03) {
+            result = ~result;
+            this.clear(N | Z);
+            this.setNz(result);
+            this.cc |= C;
+        }
+        else if (operation === 0x04) {
+            this.clear(N | Z | C);
+            this.cc |= source & 1;
+            result = source >>> 1;
+            this.setNz(result);
+        }
+        else if (operation === 0x06) {
+            const carry = this.cc & C;
+            this.clear(N | Z | C);
+            this.cc |= source & 1;
+            result = (source >>> 1) | (carry << 7);
+            this.setNz(result);
+        }
+        else if (operation === 0x07) {
+            this.clear(N | Z | C);
+            this.cc |= source & 1;
+            result = (source >>> 1) | (source & 0x80);
+            this.setNz(result);
+        }
+        else if (operation === 0x08) {
+            const wide = source << 1;
+            this.clear(N | Z | C);
+            this.setNzc(wide);
+            result = wide;
+        }
+        else if (operation === 0x09) {
+            const wide = (source << 1) | (this.cc & C);
+            this.clear(N | Z | C);
+            this.setNzc(wide);
+            result = wide;
+        }
+        else if (operation === 0x0a) {
+            result = source - 1;
+            this.clear(N | Z);
+            this.setNz(result);
+        }
+        else if (operation === 0x0c) {
+            result = source + 1;
+            this.clear(N | Z);
+            this.setNz(result);
+        }
+        else if (operation === 0x0d) {
+            this.clear(N | Z);
+            this.setNz(source);
+            return undefined;
+        }
+        else if (operation === 0x0f) {
+            this.clear(N | Z);
+            this.cc |= Z;
+            result = 0;
+        }
+        else
+            return undefined;
+        return result & 0xff;
+    }
+    alu(op) {
+        const mode = op >>> 4;
+        const operation = op & 0x0f;
+        let address = 0;
+        if (mode === 0x0a)
+            address = this.pc++ & 0x7ff;
+        else if (mode === 0x0b)
+            address = this.fetch();
+        else if (mode === 0x0c)
+            address = this.fetchWord();
+        else if (mode === 0x0d)
+            address = (this.x + this.fetchWord()) & 0x7ff;
+        else if (mode === 0x0e)
+            address = (this.x + this.fetch()) & 0x7ff;
+        else
+            address = this.x;
+        if (operation === 0x0c) {
+            this.pc = address;
+            return 3;
+        }
+        if (operation === 0x0d) {
+            if (mode === 0x0a) {
+                const relative = this.read(address) & 0x80 ? this.read(address) - 0x100 : this.read(address);
+                this.pushWord(this.pc);
+                this.pc = (this.pc + relative) & 0x7ff;
+            }
+            else {
+                this.pushWord(this.pc);
+                this.pc = address;
+            }
+            return 6;
+        }
+        if (operation === 0x07 || operation === 0x0f) {
+            if (mode === 0x0a)
+                return 2;
+            const value = operation === 0x07 ? this.a : this.x;
+            this.clear(N | Z);
+            this.setNz(value);
+            this.write(address, value);
+            return 4;
+        }
+        const value = this.read(address);
+        if (operation === 0x00 || operation === 0x01 || operation === 0x02 || operation === 0x03) {
+            const left = operation === 0x03 ? this.x : this.a;
+            const wide = left - value - (operation === 0x02 ? this.cc & C : 0);
+            this.clear(N | Z | C);
+            this.setNzc(wide);
+            if (operation === 0x00 || operation === 0x02)
+                this.a = wide & 0xff;
+        }
+        else if (operation === 0x04) {
+            this.a &= value;
+            this.clear(N | Z);
+            this.setNz(this.a);
+        }
+        else if (operation === 0x05) {
+            this.clear(N | Z);
+            this.setNz(this.a & value);
+        }
+        else if (operation === 0x06) {
+            this.a = value;
+            this.clear(N | Z);
+            this.setNz(this.a);
+        }
+        else if (operation === 0x08) {
+            this.a ^= value;
+            this.clear(N | Z);
+            this.setNz(this.a);
+        }
+        else if (operation === 0x09 || operation === 0x0b) {
+            const carry = operation === 0x09 ? this.cc & C : 0;
+            const wide = this.a + value + carry;
+            this.clear(H | N | Z | C);
+            if (((this.a & 0x0f) + (value & 0x0f) + carry) & 0x10)
+                this.cc |= H;
+            this.setNzc(wide);
+            this.a = wide & 0xff;
+        }
+        else if (operation === 0x0a) {
+            this.a |= value;
+            this.clear(N | Z);
+            this.setNz(this.a);
+        }
+        else if (operation === 0x0e) {
+            this.x = value;
+            this.clear(N | Z);
+            this.setNz(this.x);
+        }
+        return mode === 0x0a ? 2 : 4;
+    }
+    read(address) {
+        address &= 0x7ff;
+        if (address <= 2)
+            return this.readPort(address);
+        if (address === 8)
+            return this.timerData;
+        if (address === 9)
+            return this.timerControl & ~0x08;
+        if (address < 0x80)
+            return this.ram[address] ?? 0xff;
+        return this.rom[address] ?? 0xff;
+    }
+    write(address, value) {
+        address &= 0x7ff;
+        value &= 0xff;
+        if (address <= 2) {
+            this.writePort(address, value);
+            return;
+        }
+        if (address >= 4 && address <= 6) {
+            const port = address - 4;
+            const ddr = value & (port === 2 ? 0x0f : 0xff);
+            if (ddr !== this.portDdr[port]) {
+                this.portDdr[port] = ddr;
+                this.emitPort(port);
+            }
+            return;
+        }
+        if (address === 8) {
+            this.timerData = value;
+            return;
+        }
+        if (address === 9) {
+            this.timerDivisor = value & 7;
+            this.timerSource = (value & 0x30) >>> 4;
+            if (value & 0x08)
+                this.timerPrescale = 0;
+            this.timerControl =
+                (this.timerControl & (value & 0x80)) |
+                    (value & ~(0x80 | 0x08));
+            this.timerIrq = Boolean((this.timerControl & 0x80) && !(this.timerControl & 0x40));
+            return;
+        }
+        if (address < 0x80)
+            this.ram[address] = value;
+    }
+    readPort(port) {
+        const mask = port === 2 ? 0xf0 : 0;
+        const signal = ['porta_r', 'portb_r', 'portc_r'][port];
+        const input = Number(this.listeners.get(signal)?.[0]?.() ?? 0xff);
+        const ddr = this.portDdr[port] ?? 0;
+        return (mask | ((this.portLatch[port] ?? 0xff) & ddr) | (input & ~ddr)) & 0xff;
+    }
+    writePort(port, value) {
+        const latch = value & (port === 2 ? 0x0f : 0xff);
+        const difference = (this.portLatch[port] ?? 0xff) ^ latch;
+        this.portLatch[port] = latch;
+        if (difference & (this.portDdr[port] ?? 0))
+            this.emitPort(port);
+    }
+    emitPort(port) {
+        const signal = ['porta_w', 'portb_w', 'portc_w'][port];
+        const latch = this.portLatch[port] ?? 0xff;
+        // Port A on the MC68705P is open-drain.  Releasing a pin by clearing its
+        // DDR bit presents a pulled-up 1 to the external bus, irrespective of the
+        // stale output latch.  Forwarding the latch verbatim made every later MCU
+        // command get ANDed with its previous response (for example EE became 06),
+        // which stranded Elevator Action in the protection bootstrap.
+        const value = port === 0
+            ? latch | ~(this.portDdr[port] ?? 0)
+            : latch;
+        for (const listener of this.listeners.get(signal) ?? [])
+            listener?.(value & 0xff);
+    }
+    tickTimer(cycles) {
+        // M68705P5's programmable timer: source 0 is the internal CPU clock,
+        // source 1 is that clock gated by the (normally high) timer pin.  The
+        // external-only modes do not advance on CPU cycles.
+        if (this.timerSource > 1)
+            return;
+        const prescale = (this.timerPrescale & ((1 << this.timerDivisor) - 1)) + cycles;
+        const decrements = prescale >>> this.timerDivisor;
+        const crossing = (this.timerData || 256) <= decrements;
+        this.timerPrescale = prescale & 0x7f;
+        this.timerData = (this.timerData - decrements) & 0xff;
+        if (crossing) {
+            this.timerControl |= 0x80;
+            if (!(this.timerControl & 0x40))
+                this.timerIrq = true;
+        }
+    }
+    fetch() { const value = this.read(this.pc); this.pc = (this.pc + 1) & 0x7ff; return value; }
+    fetchSigned() { const value = this.fetch(); return value & 0x80 ? value - 0x100 : value; }
+    fetchWord() { return (this.fetch() << 8) | this.fetch(); }
+    word(address) { return ((this.read(address) << 8) | this.read(address + 1)) & 0x7ff; }
+    push(value) { this.write(this.sp, value); this.sp = this.adjustSp(this.sp - 1); }
+    pushWord(value) { this.push(value & 0xff); this.push(value >>> 8); }
+    pull() { this.sp = this.adjustSp(this.sp + 1); return this.read(this.sp); }
+    pullWord() { return ((this.pull() << 8) | this.pull()) & 0x7ff; }
+    adjustSp(value) { return value < 0x60 ? 0x7f : value > 0x7f ? 0x60 : value; }
+    clear(flags) { this.cc &= ~flags; }
+    setNz(value) {
+        value &= 0xff;
+        if (value & 0x80)
+            this.cc |= N;
+        if (value === 0)
+            this.cc |= Z;
+    }
+    setNzc(value) {
+        this.setNz(value);
+        if (value & 0x100)
+            this.cc |= C;
+    }
+}

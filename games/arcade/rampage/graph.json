@@ -1,0 +1,3070 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/bally/mcr3.cpp",
+    "generatedAt": "2026-08-22T05:52:44.136Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Aaron Giles"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/bally/mcr3.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/bally/mcr3.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:mcr3.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "mcr3.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/nvram.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/nvram.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/rescap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/rescap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:spyhunt.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "spyhunt.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:turbotag.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "turbotag.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:midway_sound.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "midway_sound.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/bally/midway_sound.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/bally/midway_sound.cpp"
+      }
+    },
+    {
+      "id": "handler:mcr3_state.mcrmono_control_port_w",
+      "label": "Handler",
+      "props": {
+        "method": "mcrmono_control_port_w",
+        "ownerClass": "mcr3_state",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 122,
+        "sourceColumn": 1,
+        "sourceEndLine": 138,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "/*\n\t    Bit layout is as follows:\n\t        D7 = n/c\n\t        D6 = cocktail flip\n\t        D5 = n/c\n\t        D4 = n/c\n\t        D3 = n/c\n\t        D2 = n/c\n\t        D1 = n/c\n\t        D0 = coin meter 1\n\t*/\n\n\tmachine().bookkeeping().coin_counter_w(0, (data >> 0) & 1);\n\tm_mcr_cocktail_flip = (data >> 6) & 1;"
+      }
+    },
+    {
+      "id": "game:rampage",
+      "label": "Game",
+      "props": {
+        "name": "rampage",
+        "year": "1986",
+        "company": "Bally Midway",
+        "fullname": "Rampage (Rev 3, 8/27/86)",
+        "monitor": "ROT0",
+        "cls": "mcr3_state",
+        "init": "init_rampage",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1694,
+        "sourceColumn": 1,
+        "sourceEndLine": 1694,
+        "installedHandlers": [
+          "{\"space\":\"AS_IO\",\"kind\":\"read\",\"start\":4,\"end\":4,\"className\":\"mcr3_state\",\"method\":\"rampage_ip4_r\"}",
+          "{\"space\":\"AS_IO\",\"kind\":\"write\",\"start\":6,\"end\":6,\"className\":\"mcr3_state\",\"method\":\"rampage_op6_w\"}"
+        ]
+      }
+    },
+    {
+      "id": "handler:mcr3_state.rampage_ip4_r",
+      "label": "Handler",
+      "props": {
+        "method": "rampage_ip4_r",
+        "ownerClass": "mcr3_state",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 281,
+        "sourceColumn": 1,
+        "sourceEndLine": 284,
+        "sourceParameters": "",
+        "sourceBody": "return ioport(\"MONO.IP4\")->read() | (m_sounds_good->read() << 7);"
+      }
+    },
+    {
+      "id": "handler:mcr3_state.rampage_op6_w",
+      "label": "Handler",
+      "props": {
+        "method": "rampage_op6_w",
+        "ownerClass": "mcr3_state",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 287,
+        "sourceColumn": 1,
+        "sourceEndLine": 294,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "/* bit 5 controls reset of the Sounds Good board */\n\tm_sounds_good->reset_write((~data >> 5) & 1);\n\n\t/* low 5 bits go directly to the Sounds Good board */\n\tm_sounds_good->write(data);"
+      }
+    },
+    {
+      "id": "romset:rampage",
+      "label": "RomSet",
+      "props": {
+        "name": "rampage",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1306,
+        "sourceColumn": 1,
+        "sourceEndLine": 1306
+      }
+    },
+    {
+      "id": "region:rampage/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "fills": [
+          57344,
+          8192,
+          255
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1228,
+        "sourceColumn": 2,
+        "sourceEndLine": 1228
+      }
+    },
+    {
+      "id": "rom:rampage/maincpu/pro-0_3b_rev_3_8-27-86.3b",
+      "label": "Rom",
+      "props": {
+        "file": "pro-0_3b_rev_3_8-27-86.3b",
+        "offset": 0,
+        "size": 32768,
+        "crc": "2f7ca03c",
+        "sha1": "1e3a1f213fd67938adf14ea0d04dab687ea8f4ef",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1308,
+        "sourceColumn": 2,
+        "sourceEndLine": 1308
+      }
+    },
+    {
+      "id": "rom:rampage/maincpu/pro-1_5b_rev_3_8-27-86.5b",
+      "label": "Rom",
+      "props": {
+        "file": "pro-1_5b_rev_3_8-27-86.5b",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "d89bd9a4",
+        "sha1": "3531464ffe49dfaf2755d9e2dc1aea23819b3a5d",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1309,
+        "sourceColumn": 2,
+        "sourceEndLine": 1309
+      }
+    },
+    {
+      "id": "region:rampage/sg:cpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sg:cpu",
+        "size": 262144,
+        "flags": "0",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1312,
+        "sourceColumn": 2,
+        "sourceEndLine": 1312
+      }
+    },
+    {
+      "id": "rom:rampage/sg:cpu/u-7_rev.2_8-14-86.u7",
+      "label": "Rom",
+      "props": {
+        "file": "u-7_rev.2_8-14-86.u7",
+        "offset": 0,
+        "size": 32768,
+        "crc": "cffd7fa5",
+        "sha1": "7c5cecce1d428f847fea37d53eb09c6f62055c6f",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:rampage/sg:cpu/u-17_rev.2_8-14-86.u17",
+      "label": "Rom",
+      "props": {
+        "file": "u-17_rev.2_8-14-86.u17",
+        "offset": 1,
+        "size": 32768,
+        "crc": "e92c596b",
+        "sha1": "4e2d87398f2e7b637cbad6cb16d832dfa8f8288c",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:rampage/sg:cpu/u-8_rev.2_8-14-86.u8",
+      "label": "Rom",
+      "props": {
+        "file": "u-8_rev.2_8-14-86.u8",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "11f787e4",
+        "sha1": "1fa195bf9169608099d17be5801738a4e17bec3d",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:rampage/sg:cpu/u-18_rev.2_8-14-86.u18",
+      "label": "Rom",
+      "props": {
+        "file": "u-18_rev.2_8-14-86.u18",
+        "offset": 65537,
+        "size": 32768,
+        "crc": "6b8bf5e1",
+        "sha1": "aa8c0260dcd19a795bfc23197cd87348a685d20b",
+        "skip": 1
+      }
+    },
+    {
+      "id": "region:rampage/gfx1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx1",
+        "size": 32768,
+        "flags": "ROMREGION_INVERT",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1237,
+        "sourceColumn": 2,
+        "sourceEndLine": 1237
+      }
+    },
+    {
+      "id": "rom:rampage/gfx1/bg-0_u15_7-23-86.15a",
+      "label": "Rom",
+      "props": {
+        "file": "bg-0_u15_7-23-86.15a",
+        "offset": 0,
+        "size": 16384,
+        "crc": "c0d8b7a5",
+        "sha1": "692219388a3124fb48db7e35c4127b0fe066a289",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1319,
+        "sourceColumn": 2,
+        "sourceEndLine": 1319
+      }
+    },
+    {
+      "id": "rom:rampage/gfx1/bg-1_u14_7-23-86.14b",
+      "label": "Rom",
+      "props": {
+        "file": "bg-1_u14_7-23-86.14b",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "2f6e3aa1",
+        "sha1": "ae86ce90bb6bf660e38c0f91e7ce90d44be82d60",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1320,
+        "sourceColumn": 2,
+        "sourceEndLine": 1320
+      }
+    },
+    {
+      "id": "region:rampage/gfx2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "gfx2",
+        "size": 262144,
+        "flags": "0",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1241,
+        "sourceColumn": 2,
+        "sourceEndLine": 1241
+      }
+    },
+    {
+      "id": "rom:rampage/gfx2/fg-0_8e_6-30-86.8e",
+      "label": "Rom",
+      "props": {
+        "file": "fg-0_8e_6-30-86.8e",
+        "offset": 0,
+        "size": 65536,
+        "crc": "0974be5d",
+        "sha1": "be347faaa345383dc6e5c2b3789c372d6bd25905",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1323,
+        "sourceColumn": 2,
+        "sourceEndLine": 1323
+      }
+    },
+    {
+      "id": "rom:rampage/gfx2/fg-1_6e_6-30-86.6e",
+      "label": "Rom",
+      "props": {
+        "file": "fg-1_6e_6-30-86.6e",
+        "offset": 65536,
+        "size": 65536,
+        "crc": "8728532b",
+        "sha1": "327df92db7e3506b827d497859980cd2de51f45d",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1324,
+        "sourceColumn": 2,
+        "sourceEndLine": 1324
+      }
+    },
+    {
+      "id": "rom:rampage/gfx2/fg-2_5e_6-30-86.5e",
+      "label": "Rom",
+      "props": {
+        "file": "fg-2_5e_6-30-86.5e",
+        "offset": 131072,
+        "size": 65536,
+        "crc": "9489f714",
+        "sha1": "df17a45cdc6a9310856d64f89954be79bbeac12e",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1325,
+        "sourceColumn": 2,
+        "sourceEndLine": 1325
+      }
+    },
+    {
+      "id": "rom:rampage/gfx2/fg-3_4e_6-30-86.4e",
+      "label": "Rom",
+      "props": {
+        "file": "fg-3_4e_6-30-86.4e",
+        "offset": 196608,
+        "size": 65536,
+        "crc": "81e1de40",
+        "sha1": "7e7818792845ec3687b3202eeade60a298ef513e",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1326,
+        "sourceColumn": 2,
+        "sourceEndLine": 1326
+      }
+    },
+    {
+      "id": "region:rampage/sg:pal",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sg:pal",
+        "size": 1,
+        "flags": "0",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1328,
+        "sourceColumn": 2,
+        "sourceEndLine": 1328
+      }
+    },
+    {
+      "id": "rom:rampage/sg:pal/e36a31axnaxqd.u15.bin",
+      "label": "Rom",
+      "props": {
+        "file": "e36a31axnaxqd.u15.bin",
+        "offset": 0,
+        "size": 1,
+        "crc": "",
+        "sha1": "",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1329,
+        "sourceColumn": 2,
+        "sourceEndLine": 1329,
+        "status": "nodump"
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "mcr3_state",
+        "name": "mcrmono_map",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 479,
+        "sourceColumn": 1,
+        "sourceEndLine": 489,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 57343,
+        "raw": "map(0x0000, 0xdfff).rom()",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 482,
+        "sourceColumn": 2,
+        "sourceEndLine": 482,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 59391,
+        "raw": "map(0xe000, 0xe7ff).ram().share(\"nvram\")",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 483,
+        "sourceColumn": 2,
+        "sourceEndLine": 483,
+        "ram": true,
+        "share": "nvram"
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 59392,
+        "end": 59903,
+        "raw": "map(0xe800, 0xe9ff).ram().share(\"spriteram\")",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 484,
+        "sourceColumn": 2,
+        "sourceEndLine": 484,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 59904,
+        "end": 60415,
+        "raw": "map(0xea00, 0xebff).ram()",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 485,
+        "sourceColumn": 2,
+        "sourceEndLine": 485,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 60416,
+        "end": 60543,
+        "raw": "map(0xec00, 0xec7f).mirror(0x0380).w(FUNC(mcr3_state::mcr_paletteram9_w)).share(\"paletteram\")",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 486,
+        "sourceColumn": 2,
+        "sourceEndLine": 486,
+        "mirror": 896,
+        "share": "paletteram"
+      }
+    },
+    {
+      "id": "handler:mcr3_state.mcr_paletteram9_w",
+      "label": "Handler",
+      "props": {
+        "method": "mcr_paletteram9_w",
+        "ownerClass": "mcr3_state",
+        "sourceFile": "src/mame/bally/mcr_v.cpp",
+        "sourceLine": 162,
+        "sourceColumn": 1,
+        "sourceEndLine": 170,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "// palette RAM is actually 9 bit (a 93419 SRAM)\n\t// however, there is no way for the CPU to read back\n\t// the high bit, because D8 of the SRAM is connected\n\t// to A0 of the bus rather than to a data line\n\tm_paletteram[offset] = data;\n\tmcr_set_color(offset / 2, data | ((offset & 1) << 8));"
+      }
+    },
+    {
+      "id": "handler:mcr_state.mcr_set_color",
+      "label": "Handler",
+      "props": {
+        "method": "mcr_set_color",
+        "ownerClass": "mcr_state",
+        "sourceFile": "src/mame/bally/mcr_v.cpp",
+        "sourceLine": 127,
+        "sourceColumn": 1,
+        "sourceEndLine": 130,
+        "sourceParameters": "int index, int data",
+        "sourceBody": "m_palette->set_pen_color(index, pal3bit(data >> 6), pal3bit(data >> 0), pal3bit(data >> 3));"
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 61440,
+        "end": 63487,
+        "raw": "map(0xf000, 0xf7ff).ram().w(FUNC(mcr3_state::mcr3_videoram_w)).share(\"videoram\")",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 487,
+        "sourceColumn": 2,
+        "sourceEndLine": 487,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:mcr3_state.mcr3_videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "mcr3_videoram_w",
+        "ownerClass": "mcr3_state",
+        "sourceFile": "src/mame/bally/mcr3_v.cpp",
+        "sourceLine": 119,
+        "sourceColumn": 1,
+        "sourceEndLine": 123,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset / 2);"
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 63488,
+        "end": 65535,
+        "raw": "map(0xf800, 0xffff).rom()",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 488,
+        "sourceColumn": 2,
+        "sourceEndLine": 488,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_portmap",
+      "label": "AddressMap",
+      "props": {
+        "cls": "mcr3_state",
+        "name": "mcrmono_portmap",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 492,
+        "sourceColumn": 1,
+        "sourceEndLine": 504,
+        "globalMask": 255,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_portmap/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 0,
+        "raw": "map(0x00, 0x00).mirror(0x78).portr(\"MONO.IP0\")",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 496,
+        "sourceColumn": 2,
+        "sourceEndLine": 496,
+        "mirror": 120,
+        "portRead": "MONO.IP0"
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_portmap/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 1,
+        "end": 1,
+        "raw": "map(0x01, 0x01).mirror(0x78).portr(\"MONO.IP1\")",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 497,
+        "sourceColumn": 2,
+        "sourceEndLine": 497,
+        "mirror": 120,
+        "portRead": "MONO.IP1"
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_portmap/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 2,
+        "end": 2,
+        "raw": "map(0x02, 0x02).mirror(0x78).portr(\"MONO.IP2\")",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 498,
+        "sourceColumn": 2,
+        "sourceEndLine": 498,
+        "mirror": 120,
+        "portRead": "MONO.IP2"
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_portmap/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 3,
+        "end": 3,
+        "raw": "map(0x03, 0x03).mirror(0x78).portr(\"MONO.IP3\")",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 499,
+        "sourceColumn": 2,
+        "sourceEndLine": 499,
+        "mirror": 120,
+        "portRead": "MONO.IP3"
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_portmap/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 4,
+        "end": 4,
+        "raw": "map(0x04, 0x04).mirror(0x78).portr(\"MONO.IP4\")",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 500,
+        "sourceColumn": 2,
+        "sourceEndLine": 500,
+        "mirror": 120,
+        "portRead": "MONO.IP4"
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_portmap/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 5,
+        "end": 5,
+        "raw": "map(0x05, 0x05).mirror(0x78).w(FUNC(mcr3_state::mcrmono_control_port_w))",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 501,
+        "sourceColumn": 2,
+        "sourceEndLine": 501,
+        "mirror": 120
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_portmap/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 7,
+        "end": 7,
+        "raw": "map(0x07, 0x07).mirror(0x78).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 502,
+        "sourceColumn": 2,
+        "sourceEndLine": 502,
+        "mirror": 120
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/bally/mcr.cpp",
+        "sourceLine": 790,
+        "sourceColumn": 2,
+        "sourceEndLine": 790
+      }
+    },
+    {
+      "id": "map:mcr3_state.mcrmono_portmap/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 240,
+        "end": 243,
+        "raw": "map(0xf0, 0xf3).mirror(0x0c).rw(m_ctc, FUNC(z80ctc_device::read), FUNC(z80ctc_device::write))",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 503,
+        "sourceColumn": 2,
+        "sourceEndLine": 503,
+        "mirror": 12
+      }
+    },
+    {
+      "id": "handler:z80ctc_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "z80ctc_device",
+        "sourceFile": "src/mame/bally/mcr.cpp",
+        "sourceLine": 818,
+        "sourceColumn": 2,
+        "sourceEndLine": 818
+      }
+    },
+    {
+      "id": "handler:z80ctc_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "z80ctc_device",
+        "sourceFile": "src/mame/bally/mcr.cpp",
+        "sourceLine": 818,
+        "sourceColumn": 2,
+        "sourceEndLine": 818
+      }
+    },
+    {
+      "id": "handler:pia6821_device.read_alt",
+      "label": "Handler",
+      "props": {
+        "method": "read_alt",
+        "ownerClass": "pia6821_device",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 763,
+        "sourceColumn": 2,
+        "sourceEndLine": 763
+      }
+    },
+    {
+      "id": "handler:pia6821_device.write_alt",
+      "label": "Handler",
+      "props": {
+        "method": "write_alt",
+        "ownerClass": "pia6821_device",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 763,
+        "sourceColumn": 2,
+        "sourceEndLine": 763
+      }
+    },
+    {
+      "id": "map:midway_sounds_good_device.soundsgood_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "midway_sounds_good_device",
+        "name": "soundsgood_map",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 1,
+        "sourceEndLine": 598,
+        "globalMask": 524287,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:midway_sounds_good_device.soundsgood_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 262143,
+        "raw": "map(0x000000, 0x03ffff).rom()",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 595,
+        "sourceColumn": 2,
+        "sourceEndLine": 595,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:midway_sounds_good_device.soundsgood_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 393216,
+        "end": 393223,
+        "raw": "map(0x060000, 0x060007).mirror(0x00fff0).rw(m_pia, FUNC(pia6821_device::read_alt), FUNC(pia6821_device::write_alt)).umask16(0xff00)",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 596,
+        "sourceColumn": 2,
+        "sourceEndLine": 596,
+        "mirror": 65520
+      }
+    },
+    {
+      "id": "map:midway_sounds_good_device.soundsgood_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 458752,
+        "end": 462847,
+        "raw": "map(0x070000, 0x070fff).mirror(0x00f000).ram()",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 597,
+        "sourceColumn": 2,
+        "sourceEndLine": 597,
+        "mirror": 61440,
+        "ram": true
+      }
+    },
+    {
+      "id": "machine:mcr3_state.mcrmono",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "mcr3_state",
+        "name": "mcrmono",
+        "calls": [],
+        "resetHandlers": [
+          "mcr_state.machine_reset"
+        ],
+        "startHandlers": [
+          "mcr3_state.video_start"
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1083,
+        "sourceColumn": 1,
+        "sourceEndLine": 1116
+      }
+    },
+    {
+      "id": "handler:mcr_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "mcr_state",
+        "sourceFile": "src/mame/bally/mcr_m.cpp",
+        "sourceLine": 93,
+        "sourceColumn": 1,
+        "sourceEndLine": 97,
+        "sourceParameters": "",
+        "sourceBody": "/* reset cocktail flip */\n\tm_mcr_cocktail_flip = 0;"
+      }
+    },
+    {
+      "id": "handler:mcr3_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "mcr3_state",
+        "sourceFile": "src/mame/bally/mcr3_v.cpp",
+        "sourceLine": 86,
+        "sourceColumn": 1,
+        "sourceEndLine": 90,
+        "sourceParameters": "",
+        "sourceBody": "// initialize the background tilemap\n\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(mcr3_state::mcrmono_get_bg_tile_info)), TILEMAP_SCAN_ROWS, 16,16, 32,30);"
+      }
+    },
+    {
+      "id": "handler:mcr3_state.mcrmono_get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "mcrmono_get_bg_tile_info",
+        "ownerClass": "mcr3_state",
+        "sourceFile": "src/mame/bally/mcr3_v.cpp",
+        "sourceLine": 29,
+        "sourceColumn": 1,
+        "sourceEndLine": 35,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int data = m_videoram[tile_index * 2] | (m_videoram[tile_index * 2 + 1] << 8);\n\tint code = (data & 0x3ff) | ((data >> 4) & 0x400);\n\tint color = ((data >> 12) & 3) ^ 3;\n\ttileinfo.set(0, code, color, TILE_FLIPYX(data >> 10));"
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 5000000,
+        "config": [
+          "Z80(config, m_maincpu, MASTER_CLOCK/4)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &mcr3_state::mcrmono_map)",
+          "m_maincpu->set_addrmap(AS_IO, &mcr3_state::mcrmono_portmap)",
+          "m_maincpu->set_daisy_config(mcr_daisy_chain)"
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1086,
+        "sourceColumn": 2,
+        "sourceEndLine": 1086
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/scantimer",
+      "label": "Device",
+      "props": {
+        "type": "TIMER",
+        "tag": "scantimer",
+        "clock": null,
+        "config": [
+          "TIMER(config, \"scantimer\").configure_scanline(FUNC(mcr3_state::mcr_interrupt), \"screen\", 0, 1)"
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1091,
+        "sourceColumn": 2,
+        "sourceEndLine": 1091
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/scantimer/callback:scantimer:0",
+      "label": "Callback",
+      "props": {
+        "signal": "configure_scanline",
+        "operation": "configure_scanline",
+        "raw": "TIMER(config, \"scantimer\").configure_scanline(FUNC(mcr3_state::mcr_interrupt), \"screen\", 0, 1)",
+        "ownerTag": "scantimer",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1091,
+        "sourceColumn": 2,
+        "sourceEndLine": 1091,
+        "scanlineStart": 0,
+        "scanlineIncrement": 1,
+        "targetClass": "mcr3_state",
+        "targetMethod": "mcr_interrupt"
+      }
+    },
+    {
+      "id": "handler:mcr3_state.mcr_interrupt",
+      "label": "Handler",
+      "props": {
+        "method": "mcr_interrupt",
+        "ownerClass": "mcr3_state",
+        "sourceFile": "src/mame/bally/mcr_m.cpp",
+        "sourceLine": 107,
+        "sourceColumn": 1,
+        "sourceEndLine": 126,
+        "sourceParameters": "int param",
+        "sourceBody": "int scanline = param;\n\n\t/* CTC line 2 is connected to VBLANK, which is once every 1/2 frame */\n\t/* for the 30Hz interlaced display */\n\tif(scanline == 0 || scanline == 240)\n\t{\n\t\tm_ctc->trg2(1);\n\t\tm_ctc->trg2(0);\n\t}\n\n\t/* CTC line 3 is connected to 493, which is signalled once every */\n\t/* frame at 30Hz */\n\tif (scanline == 0)\n\t{\n\t\tm_ctc->trg3(1);\n\t\tm_ctc->trg3(0);\n\t}"
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/ctc",
+      "label": "Device",
+      "props": {
+        "type": "Z80CTC",
+        "tag": "ctc",
+        "clock": 5000000,
+        "config": [
+          "Z80CTC(config, m_ctc, MASTER_CLOCK/4  )",
+          "m_ctc->intr_callback().set_inputline(m_maincpu, INPUT_LINE_IRQ0)",
+          "m_ctc->zc_callback<0>().set(m_ctc, FUNC(z80ctc_device::trg1))"
+        ]
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/ctc/callback:ctc:0",
+      "label": "Callback",
+      "props": {
+        "signal": "intr_callback",
+        "operation": "set_inputline",
+        "raw": "m_ctc->intr_callback().set_inputline(m_maincpu, INPUT_LINE_IRQ0)",
+        "ownerTag": "ctc",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1094,
+        "sourceColumn": 2,
+        "sourceEndLine": 1094,
+        "inputLine": "INPUT_LINE_IRQ0",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/ctc/callback:ctc:1",
+      "label": "Callback",
+      "props": {
+        "signal": "zc_callback",
+        "operation": "set",
+        "raw": "m_ctc->zc_callback<0>().set(m_ctc, FUNC(z80ctc_device::trg1))",
+        "ownerTag": "ctc",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1095,
+        "sourceColumn": 2,
+        "sourceEndLine": 1095,
+        "slot": "0",
+        "targetClass": "z80ctc_device",
+        "targetMethod": "trg1",
+        "targetTag": "ctc"
+      }
+    },
+    {
+      "id": "handler:z80ctc_device.trg1",
+      "label": "Handler",
+      "props": {
+        "method": "trg1",
+        "ownerClass": "z80ctc_device",
+        "sourceFile": "src/mame/bally/mcr.cpp",
+        "sourceLine": 1784,
+        "sourceColumn": 2,
+        "sourceEndLine": 1784
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\").set_vblank_count(m_screen, 16)"
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1097,
+        "sourceColumn": 2,
+        "sourceEndLine": 1097
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/nvram",
+      "label": "Device",
+      "props": {
+        "type": "NVRAM",
+        "tag": "nvram",
+        "clock": null,
+        "config": [
+          "NVRAM(config, \"nvram\", nvram_device::DEFAULT_ALL_0)"
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1099,
+        "sourceColumn": 2,
+        "sourceEndLine": 1099,
+        "clockExpr": "nvram_device::DEFAULT_ALL_0"
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": 2,
+        "config": [
+          "SPEAKER(config, \"speaker\", 2).front()"
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1102,
+        "sourceColumn": 2,
+        "sourceEndLine": 1102
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK)",
+          "m_screen->set_refresh_hz(30)",
+          "m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(2500)  )",
+          "m_screen->set_size(32*16, 30*16)",
+          "m_screen->set_visarea(0*16, 32*16-1, 0*16, 30*16-1)",
+          "m_screen->set_screen_update(FUNC(mcr3_state::screen_update_mcr3))",
+          "m_screen->set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1105,
+        "sourceColumn": 2,
+        "sourceEndLine": 1105,
+        "configCalls": [
+          "set_refresh_hz(30)",
+          "set_size(512,480)",
+          "set_visarea(0,511,0,479)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRefreshHz": 30,
+        "screenSize": [
+          512,
+          480
+        ],
+        "screenVisarea": [
+          0,
+          511,
+          0,
+          479
+        ],
+        "screenVideoAttributes": [
+          "VIDEO_UPDATE_BEFORE_VBLANK"
+        ]
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(mcr3_state::screen_update_mcr3))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1111,
+        "sourceColumn": 2,
+        "sourceEndLine": 1111,
+        "targetClass": "mcr3_state",
+        "targetMethod": "screen_update_mcr3"
+      }
+    },
+    {
+      "id": "handler:mcr3_state.screen_update_mcr3",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update_mcr3",
+        "ownerClass": "mcr3_state",
+        "sourceFile": "src/mame/bally/mcr3_v.cpp",
+        "sourceLine": 241,
+        "sourceColumn": 1,
+        "sourceEndLine": 252,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "/* update the flip state */\n\tm_bg_tilemap->set_flip(m_mcr_cocktail_flip ? (TILEMAP_FLIPX | TILEMAP_FLIPY) : 0);\n\n\t/* draw the background */\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\n\t/* draw the sprites */\n\tmcr3_update_sprites(screen, bitmap, cliprect, 0x03, 0, 0, 0, 1);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:mcr3_state.mcr3_update_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "mcr3_update_sprites",
+        "ownerClass": "mcr3_state",
+        "sourceFile": "src/mame/bally/mcr3_v.cpp",
+        "sourceLine": 170,
+        "sourceColumn": 1,
+        "sourceEndLine": 231,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int color_mask, int code_xor, int dx, int dy, int interlaced",
+        "sourceBody": "m_screen->priority().fill(1, cliprect);\n\n\t/* loop over sprite RAM */\n\tfor (int offs = m_spriteram.bytes() - 4; offs >= 0; offs -= 4)\n\t{\n\t\t/* skip if zero */\n\t\tif (m_spriteram[offs] == 0)\n\t\t\tcontinue;\n\n/*\n    monoboard:\n        flags.d0 -> ICG0~ -> PCG0~/PCG2~/PCG4~/PCG6~ -> bit 4 of linebuffer\n        flags.d1 -> ICG1~ -> PCG1~/PCG3~/PCG5~/PCG7~ -> bit 5 of linebuffer\n        flags.d2 -> IPPR  -> PPR0 /PPR1 /PPR2 /PPR3  -> bit 6 of linebuffer\n        flags.d3 -> IRA15 ----------------------------> address line 15 of FG ROMs\n        flags.d4 -> HFLIP\n        flags.d5 -> VFLIP\n\n*/\n\n\t\t/* extract the bits of information */\n\t\tint flags = m_spriteram[offs + 1];\n\t\tint code = m_spriteram[offs + 2] + 256 * ((flags >> 3) & 0x01);\n\t\tint color = ~flags & color_mask;\n\t\tint flipx = flags & 0x10;\n\t\tint flipy = flags & 0x20;\n\t\tint sx = (m_spriteram[offs + 3] - 3) * 2;\n\t\tint sy = (241 - m_spriteram[offs]);\n\n\t\tif (interlaced == 1) sy *= 2;\n\n\t\tcode ^= code_xor;\n\n\t\tsx += dx;\n\t\tsy += dy;\n\n\t\t/* sprites use color 0 for background pen and 8 for the 'under tile' pen.\n\t\t    The color 8 is used to cover over other sprites. */\n\t\tif (!m_mcr_cocktail_flip)\n\t\t{\n\t\t\t/* first draw the sprite, visible */\n\t\t\tm_gfxdecode->gfx(1)->prio_transmask(bitmap,cliprect, code, color, flipx, flipy, sx, sy,\n\t\t\t\t\tscreen.priority(), 0x00, 0x0101);\n\n\t\t\t/* then draw the mask, behind the background but obscuring following sprites */\n\t\t\tm_gfxdecode->gfx(1)->prio_transmask(bitmap,cliprect, code, color, flipx, flipy, sx, sy,\n\t\t\t\t\tscreen.priority(), 0x02, 0xfeff);\n\t\t}\n\t\telse\n\t\t{\n\t\t\t/* first draw the sprite, visible */\n\t\t\tm_gfxdecode->gfx(1)->prio_transmask(bitmap,cliprect, code, color, !flipx, !flipy, 480 - sx, 452 - sy,\n\t\t\t\t\tscreen.priority(), 0x00, 0x0101);\n\n\t\t\t/* then draw the mask, behind the background but obscuring following sprites */\n\t\t\tm_gfxdecode->gfx(1)->prio_transmask(bitmap,cliprect, code, color, !flipx, !flipy, 480 - sx, 452 - sy,\n\t\t\t\t\tscreen.priority(), 0x02, 0xfeff);\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_mcr3)"
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1114,
+        "sourceColumn": 2,
+        "sourceEndLine": 1114,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:mcr3_state.mcrmono/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_entries(64)"
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1115,
+        "sourceColumn": 2,
+        "sourceEndLine": 1115
+      }
+    },
+    {
+      "id": "machine:mcr3_state.mono_sg",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "mcr3_state",
+        "name": "mono_sg",
+        "calls": [
+          "mcrmono"
+        ],
+        "resetHandlers": [
+          "mcr_state.machine_reset"
+        ],
+        "startHandlers": [
+          "mcr3_state.video_start"
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1146,
+        "sourceColumn": 1,
+        "sourceEndLine": 1154
+      }
+    },
+    {
+      "id": "device:mcr3_state.mono_sg/sg",
+      "label": "Device",
+      "props": {
+        "type": "MIDWAY_SOUNDS_GOOD",
+        "tag": "sg",
+        "clock": 16000000,
+        "config": [
+          "MIDWAY_SOUNDS_GOOD(config, m_sounds_good)",
+          "m_sounds_good->add_route(ALL_OUTPUTS, \"speaker\", 0.75, 0)",
+          "m_sounds_good->add_route(ALL_OUTPUTS, \"speaker\", 0.75, 1)"
+        ],
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1151,
+        "sourceColumn": 2,
+        "sourceEndLine": 1151
+      }
+    },
+    {
+      "id": "audioroute:device:mcr3_state.mono_sg/sg/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.75,
+        "input": 0,
+        "raw": "m_sounds_good->add_route(ALL_OUTPUTS, \"speaker\", 0.75, 0)",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1152,
+        "sourceColumn": 2,
+        "sourceEndLine": 1152
+      }
+    },
+    {
+      "id": "audioroute:device:mcr3_state.mono_sg/sg/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.75,
+        "input": 1,
+        "raw": "m_sounds_good->add_route(ALL_OUTPUTS, \"speaker\", 0.75, 1)",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1153,
+        "sourceColumn": 2,
+        "sourceEndLine": 1153
+      }
+    },
+    {
+      "id": "machine:midway_sounds_good_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "midway_sounds_good_device",
+        "name": "device_add_mconfig",
+        "calls": [],
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 605,
+        "sourceColumn": 1,
+        "sourceEndLine": 629
+      }
+    },
+    {
+      "id": "device:midway_sounds_good_device.device_add_mconfig/cpu",
+      "label": "Device",
+      "props": {
+        "type": "M68000",
+        "tag": "cpu",
+        "clock": 8000000,
+        "config": [
+          "M68000(config, m_cpu, DERIVED_CLOCK(1, 2))",
+          "m_cpu->set_addrmap(AS_PROGRAM, &midway_sounds_good_device::soundsgood_map)"
+        ],
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 607,
+        "sourceColumn": 2,
+        "sourceEndLine": 607
+      }
+    },
+    {
+      "id": "device:midway_sounds_good_device.device_add_mconfig/pia",
+      "label": "Device",
+      "props": {
+        "type": "PIA6821",
+        "tag": "pia",
+        "clock": null,
+        "config": [
+          "PIA6821(config, m_pia)",
+          "m_pia->writepa_handler().set(FUNC(midway_sounds_good_device::porta_w))",
+          "m_pia->writepb_handler().set(FUNC(midway_sounds_good_device::portb_w))",
+          "m_pia->irqa_handler().set(FUNC(midway_sounds_good_device::irq_w))",
+          "m_pia->irqb_handler().set(FUNC(midway_sounds_good_device::irq_w))"
+        ],
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 610,
+        "sourceColumn": 2,
+        "sourceEndLine": 610
+      }
+    },
+    {
+      "id": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:0",
+      "label": "Callback",
+      "props": {
+        "signal": "writepa_handler",
+        "operation": "set",
+        "raw": "m_pia->writepa_handler().set(FUNC(midway_sounds_good_device::porta_w))",
+        "ownerTag": "pia",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 611,
+        "sourceColumn": 2,
+        "sourceEndLine": 611,
+        "targetClass": "midway_sounds_good_device",
+        "targetMethod": "porta_w"
+      }
+    },
+    {
+      "id": "handler:midway_sounds_good_device.porta_w",
+      "label": "Handler",
+      "props": {
+        "method": "porta_w",
+        "ownerClass": "midway_sounds_good_device",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 530,
+        "sourceColumn": 1,
+        "sourceEndLine": 534,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_dacval = (data << 2) | (m_dacval & 3);\n\tm_dac->write(m_dacval);"
+      }
+    },
+    {
+      "id": "handler:midway_sounds_good_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "midway_sounds_good_device",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 509,
+        "sourceColumn": 1,
+        "sourceEndLine": 512,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "machine().scheduler().synchronize(timer_expired_delegate(FUNC(midway_sounds_good_device::synced_write), this), data);"
+      }
+    },
+    {
+      "id": "handler:midway_sounds_good_device.synced_write",
+      "label": "Handler",
+      "props": {
+        "method": "synced_write",
+        "ownerClass": "midway_sounds_good_device",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 656,
+        "sourceColumn": 1,
+        "sourceEndLine": 664,
+        "sourceParameters": "int param",
+        "sourceBody": "m_pia->portb_w((param >> 1) & 0x0f);\n\tm_pia->ca1_w(~param & 0x01);\n\n\t// oftentimes games will write one nibble at a time; the sync on this is very\n\t// important, so we boost the interleave briefly while this happens\n\tmachine().scheduler().perfect_quantum(attotime::from_usec(250));"
+      }
+    },
+    {
+      "id": "handler:midway_sounds_good_device.portb_w",
+      "label": "Handler",
+      "props": {
+        "method": "portb_w",
+        "ownerClass": "midway_sounds_good_device",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 541,
+        "sourceColumn": 1,
+        "sourceEndLine": 550,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "uint8_t z_mask = m_pia->port_b_z_mask();\n\n\tm_dacval = (m_dacval & ~3) | (data >> 6);\n\tm_dac->write(m_dacval);\n\n\tif (~z_mask & 0x10)  m_status = (m_status & ~1) | ((data >> 4) & 1);\n\tif (~z_mask & 0x20)  m_status = (m_status & ~2) | ((data >> 4) & 2);"
+      }
+    },
+    {
+      "id": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:1",
+      "label": "Callback",
+      "props": {
+        "signal": "writepb_handler",
+        "operation": "set",
+        "raw": "m_pia->writepb_handler().set(FUNC(midway_sounds_good_device::portb_w))",
+        "ownerTag": "pia",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 612,
+        "sourceColumn": 2,
+        "sourceEndLine": 612,
+        "targetClass": "midway_sounds_good_device",
+        "targetMethod": "portb_w"
+      }
+    },
+    {
+      "id": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:2",
+      "label": "Callback",
+      "props": {
+        "signal": "irqa_handler",
+        "operation": "set",
+        "raw": "m_pia->irqa_handler().set(FUNC(midway_sounds_good_device::irq_w))",
+        "ownerTag": "pia",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 613,
+        "sourceColumn": 2,
+        "sourceEndLine": 613,
+        "targetClass": "midway_sounds_good_device",
+        "targetMethod": "irq_w"
+      }
+    },
+    {
+      "id": "handler:midway_sounds_good_device.irq_w",
+      "label": "Handler",
+      "props": {
+        "method": "irq_w",
+        "ownerClass": "midway_sounds_good_device",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 557,
+        "sourceColumn": 1,
+        "sourceEndLine": 561,
+        "sourceParameters": "int state",
+        "sourceBody": "int combined_state = m_pia->irq_a_state() | m_pia->irq_b_state();\n\tm_cpu->set_input_line(4, combined_state ? ASSERT_LINE : CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:3",
+      "label": "Callback",
+      "props": {
+        "signal": "irqb_handler",
+        "operation": "set",
+        "raw": "m_pia->irqb_handler().set(FUNC(midway_sounds_good_device::irq_w))",
+        "ownerTag": "pia",
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 614,
+        "sourceColumn": 2,
+        "sourceEndLine": 614,
+        "targetClass": "midway_sounds_good_device",
+        "targetMethod": "irq_w"
+      }
+    },
+    {
+      "id": "device:midway_sounds_good_device.device_add_mconfig/dac",
+      "label": "Device",
+      "props": {
+        "type": "AD7533",
+        "tag": "dac",
+        "clock": null,
+        "config": [
+          "AD7533(config, m_dac)",
+          "m_dac->add_route(ALL_OUTPUTS, m_dac_filter[0], 1.0)"
+        ],
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 616,
+        "sourceColumn": 2,
+        "sourceEndLine": 616
+      }
+    },
+    {
+      "id": "device:midway_sounds_good_device.device_add_mconfig/dac_filter2",
+      "label": "Device",
+      "props": {
+        "type": "FILTER_BIQUAD",
+        "tag": "dac_filter2",
+        "clock": null,
+        "config": [
+          "FILTER_BIQUAD(config, m_dac_filter[2]).opamp_mfb_lowpass_setup(RES_K(150), RES_K(82), RES_K(150), CAP_P(470), CAP_P(150))",
+          "m_dac_filter[2]->add_route(ALL_OUTPUTS, *this, 1.0)"
+        ],
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 620,
+        "sourceColumn": 2,
+        "sourceEndLine": 620
+      }
+    },
+    {
+      "id": "device:midway_sounds_good_device.device_add_mconfig/dac_filter1",
+      "label": "Device",
+      "props": {
+        "type": "FILTER_BIQUAD",
+        "tag": "dac_filter1",
+        "clock": null,
+        "config": [
+          "FILTER_BIQUAD(config, m_dac_filter[1]).opamp_mfb_lowpass_setup(RES_K(33), RES_K(18), RES_K(33), CAP_P(5600), CAP_P(270))",
+          "m_dac_filter[1]->add_route(ALL_OUTPUTS, m_dac_filter[2], 1.0)"
+        ],
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 623,
+        "sourceColumn": 2,
+        "sourceEndLine": 623
+      }
+    },
+    {
+      "id": "device:midway_sounds_good_device.device_add_mconfig/dac_filter0",
+      "label": "Device",
+      "props": {
+        "type": "FILTER_BIQUAD",
+        "tag": "dac_filter0",
+        "clock": null,
+        "config": [
+          "FILTER_BIQUAD(config, m_dac_filter[0]).opamp_mfb_lowpass_setup(RES_K(120), RES_K(0), RES_K(120), CAP_P(0), CAP_P(270))",
+          "m_dac_filter[0]->add_route(ALL_OUTPUTS, m_dac_filter[1], 1.0)"
+        ],
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 626,
+        "sourceColumn": 2,
+        "sourceEndLine": 626
+      }
+    },
+    {
+      "id": "inputs:rampage",
+      "label": "InputPorts",
+      "props": {
+        "name": "rampage",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 707,
+        "sourceColumn": 8,
+        "sourceEndLine": 707
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP0",
+      "label": "Port",
+      "props": {
+        "tag": "MONO.IP0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1"
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2"
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 12,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_TILT"
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 32,
+        "activeLow": true,
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_SERVICE1"
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP1",
+      "label": "Port",
+      "props": {
+        "tag": "MONO.IP1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 192,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP2",
+      "label": "Port",
+      "props": {
+        "tag": "MONO.IP2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 192,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP3",
+      "label": "Port",
+      "props": {
+        "tag": "MONO.IP3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Difficulty",
+        "defaultValue": 3,
+        "settings": [
+          "2=Easy",
+          "3=Normal",
+          "1=Hard",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP3/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Score Option",
+        "defaultValue": 4,
+        "settings": [
+          "4=Keep score when continuing",
+          "0=Lose score when continuing"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP3/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Coin A",
+        "defaultValue": 8,
+        "settings": [
+          "0=2C 1C",
+          "8=1C 1C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP3/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 112,
+        "name": "Coin B",
+        "defaultValue": 112,
+        "settings": [
+          "0=3C 1C",
+          "16=2C 1C",
+          "112=1C 1C",
+          "96=1C 2C",
+          "80=1C 3C",
+          "64=1C 4C",
+          "48=1C 5C",
+          "32=1C 6C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP3/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Rack Advance (Cheat)",
+        "defaultValue": 128,
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP4",
+      "label": "Port",
+      "props": {
+        "tag": "MONO.IP4",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP4/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(3)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP4/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(3)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP4/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(3)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP4/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(3)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP4/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP4/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP4/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:rampage/MONO.IP4/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_CUSTOM"
+      }
+    },
+    {
+      "id": "gfxlayout:mcr_bg_layout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "mcr_bg_layout",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)",
+          "RGN_FRAC(1,2)+1",
+          "RGN_FRAC(0,2)",
+          "RGN_FRAC(0,2)+1"
+        ],
+        "xOffsets": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:mcr_sprite_layout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "mcr_sprite_layout",
+        "width": 32,
+        "height": 32,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          "RGN_FRAC(0,4)+0",
+          "RGN_FRAC(0,4)+0+4",
+          "RGN_FRAC(1,4)+0",
+          "RGN_FRAC(1,4)+0+4",
+          "RGN_FRAC(2,4)+0",
+          "RGN_FRAC(2,4)+0+4",
+          "RGN_FRAC(3,4)+0",
+          "RGN_FRAC(3,4)+0+4",
+          "RGN_FRAC(0,4)+8",
+          "RGN_FRAC(0,4)+8+4",
+          "RGN_FRAC(1,4)+8",
+          "RGN_FRAC(1,4)+8+4",
+          "RGN_FRAC(2,4)+8",
+          "RGN_FRAC(2,4)+8+4",
+          "RGN_FRAC(3,4)+8",
+          "RGN_FRAC(3,4)+8+4",
+          "RGN_FRAC(0,4)+16",
+          "RGN_FRAC(0,4)+16+4",
+          "RGN_FRAC(1,4)+16",
+          "RGN_FRAC(1,4)+16+4",
+          "RGN_FRAC(2,4)+16",
+          "RGN_FRAC(2,4)+16+4",
+          "RGN_FRAC(3,4)+16",
+          "RGN_FRAC(3,4)+16+4",
+          "RGN_FRAC(0,4)+24",
+          "RGN_FRAC(0,4)+24+4",
+          "RGN_FRAC(1,4)+24",
+          "RGN_FRAC(1,4)+24+4",
+          "RGN_FRAC(2,4)+24",
+          "RGN_FRAC(2,4)+24+4",
+          "RGN_FRAC(3,4)+24",
+          "RGN_FRAC(3,4)+24+4"
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          256,
+          288,
+          320,
+          352,
+          384,
+          416,
+          448,
+          480,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736,
+          768,
+          800,
+          832,
+          864,
+          896,
+          928,
+          960,
+          992
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_mcr3",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_mcr3",
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1063,
+        "sourceColumn": 8,
+        "sourceEndLine": 1063
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_mcr3/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx1",
+        "offset": 0,
+        "layout": "mcr_bg_layout",
+        "colorBase": 0,
+        "colorCount": 4,
+        "xscale": 2,
+        "yscale": 2
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_mcr3/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "gfx2",
+        "offset": 0,
+        "layout": "mcr_sprite_layout",
+        "colorBase": 0,
+        "colorCount": 4,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:rampage",
+      "to": "file:src/mame/bally/mcr3.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1694,
+        "sourceColumn": 1,
+        "sourceEndLine": 1694
+      }
+    },
+    {
+      "from": "game:rampage",
+      "to": "machine:mcr3_state.mono_sg",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:rampage",
+      "to": "inputs:rampage",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:rampage",
+      "to": "romset:rampage",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:rampage",
+      "to": "handler:mcr3_state.rampage_ip4_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "game:rampage",
+      "to": "handler:mcr3_state.rampage_op6_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "file:src/mame/bally/mcr3.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/bally/mcr3.cpp",
+      "to": "file:mcr3.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/bally/mcr3.cpp",
+      "to": "file:machine/nvram.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/bally/mcr3.cpp",
+      "to": "file:machine/rescap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/bally/mcr3.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/bally/mcr3.cpp",
+      "to": "file:spyhunt.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/bally/mcr3.cpp",
+      "to": "file:turbotag.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:mcr3_state.mono_sg",
+      "to": "file:src/mame/bally/mcr3.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1146,
+        "sourceColumn": 1,
+        "sourceEndLine": 1154
+      }
+    },
+    {
+      "from": "machine:mcr3_state.mono_sg",
+      "to": "handler:mcr_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mcr3_state.mono_sg",
+      "to": "handler:mcr3_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mcr3_state.mono_sg",
+      "to": "machine:mcr3_state.mcrmono",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:mcr3_state.mono_sg",
+      "to": "device:mcr3_state.mono_sg/sg",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:rampage",
+      "to": "file:src/mame/bally/mcr3.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 707,
+        "sourceColumn": 8,
+        "sourceEndLine": 707
+      }
+    },
+    {
+      "from": "inputs:rampage",
+      "to": "inputs:rampage/MONO.IP0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rampage",
+      "to": "inputs:rampage/MONO.IP1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rampage",
+      "to": "inputs:rampage/MONO.IP2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rampage",
+      "to": "inputs:rampage/MONO.IP3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:rampage",
+      "to": "inputs:rampage/MONO.IP4",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:rampage",
+      "to": "file:src/mame/bally/mcr3.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1306,
+        "sourceColumn": 1,
+        "sourceEndLine": 1306
+      }
+    },
+    {
+      "from": "romset:rampage",
+      "to": "region:rampage/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rampage",
+      "to": "region:rampage/sg:cpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rampage",
+      "to": "region:rampage/gfx1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rampage",
+      "to": "region:rampage/gfx2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:rampage",
+      "to": "region:rampage/sg:pal",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:mcr3_state.video_start",
+      "to": "handler:mcr3_state.mcrmono_get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "file:src/mame/bally/mcr3.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1083,
+        "sourceColumn": 1,
+        "sourceEndLine": 1116
+      }
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "handler:mcr_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "handler:mcr3_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "device:mcr3_state.mcrmono/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "device:mcr3_state.mcrmono/scantimer",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "device:mcr3_state.mcrmono/ctc",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "device:mcr3_state.mcrmono/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "device:mcr3_state.mcrmono/nvram",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "device:mcr3_state.mcrmono/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "device:mcr3_state.mcrmono/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "device:mcr3_state.mcrmono/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "gfxdecode:gfx_mcr3",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:mcr3_state.mcrmono",
+      "to": "device:mcr3_state.mcrmono/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:mcr3_state.mono_sg/sg",
+      "to": "audioroute:device:mcr3_state.mono_sg/sg/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:mcr3_state.mono_sg/sg",
+      "to": "audioroute:device:mcr3_state.mono_sg/sg/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:mcr3_state.mono_sg/sg",
+      "to": "machine:midway_sounds_good_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP0",
+      "to": "inputs:rampage/MONO.IP0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP0",
+      "to": "inputs:rampage/MONO.IP0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP0",
+      "to": "inputs:rampage/MONO.IP0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP0",
+      "to": "inputs:rampage/MONO.IP0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP0",
+      "to": "inputs:rampage/MONO.IP0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP0",
+      "to": "inputs:rampage/MONO.IP0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP0",
+      "to": "inputs:rampage/MONO.IP0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP1",
+      "to": "inputs:rampage/MONO.IP1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP1",
+      "to": "inputs:rampage/MONO.IP1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP1",
+      "to": "inputs:rampage/MONO.IP1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP1",
+      "to": "inputs:rampage/MONO.IP1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP1",
+      "to": "inputs:rampage/MONO.IP1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP1",
+      "to": "inputs:rampage/MONO.IP1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP1",
+      "to": "inputs:rampage/MONO.IP1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP2",
+      "to": "inputs:rampage/MONO.IP2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP2",
+      "to": "inputs:rampage/MONO.IP2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP2",
+      "to": "inputs:rampage/MONO.IP2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP2",
+      "to": "inputs:rampage/MONO.IP2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP2",
+      "to": "inputs:rampage/MONO.IP2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP2",
+      "to": "inputs:rampage/MONO.IP2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP2",
+      "to": "inputs:rampage/MONO.IP2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP3",
+      "to": "inputs:rampage/MONO.IP3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP3",
+      "to": "inputs:rampage/MONO.IP3/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP3",
+      "to": "inputs:rampage/MONO.IP3/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP3",
+      "to": "inputs:rampage/MONO.IP3/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP3",
+      "to": "inputs:rampage/MONO.IP3/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP4",
+      "to": "inputs:rampage/MONO.IP4/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP4",
+      "to": "inputs:rampage/MONO.IP4/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP4",
+      "to": "inputs:rampage/MONO.IP4/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP4",
+      "to": "inputs:rampage/MONO.IP4/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP4",
+      "to": "inputs:rampage/MONO.IP4/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP4",
+      "to": "inputs:rampage/MONO.IP4/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP4",
+      "to": "inputs:rampage/MONO.IP4/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:rampage/MONO.IP4",
+      "to": "inputs:rampage/MONO.IP4/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:rampage/maincpu",
+      "to": "rom:rampage/maincpu/pro-0_3b_rev_3_8-27-86.3b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/maincpu",
+      "to": "rom:rampage/maincpu/pro-1_5b_rev_3_8-27-86.5b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/sg:cpu",
+      "to": "rom:rampage/sg:cpu/u-7_rev.2_8-14-86.u7",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/sg:cpu",
+      "to": "rom:rampage/sg:cpu/u-17_rev.2_8-14-86.u17",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/sg:cpu",
+      "to": "rom:rampage/sg:cpu/u-8_rev.2_8-14-86.u8",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/sg:cpu",
+      "to": "rom:rampage/sg:cpu/u-18_rev.2_8-14-86.u18",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/gfx1",
+      "to": "rom:rampage/gfx1/bg-0_u15_7-23-86.15a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/gfx1",
+      "to": "rom:rampage/gfx1/bg-1_u14_7-23-86.14b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/gfx2",
+      "to": "rom:rampage/gfx2/fg-0_8e_6-30-86.8e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/gfx2",
+      "to": "rom:rampage/gfx2/fg-1_6e_6-30-86.6e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/gfx2",
+      "to": "rom:rampage/gfx2/fg-2_5e_6-30-86.5e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/gfx2",
+      "to": "rom:rampage/gfx2/fg-3_4e_6-30-86.4e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:rampage/sg:pal",
+      "to": "rom:rampage/sg:pal/e36a31axnaxqd.u15.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "device:mcr3_state.mcrmono/maincpu",
+      "to": "map:mcr3_state.mcrmono_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:mcr3_state.mcrmono/maincpu",
+      "to": "map:mcr3_state.mcrmono_portmap",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "device:mcr3_state.mcrmono/scantimer",
+      "to": "device:mcr3_state.mcrmono/scantimer/callback:scantimer:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mcr3_state.mcrmono/ctc",
+      "to": "device:mcr3_state.mcrmono/ctc/callback:ctc:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mcr3_state.mcrmono/ctc",
+      "to": "device:mcr3_state.mcrmono/ctc/callback:ctc:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:mcr3_state.mcrmono/screen",
+      "to": "device:mcr3_state.mcrmono/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_mcr3",
+      "to": "file:src/mame/bally/mcr3.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 1063,
+        "sourceColumn": 8,
+        "sourceEndLine": 1063
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_mcr3",
+      "to": "gfxdecode:gfx_mcr3/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_mcr3",
+      "to": "gfxdecode:gfx_mcr3/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "machine:midway_sounds_good_device.device_add_mconfig",
+      "to": "file:src/mame/bally/midway_sound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 605,
+        "sourceColumn": 1,
+        "sourceEndLine": 629
+      }
+    },
+    {
+      "from": "machine:midway_sounds_good_device.device_add_mconfig",
+      "to": "device:midway_sounds_good_device.device_add_mconfig/cpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midway_sounds_good_device.device_add_mconfig",
+      "to": "device:midway_sounds_good_device.device_add_mconfig/pia",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midway_sounds_good_device.device_add_mconfig",
+      "to": "device:midway_sounds_good_device.device_add_mconfig/dac",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midway_sounds_good_device.device_add_mconfig",
+      "to": "device:midway_sounds_good_device.device_add_mconfig/dac_filter2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midway_sounds_good_device.device_add_mconfig",
+      "to": "device:midway_sounds_good_device.device_add_mconfig/dac_filter1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midway_sounds_good_device.device_add_mconfig",
+      "to": "device:midway_sounds_good_device.device_add_mconfig/dac_filter0",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_map",
+      "to": "file:src/mame/bally/mcr3.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 479,
+        "sourceColumn": 1,
+        "sourceEndLine": 489
+      }
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_map",
+      "to": "map:mcr3_state.mcrmono_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_map",
+      "to": "map:mcr3_state.mcrmono_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_map",
+      "to": "map:mcr3_state.mcrmono_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_map",
+      "to": "map:mcr3_state.mcrmono_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_map",
+      "to": "map:mcr3_state.mcrmono_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_map",
+      "to": "map:mcr3_state.mcrmono_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_map",
+      "to": "map:mcr3_state.mcrmono_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap",
+      "to": "file:src/mame/bally/mcr3.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/bally/mcr3.cpp",
+        "sourceLine": 492,
+        "sourceColumn": 1,
+        "sourceEndLine": 504
+      }
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap",
+      "to": "map:mcr3_state.mcrmono_portmap/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap",
+      "to": "map:mcr3_state.mcrmono_portmap/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap",
+      "to": "map:mcr3_state.mcrmono_portmap/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap",
+      "to": "map:mcr3_state.mcrmono_portmap/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap",
+      "to": "map:mcr3_state.mcrmono_portmap/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap",
+      "to": "map:mcr3_state.mcrmono_portmap/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap",
+      "to": "map:mcr3_state.mcrmono_portmap/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap",
+      "to": "map:mcr3_state.mcrmono_portmap/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:mcr3_state.mcrmono/scantimer/callback:scantimer:0",
+      "to": "handler:mcr3_state.mcr_interrupt",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mcr3_state.mcrmono/ctc/callback:ctc:0",
+      "to": "device:mcr3_state.mcrmono/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:mcr3_state.mcrmono/ctc/callback:ctc:1",
+      "to": "handler:z80ctc_device.trg1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:mcr3_state.mcrmono/ctc/callback:ctc:1",
+      "to": "device:mcr3_state.mcrmono/ctc",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:mcr3_state.mcrmono/screen/callback:screen:0",
+      "to": "handler:mcr3_state.screen_update_mcr3",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_mcr3/e0",
+      "to": "gfxlayout:mcr_bg_layout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_mcr3/e1",
+      "to": "gfxlayout:mcr_sprite_layout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "file:src/mame/bally/midway_sound.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/bally/midway_sound.cpp",
+      "to": "file:midway_sound.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/bally/midway_sound.cpp",
+      "to": "file:machine/rescap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "device:midway_sounds_good_device.device_add_mconfig/cpu",
+      "to": "map:midway_sounds_good_device.soundsgood_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:midway_sounds_good_device.device_add_mconfig/pia",
+      "to": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:midway_sounds_good_device.device_add_mconfig/pia",
+      "to": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:midway_sounds_good_device.device_add_mconfig/pia",
+      "to": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:midway_sounds_good_device.device_add_mconfig/pia",
+      "to": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_map/range4",
+      "to": "handler:mcr3_state.mcr_paletteram9_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_map/range5",
+      "to": "handler:mcr3_state.mcr3_videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap/range5",
+      "to": "handler:mcr3_state.mcrmono_control_port_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap/range6",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap/range7",
+      "to": "handler:z80ctc_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ctc"
+      }
+    },
+    {
+      "from": "map:mcr3_state.mcrmono_portmap/range7",
+      "to": "handler:z80ctc_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ctc"
+      }
+    },
+    {
+      "from": "handler:mcr3_state.screen_update_mcr3",
+      "to": "handler:mcr3_state.mcr3_update_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:mcr_bg_layout",
+      "to": "file:src/mame/bally/mcr3.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:mcr_sprite_layout",
+      "to": "file:src/mame/bally/mcr3.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "map:midway_sounds_good_device.soundsgood_map",
+      "to": "file:src/mame/bally/midway_sound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/bally/midway_sound.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 1,
+        "sourceEndLine": 598
+      }
+    },
+    {
+      "from": "map:midway_sounds_good_device.soundsgood_map",
+      "to": "map:midway_sounds_good_device.soundsgood_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midway_sounds_good_device.soundsgood_map",
+      "to": "map:midway_sounds_good_device.soundsgood_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midway_sounds_good_device.soundsgood_map",
+      "to": "map:midway_sounds_good_device.soundsgood_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:0",
+      "to": "handler:midway_sounds_good_device.porta_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:1",
+      "to": "handler:midway_sounds_good_device.portb_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:2",
+      "to": "handler:midway_sounds_good_device.irq_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:midway_sounds_good_device.device_add_mconfig/pia/callback:pia:3",
+      "to": "handler:midway_sounds_good_device.irq_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:mcr3_state.mcr_paletteram9_w",
+      "to": "handler:mcr_state.mcr_set_color",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:midway_sounds_good_device.soundsgood_map/range1",
+      "to": "handler:pia6821_device.read_alt",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pia"
+      }
+    },
+    {
+      "from": "map:midway_sounds_good_device.soundsgood_map/range1",
+      "to": "handler:pia6821_device.write_alt",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pia"
+      }
+    },
+    {
+      "from": "handler:midway_sounds_good_device.porta_w",
+      "to": "handler:midway_sounds_good_device.write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:midway_sounds_good_device.portb_w",
+      "to": "handler:midway_sounds_good_device.write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:midway_sounds_good_device.write",
+      "to": "handler:midway_sounds_good_device.synced_write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:midway_sounds_good_device.synced_write",
+      "to": "handler:midway_sounds_good_device.portb_w",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

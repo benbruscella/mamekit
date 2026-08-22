@@ -1,0 +1,62 @@
+Arcade Video game published 43 years ago:
+
+Traverse USA (c) 1983 Irem corporation.
+
+An excellent motorcycle racing game. 
+
+Enjoy the wind of American landscape, accelerating hard your motorbike across highways and desert roads, evading the rivals cars and obstacles on challenging narrow roads and curves, and take a good amount of fuel, to finish the race before running out of fuel!
+
+The levels (and cities) are:
+Los Angeles,
+Las Vegas,
+Houston,
+St. Louis,
+Chicago,
+New York.
+
+The 3 engine classes in this game are: 500 cc, 750 cc and 1200 cc. The higher the engine class is, the higher the speed is, but the motorcycle is harder to control.
+
+The Las Vegas -> Houston and St. Louis -> Chicago stages are ridden across deserts, where the remaining stages - on asphalt roads.
+
+- TECHNICAL -
+
+Irem M-52 hardware
+
+Main CPU: Zilog Z80 (@ 4 Mhz)
+Sound CPU: Motorola M6803 (@ 894.886 Khz)
+Sound Chips: (2x) General Instrument AY8910 (@ 894.886 Khz), (2x) MSM5205 (@ 384 Khz)
+
+Players: up to 2 (alternate)
+Control: 2-way joystick
+Buttons: 2
+[A] = accelerate, [B] = brake
+
+- TRIVIA -
+
+Traverse USA was released in June 1983. Exported to the USA as "MotoRace USA" with license for Williams electronics inc. Another export release is "MotoTour" licensed to Tecfri S.A.
+
+Later re-released as "Zippy Race". The title can be changed in dip switches, from Traverse USA to Zippy Race.
+
+The speed unit is also changeable in the switches, from a mile per hour to a kilometer per hour.
+
+The engine classes are written in a cubic centimeter, independent on the release.
+
+- TIPS AND TRICKS -
+
+* Hold both buttons to temporarily block speed. Release to go back to normal speed.
+
+* The bike will ride (a bit) slower on desert roads even on the asphalt parts leading to cities.
+
+* You can't control your bike or speed when jumping on desert roads. You can regulate the speed when performing a wheelie (on asphalt), though.
+
+* You'll be unable to finish 1st after 500 cc class: the enemies are also faster.
+
+* You'll get a full tank after a class completion (reach New York), so you may finish with half fuel.
+
+* Watch out for trucks on deserts: the drivers throw barrels down the off-road. Overtake the trucks.
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/2961/?o=2
+
+— Gaming History (arcade-history.com)

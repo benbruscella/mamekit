@@ -1,0 +1,729 @@
+{
+  "game": "travrusa",
+  "title": "Traverse USA / Zippy Race (Irem, 1983)",
+  "fullname": "Traverse USA / Zippy Race",
+  "year": "1983",
+  "company": "Irem",
+  "family": "travrusa",
+  "driverFile": "src/mame/irem/travrusa.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Lee Taylor",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 36863,
+          "kind": "ram",
+          "share": "videoram",
+          "write": "travrusa_state.videoram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 36864,
+          "end": 36864,
+          "kind": "handler",
+          "write": "travrusa_state.scroll_x_low_w"
+        },
+        {
+          "start": 40960,
+          "end": 40960,
+          "kind": "handler",
+          "write": "travrusa_state.scroll_x_high_w"
+        },
+        {
+          "start": 51200,
+          "end": 51711,
+          "kind": "ram",
+          "share": "spriteram",
+          "writeOnly": true
+        },
+        {
+          "start": 53248,
+          "end": 53248,
+          "kind": "handler",
+          "write": "irem_audio.cmd_w",
+          "read": "port.SYSTEM"
+        },
+        {
+          "start": 53249,
+          "end": 53249,
+          "kind": "handler",
+          "write": "travrusa_state.flipscreen_w",
+          "read": "port.P1"
+        },
+        {
+          "start": 53250,
+          "end": 53250,
+          "kind": "handler",
+          "read": "port.P2"
+        },
+        {
+          "start": 53251,
+          "end": 53251,
+          "kind": "handler",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 53252,
+          "end": 53252,
+          "kind": "handler",
+          "read": "port.DSW2"
+        },
+        {
+          "start": 57344,
+          "end": 61439,
+          "kind": "ram"
+        }
+      ]
+    },
+    {
+      "tag": "irem_audio:iremsound",
+      "type": "m6803",
+      "clock": 3579545,
+      "region": "irem_audio:iremsound",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4095,
+          "kind": "handler",
+          "write": "irem_audio_device.m52_adpcm_w"
+        },
+        {
+          "start": 4096,
+          "end": 8191,
+          "kind": "handler",
+          "write": "irem_audio_device.sound_irq_ack_w"
+        },
+        {
+          "start": 8192,
+          "end": 32767,
+          "kind": "rom"
+        }
+      ],
+      "mask": 32767
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 894886.25,
+    "chips": 2,
+    "deviceTags": [
+      "irem_audio:ay_45m",
+      "irem_audio:ay_45l"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": -1,
+        "gain": 1,
+        "target": "filtermix",
+        "targetInput": 0
+      },
+      {
+        "chip": 1,
+        "channel": -1,
+        "gain": 1,
+        "target": "filtermix",
+        "targetInput": 1
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "MSM5205",
+        "deviceTag": "irem_audio:msm1",
+        "member": "m_adpcm1",
+        "clock": 384000,
+        "initialMode": "S96_4B",
+        "gain": 1,
+        "target": "filtermix",
+        "targetInput": 2,
+        "writeMethods": [
+          "data_w",
+          "reset_w",
+          "playmode_w",
+          "s1_w",
+          "s2_w",
+          "vclk_w"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 240,
+    "height": 256,
+    "xOffset": 8,
+    "yOffset": 0,
+    "refresh": 56.737588652482266,
+    "vtotal": 282,
+    "vbstart": 256,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "zr1-0.m3",
+          "offset": 0,
+          "size": 8192,
+          "crc": "be066c0a",
+          "alt": [
+            {
+              "file": "at4.m3",
+              "crc": "704ce6e4"
+            },
+            {
+              "file": "0.2m3",
+              "crc": "c96e81ac"
+            },
+            {
+              "file": "mt1-4.m3",
+              "crc": "fe643567"
+            },
+            {
+              "file": "mr.cpu",
+              "crc": "89030b0c"
+            }
+          ]
+        },
+        {
+          "file": "zr1-5.l3",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "145d6b34",
+          "alt": [
+            {
+              "file": "at5.l3",
+              "crc": "686cb0e6"
+            },
+            {
+              "file": "mt1-5.l3",
+              "crc": "38d9d0f5"
+            },
+            {
+              "file": "mr1.3l",
+              "crc": "0904ed58"
+            }
+          ]
+        },
+        {
+          "file": "zr1-6a.k3",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "e1b51383",
+          "alt": [
+            {
+              "file": "at6.k3",
+              "crc": "baf87d80"
+            },
+            {
+              "file": "mt1-6.k3",
+              "crc": "efd325f2"
+            },
+            {
+              "file": "mr2.3k",
+              "crc": "8a2374ec"
+            }
+          ]
+        },
+        {
+          "file": "zr1-7.j3",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "85cd1a51",
+          "alt": [
+            {
+              "file": "at7.h3",
+              "crc": "48091ebe"
+            },
+            {
+              "file": "7.2j3",
+              "crc": "ab8a3a33"
+            },
+            {
+              "file": "mr3.3j",
+              "crc": "2f04c341"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "irem_audio:iremsound",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "mr10.1a",
+          "offset": 28672,
+          "size": 4096,
+          "crc": "a02ad8a0",
+          "alt": [
+            {
+              "file": "11.a1",
+              "crc": "d2c0bc33"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "zippyrac.001",
+          "offset": 0,
+          "size": 8192,
+          "crc": "aa8994dd",
+          "alt": [
+            {
+              "file": "mr7.3e",
+              "crc": "492a60be"
+            }
+          ]
+        },
+        {
+          "file": "mr8.3c",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "3a046dd1"
+        },
+        {
+          "file": "mr9.3a",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "1cc3d3f4"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "zr1-8.n3",
+          "offset": 0,
+          "size": 8192,
+          "crc": "3e2c7a6b",
+          "alt": [
+            {
+              "file": "8.n3",
+              "crc": "00c0f46b"
+            },
+            {
+              "file": "mt1-8.n3",
+              "crc": "600a57f5"
+            },
+            {
+              "file": "mr4.3n",
+              "crc": "5cf1a0d6"
+            }
+          ]
+        },
+        {
+          "file": "zr1-9.l3",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "13be6a14",
+          "alt": [
+            {
+              "file": "9.m3",
+              "crc": "73ade73b"
+            },
+            {
+              "file": "mt1-9.m3",
+              "crc": "6f9f2a4e"
+            },
+            {
+              "file": "mr5.3m",
+              "crc": "f75f2aad"
+            }
+          ]
+        },
+        {
+          "file": "zr1-10.k3",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "6fcc9fdb",
+          "alt": [
+            {
+              "file": "10.k3",
+              "crc": "fcfeaa69"
+            },
+            {
+              "file": "mt1-10.k3",
+              "crc": "d958def5"
+            },
+            {
+              "file": "mr6.3k",
+              "crc": "518889a0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 800,
+      "loads": [
+        {
+          "file": "mmi6349.ij",
+          "offset": 0,
+          "size": 512,
+          "crc": "c9724350"
+        },
+        {
+          "file": "tbp18s.2",
+          "offset": 512,
+          "size": 32,
+          "crc": "a1130007"
+        },
+        {
+          "file": "tbp24s10.3",
+          "offset": 544,
+          "size": 256,
+          "crc": "76062638"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 16,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 3,
+      "name": "Fuel Reduced on Collision"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 4,
+      "name": "Fuel Consumption"
+    },
+    {
+      "port": "DSW1",
+      "mask": 8,
+      "value": 0,
+      "name": "Allow Continue"
+    },
+    {
+      "port": "DSW1",
+      "mask": 240,
+      "value": 240,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW2",
+      "mask": 1,
+      "value": 1,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW2",
+      "mask": 2,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 4,
+      "value": 4,
+      "name": "Coin Mode"
+    },
+    {
+      "port": "DSW2",
+      "mask": 8,
+      "value": 8,
+      "name": "Speed Type"
+    },
+    {
+      "port": "DSW2",
+      "mask": 16,
+      "value": 16,
+      "name": "Stop Mode (Cheat)"
+    },
+    {
+      "port": "DSW2",
+      "mask": 32,
+      "value": 32,
+      "name": "Title"
+    },
+    {
+      "port": "DSW2",
+      "mask": 64,
+      "value": 64,
+      "name": "Invulnerability (Cheat)"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 127,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "Olivier Galibert"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 36,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2014-03-11"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 29,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 13,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 7,
+        "firstCommit": "2019-02-14",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 7,
+        "firstCommit": "2015-04-12",
+        "lastCommit": "2026-05-29"
+      },
+      {
+        "name": "hap",
+        "commits": 6,
+        "firstCommit": "2024-11-18",
+        "lastCommit": "2025-12-28"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 5,
+        "firstCommit": "2013-05-16",
+        "lastCommit": "2021-04-21"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-11-18",
+        "lastCommit": "2009-11-29"
+      },
+      {
+        "name": "Firehawke",
+        "commits": 2,
+        "firstCommit": "2017-12-13",
+        "lastCommit": "2017-12-13"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2013-05-07",
+        "lastCommit": "2013-07-16"
+      },
+      {
+        "name": "smf-",
+        "commits": 2,
+        "firstCommit": "2009-11-18",
+        "lastCommit": "2013-01-11"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 2,
+        "firstCommit": "2008-02-18",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "AJR",
+        "commits": 1,
+        "firstCommit": "2023-11-22",
+        "lastCommit": "2023-11-22"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 1,
+        "firstCommit": "2024-02-19",
+        "lastCommit": "2024-02-19"
+      },
+      {
+        "name": "couriersud",
+        "commits": 1,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 1,
+        "firstCommit": "2008-04-25",
+        "lastCommit": "2008-04-25"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 1,
+        "firstCommit": "2013-05-08",
+        "lastCommit": "2013-05-08"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Tomasz Slanina",
+        "commits": 1,
+        "firstCommit": "2020-02-03",
+        "lastCommit": "2020-02-03"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-07-24",
+        "lastCommit": "2009-07-24"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 43 years ago:\n\nTraverse USA (c) 1983 Irem corporation.\n\nAn excellent motorcycle racing game. \n\nEnjoy the wind of American landscape, accelerating hard your motorbike across highways and desert roads, evading the rivals cars and obstacles on challenging narrow roads and curves, and take a good amount of fuel, to finish the race before running out of fuel!\n\nThe levels (and cities) are:\nLos Angeles,\nLas Vegas,\nHouston,\nSt. Louis,\nChicago,\nNew York.\n\nThe 3 engine classes in this game are: 500 cc, 750 cc and 1200 cc. The higher the engine class is, the higher the speed is, but the motorcycle is harder to control.\n\nThe Las Vegas -> Houston and St. Louis -> Chicago stages are ridden across deserts, where the remaining stages - on asphalt roads.\n\n- TECHNICAL -\n\nIrem M-52 hardware\n\nMain CPU: Zilog Z80 (@ 4 Mhz)\nSound CPU: Motorola M6803 (@ 894.886 Khz)\nSound Chips: (2x) General Instrument AY8910 (@ 894.886 Khz), (2x) MSM5205 (@ 384 Khz)\n\nPlayers: up to 2 (alternate)\nControl: 2-way joystick\nButtons: 2\n[A] = accelerate, [B] = brake\n\n- TRIVIA -\n\nTraverse USA was released in June 1983. Exported to the USA as \"MotoRace USA\" with license for Williams electronics inc. Another export release is \"MotoTour\" licensed to Tecfri S.A.\n\nLater re-released as \"Zippy Race\". The title can be changed in dip switches, from Traverse USA to Zippy Race.\n\nThe speed unit is also changeable in the switches, from a mile per hour to a kilometer per hour.\n\nThe engine classes are written in a cubic centimeter, independent on the release.\n\n- TIPS AND TRICKS -\n\n* Hold both buttons to temporarily block speed. Release to go back to normal speed.\n\n* The bike will ride (a bit) slower on desert roads even on the asphalt parts leading to cities.\n\n* You can't control your bike or speed when jumping on desert roads. You can regulate the speed when performing a wheelie (on asphalt), though.\n\n* You'll be unable to finish 1st after 500 cc class: the enemies are also faster.\n\n* You'll get a full tank after a class completion (reach New York), so you may finish with half fuel.\n\n* Watch out for trucks on deserts: the drivers throw barrels down the off-road. Overtake the trucks.\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2961/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

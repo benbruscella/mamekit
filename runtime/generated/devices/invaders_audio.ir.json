@@ -1,0 +1,1070 @@
+{
+  "type": "INVADERS_AUDIO",
+  "uses": [
+    {
+      "game": "invaders",
+      "tags": [
+        "soundboard"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "INVADERS_AUDIO",
+    "className": "invaders_audio_device",
+    "shortName": "invaders_audio",
+    "description": "Taito Space Invaders Audio",
+    "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+    "sourceLine": 574,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(INVADERS_AUDIO, invaders_audio_device, \"invaders_audio\", \"Taito Space Invaders Audio\")"
+  },
+  "methods": [
+    {
+      "name": "invaders_audio_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, u32 clock",
+      "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+      "sourceLine": 3242,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p1_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+      "sourceLine": 3251,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "enable_w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "data"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_MISSILE_EN"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_EXPLOSION_EN"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_INVADER_HIT_EN"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_BONUS_MISSLE_BASE_EN"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "sound"
+                  },
+                  "args": []
+                },
+                "property": "system_mute"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "BIT"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      {
+                        "kind": "number",
+                        "value": 5
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p2_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+      "sourceLine": 3266,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "changed",
+            "valueType": "u8",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "u8"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "^",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_p2"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_FLEET_DATA"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_SAUCER_HIT_EN"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "changed"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_flip_screen_out"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 5
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+      "sourceLine": 3279,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "SPEAKER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "config"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "mono"
+                    }
+                  ]
+                },
+                "property": "front_center"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "SN76477"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_noise_params"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_decay_res"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_attack_params"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 100
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_amp_res"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 56
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_feedback_res"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 10
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_vco_params"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "CAP_U"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0.1,
+                      "floating": true
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 8.2,
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_pitch_voltage"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 5,
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_slf_params"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "CAP_U"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1,
+                      "floating": true
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 120
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_oneshot_params"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_vco_mode"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_mixer_params"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_envelope_params"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "set_enable"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ALL_OUTPUTS"
+                },
+                {
+                  "kind": "string",
+                  "value": "mono"
+                },
+                {
+                  "kind": "number",
+                  "value": 0.5,
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "DISCRETE"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "invaders_discrete"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ALL_OUTPUTS"
+                },
+                {
+                  "kind": "string",
+                  "value": "mono"
+                },
+                {
+                  "kind": "number",
+                  "value": 0.5,
+                  "floating": true
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+      "sourceLine": 3303,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_p2"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/midw8080/mw8080bw.h",
+    "src/mame/midw8080/mw8080bw_a.cpp",
+    "src/mame/midw8080/mw8080bw_a.h",
+    "src/mame/midw8080/nl_280zzzap.h",
+    "src/mame/midw8080/nl_gunfight.h"
+  ],
+  "composedOf": [
+    "DISCRETE",
+    "SN76477",
+    "SPEAKER"
+  ]
+}

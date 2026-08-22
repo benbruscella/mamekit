@@ -1,0 +1,44 @@
+{
+  "type": "M68000",
+  "uses": [
+    {
+      "game": "ghouls",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "rampage",
+      "tags": [
+        "cpu"
+      ]
+    },
+    {
+      "game": "sf2ce",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "M68000",
+    "className": "m68000_device",
+    "shortName": "m68000",
+    "description": "Motorola MC68000",
+    "sourceFile": "src/devices/cpu/m68000/m68000.cpp",
+    "sourceLine": 8,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(M68000,      m68000_device,      \"m68000\",       \"Motorola MC68000\")"
+  },
+  "methods": [],
+  "dslFiles": [
+    "src/devices/cpu/m68000/m68000.lst"
+  ],
+  "sourceFiles": [
+    "src/devices/cpu/m68000/m68000.cpp",
+    "src/devices/cpu/m68000/m68000.h",
+    "src/devices/cpu/m68000/m68000.lst",
+    "src/devices/cpu/m68000/m68kdasm.h"
+  ]
+}

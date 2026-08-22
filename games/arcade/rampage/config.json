@@ -1,0 +1,555 @@
+{
+  "game": "rampage",
+  "title": "Rampage (Rev 3, 8/27/86) (Bally Midway, 1986)",
+  "family": "mcr3",
+  "dataPath": "games/arcade/rampage",
+  "board": {
+    "family": "mcr3",
+    "cpus": [
+      {
+        "tag": "sg:cpu",
+        "type": "m68000",
+        "clock": 8000000,
+        "region": "sg:cpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 262143,
+            "kind": "rom"
+          },
+          {
+            "start": 393216,
+            "end": 393223,
+            "kind": "handler",
+            "mirror": 65520,
+            "read": "sg:pia.read_alt",
+            "write": "sg:pia.write_alt"
+          },
+          {
+            "start": 458752,
+            "end": 462847,
+            "kind": "ram",
+            "mirror": 61440
+          }
+        ],
+        "mask": 524287
+      },
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 5000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 57343,
+            "kind": "rom"
+          },
+          {
+            "start": 57344,
+            "end": 59391,
+            "kind": "ram",
+            "share": "nvram"
+          },
+          {
+            "start": 59392,
+            "end": 59903,
+            "kind": "ram",
+            "share": "spriteram"
+          },
+          {
+            "start": 59904,
+            "end": 60415,
+            "kind": "ram"
+          },
+          {
+            "start": 60416,
+            "end": 60543,
+            "kind": "handler",
+            "mirror": 896,
+            "share": "paletteram",
+            "write": "mcr3_state.mcr_paletteram9_w",
+            "writeHandlerOwnsRam": true
+          },
+          {
+            "start": 61440,
+            "end": 63487,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "mcr3_state.mcr3_videoram_w",
+            "writeHandlerOwnsRam": true
+          },
+          {
+            "start": 63488,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "mirror": 120,
+              "read": "port.MONO.IP0"
+            },
+            {
+              "start": 1,
+              "end": 1,
+              "kind": "handler",
+              "mirror": 120,
+              "read": "port.MONO.IP1"
+            },
+            {
+              "start": 2,
+              "end": 2,
+              "kind": "handler",
+              "mirror": 120,
+              "read": "port.MONO.IP2"
+            },
+            {
+              "start": 3,
+              "end": 3,
+              "kind": "handler",
+              "mirror": 120,
+              "read": "port.MONO.IP3"
+            },
+            {
+              "start": 4,
+              "end": 4,
+              "kind": "handler",
+              "mirror": 120,
+              "read": "port.MONO.IP4"
+            },
+            {
+              "start": 5,
+              "end": 5,
+              "kind": "handler",
+              "mirror": 120,
+              "write": "mcr3_state.mcrmono_control_port_w"
+            },
+            {
+              "start": 7,
+              "end": 7,
+              "kind": "handler",
+              "mirror": 120,
+              "write": "watchdog.reset_w"
+            },
+            {
+              "start": 240,
+              "end": 243,
+              "kind": "handler",
+              "mirror": 12,
+              "read": "ctc.read",
+              "write": "ctc.write"
+            },
+            {
+              "start": 4,
+              "end": 4,
+              "kind": "handler",
+              "read": "mcr3_state.rampage_ip4_r"
+            },
+            {
+              "start": 6,
+              "end": 6,
+              "kind": "handler",
+              "write": "mcr3_state.rampage_op6_w"
+            }
+          ],
+          "globalMask": 255
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 262143,
+        "kind": "rom"
+      },
+      {
+        "start": 393216,
+        "end": 393223,
+        "kind": "handler",
+        "mirror": 65520,
+        "read": "sg:pia.read_alt",
+        "write": "sg:pia.write_alt"
+      },
+      {
+        "start": 458752,
+        "end": 462847,
+        "kind": "ram",
+        "mirror": 61440
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 480,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 30,
+      "vtotal": 480,
+      "vbstart": 480,
+      "vbend": 0,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "dac",
+    "clock": 8000000,
+    "chips": 1,
+    "routes": [],
+    "masterGain": 0.5,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "fills": [
+        {
+          "offset": 57344,
+          "size": 8192,
+          "value": 255
+        }
+      ],
+      "loads": [
+        {
+          "file": "pro-0_3b_rev_3_8-27-86.3b",
+          "offset": 0,
+          "size": 32768,
+          "crc": "2f7ca03c",
+          "alt": [
+            {
+              "file": "pro-0_3b_rev_2_8-4-86.3b",
+              "crc": "3f1d0293"
+            }
+          ]
+        },
+        {
+          "file": "pro-1_5b_rev_3_8-27-86.5b",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "d89bd9a4",
+          "alt": [
+            {
+              "file": "pro-1_5b_rev_2_8-4-86.5b",
+              "crc": "58523d75"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sg:cpu",
+      "size": 262144,
+      "loads": [
+        {
+          "file": "u-7_rev.2_8-14-86.u7",
+          "offset": 0,
+          "size": 32768,
+          "crc": "cffd7fa5",
+          "skip": 1
+        },
+        {
+          "file": "u-17_rev.2_8-14-86.u17",
+          "offset": 1,
+          "size": 32768,
+          "crc": "e92c596b",
+          "skip": 1
+        },
+        {
+          "file": "u-8_rev.2_8-14-86.u8",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "11f787e4",
+          "skip": 1
+        },
+        {
+          "file": "u-18_rev.2_8-14-86.u18",
+          "offset": 65537,
+          "size": 32768,
+          "crc": "6b8bf5e1",
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 32768,
+      "invert": true,
+      "loads": [
+        {
+          "file": "bg-0_u15_7-23-86.15a",
+          "offset": 0,
+          "size": 16384,
+          "crc": "c0d8b7a5"
+        },
+        {
+          "file": "bg-1_u14_7-23-86.14b",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "2f6e3aa1"
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 262144,
+      "loads": [
+        {
+          "file": "fg-0_8e_6-30-86.8e",
+          "offset": 0,
+          "size": 65536,
+          "crc": "0974be5d"
+        },
+        {
+          "file": "fg-1_6e_6-30-86.6e",
+          "offset": 65536,
+          "size": 65536,
+          "crc": "8728532b"
+        },
+        {
+          "file": "fg-2_5e_6-30-86.5e",
+          "offset": 131072,
+          "size": 65536,
+          "crc": "9489f714"
+        },
+        {
+          "file": "fg-3_4e_6-30-86.4e",
+          "offset": 196608,
+          "size": 65536,
+          "crc": "81e1de40"
+        }
+      ]
+    },
+    {
+      "region": "sg:pal",
+      "size": 1,
+      "loads": [
+        {
+          "file": "e36a31axnaxqd.u15.bin",
+          "offset": 0,
+          "size": 1,
+          "crc": "",
+          "status": "nodump"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "MONO.IP0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP0",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP0",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP1",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP1",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP4",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP4",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP4",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP4",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP4",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "MONO.IP4",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "MONO.IP0",
+      "mask": 32,
+      "value": 32,
+      "name": "Service Mode"
+    },
+    {
+      "port": "MONO.IP3",
+      "mask": 3,
+      "value": 3,
+      "name": "Difficulty"
+    },
+    {
+      "port": "MONO.IP3",
+      "mask": 4,
+      "value": 4,
+      "name": "Score Option"
+    },
+    {
+      "port": "MONO.IP3",
+      "mask": 8,
+      "value": 8,
+      "name": "Coin A"
+    },
+    {
+      "port": "MONO.IP3",
+      "mask": 112,
+      "value": 112,
+      "name": "Coin B"
+    },
+    {
+      "port": "MONO.IP3",
+      "mask": 128,
+      "value": 128,
+      "name": "Rack Advance (Cheat)"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "MONO.IP0",
+      "init": 255
+    },
+    {
+      "tag": "MONO.IP1",
+      "init": 255
+    },
+    {
+      "tag": "MONO.IP2",
+      "init": 255
+    },
+    {
+      "tag": "MONO.IP3",
+      "init": 255
+    },
+    {
+      "tag": "MONO.IP4",
+      "init": 127
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

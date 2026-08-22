@@ -1,0 +1,55 @@
+{
+  "type": "NVRAM",
+  "uses": [
+    {
+      "game": "berzerk",
+      "tags": [
+        "nvram"
+      ]
+    },
+    {
+      "game": "defender",
+      "tags": [
+        "nvram"
+      ]
+    },
+    {
+      "game": "friskyt",
+      "tags": [
+        "nvram"
+      ]
+    },
+    {
+      "game": "mario",
+      "tags": [
+        "nvram"
+      ]
+    },
+    {
+      "game": "qix",
+      "tags": [
+        "nvram"
+      ]
+    },
+    {
+      "game": "rampage",
+      "tags": [
+        "nvram"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "NVRAM",
+    "className": "nvram_device",
+    "shortName": "nvram",
+    "description": "NVRAM",
+    "sourceFile": "src/devices/machine/nvram.cpp",
+    "sourceLine": 19,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NVRAM, nvram_device, \"nvram\", \"NVRAM\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

@@ -1,0 +1,623 @@
+{
+  "game": "asteroid",
+  "title": "Asteroids (rev 4) (Atari, 1979)",
+  "family": "asteroid",
+  "dataPath": "games/arcade/asteroid",
+  "board": {
+    "family": "asteroid",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "m6502",
+        "clock": 1512000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 511,
+            "kind": "ram"
+          },
+          {
+            "start": 512,
+            "end": 767,
+            "kind": "handler",
+            "read": "bank.ram1",
+            "write": "bank.ram1"
+          },
+          {
+            "start": 768,
+            "end": 1023,
+            "kind": "handler",
+            "read": "bank.ram2",
+            "write": "bank.ram2"
+          },
+          {
+            "start": 8192,
+            "end": 8199,
+            "kind": "handler",
+            "readOnly": true,
+            "read": "asteroid_state.asteroid_IN0_r"
+          },
+          {
+            "start": 9216,
+            "end": 9223,
+            "kind": "handler",
+            "read": "asteroid_state.asteroid_IN1_r"
+          },
+          {
+            "start": 10240,
+            "end": 10243,
+            "kind": "handler",
+            "readOnly": true,
+            "read": "asteroid_state.asteroid_DSW1_r"
+          },
+          {
+            "start": 12288,
+            "end": 12288,
+            "kind": "handler",
+            "write": "dvg.go_w"
+          },
+          {
+            "start": 12800,
+            "end": 12800,
+            "kind": "handler",
+            "write": "outlatch.write"
+          },
+          {
+            "start": 13312,
+            "end": 13312,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 13824,
+            "end": 13824,
+            "kind": "handler",
+            "write": "asteroid_state.asteroid_explode_w"
+          },
+          {
+            "start": 14848,
+            "end": 14848,
+            "kind": "handler",
+            "write": "asteroid_state.asteroid_thump_w"
+          },
+          {
+            "start": 15360,
+            "end": 15367,
+            "kind": "handler",
+            "write": "audiolatch.write_d7"
+          },
+          {
+            "start": 15872,
+            "end": 15872,
+            "kind": "handler",
+            "write": "asteroid_state.asteroid_noise_reset_w"
+          },
+          {
+            "start": 16384,
+            "end": 18431,
+            "kind": "ram"
+          },
+          {
+            "start": 20480,
+            "end": 22527,
+            "kind": "rom"
+          },
+          {
+            "start": 26624,
+            "end": 32767,
+            "kind": "rom"
+          }
+        ],
+        "mask": 32767
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 511,
+        "kind": "ram"
+      },
+      {
+        "start": 512,
+        "end": 767,
+        "kind": "handler",
+        "read": "bank.ram1",
+        "write": "bank.ram1"
+      },
+      {
+        "start": 768,
+        "end": 1023,
+        "kind": "handler",
+        "read": "bank.ram2",
+        "write": "bank.ram2"
+      },
+      {
+        "start": 8192,
+        "end": 8199,
+        "kind": "handler",
+        "readOnly": true,
+        "read": "asteroid_state.asteroid_IN0_r"
+      },
+      {
+        "start": 9216,
+        "end": 9223,
+        "kind": "handler",
+        "read": "asteroid_state.asteroid_IN1_r"
+      },
+      {
+        "start": 10240,
+        "end": 10243,
+        "kind": "handler",
+        "readOnly": true,
+        "read": "asteroid_state.asteroid_DSW1_r"
+      },
+      {
+        "start": 12288,
+        "end": 12288,
+        "kind": "handler",
+        "write": "dvg.go_w"
+      },
+      {
+        "start": 12800,
+        "end": 12800,
+        "kind": "handler",
+        "write": "outlatch.write"
+      },
+      {
+        "start": 13312,
+        "end": 13312,
+        "kind": "handler",
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 13824,
+        "end": 13824,
+        "kind": "handler",
+        "write": "asteroid_state.asteroid_explode_w"
+      },
+      {
+        "start": 14848,
+        "end": 14848,
+        "kind": "handler",
+        "write": "asteroid_state.asteroid_thump_w"
+      },
+      {
+        "start": 15360,
+        "end": 15367,
+        "kind": "handler",
+        "write": "audiolatch.write_d7"
+      },
+      {
+        "start": 15872,
+        "end": 15872,
+        "kind": "handler",
+        "write": "asteroid_state.asteroid_noise_reset_w"
+      },
+      {
+        "start": 16384,
+        "end": 18431,
+        "kind": "ram"
+      },
+      {
+        "start": 20480,
+        "end": 22527,
+        "kind": "rom"
+      },
+      {
+        "start": 26624,
+        "end": 32767,
+        "kind": "rom"
+      }
+    ],
+    "customs": [
+      {
+        "port": "IN0",
+        "mask": 2,
+        "member": "clock_r",
+        "handler": "asteroid_state.clock_r",
+        "activeLow": false
+      }
+    ],
+    "screen": {
+      "width": 1045,
+      "height": 789,
+      "xOffset": 522,
+      "yOffset": 394,
+      "refresh": 61.5234375,
+      "vtotal": 300,
+      "vbstart": 1183,
+      "vbend": 394,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "vector"
+  },
+  "sound": {
+    "kind": "discrete",
+    "clock": 1512000,
+    "worklet": "../../hardware/discrete-effects/discrete-effects",
+    "discreteEffects": {
+      "schemaVersion": 1,
+      "type": "DISCRETE_EFFECTS",
+      "inputNodes": {
+        "ASTEROID_SAUCER_SND_EN": 1,
+        "ASTEROID_SAUCER_FIRE_EN": 2,
+        "ASTEROID_SAUCER_SEL": 3,
+        "ASTEROID_THRUST_EN": 4,
+        "ASTEROID_SHIP_FIRE_EN": 5,
+        "ASTEROID_LIFE_EN": 6,
+        "ASTEROID_NOISE_RESET": 7,
+        "ASTEROID_THUMP_EN": 8,
+        "ASTEROID_THUMP_DATA": 9,
+        "ASTEROID_EXPLODE_DATA": 10,
+        "ASTEROID_EXPLODE_PITCH": 11
+      },
+      "dac": {
+        "node": -1,
+        "gain": 0,
+        "filterFrequency": 2000,
+        "q": 0.707
+      },
+      "voices": [
+        {
+          "node": 1,
+          "mode": "tone",
+          "frequency": 12000,
+          "release": 0.12,
+          "gain": 0.0761,
+          "activeLow": false,
+          "sustain": true
+        },
+        {
+          "node": 2,
+          "mode": "tone",
+          "frequency": 830,
+          "release": 0.28,
+          "gain": 0.053,
+          "activeLow": false
+        },
+        {
+          "node": 4,
+          "mode": "noise",
+          "frequency": 12000,
+          "release": 0.12,
+          "gain": 0.5,
+          "activeLow": false,
+          "sustain": true
+        },
+        {
+          "node": 5,
+          "mode": "tone",
+          "frequency": 820,
+          "release": 0.28,
+          "gain": 0.053,
+          "activeLow": false
+        },
+        {
+          "node": 6,
+          "mode": "tone",
+          "frequency": 3000,
+          "release": 0.12,
+          "gain": 0.1,
+          "activeLow": false,
+          "sustain": true
+        },
+        {
+          "node": 8,
+          "mode": "tone",
+          "frequency": 45,
+          "release": 0.28,
+          "gain": 0.053,
+          "activeLow": false
+        }
+      ],
+      "outputNetwork": "asteroid",
+      "outputGain": 1,
+      "source": {
+        "file": "src/mame/atari/asteroid_a.cpp",
+        "line": 74,
+        "netlist": "asteroid_discrete"
+      }
+    },
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "035145-04e.ef2",
+          "offset": 26624,
+          "size": 2048,
+          "crc": "b503eaf7",
+          "alt": [
+            {
+              "file": "035145-02.ef2",
+              "crc": "0cc75459"
+            },
+            {
+              "file": "035145-01.ef2",
+              "crc": "e9bfda64"
+            },
+            {
+              "file": "035145ll.de1",
+              "crc": "605fc0f2"
+            },
+            {
+              "file": "m0_c1.bin",
+              "crc": "dff88688"
+            }
+          ]
+        },
+        {
+          "file": "035144-04e.h2",
+          "offset": 28672,
+          "size": 2048,
+          "crc": "25233192",
+          "alt": [
+            {
+              "file": "035144-02.h2",
+              "crc": "096ed35c"
+            },
+            {
+              "file": "035144-01.h2",
+              "crc": "e53c28a9"
+            },
+            {
+              "file": "035144ll.c1",
+              "crc": "e106de77"
+            }
+          ]
+        },
+        {
+          "file": "035143-02.j2",
+          "offset": 30720,
+          "size": 2048,
+          "crc": "312caa02",
+          "alt": [
+            {
+              "file": "035143-01.j2",
+              "crc": "7d4e3d05"
+            },
+            {
+              "file": "035143ll.b1",
+              "crc": "6b1d8594"
+            },
+            {
+              "file": "3.bin",
+              "crc": "b912754d"
+            },
+            {
+              "file": "m2_j1.bin",
+              "crc": "64bd0408"
+            }
+          ]
+        },
+        {
+          "file": "035127-02.np3",
+          "offset": 20480,
+          "size": 2048,
+          "crc": "8b71fd9e",
+          "alt": [
+            {
+              "file": "035127-01.np3",
+              "crc": "99699366"
+            },
+            {
+              "file": "p35.bin",
+              "crc": "7b0260df"
+            },
+            {
+              "file": "e.bin",
+              "crc": "148ef465"
+            },
+            {
+              "file": "2716_3n.bin",
+              "crc": "32e69e66"
+            },
+            {
+              "file": "aerolito.3n",
+              "crc": "541e8ad4"
+            },
+            {
+              "file": "mv_np3.bin",
+              "crc": "11d1c4ae"
+            },
+            {
+              "file": "035127-01.bin",
+              "crc": "7dec48bd"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "dvg:prom",
+      "size": 256,
+      "loads": [
+        {
+          "file": "034602-01.c8",
+          "offset": 0,
+          "size": 256,
+          "crc": "97953db8",
+          "alt": [
+            {
+              "file": "prom.bin",
+              "crc": "9e237193"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "Space"
+      ],
+      "label": "IPT_BUTTON5",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON3",
+      "activeLow": false
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Diagnostic Step",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON4",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 128,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 128,
+      "value": 0,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 0,
+      "name": "Language"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 4,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 8,
+      "value": 0,
+      "name": "Center Mech"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 0,
+      "name": "Right Mech"
+    },
+    {
+      "port": "DSW1",
+      "mask": 192,
+      "value": 128,
+      "name": "Coinage"
+    },
+    {
+      "port": "COCKTAIL",
+      "mask": 1,
+      "value": 0,
+      "name": "Cabinet"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 4
+    },
+    {
+      "tag": "IN1",
+      "init": 0
+    },
+    {
+      "tag": "DSW1",
+      "init": 132
+    },
+    {
+      "tag": "COCKTAIL",
+      "init": 0
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

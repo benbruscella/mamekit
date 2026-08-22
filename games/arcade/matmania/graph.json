@@ -1,0 +1,2998 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/technos/matmania.cpp",
+    "generatedAt": "2026-08-22T05:52:31.706Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Brad Oliver"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/technos/matmania.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/technos/matmania.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:taito68705.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "taito68705.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6502/m6502.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6502/m6502.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6809/m6809.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6809/m6809.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/timer.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/timer.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ay8910.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ay8910.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/dac.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/dac.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopl.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopl.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:matmania",
+      "label": "Game",
+      "props": {
+        "name": "matmania",
+        "year": "1985",
+        "company": "Technos Japan (Taito America license)",
+        "fullname": "Mat Mania",
+        "monitor": "ROT270",
+        "cls": "matmania_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 938,
+        "sourceColumn": 1,
+        "sourceEndLine": 938
+      }
+    },
+    {
+      "id": "romset:matmania",
+      "label": "RomSet",
+      "props": {
+        "name": "matmania",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 709,
+        "sourceColumn": 1,
+        "sourceEndLine": 709
+      }
+    },
+    {
+      "id": "region:matmania/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 710,
+        "sourceColumn": 2,
+        "sourceEndLine": 710
+      }
+    },
+    {
+      "id": "rom:matmania/maincpu/k0-03",
+      "label": "Rom",
+      "props": {
+        "file": "k0-03",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "314ab8a4",
+        "sha1": "dc86b2f71a9af8524edad2317343b0d05fe5ef4a",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 711,
+        "sourceColumn": 2,
+        "sourceEndLine": 711
+      }
+    },
+    {
+      "id": "rom:matmania/maincpu/k1-03",
+      "label": "Rom",
+      "props": {
+        "file": "k1-03",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "3b3c3f08",
+        "sha1": "65f0c5dba0b8eeb5c2d42b050cac37c475e6a398",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 712,
+        "sourceColumn": 2,
+        "sourceEndLine": 712
+      }
+    },
+    {
+      "id": "rom:matmania/maincpu/k2-03",
+      "label": "Rom",
+      "props": {
+        "file": "k2-03",
+        "offset": 49152,
+        "size": 16384,
+        "crc": "286c0917",
+        "sha1": "50d6133406e7db0694b02858c7d06725744cf243",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 713,
+        "sourceColumn": 2,
+        "sourceEndLine": 713
+      }
+    },
+    {
+      "id": "region:matmania/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 715,
+        "sourceColumn": 2,
+        "sourceEndLine": 715
+      }
+    },
+    {
+      "id": "rom:matmania/audiocpu/k4-0",
+      "label": "Rom",
+      "props": {
+        "file": "k4-0",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "86dab489",
+        "sha1": "27f6eea29b0287e461e0e321fd7bfaada52c39dc",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 716,
+        "sourceColumn": 2,
+        "sourceEndLine": 716
+      }
+    },
+    {
+      "id": "rom:matmania/audiocpu/k5-0",
+      "label": "Rom",
+      "props": {
+        "file": "k5-0",
+        "offset": 49152,
+        "size": 16384,
+        "crc": "4c41cdba",
+        "sha1": "a0af0c019bd6d9456cbbe83ecdeee689bc5f1bea",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 717,
+        "sourceColumn": 2,
+        "sourceEndLine": 717
+      }
+    },
+    {
+      "id": "region:matmania/chars",
+      "label": "RomRegion",
+      "props": {
+        "tag": "chars",
+        "size": 24576,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 719,
+        "sourceColumn": 2,
+        "sourceEndLine": 719
+      }
+    },
+    {
+      "id": "rom:matmania/chars/ku-02",
+      "label": "Rom",
+      "props": {
+        "file": "ku-02",
+        "offset": 0,
+        "size": 8192,
+        "crc": "613c8698",
+        "sha1": "07acb2fe150a64029fd15d177c8b6481fcd9eb0b",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 720,
+        "sourceColumn": 2,
+        "sourceEndLine": 720
+      }
+    },
+    {
+      "id": "rom:matmania/chars/kv-02",
+      "label": "Rom",
+      "props": {
+        "file": "kv-02",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "274ce14b",
+        "sha1": "58ed8c8fe0cc157d642aae596e41f2099c1ea6b1",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 721,
+        "sourceColumn": 2,
+        "sourceEndLine": 721
+      }
+    },
+    {
+      "id": "rom:matmania/chars/kw-02",
+      "label": "Rom",
+      "props": {
+        "file": "kw-02",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "7588a9c4",
+        "sha1": "0c197a8fea1acb6c9a99071845be54c949ec83b1",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 722,
+        "sourceColumn": 2,
+        "sourceEndLine": 722
+      }
+    },
+    {
+      "id": "region:matmania/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 49152,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 724,
+        "sourceColumn": 2,
+        "sourceEndLine": 724
+      }
+    },
+    {
+      "id": "rom:matmania/tiles/kt-02",
+      "label": "Rom",
+      "props": {
+        "file": "kt-02",
+        "offset": 0,
+        "size": 16384,
+        "crc": "5d817c70",
+        "sha1": "f7759be40a8850d325440d336241ecd05b80c0bd",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 725,
+        "sourceColumn": 2,
+        "sourceEndLine": 725
+      }
+    },
+    {
+      "id": "rom:matmania/tiles/ks-02",
+      "label": "Rom",
+      "props": {
+        "file": "ks-02",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "2e9f3ba0",
+        "sha1": "21d6686580de6ecfe57e458821fa92e966a42d95",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 726,
+        "sourceColumn": 2,
+        "sourceEndLine": 726
+      }
+    },
+    {
+      "id": "rom:matmania/tiles/kr-02",
+      "label": "Rom",
+      "props": {
+        "file": "kr-02",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "b057d3e3",
+        "sha1": "24216b22a69c1ecc7eabd7ae10de381e1ff0afc1",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 727,
+        "sourceColumn": 2,
+        "sourceEndLine": 727
+      }
+    },
+    {
+      "id": "region:matmania/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 344064,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 729,
+        "sourceColumn": 2,
+        "sourceEndLine": 729
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/k6-00",
+      "label": "Rom",
+      "props": {
+        "file": "k6-00",
+        "offset": 0,
+        "size": 16384,
+        "crc": "294d0878",
+        "sha1": "0aaae97e35d504dbf6c479ddf04b981847a23ea6",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 730,
+        "sourceColumn": 2,
+        "sourceEndLine": 730
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/k7-00",
+      "label": "Rom",
+      "props": {
+        "file": "k7-00",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "0908c2f5",
+        "sha1": "acc34c578f9a3521855ad4dd8fbd554e05c3f63c",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 731,
+        "sourceColumn": 2,
+        "sourceEndLine": 731
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/k8-00",
+      "label": "Rom",
+      "props": {
+        "file": "k8-00",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "ae8341e1",
+        "sha1": "ca198087b3aec320543a19921015861324ace8a2",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 732,
+        "sourceColumn": 2,
+        "sourceEndLine": 732
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/k9-00",
+      "label": "Rom",
+      "props": {
+        "file": "k9-00",
+        "offset": 49152,
+        "size": 16384,
+        "crc": "752ac2c6",
+        "sha1": "309fe4e396616b569b9b25654e3dc2751d7b1605",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 733,
+        "sourceColumn": 2,
+        "sourceEndLine": 733
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/ka-00",
+      "label": "Rom",
+      "props": {
+        "file": "ka-00",
+        "offset": 65536,
+        "size": 16384,
+        "crc": "46a9cb16",
+        "sha1": "35e6bd4f33098c98bf2d0b1dfefec2f9d25444e7",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 734,
+        "sourceColumn": 2,
+        "sourceEndLine": 734
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kb-00",
+      "label": "Rom",
+      "props": {
+        "file": "kb-00",
+        "offset": 81920,
+        "size": 16384,
+        "crc": "bf016772",
+        "sha1": "c901fc2d553622b6dbfaaa9cd94759799d974c39",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 735,
+        "sourceColumn": 2,
+        "sourceEndLine": 735
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kc-00",
+      "label": "Rom",
+      "props": {
+        "file": "kc-00",
+        "offset": 98304,
+        "size": 16384,
+        "crc": "8d08bce7",
+        "sha1": "1433962c837f568cc1eb27464e243dc580a141de",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 736,
+        "sourceColumn": 2,
+        "sourceEndLine": 736
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kd-00",
+      "label": "Rom",
+      "props": {
+        "file": "kd-00",
+        "offset": 114688,
+        "size": 16384,
+        "crc": "af1d6a60",
+        "sha1": "ae3131e3e1fcc9bb1d59db6b1668f6838849241d",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 737,
+        "sourceColumn": 2,
+        "sourceEndLine": 737
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/ke-00",
+      "label": "Rom",
+      "props": {
+        "file": "ke-00",
+        "offset": 131072,
+        "size": 16384,
+        "crc": "614f19b0",
+        "sha1": "67e4687b9be36007c2e1fd504a2eb952fe098d53",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 738,
+        "sourceColumn": 2,
+        "sourceEndLine": 738
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kf-00",
+      "label": "Rom",
+      "props": {
+        "file": "kf-00",
+        "offset": 147456,
+        "size": 16384,
+        "crc": "bdf58c18",
+        "sha1": "a76c6984e4d4f88384e15d0b6b74093c3bc0fcda",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 739,
+        "sourceColumn": 2,
+        "sourceEndLine": 739
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kg-00",
+      "label": "Rom",
+      "props": {
+        "file": "kg-00",
+        "offset": 163840,
+        "size": 16384,
+        "crc": "2189f5cf",
+        "sha1": "48289263f7b9cc5b6d975742d45dd64ba45e38c8",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 740,
+        "sourceColumn": 2,
+        "sourceEndLine": 740
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kh-00",
+      "label": "Rom",
+      "props": {
+        "file": "kh-00",
+        "offset": 180224,
+        "size": 16384,
+        "crc": "6b11ed1f",
+        "sha1": "8b5c52a14ac3f80ebf630fed8108df17106efd93",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 741,
+        "sourceColumn": 2,
+        "sourceEndLine": 741
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/ki-00",
+      "label": "Rom",
+      "props": {
+        "file": "ki-00",
+        "offset": 196608,
+        "size": 16384,
+        "crc": "d7ac4ec5",
+        "sha1": "35b1503147cb521d2fcc756e6f90ef70d62e2d04",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 742,
+        "sourceColumn": 2,
+        "sourceEndLine": 742
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kj-00",
+      "label": "Rom",
+      "props": {
+        "file": "kj-00",
+        "offset": 212992,
+        "size": 16384,
+        "crc": "2caee05d",
+        "sha1": "51e0799312e4737bc6f6ae7b74d02f9e10f91c3b",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 743,
+        "sourceColumn": 2,
+        "sourceEndLine": 743
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kk-00",
+      "label": "Rom",
+      "props": {
+        "file": "kk-00",
+        "offset": 229376,
+        "size": 16384,
+        "crc": "eb54f010",
+        "sha1": "9ed8addd8a542299be2a8f0108447e68b9b33436",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 744,
+        "sourceColumn": 2,
+        "sourceEndLine": 744
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kl-00",
+      "label": "Rom",
+      "props": {
+        "file": "kl-00",
+        "offset": 245760,
+        "size": 16384,
+        "crc": "fa4c7e0c",
+        "sha1": "365f5b60ac880928b49a254a5a49a9e9a766046d",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 745,
+        "sourceColumn": 2,
+        "sourceEndLine": 745
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/km-00",
+      "label": "Rom",
+      "props": {
+        "file": "km-00",
+        "offset": 262144,
+        "size": 16384,
+        "crc": "6d2369b6",
+        "sha1": "b3071cc27598045167681a00f41bf77b6d4bd5bd",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 746,
+        "sourceColumn": 2,
+        "sourceEndLine": 746
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kn-00",
+      "label": "Rom",
+      "props": {
+        "file": "kn-00",
+        "offset": 278528,
+        "size": 16384,
+        "crc": "c55733e2",
+        "sha1": "b550afd2ceb3b0159c11627ab31f49cc49785809",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 747,
+        "sourceColumn": 2,
+        "sourceEndLine": 747
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/ko-00",
+      "label": "Rom",
+      "props": {
+        "file": "ko-00",
+        "offset": 294912,
+        "size": 16384,
+        "crc": "ed3c3476",
+        "sha1": "eb7bc7c72443d4e3bdfc535bfe460524c0f900d3",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 748,
+        "sourceColumn": 2,
+        "sourceEndLine": 748
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kp-00",
+      "label": "Rom",
+      "props": {
+        "file": "kp-00",
+        "offset": 311296,
+        "size": 16384,
+        "crc": "9c84a969",
+        "sha1": "8492ba523e1c1ca94eeba1e53521dd74df854cb9",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 749,
+        "sourceColumn": 2,
+        "sourceEndLine": 749
+      }
+    },
+    {
+      "id": "rom:matmania/sprites/kq-00",
+      "label": "Rom",
+      "props": {
+        "file": "kq-00",
+        "offset": 327680,
+        "size": 16384,
+        "crc": "fa2f0003",
+        "sha1": "7327ce822be8aea360210bbd466a8129788a65c3",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 750,
+        "sourceColumn": 2,
+        "sourceEndLine": 750
+      }
+    },
+    {
+      "id": "region:matmania/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 128,
+        "flags": "0",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 752,
+        "sourceColumn": 2,
+        "sourceEndLine": 752
+      }
+    },
+    {
+      "id": "rom:matmania/proms/matmania.1",
+      "label": "Rom",
+      "props": {
+        "file": "matmania.1",
+        "offset": 0,
+        "size": 32,
+        "crc": "1b58f01f",
+        "sha1": "ffc098d85413777740a25c767096ba5b2aeaf5a8",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 753,
+        "sourceColumn": 2,
+        "sourceEndLine": 753
+      }
+    },
+    {
+      "id": "rom:matmania/proms/matmania.5",
+      "label": "Rom",
+      "props": {
+        "file": "matmania.5",
+        "offset": 32,
+        "size": 32,
+        "crc": "2029f85f",
+        "sha1": "7825d42eed284ea0fe7fd60304b8a27a1b5a4075",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 754,
+        "sourceColumn": 2,
+        "sourceEndLine": 754
+      }
+    },
+    {
+      "id": "rom:matmania/proms/matmania.2",
+      "label": "Rom",
+      "props": {
+        "file": "matmania.2",
+        "offset": 64,
+        "size": 32,
+        "crc": "b6ac1fd5",
+        "sha1": "e312a8ff7317eb21320308400539a733c27e8fca",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 755,
+        "sourceColumn": 2,
+        "sourceEndLine": 755
+      }
+    },
+    {
+      "id": "rom:matmania/proms/matmania.16",
+      "label": "Rom",
+      "props": {
+        "file": "matmania.16",
+        "offset": 96,
+        "size": 32,
+        "crc": "09325dc2",
+        "sha1": "3d9ebdf73840a9603af2acc4bcc4339f3029d284",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 756,
+        "sourceColumn": 2,
+        "sourceEndLine": 756
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "matmania_state",
+        "name": "main_map",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 422,
+        "sourceColumn": 1,
+        "sourceEndLine": 438
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 1919,
+        "raw": "map(0x0000, 0x077f).ram()",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 424,
+        "sourceColumn": 2,
+        "sourceEndLine": 424,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 1920,
+        "end": 2015,
+        "raw": "map(0x0780, 0x07df).writeonly().share(m_spriteram)",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 425,
+        "sourceColumn": 2,
+        "sourceEndLine": 425,
+        "writeonly": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 4096,
+        "end": 5119,
+        "raw": "map(0x1000, 0x13ff).ram().share(m_videoram[1])",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 426,
+        "sourceColumn": 2,
+        "sourceEndLine": 426,
+        "ram": true,
+        "share": "videoram[1]"
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 5120,
+        "end": 6143,
+        "raw": "map(0x1400, 0x17ff).ram().share(m_colorram[1])",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 427,
+        "sourceColumn": 2,
+        "sourceEndLine": 427,
+        "ram": true,
+        "share": "colorram[1]"
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 8703,
+        "raw": "map(0x2000, 0x21ff).ram().share(m_videoram[0])",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 428,
+        "sourceColumn": 2,
+        "sourceEndLine": 428,
+        "ram": true,
+        "share": "videoram[0]"
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 8704,
+        "end": 9215,
+        "raw": "map(0x2200, 0x23ff).ram().share(m_colorram[0])",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 429,
+        "sourceColumn": 2,
+        "sourceEndLine": 429,
+        "ram": true,
+        "share": "colorram[0]"
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 9216,
+        "end": 9727,
+        "raw": "map(0x2400, 0x25ff).ram().share(m_videoram[2])",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 430,
+        "sourceColumn": 2,
+        "sourceEndLine": 430,
+        "ram": true,
+        "share": "videoram[2]"
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 9728,
+        "end": 10239,
+        "raw": "map(0x2600, 0x27ff).ram().share(m_colorram[2])",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 431,
+        "sourceColumn": 2,
+        "sourceEndLine": 431,
+        "ram": true,
+        "share": "colorram[2]"
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 12288,
+        "raw": "map(0x3000, 0x3000).portr(\"IN0\").writeonly().share(m_pageselect)",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 432,
+        "sourceColumn": 2,
+        "sourceEndLine": 432,
+        "writeonly": true,
+        "share": "pageselect",
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 12304,
+        "end": 12304,
+        "raw": "map(0x3010, 0x3010).portr(\"IN1\").w(\"soundlatch\", FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 433,
+        "sourceColumn": 2,
+        "sourceEndLine": 433,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 433,
+        "sourceColumn": 2,
+        "sourceEndLine": 433
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 12320,
+        "end": 12320,
+        "raw": "map(0x3020, 0x3020).portr(\"DSW2\").writeonly().share(m_scroll)",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 434,
+        "sourceColumn": 2,
+        "sourceEndLine": 434,
+        "writeonly": true,
+        "share": "scroll",
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 12336,
+        "end": 12336,
+        "raw": "map(0x3030, 0x3030).portr(\"DSW1\").nopw()",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 435,
+        "sourceColumn": 2,
+        "sourceEndLine": 435,
+        "nopw": true,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 12368,
+        "end": 12415,
+        "raw": "map(0x3050, 0x307f).w(FUNC(matmania_state::paletteram_w)).share(m_paletteram)",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 436,
+        "sourceColumn": 2,
+        "sourceEndLine": 436,
+        "share": "paletteram"
+      }
+    },
+    {
+      "id": "handler:matmania_state.paletteram_w",
+      "label": "Handler",
+      "props": {
+        "method": "paletteram_w",
+        "ownerClass": "matmania_state",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 206,
+        "sourceColumn": 1,
+        "sourceEndLine": 235,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "int bit0, bit1, bit2, bit3, val;\n\n\tm_paletteram[offset] = data;\n\toffset &= 0x0f;\n\n\tval = m_paletteram[offset];\n\tbit0 = BIT(val, 0);\n\tbit1 = BIT(val, 1);\n\tbit2 = BIT(val, 2);\n\tbit3 = BIT(val, 3);\n\tint const r = 0x0e * bit0 + 0x1f * bit1 + 0x43 * bit2 + 0x8f * bit3;\n\n\tval = m_paletteram[offset | 0x10];\n\tbit0 = BIT(val, 0);\n\tbit1 = BIT(val, 1);\n\tbit2 = BIT(val, 2);\n\tbit3 = BIT(val, 3);\n\tint const g = 0x0e * bit0 + 0x1f * bit1 + 0x43 * bit2 + 0x8f * bit3;\n\n\tval = m_paletteram[offset | 0x20];\n\tbit0 = BIT(val, 0);\n\tbit1 = BIT(val, 1);\n\tbit2 = BIT(val, 2);\n\tbit3 = BIT(val, 3);\n\tint const b = 0x0e * bit0 + 0x1f * bit1 + 0x43 * bit2 + 0x8f * bit3;\n\n\tm_palette->set_pen_color(offset + 64, rgb_t(r, g, b));"
+      }
+    },
+    {
+      "id": "map:matmania_state.main_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 65535,
+        "raw": "map(0x4000, 0xffff).rom()",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 437,
+        "sourceColumn": 2,
+        "sourceEndLine": 437,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:matmania_state.sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "matmania_state",
+        "name": "sound_map",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 450,
+        "sourceColumn": 1,
+        "sourceEndLine": 459
+      }
+    },
+    {
+      "id": "map:matmania_state.sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 511,
+        "raw": "map(0x0000, 0x01ff).ram()",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 452,
+        "sourceColumn": 2,
+        "sourceEndLine": 452,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:matmania_state.sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 8193,
+        "raw": "map(0x2000, 0x2001).w(\"ay1\", FUNC(ay8910_device::data_address_w))",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 453,
+        "sourceColumn": 2,
+        "sourceEndLine": 453
+      }
+    },
+    {
+      "id": "handler:ay8910_device.data_address_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_address_w",
+        "ownerClass": "ay8910_device",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 454,
+        "sourceColumn": 2,
+        "sourceEndLine": 454
+      }
+    },
+    {
+      "id": "map:matmania_state.sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 8194,
+        "end": 8195,
+        "raw": "map(0x2002, 0x2003).w(\"ay2\", FUNC(ay8910_device::data_address_w))",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 454,
+        "sourceColumn": 2,
+        "sourceEndLine": 454
+      }
+    },
+    {
+      "id": "map:matmania_state.sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 8196,
+        "end": 8196,
+        "raw": "map(0x2004, 0x2004).w(\"dac\", FUNC(dac_byte_interface::data_w))",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 455,
+        "sourceColumn": 2,
+        "sourceEndLine": 455
+      }
+    },
+    {
+      "id": "handler:dac_byte_interface.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "dac_byte_interface",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 465,
+        "sourceColumn": 2,
+        "sourceEndLine": 465
+      }
+    },
+    {
+      "id": "map:matmania_state.sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 8197,
+        "end": 8197,
+        "raw": "map(0x2005, 0x2005).w(FUNC(matmania_state::sound_nmi_enable_w))",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 456,
+        "sourceColumn": 2,
+        "sourceEndLine": 456
+      }
+    },
+    {
+      "id": "handler:matmania_state.sound_nmi_enable_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_nmi_enable_w",
+        "ownerClass": "matmania_state",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 104,
+        "sourceColumn": 33,
+        "sourceEndLine": 106,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_sound_nmi_enable = bool(BIT(data, 0));"
+      }
+    },
+    {
+      "id": "map:matmania_state.sound_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 8199,
+        "end": 8199,
+        "raw": "map(0x2007, 0x2007).r(\"soundlatch\", FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 457,
+        "sourceColumn": 2,
+        "sourceEndLine": 457
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 466,
+        "sourceColumn": 2,
+        "sourceEndLine": 466
+      }
+    },
+    {
+      "id": "map:matmania_state.sound_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 65535,
+        "raw": "map(0x8000, 0xffff).rom()",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 458,
+        "sourceColumn": 2,
+        "sourceEndLine": 458,
+        "rom": true
+      }
+    },
+    {
+      "id": "machine:matmania_state.matmania",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "matmania_state",
+        "name": "matmania",
+        "calls": [],
+        "startHandlers": [
+          "matmania_state.video_start"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 635,
+        "sourceColumn": 1,
+        "sourceEndLine": 665
+      }
+    },
+    {
+      "id": "handler:matmania_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "matmania_state",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 244,
+        "sourceColumn": 1,
+        "sourceEndLine": 252,
+        "sourceParameters": "",
+        "sourceBody": "int width = m_screen->width();\n\tint height = m_screen->height();\n\n\t// Mat Mania has a virtual screen twice as large as the visible screen\n\tm_tmpbitmap[0] = std::make_unique<bitmap_ind16>(width, 2 * height);\n\tm_tmpbitmap[1] = std::make_unique<bitmap_ind16>(width, 2 * height);"
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "M6502",
+        "tag": "maincpu",
+        "clock": 1500000,
+        "config": [
+          "M6502(config, m_maincpu, 12_MHz_XTAL / 8)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &matmania_state::main_map)",
+          "m_maincpu->set_vblank_int(\"screen\", FUNC(matmania_state::irq0_line_hold))"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 638,
+        "sourceColumn": 2,
+        "sourceEndLine": 638
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_vblank_int",
+        "operation": "set_vblank_int",
+        "raw": "m_maincpu->set_vblank_int(\"screen\", FUNC(matmania_state::irq0_line_hold))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 640,
+        "sourceColumn": 2,
+        "sourceEndLine": 640,
+        "targetTag": "screen",
+        "targetClass": "matmania_state",
+        "targetMethod": "irq0_line_hold"
+      }
+    },
+    {
+      "id": "handler:matmania_state.irq0_line_hold",
+      "label": "Handler",
+      "props": {
+        "method": "irq0_line_hold",
+        "ownerClass": "matmania_state",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 640,
+        "sourceColumn": 2,
+        "sourceEndLine": 640
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "M6502",
+        "tag": "audiocpu",
+        "clock": 1000000,
+        "config": [
+          "M6502(config, m_audiocpu, 12_MHz_XTAL / 2 / 6)",
+          "m_audiocpu->set_addrmap(AS_PROGRAM, &matmania_state::sound_map)"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 642,
+        "sourceColumn": 2,
+        "sourceEndLine": 642
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/scantimer",
+      "label": "Device",
+      "props": {
+        "type": "TIMER",
+        "tag": "scantimer",
+        "clock": null,
+        "config": [
+          "TIMER(config, \"scantimer\").configure_scanline(FUNC(matmania_state::scanline), \"screen\", 8, 16)"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 645,
+        "sourceColumn": 2,
+        "sourceEndLine": 645
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/scantimer/callback:scantimer:0",
+      "label": "Callback",
+      "props": {
+        "signal": "configure_scanline",
+        "operation": "configure_scanline",
+        "raw": "TIMER(config, \"scantimer\").configure_scanline(FUNC(matmania_state::scanline), \"screen\", 8, 16)",
+        "ownerTag": "scantimer",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 645,
+        "sourceColumn": 2,
+        "sourceEndLine": 645,
+        "scanlineStart": 8,
+        "scanlineIncrement": 16,
+        "targetClass": "matmania_state",
+        "targetMethod": "scanline"
+      }
+    },
+    {
+      "id": "handler:matmania_state.scanline",
+      "label": "Handler",
+      "props": {
+        "method": "scanline",
+        "ownerClass": "matmania_state",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 399,
+        "sourceColumn": 1,
+        "sourceEndLine": 406,
+        "sourceParameters": "int param",
+        "sourceBody": "const int scanline = param;\n\n\t// 16 sound NMIs per frame (disabled during DAC voice)\n\tif (m_sound_nmi_enable && scanline < 256)\n\t\tm_audiocpu->pulse_input_line(INPUT_LINE_NMI, attotime::zero);"
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(12_MHz_XTAL / 2, 384, 0, 256, 272, 8, 248)",
+          "m_screen->set_screen_update(FUNC(matmania_state::screen_update))",
+          "m_screen->set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 648,
+        "sourceColumn": 2,
+        "sourceEndLine": 648,
+        "configCalls": [
+          "set_raw(6000000,384,0,256,272,8,248)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          6000000,
+          384,
+          0,
+          256,
+          272,
+          8,
+          248
+        ]
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(matmania_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 650,
+        "sourceColumn": 2,
+        "sourceEndLine": 650,
+        "targetClass": "matmania_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:matmania_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "matmania_state",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 256,
+        "sourceColumn": 1,
+        "sourceEndLine": 321,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "// Update the tiles in the left tile RAM bank\n\tfor (int offs = m_videoram[0].bytes() - 1; offs >= 0; offs--)\n\t{\n\t\tint const sx = 15 - offs / 32;\n\t\tint const sy = offs % 32;\n\n\t\tm_gfxdecode->gfx(1)->opaque(*m_tmpbitmap[0], m_tmpbitmap[0]->cliprect(),\n\t\t\t\tm_videoram[0][offs] + ((m_colorram[0][offs] & 0x08) << 5),\n\t\t\t\t(m_colorram[0][offs] & 0x30) >> 4,\n\t\t\t\t0, sy >= 16, // flip horizontally tiles on the right half of the bitmap\n\t\t\t\t16 * sx, 16 * sy);\n\t}\n\n\t// Update the tiles in the right tile RAM bank\n\tfor (int offs = m_videoram[2].bytes() - 1; offs >= 0; offs--)\n\t{\n\t\tint const sx = 15 - offs / 32;\n\t\tint const sy = offs % 32;\n\n\t\tm_gfxdecode->gfx(1)->opaque(*m_tmpbitmap[1], m_tmpbitmap[1]->cliprect(),\n\t\t\t\tm_videoram[2][offs] + ((m_colorram[2][offs] & 0x08) << 5),\n\t\t\t\t(m_colorram[2][offs] & 0x30) >> 4,\n\t\t\t\t0, sy >= 16, // flip horizontally tiles on the right half of the bitmap\n\t\t\t\t16 * sx, 16 * sy);\n\t}\n\n\t// copy the temporary bitmap to the screen\n\t{\n\t\tint const scrolly = -*m_scroll;\n\t\tif (m_pageselect[0] & 0x01) // maniach sets 0x20 sometimes, which must have a different meaning\n\t\t\tcopyscrollbitmap(bitmap, *m_tmpbitmap[1], 0, nullptr, 1, &scrolly, cliprect);\n\t\telse\n\t\t\tcopyscrollbitmap(bitmap, *m_tmpbitmap[0], 0, nullptr, 1, &scrolly, cliprect);\n\t}\n\n\n\t// Draw the sprites\n\tfor (int offs = 0; offs < m_spriteram.bytes(); offs += 4)\n\t{\n\t\tif (m_spriteram[offs] & 0x01)\n\t\t{\n\t\t\tm_gfxdecode->gfx(2)->transpen(bitmap, cliprect,\n\t\t\t\t\tm_spriteram[offs + 1] + ((m_spriteram[offs] & 0xf0) << 4),\n\t\t\t\t\t(m_spriteram[offs] & 0x08) >> 3,\n\t\t\t\t\tm_spriteram[offs] & 0x04, m_spriteram[offs] & 0x02,\n\t\t\t\t\t239 - m_spriteram[offs + 3], (240 - m_spriteram[offs + 2]) & 0xff, 0);\n\t\t}\n\t}\n\n\n\t// draw the frontmost playfield. They are characters, but draw them as sprites\n\tfor (int offs = m_videoram[1].bytes() - 1; offs >= 0; offs--)\n\t{\n\t\tint const sx = 31 - offs / 32;\n\t\tint const sy = offs % 32;\n\n\t\tm_gfxdecode->gfx(0)->transpen(bitmap, cliprect,\n\t\t\t\tm_videoram[1][offs] + 256 * (m_colorram[1][offs] & 0x07),\n\t\t\t\t(m_colorram[1][offs] & 0x30) >> 4,\n\t\t\t\t0, 0,\n\t\t\t\t8 * sx, 8 * sy, 0);\n\t}\n\treturn 0;"
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_matmania)"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 653,
+        "sourceColumn": 2,
+        "sourceEndLine": 653,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(matmania_state::palette), 64 + 16)"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 654,
+        "sourceColumn": 2,
+        "sourceEndLine": 654,
+        "clockExpr": "FUNC(matmania_state::palette)"
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"speaker\").front_center()"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 657,
+        "sourceColumn": 2,
+        "sourceEndLine": 657
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, \"soundlatch\").data_pending_callback().set_inputline(m_audiocpu, M6502_IRQ_LINE)"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 659,
+        "sourceColumn": 2,
+        "sourceEndLine": 659
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/soundlatch/callback:soundlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "data_pending_callback",
+        "operation": "set_inputline",
+        "raw": "GENERIC_LATCH_8(config, \"soundlatch\").data_pending_callback().set_inputline(m_audiocpu, M6502_IRQ_LINE)",
+        "ownerTag": "soundlatch",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 659,
+        "sourceColumn": 2,
+        "sourceEndLine": 659,
+        "inputLine": "M6502_IRQ_LINE",
+        "targetTag": "audiocpu"
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/ay1",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay1",
+        "clock": 1500000,
+        "config": [
+          "AY8910(config, \"ay1\", 12_MHz_XTAL / 8).add_route(ALL_OUTPUTS, \"speaker\", 0.3)"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 661,
+        "sourceColumn": 2,
+        "sourceEndLine": 661
+      }
+    },
+    {
+      "id": "audioroute:device:matmania_state.matmania/ay1/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.3,
+        "raw": "AY8910(config, \"ay1\", 12_MHz_XTAL / 8).add_route(ALL_OUTPUTS, \"speaker\", 0.3)",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 661,
+        "sourceColumn": 2,
+        "sourceEndLine": 661
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/ay2",
+      "label": "Device",
+      "props": {
+        "type": "AY8910",
+        "tag": "ay2",
+        "clock": 1500000,
+        "config": [
+          "AY8910(config, \"ay2\", 12_MHz_XTAL / 8).add_route(ALL_OUTPUTS, \"speaker\", 0.3)"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 662,
+        "sourceColumn": 2,
+        "sourceEndLine": 662
+      }
+    },
+    {
+      "id": "audioroute:device:matmania_state.matmania/ay2/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.3,
+        "raw": "AY8910(config, \"ay2\", 12_MHz_XTAL / 8).add_route(ALL_OUTPUTS, \"speaker\", 0.3)",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 662,
+        "sourceColumn": 2,
+        "sourceEndLine": 662
+      }
+    },
+    {
+      "id": "device:matmania_state.matmania/dac",
+      "label": "Device",
+      "props": {
+        "type": "DAC_8BIT_R2R",
+        "tag": "dac",
+        "clock": null,
+        "config": [
+          "DAC_8BIT_R2R(config, \"dac\").add_route(ALL_OUTPUTS, \"speaker\", 0.4)"
+        ],
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 664,
+        "sourceColumn": 2,
+        "sourceEndLine": 664
+      }
+    },
+    {
+      "id": "audioroute:device:matmania_state.matmania/dac/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.4,
+        "raw": "DAC_8BIT_R2R(config, \"dac\").add_route(ALL_OUTPUTS, \"speaker\", 0.4)",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 664,
+        "sourceColumn": 2,
+        "sourceEndLine": 664
+      }
+    },
+    {
+      "id": "inputs:matmania",
+      "label": "InputPorts",
+      "props": {
+        "name": "matmania",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 477,
+        "sourceColumn": 8,
+        "sourceEndLine": 477
+      }
+    },
+    {
+      "id": "inputs:matmania/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:matmania/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1"
+      }
+    },
+    {
+      "id": "inputs:matmania/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2"
+      }
+    },
+    {
+      "id": "inputs:matmania/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "modifiers": [
+          "PORT_IMPULSE(1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "modifiers": [
+          "PORT_IMPULSE(1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:matmania/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:matmania/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Coin A",
+        "defaultValue": 3,
+        "location": "SW1:1,2",
+        "settings": [
+          "0=2C 1C",
+          "3=1C 1C",
+          "2=1C 2C",
+          "1=1C 3C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "name": "Coin B",
+        "defaultValue": 12,
+        "location": "SW1:3,4",
+        "settings": [
+          "0=2C 1C",
+          "12=1C 1C",
+          "8=1C 2C",
+          "4=1C 3C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Demo Sounds",
+        "defaultValue": 16,
+        "location": "SW1:5",
+        "settings": [
+          "0=Off",
+          "16=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW1:6",
+        "settings": [
+          "0=Upright",
+          "32=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 64,
+        "activeLow": true,
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"screen\", FUNC(screen_device::vblank))"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Difficulty",
+        "defaultValue": 2,
+        "location": "SW2:1,2",
+        "settings": [
+          "3=Easy",
+          "2=Medium",
+          "1=Hard",
+          "0=Hardest"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "name": "Tournament Time",
+        "defaultValue": 12,
+        "location": "SW2:3,4",
+        "settings": [
+          "0=2:12",
+          "4=2:24",
+          "8=2:30",
+          "12=2:36"
+        ]
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Unused"
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "name": "Unused"
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Unused"
+      }
+    },
+    {
+      "id": "inputs:matmania/DSW2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Unused"
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout",
+        "width": 8,
+        "height": 8,
+        "total": 1024,
+        "planes": 3,
+        "planeOffsets": [
+          131072,
+          65536,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:tilelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "tilelayout",
+        "width": 16,
+        "height": 16,
+        "total": 512,
+        "planes": 3,
+        "planeOffsets": [
+          262144,
+          131072,
+          0
+        ],
+        "xOffsets": [
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:matmania_spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "matmania_spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": 3584,
+        "planes": 3,
+        "planeOffsets": [
+          1835008,
+          917504,
+          0
+        ],
+        "xOffsets": [
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_matmania",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_matmania",
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 616,
+        "sourceColumn": 8,
+        "sourceEndLine": 616
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_matmania/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "chars",
+        "offset": 0,
+        "layout": "charlayout",
+        "colorBase": 0,
+        "colorCount": 4,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_matmania/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles",
+        "offset": 0,
+        "layout": "tilelayout",
+        "colorBase": 32,
+        "colorCount": 4,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_matmania/e2",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "matmania_spritelayout",
+        "colorBase": 64,
+        "colorCount": 2,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:matmania",
+      "to": "file:src/mame/technos/matmania.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 938,
+        "sourceColumn": 1,
+        "sourceEndLine": 938
+      }
+    },
+    {
+      "from": "game:matmania",
+      "to": "machine:matmania_state.matmania",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:matmania",
+      "to": "inputs:matmania",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:matmania",
+      "to": "romset:matmania",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:taito68705.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:cpu/m6502/m6502.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:cpu/m6809/m6809.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:machine/timer.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:sound/ay8910.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:sound/dac.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:sound/ymopl.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/technos/matmania.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "file:src/mame/technos/matmania.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 635,
+        "sourceColumn": 1,
+        "sourceEndLine": 665
+      }
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "handler:matmania_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "device:matmania_state.matmania/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "device:matmania_state.matmania/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "device:matmania_state.matmania/scantimer",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "device:matmania_state.matmania/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "device:matmania_state.matmania/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "gfxdecode:gfx_matmania",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "device:matmania_state.matmania/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "device:matmania_state.matmania/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "device:matmania_state.matmania/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "device:matmania_state.matmania/ay1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "device:matmania_state.matmania/ay2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:matmania_state.matmania",
+      "to": "device:matmania_state.matmania/dac",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:matmania",
+      "to": "file:src/mame/technos/matmania.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 477,
+        "sourceColumn": 8,
+        "sourceEndLine": 477
+      }
+    },
+    {
+      "from": "inputs:matmania",
+      "to": "inputs:matmania/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:matmania",
+      "to": "inputs:matmania/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:matmania",
+      "to": "inputs:matmania/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:matmania",
+      "to": "inputs:matmania/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:matmania",
+      "to": "file:src/mame/technos/matmania.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 709,
+        "sourceColumn": 1,
+        "sourceEndLine": 709
+      }
+    },
+    {
+      "from": "romset:matmania",
+      "to": "region:matmania/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:matmania",
+      "to": "region:matmania/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:matmania",
+      "to": "region:matmania/chars",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:matmania",
+      "to": "region:matmania/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:matmania",
+      "to": "region:matmania/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:matmania",
+      "to": "region:matmania/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "device:matmania_state.matmania/maincpu",
+      "to": "device:matmania_state.matmania/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:matmania_state.matmania/maincpu",
+      "to": "map:matmania_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:matmania_state.matmania/audiocpu",
+      "to": "map:matmania_state.sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:matmania_state.matmania/scantimer",
+      "to": "device:matmania_state.matmania/scantimer/callback:scantimer:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:matmania_state.matmania/screen",
+      "to": "device:matmania_state.matmania/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_matmania",
+      "to": "file:src/mame/technos/matmania.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 616,
+        "sourceColumn": 8,
+        "sourceEndLine": 616
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_matmania",
+      "to": "gfxdecode:gfx_matmania/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_matmania",
+      "to": "gfxdecode:gfx_matmania/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_matmania",
+      "to": "gfxdecode:gfx_matmania/e2",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:matmania_state.matmania/soundlatch",
+      "to": "device:matmania_state.matmania/soundlatch/callback:soundlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:matmania_state.matmania/ay1",
+      "to": "audioroute:device:matmania_state.matmania/ay1/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:matmania_state.matmania/ay2",
+      "to": "audioroute:device:matmania_state.matmania/ay2/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:matmania_state.matmania/dac",
+      "to": "audioroute:device:matmania_state.matmania/dac/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:matmania/IN0",
+      "to": "inputs:matmania/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN0",
+      "to": "inputs:matmania/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN0",
+      "to": "inputs:matmania/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN0",
+      "to": "inputs:matmania/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN0",
+      "to": "inputs:matmania/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN0",
+      "to": "inputs:matmania/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN0",
+      "to": "inputs:matmania/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN0",
+      "to": "inputs:matmania/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN1",
+      "to": "inputs:matmania/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN1",
+      "to": "inputs:matmania/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN1",
+      "to": "inputs:matmania/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN1",
+      "to": "inputs:matmania/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN1",
+      "to": "inputs:matmania/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN1",
+      "to": "inputs:matmania/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN1",
+      "to": "inputs:matmania/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/IN1",
+      "to": "inputs:matmania/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW1",
+      "to": "inputs:matmania/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW1",
+      "to": "inputs:matmania/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW1",
+      "to": "inputs:matmania/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW1",
+      "to": "inputs:matmania/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW1",
+      "to": "inputs:matmania/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW1",
+      "to": "inputs:matmania/DSW1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW2",
+      "to": "inputs:matmania/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW2",
+      "to": "inputs:matmania/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW2",
+      "to": "inputs:matmania/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW2",
+      "to": "inputs:matmania/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW2",
+      "to": "inputs:matmania/DSW2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:matmania/DSW2",
+      "to": "inputs:matmania/DSW2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:matmania/maincpu",
+      "to": "rom:matmania/maincpu/k0-03",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/maincpu",
+      "to": "rom:matmania/maincpu/k1-03",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/maincpu",
+      "to": "rom:matmania/maincpu/k2-03",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/audiocpu",
+      "to": "rom:matmania/audiocpu/k4-0",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/audiocpu",
+      "to": "rom:matmania/audiocpu/k5-0",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/chars",
+      "to": "rom:matmania/chars/ku-02",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/chars",
+      "to": "rom:matmania/chars/kv-02",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/chars",
+      "to": "rom:matmania/chars/kw-02",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/tiles",
+      "to": "rom:matmania/tiles/kt-02",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/tiles",
+      "to": "rom:matmania/tiles/ks-02",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/tiles",
+      "to": "rom:matmania/tiles/kr-02",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/k6-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/k7-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/k8-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/k9-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/ka-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kb-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kc-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kd-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/ke-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kf-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kg-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kh-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/ki-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kj-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kk-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kl-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/km-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kn-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/ko-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kp-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/sprites",
+      "to": "rom:matmania/sprites/kq-00",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/proms",
+      "to": "rom:matmania/proms/matmania.1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/proms",
+      "to": "rom:matmania/proms/matmania.5",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/proms",
+      "to": "rom:matmania/proms/matmania.2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:matmania/proms",
+      "to": "rom:matmania/proms/matmania.16",
+      "rel": "LOADS"
+    },
+    {
+      "from": "device:matmania_state.matmania/maincpu/callback:maincpu:0",
+      "to": "handler:matmania_state.irq0_line_hold",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "file:src/mame/technos/matmania.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 422,
+        "sourceColumn": 1,
+        "sourceEndLine": 438
+      }
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.main_map",
+      "to": "map:matmania_state.main_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.sound_map",
+      "to": "file:src/mame/technos/matmania.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/technos/matmania.cpp",
+        "sourceLine": 450,
+        "sourceColumn": 1,
+        "sourceEndLine": 459
+      }
+    },
+    {
+      "from": "map:matmania_state.sound_map",
+      "to": "map:matmania_state.sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.sound_map",
+      "to": "map:matmania_state.sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.sound_map",
+      "to": "map:matmania_state.sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.sound_map",
+      "to": "map:matmania_state.sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.sound_map",
+      "to": "map:matmania_state.sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.sound_map",
+      "to": "map:matmania_state.sound_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:matmania_state.sound_map",
+      "to": "map:matmania_state.sound_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:matmania_state.matmania/scantimer/callback:scantimer:0",
+      "to": "handler:matmania_state.scanline",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:matmania_state.matmania/screen/callback:screen:0",
+      "to": "handler:matmania_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_matmania/e0",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_matmania/e1",
+      "to": "gfxlayout:tilelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_matmania/e2",
+      "to": "gfxlayout:matmania_spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:matmania_state.matmania/soundlatch/callback:soundlatch:0",
+      "to": "device:matmania_state.matmania/audiocpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "map:matmania_state.main_map/range9",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:matmania_state.main_map/range12",
+      "to": "handler:matmania_state.paletteram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:matmania_state.sound_map/range1",
+      "to": "handler:ay8910_device.data_address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay1"
+      }
+    },
+    {
+      "from": "map:matmania_state.sound_map/range2",
+      "to": "handler:ay8910_device.data_address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ay2"
+      }
+    },
+    {
+      "from": "map:matmania_state.sound_map/range3",
+      "to": "handler:dac_byte_interface.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "dac"
+      }
+    },
+    {
+      "from": "map:matmania_state.sound_map/range4",
+      "to": "handler:matmania_state.sound_nmi_enable_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:matmania_state.sound_map/range5",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "gfxlayout:charlayout",
+      "to": "file:src/mame/technos/matmania.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:tilelayout",
+      "to": "file:src/mame/technos/matmania.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:matmania_spritelayout",
+      "to": "file:src/mame/technos/matmania.cpp",
+      "rel": "DEFINED_IN"
+    }
+  ]
+}

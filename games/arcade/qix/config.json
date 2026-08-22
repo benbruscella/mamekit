@@ -1,0 +1,832 @@
+{
+  "game": "qix",
+  "title": "Qix (Rev 2) (Taito America, 1981)",
+  "family": "qix",
+  "dataPath": "games/arcade/qix",
+  "board": {
+    "family": "qix",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "mc6809e",
+        "clock": 1250000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 32768,
+            "end": 33791,
+            "kind": "ram",
+            "share": "sharedram"
+          },
+          {
+            "start": 33792,
+            "end": 34815,
+            "kind": "ram"
+          },
+          {
+            "start": 34816,
+            "end": 35839,
+            "kind": "nop",
+            "writeOnly": true
+          },
+          {
+            "start": 35840,
+            "end": 35840,
+            "kind": "handler",
+            "mirror": 1022,
+            "read": "qix_state.video_firq_r",
+            "write": "qix_state.video_firq_w"
+          },
+          {
+            "start": 35841,
+            "end": 35841,
+            "kind": "handler",
+            "mirror": 1022,
+            "read": "qix_state.data_firq_ack_r",
+            "write": "qix_state.data_firq_ack_w"
+          },
+          {
+            "start": 36864,
+            "end": 37887,
+            "kind": "handler",
+            "read": "sndpia0.read",
+            "write": "sndpia0.write"
+          },
+          {
+            "start": 37888,
+            "end": 38911,
+            "kind": "handler",
+            "read": "pia0.read",
+            "write": "qix_state.pia_w"
+          },
+          {
+            "start": 38912,
+            "end": 39935,
+            "kind": "handler",
+            "read": "pia1.read",
+            "write": "pia1.write"
+          },
+          {
+            "start": 39936,
+            "end": 40959,
+            "kind": "handler",
+            "read": "pia2.read",
+            "write": "pia2.write"
+          },
+          {
+            "start": 40960,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      },
+      {
+        "tag": "audiocpu",
+        "type": "m6802",
+        "clock": 3686400,
+        "region": "audiocpu",
+        "ranges": [
+          {
+            "start": 8192,
+            "end": 8195,
+            "kind": "handler",
+            "mirror": 24572,
+            "read": "sndpia2.read",
+            "write": "sndpia2.write"
+          },
+          {
+            "start": 16384,
+            "end": 16387,
+            "kind": "handler",
+            "mirror": 16380,
+            "read": "sndpia1.read",
+            "write": "sndpia1.write"
+          },
+          {
+            "start": 53248,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      },
+      {
+        "tag": "videocpu",
+        "type": "mc6809e",
+        "clock": 1250000,
+        "region": "videocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "handler",
+            "read": "qix_state.videoram_r",
+            "write": "qix_state.videoram_w"
+          },
+          {
+            "start": 32768,
+            "end": 33791,
+            "kind": "ram",
+            "share": "sharedram"
+          },
+          {
+            "start": 33792,
+            "end": 34815,
+            "kind": "ram",
+            "share": "nvram"
+          },
+          {
+            "start": 34816,
+            "end": 34816,
+            "kind": "handler",
+            "mirror": 1023,
+            "write": "qix_state.palettebank_w"
+          },
+          {
+            "start": 35840,
+            "end": 35840,
+            "kind": "handler",
+            "mirror": 1022,
+            "read": "qix_state.data_firq_r",
+            "write": "qix_state.data_firq_w"
+          },
+          {
+            "start": 35841,
+            "end": 35841,
+            "kind": "handler",
+            "mirror": 1022,
+            "read": "qix_state.video_firq_ack_r",
+            "write": "qix_state.video_firq_ack_w"
+          },
+          {
+            "start": 36864,
+            "end": 37887,
+            "kind": "ram",
+            "share": "palette",
+            "write": "qix_state.paletteram_w"
+          },
+          {
+            "start": 37888,
+            "end": 37888,
+            "kind": "handler",
+            "mirror": 1020,
+            "read": "qix_state.addresslatch_r",
+            "write": "qix_state.addresslatch_w"
+          },
+          {
+            "start": 37890,
+            "end": 37891,
+            "kind": "ram",
+            "mirror": 1020,
+            "share": "videoram_address",
+            "writeOnly": true
+          },
+          {
+            "start": 38912,
+            "end": 38912,
+            "kind": "ram",
+            "mirror": 1023,
+            "share": "scanline_latch",
+            "readOnly": true
+          },
+          {
+            "start": 39936,
+            "end": 39936,
+            "kind": "handler",
+            "mirror": 1022,
+            "write": "vid_u18.address_w"
+          },
+          {
+            "start": 39937,
+            "end": 39937,
+            "kind": "handler",
+            "mirror": 1022,
+            "read": "vid_u18.register_r",
+            "write": "vid_u18.register_w"
+          },
+          {
+            "start": 40960,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 32768,
+        "end": 33791,
+        "kind": "ram",
+        "share": "sharedram"
+      },
+      {
+        "start": 33792,
+        "end": 34815,
+        "kind": "ram"
+      },
+      {
+        "start": 34816,
+        "end": 35839,
+        "kind": "nop",
+        "writeOnly": true
+      },
+      {
+        "start": 35840,
+        "end": 35840,
+        "kind": "handler",
+        "mirror": 1022,
+        "read": "qix_state.video_firq_r",
+        "write": "qix_state.video_firq_w"
+      },
+      {
+        "start": 35841,
+        "end": 35841,
+        "kind": "handler",
+        "mirror": 1022,
+        "read": "qix_state.data_firq_ack_r",
+        "write": "qix_state.data_firq_ack_w"
+      },
+      {
+        "start": 36864,
+        "end": 37887,
+        "kind": "handler",
+        "read": "sndpia0.read",
+        "write": "sndpia0.write"
+      },
+      {
+        "start": 37888,
+        "end": 38911,
+        "kind": "handler",
+        "read": "pia0.read",
+        "write": "qix_state.pia_w"
+      },
+      {
+        "start": 38912,
+        "end": 39935,
+        "kind": "handler",
+        "read": "pia1.read",
+        "write": "pia1.write"
+      },
+      {
+        "start": 39936,
+        "end": 40959,
+        "kind": "handler",
+        "read": "pia2.read",
+        "write": "pia2.write"
+      },
+      {
+        "start": 40960,
+        "end": 65535,
+        "kind": "rom"
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 256,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 55.83847047261681,
+      "vtotal": 273,
+      "vbstart": 256,
+      "vbend": 0,
+      "updateMode": "partial",
+      "rotate": 270
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "bitmap"
+  },
+  "sound": {
+    "kind": "discrete",
+    "clock": 1250000,
+    "worklet": "../../hardware/discrete-dac/discrete-dac",
+    "discreteDac": {
+      "schemaVersion": 1,
+      "type": "DISCRETE_DAC_ATTENUATOR",
+      "dac": {
+        "node": 1,
+        "gain": 128,
+        "offset": -16384,
+        "initial": 128
+      },
+      "volumeNode": 2,
+      "inputNodes": {
+        "QIX_DAC_DATA": 1,
+        "QIX_VOL_DATA": 2
+      },
+      "channels": [
+        {
+          "shift": 4,
+          "mask": 15,
+          "resistances": [
+            22250,
+            10250,
+            5850,
+            3550
+          ],
+          "dividerResistance": 10000,
+          "filterResistance": 1500,
+          "filterCapacitance": 0.000001,
+          "outputGain": 1
+        },
+        {
+          "shift": 0,
+          "mask": 15,
+          "resistances": [
+            22250,
+            10250,
+            5850,
+            3550
+          ],
+          "dividerResistance": 10000,
+          "filterResistance": 1500,
+          "filterCapacitance": 0.000001,
+          "outputGain": 1
+        }
+      ],
+      "source": {
+        "file": "src/mame/taito/qix_a.cpp",
+        "line": 63,
+        "netlist": "qix_discrete"
+      }
+    },
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "qq12_rev2.u12",
+          "offset": 49152,
+          "size": 2048,
+          "crc": "aad35508",
+          "alt": [
+            {
+              "file": "u12_",
+              "crc": "5adc046d"
+            },
+            {
+              "file": "qu12",
+              "crc": "1c55b44d"
+            },
+            {
+              "file": "u12.rmb",
+              "crc": "484280fd"
+            }
+          ]
+        },
+        {
+          "file": "qq13_rev2.u13",
+          "offset": 51200,
+          "size": 2048,
+          "crc": "46c13504",
+          "alt": [
+            {
+              "file": "u13_",
+              "crc": "e63283c6"
+            },
+            {
+              "file": "qu13",
+              "crc": "20279e8c"
+            },
+            {
+              "file": "u13.rmb",
+              "crc": "3d089fcb"
+            }
+          ]
+        },
+        {
+          "file": "qq14_rev2.u14",
+          "offset": 53248,
+          "size": 2048,
+          "crc": "5115e896",
+          "alt": [
+            {
+              "file": "u14_",
+              "crc": "a2fd4c28"
+            },
+            {
+              "file": "qu14",
+              "crc": "bafe3ce3"
+            },
+            {
+              "file": "u14.rmb",
+              "crc": "362123a9"
+            }
+          ]
+        },
+        {
+          "file": "qq15_rev2.u15",
+          "offset": 55296,
+          "size": 2048,
+          "crc": "ccd52a1b",
+          "alt": [
+            {
+              "file": "u15_",
+              "crc": "0e5e17d6"
+            },
+            {
+              "file": "u15.rmb",
+              "crc": "60f3913d"
+            }
+          ]
+        },
+        {
+          "file": "qq16_rev2.u16",
+          "offset": 57344,
+          "size": 2048,
+          "crc": "cd1c36ee",
+          "alt": [
+            {
+              "file": "u16_",
+              "crc": "6acfa3b8"
+            },
+            {
+              "file": "qu16",
+              "crc": "db560753"
+            },
+            {
+              "file": "u16.rmb",
+              "crc": "cc139e34"
+            }
+          ]
+        },
+        {
+          "file": "qq17_rev2.u17",
+          "offset": 59392,
+          "size": 2048,
+          "crc": "1acb682d",
+          "alt": [
+            {
+              "file": "u17_",
+              "crc": "bc091f21"
+            },
+            {
+              "file": "qu17",
+              "crc": "8c7aeed8"
+            },
+            {
+              "file": "u17.rmb",
+              "crc": "cf31dc49"
+            }
+          ]
+        },
+        {
+          "file": "qq18_rev2.u18",
+          "offset": 61440,
+          "size": 2048,
+          "crc": "de77728b",
+          "alt": [
+            {
+              "file": "u18_",
+              "crc": "610b19ce"
+            },
+            {
+              "file": "qu18",
+              "crc": "353be980"
+            },
+            {
+              "file": "u18.rmb",
+              "crc": "1f91ed7a"
+            }
+          ]
+        },
+        {
+          "file": "qq19_rev2.u19",
+          "offset": 63488,
+          "size": 2048,
+          "crc": "c0994776",
+          "alt": [
+            {
+              "file": "u19_",
+              "crc": "11f957f4"
+            },
+            {
+              "file": "qu19",
+              "crc": "f46a69ca"
+            },
+            {
+              "file": "u19.rmb",
+              "crc": "68e8d5a6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "videocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "qq4_rev2.u4",
+          "offset": 51200,
+          "size": 2048,
+          "crc": "5b906a09",
+          "alt": [
+            {
+              "file": "u4_",
+              "crc": "e5ee74cd"
+            },
+            {
+              "file": "qu4",
+              "crc": "66a5c260"
+            },
+            {
+              "file": "u4.rmb",
+              "crc": "6cfb4185"
+            }
+          ]
+        },
+        {
+          "file": "qq5_rev2.u5",
+          "offset": 53248,
+          "size": 2048,
+          "crc": "254a3587",
+          "alt": [
+            {
+              "file": "u5_",
+              "crc": "4e939d87"
+            },
+            {
+              "file": "qu5",
+              "crc": "70160ea3"
+            },
+            {
+              "file": "u5.rmb",
+              "crc": "948f53f3"
+            }
+          ]
+        },
+        {
+          "file": "qq6_rev2.u6",
+          "offset": 55296,
+          "size": 2048,
+          "crc": "ace30389",
+          "alt": [
+            {
+              "file": "u6_",
+              "crc": "b42ca7d8"
+            },
+            {
+              "file": "u6.rmb",
+              "crc": "8630120e"
+            }
+          ]
+        },
+        {
+          "file": "qq7_rev2.u7",
+          "offset": 57344,
+          "size": 2048,
+          "crc": "8ebcfa7c",
+          "alt": [
+            {
+              "file": "u7_",
+              "crc": "d6733019"
+            },
+            {
+              "file": "u7.rmb",
+              "crc": "bad037c9"
+            }
+          ]
+        },
+        {
+          "file": "qq8_rev2.u8",
+          "offset": 59392,
+          "size": 2048,
+          "crc": "b8a3c8f9",
+          "alt": [
+            {
+              "file": "u8_",
+              "crc": "8cab8fb2"
+            },
+            {
+              "file": "qu8",
+              "crc": "66870dcc"
+            },
+            {
+              "file": "u8.rmb",
+              "crc": "3159bc00"
+            }
+          ]
+        },
+        {
+          "file": "qq9_rev2.u9",
+          "offset": 61440,
+          "size": 2048,
+          "crc": "26cbcd55",
+          "alt": [
+            {
+              "file": "u9_",
+              "crc": "98fbac76"
+            },
+            {
+              "file": "qu9",
+              "crc": "c99bf94d"
+            },
+            {
+              "file": "u9.rmb",
+              "crc": "e80e9b1d"
+            }
+          ]
+        },
+        {
+          "file": "qq10_rev2.u10",
+          "offset": 63488,
+          "size": 2048,
+          "crc": "568be942",
+          "alt": [
+            {
+              "file": "u10_",
+              "crc": "b40f084a"
+            },
+            {
+              "file": "qu10",
+              "crc": "88b45037"
+            },
+            {
+              "file": "u10.rmb",
+              "crc": "9a55d360"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "qq27.u27",
+          "offset": 63488,
+          "size": 2048,
+          "crc": "f3782bd0"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 64,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 128,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Test Advance",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 2,
+      "keys": [
+        "Digit8"
+      ],
+      "label": "Test Next line",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 4,
+      "keys": [
+        "Digit7"
+      ],
+      "label": "Test Slew Up",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 8,
+      "keys": [
+        "Digit0"
+      ],
+      "label": "Test Slew Down",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "COIN",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [],
+  "ports": [
+    {
+      "tag": "P1",
+      "init": 255
+    },
+    {
+      "tag": "COIN",
+      "init": 255
+    },
+    {
+      "tag": "SPARE",
+      "init": 255
+    },
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "P2",
+      "init": 255
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

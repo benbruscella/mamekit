@@ -1,0 +1,270 @@
+{
+  "type": "PALETTE",
+  "uses": [
+    {
+      "game": "1942",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "bankp",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "bublbobl",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "commando",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "crush",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "ddragon",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "defender",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "dkong",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "dkongjr",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "elevator",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "friskyt",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "frogger",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "ghouls",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "gunsmoke",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "jumpbug",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "junglek",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "chr_palette",
+        "spr_palette"
+      ]
+    },
+    {
+      "game": "mario",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "matmania",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "mpatrol",
+      "tags": [
+        "bg_palette",
+        "sp_palette",
+        "tx_palette"
+      ]
+    },
+    {
+      "game": "pacman",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "panic",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "pengo",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "phoenix",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "popeye",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "qix",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "rampage",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "sf2ce",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "travrusa",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "tutankhm",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "venture",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "zaxxon",
+      "tags": [
+        "palette"
+      ]
+    },
+    {
+      "game": "zigzagb",
+      "tags": [
+        "palette"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

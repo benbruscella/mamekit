@@ -1,0 +1,811 @@
+{
+  "game": "pengo",
+  "title": "Pengo (World, not encrypted, rev A) (Sega, 1982)",
+  "fullname": "Pengo (World, not encrypted, rev A)",
+  "year": "1982",
+  "company": "Sega",
+  "family": "pengo",
+  "driverFile": "src/mame/pacman/pengo.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3072000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 33791,
+          "kind": "ram",
+          "share": "videoram",
+          "write": "pengo_state.pacman_videoram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 33792,
+          "end": 34815,
+          "kind": "ram",
+          "share": "colorram",
+          "write": "pengo_state.pacman_colorram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 34816,
+          "end": 36847,
+          "kind": "ram",
+          "share": "mainram"
+        },
+        {
+          "start": 36848,
+          "end": 36863,
+          "kind": "ram",
+          "share": "spriteram"
+        },
+        {
+          "start": 36864,
+          "end": 36895,
+          "kind": "handler",
+          "write": "namco.pacman_sound_w"
+        },
+        {
+          "start": 36896,
+          "end": 36911,
+          "kind": "ram",
+          "share": "spriteram2",
+          "writeOnly": true
+        },
+        {
+          "start": 36864,
+          "end": 36927,
+          "kind": "handler",
+          "read": "port.DSW2"
+        },
+        {
+          "start": 36928,
+          "end": 36991,
+          "kind": "handler",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 36928,
+          "end": 36935,
+          "kind": "handler",
+          "write": "mainlatch.write_d0"
+        },
+        {
+          "start": 36976,
+          "end": 36976,
+          "kind": "handler",
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 36992,
+          "end": 37055,
+          "kind": "handler",
+          "read": "port.IN1"
+        },
+        {
+          "start": 37056,
+          "end": 37119,
+          "kind": "handler",
+          "read": "port.IN0"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "wsg",
+    "clock": 96000,
+    "waveRegion": "namco",
+    "masterGain": 0.5625,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 288,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 60.60606060606061,
+    "vtotal": 264,
+    "vbstart": 224,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "epr-5128.ic8",
+          "offset": 0,
+          "size": 4096,
+          "crc": "3dfeb20e",
+          "alt": [
+            {
+              "file": "ic8.2",
+              "crc": "e4924b7b"
+            },
+            {
+              "file": "0_oct6-82.ic8",
+              "crc": "43e45441"
+            },
+            {
+              "file": "epr-1738.ic8",
+              "crc": "68ba25ea"
+            },
+            {
+              "file": "epr-5120.ic8",
+              "crc": "f01afb60"
+            },
+            {
+              "file": "epr-1689c.ic8",
+              "crc": "f37066a8"
+            },
+            {
+              "file": "epr-1701a.ic8",
+              "crc": "6ad6b227"
+            },
+            {
+              "file": "008_pn01.bin",
+              "crc": "22f328df"
+            },
+            {
+              "file": "pg0_2732.bin",
+              "crc": "1a79436c"
+            }
+          ]
+        },
+        {
+          "file": "epr-5129.ic7",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "1db341bd",
+          "alt": [
+            {
+              "file": "ic7.2",
+              "crc": "72e7775d"
+            },
+            {
+              "file": "1_oct11-82.ic7",
+              "crc": "30a52a90"
+            },
+            {
+              "file": "epr-1739.ic7",
+              "crc": "41e7b5b3"
+            },
+            {
+              "file": "epr-5121.ic7",
+              "crc": "2eb38353"
+            },
+            {
+              "file": "epr-1690b.ic7",
+              "crc": "baf48143"
+            },
+            {
+              "file": "epr-1702.ic7",
+              "crc": "cea1e8d1"
+            },
+            {
+              "file": "007_pn05.bin",
+              "crc": "15bbc7d3"
+            }
+          ]
+        },
+        {
+          "file": "epr-5130.ic15",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "7c2842d5",
+          "alt": [
+            {
+              "file": "ic15.2",
+              "crc": "7410ef1e"
+            },
+            {
+              "file": "2_oct11-82.ic15",
+              "crc": "09783cc2"
+            },
+            {
+              "file": "epr-1740.ic15",
+              "crc": "27f05f59"
+            },
+            {
+              "file": "epr-5122.ic15",
+              "crc": "c33400d7"
+            },
+            {
+              "file": "epr-1691b.ic15",
+              "crc": "adf0eba0"
+            },
+            {
+              "file": "epr-1703.ic15",
+              "crc": "bc1cd590"
+            },
+            {
+              "file": "015_pn02.bin",
+              "crc": "de82b74a"
+            }
+          ]
+        },
+        {
+          "file": "epr-5131a.ic14",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "6e3c1f2f",
+          "alt": [
+            {
+              "file": "ic14.2",
+              "crc": "55b3f379"
+            },
+            {
+              "file": "3_oct6-82.ic14",
+              "crc": "452c80c9"
+            },
+            {
+              "file": "epr-1741.ic14",
+              "crc": "27d93ec1"
+            },
+            {
+              "file": "epr-5123.ic14",
+              "crc": "6a85c6a2"
+            },
+            {
+              "file": "epr-1692b.ic14",
+              "crc": "a086d60f"
+            },
+            {
+              "file": "epr-1704.ic14",
+              "crc": "160f3836"
+            }
+          ]
+        },
+        {
+          "file": "epr-5132.ic21",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "95f354ff",
+          "alt": [
+            {
+              "file": "epr-1693b.ic21",
+              "crc": "b72084ec"
+            },
+            {
+              "file": "epr-1705.ic21",
+              "crc": "7824e3ef"
+            },
+            {
+              "file": "pengo1.bin",
+              "crc": "1519d59b"
+            },
+            {
+              "file": "pg4_2732.bin",
+              "crc": "6210c06f"
+            }
+          ]
+        },
+        {
+          "file": "epr-5133.ic20",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "0fdb04b8",
+          "alt": [
+            {
+              "file": "ic20.2",
+              "crc": "770570cf"
+            },
+            {
+              "file": "epr-5125.ic20",
+              "crc": "1a42310f"
+            },
+            {
+              "file": "epr-1694b.ic20",
+              "crc": "94194a89"
+            },
+            {
+              "file": "epr-1706.ic20",
+              "crc": "377b9663"
+            },
+            {
+              "file": "pengo2.bin",
+              "crc": "1b90c32c"
+            },
+            {
+              "file": "pengomc_03.a3",
+              "crc": "0ac08ae4"
+            },
+            {
+              "file": "pg5_2732.bin",
+              "crc": "7c83d678"
+            }
+          ]
+        },
+        {
+          "file": "epr-5134.ic32",
+          "offset": 24576,
+          "size": 4096,
+          "crc": "e5920728",
+          "alt": [
+            {
+              "file": "epr-5118b.ic32",
+              "crc": "af7b12c4"
+            },
+            {
+              "file": "epr-1707.ic32",
+              "crc": "bfde44c1"
+            },
+            {
+              "file": "pengo3.bin",
+              "crc": "aff4fba1"
+            },
+            {
+              "file": "pengomc_04.a2",
+              "crc": "1717a7d9"
+            },
+            {
+              "file": "pg6_2732.bin",
+              "crc": "ae646d36"
+            }
+          ]
+        },
+        {
+          "file": "epr-5135a.ic31",
+          "offset": 28672,
+          "size": 4096,
+          "crc": "13de47ed",
+          "alt": [
+            {
+              "file": "ic31.2",
+              "crc": "669555c1"
+            },
+            {
+              "file": "7_oct11-82.ic31",
+              "crc": "1350ca0e"
+            },
+            {
+              "file": "epr-1745.ic31",
+              "crc": "507e18b9"
+            },
+            {
+              "file": "epr-5127.ic31",
+              "crc": "a7d3d1d6"
+            },
+            {
+              "file": "epr-5119c.ic31",
+              "crc": "933950fe"
+            },
+            {
+              "file": "epr-1708a.ic31",
+              "crc": "64e8c30d"
+            },
+            {
+              "file": "pengo4.bin",
+              "crc": "1628eb6d"
+            },
+            {
+              "file": "pengomc_05.a1",
+              "crc": "cb6eb19c"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "epr-1640.ic92",
+          "offset": 0,
+          "size": 4096,
+          "crc": "d7eec6cd",
+          "alt": [
+            {
+              "file": "5",
+              "crc": "1232437b"
+            },
+            {
+              "file": "092_pn09.bin",
+              "crc": "6afeba9d"
+            }
+          ],
+          "continueSegments": [
+            {
+              "offset": 8192,
+              "size": 4096,
+              "fileOffset": 4096
+            }
+          ]
+        },
+        {
+          "file": "epr-1695.ic105",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "5bfd26e9",
+          "continueSegments": [
+            {
+              "offset": 12288,
+              "size": 4096,
+              "fileOffset": 4096
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1056,
+      "loads": [
+        {
+          "file": "pr1633.ic78",
+          "offset": 0,
+          "size": 32,
+          "crc": "3a5844ec"
+        },
+        {
+          "file": "pr1634.ic88",
+          "offset": 32,
+          "size": 1024,
+          "crc": "766b139b"
+        }
+      ]
+    },
+    {
+      "region": "namco",
+      "size": 512,
+      "loads": [
+        {
+          "file": "pr1635.ic51",
+          "offset": 0,
+          "size": 256,
+          "crc": "c29dea27",
+          "alt": [
+            {
+              "file": "82s126.1m",
+              "crc": "a9cc86bf"
+            },
+            {
+              "file": "82s129.1m",
+              "crc": "3cb61034"
+            }
+          ]
+        },
+        {
+          "file": "pr1636.ic70",
+          "offset": 256,
+          "size": 256,
+          "crc": "77245b66",
+          "alt": [
+            {
+              "file": "82s129.3m",
+              "crc": "822fe878"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 128,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN1",
+      "mask": 16,
+      "value": 16,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW1",
+      "mask": 1,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 2,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW1",
+      "mask": 24,
+      "value": 16,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 32,
+      "value": 32,
+      "name": "Rack Test (Cheat)"
+    },
+    {
+      "port": "DSW1",
+      "mask": 192,
+      "value": 128,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW2",
+      "mask": 15,
+      "value": 12,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW2",
+      "mask": 240,
+      "value": 192,
+      "name": "Coin B"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-04-29",
+    "commits": 151,
+    "contributors": 25,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Ivan Vangelista",
+      "Vas Crabb",
+      "David Haywood"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 47,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 27,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 14,
+        "firstCommit": "2017-06-09",
+        "lastCommit": "2021-10-12"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 14,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 7,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2022-12-29"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 7,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2022-07-01"
+      },
+      {
+        "name": "AJR",
+        "commits": 4,
+        "firstCommit": "2017-03-03",
+        "lastCommit": "2020-12-14"
+      },
+      {
+        "name": "hap",
+        "commits": 4,
+        "firstCommit": "2015-06-04",
+        "lastCommit": "2026-04-29"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 4,
+        "firstCommit": "2011-03-26",
+        "lastCommit": "2012-03-27"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 3,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2023-05-31"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "braintro",
+        "commits": 2,
+        "firstCommit": "2020-05-21",
+        "lastCommit": "2020-05-24"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-08-11",
+        "lastCommit": "2018-12-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2010-05-21",
+        "lastCommit": "2013-07-22"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-11-29",
+        "lastCommit": "2011-11-29"
+      },
+      {
+        "name": "cam900",
+        "commits": 1,
+        "firstCommit": "2026-04-03",
+        "lastCommit": "2026-04-03"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-10",
+        "lastCommit": "2008-08-10"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 1,
+        "firstCommit": "2014-04-11",
+        "lastCommit": "2014-04-11"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "Nicola Salmoria",
+        "commits": 1,
+        "firstCommit": "2008-08-11",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "smf-",
+        "commits": 1,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2013-01-11"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 1,
+        "firstCommit": "2008-02-29",
+        "lastCommit": "2008-02-29"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nPengo (c) 1982 Sega.\n\nPengo is an action game set in an overhead maze constructed of ice blocks. The player controls Pengo, a red penguin that lives in the Antarctic and fights the blob-like Sno-Bees. The objective of the game is for Pengo to survive a series of rounds by eliminating all Sno-Bees, while amassing bonuses by bringing together the three diamonds dispersed in the maze.\n\nThe Maze itself is an interactive environment. Each section of wall is a block of ice that can be pushed onto the Sno-bees to destroy them. Pressing the button while pushing the joystick will cause Pengo to push the ice block in the direction he is facing. The block will slide until it hits either a wall or another ice block, crushing any Sno-Bees in its path. Crushing more than one Sno-Bee at once will increase the number of points awarded.\n\nAs the player crushes the Sno-Bees, new ones hatch from eggs located within ice blocks. Each time a new one hatches, blocks containing eggs that have still not hatched yet are briefly identified by flashing the color of that round's Sno-Bees. A certain number of eggs will hatch immediately at the start of each round - this is also the maximum number of active Sno-Bees at any one time in the round. Eggs can be eliminated by crushing the ice blocks that contain them. If Pengo pushes a side wall at the edge of the screen, the water vibrates, any adjacent Sno-Bees will be briefly stunned and are eliminated if Pengo walks over them in this state. \n\nThe Sno-bees themselves will destroy the ice blocks as they move around each level, so speed is of the essence. Some of the blocks are 'Diamond blocks' which cannot be destroyed but can be re-used by Pengo. \n\nAfter 60 seconds elapse in a round without a player or enemy death, the game enters into sudden death mode; the music tempo and movement of the Sno-Bees accelerates. If a single Sno-Bee remains in the round, a jingle plays and the Sno-Bee accelerates in an attempt to reach a corner, where it safely fades away.\n\nThere are a total of 16 rounds in the game. After round 16 is cleared, the game loops back to round 1.\n\n- TECHNICAL -\n\nGame ID: 834-0386\n\nMain CPU: Zilog Z80 (@ 3.02 Mhz)\nSound Chips: Namco 3-channel WSG (@ 96 Khz)\n\nPlayers: 2\nControl: 4-way joystick\nButtons: 1 (PUSH)\n\nPengo is known to have two different marquees. One marquee depicts Pengo standing next to the game's logo, with one leg up on an ice block, and one hand pushing against the O in the logo; the Sega logo appears in small print directly underneath the O. The other marquee depicts Pengo pushing an ice block, with the Sega logo appearing on the lower right corner of the marquee in a larger print.\n\n- TRIVIA -\n\nPengo was released in September 1982 in Japan, in October 1982 in North America, and in December 1982 in Europe.\n\nPengo makes a cameo appearance in \"Up'n Down\". If a player manages to pass the first 4 rounds in under a minute each, he will appear in the water of round 5 riding a surfboard.\n\nThe color for the Sno-Bees is different in each round and follows an eight-round pattern: green, red, yellow, pink, orange, yellow, light blue, yellow.\n\nDemonstration gameplay in the attract mode always plays Round 5, with the orange Sno-Bees.\n\nThe song that is played during the brief intermissions that appear after every even-numbered round is cleared is \"Ode to Joy\" from the fourth movement of Beethoven's Ninth Symphony.\n\nRodney Day holds the official record for this game with 1110370 points.\n\nA bootleg of this game is known as \"Penta\".\n\n- UPDATES -\n\nIn Japanese versions:\n- The maze is visibly drawn at the start of each round.\n- The default top 5 high scores are all 20,000, and the default names are AAA, KKK, III, RRR, and AAA. \n- The in-game theme music is an 8-bit interpretation of the 1969 Gershon Kingsly composition known as \"Popcorn\", made most famous in 1972 by the instrumental band Hot Butter.\n- The total number of enemies in each round is as follows: 6 in rounds 1 and 2, 8 in rounds 3-7, 10 in rounds 8-11, and 12 in rounds 12-16.\n\nIn export versions:\n- The maze is loaded instantly at the start of each round\n- The default top 5 high scores are all 0, and the default names are MMM, MMM, III, ZZZ, and UUU.\n- Snappy original music is used as the in-game theme instead of the \"Popcorn\" song.\n- The total number of enemies in each round is as follows: 6 in round 1, 8 in rounds 2-5, 9 in rounds 6 and 7, 10 in rounds 8 and 9, 11 in rounds 10 and 11, and 12 in rounds 12-16.\n\nIn all Japanese versions except the non-encrypted one, rounds are referred to in-game as \"Acts\".\n\nLater versions correct a Test Menu Bug that is present in version Japan, 315-5010 type, Rev C.\n\nIn Export versions except version World, 315-5007 type, rev A (formerly set 4 in mame):\n- The curtain speed is fastest.\n- The demo mode is different.\n- Delay before player can move at the start of a stage changed from 64 frames to 16 frames.\n- Delay before the next level loads after an intermission changed from 64 frames to 16 frames.\n- Delay before the sky rapidly changes colors in the intro changed from 64 frames to 48 frames.\n\nVersion World, 315-5007 type rev A introduced a number of changes to make the game flow faster than in other sets:\n- Number of frames before the level completion time is shown changed from 32 to 8.\n- Number of frames after a time bonus is calculated changed from 128 to 64.\n- Number of frames before the screen wipes after the player has died changed from 128 to a single frame.\n\n- SCORING -\n\nSmashing an ice block : 30 points. \nSmashing an ice block with a Sno-Bee inside : 500 points. \nWalking over a stunned Snow-Bee : 100 points. \nKilling a Snow-Bee with an ice block : 400 points. \nKilling two Snow-Bees at once with one ice block : 1600 points. \nKilling three Snow-Bees at once with one ice block : 3200 points. \nKilling four Snow-Bees at once with one ice block : 6400 points. \nLining up the three diamond blocks with one or zero of them touching a wall : 10000 points.\nLining up the three diamond blocks with two or more touching a wall : 5000 points.\nCompleting screen in under 20 seconds : 5000 bonus points. \nCompleting screen in 20-29 seconds : 2000 bonus points. \nCompleting screen in 30-39 seconds : 1000 bonus points. \nCompleting screen in 40-49 seconds : 500 bonus points. \nCompleting screen in 50-59 seconds : 10 bonus points. \nCompleting screen in 60 seconds and over : no bonus points.\n\n- TIPS AND TRICKS -\n\n* The last remaining Sno-Bee on the screen will try to escape. If you do not kill it before it reaches one of the corners it will disappear.\n\n* The indicator at the top of the screen tells you how many Sno-Bee eggs are still unhatched and hidden in ice blocks.\n\n* A certain number of Sno-Bee eggs will hatch immediately at the start of each round. This is also the maximum number of active Sno-Bees you can have at any one time during the round. In rounds 1-4, this number is three; in rounds 5-16, it is four.\n\n* Every time a Sno-Bee egg hatches, some ice blocks will flash, revealing the locations of Sno-Bee eggs that have not hatched yet. You can destroy the ice block to eliminate that Sno-Bee egg before it even hatches.\n\n* When you kill the last Sno-Bee you have a couple of seconds to crush up to four ice blocks for an extra 30 points each.\n\n* Concentrate your efforts on lining up the diamond blocks. The 10000 points are the biggest single score in the game, and stunning all the Sno-Bees is also a valuable side effect. You can then kill them easily by pushing ice blocks onto them rather than running over them (400 points as opposed to 100).\n\n* Lining up the three diamond have another side effect: the remaining ice blocks with a Sno-Bee inside will be flash to the end of screen.\n\n* Try to kill more than one Sno-Bee at a time, as two or more together are worth more points than killing them individually.\n\n* Easter Egg:\nIn the attract mode, push the two joys to up, press the two action buttons and one button of start game, and it will show the credits of the game. After a few seconds, the game will reset. The wait can be stopped pushing the 1P Start button.\n\n- STAFF -\n\nDeveloped by Coreland Technology.\n\nDirected by: Nobuo Kodera\nProgramed by: Akira Nakakuma\nDesigned by: Shinji Egi\nInvolved in the project: Tsutomu Iwane\n\n- PORTS -\n\n* CONSOLES:\n[US] Atari 5200 (1983) \"Pengo [Model CX5236]\"\n[US] Atari 2600 (1984) \"Pengo [Model CX2690]\"\nAtari XEGS\n[JP] Sega Game Gear (oct.6, 1990) [Model G-3202] \n[EU] Sega Game Gear (1991) \n[JP] Sega Mega Drive (dec.22, 1995) \"Pepenga Pengo [Model G-4133]\"\n[JP] Sega Saturn (feb.28, 1997) \"Sega Memorial Selection Vol.1 [Model GS-9135]\"\n[JP] Nintendo Wii [Virtual Console] (aug.4, 2009) : Mega Drive version.\n\n* COMPUTERS:\n[US] Atari 800 (1983)\n[EU] BBC Micro (1983) \n[US] Commodore C64 [EU] (1983)\n[EU] Commodore C64 (1983)\n[US] Commodore C64 (1983) \"Petch\"\n[EU] Commodore C64 (1983) \"Petch\"\n[US] Tandy Color Computer (1983) \"Pengon\"\n[EU] Amstrad CPC (1986) \"Troglo\"\nAtari 800 \"Pengon\"\nCommodore 64 \"Pengon\"\nDragon 32 \"Pengon\"\nVic-20 \"Pengon\" : Unreleased, the only mention online is that the developer says he made it.\n[JP] PC [MS Windows 98] (1998) \"Memorial Selection [Model HCJ-0147]\"\n\n* OTHERS:\n[US] LCD handheld game (1982) by Bandai.\n[US] VFD portable game (1983) by Bandai.\n[US] Blackberry (aug.28, 2009) \"Pengo Mobile [Model 3107]\"\n[US] Mobile phones (2003) \n[US] Apple iPhone/iPod (feb.2, 2011) [Model 416880921]\n\n- SERIES -\n\n1. Pengo (1982)\n2. Ge-sen Love Plus Pengo! (2012)\n3. Finger Pengo (2011, iPhone/iPod)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1944/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

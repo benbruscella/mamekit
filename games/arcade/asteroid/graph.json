@@ -1,0 +1,2802 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/atari/asteroid.cpp",
+    "generatedAt": "2026-08-22T05:52:09.813Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Brad Oliver, Bernd Wiebelt, Allard van der Bas"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/atari/asteroid.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/atari/asteroid.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:asteroid.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "asteroid.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6502/m6502.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6502/m6502.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/74259.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/74259.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/output_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/output_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/rescap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/rescap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/discrete.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/discrete.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/pokey.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/pokey.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/vector.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/vector.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:astdelux.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "astdelux.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/atari/asteroid_m.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/atari/asteroid_m.cpp"
+      }
+    },
+    {
+      "id": "file:src/mame/atari/asteroid_a.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/atari/asteroid_a.cpp"
+      }
+    },
+    {
+      "id": "game:asteroid",
+      "label": "Game",
+      "props": {
+        "name": "asteroid",
+        "year": "1979",
+        "company": "Atari",
+        "fullname": "Asteroids (rev 4)",
+        "monitor": "ROT0",
+        "cls": "asteroid_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 1334,
+        "sourceColumn": 1,
+        "sourceEndLine": 1334
+      }
+    },
+    {
+      "id": "romset:asteroid",
+      "label": "RomSet",
+      "props": {
+        "name": "asteroid",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 948,
+        "sourceColumn": 1,
+        "sourceEndLine": 948
+      }
+    },
+    {
+      "id": "region:asteroid/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 32768,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 949,
+        "sourceColumn": 2,
+        "sourceEndLine": 949
+      }
+    },
+    {
+      "id": "rom:asteroid/maincpu/035145-04e.ef2",
+      "label": "Rom",
+      "props": {
+        "file": "035145-04e.ef2",
+        "offset": 26624,
+        "size": 2048,
+        "crc": "b503eaf7",
+        "sha1": "5369dcfe01c0b9e48b15a96a0de8d23ee8ef9145",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 950,
+        "sourceColumn": 2,
+        "sourceEndLine": 950
+      }
+    },
+    {
+      "id": "rom:asteroid/maincpu/035144-04e.h2",
+      "label": "Rom",
+      "props": {
+        "file": "035144-04e.h2",
+        "offset": 28672,
+        "size": 2048,
+        "crc": "25233192",
+        "sha1": "51b2865fa897cdaa84ac6500c4b4833a80827019",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 951,
+        "sourceColumn": 2,
+        "sourceEndLine": 951
+      }
+    },
+    {
+      "id": "rom:asteroid/maincpu/035143-02.j2",
+      "label": "Rom",
+      "props": {
+        "file": "035143-02.j2",
+        "offset": 30720,
+        "size": 2048,
+        "crc": "312caa02",
+        "sha1": "1ce2eac1ab90b972e3f1fc3d250908f26328d6cb",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 952,
+        "sourceColumn": 2,
+        "sourceEndLine": 952
+      }
+    },
+    {
+      "id": "rom:asteroid/maincpu/035127-02.np3",
+      "label": "Rom",
+      "props": {
+        "file": "035127-02.np3",
+        "offset": 20480,
+        "size": 2048,
+        "crc": "8b71fd9e",
+        "sha1": "8cd5005e531eafa361d6b7e9eed159d164776c70",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 954,
+        "sourceColumn": 2,
+        "sourceEndLine": 954
+      }
+    },
+    {
+      "id": "region:asteroid/dvg:prom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "dvg:prom",
+        "size": 256,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 957,
+        "sourceColumn": 2,
+        "sourceEndLine": 957
+      }
+    },
+    {
+      "id": "rom:asteroid/dvg:prom/034602-01.c8",
+      "label": "Rom",
+      "props": {
+        "file": "034602-01.c8",
+        "offset": 0,
+        "size": 256,
+        "crc": "97953db8",
+        "sha1": "8cbded64d1dd35b18c4d5cece00f77e7b2cab2ad",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 958,
+        "sourceColumn": 2,
+        "sourceEndLine": 958
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "asteroid_state",
+        "name": "asteroid_map",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 419,
+        "sourceColumn": 1,
+        "sourceEndLine": 438,
+        "globalMask": 32767
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 511,
+        "raw": "map(0x0000, 0x01ff).ram()",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 422,
+        "sourceColumn": 2,
+        "sourceEndLine": 422,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 512,
+        "end": 767,
+        "raw": "map(0x0200, 0x02ff).bankrw(\"ram1\")",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 423,
+        "sourceColumn": 2,
+        "sourceEndLine": 423,
+        "bankRead": "ram1",
+        "bankWrite": "ram1"
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 768,
+        "end": 1023,
+        "raw": "map(0x0300, 0x03ff).bankrw(\"ram2\")",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 424,
+        "sourceColumn": 2,
+        "sourceEndLine": 424,
+        "bankRead": "ram2",
+        "bankWrite": "ram2"
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 8199,
+        "raw": "map(0x2000, 0x2007).r(FUNC(asteroid_state::asteroid_IN0_r)).nopw()",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 425,
+        "sourceColumn": 2,
+        "sourceEndLine": 425,
+        "nopw": true
+      }
+    },
+    {
+      "id": "handler:asteroid_state.asteroid_IN0_r",
+      "label": "Handler",
+      "props": {
+        "method": "asteroid_IN0_r",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 45,
+        "sourceColumn": 1,
+        "sourceEndLine": 56,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "int res = ioport(\"IN0\")->read();\n\tint bitmask = (1 << offset);\n\n\tif (res & bitmask)\n\t\tres = 0x80;\n\telse\n\t\tres = ~0x80;\n\n\treturn res;"
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 9216,
+        "end": 9223,
+        "raw": "map(0x2400, 0x2407).r(FUNC(asteroid_state::asteroid_IN1_r))",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 426,
+        "sourceColumn": 2,
+        "sourceEndLine": 426
+      }
+    },
+    {
+      "id": "handler:asteroid_state.asteroid_IN1_r",
+      "label": "Handler",
+      "props": {
+        "method": "asteroid_IN1_r",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 77,
+        "sourceColumn": 1,
+        "sourceEndLine": 88,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "int res = ioport(\"IN1\")->read();\n\tint bitmask = (1 << (offset & 0x7));\n\n\tif (res & bitmask)\n\t\tres = 0x80;\n\telse\n\t\tres = ~0x80;\n\n\treturn res;"
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 10240,
+        "end": 10243,
+        "raw": "map(0x2800, 0x2803).r(FUNC(asteroid_state::asteroid_DSW1_r)).nopw()",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 427,
+        "sourceColumn": 2,
+        "sourceEndLine": 427,
+        "nopw": true
+      }
+    },
+    {
+      "id": "handler:asteroid_state.asteroid_DSW1_r",
+      "label": "Handler",
+      "props": {
+        "method": "asteroid_DSW1_r",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 91,
+        "sourceColumn": 1,
+        "sourceEndLine": 111,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "// 765432--  not used\n\t// ------1-  ls253 dsw selector 2y\n\t// -------0  ls253 dsw selector 1y\n\n\tuint8_t val = m_dsw1->read();\n\n\tm_dsw_sel->i3a_w(BIT(val, 0));\n\tm_dsw_sel->i3b_w(BIT(val, 1));\n\tm_dsw_sel->i2a_w(BIT(val, 2));\n\tm_dsw_sel->i2b_w(BIT(val, 3));\n\tm_dsw_sel->i1a_w(BIT(val, 4));\n\tm_dsw_sel->i1b_w(BIT(val, 5));\n\tm_dsw_sel->i0a_w(BIT(val, 6));\n\tm_dsw_sel->i0b_w(BIT(val, 7));\n\n\tm_dsw_sel->s_w(offset & 0x03);\n\n\treturn 0xfc | (m_dsw_sel->zb_r() << 1) | m_dsw_sel->za_r();",
+        "inputMembers": [
+          "m_dsw1=DSW1"
+        ]
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 12288,
+        "raw": "map(0x3000, 0x3000).w(m_dvg, FUNC(dvg_device::go_w))",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 428,
+        "sourceColumn": 2,
+        "sourceEndLine": 428
+      }
+    },
+    {
+      "id": "handler:dvg_device.go_w",
+      "label": "Handler",
+      "props": {
+        "method": "go_w",
+        "ownerClass": "dvg_device",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 473,
+        "sourceColumn": 2,
+        "sourceEndLine": 473
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 12800,
+        "end": 12800,
+        "raw": "map(0x3200, 0x3200).w(\"outlatch\", FUNC(output_latch_device::write))",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 429,
+        "sourceColumn": 2,
+        "sourceEndLine": 429
+      }
+    },
+    {
+      "id": "handler:output_latch_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "output_latch_device",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 474,
+        "sourceColumn": 2,
+        "sourceEndLine": 474
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 13312,
+        "end": 13312,
+        "raw": "map(0x3400, 0x3400).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 430,
+        "sourceColumn": 2,
+        "sourceEndLine": 430
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 475,
+        "sourceColumn": 2,
+        "sourceEndLine": 475
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 13824,
+        "end": 13824,
+        "raw": "map(0x3600, 0x3600).w(FUNC(asteroid_state::asteroid_explode_w))",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 431,
+        "sourceColumn": 2,
+        "sourceEndLine": 431
+      }
+    },
+    {
+      "id": "handler:asteroid_state.asteroid_explode_w",
+      "label": "Handler",
+      "props": {
+        "method": "asteroid_explode_w",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 284,
+        "sourceColumn": 1,
+        "sourceEndLine": 304,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_discrete->write(ASTEROID_EXPLODE_DATA,(data&0x3c)>>2);                // Volume\n\t/* We will modify the pitch data to send the divider value. */\n\tswitch ((data&0xc0))\n\t{\n\t\tcase 0x00:\n\t\t\tdata = 12;\n\t\t\tbreak;\n\t\tcase 0x40:\n\t\t\tdata = 6;\n\t\t\tbreak;\n\t\tcase 0x80:\n\t\t\tdata = 3;\n\t\t\tbreak;\n\t\tcase 0xc0:\n\t\t\tdata = 5;\n\t\t\tbreak;\n\t}\n\tm_discrete->write(ASTEROID_EXPLODE_PITCH, data);"
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 14848,
+        "end": 14848,
+        "raw": "map(0x3a00, 0x3a00).w(FUNC(asteroid_state::asteroid_thump_w))",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 432,
+        "sourceColumn": 2,
+        "sourceEndLine": 432
+      }
+    },
+    {
+      "id": "handler:asteroid_state.asteroid_thump_w",
+      "label": "Handler",
+      "props": {
+        "method": "asteroid_thump_w",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 306,
+        "sourceColumn": 1,
+        "sourceEndLine": 310,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_discrete->write(ASTEROID_THUMP_EN,   data & 0x10);\n\tm_discrete->write(ASTEROID_THUMP_DATA, data & 0x0f);"
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 15360,
+        "end": 15367,
+        "raw": "map(0x3c00, 0x3c07).w(\"audiolatch\", FUNC(ls259_device::write_d7))",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 433,
+        "sourceColumn": 2,
+        "sourceEndLine": 433
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d7",
+      "label": "Handler",
+      "props": {
+        "method": "write_d7",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 457,
+        "sourceColumn": 2,
+        "sourceEndLine": 457
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 15872,
+        "end": 15872,
+        "raw": "map(0x3e00, 0x3e00).w(FUNC(asteroid_state::asteroid_noise_reset_w))",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 434,
+        "sourceColumn": 2,
+        "sourceEndLine": 434
+      }
+    },
+    {
+      "id": "handler:asteroid_state.asteroid_noise_reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "asteroid_noise_reset_w",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 312,
+        "sourceColumn": 1,
+        "sourceEndLine": 315,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_discrete->write(ASTEROID_NOISE_RESET, 0);"
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 18431,
+        "raw": "map(0x4000, 0x47ff).ram()",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 435,
+        "sourceColumn": 2,
+        "sourceEndLine": 435,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 20480,
+        "end": 22527,
+        "raw": "map(0x5000, 0x57ff).rom()",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 436,
+        "sourceColumn": 2,
+        "sourceEndLine": 436,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:asteroid_state.asteroid_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 26624,
+        "end": 32767,
+        "raw": "map(0x6800, 0x7fff).rom()",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 437,
+        "sourceColumn": 2,
+        "sourceEndLine": 437,
+        "rom": true
+      }
+    },
+    {
+      "id": "handler:asteroid_state.earom_control_w",
+      "label": "Handler",
+      "props": {
+        "method": "earom_control_w",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 404,
+        "sourceColumn": 1,
+        "sourceEndLine": 409,
+        "sourceConstants": [
+          "CK=1",
+          "C1=2",
+          "C2=4",
+          "CS1=8",
+          "CS2=16"
+        ],
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// CK = DB0, C1 = /DB2, C2 = DB1, CS1 = DB3, /CS2 = GND\n\tm_earom->set_control(BIT(data, 3), 1, !BIT(data, 2), BIT(data, 1));\n\tm_earom->set_clk(BIT(data, 0));"
+      }
+    },
+    {
+      "id": "handler:asteroid_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 128,
+        "sourceColumn": 1,
+        "sourceEndLine": 140,
+        "sourceParameters": "",
+        "sourceBody": "m_dvg->reset_w();\n\tif (m_earom.found())\n\t\tearom_control_w(0);\n\n\t/* reset RAM banks if present */\n\tif (m_ram1.target() != nullptr)\n\t{\n\t\tm_ram1->set_entry(0);\n\t\tm_ram2->set_entry(0);\n\t}"
+      }
+    },
+    {
+      "id": "machine:asteroid_state.asteroid_base",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "asteroid_state",
+        "name": "asteroid_base",
+        "calls": [],
+        "resetHandlers": [
+          "asteroid_state.machine_reset"
+        ],
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 834,
+        "sourceColumn": 1,
+        "sourceEndLine": 866
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid_base/ram1/0",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram1",
+        "member": "m_ram1",
+        "startEntry": 1,
+        "entries": 1,
+        "entryMember": "m_sram2",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram1->configure_entry(1, m_sram2)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid_base/ram2/1",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram2",
+        "member": "m_ram2",
+        "startEntry": 1,
+        "entries": 1,
+        "entryMember": "m_sram1",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram2->configure_entry(1, m_sram1)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid_base/ram1/2",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram1",
+        "member": "m_ram1",
+        "startEntry": 0,
+        "entries": 1,
+        "entryMember": "m_sram1",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram1->configure_entry(0, m_sram1)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid_base/ram2/3",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram2",
+        "member": "m_ram2",
+        "startEntry": 0,
+        "entries": 1,
+        "entryMember": "m_sram2",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram2->configure_entry(0, m_sram2)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "M6502",
+        "tag": "maincpu",
+        "clock": 1512000,
+        "config": [
+          "M6502(config, m_maincpu, MASTER_CLOCK/8)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &asteroid_state::asteroid_map)",
+          "m_maincpu->set_periodic_int(FUNC(asteroid_state::asteroid_interrupt), attotime::from_hz(CLOCK_3KHZ/12))"
+        ],
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 837,
+        "sourceColumn": 2,
+        "sourceEndLine": 837
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_periodic_int",
+        "operation": "set_periodic_int",
+        "raw": "m_maincpu->set_periodic_int(FUNC(asteroid_state::asteroid_interrupt), attotime::from_hz(CLOCK_3KHZ/12))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 839,
+        "sourceColumn": 2,
+        "sourceEndLine": 839,
+        "periodHz": 246.09375,
+        "periodExpr": "attotime::from_hz(CLOCK_3KHZ/12)",
+        "targetClass": "asteroid_state",
+        "targetMethod": "asteroid_interrupt"
+      }
+    },
+    {
+      "id": "handler:asteroid_state.asteroid_interrupt",
+      "label": "Handler",
+      "props": {
+        "method": "asteroid_interrupt",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 16,
+        "sourceColumn": 1,
+        "sourceEndLine": 21,
+        "sourceParameters": "device_t &device",
+        "sourceBody": "/* Turn off interrupts if self-test is enabled */\n\tif (!(ioport(\"IN0\")->read() & 0x80))\n\t\tdevice.execute().pulse_input_line(INPUT_LINE_NMI, attotime::zero);"
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\").set_time(attotime::from_hz(CLOCK_3KHZ / 256))"
+        ],
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 841,
+        "sourceColumn": 2,
+        "sourceEndLine": 841
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/dsw_sel",
+      "label": "Device",
+      "props": {
+        "type": "TTL153",
+        "tag": "dsw_sel",
+        "clock": null,
+        "config": [
+          "TTL153(config, m_dsw_sel)"
+        ],
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 843,
+        "sourceColumn": 2,
+        "sourceEndLine": 843
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/outlatch",
+      "label": "Device",
+      "props": {
+        "type": "OUTPUT_LATCH",
+        "tag": "outlatch",
+        "clock": null,
+        "config": [
+          "output_latch_device &outlatch(OUTPUT_LATCH(config, \"outlatch\"))",
+          "outlatch.bit_handler<0>().set_output(\"led1\").invert()",
+          "outlatch.bit_handler<1>().set_output(\"led0\").invert()",
+          "outlatch.bit_handler<2>().set_membank(\"ram1\")",
+          "outlatch.bit_handler<2>().append_membank(\"ram2\")",
+          "outlatch.bit_handler<2>().append(FUNC(asteroid_state::cocktail_inv_w))",
+          "outlatch.bit_handler<3>().set(FUNC(asteroid_state::coin_counter_left_w))",
+          "outlatch.bit_handler<4>().set(FUNC(asteroid_state::coin_counter_center_w))",
+          "outlatch.bit_handler<5>().set(FUNC(asteroid_state::coin_counter_right_w))"
+        ],
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 845,
+        "sourceColumn": 2,
+        "sourceEndLine": 845
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "bit_handler",
+        "operation": "append",
+        "raw": "outlatch.bit_handler<2>().append(FUNC(asteroid_state::cocktail_inv_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 850,
+        "sourceColumn": 2,
+        "sourceEndLine": 850,
+        "slot": "2",
+        "targetClass": "asteroid_state",
+        "targetMethod": "cocktail_inv_w"
+      }
+    },
+    {
+      "id": "handler:asteroid_state.cocktail_inv_w",
+      "label": "Handler",
+      "props": {
+        "method": "cocktail_inv_w",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 37,
+        "sourceColumn": 1,
+        "sourceEndLine": 43,
+        "sourceParameters": "int state",
+        "sourceBody": "// Inverter circuit is only hooked up for Cocktail Asteroids\n\tint flip = state && m_cocktail->read();\n\tm_dvg->set_flip_x(flip);\n\tm_dvg->set_flip_y(flip);",
+        "inputMembers": [
+          "m_cocktail=COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "bit_handler",
+        "operation": "set",
+        "raw": "outlatch.bit_handler<3>().set(FUNC(asteroid_state::coin_counter_left_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 851,
+        "sourceColumn": 2,
+        "sourceEndLine": 851,
+        "slot": "3",
+        "targetClass": "asteroid_state",
+        "targetMethod": "coin_counter_left_w"
+      }
+    },
+    {
+      "id": "handler:asteroid_state.coin_counter_left_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_left_w",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 370,
+        "sourceColumn": 1,
+        "sourceEndLine": 373,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(0, state);"
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "bit_handler",
+        "operation": "set",
+        "raw": "outlatch.bit_handler<4>().set(FUNC(asteroid_state::coin_counter_center_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 852,
+        "sourceColumn": 2,
+        "sourceEndLine": 852,
+        "slot": "4",
+        "targetClass": "asteroid_state",
+        "targetMethod": "coin_counter_center_w"
+      }
+    },
+    {
+      "id": "handler:asteroid_state.coin_counter_center_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_center_w",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 375,
+        "sourceColumn": 1,
+        "sourceEndLine": 378,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(1, state);"
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:3",
+      "label": "Callback",
+      "props": {
+        "signal": "bit_handler",
+        "operation": "set",
+        "raw": "outlatch.bit_handler<5>().set(FUNC(asteroid_state::coin_counter_right_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 853,
+        "sourceColumn": 2,
+        "sourceEndLine": 853,
+        "slot": "5",
+        "targetClass": "asteroid_state",
+        "targetMethod": "coin_counter_right_w"
+      }
+    },
+    {
+      "id": "handler:asteroid_state.coin_counter_right_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_right_w",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 380,
+        "sourceColumn": 1,
+        "sourceEndLine": 383,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(2, state);"
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/vector",
+      "label": "Device",
+      "props": {
+        "type": "VECTOR",
+        "tag": "vector",
+        "clock": null,
+        "config": [
+          "VECTOR(config, \"vector\")"
+        ],
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 856,
+        "sourceColumn": 2,
+        "sourceEndLine": 856
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_VECTOR))",
+          "screen.set_refresh_hz(CLOCK_3KHZ/12/4)",
+          "screen.set_size(400, 300)",
+          "screen.set_visarea(522, 1566, 394, 1182)",
+          "screen.set_screen_update(\"vector\", FUNC(vector_device::screen_update))"
+        ],
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 857,
+        "sourceColumn": 2,
+        "sourceEndLine": 857,
+        "configCalls": [
+          "set_refresh_hz(61.5234375)",
+          "set_size(400,300)",
+          "set_visarea(522,1566,394,1182)"
+        ],
+        "clockExpr": "SCREEN_TYPE_VECTOR",
+        "screenRefreshHz": 61.5234375,
+        "screenSize": [
+          400,
+          300
+        ],
+        "screenVisarea": [
+          522,
+          1566,
+          394,
+          1182
+        ]
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(\"vector\", FUNC(vector_device::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 861,
+        "sourceColumn": 2,
+        "sourceEndLine": 861,
+        "targetTag": "vector",
+        "targetClass": "vector_device",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:vector_device.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "vector_device",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 861,
+        "sourceColumn": 2,
+        "sourceEndLine": 861
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_base/dvg",
+      "label": "Device",
+      "props": {
+        "type": "DVG",
+        "tag": "dvg",
+        "clock": null,
+        "config": [
+          "DVG(config, m_dvg)",
+          "m_dvg->set_vector(\"vector\")",
+          "m_dvg->set_memory(m_maincpu, AS_PROGRAM, 0x4000)"
+        ],
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 863,
+        "sourceColumn": 2,
+        "sourceEndLine": 863
+      }
+    },
+    {
+      "id": "machine:asteroid_state.asteroid",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "asteroid_state",
+        "name": "asteroid",
+        "calls": [
+          "asteroid_base",
+          "asteroid_sound"
+        ],
+        "resetHandlers": [
+          "asteroid_state.machine_reset"
+        ],
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 868,
+        "sourceColumn": 1,
+        "sourceEndLine": 874
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid/ram1/0",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram1",
+        "member": "m_ram1",
+        "startEntry": 1,
+        "entries": 1,
+        "entryMember": "m_sram2",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram1->configure_entry(1, m_sram2)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid/ram2/1",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram2",
+        "member": "m_ram2",
+        "startEntry": 1,
+        "entries": 1,
+        "entryMember": "m_sram1",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram2->configure_entry(1, m_sram1)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid/ram1/2",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram1",
+        "member": "m_ram1",
+        "startEntry": 0,
+        "entries": 1,
+        "entryMember": "m_sram1",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram1->configure_entry(0, m_sram1)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid/ram2/3",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram2",
+        "member": "m_ram2",
+        "startEntry": 0,
+        "entries": 1,
+        "entryMember": "m_sram2",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram2->configure_entry(0, m_sram2)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "machine:asteroid_state.asteroid_sound",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "asteroid_state",
+        "name": "asteroid_sound",
+        "calls": [],
+        "resetHandlers": [
+          "asteroid_state.machine_reset"
+        ],
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 318,
+        "sourceColumn": 1,
+        "sourceEndLine": 331
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid_sound/ram1/0",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram1",
+        "member": "m_ram1",
+        "startEntry": 1,
+        "entries": 1,
+        "entryMember": "m_sram2",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram1->configure_entry(1, m_sram2)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid_sound/ram2/1",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram2",
+        "member": "m_ram2",
+        "startEntry": 1,
+        "entries": 1,
+        "entryMember": "m_sram1",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram2->configure_entry(1, m_sram1)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid_sound/ram1/2",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram1",
+        "member": "m_ram1",
+        "startEntry": 0,
+        "entries": 1,
+        "entryMember": "m_sram1",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram1->configure_entry(0, m_sram1)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "bank:asteroid_state.asteroid_sound/ram2/3",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "ram2",
+        "member": "m_ram2",
+        "startEntry": 0,
+        "entries": 1,
+        "entryMember": "m_sram2",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_ram2->configure_entry(0, m_sram2)",
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_sound/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 320,
+        "sourceColumn": 2,
+        "sourceEndLine": 320
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_sound/discrete",
+      "label": "Device",
+      "props": {
+        "type": "DISCRETE",
+        "tag": "discrete",
+        "clock": null,
+        "config": [
+          "DISCRETE(config, m_discrete, asteroid_discrete).add_route(ALL_OUTPUTS, \"mono\", 1.4)"
+        ],
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 322,
+        "sourceColumn": 2,
+        "sourceEndLine": 322,
+        "clockExpr": "asteroid_discrete"
+      }
+    },
+    {
+      "id": "audioroute:device:asteroid_state.asteroid_sound/discrete/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1.4,
+        "raw": "DISCRETE(config, m_discrete, asteroid_discrete).add_route(ALL_OUTPUTS, \"mono\", 1.4)",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 322,
+        "sourceColumn": 2,
+        "sourceEndLine": 322
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_sound/audiolatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "audiolatch",
+        "clock": null,
+        "config": [
+          "ls259_device &audiolatch(LS259(config, \"audiolatch\"))",
+          "audiolatch.q_out_cb<0>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_SAUCER_SND_EN>))",
+          "audiolatch.q_out_cb<1>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_SAUCER_FIRE_EN>))",
+          "audiolatch.q_out_cb<2>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_SAUCER_SEL>))",
+          "audiolatch.q_out_cb<3>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_THRUST_EN>))",
+          "audiolatch.q_out_cb<4>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_SHIP_FIRE_EN>))",
+          "audiolatch.q_out_cb<5>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_LIFE_EN>))"
+        ],
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 324,
+        "sourceColumn": 2,
+        "sourceEndLine": 324
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "audiolatch.q_out_cb<0>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_SAUCER_SND_EN>))",
+        "ownerTag": "audiolatch",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 325,
+        "sourceColumn": 2,
+        "sourceEndLine": 325,
+        "slot": "0",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_ASTEROID_SAUCER_SND_EN"
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_ASTEROID_SAUCER_SND_EN",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_ASTEROID_SAUCER_SND_EN",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 325,
+        "sourceColumn": 2,
+        "sourceEndLine": 325
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "audiolatch.q_out_cb<1>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_SAUCER_FIRE_EN>))",
+        "ownerTag": "audiolatch",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 326,
+        "sourceColumn": 2,
+        "sourceEndLine": 326,
+        "slot": "1",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_ASTEROID_SAUCER_FIRE_EN"
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_ASTEROID_SAUCER_FIRE_EN",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_ASTEROID_SAUCER_FIRE_EN",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 326,
+        "sourceColumn": 2,
+        "sourceEndLine": 326
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "audiolatch.q_out_cb<2>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_SAUCER_SEL>))",
+        "ownerTag": "audiolatch",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 327,
+        "sourceColumn": 2,
+        "sourceEndLine": 327,
+        "slot": "2",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_ASTEROID_SAUCER_SEL"
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_ASTEROID_SAUCER_SEL",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_ASTEROID_SAUCER_SEL",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 327,
+        "sourceColumn": 2,
+        "sourceEndLine": 327
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:3",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "audiolatch.q_out_cb<3>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_THRUST_EN>))",
+        "ownerTag": "audiolatch",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 328,
+        "sourceColumn": 2,
+        "sourceEndLine": 328,
+        "slot": "3",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_ASTEROID_THRUST_EN"
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_ASTEROID_THRUST_EN",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_ASTEROID_THRUST_EN",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 341,
+        "sourceColumn": 2,
+        "sourceEndLine": 341
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:4",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "audiolatch.q_out_cb<4>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_SHIP_FIRE_EN>))",
+        "ownerTag": "audiolatch",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 329,
+        "sourceColumn": 2,
+        "sourceEndLine": 329,
+        "slot": "4",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_ASTEROID_SHIP_FIRE_EN"
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_ASTEROID_SHIP_FIRE_EN",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_ASTEROID_SHIP_FIRE_EN",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 329,
+        "sourceColumn": 2,
+        "sourceEndLine": 329
+      }
+    },
+    {
+      "id": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:5",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "audiolatch.q_out_cb<5>().set(\"discrete\", FUNC(discrete_device::write_line<ASTEROID_LIFE_EN>))",
+        "ownerTag": "audiolatch",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 330,
+        "sourceColumn": 2,
+        "sourceEndLine": 330,
+        "slot": "5",
+        "targetTag": "discrete",
+        "targetClass": "discrete_device",
+        "targetMethod": "write_line_ASTEROID_LIFE_EN"
+      }
+    },
+    {
+      "id": "handler:discrete_device.write_line_ASTEROID_LIFE_EN",
+      "label": "Handler",
+      "props": {
+        "method": "write_line_ASTEROID_LIFE_EN",
+        "ownerClass": "discrete_device",
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 330,
+        "sourceColumn": 2,
+        "sourceEndLine": 330
+      }
+    },
+    {
+      "id": "inputs:asteroid",
+      "label": "InputPorts",
+      "props": {
+        "name": "asteroid",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 497,
+        "sourceColumn": 8,
+        "sourceEndLine": 497
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN"
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_MEMBER(FUNC(asteroid_state::clock_r))"
+        ]
+      }
+    },
+    {
+      "id": "handler:asteroid_state.clock_r",
+      "label": "Handler",
+      "props": {
+        "method": "clock_r",
+        "ownerClass": "asteroid_state",
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 492,
+        "sourceColumn": 1,
+        "sourceEndLine": 495,
+        "sourceParameters": "",
+        "sourceBody": "return (m_maincpu->total_cycles() & 0x100) ? 1 : 0;"
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"dvg\", FUNC(dvg_device::done_r))"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_BUTTON5",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_SPACE)",
+          "PORT_CODE(JOYCODE_BUTTON3)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_LCONTROL)",
+          "PORT_CODE(JOYCODE_BUTTON1)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_SERVICE1",
+        "modifiers": [
+          "PORT_NAME(\"Diagnostic Step\")"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_TILT"
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 128,
+        "activeLow": false,
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_COIN1"
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_COIN2"
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_COIN3"
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_BUTTON4",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_LALT)",
+          "PORT_CODE(JOYCODE_BUTTON2)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_RIGHT)",
+          "PORT_CODE(JOYCODE_X_RIGHT_SWITCH)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_CODE(KEYCODE_LEFT)",
+          "PORT_CODE(JOYCODE_X_LEFT_SWITCH)"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:asteroid/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Language",
+        "defaultValue": 0,
+        "location": "SW:1,2",
+        "settings": [
+          "0=English",
+          "1=German",
+          "2=French",
+          "3=Spanish"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Lives",
+        "defaultValue": 4,
+        "location": "SW:3",
+        "settings": [
+          "4=3",
+          "0=4"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Center Mech",
+        "defaultValue": 0,
+        "location": "SW:4",
+        "settings": [
+          "0=X 1",
+          "8=X 2"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "name": "Right Mech",
+        "defaultValue": 0,
+        "location": "SW:5,6",
+        "settings": [
+          "0=X 1",
+          "16=X 4",
+          "32=X 5",
+          "48=X 6"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 192,
+        "name": "Coinage",
+        "defaultValue": 128,
+        "location": "SW:7,8",
+        "settings": [
+          "192=2C 1C",
+          "128=1C 1C",
+          "64=1C 2C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:asteroid/COCKTAIL",
+      "label": "Port",
+      "props": {
+        "tag": "COCKTAIL",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:asteroid/COCKTAIL/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "settings": [
+          "0=Upright",
+          "1=Cocktail"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:asteroid",
+      "to": "file:src/mame/atari/asteroid.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 1334,
+        "sourceColumn": 1,
+        "sourceEndLine": 1334
+      }
+    },
+    {
+      "from": "game:asteroid",
+      "to": "machine:asteroid_state.asteroid",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:asteroid",
+      "to": "inputs:asteroid",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:asteroid",
+      "to": "romset:asteroid",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:asteroid.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:cpu/m6502/m6502.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:machine/output_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:machine/rescap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:sound/discrete.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:sound/pokey.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:video/vector.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid.cpp",
+      "to": "file:astdelux.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid",
+      "to": "file:src/mame/atari/asteroid.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 868,
+        "sourceColumn": 1,
+        "sourceEndLine": 874
+      }
+    },
+    {
+      "from": "machine:asteroid_state.asteroid",
+      "to": "handler:asteroid_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid",
+      "to": "machine:asteroid_state.asteroid_base",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid",
+      "to": "machine:asteroid_state.asteroid_sound",
+      "rel": "CALLS"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid",
+      "to": "bank:asteroid_state.asteroid/ram1/0",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid",
+      "to": "bank:asteroid_state.asteroid/ram2/1",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid",
+      "to": "bank:asteroid_state.asteroid/ram1/2",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid",
+      "to": "bank:asteroid_state.asteroid/ram2/3",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "inputs:asteroid",
+      "to": "file:src/mame/atari/asteroid.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 497,
+        "sourceColumn": 8,
+        "sourceEndLine": 497
+      }
+    },
+    {
+      "from": "inputs:asteroid",
+      "to": "inputs:asteroid/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:asteroid",
+      "to": "inputs:asteroid/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:asteroid",
+      "to": "inputs:asteroid/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:asteroid",
+      "to": "inputs:asteroid/COCKTAIL",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:asteroid",
+      "to": "file:src/mame/atari/asteroid.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 948,
+        "sourceColumn": 1,
+        "sourceEndLine": 948
+      }
+    },
+    {
+      "from": "romset:asteroid",
+      "to": "region:asteroid/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:asteroid",
+      "to": "region:asteroid/dvg:prom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:asteroid_state.machine_reset",
+      "to": "handler:asteroid_state.earom_control_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "file:src/mame/atari/asteroid.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 834,
+        "sourceColumn": 1,
+        "sourceEndLine": 866
+      }
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "handler:asteroid_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "bank:asteroid_state.asteroid_base/ram1/0",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "bank:asteroid_state.asteroid_base/ram2/1",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "bank:asteroid_state.asteroid_base/ram1/2",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "bank:asteroid_state.asteroid_base/ram2/3",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "device:asteroid_state.asteroid_base/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "device:asteroid_state.asteroid_base/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "device:asteroid_state.asteroid_base/dsw_sel",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "device:asteroid_state.asteroid_base/outlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "device:asteroid_state.asteroid_base/vector",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "device:asteroid_state.asteroid_base/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_base",
+      "to": "device:asteroid_state.asteroid_base/dvg",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_sound",
+      "to": "file:src/mame/atari/asteroid_a.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_a.cpp",
+        "sourceLine": 318,
+        "sourceColumn": 1,
+        "sourceEndLine": 331
+      }
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_sound",
+      "to": "handler:asteroid_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_sound",
+      "to": "bank:asteroid_state.asteroid_sound/ram1/0",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_sound",
+      "to": "bank:asteroid_state.asteroid_sound/ram2/1",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_sound",
+      "to": "bank:asteroid_state.asteroid_sound/ram1/2",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_sound",
+      "to": "bank:asteroid_state.asteroid_sound/ram2/3",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_sound",
+      "to": "device:asteroid_state.asteroid_sound/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_sound",
+      "to": "device:asteroid_state.asteroid_sound/discrete",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:asteroid_state.asteroid_sound",
+      "to": "device:asteroid_state.asteroid_sound/audiolatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "bank:asteroid_state.asteroid/ram1/0",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "bank:asteroid_state.asteroid/ram2/1",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "bank:asteroid_state.asteroid/ram1/2",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "bank:asteroid_state.asteroid/ram2/3",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "inputs:asteroid/IN0",
+      "to": "inputs:asteroid/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN0",
+      "to": "inputs:asteroid/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN0",
+      "to": "inputs:asteroid/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN0",
+      "to": "inputs:asteroid/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN0",
+      "to": "inputs:asteroid/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN0",
+      "to": "inputs:asteroid/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN0",
+      "to": "inputs:asteroid/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN0",
+      "to": "inputs:asteroid/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN1",
+      "to": "inputs:asteroid/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN1",
+      "to": "inputs:asteroid/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN1",
+      "to": "inputs:asteroid/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN1",
+      "to": "inputs:asteroid/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN1",
+      "to": "inputs:asteroid/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN1",
+      "to": "inputs:asteroid/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN1",
+      "to": "inputs:asteroid/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/IN1",
+      "to": "inputs:asteroid/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/DSW1",
+      "to": "inputs:asteroid/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/DSW1",
+      "to": "inputs:asteroid/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/DSW1",
+      "to": "inputs:asteroid/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/DSW1",
+      "to": "inputs:asteroid/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/DSW1",
+      "to": "inputs:asteroid/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:asteroid/COCKTAIL",
+      "to": "inputs:asteroid/COCKTAIL/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:asteroid/maincpu",
+      "to": "rom:asteroid/maincpu/035145-04e.ef2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:asteroid/maincpu",
+      "to": "rom:asteroid/maincpu/035144-04e.h2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:asteroid/maincpu",
+      "to": "rom:asteroid/maincpu/035143-02.j2",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:asteroid/maincpu",
+      "to": "rom:asteroid/maincpu/035127-02.np3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:asteroid/dvg:prom",
+      "to": "rom:asteroid/dvg:prom/034602-01.c8",
+      "rel": "LOADS"
+    },
+    {
+      "from": "bank:asteroid_state.asteroid_base/ram1/0",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "bank:asteroid_state.asteroid_base/ram2/1",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "bank:asteroid_state.asteroid_base/ram1/2",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "bank:asteroid_state.asteroid_base/ram2/3",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/maincpu",
+      "to": "device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/maincpu",
+      "to": "map:asteroid_state.asteroid_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/outlatch",
+      "to": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/outlatch",
+      "to": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/outlatch",
+      "to": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/outlatch",
+      "to": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/screen",
+      "to": "device:asteroid_state.asteroid_base/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid_a.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid_a.cpp",
+      "to": "file:asteroid.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid_a.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid_a.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "bank:asteroid_state.asteroid_sound/ram1/0",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "bank:asteroid_state.asteroid_sound/ram2/1",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "bank:asteroid_state.asteroid_sound/ram1/2",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "bank:asteroid_state.asteroid_sound/ram2/3",
+      "to": "file:src/mame/atari/asteroid_m.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid_m.cpp",
+        "sourceLine": 114,
+        "sourceColumn": 1,
+        "sourceEndLine": 126
+      }
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/discrete",
+      "to": "audioroute:device:asteroid_state.asteroid_sound/discrete/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch",
+      "to": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch",
+      "to": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch",
+      "to": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch",
+      "to": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch",
+      "to": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch",
+      "to": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid_m.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/asteroid_m.cpp",
+      "to": "file:asteroid.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "inputs:asteroid/IN0/f1",
+      "to": "handler:asteroid_state.clock_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/maincpu/callback:maincpu:0",
+      "to": "handler:asteroid_state.asteroid_interrupt",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "file:src/mame/atari/asteroid.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/asteroid.cpp",
+        "sourceLine": 419,
+        "sourceColumn": 1,
+        "sourceEndLine": 438
+      }
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map",
+      "to": "map:asteroid_state.asteroid_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:0",
+      "to": "handler:asteroid_state.cocktail_inv_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:1",
+      "to": "handler:asteroid_state.coin_counter_left_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:2",
+      "to": "handler:asteroid_state.coin_counter_center_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/outlatch/callback:outlatch:3",
+      "to": "handler:asteroid_state.coin_counter_right_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/screen/callback:screen:0",
+      "to": "handler:vector_device.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_base/screen/callback:screen:0",
+      "to": "device:asteroid_state.asteroid_base/vector",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:0",
+      "to": "handler:discrete_device.write_line_ASTEROID_SAUCER_SND_EN",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:0",
+      "to": "device:asteroid_state.asteroid_sound/discrete",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:1",
+      "to": "handler:discrete_device.write_line_ASTEROID_SAUCER_FIRE_EN",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:1",
+      "to": "device:asteroid_state.asteroid_sound/discrete",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:2",
+      "to": "handler:discrete_device.write_line_ASTEROID_SAUCER_SEL",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:2",
+      "to": "device:asteroid_state.asteroid_sound/discrete",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:3",
+      "to": "handler:discrete_device.write_line_ASTEROID_THRUST_EN",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:3",
+      "to": "device:asteroid_state.asteroid_sound/discrete",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:4",
+      "to": "handler:discrete_device.write_line_ASTEROID_SHIP_FIRE_EN",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:4",
+      "to": "device:asteroid_state.asteroid_sound/discrete",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:5",
+      "to": "handler:discrete_device.write_line_ASTEROID_LIFE_EN",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:asteroid_state.asteroid_sound/audiolatch/callback:audiolatch:5",
+      "to": "device:asteroid_state.asteroid_sound/discrete",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map/range3",
+      "to": "handler:asteroid_state.asteroid_IN0_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map/range4",
+      "to": "handler:asteroid_state.asteroid_IN1_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map/range5",
+      "to": "handler:asteroid_state.asteroid_DSW1_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map/range6",
+      "to": "handler:dvg_device.go_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "dvg"
+      }
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map/range7",
+      "to": "handler:output_latch_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "outlatch"
+      }
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map/range8",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map/range9",
+      "to": "handler:asteroid_state.asteroid_explode_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map/range10",
+      "to": "handler:asteroid_state.asteroid_thump_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map/range11",
+      "to": "handler:ls259_device.write_d7",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "audiolatch"
+      }
+    },
+    {
+      "from": "map:asteroid_state.asteroid_map/range12",
+      "to": "handler:asteroid_state.asteroid_noise_reset_w",
+      "rel": "WRITES"
+    }
+  ]
+}

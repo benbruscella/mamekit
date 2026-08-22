@@ -1,0 +1,2121 @@
+{
+  "schemaVersion": 1,
+  "type": "TTL74181",
+  "className": "ttl74181_device",
+  "hierarchy": [
+    "ttl74181_device"
+  ],
+  "sourceFiles": [
+    "src/devices/machine/74181.cpp",
+    "src/devices/machine/74181.h"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2
+  },
+  "members": [
+    {
+      "name": "m_a",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_b",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_s",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_m",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    },
+    {
+      "name": "m_c",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    },
+    {
+      "name": "m_f",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_cn",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    },
+    {
+      "name": "m_g",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    },
+    {
+      "name": "m_p",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    },
+    {
+      "name": "m_equals",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_a"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_b"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_s"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_m"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_c"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.cpp",
+        "line": 44,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_post_load",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.cpp",
+        "line": 60,
+        "column": 1
+      }
+    },
+    {
+      "name": "update",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "a0",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_a"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "a1",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_a"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "a2",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_a"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "a3",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_a"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "b0",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_b"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "b1",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_b"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "b2",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_b"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "b3",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_b"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "s0",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_s"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "s1",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_s"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "s2",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_s"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "s3",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_s"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "mp",
+            "valueType": "int",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_m"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ap0",
+            "valueType": "int",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "a0"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "b0"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "s0"
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "s1"
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "~",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "b0"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "bp0",
+            "valueType": "int",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "b0"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "s2"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "a0"
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "a0"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "b0"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "s3"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ap1",
+            "valueType": "int",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "a1"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "b1"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "s0"
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "s1"
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "~",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "b1"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "bp1",
+            "valueType": "int",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "b1"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "s2"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "a1"
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "a1"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "b1"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "s3"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ap2",
+            "valueType": "int",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "a2"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "b2"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "s0"
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "s1"
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "~",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "b2"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "bp2",
+            "valueType": "int",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "b2"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "s2"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "a2"
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "a2"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "b2"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "s3"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ap3",
+            "valueType": "int",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "a3"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "b3"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "s0"
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "s1"
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "~",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "b3"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "bp3",
+            "valueType": "int",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "b3"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "s2"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "a3"
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "a3"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "b3"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "s3"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "fp0",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_c"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "mp"
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "ap0"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "bp0"
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "fp1",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "mp"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "ap0"
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "mp"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bp0"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_c"
+                    }
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "ap1"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "bp1"
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "fp2",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "mp"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "ap1"
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "mp"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "ap0"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bp1"
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "mp"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_c"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bp0"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "bp1"
+                    }
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "ap2"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "bp2"
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "fp3",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "mp"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "ap2"
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mp"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "ap1"
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "bp2"
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mp"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "ap0"
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "bp1"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bp2"
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mp"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_c"
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "bp0"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bp1"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "bp2"
+                    }
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "ap3"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "bp3"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_f"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "fp0"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "fp1"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "fp2"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "fp3"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 3
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_equals"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "fp0"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "fp1"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "fp2"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "fp3"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "bp0"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "bp1"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "bp2"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "bp3"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_g"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "ap0"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "bp1"
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "bp2"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bp3"
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "ap1"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "bp2"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bp3"
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "ap2"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "bp3"
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "ap3"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cn"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_c"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "bp0"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bp1"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "bp2"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "bp3"
+                  }
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_g"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.cpp",
+        "line": 71,
+        "column": 1
+      }
+    },
+    {
+      "name": "input_a_w",
+      "parameters": "uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "data"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 15
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_a"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "data"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_a"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.cpp",
+        "line": 102,
+        "column": 1
+      }
+    },
+    {
+      "name": "input_b_w",
+      "parameters": "uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "data"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 15
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_b"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "data"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_b"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.cpp",
+        "line": 113,
+        "column": 1
+      }
+    },
+    {
+      "name": "select_w",
+      "parameters": "uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "data"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 15
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_s"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "data"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.cpp",
+        "line": 124,
+        "column": 1
+      }
+    },
+    {
+      "name": "mode_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_m"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_m"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.cpp",
+        "line": 135,
+        "column": 1
+      }
+    },
+    {
+      "name": "carry_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_c"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_c"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.cpp",
+        "line": 144,
+        "column": 1
+      }
+    },
+    {
+      "name": "function_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_f"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.h",
+        "line": 34,
+        "column": 1
+      }
+    },
+    {
+      "name": "carry_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_cn"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.h",
+        "line": 37,
+        "column": 1
+      }
+    },
+    {
+      "name": "generate_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_g"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.h",
+        "line": 38,
+        "column": 1
+      }
+    },
+    {
+      "name": "propagate_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_p"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.h",
+        "line": 39,
+        "column": 1
+      }
+    },
+    {
+      "name": "equals_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_equals"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.h",
+        "line": 40,
+        "column": 1
+      }
+    },
+    {
+      "name": "ttl74181_device::function_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_f"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.h",
+        "line": 34,
+        "column": 25
+      }
+    },
+    {
+      "name": "ttl74181_device::carry_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_cn"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.h",
+        "line": 38,
+        "column": 1
+      }
+    },
+    {
+      "name": "ttl74181_device::generate_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_g"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.h",
+        "line": 39,
+        "column": 1
+      }
+    },
+    {
+      "name": "ttl74181_device::propagate_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_p"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.h",
+        "line": 40,
+        "column": 1
+      }
+    },
+    {
+      "name": "ttl74181_device::equals_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_equals"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/74181.h",
+        "line": 41,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "summary": {
+    "methods": 18,
+    "compiledMethods": 18,
+    "diagnostics": 0
+  }
+}

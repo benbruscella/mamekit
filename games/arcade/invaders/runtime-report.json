@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 2,
+  "game": "invaders",
+  "family": "mw8080bw",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "sourceCoverage": {
+    "covered": 60,
+    "total": 97,
+    "percent": 61.9
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:I8080",
+        "status": "executable",
+        "source": "src/devices/cpu/i8085/i8085.cpp:208"
+      }
+    ],
+    "devices": [
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "mb14241:MB14241",
+        "status": "executable",
+        "source": "src/devices/machine/mb14241.cpp:18"
+      },
+      {
+        "name": "soundboard:INVADERS_AUDIO",
+        "status": "executable",
+        "source": "src/mame/midw8080/mw8080bw_a.cpp:574"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "sn%u:SN76477",
+        "status": "executable",
+        "source": "src/devices/sound/sn76477.cpp:143"
+      },
+      {
+        "name": "discrete:DISCRETE",
+        "status": "declarative-host",
+        "source": "src/devices/sound/discrete.cpp:50"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "mb14241.shift_count_w",
+        "status": "executable",
+        "source": "src/devices/machine/mb14241.cpp:18"
+      },
+      {
+        "name": "mb14241.shift_data_w",
+        "status": "executable",
+        "source": "src/devices/machine/mb14241.cpp:18"
+      },
+      {
+        "name": "mb14241.shift_result_r",
+        "status": "executable",
+        "source": "src/devices/machine/mb14241.cpp:18"
+      },
+      {
+        "name": "port.IN0",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN1",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN2",
+        "status": "generated"
+      },
+      {
+        "name": "soundboard.p1_w",
+        "status": "executable",
+        "source": "src/mame/midw8080/mw8080bw_a.cpp:574"
+      },
+      {
+        "name": "soundboard.p2_w",
+        "status": "executable",
+        "source": "src/mame/midw8080/mw8080bw_a.cpp:574"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "interrupt_timer.timer -> mw8080bw_state.interrupt_trigger",
+        "status": "generated",
+        "source": "src/mame/midw8080/mw8080bw.cpp:217"
+      },
+      {
+        "name": "maincpu.set_irq_acknowledge_callback -> mw8080bw_state.interrupt_vector",
+        "status": "generated",
+        "source": "src/mame/midw8080/mw8080bw.cpp:334"
+      },
+      {
+        "name": "maincpu.out_inte_func -> mw8080bw_state.int_enable_w",
+        "status": "generated",
+        "source": "src/mame/midw8080/mw8080bw.cpp:335"
+      },
+      {
+        "name": "screen.set_screen_update -> invaders_state.screen_update_invaders",
+        "status": "generated",
+        "source": "src/mame/midw8080/mw8080bw.cpp:2693"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/invaders/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 16,
+    "compiledMethods": 16,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 0,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 0,
+    "screenUpdate": "invaders_state.screen_update_invaders",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 9,
+    "generated": 9,
+    "declarative-host": 4,
+    "blocked": 0,
+    "missing": 0
+  }
+}

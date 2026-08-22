@@ -1,0 +1,259 @@
+{
+  "type": "MB14241",
+  "uses": [
+    {
+      "game": "invaders",
+      "tags": [
+        "mb14241"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "MB14241",
+    "className": "mb14241_device",
+    "shortName": "mb14241",
+    "description": "MB14241 Data Shifter",
+    "sourceFile": "src/devices/machine/mb14241.cpp",
+    "sourceLine": 18,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(MB14241, mb14241_device, \"mb14241\", \"MB14241 Data Shifter\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mb14241.cpp",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_shift_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_shift_count"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mb14241.cpp",
+      "sourceLine": 39,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_shift_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_shift_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "shift_count_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/machine/mb14241.cpp",
+      "sourceLine": 50,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_shift_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "unary",
+                "operator": "~",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 7
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "shift_data_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/machine/mb14241.cpp",
+      "sourceLine": 55,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_shift_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_shift_data"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 8
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "u16"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 7
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "shift_result_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mb14241.cpp",
+      "sourceLine": 60,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "u8"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_shift_data"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_shift_count"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 255
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/mb14241.cpp",
+    "src/devices/machine/mb14241.h"
+  ]
+}

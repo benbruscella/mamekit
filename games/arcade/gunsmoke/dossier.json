@@ -1,0 +1,933 @@
+{
+  "game": "gunsmoke",
+  "title": "Gun.Smoke (World, 1985-11-15) (Capcom, 1985)",
+  "fullname": "Gun.Smoke (World, 1985-11-15)",
+  "year": "1985",
+  "company": "Capcom",
+  "family": "gunsmoke",
+  "driverFile": "src/mame/capcom/gunsmoke.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Paul Leaman",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 49151,
+          "kind": "handler",
+          "read": "bank.mainbank"
+        },
+        {
+          "start": 49152,
+          "end": 49152,
+          "kind": "handler",
+          "read": "port.SYSTEM"
+        },
+        {
+          "start": 49153,
+          "end": 49153,
+          "kind": "handler",
+          "read": "port.P1"
+        },
+        {
+          "start": 49154,
+          "end": 49154,
+          "kind": "handler",
+          "read": "port.P2"
+        },
+        {
+          "start": 49155,
+          "end": 49155,
+          "kind": "handler",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 49156,
+          "end": 49156,
+          "kind": "handler",
+          "read": "port.DSW2"
+        },
+        {
+          "start": 50377,
+          "end": 50379,
+          "kind": "handler",
+          "read": "gunsmoke_state.protection_r"
+        },
+        {
+          "start": 51200,
+          "end": 51200,
+          "kind": "handler",
+          "write": "soundlatch.write"
+        },
+        {
+          "start": 51204,
+          "end": 51204,
+          "kind": "handler",
+          "write": "gunsmoke_state.control_w"
+        },
+        {
+          "start": 51206,
+          "end": 51206,
+          "kind": "handler",
+          "write": "spriteram.write"
+        },
+        {
+          "start": 53248,
+          "end": 54271,
+          "kind": "ram",
+          "share": "videoram",
+          "write": "gunsmoke_state.videoram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 54272,
+          "end": 55295,
+          "kind": "ram",
+          "share": "colorram",
+          "write": "gunsmoke_state.colorram_w",
+          "writeHandlerOwnsRam": true
+        },
+        {
+          "start": 55296,
+          "end": 55297,
+          "kind": "ram",
+          "share": "scrollx"
+        },
+        {
+          "start": 55298,
+          "end": 55298,
+          "kind": "ram",
+          "share": "scrolly"
+        },
+        {
+          "start": 55302,
+          "end": 55302,
+          "kind": "handler",
+          "write": "gunsmoke_state.layer_w"
+        },
+        {
+          "start": 57344,
+          "end": 61439,
+          "kind": "ram"
+        },
+        {
+          "start": 61440,
+          "end": 65535,
+          "kind": "ram",
+          "share": "spriteram"
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "z80",
+      "clock": 3000000,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 49152,
+          "end": 51199,
+          "kind": "ram"
+        },
+        {
+          "start": 51200,
+          "end": 51200,
+          "kind": "handler",
+          "read": "soundlatch.read"
+        },
+        {
+          "start": 57344,
+          "end": 57345,
+          "kind": "handler",
+          "write": "ym1.write"
+        },
+        {
+          "start": 57346,
+          "end": 57347,
+          "kind": "handler",
+          "write": "ym2.write"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ym2203",
+    "clock": 1500000,
+    "chips": 2,
+    "deviceType": "YM2203",
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.22,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.22,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.22,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 3,
+        "gain": 0.14,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.22,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.22,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.22,
+        "target": "mono"
+      },
+      {
+        "chip": 1,
+        "channel": 3,
+        "gain": 0.14,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 224,
+    "xOffset": 0,
+    "yOffset": 16,
+    "refresh": 59.63740458015267,
+    "vtotal": 262,
+    "vbstart": 240,
+    "vbend": 16,
+    "updateMode": "frame",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 98304,
+      "loads": [
+        {
+          "file": "gs03.09n",
+          "offset": 0,
+          "size": 32768,
+          "crc": "40a06cef",
+          "alt": [
+            {
+              "file": "3.ic85",
+              "crc": "ae6f4b75"
+            },
+            {
+              "file": "gsj_03.09n",
+              "crc": "b56b5df6"
+            },
+            {
+              "file": "gsa_03.9n",
+              "crc": "51dc3f76"
+            },
+            {
+              "file": "gsr_03y.09n",
+              "crc": "1b42423f"
+            },
+            {
+              "file": "gsr_03a.9n",
+              "crc": "2f6e6ad7"
+            },
+            {
+              "file": "gsr_03.9n",
+              "crc": "592f211b"
+            },
+            {
+              "file": "gsg03.09n",
+              "crc": "8ad2754e"
+            }
+          ]
+        },
+        {
+          "file": "gs04.10n",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "8d4b423f",
+          "alt": [
+            {
+              "file": "gs04.10n",
+              "crc": "5ecf31b8"
+            },
+            {
+              "file": "gsr_04y.10n",
+              "crc": "a5ee595b"
+            }
+          ]
+        },
+        {
+          "file": "gs05.12n",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "2b5667fb",
+          "alt": [
+            {
+              "file": "gs05.12n",
+              "crc": "1c9aca13"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "gs02.14h",
+          "offset": 0,
+          "size": 32768,
+          "crc": "cd7a2c38"
+        }
+      ]
+    },
+    {
+      "region": "chars",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "gs01.11f",
+          "offset": 0,
+          "size": 16384,
+          "crc": "b61ece9b"
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 262144,
+      "loads": [
+        {
+          "file": "gs13.06c",
+          "offset": 0,
+          "size": 32768,
+          "crc": "f6769fc5"
+        },
+        {
+          "file": "gs12.05c",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "d997b78c"
+        },
+        {
+          "file": "gs11.04c",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "125ba58e"
+        },
+        {
+          "file": "gs10.02c",
+          "offset": 98304,
+          "size": 32768,
+          "crc": "f469c13c",
+          "alt": [
+            {
+              "file": "gsg10.02c",
+              "crc": "0674ff4d"
+            }
+          ]
+        },
+        {
+          "file": "gs09.06a",
+          "offset": 131072,
+          "size": 32768,
+          "crc": "539f182d"
+        },
+        {
+          "file": "gs08.05a",
+          "offset": 163840,
+          "size": 32768,
+          "crc": "e87e526d"
+        },
+        {
+          "file": "gs07.04a",
+          "offset": 196608,
+          "size": 32768,
+          "crc": "4382c0d2"
+        },
+        {
+          "file": "gs06.02a",
+          "offset": 229376,
+          "size": 32768,
+          "crc": "4cafe7a6",
+          "alt": [
+            {
+              "file": "gsg06.02a",
+              "crc": "5cb850a7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 262144,
+      "loads": [
+        {
+          "file": "gs22.06n",
+          "offset": 0,
+          "size": 32768,
+          "crc": "dc9c508c",
+          "alt": [
+            {
+              "file": "gsg22.06n",
+              "crc": "96779c38"
+            }
+          ]
+        },
+        {
+          "file": "gs21.04n",
+          "offset": 32768,
+          "size": 32768,
+          "crc": "68883749",
+          "alt": [
+            {
+              "file": "gsg21.04n",
+              "crc": "6e8a02c7"
+            }
+          ]
+        },
+        {
+          "file": "gs20.03n",
+          "offset": 65536,
+          "size": 32768,
+          "crc": "0be932ed",
+          "alt": [
+            {
+              "file": "gsg20.03n",
+              "crc": "139bf927"
+            }
+          ]
+        },
+        {
+          "file": "gs19.01n",
+          "offset": 98304,
+          "size": 32768,
+          "crc": "63072f93",
+          "alt": [
+            {
+              "file": "gsg19.01n",
+              "crc": "8f249573"
+            }
+          ]
+        },
+        {
+          "file": "gs18.06l",
+          "offset": 131072,
+          "size": 32768,
+          "crc": "f69a3c7c",
+          "alt": [
+            {
+              "file": "gsg18.06l",
+              "crc": "b290451c"
+            }
+          ]
+        },
+        {
+          "file": "gs17.04l",
+          "offset": 163840,
+          "size": 32768,
+          "crc": "4e98562a",
+          "alt": [
+            {
+              "file": "gsg17.04l",
+              "crc": "61c9bd10"
+            }
+          ]
+        },
+        {
+          "file": "gs16.03l",
+          "offset": 196608,
+          "size": 32768,
+          "crc": "0d99c3b3",
+          "alt": [
+            {
+              "file": "gsg16.03l",
+              "crc": "6620103b"
+            }
+          ]
+        },
+        {
+          "file": "gs15.01l",
+          "offset": 229376,
+          "size": 32768,
+          "crc": "7f14270e",
+          "alt": [
+            {
+              "file": "gsg15.01l",
+              "crc": "ccc1c1b6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bgtiles",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "gs14.11c",
+          "offset": 0,
+          "size": 32768,
+          "crc": "0af4f7eb"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 2560,
+      "loads": [
+        {
+          "file": "g-01.03b",
+          "offset": 0,
+          "size": 256,
+          "crc": "02f55589"
+        },
+        {
+          "file": "g-02.04b",
+          "offset": 256,
+          "size": 256,
+          "crc": "e1e36dd9"
+        },
+        {
+          "file": "g-03.05b",
+          "offset": 512,
+          "size": 256,
+          "crc": "989399c0"
+        },
+        {
+          "file": "g-04.09d",
+          "offset": 768,
+          "size": 256,
+          "crc": "906612b5"
+        },
+        {
+          "file": "g-06.14a",
+          "offset": 1024,
+          "size": 256,
+          "crc": "4a9da18b"
+        },
+        {
+          "file": "g-07.15a",
+          "offset": 1280,
+          "size": 256,
+          "crc": "cb9394fc"
+        },
+        {
+          "file": "g-09.09f",
+          "offset": 1536,
+          "size": 256,
+          "crc": "3cee181e"
+        },
+        {
+          "file": "g-08.08f",
+          "offset": 1792,
+          "size": 256,
+          "crc": "ef91cdd2"
+        },
+        {
+          "file": "g-10.02j",
+          "offset": 2048,
+          "size": 256,
+          "crc": "0eaf5158"
+        },
+        {
+          "file": "g-05.01f",
+          "offset": 2304,
+          "size": 256,
+          "crc": "25c90c2a"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 16,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 64,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 128,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 32,
+      "keys": [
+        "KeyX",
+        "Space"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "P1",
+      "mask": 64,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "IPT_BUTTON3",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 3,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 4,
+      "name": "Demo"
+    },
+    {
+      "port": "DSW1",
+      "mask": 8,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW1",
+      "mask": 48,
+      "value": 48,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Freeze"
+    },
+    {
+      "port": "DSW1",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW2",
+      "mask": 7,
+      "value": 7,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW2",
+      "mask": 56,
+      "value": 56,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW2",
+      "mask": 64,
+      "value": 64,
+      "name": "Allow Continue"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 128,
+      "name": "Demo Sounds"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-02-02",
+    "commits": 120,
+    "contributors": 26,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 36,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2021-05-14"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 27,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 11,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 8,
+        "firstCommit": "2016-05-20",
+        "lastCommit": "2024-03-08"
+      },
+      {
+        "name": "hap",
+        "commits": 5,
+        "firstCommit": "2022-12-19",
+        "lastCommit": "2026-02-02"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 4,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2021-05-17"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 3,
+        "firstCommit": "2015-07-29",
+        "lastCommit": "2015-08-07"
+      },
+      {
+        "name": "smf-",
+        "commits": 3,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 2,
+        "firstCommit": "2020-04-23",
+        "lastCommit": "2022-12-19"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 2,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2014-04-18"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 2,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2009-07-24"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 2,
+        "firstCommit": "2008-02-05",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "AJR",
+        "commits": 1,
+        "firstCommit": "2016-04-30",
+        "lastCommit": "2016-04-30"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2011-04-26",
+        "lastCommit": "2011-04-26"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-11",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 1,
+        "firstCommit": "2009-12-01",
+        "lastCommit": "2009-12-01"
+      },
+      {
+        "name": "Felipe Corrêa da Silva Sanches",
+        "commits": 1,
+        "firstCommit": "2015-09-07",
+        "lastCommit": "2015-09-07"
+      },
+      {
+        "name": "holub",
+        "commits": 1,
+        "firstCommit": "2024-09-25",
+        "lastCommit": "2024-09-25"
+      },
+      {
+        "name": "Jose Tejada",
+        "commits": 1,
+        "firstCommit": "2020-01-14",
+        "lastCommit": "2020-01-14"
+      },
+      {
+        "name": "JOTEGO",
+        "commits": 1,
+        "firstCommit": "2023-11-02",
+        "lastCommit": "2023-11-02"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 1,
+        "firstCommit": "2015-02-06",
+        "lastCommit": "2015-02-06"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 1,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-13"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 1,
+        "firstCommit": "2010-02-10",
+        "lastCommit": "2010-02-10"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 41 years ago:\n\nGun.Smoke (c) 1985 Capcom  Company, Limited.\n\nGun.Smoke is a vertically-scrolling shoot-em-up set in the Wild West, in which the player takes the role of a Billy; a young Sheriff charged with hunting down and killing a number of infamous 'Wanted' outlaws.\n\nEach level is packed with gun-toting bandits and the Sheriff must shoot his way through the stage, before finally taking on the wanted outlaw 'boss' character at the end. Each outlaw wields a special weapon unique to them, such as a Winchester rifle, knives, darts or boomerangs.\n\nShooting the barrels that litter the levels reveals power-ups such as boots (for extra speed), rifles (for increased range) and bullets (for rapid fire). The game's 3 directional fire buttons (for firing left, right or ahead) can be combined (pressed Simultaneously) to create a total of 8 different firing directions.\n\n- TECHNICAL -\n\nMain CPU : Zilog Z80 (@ 4 Mhz)\nSound CPU : Zilog Z80 (@ 3 Mhz)\nSound Chips : (2x) Yamaha YM2203 (@ 1.5 Mhz)\n\nPlayers : 2\nControl : 8-way joystick\nButtons : 3\n\n- TRIVIA -\n\nGun.Smoke was released in October 1985 in Japan. \n\nGun.Smoke is based on the old famous T.V. series of the same name, the first TV broadcast was on September 10, 1955, and it ran until March 31, 1975. A total of 633 episodes were aired over the 20 seasons - only the last nine seasons being made in colour. \n\nJaime Guzman holds the official record for this game with 1465250 points. \n\nAlfa Records released a limited-edition soundtrack album for this game (Capcom Game Music - 28XA-94) on August 25, 1986.\n\n- UPDATES -\n\nWORLD version :\n* You can enter 3 chars for your initials.\n\nJAPAN version (but English text though) :\n* You can enter 8 chars for your initials.\n\n- TIPS AND TRICKS -\n\n* An Interesting Bug : When you're on Level 2, make sure you have a horse when you kill Roy Knife. Once he is dead, walk over his corpse and your horse will be killed. Roy raises from the dead as a sort of indestructible zombie. You can shoot him as much as you like, but he won't die. In this way you can play until you get tired of it. \n\n* Secrect Character : If the total of inserted credit (NOT current credit) is a multiple of 16 (16, 32, 48...), the secret character 'Aka-jirou' (Red-dragonfly) appears and you can get 10000 pts when you kill it. \nThe number of dragonflies at one time is changed by current total inserted credit, for example : 64 credits = 4 dragonflies, 128 credits = 8 dragonfiles. \nBut in case of 256 credits, 50 dragonflies appear instead of 16!\n\n- STAFF -\n\nFrom highscore table : Shi2Kura, ?Sakura?, Ota=Big5\nMusic by : Ayako Mori (Kura<3Aya)\nCharacter designer: Noritaka Funamizu\nProducer : Yoshiki Okamoto (Kihaji Okamoto)\n\n- PORTS -\n\nNOTE: For ports released in North America, please see the Romstar conversion kit entry.\n\n* CONSOLES: \nNintendo Famicom Disk System [JP] (jan.27, 1988) \"Gun.Smoke [Model CAP-GUN]\" \n[EU] Nintendo NES (feb.23, 1989) \"Gun.Smoke [Model NES-GK-EEC]\" \n[JP] Sega Saturn (nov.12, 1998) \"Capcom Generation Dai 4 Shou Kokou no Eiyuu [Model T-1235G]\" \n[JP] Sony PlayStation (nov.12, 1998) \"Capcom Generation Dai 4 Shou Kokou no Eiyuu [Model SLPS-01701]\" \n[EU] Sony PlayStation (sept.3, 1999) \"Capcom Generations 4 - Blazing Guns [Capcom Generations Disc 4] [Model SLES-31881]\" \n[EU] Microsoft XBOX (nov.18, 2005) \"Capcom Classics Collection\" \n[EU] Sony PS2 (nov.18, 2005) \"Capcom Classics Collection [Model SLES-53661]\" \n[JP] Sony PS2 (mar.2, 2006) \"Capcom Classics Collection [Model SLPM-66317]\" \nSony PlayStation 3 [PSN] [JP] (feb.19, 2013) \"Capcom Arcade Cabinet [Model NPJB-00210]\" \nSony PlayStation 3 [PSN] [EU] (feb.20, 2013) \"Capcom Arcade Cabinet\" \nMicrosoft XBOX 360 [XBLA] [JP] (feb.20, 2013) \"Capcom Arcade Cabinet\" \nMicrosoft XBOX 360 [XBLA] [EU] (feb.20, 2013) \"Capcom Arcade Cabinet\" \nMicrosoft XBOX 360 [XBLA] [AU] (feb.21, 2013) \"Capcom Arcade Cabinet\" \n\n* HANDHELDS: \n[JP] Sony PSP (sept.7, 2006) \"Capcom Classics Collection [Model ULJM-05104]\" \n[EU] Sony PSP (nov.10, 2006) \"Capcom Classics Collection Reloaded [Model ULES-00377]\" \n[AU] Sony PSP (nov.16, 2006) \"Capcom Classics Collection Reloaded\" \n\n* COMPUTERS: \n[EU] Commodore C64 (1987) \n[EU] Amstrad CPC (1987) \"Desperado - Gun.Smoke\" \n[EU] Sinclair ZX Spectrum (1987)\n\n- SERIES -\n\n1. Gun.Smoke (1985)\n2. Desperado 2 (1989, Amstrad CPC)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1045/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

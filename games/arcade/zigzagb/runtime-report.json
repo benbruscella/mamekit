@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 2,
+  "game": "zigzagb",
+  "family": "galaxian",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "sourceCoverage": {
+    "covered": 109,
+    "total": 137,
+    "percent": 79.6
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "8910.0:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.bank1",
+        "status": "generated"
+      },
+      {
+        "name": "bank.bank2",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN0",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN1",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN2",
+        "status": "generated"
+      },
+      {
+        "name": "watchdog.reset_r",
+        "status": "generated"
+      },
+      {
+        "name": "zigzagb_state.ay8910_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:1385"
+      },
+      {
+        "name": "zigzagb_state.bankswap_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:1377"
+      },
+      {
+        "name": "zigzagb_state.coin_count_0_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:810"
+      },
+      {
+        "name": "zigzagb_state.galaxian_flip_screen_x_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian_v.cpp:670"
+      },
+      {
+        "name": "zigzagb_state.galaxian_flip_screen_y_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian_v.cpp:686"
+      },
+      {
+        "name": "zigzagb_state.galaxian_objram_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian_v.cpp:514"
+      },
+      {
+        "name": "zigzagb_state.galaxian_stars_enable_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian_v.cpp:711"
+      },
+      {
+        "name": "zigzagb_state.galaxian_videoram_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian_v.cpp:503"
+      },
+      {
+        "name": "zigzagb_state.irq_enable_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:779"
+      },
+      {
+        "name": "zigzagb_state.start_lamp_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:795"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "screen.set_screen_update -> galaxian_state.screen_update_galaxian",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7500"
+      },
+      {
+        "name": "screen.screen_vblank -> galaxian_state.vblank_interrupt_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7501"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/zigzagb/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 36,
+    "compiledMethods": 36,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 10,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 1,
+    "screenUpdate": "galaxian_state.screen_update_galaxian",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 2,
+    "generated": 19,
+    "declarative-host": 5,
+    "blocked": 0,
+    "missing": 0
+  }
+}

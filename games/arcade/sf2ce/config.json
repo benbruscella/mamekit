@@ -1,0 +1,1219 @@
+{
+  "game": "sf2ce",
+  "title": "Street Fighter II': Champion Edition (World 920513) (Capcom, 1992)",
+  "family": "cps1",
+  "dataPath": "games/arcade/sf2ce",
+  "board": {
+    "family": "cps1",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "m68000",
+        "clock": 12000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 4194303,
+            "kind": "rom"
+          },
+          {
+            "start": 8388608,
+            "end": 8388615,
+            "kind": "handler",
+            "read": "port.IN1"
+          },
+          {
+            "start": 8388632,
+            "end": 8388639,
+            "kind": "handler",
+            "read": "cps_state.cps1_dsw_r"
+          },
+          {
+            "start": 8388640,
+            "end": 8388641,
+            "kind": "nop",
+            "writeOnly": true
+          },
+          {
+            "start": 8388656,
+            "end": 8388663,
+            "kind": "handler",
+            "write": "cps_state.cps1_coinctrl_w"
+          },
+          {
+            "start": 8388864,
+            "end": 8388927,
+            "kind": "handler",
+            "share": "cps_a_regs",
+            "write": "cps_state.cps1_cps_a_w"
+          },
+          {
+            "start": 8388928,
+            "end": 8388991,
+            "kind": "handler",
+            "share": "cps_b_regs",
+            "read": "cps_state.cps1_cps_b_r",
+            "write": "cps_state.cps1_cps_b_w"
+          },
+          {
+            "start": 8388992,
+            "end": 8388999,
+            "kind": "handler",
+            "write": "cps_state.cps1_soundlatch_w"
+          },
+          {
+            "start": 8389000,
+            "end": 8389007,
+            "kind": "handler",
+            "write": "cps_state.cps1_soundlatch2_w"
+          },
+          {
+            "start": 9437184,
+            "end": 9633791,
+            "kind": "ram",
+            "share": "gfxram",
+            "write": "cps_state.cps1_gfxram_w"
+          },
+          {
+            "start": 16711680,
+            "end": 16777215,
+            "kind": "ram",
+            "share": "mainram"
+          }
+        ]
+      },
+      {
+        "tag": "audiocpu",
+        "type": "z80",
+        "clock": 3579545,
+        "region": "audiocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom"
+          },
+          {
+            "start": 32768,
+            "end": 49151,
+            "kind": "handler",
+            "read": "bank.audiobank"
+          },
+          {
+            "start": 53248,
+            "end": 55295,
+            "kind": "ram"
+          },
+          {
+            "start": 61440,
+            "end": 61441,
+            "kind": "handler",
+            "read": "2151.read",
+            "write": "2151.write"
+          },
+          {
+            "start": 61442,
+            "end": 61442,
+            "kind": "handler",
+            "read": "oki.read",
+            "write": "oki.write"
+          },
+          {
+            "start": 61444,
+            "end": 61444,
+            "kind": "handler",
+            "write": "cps_state.cps1_snd_bankswitch_w"
+          },
+          {
+            "start": 61446,
+            "end": 61446,
+            "kind": "handler",
+            "write": "cps_state.cps1_oki_pin7_w"
+          },
+          {
+            "start": 61448,
+            "end": 61448,
+            "kind": "handler",
+            "read": "soundlatch1.read"
+          },
+          {
+            "start": 61450,
+            "end": 61450,
+            "kind": "handler",
+            "read": "soundlatch2.read"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 4194303,
+        "kind": "rom"
+      },
+      {
+        "start": 8388608,
+        "end": 8388615,
+        "kind": "handler",
+        "read": "port.IN1"
+      },
+      {
+        "start": 8388632,
+        "end": 8388639,
+        "kind": "handler",
+        "read": "cps_state.cps1_dsw_r"
+      },
+      {
+        "start": 8388640,
+        "end": 8388641,
+        "kind": "nop",
+        "writeOnly": true
+      },
+      {
+        "start": 8388656,
+        "end": 8388663,
+        "kind": "handler",
+        "write": "cps_state.cps1_coinctrl_w"
+      },
+      {
+        "start": 8388864,
+        "end": 8388927,
+        "kind": "handler",
+        "share": "cps_a_regs",
+        "write": "cps_state.cps1_cps_a_w"
+      },
+      {
+        "start": 8388928,
+        "end": 8388991,
+        "kind": "handler",
+        "share": "cps_b_regs",
+        "read": "cps_state.cps1_cps_b_r",
+        "write": "cps_state.cps1_cps_b_w"
+      },
+      {
+        "start": 8388992,
+        "end": 8388999,
+        "kind": "handler",
+        "write": "cps_state.cps1_soundlatch_w"
+      },
+      {
+        "start": 8389000,
+        "end": 8389007,
+        "kind": "handler",
+        "write": "cps_state.cps1_soundlatch2_w"
+      },
+      {
+        "start": 9437184,
+        "end": 9633791,
+        "kind": "ram",
+        "share": "gfxram",
+        "write": "cps_state.cps1_gfxram_w"
+      },
+      {
+        "start": 16711680,
+        "end": 16777215,
+        "kind": "ram",
+        "share": "mainram"
+      }
+    ],
+    "screen": {
+      "width": 384,
+      "height": 224,
+      "xOffset": 64,
+      "yOffset": 16,
+      "refresh": 59.63740458015267,
+      "vtotal": 262,
+      "vbstart": 240,
+      "vbend": 16,
+      "updateMode": "frame",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ym2151",
+    "clock": 3579545,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.35,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.35,
+        "target": "mono"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "OKIM6295",
+        "deviceTag": "oki",
+        "member": "m_oki",
+        "clock": 1000000,
+        "initialMode": "PIN7_HIGH",
+        "gain": 0.3,
+        "target": "mono",
+        "writeMethods": [
+          "write",
+          "set_pin7"
+        ]
+      }
+    ],
+    "sampleRegion": "oki",
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 4194304,
+      "loads": [
+        {
+          "file": "s92e_23b.8f",
+          "offset": 0,
+          "size": 524288,
+          "crc": "0aaa1a3a",
+          "alt": [
+            {
+              "file": "s92e_23a.8f",
+              "crc": "3f846b74"
+            },
+            {
+              "file": "s92e_23c.8f",
+              "crc": "994b408d"
+            },
+            {
+              "file": "s92u_23a.8f",
+              "crc": "ac44415b"
+            },
+            {
+              "file": "s92u_23b.8f",
+              "crc": "996a3015"
+            },
+            {
+              "file": "s92u_23c.8f",
+              "crc": "0a8b6aa2"
+            },
+            {
+              "file": "s92t_23a.8f",
+              "crc": "d7c28ade"
+            },
+            {
+              "file": "s92j_23a.8f",
+              "crc": "4f42bb5a"
+            },
+            {
+              "file": "s92j_23b.8f",
+              "crc": "140876c5"
+            },
+            {
+              "file": "s92j_23c.8f",
+              "crc": "f0120635"
+            },
+            {
+              "file": "sf2d__23.rom",
+              "crc": "450532b0"
+            },
+            {
+              "file": "sf2_ce_rb.23",
+              "crc": "202f9e50"
+            },
+            {
+              "file": "sf2red.23",
+              "crc": "40276abb"
+            },
+            {
+              "file": "sf2red.23",
+              "crc": "2d3c4f72"
+            },
+            {
+              "file": "sf2v004.23",
+              "crc": "52d19f2c"
+            },
+            {
+              "file": "sf2ca_23-c.bin",
+              "crc": "e7c8c5a6"
+            },
+            {
+              "file": "23-c.8f",
+              "crc": "35f9517b"
+            },
+            {
+              "file": "sf2ca-23.bin",
+              "crc": "36c3ba2f"
+            },
+            {
+              "file": "5.amf",
+              "crc": "03991fba"
+            },
+            {
+              "file": "u222.bin",
+              "crc": "0d305e8b"
+            },
+            {
+              "file": "turboii.23",
+              "crc": "9bbfe420"
+            },
+            {
+              "file": "ch222esp",
+              "crc": "9e6d058a"
+            },
+            {
+              "file": "u222chp",
+              "crc": "db567b66"
+            },
+            {
+              "file": "u222ne",
+              "crc": "7133489e"
+            },
+            {
+              "file": "27c040.u222",
+              "crc": "0a3692be"
+            },
+            {
+              "file": "sf2h14.7",
+              "crc": "74803532"
+            },
+            {
+              "file": "b12.rom",
+              "crc": "8f742fd5"
+            },
+            {
+              "file": "u222.rom",
+              "crc": "9236a79a"
+            },
+            {
+              "file": "1.8f",
+              "crc": "19fffa37"
+            },
+            {
+              "file": "s2.u222",
+              "crc": "0804f973"
+            },
+            {
+              "file": "u222.bin",
+              "crc": "b01a94b6"
+            }
+          ],
+          "groupSize": 2,
+          "reverse": true
+        },
+        {
+          "file": "s92_22b.7f",
+          "offset": 524288,
+          "size": 524288,
+          "crc": "2bbe15ed",
+          "alt": [
+            {
+              "file": "s92_22a.7f",
+              "crc": "99f1cca4"
+            },
+            {
+              "file": "s92_22c.7f",
+              "crc": "5fd8630b"
+            },
+            {
+              "file": "s92j_22a.7f",
+              "crc": "c4f64bcd"
+            },
+            {
+              "file": "s92j_22b.7f",
+              "crc": "2fbb3bfe"
+            },
+            {
+              "file": "s92j_22c.7f",
+              "crc": "8c0b2ed6"
+            },
+            {
+              "file": "sf2d__22.rom",
+              "crc": "fe9d9cf5"
+            },
+            {
+              "file": "sf2_ce_rb.22",
+              "crc": "145e5219"
+            },
+            {
+              "file": "sf2red.22",
+              "crc": "18daf387"
+            },
+            {
+              "file": "sf2v004.22",
+              "crc": "4b26fde7"
+            },
+            {
+              "file": "sf2ca-22.bin",
+              "crc": "0550453d"
+            },
+            {
+              "file": "turboii.22",
+              "crc": "3e57ba19"
+            }
+          ],
+          "groupSize": 2,
+          "reverse": true
+        },
+        {
+          "file": "s92_21a.6f",
+          "offset": 1048576,
+          "size": 524288,
+          "crc": "925a7877",
+          "alt": [
+            {
+              "file": "sf2red.21",
+              "crc": "52c486bb"
+            },
+            {
+              "file": "sf2red.21",
+              "crc": "aaf693b5"
+            },
+            {
+              "file": "21-c.6f",
+              "crc": "2ab2034f"
+            },
+            {
+              "file": "turboii.21",
+              "crc": "ed4186bd"
+            },
+            {
+              "file": "1.6f",
+              "crc": "65c2c719"
+            }
+          ],
+          "groupSize": 2,
+          "reverse": true
+        }
+      ]
+    },
+    {
+      "region": "gfx",
+      "size": 6291456,
+      "loads": [
+        {
+          "file": "s92-1m.3a",
+          "offset": 0,
+          "size": 524288,
+          "crc": "03b0d852",
+          "alt": [
+            {
+              "file": "y.c.e.c m.k.r-001",
+              "crc": "a258de13"
+            },
+            {
+              "file": "ms6.u70",
+              "crc": "baa0f81f"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-3m.5a",
+          "offset": 2,
+          "size": 524288,
+          "crc": "840289ec",
+          "alt": [
+            {
+              "file": "y.c.e.c m.k.r-003",
+              "crc": "c781bf87"
+            },
+            {
+              "file": "ms6.u68",
+              "crc": "8edff95a"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-2m.4a",
+          "offset": 4,
+          "size": 524288,
+          "crc": "cdb5f027",
+          "alt": [
+            {
+              "file": "fun-u70.bin",
+              "crc": "a94a8b19"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-4m.6a",
+          "offset": 6,
+          "size": 524288,
+          "crc": "e2799472",
+          "alt": [
+            {
+              "file": "fun-u68.bin",
+              "crc": "0405f21f"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-5m.7a",
+          "offset": 2097152,
+          "size": 524288,
+          "crc": "ba8a2761",
+          "alt": [
+            {
+              "file": "y.c.e.c m.k.r-002",
+              "crc": "5726cab8"
+            },
+            {
+              "file": "ms6.u69",
+              "crc": "468962b1"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-7m.9a",
+          "offset": 2097154,
+          "size": 524288,
+          "crc": "e584bfb5",
+          "alt": [
+            {
+              "file": "y.c.e.c d.w.c-011",
+              "crc": "bc90c12f"
+            },
+            {
+              "file": "ms6.u64",
+              "crc": "8165f536"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-6m.8a",
+          "offset": 2097156,
+          "size": 524288,
+          "crc": "21e3f87d",
+          "alt": [
+            {
+              "file": "fun-u69.bin",
+              "crc": "05dc2043"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-8m.10a",
+          "offset": 2097158,
+          "size": 524288,
+          "crc": "befc47df",
+          "alt": [
+            {
+              "file": "fun-u67.bin",
+              "crc": "055b64f1"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-10m.3c",
+          "offset": 4194304,
+          "size": 524288,
+          "crc": "960687d5",
+          "alt": [
+            {
+              "file": "y.c.e.c d.w.c-012",
+              "crc": "187667cc"
+            },
+            {
+              "file": "ms6.u19",
+              "crc": "39d763d3"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-12m.5c",
+          "offset": 4194306,
+          "size": 524288,
+          "crc": "978ecd18",
+          "alt": [
+            {
+              "file": "y.c.e.c d.w.c-013",
+              "crc": "5b585071"
+            },
+            {
+              "file": "ms6.u18",
+              "crc": "2ddfe46e"
+            },
+            {
+              "file": "sfiire073.u18",
+              "crc": "93ec42ae"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-11m.4c",
+          "offset": 4194308,
+          "size": 524288,
+          "crc": "d6ec9a0a",
+          "alt": [
+            {
+              "file": "fun-u19.bin",
+              "crc": "1a518609"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        },
+        {
+          "file": "s92-13m.6c",
+          "offset": 4194310,
+          "size": 524288,
+          "crc": "ed2c67f6",
+          "alt": [
+            {
+              "file": "fun-u18.bin",
+              "crc": "84f9354f"
+            }
+          ],
+          "groupSize": 2,
+          "skip": 6
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 98304,
+      "loads": [
+        {
+          "file": "s92_09.11a",
+          "offset": 0,
+          "size": 32768,
+          "crc": "08f6b60e",
+          "alt": [
+            {
+              "file": "3.amf",
+              "crc": "a4823a1b"
+            },
+            {
+              "file": "km6264b-10.u191",
+              "crc": "6f07d2cb"
+            }
+          ],
+          "continueSegments": [
+            {
+              "offset": 65536,
+              "size": 32768,
+              "fileOffset": 32768
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "oki",
+      "size": 262144,
+      "loads": [
+        {
+          "file": "s92_18.11c",
+          "offset": 0,
+          "size": 131072,
+          "crc": "7f162009"
+        },
+        {
+          "file": "s92_19.12c",
+          "offset": 131072,
+          "size": 131072,
+          "crc": "beade53f"
+        }
+      ]
+    },
+    {
+      "region": "aboardplds",
+      "size": 512,
+      "loads": [
+        {
+          "file": "buf1",
+          "offset": 0,
+          "size": 279,
+          "crc": "eb122de7",
+          "alt": [
+            {
+              "file": "ioa1",
+              "crc": "59c7ee3b"
+            },
+            {
+              "file": "prg1",
+              "crc": "f1129744"
+            },
+            {
+              "file": "rom1",
+              "crc": "41dc73b9"
+            },
+            {
+              "file": "sou1",
+              "crc": "84f4b2fe"
+            }
+          ]
+        },
+        {
+          "file": "ioa1",
+          "offset": 0,
+          "size": 279,
+          "crc": "59c7ee3b",
+          "alt": [
+            {
+              "file": "buf1",
+              "crc": "eb122de7"
+            },
+            {
+              "file": "prg1",
+              "crc": "f1129744"
+            },
+            {
+              "file": "rom1",
+              "crc": "41dc73b9"
+            },
+            {
+              "file": "sou1",
+              "crc": "84f4b2fe"
+            }
+          ]
+        },
+        {
+          "file": "prg1",
+          "offset": 0,
+          "size": 279,
+          "crc": "f1129744",
+          "alt": [
+            {
+              "file": "buf1",
+              "crc": "eb122de7"
+            },
+            {
+              "file": "ioa1",
+              "crc": "59c7ee3b"
+            },
+            {
+              "file": "rom1",
+              "crc": "41dc73b9"
+            },
+            {
+              "file": "sou1",
+              "crc": "84f4b2fe"
+            }
+          ]
+        },
+        {
+          "file": "rom1",
+          "offset": 0,
+          "size": 279,
+          "crc": "41dc73b9",
+          "alt": [
+            {
+              "file": "buf1",
+              "crc": "eb122de7"
+            },
+            {
+              "file": "ioa1",
+              "crc": "59c7ee3b"
+            },
+            {
+              "file": "prg1",
+              "crc": "f1129744"
+            },
+            {
+              "file": "sou1",
+              "crc": "84f4b2fe"
+            }
+          ]
+        },
+        {
+          "file": "sou1",
+          "offset": 0,
+          "size": 279,
+          "crc": "84f4b2fe",
+          "alt": [
+            {
+              "file": "buf1",
+              "crc": "eb122de7"
+            },
+            {
+              "file": "ioa1",
+              "crc": "59c7ee3b"
+            },
+            {
+              "file": "prg1",
+              "crc": "f1129744"
+            },
+            {
+              "file": "rom1",
+              "crc": "41dc73b9"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bboardplds",
+      "size": 512,
+      "loads": [
+        {
+          "file": "s9263b.1a",
+          "offset": 0,
+          "size": 279,
+          "crc": "0a7ecfe0",
+          "alt": [
+            {
+              "file": "iob1.12d",
+              "crc": "3abc0700"
+            },
+            {
+              "file": "bprg1.11d",
+              "crc": "31793da7"
+            },
+            {
+              "file": "pw.11d",
+              "crc": ""
+            }
+          ]
+        },
+        {
+          "file": "iob1.12d",
+          "offset": 0,
+          "size": 279,
+          "crc": "3abc0700",
+          "alt": [
+            {
+              "file": "s9263b.1a",
+              "crc": "0a7ecfe0"
+            },
+            {
+              "file": "bprg1.11d",
+              "crc": "31793da7"
+            },
+            {
+              "file": "pw.11d",
+              "crc": ""
+            }
+          ]
+        },
+        {
+          "file": "bprg1.11d",
+          "offset": 0,
+          "size": 279,
+          "crc": "31793da7",
+          "alt": [
+            {
+              "file": "s9263b.1a",
+              "crc": "0a7ecfe0"
+            },
+            {
+              "file": "iob1.12d",
+              "crc": "3abc0700"
+            },
+            {
+              "file": "pw.11d",
+              "crc": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "cboardplds",
+      "size": 512,
+      "loads": [
+        {
+          "file": "ioc1.ic7",
+          "offset": 0,
+          "size": 260,
+          "crc": "a399772d"
+        },
+        {
+          "file": "c632.ic1",
+          "offset": 0,
+          "size": 279,
+          "crc": "0fbd9270"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "P1 Jab Punch",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "P1 Strong Punch",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "P1 Fierce Punch",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 64,
+      "value": 64,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSWA",
+      "mask": 7,
+      "value": 7,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSWA",
+      "mask": 56,
+      "value": 56,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSWA",
+      "mask": 64,
+      "value": 64,
+      "name": "2 Coins to Start, 1 to Continue"
+    },
+    {
+      "port": "DSWA",
+      "mask": 128,
+      "value": 128,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 7,
+      "value": 4,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSWB",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 16,
+      "value": 16,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 32,
+      "value": 32,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 64,
+      "value": 64,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWB",
+      "mask": 128,
+      "value": 128,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWC",
+      "mask": 1,
+      "value": 1,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWC",
+      "mask": 2,
+      "value": 2,
+      "name": "Unused"
+    },
+    {
+      "port": "DSWC",
+      "mask": 4,
+      "value": 4,
+      "name": "Free Play"
+    },
+    {
+      "port": "DSWC",
+      "mask": 8,
+      "value": 8,
+      "name": "Freeze"
+    },
+    {
+      "port": "DSWC",
+      "mask": 16,
+      "value": 16,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSWC",
+      "mask": 32,
+      "value": 0,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "DSWC",
+      "mask": 64,
+      "value": 0,
+      "name": "Allow Continue"
+    },
+    {
+      "port": "DSWC",
+      "mask": 128,
+      "value": 128,
+      "name": "Game Mode"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "IN1",
+      "init": 65535
+    },
+    {
+      "tag": "IN2",
+      "init": 255
+    },
+    {
+      "tag": "DSWA",
+      "init": 255
+    },
+    {
+      "tag": "DSWB",
+      "init": 252
+    },
+    {
+      "tag": "DSWC",
+      "init": 159
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

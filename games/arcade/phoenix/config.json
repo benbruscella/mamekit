@@ -1,0 +1,922 @@
+{
+  "game": "phoenix",
+  "title": "Phoenix (Amstar, set 1) (Amstar, 1980)",
+  "family": "phoenix",
+  "dataPath": "games/arcade/phoenix",
+  "board": {
+    "family": "phoenix",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "i8085a",
+        "clock": 5500000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 16384,
+            "end": 20479,
+            "kind": "handler",
+            "write": "phoenix_state.phoenix_videoram_w",
+            "read": "bank.bank1"
+          },
+          {
+            "start": 20480,
+            "end": 21503,
+            "kind": "handler",
+            "write": "phoenix_state.phoenix_videoreg_w"
+          },
+          {
+            "start": 22528,
+            "end": 23551,
+            "kind": "handler",
+            "write": "phoenix_state.phoenix_scroll_w"
+          },
+          {
+            "start": 24576,
+            "end": 25599,
+            "kind": "handler",
+            "write": "cust.control_a_w"
+          },
+          {
+            "start": 26624,
+            "end": 27647,
+            "kind": "handler",
+            "write": "cust.control_b_w"
+          },
+          {
+            "start": 28672,
+            "end": 29695,
+            "kind": "handler",
+            "read": "port.IN0"
+          },
+          {
+            "start": 30720,
+            "end": 31743,
+            "kind": "handler",
+            "read": "port.DSW0"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 16383,
+        "kind": "rom"
+      },
+      {
+        "start": 16384,
+        "end": 20479,
+        "kind": "handler",
+        "write": "phoenix_state.phoenix_videoram_w",
+        "read": "bank.bank1"
+      },
+      {
+        "start": 20480,
+        "end": 21503,
+        "kind": "handler",
+        "write": "phoenix_state.phoenix_videoreg_w"
+      },
+      {
+        "start": 22528,
+        "end": 23551,
+        "kind": "handler",
+        "write": "phoenix_state.phoenix_scroll_w"
+      },
+      {
+        "start": 24576,
+        "end": 25599,
+        "kind": "handler",
+        "write": "cust.control_a_w"
+      },
+      {
+        "start": 26624,
+        "end": 27647,
+        "kind": "handler",
+        "write": "cust.control_b_w"
+      },
+      {
+        "start": 28672,
+        "end": 29695,
+        "kind": "handler",
+        "read": "port.IN0"
+      },
+      {
+        "start": 30720,
+        "end": 31743,
+        "kind": "handler",
+        "read": "port.DSW0"
+      }
+    ],
+    "customs": [
+      {
+        "port": "IN0",
+        "mask": 240,
+        "member": "player_input_r",
+        "handler": "phoenix_state.player_input_r",
+        "activeLow": false
+      },
+      {
+        "port": "DSW0",
+        "mask": 128,
+        "member": "vblank",
+        "source": "screen-vblank",
+        "activeLow": true
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 208,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 61.03515625,
+      "vtotal": 256,
+      "vbstart": 208,
+      "vbend": 0,
+      "updateMode": "frame",
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "discrete",
+    "clock": 5500000,
+    "worklet": "phoenix-sound",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "ic45",
+          "offset": 0,
+          "size": 2048,
+          "crc": "9f68086b",
+          "alt": [
+            {
+              "file": "ic45-pg1.1a",
+              "crc": "5b8c55a8"
+            },
+            {
+              "file": "1-ic45.1a",
+              "crc": "c7a9b499"
+            },
+            {
+              "file": "phoenix3.45",
+              "crc": "a362cda0"
+            },
+            {
+              "file": "0201.bin",
+              "crc": "c0f73929"
+            },
+            {
+              "file": "2201.bin",
+              "crc": "2afa8e2c"
+            },
+            {
+              "file": "1.1i",
+              "crc": "351984b6"
+            },
+            {
+              "file": "falcon.45",
+              "crc": "80382b6c"
+            },
+            {
+              "file": "vautor01.1e",
+              "crc": "cd2807ee"
+            },
+            {
+              "file": "f45.bin",
+              "crc": "9158b43b"
+            },
+            {
+              "file": "vautour1.bin",
+              "crc": "a600f6a4"
+            },
+            {
+              "file": "0.1e",
+              "crc": ""
+            },
+            {
+              "file": "nf01.bin",
+              "crc": "b31ce820"
+            },
+            {
+              "file": "4101-8516.rom",
+              "crc": "5bc2e2fe"
+            },
+            {
+              "file": "601-ic45.a1",
+              "crc": "b04260e9"
+            },
+            {
+              "file": "01_ic45.a1",
+              "crc": "2c53998c"
+            }
+          ]
+        },
+        {
+          "file": "ic46",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "273a4a82",
+          "alt": [
+            {
+              "file": "2-ic46.2a",
+              "crc": "d0e6ae1b"
+            },
+            {
+              "file": "phoenix.46",
+              "crc": "dbc942fa"
+            },
+            {
+              "file": "phoenix3.46",
+              "crc": "5748f486"
+            },
+            {
+              "file": "0202.bin",
+              "crc": "440d56e8"
+            },
+            {
+              "file": "1202.bin",
+              "crc": "6527395e"
+            },
+            {
+              "file": "2.1h",
+              "crc": "cbf2d29e"
+            },
+            {
+              "file": "falcon.46",
+              "crc": "6a13193b"
+            },
+            {
+              "file": "f46.bin",
+              "crc": "22ddb600"
+            },
+            {
+              "file": "vautour2.bin",
+              "crc": "3699b11a"
+            },
+            {
+              "file": "griffon1.a6",
+              "crc": "3cc33e4a"
+            },
+            {
+              "file": "griffon01.6a",
+              "crc": "22ec3403"
+            },
+            {
+              "file": "nf02.bin",
+              "crc": "891d21e1"
+            },
+            {
+              "file": "14-2716.a2",
+              "crc": "d00ba009"
+            },
+            {
+              "file": "4102-2716.rom",
+              "crc": "dcf2cc3e"
+            },
+            {
+              "file": "6002-ic46.a2",
+              "crc": "25a2e4bd"
+            },
+            {
+              "file": "02_ic46.a2",
+              "crc": "fea2435c"
+            }
+          ]
+        },
+        {
+          "file": "ic47",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "3d4284b9",
+          "alt": [
+            {
+              "file": "ic47-pg3.3a",
+              "crc": "cbbb8839"
+            },
+            {
+              "file": "3-ic47.3a",
+              "crc": "64bf463a"
+            },
+            {
+              "file": "0203.bin",
+              "crc": "750b059b"
+            },
+            {
+              "file": "1203.bin",
+              "crc": "868e69ba"
+            },
+            {
+              "file": "3.1f",
+              "crc": "b6f3e6ec"
+            },
+            {
+              "file": "f47.bin",
+              "crc": "cb2838d9"
+            },
+            {
+              "file": "nf03.bin",
+              "crc": "2ab7389d"
+            }
+          ]
+        },
+        {
+          "file": "ic48",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "cb5d9915",
+          "alt": [
+            {
+              "file": "4-ic48.4a",
+              "crc": "1b20fe62"
+            },
+            {
+              "file": "phoenix.48",
+              "crc": "cb65eff8"
+            },
+            {
+              "file": "pn04.48",
+              "crc": "dd41f22b"
+            },
+            {
+              "file": "phoenix3.48",
+              "crc": "b5d97a4d"
+            },
+            {
+              "file": "dal.a4",
+              "crc": "228b76ad"
+            },
+            {
+              "file": "phoenixc.48",
+              "crc": "5ae0b215"
+            },
+            {
+              "file": "01.ic48",
+              "crc": "f28e16d8"
+            },
+            {
+              "file": "4.a4",
+              "crc": "61514bed"
+            },
+            {
+              "file": "phoenixd.48",
+              "crc": "6e51f009"
+            },
+            {
+              "file": "px_4.ic48",
+              "crc": "f2d4ae42"
+            },
+            {
+              "file": "48.bin",
+              "crc": "75623a06"
+            },
+            {
+              "file": "0204.bin",
+              "crc": "e2d3271f"
+            },
+            {
+              "file": "1204.bin",
+              "crc": "85d96d7c"
+            },
+            {
+              "file": "cond04c.bin",
+              "crc": "ca55e1dd"
+            },
+            {
+              "file": "4.bin",
+              "crc": "78416372"
+            },
+            {
+              "file": "4.1e",
+              "crc": "104cb55c"
+            },
+            {
+              "file": "falcon.48",
+              "crc": "084e9766"
+            },
+            {
+              "file": "vautor04.1j",
+              "crc": "106262eb"
+            },
+            {
+              "file": "f48.bin",
+              "crc": "552cf57a"
+            },
+            {
+              "file": "vautour4.bin",
+              "crc": "01a4bfde"
+            },
+            {
+              "file": "ic48",
+              "crc": "b2672265"
+            },
+            {
+              "file": "3.1j",
+              "crc": "61b8a41b"
+            },
+            {
+              "file": "griffon3.a8",
+              "crc": "5e49f5b5"
+            },
+            {
+              "file": "griffon03.8a",
+              "crc": "73c90019"
+            },
+            {
+              "file": "nf04.bin",
+              "crc": "590d3c36"
+            },
+            {
+              "file": "ic48.4_a4",
+              "crc": "25c8b83f"
+            },
+            {
+              "file": "4-2716.a4",
+              "crc": "95534db2"
+            },
+            {
+              "file": "03-811.ic48",
+              "crc": "1e2e2fc7"
+            },
+            {
+              "file": "4104-8516.rom",
+              "crc": "8380a581"
+            },
+            {
+              "file": "6004-ic48.a4",
+              "crc": "4b7701b4"
+            },
+            {
+              "file": "04_ic48.a4",
+              "crc": "90a02a45"
+            },
+            {
+              "file": "fe4.a4",
+              "crc": "d4b6b69f"
+            }
+          ]
+        },
+        {
+          "file": "h5-ic49.5a",
+          "offset": 8192,
+          "size": 2048,
+          "crc": "a105e4e7",
+          "alt": [
+            {
+              "file": "ic49-pg5.5a",
+              "crc": "73bcd2e1"
+            },
+            {
+              "file": "phoenixc.49",
+              "crc": "1a1ce0d0"
+            },
+            {
+              "file": "phoenix.49",
+              "crc": "c8a5d6d6"
+            },
+            {
+              "file": "0205.bin",
+              "crc": "1ff3a982"
+            },
+            {
+              "file": "griffon4.a9",
+              "crc": "87a45ceb"
+            },
+            {
+              "file": "nf05.bin",
+              "crc": "3527f247"
+            },
+            {
+              "file": "4105-8516.rom",
+              "crc": "cfa8cb51"
+            },
+            {
+              "file": "6005-ic49.a5",
+              "crc": "1ab92ef9"
+            },
+            {
+              "file": "05_ic49.a5",
+              "crc": "74b1cf66"
+            }
+          ]
+        },
+        {
+          "file": "h6-ic50.6a",
+          "offset": 10240,
+          "size": 2048,
+          "crc": "ac5e9ec1",
+          "alt": [
+            {
+              "file": "cond06c.bin",
+              "crc": "8c83bff7"
+            },
+            {
+              "file": "1206.bin",
+              "crc": "249a6f21"
+            },
+            {
+              "file": "6.1c",
+              "crc": "0de92138"
+            },
+            {
+              "file": "vautor06.1h",
+              "crc": "c90e3287"
+            },
+            {
+              "file": "6.h1",
+              "crc": "1fcac707"
+            },
+            {
+              "file": "5.1l",
+              "crc": "a210fe51"
+            }
+          ]
+        },
+        {
+          "file": "h7-ic51.7a",
+          "offset": 12288,
+          "size": 2048,
+          "crc": "2eab35b4",
+          "alt": [
+            {
+              "file": "vautor07.1m",
+              "crc": "079ac364"
+            },
+            {
+              "file": "0207.bin",
+              "crc": "805ec2e8"
+            },
+            {
+              "file": "7.1b",
+              "crc": "bbf12d54"
+            },
+            {
+              "file": "falcon.51",
+              "crc": "6e82e400"
+            }
+          ]
+        },
+        {
+          "file": "h8-ic52.8a",
+          "offset": 14336,
+          "size": 2048,
+          "crc": "aff8e9c5",
+          "alt": [
+            {
+              "file": "phoenix.52",
+              "crc": "b9915263"
+            },
+            {
+              "file": "phoenix3.52",
+              "crc": "d2c5c984"
+            },
+            {
+              "file": "dal.a8",
+              "crc": "0a0f92c0"
+            },
+            {
+              "file": "phoenixc.52",
+              "crc": "8424d7c4"
+            },
+            {
+              "file": "px_8.ic52",
+              "crc": "e43fef84"
+            },
+            {
+              "file": "cond08c.bin",
+              "crc": "1edebb45"
+            },
+            {
+              "file": "1208.bin",
+              "crc": "b90efc28"
+            },
+            {
+              "file": "7.1a",
+              "crc": "e9816604"
+            },
+            {
+              "file": "vautor08.1n",
+              "crc": "1dbd937a"
+            },
+            {
+              "file": "f52.bin",
+              "crc": "33f3af63"
+            },
+            {
+              "file": "ic52",
+              "crc": "f3f10ac5"
+            },
+            {
+              "file": "griffon7.a12",
+              "crc": "55e68cb1"
+            },
+            {
+              "file": "griffon07-0.12a",
+              "crc": "7fbdd2fa"
+            },
+            {
+              "file": "nf08.bin",
+              "crc": "04c2323f"
+            },
+            {
+              "file": "ic52.8_a8",
+              "crc": "3657f69b"
+            },
+            {
+              "file": "8-2716.a8",
+              "crc": "89690582"
+            },
+            {
+              "file": "07-811.ic52",
+              "crc": "15a02d87"
+            },
+            {
+              "file": "4108-8516.rom",
+              "crc": "f15c439d"
+            },
+            {
+              "file": "f008-ic52.a8",
+              "crc": "3719fc84"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bgtiles",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "ic23.3d",
+          "offset": 0,
+          "size": 2048,
+          "crc": "3c7e623f"
+        },
+        {
+          "file": "ic24.4d",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "59916d3b"
+        }
+      ]
+    },
+    {
+      "region": "fgtiles",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "b1-ic39.3b",
+          "offset": 0,
+          "size": 2048,
+          "crc": "53413e8f",
+          "alt": [
+            {
+              "file": "phoenixc.39",
+              "crc": "bb0525ed"
+            },
+            {
+              "file": "phoenixd.3b",
+              "crc": "31c06c22"
+            },
+            {
+              "file": "0211.bin",
+              "crc": "53c52eb0"
+            },
+            {
+              "file": "a.bin",
+              "crc": "cdd5ef12"
+            },
+            {
+              "file": "vautor12.2h",
+              "crc": "8eff75c9"
+            },
+            {
+              "file": "griffond7-0.7d",
+              "crc": "074eb660"
+            },
+            {
+              "file": "nf09.bin",
+              "crc": "bacbfa88"
+            },
+            {
+              "file": "ic39.9_b3",
+              "crc": "14ccdf63"
+            }
+          ]
+        },
+        {
+          "file": "b2-ic40.4b",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "0be2ba91",
+          "alt": [
+            {
+              "file": "phoenixc.40",
+              "crc": "4178aa4f"
+            },
+            {
+              "file": "0212.bin",
+              "crc": "eba42f0f"
+            },
+            {
+              "file": "vautor11.2j",
+              "crc": "369e7476"
+            },
+            {
+              "file": "griffond8.8d",
+              "crc": "bee48e0c"
+            },
+            {
+              "file": "nf10.bin",
+              "crc": "3143a9ee"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 512,
+      "loads": [
+        {
+          "file": "mmi6301.ic40",
+          "offset": 0,
+          "size": 256,
+          "crc": "79350b25",
+          "alt": [
+            {
+              "file": "nf.ic40",
+              "crc": "725747be"
+            },
+            {
+              "file": "dm74s287n.ic41",
+              "crc": "7c9f2e00"
+            }
+          ]
+        },
+        {
+          "file": "mmi6301.ic41",
+          "offset": 256,
+          "size": 256,
+          "crc": "e176b768",
+          "alt": [
+            {
+              "file": "sn74s471n.bin",
+              "crc": "c68a49bc"
+            },
+            {
+              "file": "nf.ic41",
+              "crc": "a91055ab"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "CTRL",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "CTRL",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "CTRL",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "CTRL",
+      "mask": 8,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW0",
+      "mask": 3,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW0",
+      "mask": 12,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW0",
+      "mask": 16,
+      "value": 0,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW0",
+      "mask": 32,
+      "value": 32,
+      "name": "Unknown"
+    },
+    {
+      "port": "DSW0",
+      "mask": 64,
+      "value": 64,
+      "name": "Unknown"
+    },
+    {
+      "port": "CAB",
+      "mask": 1,
+      "value": 0,
+      "name": "Cabinet"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 15
+    },
+    {
+      "tag": "DSW0",
+      "init": 224
+    },
+    {
+      "tag": "CAB",
+      "init": 0
+    },
+    {
+      "tag": "CTRL",
+      "init": 255
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

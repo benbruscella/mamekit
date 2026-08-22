@@ -1,0 +1,1576 @@
+{
+  "schemaVersion": 1,
+  "type": "STARFIELD_05XX",
+  "className": "starfield_05xx_device",
+  "hierarchy": [
+    "starfield_05xx_device"
+  ],
+  "sourceFiles": [
+    "src/mame/namco/starfield_05xx.cpp",
+    "src/mame/namco/starfield_05xx.h"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "STARS_COLOR_BASE": 512,
+    "VISIBLE_LINES": 224,
+    "STARFIELD_PIXEL_WIDTH": 256,
+    "LFSR_CYCLES_PER_LINE": 256,
+    "LFSR_HIT_MASK": 64020,
+    "LFSR_HIT_VALUE": 30720,
+    "LFSR_SEED": 32767
+  },
+  "members": [
+    {
+      "name": "m_enable",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_lfsr",
+      "valueType": "uint16_t",
+      "bits": 16,
+      "initial": 32767
+    },
+    {
+      "name": "m_pre_vis_cycle_count",
+      "valueType": "uint16_t",
+      "bits": 16,
+      "initial": 0
+    },
+    {
+      "name": "m_post_vis_cycle_count",
+      "valueType": "uint16_t",
+      "bits": 16,
+      "initial": 0
+    },
+    {
+      "name": "m_set_a",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_set_b",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_offset_x",
+      "valueType": "uint16_t",
+      "bits": 16,
+      "initial": 0
+    },
+    {
+      "name": "m_offset_y",
+      "valueType": "uint16_t",
+      "bits": 16,
+      "initial": 0
+    },
+    {
+      "name": "m_limit_x",
+      "valueType": "uint16_t",
+      "bits": 16,
+      "initial": 0
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "enable_starfield",
+      "parameters": "uint8_t on",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "on"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_lfsr"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "LFSR_SEED"
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "on"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/starfield_05xx.cpp",
+        "line": 551,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_scroll_speed",
+      "parameters": "uint8_t index_x, uint8_t index_y",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pre_vis_cycle_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TABLE"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "index_y"
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 22
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 23
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 22
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 23
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 19
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 20
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 20
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 22
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_post_vis_cycle_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TABLE"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "index_y"
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 10
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 10
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 12
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 12
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 9
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 9
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 10
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 9
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "LFSR_CYCLES_PER_LINE"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pre_vis_cycle_count"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TABLE"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "index_x"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                },
+                {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                },
+                {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/starfield_05xx.cpp",
+        "line": 560,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_active_starfield_sets",
+      "parameters": "uint8_t set_a, uint8_t set_b",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_set_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "set_a"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_set_b"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "set_b"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/starfield_05xx.cpp",
+        "line": 573,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_starfield_config",
+      "parameters": "uint16_t off_x, uint16_t off_y, uint16_t lim_x",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_offset_x"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "off_x"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_offset_y"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "off_y"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_limit_x"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "lim_x"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/starfield_05xx.cpp",
+        "line": 581,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_next_lfsr_state",
+      "parameters": "uint16_t lfsr",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "bit",
+            "valueType": "uint16_t"
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "bit"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "binary",
+                "operator": "^",
+                "left": {
+                  "kind": "binary",
+                  "operator": "^",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "lfsr"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "lfsr"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "lfsr"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 5
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "lfsr"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 10
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "lfsr"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "lfsr"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "bit"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 15
+                }
+              }
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "lfsr"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/starfield_05xx.cpp",
+        "line": 592,
+        "column": 1
+      }
+    },
+    {
+      "name": "draw_starfield",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, int flip",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_enable"
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "pre_vis_cycle_count",
+            "valueType": "uint16_t",
+            "value": {
+              "kind": "identifier",
+              "name": "m_pre_vis_cycle_count"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "post_vis_cycle_count",
+            "valueType": "uint16_t",
+            "value": {
+              "kind": "identifier",
+              "name": "m_post_vis_cycle_count"
+            }
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "identifier",
+              "name": "pre_vis_cycle_count"
+            },
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_lfsr"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_next_lfsr_state"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_lfsr"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "pre_vis_cycle_count"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "y",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_offset_y"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "y"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "+",
+                "left": {
+                  "kind": "identifier",
+                  "name": "VISIBLE_LINES"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_offset_y"
+                }
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "y"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "x",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_offset_x"
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "x"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "STARFIELD_PIXEL_WIDTH"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_offset_x"
+                    }
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "x"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_lfsr"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "LFSR_HIT_MASK"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "LFSR_HIT_VALUE"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "declare",
+                        "name": "star_set",
+                        "valueType": "uint8_t",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "BITSWAP"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "m_lfsr"
+                            },
+                            {
+                              "kind": "number",
+                              "value": 10
+                            },
+                            {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "||",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_set_a"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "star_set"
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_set_b"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "star_set"
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "<",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "x"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "m_limit_x"
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "declare",
+                                "name": "dx",
+                                "valueType": "int",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "identifier",
+                                  "name": "flip"
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "dx"
+                                    },
+                                    "operator": "+=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 64
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "cliprect"
+                                    },
+                                    "property": "contains"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "identifier",
+                                      "name": "dx"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "y"
+                                    }
+                                  ]
+                                },
+                                "then": [
+                                  {
+                                    "op": "declare",
+                                    "name": "color",
+                                    "valueType": "uint8_t"
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "color"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "m_lfsr"
+                                        },
+                                        "right": {
+                                          "kind": "number",
+                                          "value": 5
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 7
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "color"
+                                    },
+                                    "operator": "|=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": "<<",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "m_lfsr"
+                                        },
+                                        "right": {
+                                          "kind": "number",
+                                          "value": 3
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 24
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "color"
+                                    },
+                                    "operator": "|=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": "<<",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "m_lfsr"
+                                        },
+                                        "right": {
+                                          "kind": "number",
+                                          "value": 2
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 32
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "color"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "&",
+                                      "left": {
+                                        "kind": "unary",
+                                        "operator": "~",
+                                        "operand": {
+                                          "kind": "identifier",
+                                          "name": "color"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 63
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "bitmap"
+                                        },
+                                        "property": "pix"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "identifier",
+                                          "name": "y"
+                                        },
+                                        {
+                                          "kind": "identifier",
+                                          "name": "dx"
+                                        }
+                                      ]
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "+",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "STARS_COLOR_BASE"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "color"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_lfsr"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_next_lfsr_state"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_lfsr"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "identifier",
+              "name": "post_vis_cycle_count"
+            },
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_lfsr"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_next_lfsr_state"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_lfsr"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "post_vis_cycle_count"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/starfield_05xx.cpp",
+        "line": 606,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_enable"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_lfsr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pre_vis_cycle_count"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_post_vis_cycle_count"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_set_a"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_set_b"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_offset_x"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_offset_y"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_limit_x"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/starfield_05xx.cpp",
+        "line": 662,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_lfsr"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "LFSR_SEED"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pre_vis_cycle_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_post_vis_cycle_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_set_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_set_b"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/starfield_05xx.cpp",
+        "line": 678,
+        "column": 1
+      }
+    }
+  ],
+  "hotMethods": [
+    "draw_starfield"
+  ],
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 8,
+    "compiledMethods": 8,
+    "diagnostics": 0
+  }
+}

@@ -1,0 +1,331 @@
+# Asteroids (rev 4)
+
+**Atari · 1979** — transpiled from the MAME driver `src/mame/atari/asteroid.cpp` by mamekit.
+
+![marquee](/artwork/media/marquees/asteroid.webp)
+
+| Cover | Cabinet |
+| --- | --- |
+| ![flyer](/artwork/covers/asteroid.webp) | ![cabinet](/artwork/media/cabinets/asteroid.webp) |
+
+## The machine
+
+| CPU | Type | Clock | Mapped ranges |
+| --- | --- | --- | --- |
+| `maincpu` | M6502 | 1.512 MHz | 16 |
+
+- **Sound:** discrete @ 1.512 MHz
+- **Screen:** 1045×789 @ 61.52 Hz
+
+### ROM chips
+
+| Region | Chip | Offset | Size | CRC |
+| --- | --- | --- | --- | --- |
+| `maincpu` | `035145-04e.ef2` | 0x6800 | 0x800 | `b503eaf7` |
+| `maincpu` | `035144-04e.h2` | 0x7000 | 0x800 | `25233192` |
+| `maincpu` | `035143-02.j2` | 0x7800 | 0x800 | `312caa02` |
+| `maincpu` | `035127-02.np3` | 0x5000 | 0x800 | `8b71fd9e` |
+| `dvg:prom` | `034602-01.c8` | 0x0 | 0x100 | `97953db8` |
+
+## Controls
+
+| Key | Function | Port | Bit |
+| --- | --- | --- | --- |
+| Space | button5 | `IN0` | 0x8 |
+| X | button3 | `IN0` | 0x10 |
+| 9 | diagnostic step | `IN0` | 0x20 |
+| 5 | coin1 | `IN1` | 0x1 |
+| 6 | coin2 | `IN1` | 0x2 |
+| 1 | start1 | `IN1` | 0x8 |
+| 2 | start2 | `IN1` | 0x10 |
+| Z | button4 | `IN1` | 0x20 |
+| Right | button2 | `IN1` | 0x40 |
+| Left | button1 | `IN1` | 0x80 |
+
+## DIP switches (factory defaults)
+
+| Setting | Port | Mask | Default |
+| --- | --- | --- | --- |
+| Service Mode | `IN0` | 0x80 | 0x0 |
+| Language | `DSW1` | 0x3 | 0x0 |
+| Lives | `DSW1` | 0x4 | 0x4 |
+| Center Mech | `DSW1` | 0x8 | 0x0 |
+| Right Mech | `DSW1` | 0x30 | 0x0 |
+| Coinage | `DSW1` | 0xc0 | 0x80 |
+| Cabinet | `COCKTAIL` | 0x1 | 0x0 |
+
+## The MAME driver — the people who reverse-engineered it
+
+- **Driver source:** `src/mame/atari/asteroid.cpp`
+- **Written by:** Brad Oliver, Bernd Wiebelt, Allard van der Bas
+- **License:** BSD-3-Clause
+- **Development:** 190 commits by 34 contributors, 2007–2026
+- **Top contributors:** Aaron Giles, Miodrag Milanovic, Vas Crabb, AJR, Ivan Vangelista
+
+## The story
+
+Arcade Video game published 47 years ago:
+
+Asteroids (c) 1979 Atari, Incorporated.
+
+Asteroids is a legendary, genre defining game - in an era replete with genre-defining classics - in which a single player takes control of a spaceship trapped in the middle of an asteroid belt. A number of large, slow-moving asteroids drift randomly around the play area and must be shot by the player. When shot, the asteroids will break into a number of smaller pieces which must also be shot until eventually, all of the asteroids and fragments will be destroyed and the next wave begins. 
+
+Asteroids introduced real-world physics to video games for the first time, with speed and inertia all adding to the player's problems. As well as the inertia of the player's ship - forcing the player to allow for the ship slowing down and speeding up whenever the Thrust button was utilized - shot asteroids would often send fragments flying in seemingly random directions, and at varying and unpredictable speeds. 
+
+As well as the ever-present asteroids, flying saucers also make a regular appearance. These move horizontally and diagonally around the screen, firing at the player's ship, and must be quickly destroyed. They are destroyed when hit by the player's shot, when hit by a saucer's shot or when they collide with an asteroid. 
+
+### Cast of characters
+Spaceship - This is you, the player. You can rotate 360 degrees, fire bullets, thrust forward in any direction, and hyperspace to safety if you feel you are in danger. 
+
+Large Asteroid - These are the large rocks that fill the screen at the beginning of each stage. Hitting one with a bullet will break it apart into two Medium Asteroids. 
+
+Medium Asteroid - Slightly smaller than Large Asteroids, but faster moving. Shooting one of these will result in two Small Asteroids. 
+
+Small Asteroid - These are the smallest and fastest rocks on the screen. If a bullet hits one of these, it will vaporize. 
+
+Large Saucer - Large flying saucers appear on the screen from time to time, randomly firing shots around the screen. They pose a minor threat. 
+
+Small Saucer - The smaller flying saucers are deadlier than the large variety. They are much more precise with their shots, and are more likely to kill you. Eliminate them quickly or get out of their range.
+
+### Technical
+Upright model dimensions: 
+25.25 in. (64.14 cm) wide 
+32 in. (81.28 cm) deep 
+71.87 in. (182.54 cm) high. 
+
+Upright cabinet monitor: 19in. B/W 
+
+The Asteroids upright cabinet was identical in construction to the "Lunar Lander" cabinet. It was a black upright with sideart that featured a scene of a starship in a blue field of asteroids (with several red explosions thrown in for good measure). The marquee featured almost identical graphics to the side-art (with the addition of the familiar yellow 'Asteroids' logo). The control panel was a busy looking red, white, and blue affair that had no joysticks (only buttons). While the monitor bezel had kind of a nebula scene printed on it (this did not really seem to match the rest of the machine). 
+
+Two different sets of coin doors were made on this title, with early cabinets having a unique design that was soon abandoned in favor of the same one that Atari had been using on Lunar Lander. 
+
+Game ID : 035127-035145 
+
+Main CPU : MOS Technology M6502 (@ 1.512 Mhz) 
+Sound Chips : Discrete circuitry.
+
+Buttons : 5 
+= > RIGHT, LEFT, FIRE, THRUST, HYPERSPACE
+
+### Trivia
+Asteroids was released on November 17, 1979 in the USA, selling at an MSRP of $1745.
+
+Asteroids was a much celebrated arcade game that captured the imaginations of millions of players, while capturing a good many quarters as well. 
+
+Originally called 'Cosmos', Asteroids' original design brief was a simple copy of Cinematronics' "Space Wars"; with asteroids littering the play-field purely for visual effect. 'Cosmos' was also once known as 'Planet Grab', in which the player had to claim a planet by touching it with their spaceship. 'Cosmos' allowed players to blow up the planets and duel with another ship, Space Wars-style. Only in Asteroids, which arrived two years later, did Atari engineer Lyle Rains, introduce the concept of free-floating rocks. 
+
+On June 17, 1980, Atari's Asteroids and Lunar Lander were the first two video games to ever be registered in the Copyright Office. 
+
+The first 200 Asteroids machines were actually Lunar Lander cabinets; Asteroids was so successful that Atari cut Lunar Lander's production run and released the 200 aforementioned machines, complete with their original Lunar Lander cabinet art. 
+
+Asteroids remains Atari's bestselling arcade game of all time, with exactly 56,565 units produced (47,840 upright and 8,725 cocktail) in total. 
+
+* Remembrances from the Video Game Masters : Working on Asteroids was so intense that Lyle Rains and Ed Logg often dreamt about their work. 
+
+Lyle Rains : 'In the course of my work I have always found that there are times during the development process when the project gets to me in such a way that I'm eating, drinking, sleeping, and breathing the project. When I close my eyes the images of the screen are there and I dream about them at night. There is something just very intense when you live with a project like that day and night, for months at a time. When we were working on Asteroids, I would play Asteroids for a number of hours in the evening, then I'd go home and I'd close my eyes, and as I was drifting off to sleep I'd see the asteroids floating around the screen.'. 
+
+Ed Logg : 'I was shooting the asteroids all night long; I'd just play the game over and over and over in my head, just as if you were playing it in real life. To a certain extent, I play a lot of the games in my mind long before I ever write them because you have to get all the interactions down pat before you can start programming. I know what it's going to look like before I even get there.'. 
+
+* Popular from the Start : a good barometer of a game's future success was how popular it was within the labs at Atari. The software developers often had to chase people away from their Prototype machines when they arrived at their desks in the morning or returned from lunch. 
+
+Lyle Rains : 'The development on the really good games gets bogged down, because people want to play them all the time. I was in the lab quite often playing Asteroids, as were many other people.'. 
+
+On the overall popularity of Asteroids, Steve Calfee said : 'A lot of people really liked it. Somehow, there's something about people, they like to clean spaces. With Asteroids it's easy to measure your accomplishment, you're breaking big rocks into little rocks and then the little rocks into nothing. It's sort of a metaphor for life.'. 
+
+Rich Adam recalled his own first encounter with Asteroids : 'I'll never forget going into the lab and seeing that game for the first time. It was like an adrenaline rush. I'm out flying this spaceship and it's the miraculous escape. I've got this situation where I've got tons of these boulders flying around the screen, I have almost nowhere to go. I get to blast my way out of it and cheat death one more time; that's a good fantasy, you've got all these things flying around and yet you're able to survive.' 
+
+Howard Delman described what it was like creating the sounds for Asteroids : 'In those days there were no all-purpose sound chips like we have now, so I had to create a hardware circuit for each sound. I would string together electrical circuits that would produce an output wave-form that corresponded to the wave-form of the sound. When put through an amplifier and a loud-speaker, it would sound like whatever I was trying to create. The boom-boom-boom background sound was sort of meant to be like a heartbeat, and the idea was that as the game progressed, the sound speeded up, and the player's heart would speed up, too. You know, stress!'. 
+
+* The Great 25-Cent Escape : On the intensity of playing Asteroids, Ed Rotberg recalled : 'Asteroids was just so intense in the fact that you had a concept of all around fantasy. You had to keep your eyes constantly in motion around the screen because the danger could be coming from any direction, at anytime, and it was always so imminent. In Asteroids it was just you out there, trying to survive. It's an incredibly intense game. The tuning in terms of how fast the spaceship turns and how fast the bullets move and how far they go and how fast the asteroids can go, just all the tuning that Ed Logg put into that, is real artistry.'. 
+
+Asteroids is considered, artistically, to be a video-game masterpiece. Ed Logg opines : 'The simple fact that the spaceship in Asteroids continues to move after you cut thrust, providing a wee glimpse of the Newtonian mechanics of actual space flight, triggered the imaginations of many users'. 
+
+Rich Adam said : 'Asteroids fulfilled the fantasy of being out in space, with no gravity, and free floating. The spaceship had a very elegant grace. A lot of motion in the game had grace, even the way the boulders floated around.'. 
+
+And the game's epic quality was noted by Ed Rotberg : 'What Asteroids allows players to do is to put themselves in an incredible predicament, and then extricate themselves from it. You feel like a hero coming out of it.'. 
+
+There was a modified version of Asteroids that was given the nick-name "Turtleroids"; this was part of a long series of practical jokes against the vice-president of marketing for Atari who was feeling jaded in his feeling towards a game concept called 'Turtle Races'. One day, Ed switched the PROMs of the golden edition of Asteroids in the lobby of Atari so that the little and big UFOs were replaced by turtles, thus providing them with a constant reminder. Another practical joke involving Asteroids was a slight modification in the prototype of the game, because Owen Rubin (initials ORR on most Atari high score tables) kept filling up the high score tables when the programmers were not around. So, they modified the program to replace Owen's initials with Ed's own to keep him away. 
+
+In a monumental display of overconfidence on the part of the Atari programmers, Asteroids rolls over at only 99,999 points. Several players during days-long marathon games have scored over 100,000,000... 
+
+Asteroids keeps track of up to 255 extra men. If the player has too many, the game may slow down, probably due to the processor having to draw all the extra men on the screen. 
+
+John McAllister holds the official record for this game with 41,838,740 points on April 5, 2010. 
+
+The default high score screen of "Cyberball 2072" features names of many Atari arcade games, including ASTEROID. 
+
+Asteroids inspired a catchy hit song by Buckner and Garcia called 'Hyperspace' released on the 'Pac-Man Fever' album. 
+
+An Asteroids unit appears in the 1982 movie 'Fast Times at Ridgemont High', in the 1983 movie 'WarGames', in the 1983 movie 'Terms of Endearment', in the 1983 movie 'Joysticks', in the 1984 movie 'Night of the Comet', in the 1984 movie 'The Iceman', in the 1985 movie 'Remo Williams - The Adventure Begins', in the 1985 movie 'Pee Wee's Big Adventure', and in the 1983 movie 'The Adventures of Bob & Doug McKenzie - Strange Brew'.
+
+An upright Asteroids unit appears in the 38 Special music video 'Caught Up In You', and in April Wine's concert video 'Live In London (1981)'.
+
+Known licensed releases:
+Asteroids (Taito Corp.)
+Asteroids (Sega)
+Meteor (Hoei)
+Super Meteor (Hoei)
+
+Known unlicensed releases:
+Asterock (Sidam)
+Asteroide (Maxenti)
+Meteor (Omni)
+Meteorites (VGG)
+Planet (Alca)
+Hyperspace (unknown)
+
+### Updates
+Revision 1 has an invulnerability glitch, which allows players to hide the ship in the upper corners of the screen (in the score) and be invulnerable to collisions. 
+
+Revision 1 also has a bug which affects thrusting. If the ship reaches full velocity moving down or left, and continues thrusting while rotating to the opposite direction, the ship will not slow down from the full velocity that has been reached in the original direction. 
+
+Revision 2 says '1979 Atari' at the bottom of the title screen, instead of the 'Asteroids by Atari' that was displayed in Revision 1. Also, the invulnerability glitch of Revision 1 is corrected. 
+
+Revision 4 : 
+1) allows small saucer to use wrap-around feature, 
+2) allows small saucer to fire immediately when entering the playing area, and 
+3) prevents the intermittent loss of 3rd initial on 10th highest score.
+
+### Scoring
+Large Asteroids : 20 points. 
+Medium Asteroids : 50 points. 
+Small Asteroids : 100 points. 
+Large Flying Saucer : 200 points. 
+Small Flying Saucer : 1,000 points.
+
+### Tips and tricks
+When you start the game, your spaceship will be in the middle of the screen with four large asteroids heading toward your ship. After all the rocks are destroyed, the next round begins. The number of initial large asteroids depends on the round number: 
+Round 1: 4 
+Round 2: 6 
+Round 3: 8 
+Round 4: 10 
+Round 5 and up: 11 
+
+Your job is to blast those rocks. However, when you blast them, they break up into two medium rocks. Blasting a medium rock gives you two small rocks. Note : There is an exception to this rule. The game program only allows 26 asteroids on the screen at any one time. If the screen already contains 26 asteroids of any size, then when you shoot a large asteroid it breaks up into only one medium asteroid, and when you shoot a medium asteroid it breaks up into only one small asteroid. You can completely destroy a large asteroid with only three shots instead of seven when the screen is filled up like this. 
+
+Destroy the fastest-moving asteroids first. The slower asteroids are easier to avoid and you can deal with them later.
+
+In addition, you have to contend with large and small flying saucers. Remember that you get most of your points by shooting these. On the first few screens, you can sit in the middle and blast rocks to your hearts content. There isn't that much danger since the large saucer doesn't track and only fires random shots. Keep in mind of a few things when shooting : 
+1) You can have four shots on the screen at any one time. This is useful for when you are blasting rocks at close range. You can pretty much drill them to dust. 
+2) Your shots 'wrap around' the screen. This means any shot that goes past the edge of the screen will reappear on the opposite side traveling the same direction. The saucers also have 'wrap around' shots. 
+
+* Try to keep a few defensive shots in reserve. Sometimes, it isn't wise to fire all four shots at once. Without a shot or two in reserve, you are vulnerable if you need to protect yourself from an unexpected asteroid or flying saucer.
+
+* After 10,000 points, the small saucer becomes a permanent part of the game. You can no longer sit in one place since the small saucer is able to track your ship and take you out with the first or second shot. 
+
+* Use hyperspace only in very desperate situations. Something like having four asteroids coming at you at once with nowhere to escape would be a good reason. Eight times out of ten, hyperspace will either put your ship in danger (from a saucer, a plummeting asteroid, or saucer fire) or when you appear somewhere else, your ship will blow up. 
+
+* Although there is danger from the rocks and saucers, you can also be a danger to yourself. Use the thrust carefully or you will find yourself careening out of control on the screen. Some players get really good, however, moving around and shooting. 
+
+* For those desired high scores, you can use the hunting trick. It goes something like this : 
+1) After 10,000 points, the small saucers appear. They are worth 1,000 points apiece. First, blast every rock until you have one small rock left. 
+2) Go sit in the upper left or right corner of the game screen. 
+3) If the small saucer appears from the side you are on, you can blast it before it gets off a shot. If it appears on the opposite side, use the shot 'wrap around' to take care of it. Some people have done this for hours on end and racked up scores in the millions. Of course, it takes a long time at 1,000 points a pop. 
+4) Also keep in mind that the small saucer can wrap shots so you may have to move out of danger.
+
+### Staff
+Designed by : Lyle Rains
+Programmed by : Ed Logg
+Sound & Vector generator display system : Howard Delman
+
+### Ports
+* CONSOLES: 
+[US] Atari 2600 (1981) "Asteroids [Model CX2649]"
+[US] Atari 2600 (1981) "Asteroids [Model 49-75163]"
+[EU] Atari 2600 (1988) "Asteroids [Model CX2649P]"
+[US] Atari 5200 (1982) "Asteroids [Model CX5201]"
+[US] Atari 7800 (1986) "Asteroids [Model CX7802]"
+[US] Sony PlayStation (dec.31, 1996) "Arcade's Greatest Hits - The Atari Collection 1 [Model SLUS-00339]"
+[EU] Sega Saturn (1997) "Arcade's Greatest Hits - The Atari Collection 1 [Model T-25413H-50]"
+[US] Sega Saturn (june.30, 1997) "Arcade's Greatest Hits - The Atari Collection 1 [Model T-9706H]"
+[US] Nintendo SNES (aug.1997) "Arcade's Greatest Hits - The Atari Collection 1 [Model SNS-AW7E-USA]" 
+[EU] Sony PlayStation (dec.1997) "Arcade's Greatest Hits - The Atari Collection 1 [Model SLES-00466]" 
+[EU] Nintendo SNES (feb.26, 1998) "Arcade's Greatest Hits - The Atari Collection 1 [Model SNSP-AW7P-EUR]" 
+[US] Sony PlayStation (2001) "Atari Anniversary Edition Redux [Model SLUS-01427]"
+[US] Sega Dreamcast (jul.2, 2001) "Atari Anniversary Edition [Model T-15130N]"
+[EU] Sony PlayStation (mar.1, 2002) "Atari Anniversary Edition Redux [Model SLES-03808]" 
+[US] Microsoft XBOX (nov.16, 2004) "Atari Anthology [Model 26084]" 
+[US] Sony PS2 (nov.22, 2004) "Atari Anthology [Model SLUS-21076]" 
+[EU] Microsoft XBOX (nov.26, 2004) "Atari Anthology" 
+[EU] Sony PS2 (feb.18, 2005) "Atari Anthology [Model SLES-53061]" 
+[JP] Microsoft XBOX (aug.4, 2005) "Atari Anthology [Model B7X-00001]" 
+[US] [EU] Microsoft XBOX 360 [XBLA] (nov.28, 2007) 
+[US] Microsoft XBOX 360 (jan.3, 2009) "Jordan's Asteroids [XBOX Indie Games]"
+[US] Microsoft XBOX One (nov.1,2016) "Atari Flashback Classics Vol.2" 
+[US] Sony PlayStation 4 (nov.1,2016) "Atari Flashback Classics Vol.2" 
+
+* HANDHELDS: 
+[EU] Nintendo Game Boy (1992) "Asteroids [Model DMG-AN-GPS]"
+[UK] Nintendo Game Boy (1992) "Asteroids [Model DMG-AN-UKV]"
+[US] Nintendo Game Boy (feb.1992) "Asteroids [Model DMG-AN-USA]"
+[US] Atari Lynx (1994) "Super Asteroids & Missile Command [Model PA2093]"
+[EU] Nintendo Game Boy (1995) "Arcade Classic No. 1 - Asteroids & Missile Command [Model DMG-AMCP-NOE]"
+[US] Nintendo Game Boy (jul.1995) "Arcade Classic No. 1 - Asteroids & Missile Command [Model DMG-AMCE-USA]"
+[UK] Nintendo Game Boy (1995) "Arcade Classic No. 1 - Asteroids & Missile Command [Model DMG-AMCP-UKV]"
+[US] Nintendo GBA (mar.25, 2002) "Atari Anniversary Advance [Model AGB-AAVE-USA]"
+[EU] Nintendo GBA (feb.14, 2003) "Atari Anniversary Advance [Model AGB-AAVP-EUR]"
+[UK] Nintendo DS (mar.11, 2005) "Retro Atari Classics [Model NTR-ATAE-UKV]" 
+[EU] Nintendo DS (mar.11, 2005) "Retro Atari Classics [Model NTR-ATAE-EUR]" 
+[US] Nintendo DS (mar.16, 2005) "Retro Atari Classics [Model NTR-ATAE-USA]" 
+[JP] Nintendo DS (june.30, 2005) "Atarimix Happy 10 Games [Model NTR-ATAJ-JPN]" 
+[US] Nintendo GBA (aug.21, 2005) "3 Games in One! Yars' Revenge - Asteroids - Pong [Model AGB-B64E-USA]" 
+[EU] Nintendo GBA (sept.23, 2005) "3 Games in One! Yars' Revenge - Asteroids - Pong [Model AGB-B64P]" 
+[AU] Nintendo DS (nov.2007) "Retro Atari Classics [Model NTR-ATAE-AUS]" 
+[US] Sony PSP (dec.19, 2007) "Atari Classics Evolved [Model ULUS-10325]" 
+[AU] Sony PSP (mar.7, 2008) "Atari Classics Evolved" 
+[US] Nintendo DS (nov.2, 2010) "Atari Greatest Hits Vol.1 [Model NTR-BR6E-USA]" 
+[EU] Nintendo DS (feb.24, 2011) "Atari Greatest Hits Vol.1 [Model NTR-BR6E-USA]" 
+
+* COMPUTERS: 
+[US] Apple II (1980) 
+[US] Atari 800 (1981) "Asteroids [Model CXL-4013]" 
+[US] Tandy Color Computer (1981) "Star Blaster" 
+[US] Tandy Color Computer (1981) "(Color) Meteoroids" 
+[EU] BBC B (1982) "Meteors" - Acornsoft 
+[EU] Acorn Electron (1983) "Meteors" - Acornsoft 
+[EU] Tandy Color Computer (1983) "Microbes" 
+[EU] Sinclair ZX Spectrum (1985) "Asteroid Attack" : Your Computer (UK Magazine) Type-in issue Nov '85, page 82 
+[US] Commodore C64 [EU] (1987) "Arcade Classics" 
+[US] PC [MS Windows 3.1x, 3.5"] (1993) "Microsoft Arcade"
+[US] PC [MS Windows 95, CD-ROM] (1995) "HemiRoids" : Part of "Windows Arcade Pack" 
+[EU] PC [MS Windows, CD-ROM] (1999) "Atari Arcade Hits 1"
+[US] PC [MS Windows, CD-ROM] (jul.13, 1999) "Atari Arcade Hits 1" 
+[US] PC [MS Windows, CD-ROM] (jul.9, 2001) "Atari Anniversary Edition" 
+[EU] PC [MS Windows, CD-ROM] (dec.14, 2001) "Atari Anniversary Edition" 
+[US] PC [MS Windows, CD-ROM] (2003) "Asteroids & Super Breakout" 
+[US] PC [MS Windows, CD-ROM] (nov.11, 2003) "Atari - 80 Classic Games in One! [Model 25069J]"
+[EU] PC [MS Windows, CD-ROM] (june.10, 2005) "Atari - 80 Classic Games in One! [Replay]"
+[US] Steam (mar.24,2016) "Atari Vault [Model 400020]" 
+
+* OTHERS: 
+[US] Mobile phones [Motorola T720] (2002) 
+[US] Mobile phones (june.13, 2003) 
+[US] Nokia N-Gage (2005) "Atari Masterpieces Vol. I" 
+[US] Mobile Phones (jan.1, 2005) "Atari Legends Vol. 1" 
+[EU] Nokia N-Gage (oct.13, 2005) "Atari Masterpieces Vol. I" 
+[US] Apple iPhone/iPod (jan.12, 2009) [Model 30288996] 
+[US] Apple iPhone/iPod (nov.14, 2009) [Model 338486176] 
+[US] Apple iPhone/iPod (mar.9, 2011) "Asteroids Classic [Model 423360672]" 
+[US] Apple iPhone/iPod (jul.18, 2011) "Asteroids Classic HD [Model 450542089]" 
+[US] Apple Store (2012) "Atari Greatest Hits" 
+[US] Google Play (2012) "Atari Greatest Hits" 
+[US] Apple iPhone/iPod (feb.11, 2012) "Asteroids - Classic Arcade Game [Model 498899103]"
+
+### Series
+1. Asteroids [Upright model] (1979, ARC)
+2. Asteroids Deluxe (1981, ARC)
+3. Space Duel [Model 136006] (1982, ARC)
+4. Blasteroids (1988, ARC)
+5. Asteroids (1998, PC/PS)  
+6. Asteroids Hyper 64 (1999, N64)
+7. Asteroids Gunner (2011, App Store)
+8. Asteroids Recharged (2021, PC/XB1/PS4/NS)
+
+### Contribute
+Edit this entry: https://www.arcade-history.com/game/126/?o=2
+
+*Story courtesy of Gaming History (arcade-history.com).*
+
+---
+
+*Generated by [mamekit](https://github.com/benbruscella/mamekit) from the knowledge graph of MAME driver `asteroid`. Play it at [../../../app/g/asteroid/](../../../app/g/asteroid/) or [explore the knowledge graph](viewer.html).*

@@ -1,0 +1,2321 @@
+{
+  "schemaVersion": 1,
+  "type": "NAMCO_06XX",
+  "className": "namco_06xx_device",
+  "hierarchy": [
+    "namco_06xx_device"
+  ],
+  "sourceFiles": [
+    "src/mame/namco/namco06.cpp",
+    "src/mame/namco/namco06.h"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "VERBOSE": 0
+  },
+  "members": [
+    {
+      "name": "m_control",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_timer_state",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    },
+    {
+      "name": "m_read_stretch",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    },
+    {
+      "name": "m_nmicpu",
+      "valueType": "required_device<cpu_device>",
+      "finder": {
+        "kind": "device",
+        "tag": ""
+      }
+    },
+    {
+      "name": "m_nmi_timer",
+      "valueType": "emu_timer"
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "chip_select_callback",
+      "member": "m_chipsel",
+      "slots": 4,
+      "initial": 0
+    },
+    {
+      "signal": "rw_callback",
+      "member": "m_rw",
+      "slots": 4,
+      "initial": 0
+    },
+    {
+      "signal": "read_callback",
+      "member": "m_read",
+      "slots": 4,
+      "initial": 255
+    },
+    {
+      "signal": "write_callback",
+      "member": "m_write",
+      "slots": 4,
+      "initial": 0
+    },
+    {
+      "signal": "nmi",
+      "member": "m_nmi",
+      "slots": 1,
+      "initial": 0
+    }
+  ],
+  "timers": [
+    {
+      "member": "m_nmi_timer",
+      "callback": "nmi_generate"
+    }
+  ],
+  "methods": [
+    {
+      "name": "data_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "result",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m_control"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 4
+                  }
+                ]
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "result"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_read"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "result"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_read"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "result"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_read"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "result"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_read"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "result"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.cpp",
+        "line": 135,
+        "column": 1
+      }
+    },
+    {
+      "name": "data_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "synchronize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "timer_expired_delegate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "namco_06xx_device::write_sync"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.cpp",
+        "line": 154,
+        "column": 1
+      }
+    },
+    {
+      "name": "ctrl_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_control"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.cpp",
+        "line": 174,
+        "column": 1
+      }
+    },
+    {
+      "name": "ctrl_w",
+      "parameters": "uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "synchronize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "timer_expired_delegate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "namco_06xx_device::ctrl_w_sync"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.cpp",
+        "line": 179,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_nmi",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_nmicpu"
+                  },
+                  "property": "suspended"
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "SUSPEND_REASON_HALT"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "SUSPEND_REASON_RESET"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "SUSPEND_REASON_DISABLE"
+                    }
+                  }
+                ]
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_nmi"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "state"
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "ASSERT_LINE"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "CLEAR_LINE"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.cpp",
+        "line": 228,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_nmi_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_alloc"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "namco_06xx_device::nmi_generate"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_control"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_timer_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_read_stretch"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.cpp",
+        "line": 256,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_control"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.cpp",
+        "line": 270,
+        "column": 1
+      }
+    },
+    {
+      "name": "nmi_generate",
+      "parameters": "int param",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timer_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_timer_state"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_timer_state"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_rw"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_control"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_rw"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_control"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_rw"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_control"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_rw"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_control"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_timer_state"
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "m_read_stretch"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_nmi"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_nmi"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_read_stretch"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chipsel"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "BIT"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "m_control"
+                      },
+                      {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_timer_state"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chipsel"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "BIT"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "m_control"
+                      },
+                      {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_timer_state"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chipsel"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "BIT"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "m_control"
+                      },
+                      {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_timer_state"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chipsel"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 3
+                }
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "BIT"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "m_control"
+                      },
+                      {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_timer_state"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.cpp",
+        "line": 102,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_sync",
+      "parameters": "int param",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_write"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "param"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_write"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "param"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_write"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "param"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_write"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "param"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.cpp",
+        "line": 159,
+        "column": 1
+      }
+    },
+    {
+      "name": "ctrl_w_sync",
+      "parameters": "int param",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_control"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "param"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 224
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_nmi_timer"
+                    },
+                    "property": "adjust"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "attotime::never"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_timer_state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_nmi"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_chipsel"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_chipsel"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_chipsel"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_chipsel"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_control"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_nmi"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "CLEAR_LINE"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_read_stretch"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_read_stretch"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "num_shifts",
+                "valueType": "uint8_t",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_control"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 224
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 5
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "divisor",
+                "valueType": "uint8_t",
+                "value": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "num_shifts"
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "period",
+                "valueType": "attotime",
+                "value": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "attotime::from_hz"
+                    },
+                    "args": [
+                      {
+                        "kind": "binary",
+                        "operator": "/",
+                        "left": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "clock"
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "divisor"
+                        }
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "now",
+                "valueType": "attotime",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "time"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "declare",
+                "name": "total_ticks",
+                "valueType": "u64",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "now"
+                    },
+                    "property": "as_ticks"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "clock"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "declare",
+                "name": "delay",
+                "valueType": "attotime",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "attotime::from_ticks"
+                    },
+                    "args": [
+                      {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "total_ticks"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "clock"
+                        },
+                        "args": []
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "now"
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_nmi_timer"
+                    },
+                    "property": "adjust"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "delay"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "period"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.cpp",
+        "line": 184,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_maincpu",
+      "parameters": "T &&tag",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_nmicpu"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.h",
+        "line": 12,
+        "column": 1
+      }
+    },
+    {
+      "name": "chip_select_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_chipsel"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.h",
+        "line": 14,
+        "column": 1
+      }
+    },
+    {
+      "name": "rw_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_rw"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.h",
+        "line": 16,
+        "column": 1
+      }
+    },
+    {
+      "name": "read_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_read"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.h",
+        "line": 17,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_write"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.h",
+        "line": 18,
+        "column": 1
+      }
+    },
+    {
+      "name": "namco_06xx_device::set_maincpu",
+      "parameters": "T &&tag",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_nmicpu"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.h",
+        "line": 12,
+        "column": 100
+      }
+    },
+    {
+      "name": "namco_06xx_device::chip_select_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_chipsel"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.h",
+        "line": 15,
+        "column": 1
+      }
+    },
+    {
+      "name": "namco_06xx_device::rw_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_rw"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.h",
+        "line": 17,
+        "column": 1
+      }
+    },
+    {
+      "name": "namco_06xx_device::read_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_read"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.h",
+        "line": 18,
+        "column": 1
+      }
+    },
+    {
+      "name": "namco_06xx_device::write_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_write"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco06.h",
+        "line": 19,
+        "column": 1
+      }
+    }
+  ],
+  "hotMethods": [
+    "nmi_generate",
+    "write_sync",
+    "ctrl_w_sync"
+  ],
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 20,
+    "compiledMethods": 20,
+    "diagnostics": 0
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "type": "KONAMI1",
+  "uses": [
+    {
+      "game": "gyruss",
+      "tags": [
+        "sub"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "KONAMI1",
+    "className": "konami1_device",
+    "shortName": "konami1",
+    "description": "KONAMI-1",
+    "sourceFile": "src/mame/konami/konami1.cpp",
+    "sourceLine": 12,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(KONAMI1, konami1_device, \"konami1\", \"KONAMI-1\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/konami/konami1.cpp",
+    "src/mame/konami/konami1.h"
+  ]
+}

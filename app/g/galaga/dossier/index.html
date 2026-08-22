@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galaga (Namco rev. B) — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Galaga (Namco rev. B)</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/galaga/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/galaga/galaga-dossier.md" download="galaga-dossier.md">Download galaga-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Namco · 1981</div>
+    <h1>Galaga (Namco rev. B)</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/galaga.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>galaga</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/namco/galaga.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>galaga</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>wsg</strong></div>
+      <div class="fact"><span>Screen</span><strong>288×224 @ 60.61 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>90°</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>Z80</td><td>3.072 MHz</td><td>12</td></tr><tr><td>sub</td><td>Z80</td><td>3.072 MHz</td><td>12</td></tr><tr><td>sub2</td><td>Z80</td><td>3.072 MHz</td><td>12</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>gg1_1b.3p</td><td>0x0</td><td>0x1000</td><td>ab036c9f</td></tr><tr><td>maincpu</td><td>gg1_2b.3m</td><td>0x1000</td><td>0x1000</td><td>d9232240</td></tr><tr><td>maincpu</td><td>gg1_3.2m</td><td>0x2000</td><td>0x1000</td><td>753ce503</td></tr><tr><td>maincpu</td><td>gg1_4b.2l</td><td>0x3000</td><td>0x1000</td><td>499fcc76</td></tr><tr><td>sub</td><td>gg1_5b.3f</td><td>0x0</td><td>0x1000</td><td>bb5caae3</td></tr><tr><td>sub2</td><td>gg1_7b.2c</td><td>0x0</td><td>0x1000</td><td>d016686b</td></tr><tr><td>gfx1</td><td>gg1_9.4l</td><td>0x0</td><td>0x1000</td><td>58b2f47c</td></tr><tr><td>gfx2</td><td>gg1_11.4d</td><td>0x0</td><td>0x1000</td><td>ad447c80</td></tr><tr><td>gfx2</td><td>gg1_10.4f</td><td>0x1000</td><td>0x1000</td><td>dd6f1afc</td></tr><tr><td>proms</td><td>prom-5.5n</td><td>0x0</td><td>0x20</td><td>54603c6b</td></tr><tr><td>proms</td><td>prom-4.2n</td><td>0x20</td><td>0x100</td><td>59b6edab</td></tr><tr><td>proms</td><td>prom-3.1c</td><td>0x120</td><td>0x100</td><td>4a04bb6b</td></tr><tr><td>namco</td><td>prom-1.1d</td><td>0x0</td><td>0x100</td><td>7a2815b4</td></tr><tr><td>namco</td><td>prom-2.5c</td><td>0x100</td><td>0x100</td><td>77245b66</td></tr><tr><td>51xx:mcu</td><td>51xx.bin</td><td>0x0</td><td>0x400</td><td>c2f57ef8</td></tr><tr><td>54xx:mcu</td><td>54xx.bin</td><td>0x0</td><td>0x400</td><td>ee7357e0</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>Right</td><td>joystick right</td><td>IN0</td><td>0x2</td></tr><tr><td>Left</td><td>joystick left</td><td>IN0</td><td>0x8</td></tr><tr><td>Space / X</td><td>button1</td><td>IN1</td><td>0x1</td></tr><tr><td>1</td><td>start1</td><td>IN1</td><td>0x4</td></tr><tr><td>2</td><td>start2</td><td>IN1</td><td>0x8</td></tr><tr><td>5</td><td>coin1</td><td>IN1</td><td>0x10</td></tr><tr><td>6</td><td>coin2</td><td>IN1</td><td>0x20</td></tr><tr><td>9</td><td>service1</td><td>IN1</td><td>0x40</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/namco/galaga.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Nicola Salmoria</strong></div>
+    <div class="fact"><span>Development</span><strong>283 commits by 37 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Miodrag Milanovic, Vas Crabb, Ivan Vangelista, hap</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 45 years ago:
+
+Galaga (c) 1981 Namco. 
+
+Galaga is a single-screen shoot-em-up in which the player controls a 'Fighter' spaceship and must defend the home planet against the on-coming hordes of alien invaders called &quot;Galagans&quot;. The Fighter can only move left and right along the bottom of the screen. 
+
+Galagans fly onto the screen in a variety of formations before forming troop lines at the top of the screen. Once all troop lines are formed the Galagans separate and start attacking the player's Fighter in ones, twos and threes. The top-line Boss Galaga need to be shot twice before they are destroyed. 
+
+The Boss Galaga has a tractor beam that can capture the player's Fighter. A captured Fighter changes color from white to red and stays with that particular Boss until it is destroyed. The Fighter can be retrieved by destroying the Boss that captured it, but players must be careful not to destroy the captured Fighter itself, or that Fighter is lost. A rescued Fighter changes color back to white and links up with the player's current Fighter, doubling its fire power. 
+
+As players progress through each screen, the speed and number of alien attacks increases. Alien formations also become more complex, making the aliens harder to shoot. 
+
+Bonus Fighters are awarded periodically throughout the game, as players reach specific point values, as dictated by the 'Bonus Life' dip switch setting. Each enemy ship also has an assigned point value (see Scoring below). 
+
+The alien troop lines that form at the top of the screen are, from top to bottom: Boss Galaga (in one row of four), Butterflies (red/white bug ships, in two rows of eight, directly below the Boss Galaga), and Bees (blue/yellow bug ships, in two rows of ten, directly below the Butterflies). 
+
+In Stage 1, the enemies do not drop bombs as they fly onto the screen. However, they do so in most of the later stages. 
+
+From Stage 4 onwards, a squadron of special bonus enemies called &quot;transforms&quot; start appearing. They're called transforms because Bees will begin pulsating and move out of formation to change into these bonus enemies. They appear in the form of yellow scorpions in Stages 4, 5, and 6, green 'Spy Ships' from &quot;Bosconian&quot; in Stages 8, 9, and 10, and Galaxian Flagships in Stages 12, 13, and 14. After that, the three different transforms are repeated in the same order. Transforms are always worthwhile targets because they are not very aggressive and are worth more than the other enemies. If all three transforms are destroyed, extra bonus points will be awarded. 
+
+Galaga also features CHALLENGING STAGES, these consist of 40 Galagans that fly onto the screen in formations but do not drop any bombs. The object is to shoot as many of them as possible before they leave the play area. When an entire formation of eight Galagans is destroyed, bonus points are added to the player's score. If all 40 aliens are destroyed, players are awarded a special bonus of 10,000 points. 
+
+Two new gameplay features Galaga introduced are: 
+1) Players are given the chance to double their fire power. 
+2) The game has a rapid fire (automatic firing) option, whereby the player simply holds the FIRE button down and the space fighter continues to fire at the Galagan army in bursts of two missiles each.</p><details><summary>TECHNICAL</summary><p class="story">[Upright model]
+Game ID : GG
+
+Main CPU: Zilog Z80 (x3), MB88xx
+Sound Chips: Namco 3-channel WSG, discrete circuitry (for the ship explosion sound)
+
+Palette colors: 32 (16 colors for tiles + 16 colors for sprites)
+
+Players: 2
+Control: 2-way joystick
+Buttons: 1 (FIRE)</p></details><details><summary>TRIVIA</summary><p class="story">Galaga was released in September 1981 in Japan.
+
+Although Galaga was a superior game, it didn't sell the large numbers that &quot;Galaxian&quot; did. One of the first games with a bonus stage. 
+
+The game 'rolls over' at 999,990 points. The 1P score counter is six digits, but the 2P counter is seven digits. Therefore, most good players start a 2-player game and play exclusively on the 2P side so their score won't 'roll over' at 999,990. After the 1,000,000 mark, new Fighters are no longer awarded. 
+
+What happens after finishing Stage 255 depends upon the skill level set in the DIP switches: 
+* On the easy skill, the game resets. 
+* On the medium skill, the game flips to &quot;Stage 0&quot; which plays as a strange cross between the 2nd Challenging Stage and a regular level where the enemies shoot. The game will advance to Stage 1 after completion, and the game will get easy again. 
+* On the hard skill setting, the words &quot;Stage 0&quot; stay on the screen forever. No more enemies ever appear. The player can continue to move the ship and fire, but there is no way to advance to the next level, or to die. To play again, the machine must be reset. 
+* On the hardest skill, the game flips to &quot;Stage 0&quot; which plays like Stage 1 (no extra enemies when flying onto the screen), but it is still as difficult as Stage 255. The game will advance to Stage 1 after completion, and the game will get easy again. 
+
+If you have more than seven extra Fighters, the marker for the screen will only show 7 1/2 (!) Fighters remaining. Additional extra Fighters will still be credited, even though they won't show on the screen. 
+
+In Japan, the Bees are referred to as 'Zako' and the Butterflies are referred to as 'Goei'. 
+
+Stephen Krogman holds the official record for this game with 15,999,990 points. 
+
+A Galaga unit appears in the 1983 movie 'WarGames', the 1983 movie 'Spring Break' (being played by one of the main characters), the 1984 movie 'The Karate Kid,' the 1987 movie 'Planes, Trains and Automobiles', and the sitcom 'Two and a Half Men', Season 5, Episode 2 (People Who Love Peepholes), and was shown in 2012 movie 'The Avengers' (a agent soldier was surprised playing in the Helicarrier computer).</p></details><details><summary>SCORING</summary><p class="story">Bee: 50 points in formation or 100 points in flight.
+Butterfly: 80 points in formation or 160 points in flight.
+Boss Galaga: 150 points in formation or 400 points in flight.
+Boss Galaga: 800 points in flight with 1 wingman.
+Boss Galaga: 1,600 points in flight with 2 wingmen.
+Scorpions: 160 points each, 1,000 points for destroying all 3.
+Bosconian Spy Ships: 160 points each, 2,000 points for destroying all 3.
+Galaxian Flagships: 160 points each, 3,000 points for destroying all 3.
+Captured fighter: 500 points in formation or 1000 points in flight.
+Challenging Stage: 100 points per ship destroyed if less than 40.
+Challenging Stage: 10,000 points for destroying all 40 ships (Perfect).
+Challenging Stage: 1,000 points on the first two Challenging Stages, 1,500 points on the 3rd and 4th, 2,000 points on the 5th and 6th, and 3,000 points from the 7th onward for destroying a complete formation of 8 ships.</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">* Enemy Stop Shooting:
+On the first stage, kill everything but the two Bees in the bottom left corner. Then just wait, dodging the enemies' shots, until the enemy no longer drops any shots towards you. After the enemies stop firing, let them pass for two more trips and then kill them. For the rest of the game, the enemies will not drop shots. It will take approximately 15 minutes for the enemies to quit shooting at you, so this trick requires a lot of patience. Note : in a 2-player game, only one person has to do the cheat for both players to benefit. But as soon as one of the player's game is over the enemies begin shooting again.
+
+* (BUG) Take The Control Of The Fighter For Free:
+During the Galaga demo, the Boss Galaga comes down and tries to tractor-beam the Fighter. As soon as that tractor-beam starts, the player can take control of the ship in the demo. The player has two choices here and this will affect how the game handles this bug : If the player allows himself to be captured, the demo will continue as normal and he has the option of controlling the player Fighter or not. The player can choose whether to save the captured Fighter, try to complete the level, etc. The demo mode will complete after 30 seconds and the high-score screen will appear. If the player takes control of the Fighter and destroys the Boss Galaga with the tractor beam, some of the characters on the screen will freeze while others are still moving and doing what they are suppose to be doing. This will last 15-20 seconds, then the game will go to the high score screen.
+
+* Challenging stages are easier if the high score numbers are used to refine your aim. These tips assume a 6-digit high score:
+1) On the first two challenging stages, aim your ships so that your left set of bullets falls between the second and third numbers in the high score list.
+2) On subsequent challenging stages, aim one set of your bullets between the first and second numbers in the high score list (if the units come from the left) or between the last and next-to-last numbers (if the units come from the right). This will allow you to hit descending enemies at the highest possible point.
+
+* Here is a neat (and useless) Galaga trick:
+It is possible to end the game with a 200% ratio. The 200% hit-miss ratio trick can only be done with your first shot of the game. When the game starts, don't move, and fire only one shot. If you time it correctly, two enemies will be killed at once. Let your remaining Fighters be destroyed, and presto : a better-than-perfect result.
+
+* Easter Egg:
+1) Enter service mode.
+2) Keep B1 pressed and enter the following sequence : Right(x5), Left(x6), Right(x3), Left(x7). '(c) 1981 NAMCO LTD.' will be added at the bottom of the screen.</p></details><details><summary>STAFF</summary><p class="story">Music by: Nobuyuki Ohnogi</p></details><details><summary>PORTS</summary><p class="story">NOTE: For ports released in North America, please see the Midway Upright Model entry.
+
+* CONSOLES: 
+[JP] Sega SG-1000 (1983) &quot;Sega-Galaga [Model G-1022]&quot; 
+[TW] Sega SG-1000 (198?) &quot;Galaga [Model W-022]&quot; 
+[JP] Nintendo Famicom (feb.15, 1985) &quot;Galaga [Model NGG-4500]&quot; 
+[EU] Nintendo NES (1988) &quot;Galaga [Model NES-AG-EEC]&quot; 
+[JP] Nintendo Famicom Disk (june.22, 1990) &quot;Galaga [Model NDS-GAG]&quot; 
+[JP] Sony PlayStation (nov.22, 1995) &quot;Namco Museum Vol.1 [Model SLPS-00107]&quot; 
+[EU] Philips CD-i (1996) &quot;Arcade Classics [Model 810 0329]&quot; 
+[AU] Sony PlayStation (1996) &quot;Namco Museum Vol.1 [Model SCES-00243]&quot; 
+[EU] Sony PlayStation (aug.1996) &quot;Namco Museum Vol.1 [Model SCES-00243]&quot; 
+[JP] Sony PS2 (jan.26, 2006) &quot;Namco Museum Arcade Hits! [Model SLPS-25590]&quot; 
+[EU] Microsoft XBOX (mar.24, 2006) &quot;Namco Museum - 50th Anniversary&quot; 
+[EU] Sony PS2 (mar.31, 2006) &quot;Namco Museum - 50th Anniversary [Model SLES-53957]&quot; 
+[EU] Nintendo GameCube (may.5, 2006) &quot;Namco Museum - 50th Anniversary [Model DOL-G5NP-EUR]&quot; 
+[EU] [JP] Microsoft XBOX 360 [XBLA] (jul.26, 2006) 
+[JP] Sony PlayStation 3 [PSN] (jan.29, 2009) &quot;Namco Museum.comm [Model NPJB-00012]&quot; 
+[EU] Microsoft XBOX 360 [XBLA] (may.15, 2009) &quot;Namco Museum - Virtual Arcade&quot; 
+[AU] Microsoft XBOX 360 [XBLA] (june.4, 2009) &quot;Namco Museum - Virtual Arcade&quot; 
+[JP] Microsoft XBOX 360 [XBLA] (nov.5, 2009) &quot;Namco Museum - Virtual Arcade [Model 2RD-00001]&quot; 
+[JP] Nintendo Wii [Virtual Console Arcade] (nov.24, 2009) 
+[EU] Sony PlayStation 3 [PSN] (apr.1, 2010) &quot;Namco Museum Essentials [Model NPEB-00104]&quot; 
+[AU] Sony PlayStation 3 [PSN] (apr.1, 2010) &quot;Namco Museum Essentials&quot; 
+[EU] [AU] [JP] Microsoft XBOX One [XBOX Store] (apr.20, 2016) &quot;Arcade Game Series - Galaga&quot; 
+[EU] [AU] Sony PlayStation 4 [PSN] (apr.20, 2016) &quot;Arcade Game Series - Galaga [Model CUSA-03865]&quot; 
+[JP] Sony PlayStation 4 [PSN] (apr.20, 2016) &quot;Arcade Game Series - Galaga [Model CUSA-03668]&quot; 
+
+* HANDHELDS: 
+[UK] Nintendo Game Boy (1995) &quot;Arcade Classic No. 3 - Galaga &amp; Galaxian [Model DMG-AGCP-UKV]&quot; 
+[EU] Nintendo Game Boy (1995) &quot;Arcade Classic No. 3 - Galaga &amp; Galaxian [Model DMG-AGCP-NOE]&quot; 
+[JP] Nintendo Game Boy (1995) &quot;Galaga &amp; Galaxian [Model DMG-AGCJ-JPN]&quot; 
+[JP] Nintendo Game Boy (jul.21, 1996) &quot;Namco Gallery Vol.1 [Model DMG-ANGJ-JPN]&quot; 
+[JP] Nintendo GBA (dec.7, 2001) &quot;Namco Museum [Model AGB-ANMJ-JPN]&quot; 
+[EU] Nintendo GBA (dec.7, 2001) &quot;Namco Museum [Model AGB-ANMP-EUR]&quot; 
+[JP] Sony PSP (feb.24, 2005) &quot;Namco Museum [Model ULJS-00012]&quot; 
+[KO] Sony PSP (may.2, 2005) &quot;Namco Museum [Model UCKS-45005]&quot; 
+[EU] Sony PSP (dec.9, 2005) &quot;Namco Museum Battle Collection [Model UCES-00116]&quot; 
+[EU] Nintendo GBA (mar.31, 2006) &quot;Namco Museum - 50th Anniversary [Model AGB-B5NP-EUR]&quot; 
+[JP] Nintendo DS (oct.11, 2007) &quot;Namco Museum DS [Model NTR-YNMJ-JPN]&quot; 
+[EU] Nintendo DS (feb.29, 2008) &quot;Namco Museum DS [Model NTR-YNMP-EUR]&quot; 
+[JP] Nintendo 3DS (june.23, 2011) &quot;Pac-Man &amp; Galaga Dimensions [Model CTR-APGJ-JPN]&quot; 
+[AU] Nintendo 3DS (aug.25, 2011) &quot;Pac-Man &amp; Galaga Dimensions [Model CTR-APGP-AUS]&quot; 
+[EU] Nintendo 3DS (aug.26, 2011) &quot;Pac-Man &amp; Galaga Dimensions [Model CTR-APGP-EUR]&quot; 
+
+* COMPUTERS: 
+[EU] Commodore C64 (1982) : Unlicensed 
+[JP] Casio PV-2000
+[EU] BBC B (1983) &quot;Zalaga&quot; by Aardvark 
+[EU] Acorn Electron (1984) &quot;Zalaga&quot; by Aardvark 
+[JP] MSX (1984) 
+[JP] NEC PC-9801 (apr.1985) 
+[JP] Fujitsu FM-7 (1985) 
+[JP] Fujitsu FM-77 (1985) 
+[EU] Sharp MZ-700 &quot;Galao&quot; 
+[EU] Sharp MZ-1500 
+[JP] Sharp X1
+[EU] Sharp MZ2500
+[JP] PC [MS Windows] (dec.24, 1998) &quot;Namco History Vol.4&quot; 
+[AU] PC [MS Windows, CD-ROM] (mar.27, 2006) &quot;Namco Museum - 50th Anniversary&quot; 
+[EU] PC [MS Windows, CD-ROM] (may.19, 2006) &quot;Namco Museum - 50th Anniversary&quot; 
+
+* OTHERS: 
+[JP] Arcade (1995) &quot;Namco Classics Collection Vol.1&quot;
+[JP] PC [MS Windows, Online] (apr.20, 2016) &quot;Arcade Game Series - Galaga&quot;</p></details><details><summary>SERIES</summary><p class="story">1. Galaxian (1979)
+2. Galaga (1981)
+3. Gaplus (1984) : also known in the USA as &quot;Galaga 3&quot;
+4. Galaga '88 (1987)
+5. Galaxian 3 Theatre 6 - Project Dragoon (1990)
+6. Galaxian 3 Theatre 6 J2 - Attack Of The Zolgear (1994)
+7. Galaga Arrangement (1995) : part of &quot;Namco Classics Collection Vol.1&quot;
+8. Galaga - Destination Earth (2000, GBA, PC CD-ROM and PlayStation)
+9. Galaga Arrangement (2005, PSP) : part of &quot;Namco Museum Battle Collection&quot; 
+10. Galaga Remix (2007, Wii) : part of &quot;Namco Museum Remix&quot; 
+11. Galaga Legions (2008, XBLA)
+12. Galaga Legions DX (2010, PSN, XBLA)
+13. Galaga 3D Impact (2011, Nintendo 3DS) : part of &quot;Pac-Man &amp; Galaga Dimensions&quot;</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/898/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

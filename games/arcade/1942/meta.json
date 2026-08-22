@@ -1,0 +1,202 @@
+{
+  "game": "1942",
+  "title": "1942 (Revision B) (Capcom, 1984)",
+  "fullname": "1942 (Revision B)",
+  "year": "1984",
+  "manufacturer": "Capcom",
+  "family": "1942",
+  "driverFile": "src/mame/capcom/1942.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Paul Leaman, Couriersud",
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-17",
+    "commits": 174,
+    "contributors": 29,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Vas Crabb",
+      "Ivan Vangelista",
+      "hap"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 46,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2020-09-13"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 33,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 15,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2022-06-27"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 11,
+        "firstCommit": "2014-05-06",
+        "lastCommit": "2022-11-26"
+      },
+      {
+        "name": "hap",
+        "commits": 9,
+        "firstCommit": "2024-04-12",
+        "lastCommit": "2026-06-17"
+      },
+      {
+        "name": "couriersud",
+        "commits": 6,
+        "firstCommit": "2015-05-25",
+        "lastCommit": "2019-10-13"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 6,
+        "firstCommit": "2014-02-04",
+        "lastCommit": "2014-07-14"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 6,
+        "firstCommit": "2013-11-17",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 6,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2021-05-17"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 4,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2020-02-17"
+      },
+      {
+        "name": "Brian Troha",
+        "commits": 3,
+        "firstCommit": "2008-04-20",
+        "lastCommit": "2008-04-24"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 3,
+        "firstCommit": "2012-09-22",
+        "lastCommit": "2014-08-10"
+      },
+      {
+        "name": "smf-",
+        "commits": 3,
+        "firstCommit": "2013-01-11",
+        "lastCommit": "2020-02-17"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 2,
+        "firstCommit": "2014-03-03",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 2,
+        "firstCommit": "2009-11-18",
+        "lastCommit": "2009-11-29"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 2,
+        "firstCommit": "2018-05-16",
+        "lastCommit": "2020-02-17"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 2,
+        "firstCommit": "2009-10-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 2,
+        "firstCommit": "2011-08-23",
+        "lastCommit": "2016-04-27"
+      },
+      {
+        "name": "Vinicius Sa",
+        "commits": 2,
+        "firstCommit": "2018-06-26",
+        "lastCommit": "2018-07-14"
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "commits": 2,
+        "firstCommit": "2008-01-24",
+        "lastCommit": "2008-02-29"
+      },
+      {
+        "name": "AJR",
+        "commits": 1,
+        "firstCommit": "2017-09-09",
+        "lastCommit": "2017-09-09"
+      },
+      {
+        "name": "andreasnaive",
+        "commits": 1,
+        "firstCommit": "2019-03-25",
+        "lastCommit": "2019-03-25"
+      },
+      {
+        "name": "Angelo Salese",
+        "commits": 1,
+        "firstCommit": "2010-10-19",
+        "lastCommit": "2010-10-19"
+      },
+      {
+        "name": "balr0g",
+        "commits": 1,
+        "firstCommit": "2015-05-28",
+        "lastCommit": "2015-05-28"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 1,
+        "firstCommit": "2008-08-11",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Kaz",
+        "commits": 1,
+        "firstCommit": "2017-02-06",
+        "lastCommit": "2017-02-06"
+      },
+      {
+        "name": "kazblox",
+        "commits": 1,
+        "firstCommit": "2015-10-08",
+        "lastCommit": "2015-10-08"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Yasuhiro Ogawa",
+        "commits": 1,
+        "firstCommit": "2009-05-27",
+        "lastCommit": "2009-05-27"
+      }
+    ]
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

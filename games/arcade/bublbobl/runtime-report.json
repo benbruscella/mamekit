@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 2,
+  "game": "bublbobl",
+  "family": "bublbobl",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "sourceCoverage": {
+    "covered": 119,
+    "total": 161,
+    "percent": 73.9
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "mcu:M6801U4",
+        "status": "executable",
+        "source": "src/devices/cpu/m6800/m6801.cpp:407"
+      },
+      {
+        "name": "maincpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "subcpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "audiocpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundirq:INPUT_MERGER_ANY_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:43"
+      },
+      {
+        "name": "soundnmi:INPUT_MERGER_ALL_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:44"
+      },
+      {
+        "name": "main_to_sound:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "sound_to_main:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ym2203:YM2203",
+        "status": "executable",
+        "source": "src/devices/sound/ymopn.cpp:12"
+      },
+      {
+        "name": "ym3526:YM3526",
+        "status": "executable",
+        "source": "src/devices/sound/ymopl.cpp:12"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.bank1",
+        "status": "generated"
+      },
+      {
+        "name": "bublbobl_state.bublbobl_bankswitch_w",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl_m.cpp:43"
+      },
+      {
+        "name": "bublbobl_state.bublbobl_nmitrigger_w",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl_m.cpp:116"
+      },
+      {
+        "name": "bublbobl_state.bublbobl_soundcpu_reset_w",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl_m.cpp:135"
+      },
+      {
+        "name": "bublbobl_state.common_sound_semaphores_r",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl_m.cpp:141"
+      },
+      {
+        "name": "main_to_sound.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "main_to_sound.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "palette.write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "sound_to_main.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "sound_to_main.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundnmi.in_clear_0",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:44"
+      },
+      {
+        "name": "soundnmi.in_set_0",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:44"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      },
+      {
+        "name": "ym2203.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopn.cpp:12"
+      },
+      {
+        "name": "ym2203.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopn.cpp:12"
+      },
+      {
+        "name": "ym3526.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopl.cpp:12"
+      },
+      {
+        "name": "ym3526.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopl.cpp:12"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "subcpu.set_vblank_int -> screen.irq0_line_hold",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:952"
+      },
+      {
+        "name": "screen.set_screen_update -> bublbobl_state.screen_update_bublbobl",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:967"
+      },
+      {
+        "name": "soundirq.output_handler -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:976"
+      },
+      {
+        "name": "soundnmi.output_handler -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:977"
+      },
+      {
+        "name": "main_to_sound.data_pending_callback -> soundnmi.in_w_1",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:979"
+      },
+      {
+        "name": "ym2203.irq_handler -> soundirq.in_w_0",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:983"
+      },
+      {
+        "name": "ym3526.irq_handler -> soundirq.in_w_1",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:987"
+      },
+      {
+        "name": "maincpu.set_irq_acknowledge_callback -> bublbobl_state.mcram_vect_r",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:994"
+      },
+      {
+        "name": "screen.screen_vblank -> mcu",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:1004"
+      },
+      {
+        "name": "mcu.in_p1_cb -> IN0",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:997"
+      },
+      {
+        "name": "mcu.out_p1_cb -> bublbobl_state.bublbobl_mcu_port1_w",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:998"
+      },
+      {
+        "name": "mcu.out_p2_cb -> bublbobl_state.bublbobl_mcu_port2_w",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:999"
+      },
+      {
+        "name": "mcu.out_p3_cb -> bublbobl_state.bublbobl_mcu_port3_w",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:1000"
+      },
+      {
+        "name": "mcu.in_p3_cb -> bublbobl_state.bublbobl_mcu_port3_r",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:1001"
+      },
+      {
+        "name": "mcu.out_p4_cb -> bublbobl_state.bublbobl_mcu_port4_w",
+        "status": "generated",
+        "source": "src/mame/taito/bublbobl.cpp:1002"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/bublbobl/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 14,
+    "compiledMethods": 14,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 4,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 4,
+    "frameCallbacks": 2,
+    "screenUpdate": "bublbobl_state.screen_update_bublbobl",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 20,
+    "generated": 22,
+    "declarative-host": 6,
+    "blocked": 0,
+    "missing": 0
+  }
+}

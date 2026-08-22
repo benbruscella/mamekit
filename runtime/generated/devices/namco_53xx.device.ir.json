@@ -1,0 +1,624 @@
+{
+  "schemaVersion": 1,
+  "type": "NAMCO_53XX",
+  "className": "namco_53xx_device",
+  "hierarchy": [
+    "namco_53xx_device"
+  ],
+  "sourceFiles": [
+    "src/mame/namco/namco53.cpp",
+    "src/mame/namco/namco53.h"
+  ],
+  "constants": {
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2
+  },
+  "members": [
+    {
+      "name": "m_portO",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_cpu",
+      "valueType": "required_device<mb88_cpu_device>",
+      "finder": {
+        "kind": "device",
+        "tag": "mcu"
+      }
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "k_port_callback",
+      "member": "m_k",
+      "slots": 1,
+      "initial": 255
+    },
+    {
+      "signal": "input_callback",
+      "member": "m_in",
+      "slots": 4,
+      "initial": 255
+    },
+    {
+      "signal": "p_port_callback",
+      "member": "m_p",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "reset",
+      "member": "m_reset",
+      "slots": 1,
+      "initial": 0
+    }
+  ],
+  "timers": [],
+  "methods": [
+    {
+      "name": "reset",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_reset"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "state"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "CLEAR_LINE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "ASSERT_LINE"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.cpp",
+        "line": 63,
+        "column": 1
+      }
+    },
+    {
+      "name": "K_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_k"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.cpp",
+        "line": 69,
+        "column": 1
+      }
+    },
+    {
+      "name": "R_r_0",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.cpp",
+        "line": 75,
+        "column": 1
+      }
+    },
+    {
+      "name": "R_r_1",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.cpp",
+        "line": 75,
+        "column": 1
+      }
+    },
+    {
+      "name": "R_r_2",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.cpp",
+        "line": 75,
+        "column": 1
+      }
+    },
+    {
+      "name": "R_r_3",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 3
+                }
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.cpp",
+        "line": 75,
+        "column": 1
+      }
+    },
+    {
+      "name": "O_w",
+      "parameters": "uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_portO"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.cpp",
+        "line": 80,
+        "column": 1
+      }
+    },
+    {
+      "name": "P_w",
+      "parameters": "uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_p"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.cpp",
+        "line": 85,
+        "column": 1
+      }
+    },
+    {
+      "name": "chip_select",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "MB88XX_IRQ_LINE"
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "state"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "ASSERT_LINE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "CLEAR_LINE"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.cpp",
+        "line": 90,
+        "column": 1
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_portO"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.cpp",
+        "line": 95,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_portO"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.cpp",
+        "line": 125,
+        "column": 1
+      }
+    },
+    {
+      "name": "input_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_in"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.h",
+        "line": 14,
+        "column": 1
+      }
+    },
+    {
+      "name": "k_port_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_k"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.h",
+        "line": 16,
+        "column": 1
+      }
+    },
+    {
+      "name": "p_port_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_p"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.h",
+        "line": 18,
+        "column": 1
+      }
+    },
+    {
+      "name": "namco_53xx_device::input_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_in"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "N"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.h",
+        "line": 14,
+        "column": 100
+      }
+    },
+    {
+      "name": "namco_53xx_device::k_port_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_k"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.h",
+        "line": 17,
+        "column": 1
+      }
+    },
+    {
+      "name": "namco_53xx_device::p_port_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_p"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/namco/namco53.h",
+        "line": 19,
+        "column": 1
+      }
+    }
+  ],
+  "hotMethods": [
+    "K_r",
+    "R_r_0",
+    "R_r_1",
+    "R_r_2",
+    "R_r_3",
+    "O_w",
+    "P_w"
+  ],
+  "start": "device_start",
+  "summary": {
+    "methods": 17,
+    "compiledMethods": 17,
+    "diagnostics": 0
+  }
+}

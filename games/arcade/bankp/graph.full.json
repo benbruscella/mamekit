@@ -1,0 +1,4275 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/sanritsu/bankp.cpp",
+    "generatedAt": "2026-08-22T05:52:09.369Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/sanritsu/bankp.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/sanritsu/bankp.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/sn76496.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/sn76496.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:bankp",
+      "label": "Game",
+      "props": {
+        "name": "bankp",
+        "year": "1984",
+        "company": "Sanritsu / Sega",
+        "fullname": "Bank Panic",
+        "monitor": "ROT0",
+        "cls": "bankp_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 673,
+        "sourceColumn": 1,
+        "sourceEndLine": 673
+      }
+    },
+    {
+      "id": "game:bankpt",
+      "label": "Game",
+      "props": {
+        "name": "bankpt",
+        "year": "1984",
+        "company": "bootleg (Tecfri)",
+        "fullname": "Bank Panic (Tecfri bootleg)",
+        "monitor": "ROT0",
+        "cls": "bankp_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 674,
+        "sourceColumn": 1,
+        "sourceEndLine": 674
+      }
+    },
+    {
+      "id": "game:combh",
+      "label": "Game",
+      "props": {
+        "name": "combh",
+        "year": "1987",
+        "company": "Sanritsu / Sega",
+        "fullname": "Combat Hawk",
+        "monitor": "ROT270",
+        "cls": "bankp_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 675,
+        "sourceColumn": 1,
+        "sourceEndLine": 675
+      }
+    },
+    {
+      "id": "romset:bankp",
+      "label": "RomSet",
+      "props": {
+        "name": "bankp",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 577,
+        "sourceColumn": 1,
+        "sourceEndLine": 577
+      }
+    },
+    {
+      "id": "region:bankp/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 578,
+        "sourceColumn": 2,
+        "sourceEndLine": 578
+      }
+    },
+    {
+      "id": "rom:bankp/maincpu/epr-6175.7e",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6175.7e",
+        "offset": 0,
+        "size": 16384,
+        "crc": "044552b8",
+        "sha1": "8d50ba062483d4789cfd3ed86cea53dff0ff6968",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 579,
+        "sourceColumn": 2,
+        "sourceEndLine": 579
+      }
+    },
+    {
+      "id": "rom:bankp/maincpu/epr-6174.7f",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6174.7f",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "d29b1598",
+        "sha1": "8c1ee4d23d8d6f93af3e22f2cba189b0055994fb",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 580,
+        "sourceColumn": 2,
+        "sourceEndLine": 580
+      }
+    },
+    {
+      "id": "rom:bankp/maincpu/epr-6173.7h",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6173.7h",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "b8405d38",
+        "sha1": "0f62a972f38b4ddcea77eb0e1d76c70ddbcb7b11",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 581,
+        "sourceColumn": 2,
+        "sourceEndLine": 581
+      }
+    },
+    {
+      "id": "rom:bankp/maincpu/epr-6176.7d",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6176.7d",
+        "offset": 49152,
+        "size": 8192,
+        "crc": "c98ac200",
+        "sha1": "1bdb87868deebe03da18280e617530c24118da1c",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 582,
+        "sourceColumn": 2,
+        "sourceEndLine": 582
+      }
+    },
+    {
+      "id": "region:bankp/fgtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "fgtiles",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 584,
+        "sourceColumn": 2,
+        "sourceEndLine": 584
+      }
+    },
+    {
+      "id": "rom:bankp/fgtiles/epr-6165.5l",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6165.5l",
+        "offset": 0,
+        "size": 8192,
+        "crc": "aef34a93",
+        "sha1": "513895cd3144977b3d9b5ac7f2bf40384d69e157",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 585,
+        "sourceColumn": 2,
+        "sourceEndLine": 585
+      }
+    },
+    {
+      "id": "rom:bankp/fgtiles/epr-6166.5k",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6166.5k",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "ca13cb11",
+        "sha1": "3aca0b0d3f052a742e1cd0b96bfad834e78fcd7d",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 586,
+        "sourceColumn": 2,
+        "sourceEndLine": 586
+      }
+    },
+    {
+      "id": "region:bankp/bgtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bgtiles",
+        "size": 49152,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 588,
+        "sourceColumn": 2,
+        "sourceEndLine": 588
+      }
+    },
+    {
+      "id": "rom:bankp/bgtiles/epr-6172.5b",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6172.5b",
+        "offset": 0,
+        "size": 8192,
+        "crc": "c4c4878b",
+        "sha1": "423143d81408eda96f87bdc3a306517c473cbe00",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 589,
+        "sourceColumn": 2,
+        "sourceEndLine": 589
+      }
+    },
+    {
+      "id": "rom:bankp/bgtiles/epr-6171.5d",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6171.5d",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "a18165a1",
+        "sha1": "9a7513ea84f9231edba4e637df28a1705c8cdeb0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 590,
+        "sourceColumn": 2,
+        "sourceEndLine": 590
+      }
+    },
+    {
+      "id": "rom:bankp/bgtiles/epr-6170.5e",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6170.5e",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "b58aa8fa",
+        "sha1": "432b43cd9af4e3dab579cfd191b731aa11ceb121",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 2,
+        "sourceEndLine": 591
+      }
+    },
+    {
+      "id": "rom:bankp/bgtiles/epr-6169.5f",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6169.5f",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "1aa37fce",
+        "sha1": "6e2402683145de8972a53c9ec01da9a422392bed",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 592,
+        "sourceColumn": 2,
+        "sourceEndLine": 592
+      }
+    },
+    {
+      "id": "rom:bankp/bgtiles/epr-6168.5h",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6168.5h",
+        "offset": 32768,
+        "size": 8192,
+        "crc": "05f3a867",
+        "sha1": "9da11c3cea967c5f0d7397c0ff4f87b4b1446c4c",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 593,
+        "sourceColumn": 2,
+        "sourceEndLine": 593
+      }
+    },
+    {
+      "id": "rom:bankp/bgtiles/epr-6167.5i",
+      "label": "Rom",
+      "props": {
+        "file": "epr-6167.5i",
+        "offset": 40960,
+        "size": 8192,
+        "crc": "3fa337e1",
+        "sha1": "5fdc45436be27cceb5157bd6201c30e3de28fd7b",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 594,
+        "sourceColumn": 2,
+        "sourceEndLine": 594
+      }
+    },
+    {
+      "id": "region:bankp/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 596,
+        "sourceColumn": 2,
+        "sourceEndLine": 596
+      }
+    },
+    {
+      "id": "rom:bankp/proms/pr-6177.8a",
+      "label": "Rom",
+      "props": {
+        "file": "pr-6177.8a",
+        "offset": 0,
+        "size": 32,
+        "crc": "eb70c5ae",
+        "sha1": "13613dad6c14004278f777d6f3f62712a2a85773",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 597,
+        "sourceColumn": 2,
+        "sourceEndLine": 597
+      }
+    },
+    {
+      "id": "rom:bankp/proms/pr-6178.6f",
+      "label": "Rom",
+      "props": {
+        "file": "pr-6178.6f",
+        "offset": 32,
+        "size": 256,
+        "crc": "0acca001",
+        "sha1": "54c354d825a24a9085867b114a2cd6835baebe55",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 598,
+        "sourceColumn": 2,
+        "sourceEndLine": 598
+      }
+    },
+    {
+      "id": "rom:bankp/proms/pr-6179.5a",
+      "label": "Rom",
+      "props": {
+        "file": "pr-6179.5a",
+        "offset": 288,
+        "size": 256,
+        "crc": "e53bafdb",
+        "sha1": "7a414f6db5476dd7d0217e5b846ed931381eda02",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 599,
+        "sourceColumn": 2,
+        "sourceEndLine": 599
+      }
+    },
+    {
+      "id": "region:bankp/user1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "user1",
+        "size": 604,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 601,
+        "sourceColumn": 2,
+        "sourceEndLine": 601
+      }
+    },
+    {
+      "id": "rom:bankp/user1/315-5074.2c.bin",
+      "label": "Rom",
+      "props": {
+        "file": "315-5074.2c.bin",
+        "offset": 0,
+        "size": 603,
+        "crc": "2e57bbba",
+        "sha1": "c3e45e8a972342779442e50872a2f5f2d61e9c0a",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 602,
+        "sourceColumn": 2,
+        "sourceEndLine": 602
+      }
+    },
+    {
+      "id": "rom:bankp/user1/315-5073.pal16l4",
+      "label": "Rom",
+      "props": {
+        "file": "315-5073.pal16l4",
+        "offset": 603,
+        "size": 1,
+        "crc": "",
+        "sha1": "",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 603,
+        "sourceColumn": 2,
+        "sourceEndLine": 603,
+        "status": "nodump"
+      }
+    },
+    {
+      "id": "romset:bankpt",
+      "label": "RomSet",
+      "props": {
+        "name": "bankpt",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 606,
+        "sourceColumn": 1,
+        "sourceEndLine": 606
+      }
+    },
+    {
+      "id": "region:bankpt/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 578,
+        "sourceColumn": 2,
+        "sourceEndLine": 578
+      }
+    },
+    {
+      "id": "rom:bankpt/maincpu/11.bin",
+      "label": "Rom",
+      "props": {
+        "file": "11.bin",
+        "offset": 0,
+        "size": 16384,
+        "crc": "056755ce",
+        "sha1": "7375b856a5757b8b6336ccc16df460a79c3f25a7",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 608,
+        "sourceColumn": 2,
+        "sourceEndLine": 608
+      }
+    },
+    {
+      "id": "rom:bankpt/maincpu/10.bin",
+      "label": "Rom",
+      "props": {
+        "file": "10.bin",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "d29b1598",
+        "sha1": "8c1ee4d23d8d6f93af3e22f2cba189b0055994fb",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 609,
+        "sourceColumn": 2,
+        "sourceEndLine": 609
+      }
+    },
+    {
+      "id": "rom:bankpt/maincpu/9.bin",
+      "label": "Rom",
+      "props": {
+        "file": "9.bin",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "08a8137b",
+        "sha1": "1dbda68825101d5474eecc58ff9b5f9fe79b0b33",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 610,
+        "sourceColumn": 2,
+        "sourceEndLine": 610
+      }
+    },
+    {
+      "id": "rom:bankpt/maincpu/12.bin",
+      "label": "Rom",
+      "props": {
+        "file": "12.bin",
+        "offset": 49152,
+        "size": 8192,
+        "crc": "c98ac200",
+        "sha1": "1bdb87868deebe03da18280e617530c24118da1c",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 611,
+        "sourceColumn": 2,
+        "sourceEndLine": 611
+      }
+    },
+    {
+      "id": "region:bankpt/fgtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "fgtiles",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 584,
+        "sourceColumn": 2,
+        "sourceEndLine": 584
+      }
+    },
+    {
+      "id": "rom:bankpt/fgtiles/1.bin",
+      "label": "Rom",
+      "props": {
+        "file": "1.bin",
+        "offset": 0,
+        "size": 8192,
+        "crc": "aef34a93",
+        "sha1": "513895cd3144977b3d9b5ac7f2bf40384d69e157",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 614,
+        "sourceColumn": 2,
+        "sourceEndLine": 614
+      }
+    },
+    {
+      "id": "rom:bankpt/fgtiles/2.bin",
+      "label": "Rom",
+      "props": {
+        "file": "2.bin",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "ca13cb11",
+        "sha1": "3aca0b0d3f052a742e1cd0b96bfad834e78fcd7d",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 615,
+        "sourceColumn": 2,
+        "sourceEndLine": 615
+      }
+    },
+    {
+      "id": "region:bankpt/bgtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bgtiles",
+        "size": 49152,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 588,
+        "sourceColumn": 2,
+        "sourceEndLine": 588
+      }
+    },
+    {
+      "id": "rom:bankpt/bgtiles/8.bin",
+      "label": "Rom",
+      "props": {
+        "file": "8.bin",
+        "offset": 0,
+        "size": 8192,
+        "crc": "c4c4878b",
+        "sha1": "423143d81408eda96f87bdc3a306517c473cbe00",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 618,
+        "sourceColumn": 2,
+        "sourceEndLine": 618
+      }
+    },
+    {
+      "id": "rom:bankpt/bgtiles/7.bin",
+      "label": "Rom",
+      "props": {
+        "file": "7.bin",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "a18165a1",
+        "sha1": "9a7513ea84f9231edba4e637df28a1705c8cdeb0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 619,
+        "sourceColumn": 2,
+        "sourceEndLine": 619
+      }
+    },
+    {
+      "id": "rom:bankpt/bgtiles/6.bin",
+      "label": "Rom",
+      "props": {
+        "file": "6.bin",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "b58aa8fa",
+        "sha1": "432b43cd9af4e3dab579cfd191b731aa11ceb121",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 620,
+        "sourceColumn": 2,
+        "sourceEndLine": 620
+      }
+    },
+    {
+      "id": "rom:bankpt/bgtiles/5.bin",
+      "label": "Rom",
+      "props": {
+        "file": "5.bin",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "1aa37fce",
+        "sha1": "6e2402683145de8972a53c9ec01da9a422392bed",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 621,
+        "sourceColumn": 2,
+        "sourceEndLine": 621
+      }
+    },
+    {
+      "id": "rom:bankpt/bgtiles/4.bin",
+      "label": "Rom",
+      "props": {
+        "file": "4.bin",
+        "offset": 32768,
+        "size": 8192,
+        "crc": "05f3a867",
+        "sha1": "9da11c3cea967c5f0d7397c0ff4f87b4b1446c4c",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 622,
+        "sourceColumn": 2,
+        "sourceEndLine": 622
+      }
+    },
+    {
+      "id": "rom:bankpt/bgtiles/3.bin",
+      "label": "Rom",
+      "props": {
+        "file": "3.bin",
+        "offset": 40960,
+        "size": 8192,
+        "crc": "3fa337e1",
+        "sha1": "5fdc45436be27cceb5157bd6201c30e3de28fd7b",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 623,
+        "sourceColumn": 2,
+        "sourceEndLine": 623
+      }
+    },
+    {
+      "id": "region:bankpt/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 596,
+        "sourceColumn": 2,
+        "sourceEndLine": 596
+      }
+    },
+    {
+      "id": "rom:bankpt/proms/82s123.bin",
+      "label": "Rom",
+      "props": {
+        "file": "82s123.bin",
+        "offset": 0,
+        "size": 32,
+        "crc": "eb70c5ae",
+        "sha1": "13613dad6c14004278f777d6f3f62712a2a85773",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 626,
+        "sourceColumn": 2,
+        "sourceEndLine": 626
+      }
+    },
+    {
+      "id": "rom:bankpt/proms/6_82s129.bin",
+      "label": "Rom",
+      "props": {
+        "file": "6_82s129.bin",
+        "offset": 32,
+        "size": 256,
+        "crc": "0acca001",
+        "sha1": "54c354d825a24a9085867b114a2cd6835baebe55",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 627,
+        "sourceColumn": 2,
+        "sourceEndLine": 627
+      }
+    },
+    {
+      "id": "rom:bankpt/proms/5_82s129.bin",
+      "label": "Rom",
+      "props": {
+        "file": "5_82s129.bin",
+        "offset": 288,
+        "size": 256,
+        "crc": "e53bafdb",
+        "sha1": "7a414f6db5476dd7d0217e5b846ed931381eda02",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 628,
+        "sourceColumn": 2,
+        "sourceEndLine": 628
+      }
+    },
+    {
+      "id": "region:bankpt/user1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "user1",
+        "size": 863,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 601,
+        "sourceColumn": 2,
+        "sourceEndLine": 601
+      }
+    },
+    {
+      "id": "rom:bankpt/user1/82s153.bin",
+      "label": "Rom",
+      "props": {
+        "file": "82s153.bin",
+        "offset": 0,
+        "size": 603,
+        "crc": "",
+        "sha1": "",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 631,
+        "sourceColumn": 2,
+        "sourceEndLine": 631,
+        "status": "nodump"
+      }
+    },
+    {
+      "id": "rom:bankpt/user1/pal16r4.bin",
+      "label": "Rom",
+      "props": {
+        "file": "pal16r4.bin",
+        "offset": 0,
+        "size": 260,
+        "crc": "",
+        "sha1": "",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 632,
+        "sourceColumn": 2,
+        "sourceEndLine": 632,
+        "status": "nodump"
+      }
+    },
+    {
+      "id": "romset:combh",
+      "label": "RomSet",
+      "props": {
+        "name": "combh",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 635,
+        "sourceColumn": 1,
+        "sourceEndLine": 635
+      }
+    },
+    {
+      "id": "region:combh/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 578,
+        "sourceColumn": 2,
+        "sourceEndLine": 578
+      }
+    },
+    {
+      "id": "rom:combh/maincpu/epr-10904.7e",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10904.7e",
+        "offset": 0,
+        "size": 16384,
+        "crc": "4b106335",
+        "sha1": "1cdfac301b52ccd98d09b52089bb2a45fc9afdbb",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 637,
+        "sourceColumn": 2,
+        "sourceEndLine": 637
+      }
+    },
+    {
+      "id": "rom:combh/maincpu/epr-10905.7f",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10905.7f",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "a76fc390",
+        "sha1": "9ffc453010ffb93db5f549e3cc1e0a4eb39ac61c",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 638,
+        "sourceColumn": 2,
+        "sourceEndLine": 638
+      }
+    },
+    {
+      "id": "rom:combh/maincpu/epr-10906.7h",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10906.7h",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "16d54885",
+        "sha1": "e00fc618bb1a1f8c160fe2a0d4de6d9750313643",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 639,
+        "sourceColumn": 2,
+        "sourceEndLine": 639
+      }
+    },
+    {
+      "id": "rom:combh/maincpu/epr-10903.7d",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10903.7d",
+        "offset": 49152,
+        "size": 8192,
+        "crc": "b7a59cab",
+        "sha1": "6321fa9bdf580d76267b13fcf7dc066a45e0c926",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 640,
+        "sourceColumn": 2,
+        "sourceEndLine": 640
+      }
+    },
+    {
+      "id": "region:combh/fgtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "fgtiles",
+        "size": 16384,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 584,
+        "sourceColumn": 2,
+        "sourceEndLine": 584
+      }
+    },
+    {
+      "id": "rom:combh/fgtiles/epr-10914.5l",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10914.5l",
+        "offset": 0,
+        "size": 8192,
+        "crc": "7d7a2340",
+        "sha1": "7411131bf929eaf11e12047eea74158daf8dd274",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 643,
+        "sourceColumn": 2,
+        "sourceEndLine": 643
+      }
+    },
+    {
+      "id": "rom:combh/fgtiles/epr-10913.5k",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10913.5k",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "d5c1a8ae",
+        "sha1": "4f05fd183918bcc5e7b312df5a22f92756cec01d",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 644,
+        "sourceColumn": 2,
+        "sourceEndLine": 644
+      }
+    },
+    {
+      "id": "region:combh/bgtiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bgtiles",
+        "size": 49152,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 588,
+        "sourceColumn": 2,
+        "sourceEndLine": 588
+      }
+    },
+    {
+      "id": "rom:combh/bgtiles/epr-10907.5b",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10907.5b",
+        "offset": 0,
+        "size": 8192,
+        "crc": "08e5eea3",
+        "sha1": "1ab46f9f390a4d8647b0bc07bff66f4d7f47b19e",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 647,
+        "sourceColumn": 2,
+        "sourceEndLine": 647
+      }
+    },
+    {
+      "id": "rom:combh/bgtiles/epr-10908.5d",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10908.5d",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "d9e413f5",
+        "sha1": "c9eb038eed97fcdb56c368f5540b372a1c7b4250",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 648,
+        "sourceColumn": 2,
+        "sourceEndLine": 648
+      }
+    },
+    {
+      "id": "rom:combh/bgtiles/epr-10909.5e",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10909.5e",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "fec7962c",
+        "sha1": "1e58cb19d3a80164a9968e42eea0503364dad017",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 649,
+        "sourceColumn": 2,
+        "sourceEndLine": 649
+      }
+    },
+    {
+      "id": "rom:combh/bgtiles/epr-10910.5f",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10910.5f",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "33db0fa7",
+        "sha1": "51f73a216d1349fd194bcc166bfbc7a39935f1bf",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 650,
+        "sourceColumn": 2,
+        "sourceEndLine": 650
+      }
+    },
+    {
+      "id": "rom:combh/bgtiles/epr-10911.5h",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10911.5h",
+        "offset": 32768,
+        "size": 8192,
+        "crc": "565d9e6d",
+        "sha1": "99071eaacfc571eb55e199f2f723fe6ef109b07a",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 651,
+        "sourceColumn": 2,
+        "sourceEndLine": 651
+      }
+    },
+    {
+      "id": "rom:combh/bgtiles/epr-10912.5i",
+      "label": "Rom",
+      "props": {
+        "file": "epr-10912.5i",
+        "offset": 40960,
+        "size": 8192,
+        "crc": "cbe22738",
+        "sha1": "2dbdb593882ec66e783411f02941ce822e1c62a1",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 652,
+        "sourceColumn": 2,
+        "sourceEndLine": 652
+      }
+    },
+    {
+      "id": "region:combh/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 596,
+        "sourceColumn": 2,
+        "sourceEndLine": 596
+      }
+    },
+    {
+      "id": "rom:combh/proms/pr-10900.8a",
+      "label": "Rom",
+      "props": {
+        "file": "pr-10900.8a",
+        "offset": 0,
+        "size": 32,
+        "crc": "f95fcd66",
+        "sha1": "ed7bf6691a942f344b0230310876a63a68606922",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 655,
+        "sourceColumn": 2,
+        "sourceEndLine": 655
+      }
+    },
+    {
+      "id": "rom:combh/proms/pr-10901.6f",
+      "label": "Rom",
+      "props": {
+        "file": "pr-10901.6f",
+        "offset": 32,
+        "size": 256,
+        "crc": "6fd981c8",
+        "sha1": "0bd2e7b72fd5e055224a675108e2e706cd6f6e5a",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 656,
+        "sourceColumn": 2,
+        "sourceEndLine": 656
+      }
+    },
+    {
+      "id": "rom:combh/proms/pr-10902.5a",
+      "label": "Rom",
+      "props": {
+        "file": "pr-10902.5a",
+        "offset": 288,
+        "size": 256,
+        "crc": "84d6bded",
+        "sha1": "67d9c4c7d7c84eb54ec655a4cf1768ca0cbb047d",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 657,
+        "sourceColumn": 2,
+        "sourceEndLine": 657
+      }
+    },
+    {
+      "id": "region:combh/user1",
+      "label": "RomRegion",
+      "props": {
+        "tag": "user1",
+        "size": 604,
+        "flags": "0",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 601,
+        "sourceColumn": 2,
+        "sourceEndLine": 601
+      }
+    },
+    {
+      "id": "rom:combh/user1/315-5074.2c.bin",
+      "label": "Rom",
+      "props": {
+        "file": "315-5074.2c.bin",
+        "offset": 0,
+        "size": 603,
+        "crc": "2e57bbba",
+        "sha1": "c3e45e8a972342779442e50872a2f5f2d61e9c0a",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 602,
+        "sourceColumn": 2,
+        "sourceEndLine": 602
+      }
+    },
+    {
+      "id": "rom:combh/user1/315-5073.pal16l4",
+      "label": "Rom",
+      "props": {
+        "file": "315-5073.pal16l4",
+        "offset": 603,
+        "size": 1,
+        "crc": "",
+        "sha1": "",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 603,
+        "sourceColumn": 2,
+        "sourceEndLine": 603,
+        "status": "nodump"
+      }
+    },
+    {
+      "id": "map:bankp_state.prg_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "bankp_state",
+        "name": "prg_map",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 368,
+        "sourceColumn": 1,
+        "sourceEndLine": 376
+      }
+    },
+    {
+      "id": "map:bankp_state.prg_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 57343,
+        "raw": "map(0x0000, 0xdfff).rom()",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 370,
+        "sourceColumn": 2,
+        "sourceEndLine": 370,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:bankp_state.prg_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 61439,
+        "raw": "map(0xe000, 0xefff).ram()",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 371,
+        "sourceColumn": 2,
+        "sourceEndLine": 371,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:bankp_state.prg_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 61440,
+        "end": 62463,
+        "raw": "map(0xf000, 0xf3ff).ram().w(FUNC(bankp_state::videoram_w<0>)).share(m_videoram[0])",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 372,
+        "sourceColumn": 2,
+        "sourceEndLine": 372,
+        "ram": true,
+        "share": "videoram[0]"
+      }
+    },
+    {
+      "id": "handler:bankp_state.videoram_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w_0",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 244,
+        "sourceColumn": 1,
+        "sourceEndLine": 248,
+        "sourceConstants": [
+          "Which=0"
+        ],
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[Which][offset] = data;\n\tWhich ? m_bg_tilemap->mark_tile_dirty(offset) : m_fg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:bankp_state.prg_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 62464,
+        "end": 63487,
+        "raw": "map(0xf400, 0xf7ff).ram().w(FUNC(bankp_state::colorram_w<0>)).share(m_colorram[0])",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 373,
+        "sourceColumn": 2,
+        "sourceEndLine": 373,
+        "ram": true,
+        "share": "colorram[0]"
+      }
+    },
+    {
+      "id": "handler:bankp_state.colorram_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "colorram_w_0",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 251,
+        "sourceColumn": 1,
+        "sourceEndLine": 255,
+        "sourceConstants": [
+          "Which=0"
+        ],
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_colorram[Which][offset] = data;\n\tWhich ? m_bg_tilemap->mark_tile_dirty(offset) : m_fg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:bankp_state.prg_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 63488,
+        "end": 64511,
+        "raw": "map(0xf800, 0xfbff).ram().w(FUNC(bankp_state::videoram_w<1>)).share(m_videoram[1])",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 374,
+        "sourceColumn": 2,
+        "sourceEndLine": 374,
+        "ram": true,
+        "share": "videoram[1]"
+      }
+    },
+    {
+      "id": "handler:bankp_state.videoram_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w_1",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 244,
+        "sourceColumn": 1,
+        "sourceEndLine": 248,
+        "sourceConstants": [
+          "Which=1"
+        ],
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[Which][offset] = data;\n\tWhich ? m_bg_tilemap->mark_tile_dirty(offset) : m_fg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:bankp_state.prg_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 64512,
+        "end": 65535,
+        "raw": "map(0xfc00, 0xffff).ram().w(FUNC(bankp_state::colorram_w<1>)).share(m_colorram[1])",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 375,
+        "sourceColumn": 2,
+        "sourceEndLine": 375,
+        "ram": true,
+        "share": "colorram[1]"
+      }
+    },
+    {
+      "id": "handler:bankp_state.colorram_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "colorram_w_1",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 251,
+        "sourceColumn": 1,
+        "sourceEndLine": 255,
+        "sourceConstants": [
+          "Which=1"
+        ],
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_colorram[Which][offset] = data;\n\tWhich ? m_bg_tilemap->mark_tile_dirty(offset) : m_fg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:bankp_state.io_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "bankp_state",
+        "name": "io_map",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 378,
+        "sourceColumn": 1,
+        "sourceEndLine": 387,
+        "globalMask": 255
+      }
+    },
+    {
+      "id": "map:bankp_state.io_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 0,
+        "raw": "map(0x00, 0x00).portr(\"IN0\").w(\"sn1\", FUNC(sn76489a_device::write))",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 381,
+        "sourceColumn": 2,
+        "sourceEndLine": 381,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "handler:sn76489a_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "sn76489a_device",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 383,
+        "sourceColumn": 2,
+        "sourceEndLine": 383
+      }
+    },
+    {
+      "id": "map:bankp_state.io_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 1,
+        "end": 1,
+        "raw": "map(0x01, 0x01).portr(\"IN1\").w(\"sn2\", FUNC(sn76489a_device::write))",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 382,
+        "sourceColumn": 2,
+        "sourceEndLine": 382,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:bankp_state.io_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 2,
+        "end": 2,
+        "raw": "map(0x02, 0x02).portr(\"IN2\").w(\"sn3\", FUNC(sn76489a_device::write))",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 383,
+        "sourceColumn": 2,
+        "sourceEndLine": 383,
+        "portRead": "IN2"
+      }
+    },
+    {
+      "id": "map:bankp_state.io_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 4,
+        "end": 4,
+        "raw": "map(0x04, 0x04).portr(\"DSW1\")",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 384,
+        "sourceColumn": 2,
+        "sourceEndLine": 384,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:bankp_state.io_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 5,
+        "end": 5,
+        "raw": "map(0x05, 0x05).w(FUNC(bankp_state::scroll_w))",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 385,
+        "sourceColumn": 2,
+        "sourceEndLine": 385
+      }
+    },
+    {
+      "id": "handler:bankp_state.scroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "scroll_w",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 238,
+        "sourceColumn": 1,
+        "sourceEndLine": 241,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_scroll_x = data;"
+      }
+    },
+    {
+      "id": "map:bankp_state.io_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 7,
+        "end": 7,
+        "raw": "map(0x07, 0x07).w(FUNC(bankp_state::video_control_w))",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 386,
+        "sourceColumn": 2,
+        "sourceEndLine": 386
+      }
+    },
+    {
+      "id": "handler:bankp_state.video_control_w",
+      "label": "Handler",
+      "props": {
+        "method": "video_control_w",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 257,
+        "sourceColumn": 1,
+        "sourceEndLine": 280,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// bits 0-1 are playfield priority\n\t// TODO: understand how this works\n\tm_priority = data & 0x03;\n\n\t// bit 2 turns on display\n\tm_display_on = BIT(data, 2);\n\n\t// bit 3 controls color prom d4\n\tif (m_color_hi != BIT(data, 3))\n\t{\n\t\tm_color_hi = BIT(data, 3);\n\t\tmachine().tilemap().mark_all_dirty();\n\t}\n\n\t// bit 4 enables vblank NMI\n\tm_nmi_mask = BIT(data, 4);\n\n\t// bit 5 controls screen flip\n\tflip_screen_set(BIT(data, 5));\n\n\t// bits 6-7 N/C"
+      }
+    },
+    {
+      "id": "machine:bankp_state.bankp",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "bankp_state",
+        "name": "bankp",
+        "calls": [],
+        "resetHandlers": [
+          "bankp_state.machine_reset"
+        ],
+        "startHandlers": [
+          "bankp_state.video_start"
+        ],
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 531,
+        "sourceColumn": 1,
+        "sourceEndLine": 568
+      }
+    },
+    {
+      "id": "handler:bankp_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 166,
+        "sourceColumn": 1,
+        "sourceEndLine": 169,
+        "sourceParameters": "",
+        "sourceBody": "video_control_w(0);"
+      }
+    },
+    {
+      "id": "handler:bankp_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 302,
+        "sourceColumn": 1,
+        "sourceEndLine": 309,
+        "sourceParameters": "",
+        "sourceBody": "m_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(bankp_state::get_fg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(bankp_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\n\tm_fg_tilemap->configure_groups(*m_gfxdecode->gfx(0), 0);\n\tm_bg_tilemap->configure_groups(*m_gfxdecode->gfx(1), 0);"
+      }
+    },
+    {
+      "id": "handler:bankp_state.get_fg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_fg_tile_info",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 282,
+        "sourceColumn": 1,
+        "sourceEndLine": 290,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int const code = m_videoram[0][tile_index] + 256 * (m_colorram[0][tile_index] & 0x03);\n\tint const color = (m_colorram[0][tile_index] >> 3) | (m_color_hi << 5);\n\tint const flags = (m_colorram[0][tile_index] & 0x04) ? TILE_FLIPX : 0;\n\n\ttileinfo.set(0, code, color, flags);\n\ttileinfo.group = color & 0x1f;"
+      }
+    },
+    {
+      "id": "handler:bankp_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 292,
+        "sourceColumn": 1,
+        "sourceEndLine": 300,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int const code = m_videoram[1][tile_index] + 256 * (m_colorram[1][tile_index] & 0x07);\n\tint const color = (m_colorram[1][tile_index] >> 4) | (m_color_hi << 4);\n\tint const flags = (m_colorram[1][tile_index] & 0x08) ? TILE_FLIPX : 0;\n\n\ttileinfo.set(1, code, color, flags);\n\ttileinfo.group = color & 0xf;"
+      }
+    },
+    {
+      "id": "device:bankp_state.bankp/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 2578080,
+        "config": [
+          "Z80(config, m_maincpu, 15.46848_MHz_XTAL / 6)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &bankp_state::prg_map)",
+          "m_maincpu->set_addrmap(AS_IO, &bankp_state::io_map)",
+          "m_maincpu->set_vblank_int(\"screen\", FUNC(bankp_state::vblank_interrupt))"
+        ],
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 547,
+        "sourceColumn": 2,
+        "sourceEndLine": 547
+      }
+    },
+    {
+      "id": "device:bankp_state.bankp/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_vblank_int",
+        "operation": "set_vblank_int",
+        "raw": "m_maincpu->set_vblank_int(\"screen\", FUNC(bankp_state::vblank_interrupt))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 550,
+        "sourceColumn": 2,
+        "sourceEndLine": 550,
+        "targetTag": "screen",
+        "targetClass": "bankp_state",
+        "targetMethod": "vblank_interrupt"
+      }
+    },
+    {
+      "id": "handler:bankp_state.vblank_interrupt",
+      "label": "Handler",
+      "props": {
+        "method": "vblank_interrupt",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 525,
+        "sourceColumn": 1,
+        "sourceEndLine": 529,
+        "sourceParameters": "device_t &device",
+        "sourceBody": "if (m_nmi_mask)\n\t\tdevice.execute().pulse_input_line(INPUT_LINE_NMI, attotime::zero);"
+      }
+    },
+    {
+      "id": "device:bankp_state.bankp/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_raw(PIXEL_CLOCK, HTOTAL, HBEND, HBSTART, VTOTAL, VBEND, VBSTART)",
+          "screen.set_screen_update(FUNC(bankp_state::screen_update))",
+          "screen.set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 553,
+        "sourceColumn": 2,
+        "sourceEndLine": 553,
+        "configCalls": [
+          "set_raw(5156160,330,24,248,256,16,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          5156160,
+          330,
+          24,
+          248,
+          256,
+          16,
+          240
+        ]
+      }
+    },
+    {
+      "id": "device:bankp_state.bankp/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(FUNC(bankp_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 555,
+        "sourceColumn": 2,
+        "sourceEndLine": 555,
+        "targetClass": "bankp_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:bankp_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "bankp_state",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 318,
+        "sourceColumn": 1,
+        "sourceEndLine": 359,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "if (!m_display_on)\n\t{\n\t\tbitmap.fill(m_palette->black_pen(), cliprect);\n\t\treturn 0;\n\t}\n\n\tif (flip_screen())\n\t{\n\t\tm_fg_tilemap->set_scrollx(0, 240 - m_scroll_x);\n\t\tm_bg_tilemap->set_scrollx(0, 240);\n\t}\n\telse\n\t{\n\t\tm_fg_tilemap->set_scrollx(0, m_scroll_x);\n\t\tm_bg_tilemap->set_scrollx(0, 0);\n\t}\n\n\t// only one bit matters?\n\tswitch (m_priority)\n\t{\n\tcase 0: // combat hawk uses this\n\t\tm_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_OPAQUE);\n\t\tm_fg_tilemap->draw(screen, bitmap, cliprect);\n\t\tbreak;\n\tcase 1:\n\t\tm_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_OPAQUE);\n\t\tm_fg_tilemap->draw(screen, bitmap, cliprect);\n\t\tbreak;\n\tcase 2:\n\t\tm_fg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_OPAQUE);\n\t\tm_bg_tilemap->draw(screen, bitmap, cliprect);\n\t\tbreak;\n\tcase 3:\n\t\tm_fg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_OPAQUE); // just a guess\n\t\tm_bg_tilemap->draw(screen, bitmap, cliprect);\n\t\tbreak;\n\t}\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "device:bankp_state.bankp/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_bankp)"
+        ],
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 558,
+        "sourceColumn": 2,
+        "sourceEndLine": 558,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:bankp_state.bankp/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(bankp_state::palette), 512, 32)"
+        ],
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 559,
+        "sourceColumn": 2,
+        "sourceEndLine": 559,
+        "clockExpr": "FUNC(bankp_state::palette)"
+      }
+    },
+    {
+      "id": "device:bankp_state.bankp/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 562,
+        "sourceColumn": 2,
+        "sourceEndLine": 562
+      }
+    },
+    {
+      "id": "device:bankp_state.bankp/sn1",
+      "label": "Device",
+      "props": {
+        "type": "SN76489A",
+        "tag": "sn1",
+        "clock": 2578080,
+        "config": [
+          "SN76489A(config, \"sn1\", 15.46848_MHz_XTAL / 6).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 565,
+        "sourceColumn": 2,
+        "sourceEndLine": 565
+      }
+    },
+    {
+      "id": "audioroute:device:bankp_state.bankp/sn1/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "SN76489A(config, \"sn1\", 15.46848_MHz_XTAL / 6).add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 565,
+        "sourceColumn": 2,
+        "sourceEndLine": 565
+      }
+    },
+    {
+      "id": "device:bankp_state.bankp/sn2",
+      "label": "Device",
+      "props": {
+        "type": "SN76489A",
+        "tag": "sn2",
+        "clock": 2578080,
+        "config": [
+          "SN76489A(config, \"sn2\", 15.46848_MHz_XTAL / 6).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 566,
+        "sourceColumn": 2,
+        "sourceEndLine": 566
+      }
+    },
+    {
+      "id": "audioroute:device:bankp_state.bankp/sn2/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "SN76489A(config, \"sn2\", 15.46848_MHz_XTAL / 6).add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 566,
+        "sourceColumn": 2,
+        "sourceEndLine": 566
+      }
+    },
+    {
+      "id": "device:bankp_state.bankp/sn3",
+      "label": "Device",
+      "props": {
+        "type": "SN76489A",
+        "tag": "sn3",
+        "clock": 2578080,
+        "config": [
+          "SN76489A(config, \"sn3\", 15.46848_MHz_XTAL / 6).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 567,
+        "sourceColumn": 2,
+        "sourceEndLine": 567
+      }
+    },
+    {
+      "id": "audioroute:device:bankp_state.bankp/sn3/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "SN76489A(config, \"sn3\", 15.46848_MHz_XTAL / 6).add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 567,
+        "sourceColumn": 2,
+        "sourceEndLine": 567
+      }
+    },
+    {
+      "id": "inputs:bankp",
+      "label": "InputPorts",
+      "props": {
+        "name": "bankp",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 396,
+        "sourceColumn": 8,
+        "sourceEndLine": 396
+      }
+    },
+    {
+      "id": "inputs:bankp/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:bankp/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON1"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_COIN1"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_SERVICE1"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_BUTTON2"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:bankp/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_START1"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_START2"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:bankp/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_BUTTON3"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/IN2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_COIN2"
+      }
+    },
+    {
+      "id": "inputs:bankp/IN2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 248,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:bankp/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:bankp/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "name": "Coin Switch 1",
+        "defaultValue": 0,
+        "location": "SW1:1,2",
+        "settings": [
+          "3=3C 1C",
+          "2=2C 1C",
+          "0=1C 1C",
+          "1=1C 2C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "name": "Coin Switch 2",
+        "defaultValue": 0,
+        "location": "SW1:3",
+        "settings": [
+          "4=2C 1C",
+          "0=1C 1C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "name": "Lives",
+        "defaultValue": 0,
+        "location": "SW1:4",
+        "settings": [
+          "0=3",
+          "8=4"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Bonus Life",
+        "defaultValue": 0,
+        "location": "SW1:5",
+        "settings": [
+          "0=70K 200K 500K",
+          "16=100K 400K 800K"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "name": "Difficulty",
+        "defaultValue": 0,
+        "location": "SW1:6",
+        "settings": [
+          "0=Easy",
+          "32=Hard"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/DSW1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Demo Sounds",
+        "defaultValue": 64,
+        "location": "SW1:7",
+        "settings": [
+          "0=Off",
+          "64=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bankp/DSW1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Cabinet",
+        "defaultValue": 128,
+        "location": "SW1:8",
+        "settings": [
+          "128=Upright",
+          "0=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:combh",
+      "label": "InputPorts",
+      "props": {
+        "name": "combh",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 449,
+        "sourceColumn": 8,
+        "sourceEndLine": 449
+      }
+    },
+    {
+      "id": "inputs:combh/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:combh/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_2WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:combh/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:combh/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_2WAY"
+        ]
+      }
+    },
+    {
+      "id": "inputs:combh/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:combh/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:combh/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:combh/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:combh/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_2WAY",
+          "PORT_COCKTAIL"
+        ]
+      }
+    },
+    {
+      "id": "inputs:combh/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_UNUSED"
+      }
+    },
+    {
+      "id": "inputs:combh/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:combh/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Flip Screen",
+        "defaultValue": 0,
+        "location": "SW1:1",
+        "settings": [
+          "0=Off",
+          "1=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:combh/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 6,
+        "name": "Coinage",
+        "defaultValue": 0,
+        "location": "SW1:2,3",
+        "settings": [
+          "6=2C 1C",
+          "0=1C 1C",
+          "2=1C 2C",
+          "4=1C 3C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:combh/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "name": "Cabinet",
+        "defaultValue": 16,
+        "location": "SW1:5",
+        "settings": [
+          "16=Upright",
+          "0=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:combh/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32,
+        "name": "Unused"
+      }
+    },
+    {
+      "id": "inputs:combh/DSW1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Difficulty",
+        "defaultValue": 0,
+        "location": "SW1:7",
+        "settings": [
+          "0=Easy",
+          "64=Hard"
+        ]
+      }
+    },
+    {
+      "id": "inputs:combh/DSW1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Fuel",
+        "defaultValue": 0,
+        "location": "SW1:8",
+        "settings": [
+          "0=120 Units",
+          "128=90 Units"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout",
+        "width": 8,
+        "height": 8,
+        "total": 1024,
+        "planes": 2,
+        "planeOffsets": [
+          0,
+          4
+        ],
+        "xOffsets": [
+          67,
+          66,
+          65,
+          64,
+          3,
+          2,
+          1,
+          0
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout2",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout2",
+        "width": 8,
+        "height": 8,
+        "total": 2048,
+        "planes": 3,
+        "planeOffsets": [
+          0,
+          131072,
+          262144
+        ],
+        "xOffsets": [
+          7,
+          6,
+          5,
+          4,
+          3,
+          2,
+          1,
+          0
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x1",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x1",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 1,
+        "planeOffsets": [
+          "RGN_FRAC(0,1)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x2_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x2_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,2)",
+        "planes": 2,
+        "planeOffsets": [
+          "RGN_FRAC(1,2)",
+          "RGN_FRAC(0,2)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x3_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x3_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(2,3)",
+          "RGN_FRAC(1,3)",
+          "RGN_FRAC(0,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x5_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x5_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,5)",
+        "planes": 5,
+        "planeOffsets": [
+          "RGN_FRAC(4,5)",
+          "RGN_FRAC(3,5)",
+          "RGN_FRAC(2,5)",
+          "RGN_FRAC(1,5)",
+          "RGN_FRAC(0,5)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x6_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x6_planar",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,6)",
+        "planes": 6,
+        "planeOffsets": [
+          "RGN_FRAC(5,6)",
+          "RGN_FRAC(4,6)",
+          "RGN_FRAC(3,6)",
+          "RGN_FRAC(2,6)",
+          "RGN_FRAC(1,6)",
+          "RGN_FRAC(0,6)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_planar",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_planar",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(3,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(0,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112,
+          128,
+          144,
+          160,
+          176,
+          192,
+          208,
+          224,
+          240
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_msb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_packed_lsb",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224
+        ],
+        "charIncrement": 256
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52,
+          56,
+          60
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448,
+          512,
+          576,
+          640,
+          704,
+          768,
+          832,
+          896,
+          960
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_16x16x4_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_16x16x4_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          36,
+          32,
+          44,
+          40,
+          52,
+          48,
+          60,
+          56
+        ],
+        "yOffsets": [
+          0,
+          64,
+          128,
+          192,
+          256,
+          320,
+          384,
+          448,
+          512,
+          576,
+          640,
+          704,
+          768,
+          832,
+          896,
+          960
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_row_2x2_group_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          256,
+          260,
+          264,
+          268,
+          272,
+          276,
+          280,
+          284
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_row_2x2_group_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          260,
+          256,
+          268,
+          264,
+          276,
+          272,
+          284,
+          280
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          512,
+          544,
+          576,
+          608,
+          640,
+          672,
+          704,
+          736
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_msb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_col_2x2_group_packed_msb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          512,
+          516,
+          520,
+          524,
+          528,
+          532,
+          536,
+          540
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          256,
+          288,
+          320,
+          352,
+          384,
+          416,
+          448,
+          480
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_lsb",
+      "label": "GfxLayout",
+      "props": {
+        "name": "gfx_8x8x4_col_2x2_group_packed_lsb",
+        "width": 16,
+        "height": 16,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 4,
+        "planeOffsets": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "xOffsets": [
+          4,
+          0,
+          12,
+          8,
+          20,
+          16,
+          28,
+          24,
+          516,
+          512,
+          524,
+          520,
+          532,
+          528,
+          540,
+          536
+        ],
+        "yOffsets": [
+          0,
+          32,
+          64,
+          96,
+          128,
+          160,
+          192,
+          224,
+          256,
+          288,
+          320,
+          352,
+          384,
+          416,
+          448,
+          480
+        ],
+        "charIncrement": 1024
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_bankp",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_bankp",
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 513,
+        "sourceColumn": 8,
+        "sourceEndLine": 513
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_bankp/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "fgtiles",
+        "offset": 0,
+        "layout": "charlayout",
+        "colorBase": 0,
+        "colorCount": 64,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_bankp/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "bgtiles",
+        "offset": 0,
+        "layout": "charlayout2",
+        "colorBase": 256,
+        "colorCount": 32,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "file:src/mame/sanritsu/bankp.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sanritsu/bankp.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sanritsu/bankp.cpp",
+      "to": "file:sound/sn76496.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sanritsu/bankp.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sanritsu/bankp.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sanritsu/bankp.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/sanritsu/bankp.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "game:bankp",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 673,
+        "sourceColumn": 1,
+        "sourceEndLine": 673
+      }
+    },
+    {
+      "from": "game:bankp",
+      "to": "machine:bankp_state.bankp",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:bankp",
+      "to": "inputs:bankp",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:bankp",
+      "to": "romset:bankp",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:bankpt",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 674,
+        "sourceColumn": 1,
+        "sourceEndLine": 674
+      }
+    },
+    {
+      "from": "game:bankpt",
+      "to": "game:bankp",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:bankpt",
+      "to": "machine:bankp_state.bankp",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:bankpt",
+      "to": "inputs:bankp",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:bankpt",
+      "to": "romset:bankpt",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:combh",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 675,
+        "sourceColumn": 1,
+        "sourceEndLine": 675
+      }
+    },
+    {
+      "from": "game:combh",
+      "to": "machine:bankp_state.bankp",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:combh",
+      "to": "inputs:combh",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:combh",
+      "to": "romset:combh",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "romset:bankp",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 577,
+        "sourceColumn": 1,
+        "sourceEndLine": 577
+      }
+    },
+    {
+      "from": "romset:bankp",
+      "to": "region:bankp/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:bankp/maincpu",
+      "to": "rom:bankp/maincpu/epr-6175.7e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/maincpu",
+      "to": "rom:bankp/maincpu/epr-6174.7f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/maincpu",
+      "to": "rom:bankp/maincpu/epr-6173.7h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/maincpu",
+      "to": "rom:bankp/maincpu/epr-6176.7d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:bankp",
+      "to": "region:bankp/fgtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:bankp/fgtiles",
+      "to": "rom:bankp/fgtiles/epr-6165.5l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/fgtiles",
+      "to": "rom:bankp/fgtiles/epr-6166.5k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:bankp",
+      "to": "region:bankp/bgtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:bankp/bgtiles",
+      "to": "rom:bankp/bgtiles/epr-6172.5b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/bgtiles",
+      "to": "rom:bankp/bgtiles/epr-6171.5d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/bgtiles",
+      "to": "rom:bankp/bgtiles/epr-6170.5e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/bgtiles",
+      "to": "rom:bankp/bgtiles/epr-6169.5f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/bgtiles",
+      "to": "rom:bankp/bgtiles/epr-6168.5h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/bgtiles",
+      "to": "rom:bankp/bgtiles/epr-6167.5i",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:bankp",
+      "to": "region:bankp/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:bankp/proms",
+      "to": "rom:bankp/proms/pr-6177.8a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/proms",
+      "to": "rom:bankp/proms/pr-6178.6f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/proms",
+      "to": "rom:bankp/proms/pr-6179.5a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:bankp",
+      "to": "region:bankp/user1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:bankp/user1",
+      "to": "rom:bankp/user1/315-5074.2c.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankp/user1",
+      "to": "rom:bankp/user1/315-5073.pal16l4",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:bankpt",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 606,
+        "sourceColumn": 1,
+        "sourceEndLine": 606
+      }
+    },
+    {
+      "from": "romset:bankpt",
+      "to": "region:bankpt/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:bankpt/maincpu",
+      "to": "rom:bankpt/maincpu/11.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/maincpu",
+      "to": "rom:bankpt/maincpu/10.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/maincpu",
+      "to": "rom:bankpt/maincpu/9.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/maincpu",
+      "to": "rom:bankpt/maincpu/12.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:bankpt",
+      "to": "region:bankpt/fgtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:bankpt/fgtiles",
+      "to": "rom:bankpt/fgtiles/1.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/fgtiles",
+      "to": "rom:bankpt/fgtiles/2.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:bankpt",
+      "to": "region:bankpt/bgtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:bankpt/bgtiles",
+      "to": "rom:bankpt/bgtiles/8.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/bgtiles",
+      "to": "rom:bankpt/bgtiles/7.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/bgtiles",
+      "to": "rom:bankpt/bgtiles/6.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/bgtiles",
+      "to": "rom:bankpt/bgtiles/5.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/bgtiles",
+      "to": "rom:bankpt/bgtiles/4.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/bgtiles",
+      "to": "rom:bankpt/bgtiles/3.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:bankpt",
+      "to": "region:bankpt/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:bankpt/proms",
+      "to": "rom:bankpt/proms/82s123.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/proms",
+      "to": "rom:bankpt/proms/6_82s129.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/proms",
+      "to": "rom:bankpt/proms/5_82s129.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:bankpt",
+      "to": "region:bankpt/user1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:bankpt/user1",
+      "to": "rom:bankpt/user1/82s153.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bankpt/user1",
+      "to": "rom:bankpt/user1/pal16r4.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:combh",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 635,
+        "sourceColumn": 1,
+        "sourceEndLine": 635
+      }
+    },
+    {
+      "from": "romset:combh",
+      "to": "region:combh/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:combh/maincpu",
+      "to": "rom:combh/maincpu/epr-10904.7e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/maincpu",
+      "to": "rom:combh/maincpu/epr-10905.7f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/maincpu",
+      "to": "rom:combh/maincpu/epr-10906.7h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/maincpu",
+      "to": "rom:combh/maincpu/epr-10903.7d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:combh",
+      "to": "region:combh/fgtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:combh/fgtiles",
+      "to": "rom:combh/fgtiles/epr-10914.5l",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/fgtiles",
+      "to": "rom:combh/fgtiles/epr-10913.5k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:combh",
+      "to": "region:combh/bgtiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:combh/bgtiles",
+      "to": "rom:combh/bgtiles/epr-10907.5b",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/bgtiles",
+      "to": "rom:combh/bgtiles/epr-10908.5d",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/bgtiles",
+      "to": "rom:combh/bgtiles/epr-10909.5e",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/bgtiles",
+      "to": "rom:combh/bgtiles/epr-10910.5f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/bgtiles",
+      "to": "rom:combh/bgtiles/epr-10911.5h",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/bgtiles",
+      "to": "rom:combh/bgtiles/epr-10912.5i",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:combh",
+      "to": "region:combh/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:combh/proms",
+      "to": "rom:combh/proms/pr-10900.8a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/proms",
+      "to": "rom:combh/proms/pr-10901.6f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/proms",
+      "to": "rom:combh/proms/pr-10902.5a",
+      "rel": "LOADS"
+    },
+    {
+      "from": "romset:combh",
+      "to": "region:combh/user1",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "region:combh/user1",
+      "to": "rom:combh/user1/315-5074.2c.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:combh/user1",
+      "to": "rom:combh/user1/315-5073.pal16l4",
+      "rel": "LOADS"
+    },
+    {
+      "from": "map:bankp_state.prg_map",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 368,
+        "sourceColumn": 1,
+        "sourceEndLine": 376
+      }
+    },
+    {
+      "from": "map:bankp_state.prg_map",
+      "to": "map:bankp_state.prg_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.prg_map",
+      "to": "map:bankp_state.prg_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.prg_map",
+      "to": "map:bankp_state.prg_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.prg_map/range2",
+      "to": "handler:bankp_state.videoram_w_0",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:bankp_state.prg_map",
+      "to": "map:bankp_state.prg_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.prg_map/range3",
+      "to": "handler:bankp_state.colorram_w_0",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:bankp_state.prg_map",
+      "to": "map:bankp_state.prg_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.prg_map/range4",
+      "to": "handler:bankp_state.videoram_w_1",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:bankp_state.prg_map",
+      "to": "map:bankp_state.prg_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.prg_map/range5",
+      "to": "handler:bankp_state.colorram_w_1",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:bankp_state.io_map",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 378,
+        "sourceColumn": 1,
+        "sourceEndLine": 387
+      }
+    },
+    {
+      "from": "map:bankp_state.io_map",
+      "to": "map:bankp_state.io_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.io_map/range0",
+      "to": "handler:sn76489a_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "sn1"
+      }
+    },
+    {
+      "from": "map:bankp_state.io_map",
+      "to": "map:bankp_state.io_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.io_map/range1",
+      "to": "handler:sn76489a_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "sn2"
+      }
+    },
+    {
+      "from": "map:bankp_state.io_map",
+      "to": "map:bankp_state.io_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.io_map/range2",
+      "to": "handler:sn76489a_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "sn3"
+      }
+    },
+    {
+      "from": "map:bankp_state.io_map",
+      "to": "map:bankp_state.io_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.io_map",
+      "to": "map:bankp_state.io_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.io_map/range4",
+      "to": "handler:bankp_state.scroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:bankp_state.io_map",
+      "to": "map:bankp_state.io_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bankp_state.io_map/range5",
+      "to": "handler:bankp_state.video_control_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 531,
+        "sourceColumn": 1,
+        "sourceEndLine": 568
+      }
+    },
+    {
+      "from": "handler:bankp_state.machine_reset",
+      "to": "handler:bankp_state.video_control_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "handler:bankp_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:bankp_state.video_start",
+      "to": "handler:bankp_state.get_fg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:bankp_state.video_start",
+      "to": "handler:bankp_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "handler:bankp_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "device:bankp_state.bankp/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:bankp_state.bankp/maincpu",
+      "to": "device:bankp_state.bankp/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:bankp_state.bankp/maincpu/callback:maincpu:0",
+      "to": "handler:bankp_state.vblank_interrupt",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:bankp_state.bankp/maincpu",
+      "to": "map:bankp_state.prg_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:bankp_state.bankp/maincpu",
+      "to": "map:bankp_state.io_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "device:bankp_state.bankp/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:bankp_state.bankp/screen",
+      "to": "device:bankp_state.bankp/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:bankp_state.bankp/screen/callback:screen:0",
+      "to": "handler:bankp_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "device:bankp_state.bankp/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "gfxdecode:gfx_bankp",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "device:bankp_state.bankp/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "device:bankp_state.bankp/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "device:bankp_state.bankp/sn1",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:bankp_state.bankp/sn1",
+      "to": "audioroute:device:bankp_state.bankp/sn1/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "device:bankp_state.bankp/sn2",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:bankp_state.bankp/sn2",
+      "to": "audioroute:device:bankp_state.bankp/sn2/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "machine:bankp_state.bankp",
+      "to": "device:bankp_state.bankp/sn3",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:bankp_state.bankp/sn3",
+      "to": "audioroute:device:bankp_state.bankp/sn3/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:bankp",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 396,
+        "sourceColumn": 8,
+        "sourceEndLine": 396
+      }
+    },
+    {
+      "from": "inputs:bankp",
+      "to": "inputs:bankp/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:bankp/IN0",
+      "to": "inputs:bankp/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN0",
+      "to": "inputs:bankp/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN0",
+      "to": "inputs:bankp/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN0",
+      "to": "inputs:bankp/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN0",
+      "to": "inputs:bankp/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN0",
+      "to": "inputs:bankp/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN0",
+      "to": "inputs:bankp/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN0",
+      "to": "inputs:bankp/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp",
+      "to": "inputs:bankp/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:bankp/IN1",
+      "to": "inputs:bankp/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN1",
+      "to": "inputs:bankp/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN1",
+      "to": "inputs:bankp/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN1",
+      "to": "inputs:bankp/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN1",
+      "to": "inputs:bankp/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN1",
+      "to": "inputs:bankp/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN1",
+      "to": "inputs:bankp/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN1",
+      "to": "inputs:bankp/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp",
+      "to": "inputs:bankp/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:bankp/IN2",
+      "to": "inputs:bankp/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN2",
+      "to": "inputs:bankp/IN2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN2",
+      "to": "inputs:bankp/IN2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/IN2",
+      "to": "inputs:bankp/IN2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp",
+      "to": "inputs:bankp/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:bankp/DSW1",
+      "to": "inputs:bankp/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/DSW1",
+      "to": "inputs:bankp/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/DSW1",
+      "to": "inputs:bankp/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/DSW1",
+      "to": "inputs:bankp/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/DSW1",
+      "to": "inputs:bankp/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/DSW1",
+      "to": "inputs:bankp/DSW1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bankp/DSW1",
+      "to": "inputs:bankp/DSW1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 449,
+        "sourceColumn": 8,
+        "sourceEndLine": 449
+      }
+    },
+    {
+      "from": "inputs:combh",
+      "to": "inputs:bankp",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:combh",
+      "to": "inputs:combh/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:combh/IN0",
+      "to": "inputs:combh/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh/IN0",
+      "to": "inputs:combh/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh/IN0",
+      "to": "inputs:combh/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh/IN0",
+      "to": "inputs:combh/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh",
+      "to": "inputs:combh/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:combh/IN1",
+      "to": "inputs:combh/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh/IN1",
+      "to": "inputs:combh/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh/IN1",
+      "to": "inputs:combh/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh/IN1",
+      "to": "inputs:combh/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh",
+      "to": "inputs:combh/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:combh/DSW1",
+      "to": "inputs:combh/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh/DSW1",
+      "to": "inputs:combh/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh/DSW1",
+      "to": "inputs:combh/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh/DSW1",
+      "to": "inputs:combh/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh/DSW1",
+      "to": "inputs:combh/DSW1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:combh/DSW1",
+      "to": "inputs:combh/DSW1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "gfxlayout:charlayout",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:charlayout2",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x1",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x2_planar",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x3_planar",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_planar",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x5_planar",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x6_planar",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_planar",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_msb",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_packed_lsb",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_packed_msb",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_16x16x4_packed_lsb",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_msb",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_row_2x2_group_packed_lsb",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_msb",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:gfx_8x8x4_col_2x2_group_packed_lsb",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxdecode:gfx_bankp",
+      "to": "file:src/mame/sanritsu/bankp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/sanritsu/bankp.cpp",
+        "sourceLine": 513,
+        "sourceColumn": 8,
+        "sourceEndLine": 513
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_bankp",
+      "to": "gfxdecode:gfx_bankp/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_bankp/e0",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_bankp",
+      "to": "gfxdecode:gfx_bankp/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_bankp/e1",
+      "to": "gfxlayout:charlayout2",
+      "rel": "USES_LAYOUT"
+    }
+  ]
+}

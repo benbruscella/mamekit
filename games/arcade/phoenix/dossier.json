@@ -1,0 +1,1048 @@
+{
+  "game": "phoenix",
+  "title": "Phoenix (Amstar, set 1) (Amstar, 1980)",
+  "fullname": "Phoenix (Amstar, set 1)",
+  "year": "1980",
+  "company": "Amstar",
+  "family": "phoenix",
+  "driverFile": "src/mame/phoenix/phoenix.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Richard Davies",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "i8085a",
+      "clock": 5500000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom"
+        },
+        {
+          "start": 16384,
+          "end": 20479,
+          "kind": "handler",
+          "write": "phoenix_state.phoenix_videoram_w",
+          "read": "bank.bank1"
+        },
+        {
+          "start": 20480,
+          "end": 21503,
+          "kind": "handler",
+          "write": "phoenix_state.phoenix_videoreg_w"
+        },
+        {
+          "start": 22528,
+          "end": 23551,
+          "kind": "handler",
+          "write": "phoenix_state.phoenix_scroll_w"
+        },
+        {
+          "start": 24576,
+          "end": 25599,
+          "kind": "handler",
+          "write": "cust.control_a_w"
+        },
+        {
+          "start": 26624,
+          "end": 27647,
+          "kind": "handler",
+          "write": "cust.control_b_w"
+        },
+        {
+          "start": 28672,
+          "end": 29695,
+          "kind": "handler",
+          "read": "port.IN0"
+        },
+        {
+          "start": 30720,
+          "end": 31743,
+          "kind": "handler",
+          "read": "port.DSW0"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "discrete",
+    "clock": 5500000,
+    "worklet": "phoenix-sound",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 208,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 61.03515625,
+    "vtotal": 256,
+    "vbstart": 208,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "ic45",
+          "offset": 0,
+          "size": 2048,
+          "crc": "9f68086b",
+          "alt": [
+            {
+              "file": "ic45-pg1.1a",
+              "crc": "5b8c55a8"
+            },
+            {
+              "file": "1-ic45.1a",
+              "crc": "c7a9b499"
+            },
+            {
+              "file": "phoenix3.45",
+              "crc": "a362cda0"
+            },
+            {
+              "file": "0201.bin",
+              "crc": "c0f73929"
+            },
+            {
+              "file": "2201.bin",
+              "crc": "2afa8e2c"
+            },
+            {
+              "file": "1.1i",
+              "crc": "351984b6"
+            },
+            {
+              "file": "falcon.45",
+              "crc": "80382b6c"
+            },
+            {
+              "file": "vautor01.1e",
+              "crc": "cd2807ee"
+            },
+            {
+              "file": "f45.bin",
+              "crc": "9158b43b"
+            },
+            {
+              "file": "vautour1.bin",
+              "crc": "a600f6a4"
+            },
+            {
+              "file": "0.1e",
+              "crc": ""
+            },
+            {
+              "file": "nf01.bin",
+              "crc": "b31ce820"
+            },
+            {
+              "file": "4101-8516.rom",
+              "crc": "5bc2e2fe"
+            },
+            {
+              "file": "601-ic45.a1",
+              "crc": "b04260e9"
+            },
+            {
+              "file": "01_ic45.a1",
+              "crc": "2c53998c"
+            }
+          ]
+        },
+        {
+          "file": "ic46",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "273a4a82",
+          "alt": [
+            {
+              "file": "2-ic46.2a",
+              "crc": "d0e6ae1b"
+            },
+            {
+              "file": "phoenix.46",
+              "crc": "dbc942fa"
+            },
+            {
+              "file": "phoenix3.46",
+              "crc": "5748f486"
+            },
+            {
+              "file": "0202.bin",
+              "crc": "440d56e8"
+            },
+            {
+              "file": "1202.bin",
+              "crc": "6527395e"
+            },
+            {
+              "file": "2.1h",
+              "crc": "cbf2d29e"
+            },
+            {
+              "file": "falcon.46",
+              "crc": "6a13193b"
+            },
+            {
+              "file": "f46.bin",
+              "crc": "22ddb600"
+            },
+            {
+              "file": "vautour2.bin",
+              "crc": "3699b11a"
+            },
+            {
+              "file": "griffon1.a6",
+              "crc": "3cc33e4a"
+            },
+            {
+              "file": "griffon01.6a",
+              "crc": "22ec3403"
+            },
+            {
+              "file": "nf02.bin",
+              "crc": "891d21e1"
+            },
+            {
+              "file": "14-2716.a2",
+              "crc": "d00ba009"
+            },
+            {
+              "file": "4102-2716.rom",
+              "crc": "dcf2cc3e"
+            },
+            {
+              "file": "6002-ic46.a2",
+              "crc": "25a2e4bd"
+            },
+            {
+              "file": "02_ic46.a2",
+              "crc": "fea2435c"
+            }
+          ]
+        },
+        {
+          "file": "ic47",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "3d4284b9",
+          "alt": [
+            {
+              "file": "ic47-pg3.3a",
+              "crc": "cbbb8839"
+            },
+            {
+              "file": "3-ic47.3a",
+              "crc": "64bf463a"
+            },
+            {
+              "file": "0203.bin",
+              "crc": "750b059b"
+            },
+            {
+              "file": "1203.bin",
+              "crc": "868e69ba"
+            },
+            {
+              "file": "3.1f",
+              "crc": "b6f3e6ec"
+            },
+            {
+              "file": "f47.bin",
+              "crc": "cb2838d9"
+            },
+            {
+              "file": "nf03.bin",
+              "crc": "2ab7389d"
+            }
+          ]
+        },
+        {
+          "file": "ic48",
+          "offset": 6144,
+          "size": 2048,
+          "crc": "cb5d9915",
+          "alt": [
+            {
+              "file": "4-ic48.4a",
+              "crc": "1b20fe62"
+            },
+            {
+              "file": "phoenix.48",
+              "crc": "cb65eff8"
+            },
+            {
+              "file": "pn04.48",
+              "crc": "dd41f22b"
+            },
+            {
+              "file": "phoenix3.48",
+              "crc": "b5d97a4d"
+            },
+            {
+              "file": "dal.a4",
+              "crc": "228b76ad"
+            },
+            {
+              "file": "phoenixc.48",
+              "crc": "5ae0b215"
+            },
+            {
+              "file": "01.ic48",
+              "crc": "f28e16d8"
+            },
+            {
+              "file": "4.a4",
+              "crc": "61514bed"
+            },
+            {
+              "file": "phoenixd.48",
+              "crc": "6e51f009"
+            },
+            {
+              "file": "px_4.ic48",
+              "crc": "f2d4ae42"
+            },
+            {
+              "file": "48.bin",
+              "crc": "75623a06"
+            },
+            {
+              "file": "0204.bin",
+              "crc": "e2d3271f"
+            },
+            {
+              "file": "1204.bin",
+              "crc": "85d96d7c"
+            },
+            {
+              "file": "cond04c.bin",
+              "crc": "ca55e1dd"
+            },
+            {
+              "file": "4.bin",
+              "crc": "78416372"
+            },
+            {
+              "file": "4.1e",
+              "crc": "104cb55c"
+            },
+            {
+              "file": "falcon.48",
+              "crc": "084e9766"
+            },
+            {
+              "file": "vautor04.1j",
+              "crc": "106262eb"
+            },
+            {
+              "file": "f48.bin",
+              "crc": "552cf57a"
+            },
+            {
+              "file": "vautour4.bin",
+              "crc": "01a4bfde"
+            },
+            {
+              "file": "ic48",
+              "crc": "b2672265"
+            },
+            {
+              "file": "3.1j",
+              "crc": "61b8a41b"
+            },
+            {
+              "file": "griffon3.a8",
+              "crc": "5e49f5b5"
+            },
+            {
+              "file": "griffon03.8a",
+              "crc": "73c90019"
+            },
+            {
+              "file": "nf04.bin",
+              "crc": "590d3c36"
+            },
+            {
+              "file": "ic48.4_a4",
+              "crc": "25c8b83f"
+            },
+            {
+              "file": "4-2716.a4",
+              "crc": "95534db2"
+            },
+            {
+              "file": "03-811.ic48",
+              "crc": "1e2e2fc7"
+            },
+            {
+              "file": "4104-8516.rom",
+              "crc": "8380a581"
+            },
+            {
+              "file": "6004-ic48.a4",
+              "crc": "4b7701b4"
+            },
+            {
+              "file": "04_ic48.a4",
+              "crc": "90a02a45"
+            },
+            {
+              "file": "fe4.a4",
+              "crc": "d4b6b69f"
+            }
+          ]
+        },
+        {
+          "file": "h5-ic49.5a",
+          "offset": 8192,
+          "size": 2048,
+          "crc": "a105e4e7",
+          "alt": [
+            {
+              "file": "ic49-pg5.5a",
+              "crc": "73bcd2e1"
+            },
+            {
+              "file": "phoenixc.49",
+              "crc": "1a1ce0d0"
+            },
+            {
+              "file": "phoenix.49",
+              "crc": "c8a5d6d6"
+            },
+            {
+              "file": "0205.bin",
+              "crc": "1ff3a982"
+            },
+            {
+              "file": "griffon4.a9",
+              "crc": "87a45ceb"
+            },
+            {
+              "file": "nf05.bin",
+              "crc": "3527f247"
+            },
+            {
+              "file": "4105-8516.rom",
+              "crc": "cfa8cb51"
+            },
+            {
+              "file": "6005-ic49.a5",
+              "crc": "1ab92ef9"
+            },
+            {
+              "file": "05_ic49.a5",
+              "crc": "74b1cf66"
+            }
+          ]
+        },
+        {
+          "file": "h6-ic50.6a",
+          "offset": 10240,
+          "size": 2048,
+          "crc": "ac5e9ec1",
+          "alt": [
+            {
+              "file": "cond06c.bin",
+              "crc": "8c83bff7"
+            },
+            {
+              "file": "1206.bin",
+              "crc": "249a6f21"
+            },
+            {
+              "file": "6.1c",
+              "crc": "0de92138"
+            },
+            {
+              "file": "vautor06.1h",
+              "crc": "c90e3287"
+            },
+            {
+              "file": "6.h1",
+              "crc": "1fcac707"
+            },
+            {
+              "file": "5.1l",
+              "crc": "a210fe51"
+            }
+          ]
+        },
+        {
+          "file": "h7-ic51.7a",
+          "offset": 12288,
+          "size": 2048,
+          "crc": "2eab35b4",
+          "alt": [
+            {
+              "file": "vautor07.1m",
+              "crc": "079ac364"
+            },
+            {
+              "file": "0207.bin",
+              "crc": "805ec2e8"
+            },
+            {
+              "file": "7.1b",
+              "crc": "bbf12d54"
+            },
+            {
+              "file": "falcon.51",
+              "crc": "6e82e400"
+            }
+          ]
+        },
+        {
+          "file": "h8-ic52.8a",
+          "offset": 14336,
+          "size": 2048,
+          "crc": "aff8e9c5",
+          "alt": [
+            {
+              "file": "phoenix.52",
+              "crc": "b9915263"
+            },
+            {
+              "file": "phoenix3.52",
+              "crc": "d2c5c984"
+            },
+            {
+              "file": "dal.a8",
+              "crc": "0a0f92c0"
+            },
+            {
+              "file": "phoenixc.52",
+              "crc": "8424d7c4"
+            },
+            {
+              "file": "px_8.ic52",
+              "crc": "e43fef84"
+            },
+            {
+              "file": "cond08c.bin",
+              "crc": "1edebb45"
+            },
+            {
+              "file": "1208.bin",
+              "crc": "b90efc28"
+            },
+            {
+              "file": "7.1a",
+              "crc": "e9816604"
+            },
+            {
+              "file": "vautor08.1n",
+              "crc": "1dbd937a"
+            },
+            {
+              "file": "f52.bin",
+              "crc": "33f3af63"
+            },
+            {
+              "file": "ic52",
+              "crc": "f3f10ac5"
+            },
+            {
+              "file": "griffon7.a12",
+              "crc": "55e68cb1"
+            },
+            {
+              "file": "griffon07-0.12a",
+              "crc": "7fbdd2fa"
+            },
+            {
+              "file": "nf08.bin",
+              "crc": "04c2323f"
+            },
+            {
+              "file": "ic52.8_a8",
+              "crc": "3657f69b"
+            },
+            {
+              "file": "8-2716.a8",
+              "crc": "89690582"
+            },
+            {
+              "file": "07-811.ic52",
+              "crc": "15a02d87"
+            },
+            {
+              "file": "4108-8516.rom",
+              "crc": "f15c439d"
+            },
+            {
+              "file": "f008-ic52.a8",
+              "crc": "3719fc84"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bgtiles",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "ic23.3d",
+          "offset": 0,
+          "size": 2048,
+          "crc": "3c7e623f"
+        },
+        {
+          "file": "ic24.4d",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "59916d3b"
+        }
+      ]
+    },
+    {
+      "region": "fgtiles",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "b1-ic39.3b",
+          "offset": 0,
+          "size": 2048,
+          "crc": "53413e8f",
+          "alt": [
+            {
+              "file": "phoenixc.39",
+              "crc": "bb0525ed"
+            },
+            {
+              "file": "phoenixd.3b",
+              "crc": "31c06c22"
+            },
+            {
+              "file": "0211.bin",
+              "crc": "53c52eb0"
+            },
+            {
+              "file": "a.bin",
+              "crc": "cdd5ef12"
+            },
+            {
+              "file": "vautor12.2h",
+              "crc": "8eff75c9"
+            },
+            {
+              "file": "griffond7-0.7d",
+              "crc": "074eb660"
+            },
+            {
+              "file": "nf09.bin",
+              "crc": "bacbfa88"
+            },
+            {
+              "file": "ic39.9_b3",
+              "crc": "14ccdf63"
+            }
+          ]
+        },
+        {
+          "file": "b2-ic40.4b",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "0be2ba91",
+          "alt": [
+            {
+              "file": "phoenixc.40",
+              "crc": "4178aa4f"
+            },
+            {
+              "file": "0212.bin",
+              "crc": "eba42f0f"
+            },
+            {
+              "file": "vautor11.2j",
+              "crc": "369e7476"
+            },
+            {
+              "file": "griffond8.8d",
+              "crc": "bee48e0c"
+            },
+            {
+              "file": "nf10.bin",
+              "crc": "3143a9ee"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 512,
+      "loads": [
+        {
+          "file": "mmi6301.ic40",
+          "offset": 0,
+          "size": 256,
+          "crc": "79350b25",
+          "alt": [
+            {
+              "file": "nf.ic40",
+              "crc": "725747be"
+            },
+            {
+              "file": "dm74s287n.ic41",
+              "crc": "7c9f2e00"
+            }
+          ]
+        },
+        {
+          "file": "mmi6301.ic41",
+          "offset": 256,
+          "size": 256,
+          "crc": "e176b768",
+          "alt": [
+            {
+              "file": "sn74s471n.bin",
+              "crc": "c68a49bc"
+            },
+            {
+              "file": "nf.ic41",
+              "crc": "a91055ab"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "CTRL",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "CTRL",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true
+    },
+    {
+      "port": "CTRL",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "activeLow": true
+    },
+    {
+      "port": "CTRL",
+      "mask": 8,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW0",
+      "mask": 3,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW0",
+      "mask": 12,
+      "value": 0,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW0",
+      "mask": 16,
+      "value": 0,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW0",
+      "mask": 32,
+      "value": 32,
+      "name": "Unknown"
+    },
+    {
+      "port": "DSW0",
+      "mask": 64,
+      "value": 64,
+      "name": "Unknown"
+    },
+    {
+      "port": "CAB",
+      "mask": 1,
+      "value": 0,
+      "name": "Cabinet"
+    }
+  ],
+  "gitHistory": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-22",
+    "commits": 192,
+    "contributors": 33,
+    "topAuthors": [
+      "Aaron Giles",
+      "Miodrag Milanovic",
+      "Ivan Vangelista",
+      "Vas Crabb",
+      "David Haywood"
+    ],
+    "authorStats": [
+      {
+        "name": "Aaron Giles",
+        "commits": 55,
+        "firstCommit": "2007-12-17",
+        "lastCommit": "2012-09-19"
+      },
+      {
+        "name": "Miodrag Milanovic",
+        "commits": 26,
+        "firstCommit": "2011-02-24",
+        "lastCommit": "2016-10-22"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "commits": 22,
+        "firstCommit": "2013-10-24",
+        "lastCommit": "2026-06-22"
+      },
+      {
+        "name": "Vas Crabb",
+        "commits": 15,
+        "firstCommit": "2017-02-27",
+        "lastCommit": "2024-10-18"
+      },
+      {
+        "name": "David Haywood",
+        "commits": 10,
+        "firstCommit": "2013-03-19",
+        "lastCommit": "2015-07-29"
+      },
+      {
+        "name": "ClawGrip",
+        "commits": 9,
+        "firstCommit": "2018-10-04",
+        "lastCommit": "2025-05-04"
+      },
+      {
+        "name": "Michaël Banaan Ananas",
+        "commits": 6,
+        "firstCommit": "2010-05-22",
+        "lastCommit": "2014-08-19"
+      },
+      {
+        "name": "Scott Stone",
+        "commits": 5,
+        "firstCommit": "2011-08-20",
+        "lastCommit": "2018-03-17"
+      },
+      {
+        "name": "Couriersud",
+        "commits": 4,
+        "firstCommit": "2008-01-16",
+        "lastCommit": "2011-03-14"
+      },
+      {
+        "name": "Olivier Galibert",
+        "commits": 4,
+        "firstCommit": "2018-01-07",
+        "lastCommit": "2018-10-27"
+      },
+      {
+        "name": "smf-",
+        "commits": 4,
+        "firstCommit": "2008-08-17",
+        "lastCommit": "2018-04-03"
+      },
+      {
+        "name": "Derrick Renaud",
+        "commits": 3,
+        "firstCommit": "2008-08-08",
+        "lastCommit": "2008-08-11"
+      },
+      {
+        "name": "Fabio Priuli",
+        "commits": 3,
+        "firstCommit": "2009-04-29",
+        "lastCommit": "2014-04-12"
+      },
+      {
+        "name": "hap",
+        "commits": 3,
+        "firstCommit": "2025-07-06",
+        "lastCommit": "2025-07-06"
+      },
+      {
+        "name": "davidhay",
+        "commits": 2,
+        "firstCommit": "2008-06-24",
+        "lastCommit": "2008-06-25"
+      },
+      {
+        "name": "mamehaze",
+        "commits": 2,
+        "firstCommit": "2014-11-10",
+        "lastCommit": "2026-06-15"
+      },
+      {
+        "name": "MooglyGuy",
+        "commits": 2,
+        "firstCommit": "2018-05-13",
+        "lastCommit": "2018-05-16"
+      },
+      {
+        "name": "Robbbert",
+        "commits": 2,
+        "firstCommit": "2012-11-22",
+        "lastCommit": "2012-11-22"
+      },
+      {
+        "name": "AJR",
+        "commits": 1,
+        "firstCommit": "2019-09-14",
+        "lastCommit": "2019-09-14"
+      },
+      {
+        "name": "Alex W. Jackson",
+        "commits": 1,
+        "firstCommit": "2014-03-15",
+        "lastCommit": "2014-03-15"
+      },
+      {
+        "name": "Andrew Gardner",
+        "commits": 1,
+        "firstCommit": "2013-02-20",
+        "lastCommit": "2013-02-20"
+      },
+      {
+        "name": "angelosa",
+        "commits": 1,
+        "firstCommit": "2024-12-04",
+        "lastCommit": "2024-12-04"
+      },
+      {
+        "name": "braintro",
+        "commits": 1,
+        "firstCommit": "2019-06-23",
+        "lastCommit": "2019-06-23"
+      },
+      {
+        "name": "Curt Coder",
+        "commits": 1,
+        "firstCommit": "2009-08-21",
+        "lastCommit": "2009-08-21"
+      },
+      {
+        "name": "MASHinfo",
+        "commits": 1,
+        "firstCommit": "2016-09-15",
+        "lastCommit": "2016-09-15"
+      },
+      {
+        "name": "mooglyguy",
+        "commits": 1,
+        "firstCommit": "2018-12-15",
+        "lastCommit": "2018-12-15"
+      },
+      {
+        "name": "Patrick Mackinlay",
+        "commits": 1,
+        "firstCommit": "2017-05-19",
+        "lastCommit": "2017-05-19"
+      },
+      {
+        "name": "Phil Bennett",
+        "commits": 1,
+        "firstCommit": "2009-12-21",
+        "lastCommit": "2009-12-21"
+      },
+      {
+        "name": "Roberto Fresca",
+        "commits": 1,
+        "firstCommit": "2018-05-14",
+        "lastCommit": "2018-05-14"
+      },
+      {
+        "name": "RobertoFresca",
+        "commits": 1,
+        "firstCommit": "2016-02-27",
+        "lastCommit": "2016-02-27"
+      },
+      {
+        "name": "stephh",
+        "commits": 1,
+        "firstCommit": "2008-04-09",
+        "lastCommit": "2008-04-09"
+      },
+      {
+        "name": "Stiletto",
+        "commits": 1,
+        "firstCommit": "2016-01-22",
+        "lastCommit": "2016-01-22"
+      },
+      {
+        "name": "Wilbert Pol",
+        "commits": 1,
+        "firstCommit": "2013-08-03",
+        "lastCommit": "2013-08-03"
+      }
+    ]
+  },
+  "historyText": "Arcade Video game published 46 years ago:\n\nPhoenix (c) 1980 Amstar.\n\nPhoenix is a classic vertical shoot-em-up in the mould of Taito's \"Space Invaders\" and Namco's \"Galaxian\", but takes the concept further with the introduction of progressive stages of play (instead of simply repeating a single playfield over and over with an increasing difficulty level). \n\nThe player pilots a lone ship that can only move left and right along the botton of the playfield and fire upwards. The ship can also utilize a temporary 'Force Field' to protect it from missiles and birds. Any birds that that collide with the Force Field are destroyed. The Force Field only lasts for two seconds, but then cannot be used again for another five seconds. \n\nThere are five attack waves to each round of play. \n\nThe first wave begins with a formation of sixteen birds attacking the player's ship. They drop missiles and dive at the ship in an effort to destroy it. \n\nThe second wave is a variation of the first, only with a different enemy attack pattern. \n\nThe third wave begins with pattern of eight eggs that hatch into blue Phoenix birds that then attack the player's ship. These birds can be destroyed by rocket fire from the ship. If the rocket hits the bird on center, the bird is destroyed. If the rocket hits the bird to the left or right of center, only that wing of the bird is destroyed. The wing will regenerate itself if the bird is not quickly destroyed. \n\nThe fourth wave is similar to the third, only with two banks of eggs instead of one. \n\nThe fifth and final wave is the attack of the Space fortress mothership; a huge mothership piloted by a purple-coloured Alien Queen who sends down waves of small birds to attack the player's ship, as well as launching missiles from the mothership itself. The Alien Queen is protected by a barrier that must be shot several times before both the Queen and the mothership are destroyed.\n\nOnce the mothership has been destroyed, the game starts over with an increased level of difficulty.\n\nThe additional gameplay elements seem to be at the expense of hardware performance. Despite having more basic graphics than \"Galaxian\", Phoenix's ships move in a very mechanical fashion compared to the smooth, nicely animated movements of Namco's classic.\n\n- TECHNICAL -\n\nMost Phoenix games will be in a standard Centuri woodgrain cabinet, but several other cabinets exist, due to this game being sold by multiple companies at the same time. These use sticker sideart (which covers the upper half of the machine), and glass marquees. The control panel is made up entirely of buttons, no joysticks are present (on the upright and 'maxi' cabs, that is; the cocktail cab has a 2-way joystick and 2 buttons). The monitor in this machine is mounted vertically, and the monitor bezel is relatively unadorned. Phoenix uses a unique wiring harness, which isn't know to be compatible with any other games.\n\nMain CPU : 8085A\nSound Chips : TMS36XX, Discrete circuitry\n\nPlayers : 2\n\nCocktail cab : \nControl : 2-way Joystick\nButtons : 2\n=> [1] Fire, [2] Force Field\n\nUpright and 'Maxi' cabs : \nButtons : 4 (LEFT, RIGHT, FIRE, FORCE FIELD)\n(The upright and 'maxi' cabs have no joystick)\n\n- TRIVIA -\n\nTitlescreen's copyright notice :\nPHOENIX COPYRIGHT 1980\nAMSTAR ELECTRONICS CORP.\nPHOENIX AZ. U.S.A.\n\nPhoenix was released in December 1980.\n\nPhoenix was the first multi-level space shooter and also the first shooter to include bosses. Despite its hardware issues, Phoenix's many gameplay innovations ensured that it now is rightly regarded as a classic and, along with Taito's \"Space Invaders\" and Namco's \"Pac-Man\" shares the dubious honour of being one of the most cloned games of the 1980s; with numerous console and home computer 'tributes' appearing.\n\nThe song that is played at the start of the game is 'Romance de Amor', also known as 'Spanish Romance', whose true author is currently unknown.\n\nThe song that is played when you start over after the mothership is destroyed is Ludwig van Beethoven's 'Für Elise'.\n\nMark Gotfraind holds the official record for this game with 987,620 points.\n\nLicensed releases:\n\"Phoenix [Maxi model]\" (Centuri, Inc.)\n\"Phoenix [Upright model]\" (Centuri, Inc.)\n\"Phoenix [Japanese Cocktail Table]\" (Taito Corp.)\n\nKnown Bootlegs/Hacks :\nPhoenix (Irecsa G.G.I Corp.)\nPhoenix (T.P.N.)\nGriffon (Videotron)\nFalcon (BGV)\nVautour (Jeutel)\nCondor (Sidam)\nBatman Part 2\n\n- SCORING -\n\nScoring is a little complicated in this game due to the fact it depends on hits made and how close the Phoenix's are to your fighter.\n\nPhoenix fighters : 20, 40, or 80 points; 200 points if flying as a bird.\nPhoenix birds : 50 or 100 points/egg, 100 - 800 points/bird (depends on how many wings shot off and distance from fighter).\nMothership : 1,000 - 9,000 points (may depend on how close the mothership is to you fighter when you kill the Alien Queen; may also depend on the amount of damage to the mothership, speed of destruction, as well as the number of spaceships destroyed). Usually, first 9 spaceships would increase by a thousand, then will be followed by nine 9000 point spaceships, then back to the first nine set, etc...\n\n- TIPS AND TRICKS -\n\n* When you start the game, your fighter will be in the middle at the bottom of the screen. You will see a formation of enemy fighters at the top of the screen. This is the beginning of Wave 1. A quick note about the Force Field: it lasts a couple of seconds and takes about five seconds to regenerate again.\n\nWAVES 1 AND 2 :\n1) You will usually be attacked by multiple fighters at any one time. The movements of these fighters is pretty random.\n2) In addition to dropping bombs on your fighter, Phoenix fighters also tend to try to ram your fighter.\n3) After you clear out a few fighters, they will reassemble at the top of the screen. They will then move in synch with each other as they creep to the bottom of the screen.\n4) Sometimes a Phoenix fighter will hover right above your ship. If you're quick, you can get off a quick shot and move away before a bomb can be dropped on you.\n5) If multiple Phoenix fighters are at your level, use the Force Field to clear a path through them.\n\nWAVE 3 AND 4 :\n1) The Phoenixes in Wave 3 enter the screen in a zig-zag pattern while the Phoenixes in Wave 4 arrive in a cross-over pattern of four Phoenixes per side.\n2) Once they get large, they start to do erratic zig-zag patterns across the screen. At the same time, they are dropping bombs toward your fighter. Your goal is to shoot off their wings. If you do this, it forces them to go straight down until the wing regenerates. They will still be dropping bombs, but at least they will be going straight down.\n3) If at all possible, try to hit the Phoenixes when they are close to your ship. Doing this gets you more points.\n4) In addition, try to shoot off both wings before destroying a Phoenix for more points.\n\nWAVE 5 :\n1) Your goal on this wave is to cut through the mothership's hull and shield and take out the Alien Queen inside.\n2) Start firing as rapidly as you can to quickly cut through the hull. It will take quite a few shots to get to the shield.\n3) The shield rotates so you will have to hit it a lot of times in order to get a wide enough hole in it to hit the Alien Queen.\n4) As all of this is going on, the mothership is continually descending upon your ship. In addition, the escorts are constantly harassing you.\n5) A good strategy is that once you have cut a path through the hull and shield, wait for the mothership to be almost on top of your ship. When you take out the alien, you will get a lot more points.\n6) Destroying the escorts does not end this wave. Once you complete Wave 5, the cycle begins anew.\n\n* During the game three birds will attack all in a line. Let those birds fly all the way to the bottom and start to fly back up. As they are flying up, shoot all three in a row real quick (2 or 3 seconds) and you will elevate your score to 204,000 regardless of what your current score is - The best way to get this bonus for shooting the three birds in a line is on the second stage of level 2. The blue and pink birds in an oval shape. Just wait, not firing at the bottom of the screen. A single bird will come down, fanny around and then fly back up, then four birds will fly down together in a line. When they start to fly back up - blast three of them for the bonus. It works best here because of the rapid fire allowed on this and every other 2nd stage. In addition, accomplishing the trick a second time again puts your score at 204,000, even if your score was higher.\n\n- PORTS -\n\n* CONSOLES:\nEmerson Arcadia [EU] (1982) \"Space Vultures [Model 1014]\" \nZX-Spectrum [EU] (1983) \"Pheenix\" by Megadodo Software \nBBC B [EU] (1983) \"Eagle Empire\" by Alligata \n[EU] Microsoft XBOX (oct.14, 2005) \"Taito Legends\" \n[EU] Sony PS2 (oct.14, 2005) \"Taito Legends [Model SLES-53438]\" \n[KO] Sony PS2 (jul.18, 2006) \"Taito Legends [Model SLKA-15056]\" \n\n* HANDHELDS: \n[EU] Sony PSP (oct.6, 2006) \"Taito Legends Power-Up [Model ULES-00473]\" \n[AU] Sony PSP (nov.9, 2006) \"Taito Legends Power-Up [Model ULES-00473]\" \n\n* COMPUTERS: \n[EU] Commodore C64 (1984) \"Eagle Empire\" \n[EU] PC [MS Windows, CD-ROM] (oct.14, 2005) \"Taito Legends\"\n\n- SERIES -\n\n1. Phoenix (1980)\n2. Pleiads (1981)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1961/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

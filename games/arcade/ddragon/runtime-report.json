@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 2,
+  "game": "ddragon",
+  "family": "ddragon",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "sourceCoverage": {
+    "covered": 118,
+    "total": 159,
+    "percent": 74.2
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:HD6309E",
+        "status": "executable",
+        "source": "src/devices/cpu/m6809/hd6309.cpp:130"
+      },
+      {
+        "name": "sub:HD63701Y0",
+        "status": "executable",
+        "source": "src/devices/cpu/m6800/m6801.cpp:418"
+      },
+      {
+        "name": "soundcpu:MC6809",
+        "status": "executable",
+        "source": "src/devices/cpu/m6809/m6809.cpp:136"
+      }
+    ],
+    "devices": [
+      {
+        "name": "scantimer:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "fmsnd:YM2151",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "adpcm1:MSM5205",
+        "status": "executable",
+        "source": "src/devices/sound/msm5205.cpp:53"
+      },
+      {
+        "name": "adpcm2:MSM5205",
+        "status": "executable",
+        "source": "src/devices/sound/msm5205.cpp:53"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.mainbank",
+        "status": "generated"
+      },
+      {
+        "name": "ddragon_state.bankswitch_w",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:163"
+      },
+      {
+        "name": "ddragon_state.bgvideoram_w",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon_v.cpp:118"
+      },
+      {
+        "name": "ddragon_state.comram_r",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:367"
+      },
+      {
+        "name": "ddragon_state.comram_w",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:377"
+      },
+      {
+        "name": "ddragon_state.ddragon_adpcm_status_r",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:439"
+      },
+      {
+        "name": "ddragon_state.ddragon_adpcm_w",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:393"
+      },
+      {
+        "name": "ddragon_state.fgvideoram_w",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon_v.cpp:124"
+      },
+      {
+        "name": "ddragon_state.interrupt_r",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:286"
+      },
+      {
+        "name": "ddragon_state.interrupt_w",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:293"
+      },
+      {
+        "name": "fmsnd.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "fmsnd.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "palette.write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette.write8_ext",
+        "status": "declarative-host"
+      },
+      {
+        "name": "port.DSW0",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.EXTRA",
+        "status": "generated"
+      },
+      {
+        "name": "port.P1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P2",
+        "status": "generated"
+      },
+      {
+        "name": "soundlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "scantimer.configure_scanline -> ddragon_state.scanline",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:946"
+      },
+      {
+        "name": "sub.out_p6_cb -> ddragon_state.sub_port6_w",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:950"
+      },
+      {
+        "name": "screen.set_screen_update -> ddragon_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:963"
+      },
+      {
+        "name": "soundlatch.data_pending_callback -> soundcpu",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:970"
+      },
+      {
+        "name": "fmsnd.irq_handler -> soundcpu",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:973"
+      },
+      {
+        "name": "adpcm1.vck_legacy_callback -> ddragon_state.ddragon_adpcm_int_0",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:978"
+      },
+      {
+        "name": "adpcm2.vck_legacy_callback -> ddragon_state.ddragon_adpcm_int_1",
+        "status": "generated",
+        "source": "src/mame/technos/ddragon.cpp:983"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/ddragon/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 23,
+    "compiledMethods": 23,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 9,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 3,
+    "frameCallbacks": 1,
+    "screenUpdate": "ddragon_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 10,
+    "generated": 23,
+    "declarative-host": 7,
+    "blocked": 0,
+    "missing": 0
+  }
+}

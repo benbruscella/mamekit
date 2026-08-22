@@ -1,0 +1,27 @@
+{
+  "type": "MC1408",
+  "uses": [
+    {
+      "game": "defender",
+      "tags": [
+        "dac"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "MC1408",
+    "className": "mc1408_device",
+    "description": "MC1408 DAC",
+    "shortName": "mc1408",
+    "sourceFile": "src/devices/sound/dac.h",
+    "sourceLine": 210,
+    "sourceColumn": 1,
+    "macro": "DAC_GENERATOR(MC1408,    mc1408_device,    dac_byte_device_base, dac_mapper_unsigned,  8, dac_gain_r2r, \"MC1408 DAC\",    \"mc1408\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/dac.h"
+  ]
+}

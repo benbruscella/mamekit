@@ -1,0 +1,206 @@
+# Elevator Action (BA3, 4 PCB version, 1.1)
+
+**Taito · 1983** — transpiled from the MAME driver `src/mame/taito/taitosj.cpp` by mamekit.
+
+![marquee](/artwork/media/marquees/elevator.webp)
+
+| Cover | Cabinet |
+| --- | --- |
+| ![flyer](/artwork/covers/elevator.webp) | ![cabinet](/artwork/media/cabinets/elevator.webp) |
+
+## The machine
+
+| CPU | Type | Clock | Mapped ranges |
+| --- | --- | --- | --- |
+| `maincpu` | Z80 | 4.000 MHz | 38 |
+| `audiocpu` | Z80 | 3.000 MHz | 11 |
+
+- **Sound:** ay8910 × 4 @ 1.500 MHz
+- **Screen:** 256×224 @ 59.19 Hz
+
+### ROM chips
+
+| Region | Chip | Offset | Size | CRC |
+| --- | --- | --- | --- | --- |
+| `maincpu` | `ba3__01.2764.ic1` | 0x0 | 0x2000 | `da775a24` |
+| `maincpu` | `ba3__02.2764.ic2` | 0x2000 | 0x2000 | `fbfd8b3a` |
+| `maincpu` | `ba3__03-1.2764.ic3` | 0x4000 | 0x2000 | `a2e69833` |
+| `maincpu` | `ba3__04-1.2764.ic6` | 0x6000 | 0x2000 | `2b78c462` |
+| `audiocpu` | `ba3__09.2732.ic70` | 0x0 | 0x1000 | `6d5f57cb` |
+| `audiocpu` | `ba3__10.2732.ic71` | 0x1000 | 0x1000 | `f0a769a1` |
+| `pal` | `ww15.pal16l8.ic24.jed.bin` | 0x0 | 0x117 | `c3ec20d6` |
+| `bmcu:mcu` | `ba3__11.mc68705p3.ic24` | 0x0 | 0x800 | `9ce75afc` |
+| `gfx` | `ba3__05.2764.ic4` | 0x0 | 0x2000 | `6c4ee58f` |
+| `gfx` | `ba3__06.2764.ic5` | 0x2000 | 0x2000 | `41ab0afc` |
+| `gfx` | `ba3__07.2764.ic9` | 0x4000 | 0x2000 | `efe43731` |
+| `gfx` | `ba3__08.2764.ic10` | 0x6000 | 0x2000 | `3ca20696` |
+| `proms` | `eb16.ic22` | 0x0 | 0x100 | `b833b5ea` |
+
+## Controls
+
+| Key | Function | Port | Bit |
+| --- | --- | --- | --- |
+| Left | joystick left | `IN0` | 0x1 |
+| Right | joystick right | `IN0` | 0x2 |
+| Down | joystick down | `IN0` | 0x4 |
+| Up | joystick up | `IN0` | 0x8 |
+| Space / X | button1 | `IN0` | 0x10 |
+| Z | button2 | `IN0` | 0x20 |
+| 6 | coin2 | `IN2` | 0x10 |
+| 5 | coin1 | `IN2` | 0x20 |
+| 1 | start1 | `IN2` | 0x40 |
+| 2 | start2 | `IN2` | 0x80 |
+| 9 | service1 | `IN3` | 0x10 |
+
+## DIP switches (factory defaults)
+
+| Setting | Port | Mask | Default |
+| --- | --- | --- | --- |
+| Bonus Life | `DSW1` | 0x3 | 0x3 |
+| Free Play | `DSW1` | 0x4 | 0x4 |
+| Lives | `DSW1` | 0x18 | 0x18 |
+| Flip Screen | `DSW1` | 0x40 | 0x40 |
+| Cabinet | `DSW1` | 0x80 | 0x0 |
+| Coin A | `DSW2` | 0xf | 0x0 |
+| Coin B | `DSW2` | 0xf0 | 0x0 |
+| Difficulty | `DSW3` | 0x3 | 0x3 |
+| Coinage Display | `DSW3` | 0x10 | 0x10 |
+| Year Display | `DSW3` | 0x20 | 0x20 |
+| Hit Detection | `DSW3` | 0x40 | 0x40 |
+| Coin Slots | `DSW3` | 0x80 | 0x80 |
+
+## The MAME driver — the people who reverse-engineered it
+
+- **Driver source:** `src/mame/taito/taitosj.cpp`
+- **Written by:** Nicola Salmoria
+- **License:** BSD-3-Clause
+- **Development:** 218 commits by 32 contributors, 2007–2026
+- **Top contributors:** Aaron Giles, Miodrag Milanovic, Vas Crabb, Ivan Vangelista, hap
+
+## The story
+
+Arcade Video game published 43 years ago:
+
+Elevator Action (c) 1983 Taito.
+
+Agent 17 (code name 'Otto') is to secure the top secret documents from the security building. The enemy spies are in pursuit and their orders are to stop him at any cost. Having made it to the top of a 30 story building, Agent 17 has to make his way down to the basement to get to the getaway car and save the documents. Enemy spies are everywhere and the documents are hidden behind the red doors (bonus points awarded). He has to open the door and keep moving. If either of them shoots the lights out there will be a temporary blackout. If Otto finds himself on top of the elevator the player will not be able to control the elevator. If he gets caught in the elevator he is a sitting duck and cannot duck the bullets. By using the escalator he can reach the basement quicker. Otto can defeat his enemy by jump kicking or firing at them. Help Otto to grab all the documents and escape the spies.
+
+### Technical
+Elevator Action was available in 2 different arcade formats, a cocktail table and an upright dedicated cabinet. Both versions used the same internal hardware though.
+
+* The upright version came in the standard 'Taito Classic' cabinet, which was the same one used for Jungle Hunt, Zoo Keeper, Alpine Ski, and many others. These cabinets normally did not have side art that advertised the name of the game, instead they had a painted design of lines and shapes, along with a Taito logo. Different titles had different designs and color schemes, although they have been known to ship games in the wrong cabinets. But lets get back on track here. Elevator Action should come in a brown cabinet with a Taito logo up near the top. The marquee shows a scene of Agent 17 waiting for an elevator while an enemy agent shoots at him. While the monitor bezel shows agents on either side, has game instructions at the bottom, and shows an elevator floor display at the top. This bezel artwork is silk screened on glass, and is prone to peeling, be very careful if you have to handle one of these. The control panel has a single 4-Way ball-top joystick mounted centrally, with jump and fire buttons located to either side.
+Internally the machine uses a 19 inches open frame monitor mounted horizontally, and a set of game boards that conform to the 'Taito Classic' wiring standard. Many other early Taito games (such as "Jungle Hunt" and "Bubble Bobble") will plug directly into this cabinet without modification.
+
+* The cocktail version came in a table similar in design to the one used for Space Invaders and Carnival. It was not decorated except for a pair of instruction cards underneath the glass. Most Japanese game makers purchased their tables from the same few manufacturers, and were quite likely to change the exact model of cocktail that they shipped in mid production. So assume any Elevator Action cocktail is original unless it is obviously converted from another title.
+
+Runs on the "Taito SJ System" hardware.
+Prom Stickers : BA3 / EA
+
+Players: 2
+Control: 4-way joystick
+Buttons: 2 (FIRE, JUMP)
+
+### Trivia
+Elevator Action was released in July 1983 in Japan and in October 1983 in North America. 
+
+G. Ben Carter, Jr. holds official the record for this game with 143,450 points.
+
+### Scoring
+Shooting an enemy agent : 100 points
+Jumping on an enemy agent : 150 points
+Dropping a light on an enemy agent : 300 points
+Getting a secret document : 500 points
+
+The bonus is 1,000 points x the level you are on. After 10th level, you will get 10,000 points per level completed.
+
+### Tips and tricks
+* When you start the game, a quick animation will show a hook with a line connecting to the top of the elevator. Then your character will slide down the line to the roof. Then he will enter the building, in the elevator, at the 30th floor. It is now up to you to get all the secrets and make it to your car. The first thing you must know, obviously, is how to eliminate the enemy agents that are after you. There are a few ways you can do this :
+1) Just shoot them. Of course, especially in the later levels, enemy agents make themselves an impossible target by lying down. You can only take them out by riding an elevator down.
+2) Jumping on them will take care of them. In addition, you may avoid some of their fire.
+3) On the non-dark floors, shoot the light down on top of an enemy agent. You must do this from the elevator. This also has the added effect of causing temporary darkness in the building, making enemy agents harder to see.
+4) Crush an enemy agent using the elevator. This is hard to do since they move around. You may get lucky, however, and get one under or on top of the elevator you are on.
+5) This way is pretty hard. You might be able to get an enemy agent to follow you and fall down the hole created by the missing elevator.
+
+* You must know how to use the escalators and open the red doors :
+1) To use the escalators, just stand on the little rectangle. Then push the joystick UP or DOWN depending on which direction you need the escalator to take you.
+2) To open the red doors, stand on the little rectangle. Face the doorknob and press RIGHT on the joystick.
+
+* You have full control over any elevator you enter. This means you can move UP and DOWN on a dime to keep your character safe. This works until the alarm goes off.
+
+* Speaking of elevators, your character cannot duck while in an elevator. Also, while riding the escalators, your character cannot duck, jump, or fire his weapon.
+
+* Also on elevators, you do not have control when you are riding on top of them. This means you are at the mercy of the elevator or the enemy agent controlling it. Be very careful if you ride on top of the elevator. You also cannot go past the bar on the top of the elevator.
+
+* Enemy agents usually come out of the doors on the current floor or the floor above and below. A lot of times it is good to lay a wall of fire down a hallway. This way, you can pick off any enemy agents that happen to come out of one of the doors.
+
+* When you enter through one of the red doors, the enemy agents will lose track of your character but will have a general idea of where your character is. When you exit the room, crouch and lay down fire both left and right to clear off the floor.
+
+* As the levels progress, the enemy agents get better at their tactics. They start to crouch more to mess up your fire. They also may lay down which makes it impossible to hit them unless you are on an elevator and can shoot along the floor.
+
+* As you move up in levels, there will be red doors in odd areas. Areas such as on the lower five floors where only elevators can take you across. Of course, if you get good with the jump button, you can jump those gaps to get to either side quicker. The downside is that enemy agents will usually flood the area and lay down a lot of fire.
+
+* If you happen to get to the B1 floor and you have forgotten to get a red door, the game will automatically put your agent at the door you missed. If it is multiple doors, then you will be placed at the highest floor first.
+
+* There is an internal time limit on how long you can take to get everything out of the building. If you take too much time, an alarm sounds and the following things occur :
+a) Although you still have control over the elevators, it is much harder to get them to respond to your commands. If you are in a tight situation that requires a little bit of time, don't wait till the last minute or you may be an ex-agent.
+b) The enemy agents move much quicker and their shots move faster. Plus, additional enemy agents will start appearing to really make your life miserable.
+c) If your character happens to die, the next man will still be facing the same alarm situation. The only way to resolve the situation is to get all of the secrets and make it out of the building.
+
+* Watch out for the double elevator. If you are in the top car, it will stop two floors short of the bottom since there is a one floor gap, and the bottom car. Try to always get into the bottom car of a double elevator so that you can make a hasty exit and not be trapped with enemy agents firing on you.
+
+### Staff
+Music by : Yoshino Imamura
+
+### Ports
+* CONSOLES: 
+[US] Atari 2600 : planned, but never released 
+[US] Atari 7800 : unreleased prototype 
+[JP] Nintendo Famicom (june.28, 1985) "Elevator Action [Model 04 TF-4900]" 
+[JP] Sega SG-1000 (1985) "Elevator Action [Model C-55]"
+[TW] Sega SG-1000 (198?) "Die Dui Die"
+[US] Nintendo NES (aug.1987) "Elevator Action [Model NES-EA-USA]" 
+Sega Saturn (Feb 14, 1997) "Elevator Action Returns": As hidden/unlockable game.
+[JP] Sony PS2 (aug.25, 2005) "Taito Memories Gekan [Model SLPM-66092]" 
+[EU] Microsoft XBOX (oct.14, 2005) "Taito Legends" 
+[EU] Sony PS2 (oct.14, 2005) "Taito Legends [Model SLES-53438]" 
+[US] Microsoft XBOX (oct.25, 2005) "Taito Legends" 
+[US] Sony PS2 (oct.25, 2005) "Taito Legends [Model SLUS-21122]" 
+[KO] Sony PS2 (jul.18, 2006) "Taito Legends [Model SLKA-15056]"
+
+* HANDHELDS: 
+[EU] Nintendo Game Boy (1991) "Elevator Action [Model DMG-EA-NOE]" 
+[JP] Nintendo Game Boy (aug.9, 1991) "Elevator Action [Model DMG-EAA]" 
+[US] Nintendo Game Boy (dec.1991) "Elevator Action [Model DMG-EA-USA]" 
+[JP] Nintendo GBA (dec.20, 2002) "Elevator Action - Old & New [Model AGB-ANWJ-JPN]" 
+[JP] Sony PSP (jan.5, 2006) "Taito Memories Pocket [Model ULJM-05076]" 
+[KO] Sony PSP (feb.10, 2006) "Taito Memories Pocket" 
+[EU] Sony PSP (oct.6, 2006) "Taito Legends Power-Up [Model ULES-00473]" 
+[AU] Sony PSP (nov.9, 2006) "Taito Legends Power-Up [Model ULES-00473]" 
+[US] Sony PSP (may.17, 2007) "Taito Legends Power-Up [Model ULUS-10208]" 
+
+* COMPUTERS: 
+[EU] Sinclair ZX Spectrum (1987) "Elevator Action [Model QSS 142]" 
+[US] [EU] Commodore C64 (1987) 
+[EU] Amstrad CPC (1987) 
+[JP] MSX (1985) "Elevator Action [Model MSX-7]" 
+[EU] PC [MS Windows, CD-ROM] (oct.14, 2005) "Taito Legends" 
+[US] PC [MS Windows, CD-ROM] (nov.10, 2005) "Taito Legends" 
+
+* OTHERS: 
+[US] Mobile Phones (nov.20, 2003)
+
+### Series
+1. Elevator Action (1983)
+2. Elevator Action Returns (1995)
+3. Elevator Action EX (2000, Nintendo Game Boy Color)
+4. Elevator Action - Death Parade (2009)
+5. Elevator Action Deluxe (2011, PSN)
+
+### Contribute
+Edit this entry: https://www.arcade-history.com/game/747/?o=2
+
+*Story courtesy of Gaming History (arcade-history.com).*
+
+---
+
+*Generated by [mamekit](https://github.com/benbruscella/mamekit) from the knowledge graph of MAME driver `taitosj`. Play it at [../../../app/g/elevator/](../../../app/g/elevator/) or [explore the knowledge graph](viewer.html).*

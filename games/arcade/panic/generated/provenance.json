@@ -1,0 +1,239 @@
+{
+  "generatedFrom": "src/mame/universal/cosmic.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 843,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 837,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 837,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 811,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 814,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 837,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 837,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/universal/cosmic_v.cpp",
+      "line": 468,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 837,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 840,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 841,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 846,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 848,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 853,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 811,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 814,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 43,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/universal/cosmic_v.cpp",
+      "line": 15,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 277,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 109,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 800,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/universal/cosmic_v.cpp",
+      "line": 468,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/universal/cosmic_v.cpp",
+      "line": 181,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/universal/cosmic_v.cpp",
+      "line": 209,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 819,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 285,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 286,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 287,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 288,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 289,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 290,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 291,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 292,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 293,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 294,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 295,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/universal/cosmic.cpp",
+      "line": 283,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/universal/cosmic_v.cpp",
+      "line": 67,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/universal/cosmic_v.cpp",
+      "line": 468,
+      "column": 1
+    }
+  ]
+}

@@ -1,0 +1,1026 @@
+{
+  "type": "GENERIC_LATCH_8",
+  "uses": [
+    {
+      "game": "1942",
+      "tags": [
+        "soundlatch0",
+        "soundlatch1"
+      ]
+    },
+    {
+      "game": "bublbobl",
+      "tags": [
+        "main_to_sound",
+        "sound_to_main"
+      ]
+    },
+    {
+      "game": "commando",
+      "tags": [
+        "soundlatch"
+      ]
+    },
+    {
+      "game": "ddragon",
+      "tags": [
+        "soundlatch"
+      ]
+    },
+    {
+      "game": "frogger",
+      "tags": [
+        "soundlatch"
+      ]
+    },
+    {
+      "game": "ghouls",
+      "tags": [
+        "soundlatch1",
+        "soundlatch2"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "soundlatch"
+      ]
+    },
+    {
+      "game": "gunsmoke",
+      "tags": [
+        "soundlatch"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "soundlatch",
+        "soundlatch2"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "soundlatch",
+        "soundlatch2"
+      ]
+    },
+    {
+      "game": "mario",
+      "tags": [
+        "soundlatch0",
+        "soundlatch1",
+        "soundlatch2",
+        "soundlatch3"
+      ]
+    },
+    {
+      "game": "matmania",
+      "tags": [
+        "soundlatch"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "soundlatch"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "soundlatch"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "soundlatch"
+      ]
+    },
+    {
+      "game": "sf2ce",
+      "tags": [
+        "soundlatch1",
+        "soundlatch2"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "soundlatch"
+      ]
+    },
+    {
+      "game": "tutankhm",
+      "tags": [
+        "soundlatch"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "GENERIC_LATCH_8",
+    "className": "generic_latch_8_device",
+    "shortName": "generic_latch_8",
+    "description": "Generic 8-bit latch",
+    "sourceFile": "src/devices/machine/gen_latch.cpp",
+    "sourceLine": 23,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(GENERIC_LATCH_8, generic_latch_8_device, \"generic_latch_8\", \"Generic 8-bit latch\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 173,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "generic_latch_base_device::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_latched_value"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "init_callback",
+      "parameters": "s32 param",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 59,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_data_pending_cb"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_latch_written"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 68,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_latch_written"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pending_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 78,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_latch_written"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_latch_written",
+      "parameters": "bool latch_written",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 88,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_latch_written"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "latch_written"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_latch_written"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "latch_written"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_data_pending_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "latch_written"
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "acknowledge_r",
+      "parameters": "address_space &space",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 97,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_latch_written"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "space"
+                },
+                "property": "unmap"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "acknowledge_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 104,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_latch_written"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_pending_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/gen_latch.h",
+      "sourceLine": 31,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_data_pending_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_separate_acknowledge",
+      "parameters": "bool ack",
+      "sourceFile": "src/devices/machine/gen_latch.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_separate_acknowledge"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "ack"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "has_separate_acknowledge",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/gen_latch.h",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_separate_acknowledge"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_latch_written",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/gen_latch.h",
+      "sourceLine": 49,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_latch_written"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "generic_latch_base_device::data_pending_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/gen_latch.h",
+      "sourceLine": 32,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_data_pending_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "generic_latch_base_device::set_separate_acknowledge",
+      "parameters": "bool ack",
+      "sourceFile": "src/devices/machine/gen_latch.h",
+      "sourceLine": 35,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_separate_acknowledge"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "ack"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "generic_latch_base_device::has_separate_acknowledge",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/gen_latch.h",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_separate_acknowledge"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "generic_latch_base_device::is_latch_written",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/gen_latch.h",
+      "sourceLine": 50,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_latch_written"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 119,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "has_separate_acknowledge"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "side_effects_disabled"
+                  },
+                  "args": []
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_latch_written"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_latched_value"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 126,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "synchronize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "timer_expired_delegate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "generic_latch_8_device::sync_callback"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "preset_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 131,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_latched_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 136,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_latched_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "preset",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 141,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_latched_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 146,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_latched_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sync_callback",
+      "parameters": "s32 param",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 156,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "value",
+            "valueType": "u8",
+            "value": {
+              "kind": "identifier",
+              "name": "param"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "is_latch_written"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_latched_value"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "value"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_latched_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "value"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_latch_written"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "generic_latch_base_device::device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/gen_latch.cpp",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_latch_written"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "synchronize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "timer_expired_delegate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "generic_latch_base_device::init_callback"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/gen_latch.cpp",
+    "src/devices/machine/gen_latch.h"
+  ]
+}

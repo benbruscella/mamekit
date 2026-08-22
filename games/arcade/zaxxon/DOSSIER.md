@@ -1,0 +1,221 @@
+# Zaxxon (set 1, rev D)
+
+**Sega · 1982** — transpiled from the MAME driver `src/mame/sega/zaxxon.cpp` by mamekit.
+
+![marquee](/artwork/media/marquees/zaxxon.webp)
+
+| Cover | Cabinet |
+| --- | --- |
+| ![flyer](/artwork/covers/zaxxon.webp) | ![cabinet](/artwork/media/cabinets/zaxxon.webp) |
+
+## The machine
+
+| CPU | Type | Clock | Mapped ranges |
+| --- | --- | --- | --- |
+| `maincpu` | Z80 | 3.041 MHz | 12 |
+
+- **Sound:** samples × 1 @ 3.041 MHz
+- **Screen:** 256×224 @ 60.00 Hz · rotated 90°
+
+### ROM chips
+
+| Region | Chip | Offset | Size | CRC |
+| --- | --- | --- | --- | --- |
+| `maincpu` | `zaxxon_rom3d.u27` | 0x0 | 0x2000 | `6e2b4a30` |
+| `maincpu` | `zaxxon_rom2d.u28` | 0x2000 | 0x2000 | `1c9ea398` |
+| `maincpu` | `zaxxon_rom1d.u29` | 0x4000 | 0x1000 | `1c123ef9` |
+| `gfx_tx` | `zaxxon_rom14.u68` | 0x0 | 0x800 | `07bf8c52` |
+| `gfx_tx` | `zaxxon_rom15.u69` | 0x800 | 0x800 | `c215edcb` |
+| `gfx_bg` | `zaxxon_rom6.u113` | 0x0 | 0x2000 | `6e07bb68` |
+| `gfx_bg` | `zaxxon_rom5.u112` | 0x2000 | 0x2000 | `0a5bce6a` |
+| `gfx_bg` | `zaxxon_rom4.u111` | 0x4000 | 0x2000 | `a5bf1465` |
+| `gfx_spr` | `zaxxon_rom11.u77` | 0x0 | 0x2000 | `eaf0dd4b` |
+| `gfx_spr` | `zaxxon_rom12.u78` | 0x2000 | 0x2000 | `1c5369c7` |
+| `gfx_spr` | `zaxxon_rom13.u79` | 0x4000 | 0x2000 | `ab4e8a9a` |
+| `tilemap_dat` | `zaxxon_rom8.u91` | 0x0 | 0x2000 | `28d65063` |
+| `tilemap_dat` | `zaxxon_rom7.u90` | 0x2000 | 0x2000 | `6284c200` |
+| `tilemap_dat` | `zaxxon_rom10.u93` | 0x4000 | 0x2000 | `a95e61fd` |
+| `tilemap_dat` | `zaxxon_rom9.u92` | 0x6000 | 0x2000 | `7e42691f` |
+| `proms` | `mro16.u76` | 0x0 | 0x100 | `6cc6695b` |
+| `proms` | `zaxxon.u72` | 0x100 | 0x100 | `deaa21f7` |
+
+## Controls
+
+| Key | Function | Port | Bit |
+| --- | --- | --- | --- |
+| Right | joystick right | `SW00` | 0x1 |
+| Left | joystick left | `SW00` | 0x2 |
+| Down | joystick down | `SW00` | 0x4 |
+| Up | joystick up | `SW00` | 0x8 |
+| Space / X | button1 | `SW00` | 0x10 |
+| 1 | start1 | `SW100` | 0x4 |
+| 2 | start2 | `SW100` | 0x8 |
+| 5 | coin1 | `COIN` | 0x1 |
+| 6 | coin2 | `COIN` | 0x2 |
+| 9 | service1 | `COIN` | 0x4 |
+
+## DIP switches (factory defaults)
+
+| Setting | Port | Mask | Default |
+| --- | --- | --- | --- |
+| Service Mode | `SERVICESW` | 0x1 | 0x0 |
+| Bonus Life | `DSW02` | 0x3 | 0x3 |
+| Unused | `DSW02` | 0x4 | 0x4 |
+| Unused | `DSW02` | 0x8 | 0x8 |
+| Lives | `DSW02` | 0x30 | 0x30 |
+| Sound | `DSW02` | 0x40 | 0x40 |
+| Cabinet | `DSW02` | 0x80 | 0x0 |
+| DEF_STR ( Coin_B ) | `DSW03` | 0xf | 0x3 |
+| DEF_STR ( Coin_A ) | `DSW03` | 0xf0 | 0x30 |
+
+## The MAME driver — the people who reverse-engineered it
+
+- **Driver source:** `src/mame/sega/zaxxon.cpp`
+- **Written by:** Nicola Salmoria
+- **License:** BSD-3-Clause
+- **Development:** 197 commits by 31 contributors, 2007–2026
+- **Top contributors:** Aaron Giles, Miodrag Milanovic, Vas Crabb, Olivier Galibert, Ivan Vangelista
+
+## The story
+
+Arcade Video game published 44 years ago:
+
+Zaxxon (c) 1982 Sega.
+
+Zaxxon is an isometric scrolling shoot-em-up in which the player pilots an armed spaceship and must penetrate heavily-fortified enemy bases, destroying enemy ships and installations before reaching the final confrontation with the game's titular character, a giant armored robot. 
+
+The game consists of three different waves: 
+
+* Floating Fortress: Players must penetrate the fortress's defenses, destroying fuel tanks, gun emplacements, missiles and fighters. An altimeter constantly monitors the player ship's height, necessary to navigate through the walls and electronic barriers that form part of fortress's defenses. The player's ship carries a limited amount of fuel that is constantly depleting and can only be replenished by shooting ground-based enemy fuel tanks. If the ship's fuel runs out, it crashes to the ground and a life is lost.
+
+* Fighter Fleet: This takes place in outer space with the player attacked by waves of enemy fighter planes and rogue satellites. The player ship's fuel does not deplete during this wave.
+
+* Enemy Headquarters: This is similar to the 'Floating Fortress' wave (with fuel depletion once again being an issue), but with the player facing much tougher defenses. Upon completion of this wave, the player enters into battle with Zaxxon himself. The robot fires a fast-moving homing missile that needs to be hit six times before it's destroyed. Upon completion of the third wave, the game starts over with a higher level of difficulty.
+
+### Technical
+BOARD # 834-0211
+
+There were 2 different dedicated cabinets available for Zaxxon, an upright and a cocktail :
+
+* The upright version came in a nice woodgrain cabinet with black and blue sticker-style side art. The marquee is a blue 'Zaxxon' logo with a star filled background. The control panel has a nice 8-Way flight stick with fire buttons on either side, and graphics explaining how to play the game. Finally the upright uses two sets of coin mechs that are of an odd 'skinny' style.
+
+* The cocktail version came in the standard Sega/Gremlin cocktail table (this same table was also used for "Frogger", "Carnival", and several other titles). This was a relatively unadorned machine, the only decorations were a set of instruction cards underneath the glass. This machine had a control panel on either side and used Wico balltop joysticks instead of flight sticks. The coin mechs and start buttons were on the player 1 side only.
+
+All versions used a vertical open frame monitor, and ran the same set of game boards. This game is fully compatible with "Congo Bongo", "Super Zaxxon", and "Future Spy" (those boards will plug right in without modification).
+
+Main CPU : Zilog Z80 (@ 3.04125 Mhz)
+Sound Chips : Discrete circuitry
+
+Screen orientation : Vertical
+Video resolution : 224 x 256 pixels
+Screen refresh : 59.999408 Hz
+Palette colors : 256
+
+Players : 2
+Control : 8-way joystick
+Buttons : 1 (FIRE)
+
+### Trivia
+Zaxxon was released in January 1982 in Japan and two months later, in March 1982, in the USA.
+
+At the time of its release, Zaxxon was unique as it was the first game to employ isometric projection, something of a three-quarters viewing perspective. This effect simulated three dimensions (albeit from the viewpoint of a second person).
+
+In the game, Zaxxon is the name of the enemy robot who you must destroy. Milton Bradley turned this and other Sega titles into board games. 'Can You Complete Your Mission Before Zaxxon Zaps You?'.
+
+Vernon Kalanikaus holds the official record for this game with 4,680,740 points on March 15, 1982.
+
+A Zaxxon unit appears in the 1983 movie 'WarGames'.
+
+A bootleg of this game is known as "Jackson".
+
+### Updates
+Zaxxon was released in at least 2 versions:
+The latest version (set 1 in MAME (zaxxon)) corrects a minor error in the way the original Zaxxon ROM set (set 2 in MAME (zaxxon2)) managed fractions of a credit, seen only when a player earned credit through game play when the game dipswitch settings provided only a fraction of a full credit for each token inserted.
+
+### Scoring
+Gun Implacements (Green and Gray) : 200 or 500 points (random)
+Fuel Tank : 300 points
+Radar Tower : 1,000 points
+Missile (Ground-to-Air) : 150 points
+Missile (Air-to-Air) : 200 points
+Fighters (on runway) : 50 points
+Fighters (in air) : 100 points + (50 points/level after level 2)
+Zaxxon (destroyed with missile in launcher) : 1,000 points
+Zaxxon (destroying launched missile) : 200 points
+Destroying all planes in space : 1,000 points
+Satellite : 300 points
+
+### Tips and tricks
+* To kill Zaxxon, fly at 2 1/2 units (in other words, with two blocks of your altimeter filled in and one at halfway). Shoot 6 shots at Zaxxon's missile, and you will kill it quickly. If you miss, either dodge the missile, or keep firing and you can still blow up the missile. However, you get less points for hitting the missile while it's in the air.
+
+* Flying at an altitude of 1 1/2 will allow you to hit ground targets while making their shots go harmlessly under you.
+
+* Shoot airplanes on the platform : it will reduce the number you need to kill in the space scene. If you shoot all the airplanes in space you will get a bonus.
+
+* On the levels in outer space, start up the highest point on the upper left and start shooting immediately. You should be able to hit the satellite right away. If you miss, keep moving to the left and keep firing. This works for the second satellite also.
+
+* This is important in later levels because it is possible to run out of fuel in space : if you hit the satellite, you will get some back.
+
+* There are only two levels that repeat. The first air fortress level never gets much harder : use the same pattern for it. On the other levels, only the gaps become narrower.
+
+* Always keep firing! This way you can see if you will make it through the gaps, and you can adjust your height as needed.
+
+* The white canopy only indicates that the enemy plane is at the highest altitude. At any altitude, when an enemy is in your line of fire you will hear a tone and a white X appears in front of your plane. This makes it much easier to grab the 1,000 point bonus for destroying 20 enemy planes, as well as to avoid their shots.
+
+* On later levels you will lose fuel quickly. Make sure you hit as many fuel tanks as possible. If you run out of fuel you will lose a ship.
+
+### Ports
+* CONSOLES:
+[US] Colecovision (1982) "Zaxxon [Model 2435]"
+[US] Atari 2600 (1982) "Zaxxon [Model 2454]"
+[US] Mattel Intellivision (1983) "Zaxxon [Model 2487]"
+[US] Atari 5200 (1984) "Zaxxon [Model 008-02]"
+Atari XEGS
+[JP] Sega SG-1000 (1985) "Zaxxon [Model G-1038]"
+[BR] DynaVision (198?) "Zaxxon"
+[US] Sony PS2 (nov.7, 2006) "Sega Genesis Collection [Model SLUS-21542]" : as an unlockable extra
+[EU] Sony PS2 (feb.2, 2007) "Sega Mega Drive Collection [Model SLES-54333]" : as an unlockable extra
+[AU] Sony PlayStation 2 (feb.8, 2007) "Sega Mega Drive Collection" : as an unlockable extra
+[US] Microsoft XBOX 360 (feb.10, 2009) "Sonic's Ultimate Genesis Collection [Model 68034]" : as an unlockable extra
+[KO] Sony PlayStation 3 (feb.10, 2009) "Sonic's Ultimate Genesis Collection" by SCEI : as an unlockable extra
+[US] Sony PlayStation 3 (feb.10, 2009) "Sonic's Ultimate Genesis Collection [Model BLUS-30259]" : as an unlockable extra
+[EU] Microsoft XBOX 360 (feb.20, 2009) "SEGA Mega Drive Ultimate Collection [Model 384-40210]" : as an unlockable extra
+[EU] [AU] Sony PlayStation 3 (feb.20, 2009) "SEGA Mega Drive Ultimate Collection [Model BLES-00475]" : as an unlockable extra
+[AU] Microsoft XBOX 360 (feb.26, 2009) "Sega Mega Drive Ultimate Collection" : as an unlockable extra
+[JP] Nintendo Wii [Virtual Console Arcade] (dec.15, 2009)
+[EU] [AU] Nintendo Wii [Virtual Console Arcade] (mar.10, 2010)
+[US] Nintendo Wii [Virtual Console Arcade] (apr.12, 2010)
+
+* COMPUTERS:
+[US] Tandy Color Computer (1983) 
+[US] Apple II (1983) 
+[US] Atari 800 (1984) "Zaxxon [Model 008-03]" 
+PC [Booter] (1984) 
+[EU] Commodore C64 (1984)
+[US] Commodore C64 (1984) "Zaxxon [Model 008-05]" 
+[EU] [JP] MSX (1985) 
+[EU] Sinclair ZX Spectrum (1985) 
+[US] PC [MS-DOS] (1985) 
+[EU] Amstrad CPC (1986) "Zaxx" 
+
+* OTHERS:
+[US] VFD handheld game (1981) by Coleco.
+[US] LCD handheld game (1982) by Bandai.
+[US] VFD handheld game (1983) by Bandai.
+[US] BlackBerry (dec.21, 2009) "Zaxxon [Model 5341]"
+
+### Series
+1. Zaxxon (1982, Arcade)
+2. Super Zaxxon (1982, Arcade)
+3. Zaxxon 3-D (1987, Master System)
+4. Zaxxon Motherbase 2000 (1995, Sega 32X)
+5. Zaxxon Escape (2012, Google Play)
+
+### Contribute
+Edit this entry: https://www.arcade-history.com/game/3239/?o=2
+
+*Story courtesy of Gaming History (arcade-history.com).*
+
+---
+
+*Generated by [mamekit](https://github.com/benbruscella/mamekit) from the knowledge graph of MAME driver `zaxxon`. Play it at [../../../app/g/zaxxon/](../../../app/g/zaxxon/) or [explore the knowledge graph](viewer.html).*

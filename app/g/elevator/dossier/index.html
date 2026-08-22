@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elevator Action (BA3, 4 PCB version, 1.1) — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Elevator Action (BA3, 4 PCB version, 1.1)</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/elevator/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/elevator/elevator-dossier.md" download="elevator-dossier.md">Download elevator-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Taito · 1983</div>
+    <h1>Elevator Action (BA3, 4 PCB version, 1.1)</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/elevator.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>elevator</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/taito/taitosj.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>taitosj</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>ay8910</strong></div>
+      <div class="fact"><span>Screen</span><strong>256×224 @ 59.19 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>landscape</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>Z80</td><td>4.000 MHz</td><td>38</td></tr><tr><td>audiocpu</td><td>Z80</td><td>3.000 MHz</td><td>11</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>ba3__01.2764.ic1</td><td>0x0</td><td>0x2000</td><td>da775a24</td></tr><tr><td>maincpu</td><td>ba3__02.2764.ic2</td><td>0x2000</td><td>0x2000</td><td>fbfd8b3a</td></tr><tr><td>maincpu</td><td>ba3__03-1.2764.ic3</td><td>0x4000</td><td>0x2000</td><td>a2e69833</td></tr><tr><td>maincpu</td><td>ba3__04-1.2764.ic6</td><td>0x6000</td><td>0x2000</td><td>2b78c462</td></tr><tr><td>audiocpu</td><td>ba3__09.2732.ic70</td><td>0x0</td><td>0x1000</td><td>6d5f57cb</td></tr><tr><td>audiocpu</td><td>ba3__10.2732.ic71</td><td>0x1000</td><td>0x1000</td><td>f0a769a1</td></tr><tr><td>pal</td><td>ww15.pal16l8.ic24.jed.bin</td><td>0x0</td><td>0x117</td><td>c3ec20d6</td></tr><tr><td>bmcu:mcu</td><td>ba3__11.mc68705p3.ic24</td><td>0x0</td><td>0x800</td><td>9ce75afc</td></tr><tr><td>gfx</td><td>ba3__05.2764.ic4</td><td>0x0</td><td>0x2000</td><td>6c4ee58f</td></tr><tr><td>gfx</td><td>ba3__06.2764.ic5</td><td>0x2000</td><td>0x2000</td><td>41ab0afc</td></tr><tr><td>gfx</td><td>ba3__07.2764.ic9</td><td>0x4000</td><td>0x2000</td><td>efe43731</td></tr><tr><td>gfx</td><td>ba3__08.2764.ic10</td><td>0x6000</td><td>0x2000</td><td>3ca20696</td></tr><tr><td>proms</td><td>eb16.ic22</td><td>0x0</td><td>0x100</td><td>b833b5ea</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>Left</td><td>joystick left</td><td>IN0</td><td>0x1</td></tr><tr><td>Right</td><td>joystick right</td><td>IN0</td><td>0x2</td></tr><tr><td>Down</td><td>joystick down</td><td>IN0</td><td>0x4</td></tr><tr><td>Up</td><td>joystick up</td><td>IN0</td><td>0x8</td></tr><tr><td>Space / X</td><td>button1</td><td>IN0</td><td>0x10</td></tr><tr><td>Z</td><td>button2</td><td>IN0</td><td>0x20</td></tr><tr><td>6</td><td>coin2</td><td>IN2</td><td>0x10</td></tr><tr><td>5</td><td>coin1</td><td>IN2</td><td>0x20</td></tr><tr><td>1</td><td>start1</td><td>IN2</td><td>0x40</td></tr><tr><td>2</td><td>start2</td><td>IN2</td><td>0x80</td></tr><tr><td>9</td><td>service1</td><td>IN3</td><td>0x10</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/taito/taitosj.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Nicola Salmoria</strong></div>
+    <div class="fact"><span>Development</span><strong>218 commits by 32 contributors, 2007–2026</strong></div>
+    <div class="fact"><span>Top contributors</span><strong>Aaron Giles, Miodrag Milanovic, Vas Crabb, Ivan Vangelista, hap</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 43 years ago:
+
+Elevator Action (c) 1983 Taito.
+
+Agent 17 (code name 'Otto') is to secure the top secret documents from the security building. The enemy spies are in pursuit and their orders are to stop him at any cost. Having made it to the top of a 30 story building, Agent 17 has to make his way down to the basement to get to the getaway car and save the documents. Enemy spies are everywhere and the documents are hidden behind the red doors (bonus points awarded). He has to open the door and keep moving. If either of them shoots the lights out there will be a temporary blackout. If Otto finds himself on top of the elevator the player will not be able to control the elevator. If he gets caught in the elevator he is a sitting duck and cannot duck the bullets. By using the escalator he can reach the basement quicker. Otto can defeat his enemy by jump kicking or firing at them. Help Otto to grab all the documents and escape the spies.</p><details><summary>TECHNICAL</summary><p class="story">Elevator Action was available in 2 different arcade formats, a cocktail table and an upright dedicated cabinet. Both versions used the same internal hardware though.
+
+* The upright version came in the standard 'Taito Classic' cabinet, which was the same one used for Jungle Hunt, Zoo Keeper, Alpine Ski, and many others. These cabinets normally did not have side art that advertised the name of the game, instead they had a painted design of lines and shapes, along with a Taito logo. Different titles had different designs and color schemes, although they have been known to ship games in the wrong cabinets. But lets get back on track here. Elevator Action should come in a brown cabinet with a Taito logo up near the top. The marquee shows a scene of Agent 17 waiting for an elevator while an enemy agent shoots at him. While the monitor bezel shows agents on either side, has game instructions at the bottom, and shows an elevator floor display at the top. This bezel artwork is silk screened on glass, and is prone to peeling, be very careful if you have to handle one of these. The control panel has a single 4-Way ball-top joystick mounted centrally, with jump and fire buttons located to either side.
+Internally the machine uses a 19 inches open frame monitor mounted horizontally, and a set of game boards that conform to the 'Taito Classic' wiring standard. Many other early Taito games (such as &quot;Jungle Hunt&quot; and &quot;Bubble Bobble&quot;) will plug directly into this cabinet without modification.
+
+* The cocktail version came in a table similar in design to the one used for Space Invaders and Carnival. It was not decorated except for a pair of instruction cards underneath the glass. Most Japanese game makers purchased their tables from the same few manufacturers, and were quite likely to change the exact model of cocktail that they shipped in mid production. So assume any Elevator Action cocktail is original unless it is obviously converted from another title.
+
+Runs on the &quot;Taito SJ System&quot; hardware.
+Prom Stickers : BA3 / EA
+
+Players: 2
+Control: 4-way joystick
+Buttons: 2 (FIRE, JUMP)</p></details><details><summary>TRIVIA</summary><p class="story">Elevator Action was released in July 1983 in Japan and in October 1983 in North America. 
+
+G. Ben Carter, Jr. holds official the record for this game with 143,450 points.</p></details><details><summary>SCORING</summary><p class="story">Shooting an enemy agent : 100 points
+Jumping on an enemy agent : 150 points
+Dropping a light on an enemy agent : 300 points
+Getting a secret document : 500 points
+
+The bonus is 1,000 points x the level you are on. After 10th level, you will get 10,000 points per level completed.</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">* When you start the game, a quick animation will show a hook with a line connecting to the top of the elevator. Then your character will slide down the line to the roof. Then he will enter the building, in the elevator, at the 30th floor. It is now up to you to get all the secrets and make it to your car. The first thing you must know, obviously, is how to eliminate the enemy agents that are after you. There are a few ways you can do this :
+1) Just shoot them. Of course, especially in the later levels, enemy agents make themselves an impossible target by lying down. You can only take them out by riding an elevator down.
+2) Jumping on them will take care of them. In addition, you may avoid some of their fire.
+3) On the non-dark floors, shoot the light down on top of an enemy agent. You must do this from the elevator. This also has the added effect of causing temporary darkness in the building, making enemy agents harder to see.
+4) Crush an enemy agent using the elevator. This is hard to do since they move around. You may get lucky, however, and get one under or on top of the elevator you are on.
+5) This way is pretty hard. You might be able to get an enemy agent to follow you and fall down the hole created by the missing elevator.
+
+* You must know how to use the escalators and open the red doors :
+1) To use the escalators, just stand on the little rectangle. Then push the joystick UP or DOWN depending on which direction you need the escalator to take you.
+2) To open the red doors, stand on the little rectangle. Face the doorknob and press RIGHT on the joystick.
+
+* You have full control over any elevator you enter. This means you can move UP and DOWN on a dime to keep your character safe. This works until the alarm goes off.
+
+* Speaking of elevators, your character cannot duck while in an elevator. Also, while riding the escalators, your character cannot duck, jump, or fire his weapon.
+
+* Also on elevators, you do not have control when you are riding on top of them. This means you are at the mercy of the elevator or the enemy agent controlling it. Be very careful if you ride on top of the elevator. You also cannot go past the bar on the top of the elevator.
+
+* Enemy agents usually come out of the doors on the current floor or the floor above and below. A lot of times it is good to lay a wall of fire down a hallway. This way, you can pick off any enemy agents that happen to come out of one of the doors.
+
+* When you enter through one of the red doors, the enemy agents will lose track of your character but will have a general idea of where your character is. When you exit the room, crouch and lay down fire both left and right to clear off the floor.
+
+* As the levels progress, the enemy agents get better at their tactics. They start to crouch more to mess up your fire. They also may lay down which makes it impossible to hit them unless you are on an elevator and can shoot along the floor.
+
+* As you move up in levels, there will be red doors in odd areas. Areas such as on the lower five floors where only elevators can take you across. Of course, if you get good with the jump button, you can jump those gaps to get to either side quicker. The downside is that enemy agents will usually flood the area and lay down a lot of fire.
+
+* If you happen to get to the B1 floor and you have forgotten to get a red door, the game will automatically put your agent at the door you missed. If it is multiple doors, then you will be placed at the highest floor first.
+
+* There is an internal time limit on how long you can take to get everything out of the building. If you take too much time, an alarm sounds and the following things occur :
+a) Although you still have control over the elevators, it is much harder to get them to respond to your commands. If you are in a tight situation that requires a little bit of time, don't wait till the last minute or you may be an ex-agent.
+b) The enemy agents move much quicker and their shots move faster. Plus, additional enemy agents will start appearing to really make your life miserable.
+c) If your character happens to die, the next man will still be facing the same alarm situation. The only way to resolve the situation is to get all of the secrets and make it out of the building.
+
+* Watch out for the double elevator. If you are in the top car, it will stop two floors short of the bottom since there is a one floor gap, and the bottom car. Try to always get into the bottom car of a double elevator so that you can make a hasty exit and not be trapped with enemy agents firing on you.</p></details><details><summary>STAFF</summary><p class="story">Music by : Yoshino Imamura</p></details><details><summary>PORTS</summary><p class="story">* CONSOLES: 
+[US] Atari 2600 : planned, but never released 
+[US] Atari 7800 : unreleased prototype 
+[JP] Nintendo Famicom (june.28, 1985) &quot;Elevator Action [Model 04 TF-4900]&quot; 
+[JP] Sega SG-1000 (1985) &quot;Elevator Action [Model C-55]&quot;
+[TW] Sega SG-1000 (198?) &quot;Die Dui Die&quot;
+[US] Nintendo NES (aug.1987) &quot;Elevator Action [Model NES-EA-USA]&quot; 
+Sega Saturn (Feb 14, 1997) &quot;Elevator Action Returns&quot;: As hidden/unlockable game.
+[JP] Sony PS2 (aug.25, 2005) &quot;Taito Memories Gekan [Model SLPM-66092]&quot; 
+[EU] Microsoft XBOX (oct.14, 2005) &quot;Taito Legends&quot; 
+[EU] Sony PS2 (oct.14, 2005) &quot;Taito Legends [Model SLES-53438]&quot; 
+[US] Microsoft XBOX (oct.25, 2005) &quot;Taito Legends&quot; 
+[US] Sony PS2 (oct.25, 2005) &quot;Taito Legends [Model SLUS-21122]&quot; 
+[KO] Sony PS2 (jul.18, 2006) &quot;Taito Legends [Model SLKA-15056]&quot;
+
+* HANDHELDS: 
+[EU] Nintendo Game Boy (1991) &quot;Elevator Action [Model DMG-EA-NOE]&quot; 
+[JP] Nintendo Game Boy (aug.9, 1991) &quot;Elevator Action [Model DMG-EAA]&quot; 
+[US] Nintendo Game Boy (dec.1991) &quot;Elevator Action [Model DMG-EA-USA]&quot; 
+[JP] Nintendo GBA (dec.20, 2002) &quot;Elevator Action - Old &amp; New [Model AGB-ANWJ-JPN]&quot; 
+[JP] Sony PSP (jan.5, 2006) &quot;Taito Memories Pocket [Model ULJM-05076]&quot; 
+[KO] Sony PSP (feb.10, 2006) &quot;Taito Memories Pocket&quot; 
+[EU] Sony PSP (oct.6, 2006) &quot;Taito Legends Power-Up [Model ULES-00473]&quot; 
+[AU] Sony PSP (nov.9, 2006) &quot;Taito Legends Power-Up [Model ULES-00473]&quot; 
+[US] Sony PSP (may.17, 2007) &quot;Taito Legends Power-Up [Model ULUS-10208]&quot; 
+
+* COMPUTERS: 
+[EU] Sinclair ZX Spectrum (1987) &quot;Elevator Action [Model QSS 142]&quot; 
+[US] [EU] Commodore C64 (1987) 
+[EU] Amstrad CPC (1987) 
+[JP] MSX (1985) &quot;Elevator Action [Model MSX-7]&quot; 
+[EU] PC [MS Windows, CD-ROM] (oct.14, 2005) &quot;Taito Legends&quot; 
+[US] PC [MS Windows, CD-ROM] (nov.10, 2005) &quot;Taito Legends&quot; 
+
+* OTHERS: 
+[US] Mobile Phones (nov.20, 2003)</p></details><details><summary>SERIES</summary><p class="story">1. Elevator Action (1983)
+2. Elevator Action Returns (1995)
+3. Elevator Action EX (2000, Nintendo Game Boy Color)
+4. Elevator Action - Death Parade (2009)
+5. Elevator Action Deluxe (2011, PSN)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/747/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>
