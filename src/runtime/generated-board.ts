@@ -402,6 +402,12 @@ class IrBoard implements Board {
               write_ctrlsel: () => 0,
             } : {}),
             machine: () => ({
+              // False during emulation; MAME only sets it for a debugger peek.
+              // Devices gate real state changes on it — the 6532 sets its timer
+              // interrupt enable inside `if (!machine().side_effects_disabled())`
+              // — so leaving it off this object threw before that assignment and
+              // the RIOT could never raise its IRQ (venture, issue #63).
+              side_effects_disabled: () => 0,
               time: () => generatedAttotime(
                 this.frameRunner?.frameCount /
                   Math.max(1, this.machine.execution.screen.refresh) || 0,

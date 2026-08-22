@@ -357,7 +357,9 @@ class IrDevice implements Device {
             ? new GeneratedBitmapRgb32()
         : member.memory
         ? memoryMember(member, options)
-        : member.values ? [...member.values] : member.initial ?? 0));
+        : member.values ? [...member.values]
+        : isIndexableMemberType(member.valueType) ? []
+        : member.initial ?? 0));
       if (member.bits) this.memberBits.set(member.name, member.bits);
       if (member.signed) this.memberSigned.add(member.name);
     }
@@ -872,6 +874,31 @@ function memoryMember(
 
 function splitParameters(parameters: string): string[] {
   return parameters.split(',').map(parameter => parameter.trim()).filter(Boolean);
+}
+
+/**
+ * Members MAME declares as a memory block rather than a scalar.
+ *
+ * These arrive with no size, no values and no initial, so they settled on the
+ * scalar default of `0`. The interpreter hid that: its indexed-write path
+ * allocates a backing array for any unset `m_` member on first use
+ * (`writableIndexObject` in src/ir/execute.ts). A compiled method has no such
+ * fallback — `writeIndex` only stores into something that is already an
+ * object, so with `0` there it silently discarded every write.
+ *
+ * Venture (issue #63) is what that costs: the 6532's `m_ram` is the sound
+ * 6502's zero page and stack. Once `ram_w` compiled, every push and every
+ * zero-page store vanished, so the audio CPU could not run its service routine
+ * and the board was silent — while `ram_r` stayed correct and hid the cause.
+ * Allocating here keeps the two execution paths agreeing on one store. This
+ * must stay *after* the `values` branch: i8257's `m_channel` is `channel[]`
+ * with four initial structs, and claiming it first replaced them with an empty
+ * array, so device_reset wrote through undefined and dkong stopped booting.
+ */
+function isIndexableMemberType(valueType: string | undefined): boolean {
+  if (!valueType) return false;
+  return /^(?:memory_share_creator|required_shared_ptr|optional_shared_ptr)\b/.test(valueType)
+    || /\[\s*\d*\s*\]$/.test(valueType);
 }
 
 function parameterName(parameter: string): string {
