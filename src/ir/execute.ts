@@ -10,6 +10,7 @@
 import type {
   BoardIr,
   GeneratedCallback,
+  GeneratedHandlerRuntime,
   GeneratedExpression,
   GeneratedHandler,
   GeneratedHandlerOperation,
@@ -95,6 +96,8 @@ interface PreparedMachineCalls {
    * device interface.
    */
   seededConstants: GeneratedHandlerBindings['constants'];
+  /** The bindings.calls object the emitted-handler namespace was flattened from. */
+  seededCalls: GeneratedHandlerBindings['calls'];
   /**
    * One binding view per handler, reused for the life of the board.
    *
@@ -106,6 +109,8 @@ interface PreparedMachineCalls {
    * of them away.
    */
   handlerBindings: WeakMap<GeneratedHandler, GeneratedHandlerBindings>;
+  /** Execution context for this board's emitted handlers, built on first use. */
+  runtime?: GeneratedHandlerRuntime;
 }
 
 const MACHINE_CALL_CACHE = new WeakMap<
@@ -299,11 +304,92 @@ export function executeGeneratedMachineProgram(
   bindings: GeneratedHandlerBindings,
   args: Record<string, unknown>,
 ): { returned: boolean; value?: unknown } {
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (compiled) {
+    const prepared = preparedMachineCalls(machine, bindings, handler.ownerClass);
+    const names = parameterNames(handler.parameters);
+    const value = compiled(
+      preparedHandlerRuntime(prepared, bindings),
+      // An interpreted caller passes every C++ reference parameter as an
+      // l-value standing in for its storage. Emitted code reads those by value
+      // — a renderer mutates what `bitmap_ind16 &bitmap` points at without ever
+      // reassigning it — so the referent is what it must receive. Handlers that
+      // do assign through a reference are excluded from codegen precisely so
+      // that this unwrapping is always the right thing to do.
+      ...names.map(name => {
+        const argument = args[name];
+        if (argument === undefined) return 0;
+        return isLValue(argument) ? argument.get() : argument;
+      }),
+    );
+    return value === undefined ? { returned: false } : { returned: true, value };
+  }
   return executeGeneratedProgram(
     handler.program!,
     machineHandlerBindings(machine, handler, bindings),
     args,
   );
+}
+
+/**
+ * The execution context emitted handler code runs against, built once per
+ * prepared call table.
+ *
+ * `invoke` reaches generated handlers first, matching the interpreter's own
+ * precedence: a driver method the emitter chose not to compile must still run,
+ * and it must be the same one an interpreted caller would have reached.
+ */
+function preparedHandlerRuntime(
+  prepared: PreparedMachineCalls,
+  bindings: GeneratedHandlerBindings,
+): GeneratedHandlerRuntime {
+  if (prepared.runtime) return prepared.runtime;
+  // The interpreter resolves an identifier call through referenceCalls first
+  // and the board's host calls second — `rectangle` is a video-package
+  // reference call while `flip_screen` is a board call, and a renderer uses
+  // both. Emitted code reads one dictionary, so it is handed that same
+  // namespace in that same precedence.
+  //
+  // Flattened rather than proxied because this is the renderer's hot path, and
+  // taken here rather than at board construction because both dictionaries are
+  // fully wired by the time any handler runs. Replacing either rebuilds the
+  // prepared table, and this runtime with it.
+  const calls = Object.create(bindings.calls ?? null) as Record<
+    string,
+    (...args: unknown[]) => unknown
+  >;
+  for (const name in prepared.referenceCalls) {
+    calls[name] = prepared.referenceCalls[name]!;
+  }
+  return prepared.runtime = {
+    get members() { return bindings.members ??= {}; },
+    calls,
+    get palette() { return []; },
+    readIndex: (value, index) => isGeneratedPointer(value)
+      ? pointerValue(value, index)
+      : indexValue(value, index),
+    writeIndex: (value, index, next) => {
+      if (isGeneratedPointer(value)) setPointerValue(value, index, next);
+      else if (ArrayBuffer.isView(value)) (value as Uint8Array)[index] = toNumber(next);
+      else if (value && typeof value === 'object') {
+        (value as Record<number, unknown>)[index] = next;
+      }
+      return next;
+    },
+    addressOf: (value, index) => isGeneratedPointer(value)
+      ? {
+        generatedPointer: true,
+        source: value.source as ArrayLike<number> & { [index: number]: number },
+        offset: value.offset + index,
+      }
+      : {
+        generatedPointer: true,
+        source: value as ArrayLike<number> & { [index: number]: number },
+        offset: index,
+      },
+    invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
+      bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
+  };
 }
 
 /**
@@ -360,7 +446,8 @@ function preparedMachineCalls(
   if (
     cached &&
     cached.seededFrom === bindings.referenceCalls &&
-    cached.seededConstants === bindings.constants
+    cached.seededConstants === bindings.constants &&
+    cached.seededCalls === bindings.calls
   ) return cached;
 
   const compiled = (machine.handlers ?? []).filter(candidate =>
@@ -440,8 +527,9 @@ function preparedMachineCalls(
     ),
     seededFrom: bindings.referenceCalls,
     seededConstants: bindings.constants,
+    seededCalls: bindings.calls,
     handlerBindings: new WeakMap<GeneratedHandler, GeneratedHandlerBindings>(),
-  };
+  } as PreparedMachineCalls;
   byOwner.set(ownerClass, prepared);
   return prepared;
 }

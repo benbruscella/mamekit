@@ -14,6 +14,7 @@ import type {
   GeneratedHandlerOperation,
   GeneratedVideoPlan,
 } from '../ir/board.ts';
+import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
 
 /** MAME device input clocks converted to the instruction-cycle scheduler rate. */
 export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
@@ -1229,16 +1230,30 @@ function deviceCallbackHz(props: Record<string, unknown>): number | undefined {
 export function generatedBoardSource(machine: BoardIr): string {
   const runtimeImport = '../../../../runtime/core';
   const irImport = '../../../../runtime/ir';
+  const compiled = generatedBoardHandlersSource(machine, true);
+  // Behaviour, so it is emitted as source here rather than into board.json,
+  // and attached after decoding rather than being part of the decoded shape.
+  const attachment = compiled.handlers.length
+    ? `
+// Direct JavaScript for handlers whose IR shape shows nested hot loops. The
+// interpreter remains the semantic reference; these are checked against it by
+// src/gen/emit-handler-codegen.spec.ts.
+defined.compiledHandlers = ${compiled.source} as Record<string, GeneratedCompiledHandler>;
+`
+    : '';
+  const compiledImport = compiled.handlers.length
+    ? `import type { GeneratedCompiledHandler } from '${irImport}/board.js';\n`
+    : '';
   return `// GENERATED executable machine composition from ${machine.driverFile}; do not edit.
 import { decodeBoardIr } from '${irImport}/decode.js';
 import type { BoardConfig, BoardSinks, InputPorts, Regions } from '${runtimeImport}/types.js';
-import { createGeneratedBoard } from '${runtimeImport}/generated-board.js';
+${compiledImport}import { createGeneratedBoard } from '${runtimeImport}/generated-board.js';
 import boardData from './board.json' with { type: 'json' };
 
 // Decoded, not asserted: a stale or hand-edited artifact fails here, naming the
 // field and its MAME source line, instead of crashing deep inside execution.
 const defined = decodeBoardIr(boardData, '${machine.game}');
-export default {
+${attachment}export default {
   machine: defined,
   createBoard: (
     config: BoardConfig,

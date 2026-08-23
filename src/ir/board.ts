@@ -724,4 +724,38 @@ export interface BoardIr {
   maps?: GeneratedAddressMap[];
   video?: GeneratedVideoPlan;
   sound?: GeneratedSoundBinding;
+  /**
+   * Direct JavaScript for handlers whose IR shape shows nested hot loops,
+   * attached by the generated board module at load time.
+   *
+   * Behaviour, so it lives in the generated module rather than board.json, and
+   * it is never serialised: `decodeBoardIr` reads the JSON, and this is set on
+   * the decoded board afterwards. A handler absent here stays on the
+   * interpreter, which remains the semantic reference for all of them.
+   */
+  compiledHandlers?: Record<string, GeneratedCompiledHandler>;
 }
+
+/**
+ * What emitted handler code is given in place of the interpreter's execution
+ * context: the board's own state, its late-bound host calls, and a way to reach
+ * handlers the emitter did not compile.
+ */
+export interface GeneratedHandlerRuntime {
+  readonly members: Record<string, unknown>;
+  readonly calls: Record<string, (...args: any[]) => unknown>;
+  readonly palette: number[];
+  readIndex(value: unknown, index: number): unknown;
+  writeIndex(value: unknown, index: number, next: unknown): unknown;
+  addressOf(value: unknown, index: number): {
+    generatedPointer: true;
+    source: ArrayLike<number> & { [index: number]: number };
+    offset: number;
+  };
+  invoke(name: string, ...args: unknown[]): unknown;
+}
+
+export type GeneratedCompiledHandler = (
+  runtime: GeneratedHandlerRuntime,
+  ...args: unknown[]
+) => unknown;

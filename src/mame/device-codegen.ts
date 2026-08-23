@@ -1,11 +1,34 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
 import type {
+  GeneratedDeviceCallback,
   GeneratedDeviceDefinition,
+  GeneratedDeviceMember,
   GeneratedDeviceMethod,
+  GeneratedDeviceTimer,
 } from './device-compiler.ts';
 
+/**
+ * What the emitter needs to know about the code it is compiling, independent of
+ * whether that code came from a MAME device or a driver board class.
+ *
+ * `GeneratedDeviceDefinition` satisfies this structurally. Board handlers reach
+ * the same emitter through a scope derived from BoardIr, so one emitter remains
+ * the single definition of what a lowered operation means as JavaScript.
+ */
+export interface CodegenScope {
+  constants: Record<string, number>;
+  members: GeneratedDeviceMember[];
+  callbacks: GeneratedDeviceCallback[];
+  timers: GeneratedDeviceTimer[];
+  methods: GeneratedDeviceMethod[];
+  /** Entry points that must use direct generated code regardless of shape. */
+  hotMethods?: string[];
+  /** Source-declared calls that reach another generated component. */
+  links?: { call: string }[];
+}
+
 interface EmitContext {
-  definition: GeneratedDeviceDefinition;
+  definition: CodegenScope;
   compiled: Set<string>;
   locals: Map<string, string | undefined>;
   wrappedReferences: Set<string>;
@@ -44,7 +67,7 @@ const JAVASCRIPT_RESERVED_WORDS = new Set([
  * compiled together with the source-defined methods they call.
  */
 export function generatedDeviceMethodsSource(
-  definition: GeneratedDeviceDefinition,
+  definition: CodegenScope,
   typescript = false,
 ): { source: string; methods: string[] } {
   const methodCounts = new Map<string, number>();
@@ -158,7 +181,7 @@ function generatedDeviceAssignments(
 }
 
 function methodClosure(
-  definition: GeneratedDeviceDefinition,
+  definition: CodegenScope,
   roots: GeneratedDeviceMethod[],
   overloaded: ReadonlySet<string>,
 ): GeneratedDeviceMethod[] {
@@ -218,7 +241,7 @@ function maximumLoopDepth(
 
 function supportsMethod(
   method: GeneratedDeviceMethod,
-  definition: GeneratedDeviceDefinition,
+  definition: CodegenScope,
   compiled: Set<string>,
 ): boolean {
   const parameters = parseParameters(method.parameters);
@@ -265,7 +288,7 @@ function supportsMethod(
 }
 
 function emitMethod(
-  definition: GeneratedDeviceDefinition,
+  definition: CodegenScope,
   method: GeneratedDeviceMethod,
   compiled: Set<string>,
   typescript: boolean,
@@ -775,6 +798,25 @@ function expressionName(expression: GeneratedExpression): string {
     return `${expressionName(expression.object)}.${expression.property}`;
   }
   return '<expression>';
+}
+
+/**
+ * Parameters an emitted method receives through the get/set wrapper ABI rather
+ * than by value, because the source assigns them through a C++ reference.
+ *
+ * A caller outside this module needs this to know whether it can hand a method
+ * plain values.
+ */
+export function codegenWrappedParameters(method: GeneratedDeviceMethod): string[] {
+  const returnedReference = singleReturnedReference(method);
+  return parseParameters(method.parameters)
+    .filter(parameter =>
+      isMutableReference(parameter.valueType) &&
+      (
+        parameter.name === returnedReference ||
+        assignsIdentifier(method.program.operations, parameter.name)
+      ))
+    .map(parameter => parameter.name);
 }
 
 function isMutableReference(valueType: string | undefined): boolean {
