@@ -677,6 +677,21 @@ export interface GeneratedVideoPlan {
     };
   };
   bitmap?: GeneratedBitmapPlan;
+  /**
+   * Nibble-packed background RAM addressing, lowered from draw_background.
+   * The Popeye board revisions each wire the row/column counters to different
+   * RAM address and nibble-select pins, so the numbers cannot be assumed.
+   */
+  bankedBackground?: {
+    /** BIT(row, rowShift, 6) picks the background RAM row. */
+    rowShift: number;
+    /** BIT(column, columnShift, 6) picks the background RAM column. */
+    columnShift: number;
+    /** Which counter drives the high/low nibble select, and from which bit. */
+    nibble: { source: 'row' | 'column'; bit: number };
+    /** Revisions that feed background scroll bit 8 into the column counter. */
+    columnHighFromScroll: boolean;
+  };
   /** Atari Digital Vector Generator display list executed from the CPU bus. */
   vector?: {
     type: 'DVG';

@@ -239,12 +239,7 @@ export function compileMameVideo(
   const decodes = effectiveGfxDecodes(graph, machineId);
   if (!decodes.length) return fail(`missing gfx decode in machine composition`);
   const decodeBindings = compileDecodeBindings(graph, machineIds);
-  const renderScale = decodes
-    .flatMap(decode => graph.edges
-      .filter(edge => edge.from === decode.id && edge.rel === 'HAS_ENTRY'))
-    .map(edge => graph.nodes.find(node => node.id === edge.to))
-    .filter((node): node is KGNode => Boolean(node))
-    .reduce((scale, entry) => Math.max(scale, Number(entry.props.xscale ?? 1)), 1);
+  const renderScale = gfxRenderScale(graph, machineId);
   const numericDefaults = numericState(memberDefaults);
   const configState = machineConfigInitialState(ast, source, config, constants);
   const game = graph.nodes.find(node => node.label === 'Game');
@@ -300,7 +295,8 @@ export function compileMameVideo(
     ...(screen ? [`${screen.className}.${screen.name}`] : []),
     ...Object.values(delegates).filter((target): target is string => target !== null),
   ];
-  addHandlerClosure(handlers, ast, roots, constants);
+  addHandlerClosure(handlers, ast, roots, constants, String(machine.props.cls));
+  const bankedBackground = compileBankedBackground(handlers);
   const updateMode = handlers.some(handler =>
     handler.body?.includes('cliprect.max_y - 1') &&
     handler.body.includes('sprite') &&
@@ -414,6 +410,7 @@ export function compileMameVideo(
         ...boardSpecificState,
       },
       ...(renderScale !== 1 ? { renderScale: { x: renderScale, y: 1 } } : {}),
+      ...(bankedBackground ? { bankedBackground } : {}),
       ...(Object.keys(delegates).length ? { delegates } : {}),
       ...(Object.keys(colorTables).length ? { colorTables } : {}),
       ...(lfsrTable ? { lfsrTable } : {}),
@@ -2828,6 +2825,29 @@ function compileResistorChannels(
   return channels;
 }
 
+/**
+ * Lower nibble-packed background RAM addressing out of draw_background.
+ *
+ * Popeye's board revisions wire the row and column counters to different
+ * background RAM address and nibble-select pins; only the numbers change, so
+ * the pixel loop reads them from here instead of assuming one revision.
+ */
+function compileBankedBackground(
+  handlers: GeneratedHandler[],
+): GeneratedVideoPlan['bankedBackground'] {
+  const body = handlers.find(handler => handler.method === 'draw_background')?.body ?? '';
+  const address = /m_background_ram\[\s*BIT\(rovi,\s*8\)\s*\?\s*\(BIT\(rovi,\s*(\d+),\s*6\)\s*<<\s*6\)\s*\|\s*BIT\(roh,\s*(\d+),\s*6\)\s*:\s*0\s*\]/
+    .exec(body);
+  const nibble = /\bshift\s*=\s*BIT\((rovi|roh),\s*(\d+)\)\s*\?\s*4\s*:\s*0/.exec(body);
+  if (!address || !nibble) return undefined;
+  return {
+    rowShift: Number(address[1]),
+    columnShift: Number(address[2]),
+    nibble: { source: nibble[1] === 'rovi' ? 'row' : 'column', bit: Number(nibble[2]) },
+    columnHighFromScroll: /BIT\(m_background_scroll\[2\],\s*0\)\s*<<\s*8/.test(body),
+  };
+}
+
 function addHandler(
   handlers: GeneratedHandler[],
   fn: MameFunction,
@@ -2877,6 +2897,7 @@ function addHandlerClosure(
   ast: MameAstIndex,
   roots: string[],
   constants: Record<string, number>,
+  driverClass?: string,
 ): void {
   const queue = [...roots];
   const seen = new Set<string>();
@@ -2885,7 +2906,9 @@ function addHandlerClosure(
     if (seen.has(key)) continue;
     seen.add(key);
     const [ownerClass, method] = splitHandlerKey(key);
-    const fn = ast.findFunctionInHierarchy(ownerClass, method);
+    // The driver class the GAME macro selected owns every virtual call, even
+    // the ones written inside a base class it inherited.
+    const fn = ast.findDispatchedFunction(driverClass, ownerClass, method);
     if (!fn) continue;
     addHandler(handlers, fn, constants);
     queue.push(...calledSourceMethods(fn.body).map(name => `${fn.className}.${name}`));
@@ -2929,6 +2952,32 @@ export function effectiveGfxDecodes(
     }
   }
   return result;
+}
+
+/**
+ * Horizontal prescale the framebuffer can be rendered back down to.
+ *
+ * The galaxian family decodes every gfx element at GALAXIAN_XSCALE and widens
+ * the screen h params to match, so the whole frame is one uniform horizontal
+ * stretch and drawing it at native width is lossless. That only holds when
+ * every decode shares the same xscale and nothing is scaled vertically. Boards
+ * like popeye and mcr3 scale one decode 2x2 for a 16x16 tilemap built from 8x8
+ * chars while their sprites stay 1:1: the screen is genuinely 512 wide, so
+ * halving it would throw away every odd sprite column.
+ */
+export function gfxRenderScale(graph: KnowledgeGraph, machineId: string): number {
+  const entries = effectiveGfxDecodes(graph, machineId)
+    .flatMap(decode => graph.edges
+      .filter(edge => edge.from === decode.id && edge.rel === 'HAS_ENTRY'))
+    .map(edge => graph.nodes.find(node => node.id === edge.to))
+    .filter((node): node is KGNode => Boolean(node));
+  if (!entries.length) return 1;
+  const scales = entries.map(entry => ({
+    x: Number(entry.props.xscale ?? 1),
+    y: Number(entry.props.yscale ?? 1),
+  }));
+  if (scales.some(scale => scale.y !== 1 || scale.x !== scales[0]!.x)) return 1;
+  return scales[0]!.x;
 }
 
 function sourceNumericConstants(source: string): Record<string, number> {

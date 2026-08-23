@@ -497,6 +497,56 @@ export class MameAstIndex {
     return matches.length === 1 ? matches[0] : undefined;
   }
 
+  /**
+   * Every class deriving from `className` that redefines `name`, i.e. the
+   * candidate targets of a virtual call made on a `className` reference.
+   *
+   * MAME drivers lean on this constantly: popeye's tnx1_state::screen_update
+   * calls draw_background(), and which of the three implementations runs is
+   * decided by the driver class the GAME macro selected, not by the class the
+   * caller happens to be written in.
+   */
+  overridesOf(className: string, name: string): MameFunction[] {
+    return this.ast.units
+      .flatMap(unit => unit.classes)
+      .filter(declaration =>
+        declaration.name !== className && this.derivesFrom(declaration.name, className))
+      .map(declaration => this.findFunction(declaration.name, name))
+      .filter((fn): fn is MameFunction => Boolean(fn));
+  }
+
+  /** Whether `className` is `base` or inherits from it, transitively. */
+  derivesFrom(className: string, base: string, seen = new Set<string>()): boolean {
+    if (className === base) return true;
+    if (seen.has(className)) return false;
+    seen.add(className);
+    const declaration = this.ast.units
+      .flatMap(unit => unit.classes)
+      .find(cls => cls.name === className);
+    return (declaration?.bases ?? [])
+      .some(parent => this.derivesFrom(parent.split('::').at(-1)!, base, seen));
+  }
+
+  /**
+   * MAME virtual dispatch: the implementation an object of dynamic type
+   * `dynamicClass` runs for a call written against `staticClass`.
+   *
+   * An override that chains to its base (tpp2_state::screen_vblank calls
+   * tnx1_state::screen_vblank) needs both bodies live at once, which the
+   * generated call graph cannot express yet, so those keep the base body.
+   */
+  findDispatchedFunction(
+    dynamicClass: string | undefined,
+    staticClass: string,
+    name: string,
+  ): MameFunction | undefined {
+    const base = this.findFunctionInHierarchy(staticClass, name);
+    if (!dynamicClass || !base || !this.derivesFrom(dynamicClass, base.className)) return base;
+    const dispatched = this.findFunctionInHierarchy(dynamicClass, name);
+    if (!dispatched || dispatched === base) return base;
+    return new RegExp(`\\w+::${name}\\s*\\(`).test(dispatched.body) ? base : dispatched;
+  }
+
   findFunctionInHierarchy(className: string, name: string): MameFunction | undefined {
     const visited = new Set<string>();
     const find = (candidate: string): MameFunction | undefined => {
