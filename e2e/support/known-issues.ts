@@ -11,7 +11,6 @@
 // landed.
 
 export const KNOWN_ISSUES: Record<string, string> = {
-  '1942': '20 fps',
   carnival: 'sound explosion',
   popeye: 'graphic glitches',
   rampage: 'no sound',
