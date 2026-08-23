@@ -10,8 +10,8 @@ repository, use this precedence order:
 
 1. current source and generated tests;
 2. root `README.md`;
-3. `docs/SYSTEM_ARCHITECTURE.md`;
-4. `docs/ENGINEERING_GUIDE.md`;
+3. `docs/ARCHITECTURE.md`;
+4. `docs/ENGINEERING.md`;
 5. archived transcripts.
 
 ## TRANSCRIPTS

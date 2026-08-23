@@ -1,7 +1,7 @@
 # ENGINEERING GUIDE
 
 This document is the operational reference for changing MAMEKIT. Read
-[SYSTEM ARCHITECTURE](SYSTEM_ARCHITECTURE.md) first when changing compiler or runtime
+[SYSTEM ARCHITECTURE](ARCHITECTURE.md) first when changing compiler or runtime
 boundaries.
 
 ## 1. ENVIRONMENT
@@ -434,8 +434,8 @@ semantics.
 The current documentation set is intentionally minimal:
 
 - root `README.md`;
-- `docs/SYSTEM_ARCHITECTURE.md`;
-- `docs/ENGINEERING_GUIDE.md`;
+- `docs/ARCHITECTURE.md`;
+- `docs/ENGINEERING.md`;
 - `docs/TESTING.md`;
 - `sessions/ARCHIVE_INDEX.md` for historical evidence.
 

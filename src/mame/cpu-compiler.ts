@@ -2451,13 +2451,11 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
   const cpuHeaderFile = 'src/devices/cpu/z8000/z8000cpu.h';
   const opsFile = 'src/devices/cpu/z8000/z8000ops.hxx';
   const tableFile = 'src/devices/cpu/z8000/z8000tbl.hxx';
-  const dabFile = 'src/devices/cpu/z8000/z8000dab.h';
   const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
   const header = readFileSync(join(mameSrc, headerFile), 'utf8');
   const cpuHeader = readFileSync(join(mameSrc, cpuHeaderFile), 'utf8');
   const ops = readFileSync(join(mameSrc, opsFile), 'utf8');
   const tableSource = readFileSync(join(mameSrc, tableFile), 'utf8');
-  const dabSource = readFileSync(join(mameSrc, dabFile), 'utf8');
   const ast = parseMameAst([
     { file: cppFile, source: cpp },
     { file: opsFile, source: ops },
@@ -2597,8 +2595,6 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
     { name: 'z8000_zsp', bits: 8, values: Array.from({ length: 256 }, (_, value) =>
       (value === 0 ? 0x40 : 0) | (value & 0x80 ? 0x20 : 0) |
       ((value.toString(2).split('1').length - 1) % 2 === 0 ? 0x10 : 0)) },
-    { name: 'Z8000_dab', bits: 16, values: [...dabSource.matchAll(/0x[\da-f]+/gi)]
-      .map(match => Number(match[0])).slice(1) },
     ...[
       'm_ppc', 'm_pc', 'm_psapseg', 'm_psapoff', 'm_fcw', 'm_refresh',
       'm_nspseg', 'm_nspoff', 'm_irq_req', 'm_irq_vec', 'm_op_valid',
@@ -2615,7 +2611,7 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
     // address bit zero before touching the program/data space.
     alignDataWords: true,
     fixedInstructionCycles: true,
-    sourceFiles: [cppFile, headerFile, cpuHeaderFile, opsFile, tableFile, dabFile],
+    sourceFiles: [cppFile, headerFile, cpuHeaderFile, opsFile, tableFile],
     constants,
     aliases: {},
     members,

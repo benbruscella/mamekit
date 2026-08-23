@@ -1,5 +1,5 @@
 // Enforces the compile -> IR -> execution dependency direction recorded in
-// docs/BOARD_IR_MIGRATION.md section 3.
+// docs/ENGINEERING.md section 5.
 //
 // Imports are read with the TypeScript parser rather than a regex: several
 // compilers emit browser import statements at column zero inside template

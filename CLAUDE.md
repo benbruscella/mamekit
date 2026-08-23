@@ -3,8 +3,8 @@
 Read these in order before changing the project:
 
 1. `README.md`
-2. `docs/SYSTEM_ARCHITECTURE.md`
-3. `docs/ENGINEERING_GUIDE.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/ENGINEERING.md`
 
 Those are the complete current documentation set. Files under `sessions/` are
 historical evidence and may describe deleted architectures.

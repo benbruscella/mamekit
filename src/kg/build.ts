@@ -707,6 +707,37 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         consts,
         dev.clock ?? undefined,
       );
+      // Since MAME split screen_device by display type, a vector display is
+      // its own video-output device and renders itself: the driver no longer
+      // routes a screen update through set_screen_update, it just adds a
+      // VECTOR and the device's video_output_update draws the beam list.
+      // Bind that entry point as the machine's screen update so a vector
+      // board carries the same video plan shape as a raster one.
+      const boundByScreenUpdate = (raw: string): boolean =>
+        raw.includes('set_screen_update') && raw.includes(`"${dev.tag}"`);
+      if (dev.type === 'VECTOR' && ![...cfg.devices, ...cfg.devicePatches]
+        .some(other => other.config.some(boundByScreenUpdate))) {
+        const callbackId = `${devId}/callback:${dev.tag.replace(/[^A-Za-z0-9_]+/g, '_')}:video_output`;
+        g.node('Callback', callbackId, {
+          signal: 'set_screen_update',
+          operation: 'set_screen_update',
+          raw: dev.config[0] ?? '',
+          ownerTag: dev.tag,
+          targetTag: dev.tag,
+          targetClass: 'vector_device',
+          targetMethod: 'video_output_update',
+          ...spanProps(ast.findStatement(dev.config[0] ?? '', cfgFunction)?.span),
+        });
+        g.edge(devId, callbackId, 'HAS_CALLBACK');
+        g.edge(callbackId, emitSourceHandlerClosure(
+          g,
+          ast,
+          'vector_device',
+          'video_output_update',
+          consts,
+          ast.findStatement(dev.config[0] ?? '', cfgFunction)?.span,
+        ), 'CALLS_HANDLER');
+      }
       // board-style devices (IREM_M52_SOUNDC_AUDIO...) carry their own
       // sub-machine in device_add_mconfig — link so the subgraph walk
       // reaches the M6803/AY8910s/MSM5205 inside

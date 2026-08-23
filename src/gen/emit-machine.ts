@@ -287,6 +287,8 @@ export function lowerGeneratedMachine(
       ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
     }));
   const deviceByTag = new Map(devices.map(device => [device.tag, device]));
+  const videoOutputDevice = devices.find(device => device.type === 'SCREEN')
+    ?? devices.find(device => device.type === 'VECTOR');
   const screenCallback = callbacks.find(callback => callback.signal === 'set_screen_update');
   const screenHandler = screenCallback?.targetClass && screenCallback.targetMethod
     ? handlers.find(handler =>
@@ -373,7 +375,9 @@ export function lowerGeneratedMachine(
       // so schedule that same one-line cadence directly; a frame-end partial
       // call would render only the first visible line.
       ...(family === 'neogeo' ? { updateMode: 'scanline' as const } : {}),
-      ...(deviceByTag.get('screen')?.source ? { source: deviceByTag.get('screen')!.source } : {}),
+      // The device that carries the picture: SCREEN for a raster or LCD
+      // panel, VECTOR for a beam display.
+      ...(videoOutputDevice?.source ? { source: videoOutputDevice.source } : {}),
     },
     ...(board.customs?.length ? { customs: board.customs } : {}),
     ...(inputMembers.size ? {
