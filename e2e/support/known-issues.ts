@@ -12,7 +12,6 @@
 
 export const KNOWN_ISSUES: Record<string, string> = {
   carnival: 'sound explosion',
-  popeye: 'graphic glitches',
   rampage: 'no sound',
   sf2ce: 'fps',
   zaxxon: 'graphic glitches',
