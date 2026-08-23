@@ -678,8 +678,22 @@ export function sourceRegionBindings(source: string): Record<string, string> {
   return bindings;
 }
 
-/** Region pointers assigned by a palette callback after advancing a local PROM pointer. */
-function sourceAssignedRegionPointers(
+/**
+ * Region pointers a palette callback hands to driver members.
+ *
+ * A PROM region usually holds more than the color network the palette plan
+ * lowers: the bytes past the RGB table are a second table the driver reads
+ * directly (Zaxxon's per-column character color codes live at `proms` + 256).
+ * MAME publishes that table by pointing a member at the local PROM pointer,
+ * which the declarative palette plan alone would drop, leaving every tile that
+ * reads it colored from an unbound member.
+ *
+ * All three MAME spellings of the same fact are recognised: advancing the
+ * pointer and assigning it (`color_prom += 32; m_x = color_prom;`), taking the
+ * address of an element (`m_x = &color_prom[256];`) and adding a displacement
+ * (`m_x = color_prom + 256;`).
+ */
+export function sourceAssignedRegionPointers(
   ast: MameAstIndex,
   palette: GeneratedPromPalettePlan,
   constants: Record<string, number>,
@@ -689,7 +703,10 @@ function sourceAssignedRegionPointers(
     candidate.span.file === palette.source!.file &&
     candidate.span.line === palette.source!.line);
   if (!fn) return { bindings: {}, offsets: {} };
-  const local = /(?:const\s+)?(?:u?int8_t|u8|char)\s*\*\s*(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)->base\(\)/.exec(
+  // `const` binds either side of the element type and may repeat after the
+  // star, so `uint8_t const *const color_prom` is the same declaration as
+  // `const uint8_t *color_prom`.
+  const local = /(?:const\s+)?(?:u?int8_t|u8|char)\s*(?:\bconst\b\s*)?\*\s*(?:\bconst\b\s*)?(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)->base\(\)/.exec(
     fn.body,
   );
   if (!local) return { bindings: {}, offsets: {} };
@@ -699,16 +716,20 @@ function sourceAssignedRegionPointers(
   const offsets: Record<string, number> = {};
   const events = [
     ...fn.body.matchAll(new RegExp(
-      `\\b${pointer}\\s*\\+=\\s*([^;]+);|\\b(m_\\w+)\\s*=\\s*${pointer}\\s*;`,
+      `\\b${pointer}\\s*\\+=\\s*([^;]+);` +
+      `|\\b(m_\\w+)\\s*=\\s*&\\s*${pointer}\\s*\\[([^\\]]+)\\]\\s*;` +
+      `|\\b(m_\\w+)\\s*=\\s*${pointer}\\s*(?:\\+([^;]+))?;`,
       'g',
     )),
   ];
   for (const event of events) {
     if (event[1]) offset += expressionNumber(event[1], constants);
-    if (event[2]) {
-      bindings[event[2]] = region!;
-      offsets[event[2]] = offset;
-    }
+    const member = event[2] ?? event[4];
+    if (!member) continue;
+    const displacement = event[3] ?? event[5];
+    bindings[member] = region!;
+    offsets[member] = offset +
+      (displacement ? expressionNumber(displacement, constants) : 0);
   }
   return { bindings, offsets };
 }

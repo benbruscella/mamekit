@@ -133,60 +133,6 @@ function writesUnboundMemory(
 
 
 /**
- * Handlers whose object handling the emitter cannot reproduce from types alone.
- *
- * Calling a method on a local rather than on a board-bound member
- * (`pixmap.width()`) is one: the board exposes those framework surfaces as
- * data in some places and as calls in others, and only the value says which,
- * so the emitter cannot choose between a property and a call from the type.
- *
- * Passing an object straight to a call is not this, so a renderer that hands
- * `bitmap` and its clip rectangle to `transpen` still compiles.
- */
-function callsMethodOnLocal(
-  handler: GeneratedHandler,
-  bound: ReadonlySet<string>,
-): boolean {
-  let found = false;
-  const visitExpression = (expression: unknown): void => {
-    if (found || !expression || typeof expression !== 'object') return;
-    const node = expression as {
-      kind?: string;
-      callee?: { kind?: string; object?: { kind?: string; name?: string } };
-    };
-    if (node.kind === 'call' && node.callee?.kind === 'member') {
-      let base = node.callee.object as { kind?: string; name?: string; object?: unknown };
-      while (base && (base.kind === 'index' || base.kind === 'member')) {
-        base = base.object as { kind?: string; name?: string; object?: unknown };
-      }
-      if (base?.kind === 'identifier' && !bound.has(base.name!)) found = true;
-    }
-    for (const value of Object.values(expression)) {
-      if (Array.isArray(value)) value.forEach(visitExpression);
-      else visitExpression(value);
-    }
-  };
-  const visitOperations = (operations: readonly GeneratedHandlerOperation[]): void => {
-    for (const operation of operations) {
-      for (const [key, value] of Object.entries(operation)) {
-        if (key === 'op') continue;
-        if (Array.isArray(value) && value.length && typeof value[0] === 'object') {
-          const entries = value as { op?: string; body?: GeneratedHandlerOperation[] }[];
-          if (entries[0]?.op) { visitOperations(entries as GeneratedHandlerOperation[]); continue; }
-          let nested = false;
-          for (const entry of entries) if (entry.body) { visitOperations(entry.body); nested = true; }
-          if (nested) continue;
-        }
-        visitExpression(value);
-      }
-    }
-  };
-  visitOperations(handler.program?.operations ?? []);
-  return found;
-}
-
-
-/**
  * Every driver member a handler names, so selection can require that the board
  * actually binds them.
  *
@@ -295,9 +241,7 @@ export function generatedBoardHandlersSource(
       !usesWrappedParameters(scope, method) &&
       !source.methods.some(name => {
         const candidate = byMethod.get(name);
-        if (!candidate) return false;
-        return writesUnboundMemory(candidate, bound) ||
-          callsMethodOnLocal(candidate, bound);
+        return candidate ? writesUnboundMemory(candidate, bound) : false;
       }));
     if (!exported.length) continue;
     parts.push(`  ...(() => {
