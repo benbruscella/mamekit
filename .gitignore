@@ -17,9 +17,13 @@ artwork/
 /.cache/
 
 # Desktop MAME writes these relative to its working directory when diagnostic
-# runs use the default cfg_directory and snapshot_directory.
+# runs use the default cfg_directory, snapshot_directory and nvram_directory.
+# They are one machine's local session state, not project source: nvram/ was
+# committed by accident in #52 and carried entries for games this repository
+# does not even target.
 /cfg/
 /snap/
+/nvram/
 
 .DS_Store
 .playwright-mcp/
