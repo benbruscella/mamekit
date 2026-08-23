@@ -3,7 +3,7 @@
 This guide defines how to change MAMEKIT and how to add a machine without
 turning the repository into a collection of handwritten emulator ports.
 
-Read [SYSTEM ARCHITECTURE](SYSTEM_ARCHITECTURE.md) before changing compiler
+Read [SYSTEM ARCHITECTURE](ARCHITECTURE.md) before changing compiler
 boundaries. Read [TESTING](TESTING.md) before accepting a generated behavior
 change or recording a game golden.
 

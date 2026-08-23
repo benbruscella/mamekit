@@ -2808,7 +2808,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         if (point.intensity > 0) {
           drawAdditiveVectorLine(
             pixels, width, height, lastX, lastY, x, y,
-            Math.min(255, point.intensity << 4),
+            // dvg_device::dvg_draw_to passes the 4-bit display-list intensity
+            // through pal4bit, which replicates the nibble rather than only
+            // shifting it, so full brightness reaches 0xff.
+            ((point.intensity & 0x0f) << 4) | (point.intensity & 0x0f),
           );
         }
         lastX = x;

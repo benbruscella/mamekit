@@ -161,7 +161,7 @@ To decide *which* machines to narrow to after a runtime or compiler change, use
 the generated artifacts — each `board.json` names the devices, callbacks,
 handlers and CPUs its machine composes — and prints the matching
 `MAMEKIT_E2E_GAMES=...` command. See
-[ENGINEERING GUIDE](ENGINEERING_GUIDE.md) section 6A.
+[ENGINEERING GUIDE](ENGINEERING.md) section 6A.
 
 The suite is local only for the same reason `test:games` is: it needs ROMs. See
 [e2e/README](../e2e/README.md) for layout, snapshot recording, the full list of

@@ -85,7 +85,7 @@ export function compileMameVideo(
   const screen = ast.findFunctionInHierarchy(screenClass, screenMethod)
     ?? ast.ast.units.flatMap(unit => unit.functions)
       .find(candidate => candidate.name === screenMethod);
-  if (screenClass === 'vector_device' && screenMethod === 'screen_update') {
+  if (screenClass === 'vector_device' && screenMethod === 'video_output_update') {
     const dvg = /\bDVG\s*\(\s*config\s*,\s*(m_\w+)[^)]*\)[\s\S]*?\1\s*->\s*set_memory\s*\([^,]+,[^,]+,\s*(0x[\da-f]+|\d+)\s*\)/i
       .exec(source);
     if (dvg) {

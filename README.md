@@ -123,12 +123,12 @@ regenerate it.
 
 There is one README and four current engineering documents:
 
-- [SYSTEM ARCHITECTURE](docs/SYSTEM_ARCHITECTURE.md): system design, compiler stages,
+- [SYSTEM ARCHITECTURE](docs/ARCHITECTURE.md): system design, compiler stages,
   knowledge graph, typed IR, generated runtime, browser execution, provenance,
   and hard boundaries.
 - [CONTRIBUTING](docs/CONTRIBUTING.md): contribution contract, adding a machine,
   fixing generation gaps, acceptance evidence, and review requirements.
-- [ENGINEERING GUIDE](docs/ENGINEERING_GUIDE.md): commands, extending a target,
+- [ENGINEERING GUIDE](docs/ENGINEERING.md): commands, extending a target,
   debugging generation gaps, tests, browser verification, deployment, and
   maintenance rules.
 - [TESTING](docs/TESTING.md): QA levels, supported-game tokens, deterministic

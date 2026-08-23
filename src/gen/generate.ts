@@ -663,20 +663,27 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const io = cpus[0].io;
 
   // --- screen ------------------------------------------------------------------
-  // Arcade drivers use set_raw; consoles (nes.cpp) use the
-  // set_refresh_hz/set_size/set_visarea trio instead.
-  const screenDev = devices.find(d => d.props.type === 'SCREEN');
+  // MAME models a machine's picture with a video-output device. Raster and LCD
+  // panels are SCREEN; a vector display is VECTOR, its own device since the
+  // screen_device split. Arcade SCREENs use set_raw; consoles (nes.cpp) use the
+  // set_refresh_hz/set_size/set_visarea trio instead; a VECTOR carries no raster
+  // geometry at all -- only a frame period and a visible rectangle in beam
+  // coordinates -- so its visible rectangle is the whole raster.
+  const screenDev = devices.find(d => d.props.type === 'SCREEN')
+    ?? devices.find(d => d.props.type === 'VECTOR');
   const raw = screenDev?.props.screenRaw as number[] | undefined;
   let pixclock: number, htotal: number, hbend: number, hbstart: number, vtotal: number, vbend: number, vbstart: number;
   if (raw) {
     [pixclock, htotal, hbend, hbstart, vtotal, vbend, vbstart] = raw;
-  } else if (screenDev?.props.screenRefreshHz && screenDev.props.screenSize && screenDev.props.screenVisarea) {
-    const [w] = screenDev.props.screenSize as number[];
+  } else if (screenDev?.props.screenRefreshHz && screenDev.props.screenVisarea) {
     const [x0, x1, y0, y1] = screenDev.props.screenVisarea as number[];
-    vtotal = (screenDev.props.screenSize as number[])[1];
+    // A vector device has no blanking interval, so the visible rectangle bounds
+    // the raster: hbstart/vbstart land on htotal/vtotal and no line is blanked.
+    const [w, h] = (screenDev.props.screenSize as number[] | undefined)
+      ?? [x1 + 1, y1 + 1];
     hbend = x0; hbstart = x1 + 1;
     vbend = y0; vbstart = y1 + 1;
-    htotal = w;
+    htotal = w; vtotal = h;
     pixclock = Number(screenDev.props.screenRefreshHz) * htotal * vtotal;
   } else {
     throw new Error('screen raw params missing');
