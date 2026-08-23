@@ -10,6 +10,7 @@
 import type {
   BoardIr,
   GeneratedCallback,
+  GeneratedHandlerRuntime,
   GeneratedExpression,
   GeneratedHandler,
   GeneratedHandlerOperation,
@@ -88,6 +89,28 @@ interface PreparedMachineCalls {
    * silently no-op for every later handler (Mario's palette_bank_w).
    */
   seededFrom: GeneratedHandlerBindings['referenceCalls'];
+  /**
+   * The bindings.constants object this table was seeded from, guarding the
+   * per-handler binding views below for the same reason as seededFrom: board
+   * construction can replace the constant table while wiring a source-defined
+   * device interface.
+   */
+  seededConstants: GeneratedHandlerBindings['constants'];
+  /** The bindings.calls object the emitted-handler namespace was flattened from. */
+  seededCalls: GeneratedHandlerBindings['calls'];
+  /**
+   * One binding view per handler, reused for the life of the board.
+   *
+   * These used to be rebuilt on every invocation, which allocated two objects
+   * per generated call and — because the compiled-program cache is keyed by
+   * binding identity — guaranteed that cache could never hit. A per-scanline
+   * renderer such as 1942's calls its sprite handler thousands of times a
+   * frame, so it recompiled thousands of closure trees a frame and threw all
+   * of them away.
+   */
+  handlerBindings: WeakMap<GeneratedHandler, GeneratedHandlerBindings>;
+  /** Execution context for this board's emitted handlers, built on first use. */
+  runtime?: GeneratedHandlerRuntime;
 }
 
 const MACHINE_CALL_CACHE = new WeakMap<
@@ -188,10 +211,48 @@ export function executeGeneratedProgram(
     },
     localTypes: {},
   };
-  const result = executeOperations(program.operations, context);
+  // Only the absence of a compiled form falls back: a compiled program that
+  // ends without an explicit `return` yields undefined, and treating that as
+  // "not compiled" would run the whole program twice.
+  const fast = compiledProgram(program, bindings, new Set(Object.keys(context.locals)));
+  const result = fast
+    ? (fast(context) ?? EMPTY_RESULT)
+    : executeOperations(program.operations, context);
   return result.control === 'return'
     ? { returned: true, ...(result.value !== undefined ? { value: result.value } : {}) }
     : { returned: false };
+}
+
+const EMPTY_RESULT: ExecutionResult = {};
+
+/**
+ * One compiled closure tree per program, reused for the life of the board.
+ *
+ * Keyed by program *and* bindings: a closure captures the dictionaries it
+ * resolved against, so sharing one across boards would read another machine's
+ * state. compileFastOperations returns undefined for anything it cannot
+ * express, which falls back to the interpreter unchanged.
+ */
+const COMPILED_PROGRAMS = new WeakMap<
+  GeneratedHandlerProgram,
+  WeakMap<object, FastOperation | null>
+>();
+
+function compiledProgram(
+  program: GeneratedHandlerProgram,
+  bindings: GeneratedHandlerBindings,
+  locals: ReadonlySet<string>,
+): FastOperation | undefined {
+  let byBindings = COMPILED_PROGRAMS.get(program);
+  if (!byBindings) {
+    byBindings = new WeakMap();
+    COMPILED_PROGRAMS.set(program, byBindings);
+  }
+  const cached = byBindings.get(bindings);
+  if (cached !== undefined) return cached ?? undefined;
+  const compiled = compileFastOperations(program.operations, bindings, locals) ?? null;
+  byBindings.set(bindings, compiled);
+  return compiled ?? undefined;
 }
 
 
@@ -243,20 +304,128 @@ export function executeGeneratedMachineProgram(
   bindings: GeneratedHandlerBindings,
   args: Record<string, unknown>,
 ): { returned: boolean; value?: unknown } {
-  const prepared = preparedMachineCalls(machine, bindings, handler.ownerClass);
-  const suffix = /_(\d+)$/.exec(handler.method);
-  const generatedBindings: GeneratedHandlerBindings = {
-    ...bindings,
-    constants: {
-      ...handler.constants,
-      ...bindings.constants,
-      ...(suffix ? { Which: Number(suffix[1]) } : {}),
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (compiled) {
+    const prepared = preparedMachineCalls(machine, bindings, handler.ownerClass);
+    const names = parameterNames(handler.parameters);
+    const value = compiled(
+      preparedHandlerRuntime(prepared, bindings),
+      // An interpreted caller passes every C++ reference parameter as an
+      // l-value standing in for its storage. Emitted code reads those by value
+      // — a renderer mutates what `bitmap_ind16 &bitmap` points at without ever
+      // reassigning it — so the referent is what it must receive. Handlers that
+      // do assign through a reference are excluded from codegen precisely so
+      // that this unwrapping is always the right thing to do.
+      ...names.map(name => {
+        const argument = args[name];
+        if (argument === undefined) return 0;
+        return isLValue(argument) ? argument.get() : argument;
+      }),
+    );
+    return value === undefined ? { returned: false } : { returned: true, value };
+  }
+  return executeGeneratedProgram(
+    handler.program!,
+    machineHandlerBindings(machine, handler, bindings),
+    args,
+  );
+}
+
+/**
+ * The execution context emitted handler code runs against, built once per
+ * prepared call table.
+ *
+ * `invoke` reaches generated handlers first, matching the interpreter's own
+ * precedence: a driver method the emitter chose not to compile must still run,
+ * and it must be the same one an interpreted caller would have reached.
+ */
+function preparedHandlerRuntime(
+  prepared: PreparedMachineCalls,
+  bindings: GeneratedHandlerBindings,
+): GeneratedHandlerRuntime {
+  if (prepared.runtime) return prepared.runtime;
+  // The interpreter resolves an identifier call through referenceCalls first
+  // and the board's host calls second — `rectangle` is a video-package
+  // reference call while `flip_screen` is a board call, and a renderer uses
+  // both. Emitted code reads one dictionary, so it is handed that same
+  // namespace in that same precedence.
+  //
+  // Flattened rather than proxied because this is the renderer's hot path, and
+  // taken here rather than at board construction because both dictionaries are
+  // fully wired by the time any handler runs. Replacing either rebuilds the
+  // prepared table, and this runtime with it.
+  const calls = Object.create(bindings.calls ?? null) as Record<
+    string,
+    (...args: unknown[]) => unknown
+  >;
+  for (const name in prepared.referenceCalls) {
+    calls[name] = prepared.referenceCalls[name]!;
+  }
+  return prepared.runtime = {
+    get members() { return bindings.members ??= {}; },
+    calls,
+    get palette() { return []; },
+    readIndex: (value, index) => isGeneratedPointer(value)
+      ? pointerValue(value, index)
+      : indexValue(value, index),
+    writeIndex: (value, index, next) => {
+      if (isGeneratedPointer(value)) setPointerValue(value, index, next);
+      else if (ArrayBuffer.isView(value)) (value as Uint8Array)[index] = toNumber(next);
+      else if (value && typeof value === 'object') {
+        (value as Record<number, unknown>)[index] = next;
+      }
+      return next;
     },
-    referenceCalls: prepared.referenceCalls,
-    callParameters: prepared.callParameters,
-    concreteDeviceMembers: prepared.concreteDeviceMembers,
+    addressOf: (value, index) => isGeneratedPointer(value)
+      ? {
+        generatedPointer: true,
+        source: value.source as ArrayLike<number> & { [index: number]: number },
+        offset: value.offset + index,
+      }
+      : {
+        generatedPointer: true,
+        source: value as ArrayLike<number> & { [index: number]: number },
+        offset: index,
+      },
+    dereference: dereferenceGeneratedValue,
+    invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
+      bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
   };
-  return executeGeneratedProgram(handler.program!, generatedBindings, args);
+}
+
+/**
+ * The binding view a generated handler executes against, built once per
+ * handler and reused.
+ *
+ * It layers over the board's own binding object rather than copying it. Board
+ * construction merges the video package's members into that same object after
+ * the first handlers have already run, and a copy would freeze every later
+ * handler on the pre-merge view.
+ */
+function machineHandlerBindings(
+  machine: BoardIr,
+  handler: GeneratedHandler,
+  bindings: GeneratedHandlerBindings,
+): GeneratedHandlerBindings {
+  const prepared = preparedMachineCalls(machine, bindings, handler.ownerClass);
+  const cached = prepared.handlerBindings.get(handler);
+  if (cached) return cached;
+  const suffix = /_(\d+)$/.exec(handler.method);
+  const created: GeneratedHandlerBindings = Object.assign(
+    Object.create(bindings) as GeneratedHandlerBindings,
+    {
+      constants: {
+        ...handler.constants,
+        ...bindings.constants,
+        ...(suffix ? { Which: Number(suffix[1]) } : {}),
+      },
+      referenceCalls: prepared.referenceCalls,
+      callParameters: prepared.callParameters,
+      concreteDeviceMembers: prepared.concreteDeviceMembers,
+    },
+  );
+  prepared.handlerBindings.set(handler, created);
+  return created;
 }
 
 function preparedMachineCalls(
@@ -275,7 +444,12 @@ function preparedMachineCalls(
     byBindings.set(bindings, byOwner);
   }
   const cached = byOwner.get(ownerClass);
-  if (cached && cached.seededFrom === bindings.referenceCalls) return cached;
+  if (
+    cached &&
+    cached.seededFrom === bindings.referenceCalls &&
+    cached.seededConstants === bindings.constants &&
+    cached.seededCalls === bindings.calls
+  ) return cached;
 
   const compiled = (machine.handlers ?? []).filter(candidate =>
     candidate.program && candidate.program.diagnostics.length === 0);
@@ -353,7 +527,10 @@ function preparedMachineCalls(
       (machine.devices ?? []).flatMap(device => device.member ? [device.member] : []),
     ),
     seededFrom: bindings.referenceCalls,
-  };
+    seededConstants: bindings.constants,
+    seededCalls: bindings.calls,
+    handlerBindings: new WeakMap<GeneratedHandler, GeneratedHandlerBindings>(),
+  } as PreparedMachineCalls;
   byOwner.set(ownerClass, prepared);
   return prepared;
 }
@@ -385,19 +562,7 @@ export function compileGeneratedMachineHandler(
   bindings: GeneratedHandlerBindings,
 ): CompiledGeneratedMachineHandler | undefined {
   if (!handler.program || handler.program.diagnostics.length) return undefined;
-  const prepared = preparedMachineCalls(machine, bindings, handler.ownerClass);
-  const suffix = /_(\d+)$/.exec(handler.method);
-  const generatedBindings: GeneratedHandlerBindings = {
-    ...bindings,
-    constants: {
-      ...handler.constants,
-      ...bindings.constants,
-      ...(suffix ? { Which: Number(suffix[1]) } : {}),
-    },
-    referenceCalls: prepared.referenceCalls,
-    callParameters: prepared.callParameters,
-    concreteDeviceMembers: prepared.concreteDeviceMembers,
-  };
+  const generatedBindings = machineHandlerBindings(machine, handler, bindings);
   const localNames = new Set([
     ...parameterNames(handler.parameters),
     'addr', 'offset', 'data', 'state',
@@ -440,21 +605,24 @@ function compileFastOperations(
   for (const operation of operations) {
     if (operation.op === 'declare') {
       localNames.add(operation.name);
+      const name = operation.name;
+      const valueType = operation.valueType;
       const value = operation.value
         ? compileFastExpression(operation.value, bindings, localNames)
         : () => 0;
-      const wrap = compileValueWrapper(operation.valueType);
+      const wrap = valueWrapper(valueType);
       compiled.push(context => {
-        context.localTypes[operation.name] = operation.valueType;
-        context.locals[operation.name] = wrap(value(context));
+        context.localTypes[name] = valueType;
+        context.locals[name] = wrap(value(context));
         return undefined;
       });
       continue;
     }
     if (operation.op === 'assign') {
       const value = compileFastExpression(operation.value, bindings, localNames);
+      const store = compileFastAssign(operation.target, operation.operator, bindings, localNames);
       compiled.push(context => {
-        assign(operation.target, operation.operator, value(context), context);
+        store(context, value(context));
         return undefined;
       });
       continue;
@@ -487,14 +655,174 @@ function compileFastOperations(
         (truthy(condition(context)) ? whenTrue : whenFalse)(context));
       continue;
     }
+    if (operation.op === 'switch') {
+      const subject = compileFastExpression(operation.expression, bindings, localNames);
+      const cases = operation.cases.map(entry => ({
+        values: entry.values?.map(candidate =>
+          compileFastExpression(candidate, bindings, localNames)),
+        body: compileFastOperations(entry.body, bindings, localNames),
+      }));
+      if (cases.some(entry => !entry.body)) return undefined;
+      compiled.push(context => {
+        const value = toNumber(subject(context));
+        let index = cases.findIndex(entry =>
+          entry.values?.some(candidate => toNumber(candidate(context)) === value));
+        if (index < 0) index = cases.findIndex(entry => !entry.values);
+        for (; index >= 0 && index < cases.length; index++) {
+          const result = cases[index]!.body!(context);
+          if (result?.control === 'return') return result;
+          if (result?.control === 'continue') return result;
+          if (result?.control === 'break') break;
+        }
+        return undefined;
+      });
+      continue;
+    }
+    if (operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while') {
+      // The induction variable is declared inside `initialize`, which compiles
+      // in its own scope; it must join this one before the condition, body and
+      // step compile, or they resolve it as a binding lookup and never end.
+      for (const initializer of operation.op === 'for' ? operation.initialize : []) {
+        if (initializer.op === 'declare') localNames.add(initializer.name);
+      }
+      const initialize = operation.op === 'for'
+        ? compileFastOperations(operation.initialize, bindings, localNames)
+        : undefined;
+      const condition = compileFastExpression(operation.condition, bindings, localNames);
+      const body = compileFastOperations(operation.body, bindings, localNames);
+      const iterate = operation.op === 'for'
+        ? compileFastOperations(operation.iterate, bindings, localNames)
+        : undefined;
+      if (!body || (operation.op === 'for' && (!initialize || !iterate))) return undefined;
+      const kind = operation.op;
+      compiled.push(context => {
+        if (initialize) {
+          const initialized = initialize(context);
+          if (initialized?.control) return initialized;
+        }
+        let iterations = 0;
+        const step = (): ExecutionResult | undefined => {
+          if (++iterations > GENERATED_LOOP_ITERATION_LIMIT) {
+            throw generatedLoopLimitError(kind, context);
+          }
+          const result = body(context);
+          if (result?.control === 'return') return result;
+          if (result?.control === 'break') return { control: 'break' };
+          if (iterate) {
+            const iterated = iterate(context);
+            if (iterated?.control === 'return') return iterated;
+            if (iterated?.control === 'break') return { control: 'break' };
+          }
+          return undefined;
+        };
+        if (kind === 'do-while') {
+          do {
+            const result = step();
+            if (result?.control === 'return') return result;
+            if (result?.control === 'break') break;
+          } while (truthy(condition(context)));
+          return undefined;
+        }
+        while (truthy(condition(context))) {
+          const result = step();
+          if (result?.control === 'return') return result;
+          if (result?.control === 'break') break;
+        }
+        return undefined;
+      });
+      continue;
+    }
     return undefined;
   }
+  // Indexed rather than iterated: a block body runs once per loop iteration,
+  // and a per-scanline renderer runs its innermost block millions of times a
+  // second.
+  if (compiled.length === 1) return compiled[0]!;
   return context => {
-    for (const operation of compiled) {
-      const result = operation(context);
+    for (let index = 0; index < compiled.length; index++) {
+      const result = compiled[index]!(context);
       if (result?.control) return result;
     }
     return undefined;
+  };
+}
+
+type FastAssign = (context: ExecutionContext, value: unknown) => void;
+
+/**
+ * Assignment with the target shape resolved once.
+ *
+ * The interpreter re-walks the target expression and re-derives the compound
+ * operator on every write. Shapes it does not resolve statically — member,
+ * dereference and call targets — keep the interpreter's own store.
+ */
+function compileFastAssign(
+  target: GeneratedExpression,
+  operator: string,
+  bindings: GeneratedHandlerBindings,
+  locals: ReadonlySet<string>,
+): FastAssign {
+  const combine = compileAssignmentValue(operator);
+  if (target.kind === 'identifier') {
+    const name = target.name;
+    return (context, value) => {
+      if (Object.hasOwn(context.locals, name)) {
+        const local = context.locals[name];
+        // A reference parameter holds an l-value standing in for the caller's
+        // storage; its current value is read and written through that.
+        const reference = isLValue(local) ? local : undefined;
+        const wrapped = wrapValue(
+          context.localTypes[name],
+          combine(reference ? reference.get() ?? local : local, value),
+        );
+        if (reference) reference.set(wrapped);
+        else context.locals[name] = wrapped;
+        return;
+      }
+      const next = combine(
+        context.bindings.getters?.[name]?.() ?? context.bindings.members?.[name],
+        value,
+      );
+      // Setters exist to apply a member's declared bit width, which is
+      // meaningless for a memory container; those store by reference.
+      const setter = typeof next === 'number' || typeof next === 'boolean'
+        ? context.bindings.setters?.[name]
+        : undefined;
+      if (setter) setter(toNumber(next));
+      else (context.bindings.members ??= {})[name] = next;
+    };
+  }
+  if (target.kind === 'index') {
+    const container = compileWritableIndexObject(target.object, bindings, locals);
+    const index = compileFastExpression(target.index, bindings, locals);
+    return (context, value) => {
+      const object = container(context);
+      const at = toNumber(index(context));
+      const next = combine(indexValue(object, at), value);
+      if (isGeneratedPointer(object)) setPointerValue(object, at, next);
+      else if (ArrayBuffer.isView(object)) (object as Uint8Array)[at] = toNumber(next);
+      else if (Array.isArray(object)) object[at] = next;
+    };
+  }
+  return (context, value) => assign(target, operator, value, context);
+}
+
+/**
+ * The container an indexed write stores into. The common case is an expression
+ * that already evaluates to memory; only a member array that has never been
+ * written falls back to the interpreter's materialising form.
+ */
+function compileWritableIndexObject(
+  expression: GeneratedExpression,
+  bindings: GeneratedHandlerBindings,
+  locals: ReadonlySet<string>,
+): FastExpression {
+  const read = compileFastExpression(expression, bindings, locals);
+  return context => {
+    const current = read(context);
+    return isIndexableMemory(current) || isGeneratedPointer(current)
+      ? current
+      : writableIndexObject(expression, context);
   };
 }
 
@@ -550,39 +878,70 @@ function compileFastExpression(
   }
   if (expression.kind === 'cast') {
     const operand = compileFastExpression(expression.operand, bindings, locals);
-    const wrap = compileValueWrapper(expression.valueType);
+    const wrap = valueWrapper(expression.valueType);
     return context => wrap(operand(context));
   }
   if (expression.kind === 'binary') {
     const left = compileFastExpression(expression.left, bindings, locals);
     const right = compileFastExpression(expression.right, bindings, locals);
-    if (expression.operator === '&&') {
+    const operator = expression.operator;
+    if (operator === '&&') {
       return context => truthy(left(context)) && truthy(right(context)) ? 1 : 0;
     }
-    if (expression.operator === '||') {
+    if (operator === '||') {
       return context => truthy(left(context)) || truthy(right(context)) ? 1 : 0;
     }
-    return context => {
-      const leftValue = left(context);
-      const rightValue = right(context);
-      if (expression.operator === '+' && isGeneratedPointer(leftValue)) {
-        return offsetPointer(leftValue, toNumber(rightValue));
-      }
-      if (expression.operator === '+' && isIndexableMemory(leftValue)) {
-        return { generatedPointer: true, source: leftValue, offset: toNumber(rightValue) };
-      }
-      if (expression.operator === '+' && isGeneratedPointer(rightValue)) {
-        return offsetPointer(rightValue, toNumber(leftValue));
-      }
-      if (expression.operator === '-' && isGeneratedPointer(leftValue)) {
-        return offsetPointer(leftValue, -toNumber(rightValue));
-      }
-      if (expression.operator === '==' || expression.operator === '!=') {
-        const equal = comparableValue(leftValue) === comparableValue(rightValue);
-        return expression.operator === '==' ? Number(equal) : Number(!equal);
-      }
-      return binary(expression.operator, toNumber(leftValue), toNumber(rightValue));
-    };
+    // Equality compares references and pointers structurally, so it never
+    // reaches the numeric table.
+    if (operator === '==' || operator === '!=') {
+      const wantEqual = operator === '==';
+      return context =>
+        (comparableValue(left(context)) === comparableValue(right(context))) === wantEqual
+          ? 1
+          : 0;
+    }
+    // Division is integral only between integers, so it keeps the
+    // interpreter's two exemptions: an attotime operand, and an operand the
+    // source wrote as a float. Whether the expression is floating is a
+    // property of the source text, so it is settled here rather than per
+    // evaluation.
+    if (operator === '/') {
+      const floating = isFloatingExpression(expression.left) ||
+        isFloatingExpression(expression.right);
+      const dividend = expression.left;
+      return context => {
+        const leftValue = toNumber(left(context));
+        const rightValue = toNumber(right(context));
+        return floating || isAttotimeExpression(dividend, context)
+          ? leftValue / rightValue
+          : BINARY_OPERATORS['/']!(leftValue, rightValue);
+      };
+    }
+    const apply = BINARY_OPERATORS[operator] ?? UNKNOWN_BINARY;
+    // Only + and - can carry pointer arithmetic. Every other operator skips
+    // those runtime shape tests entirely.
+    if (operator === '+') {
+      return context => {
+        const leftValue = left(context);
+        const rightValue = right(context);
+        if (isGeneratedPointer(leftValue)) return offsetPointer(leftValue, toNumber(rightValue));
+        if (isIndexableMemory(leftValue)) {
+          return { generatedPointer: true, source: leftValue, offset: toNumber(rightValue) };
+        }
+        if (isGeneratedPointer(rightValue)) return offsetPointer(rightValue, toNumber(leftValue));
+        return toNumber(leftValue) + toNumber(rightValue);
+      };
+    }
+    if (operator === '-') {
+      return context => {
+        const leftValue = left(context);
+        const rightValue = right(context);
+        return isGeneratedPointer(leftValue)
+          ? offsetPointer(leftValue, -toNumber(rightValue))
+          : toNumber(leftValue) - toNumber(rightValue);
+      };
+    }
+    return context => apply(toNumber(left(context)), toNumber(right(context)));
   }
   if (expression.kind === 'conditional') {
     const condition = compileFastExpression(expression.condition, bindings, locals);
@@ -608,30 +967,103 @@ function compileFastExpression(
     const index = compileFastExpression(expression.index, bindings, locals);
     return context => indexValue(object(context), toNumber(index(context)));
   }
-  // Calls and assignment expressions have nuanced reference/device semantics;
-  // retain their established evaluator while the enclosing operations and
-  // arithmetic remain precompiled.
+  // A call through an identifier is the shape a MAME macro takes — BIT, the
+  // fixed-width casts, the arithmetic helpers — and a per-scanline renderer
+  // evaluates dozens per sprite. Compiling the arguments removes the only
+  // interpreted step left on that path; the callee dispatch stays live so a
+  // generated handler bound under the same name still wins, exactly as it
+  // does for the interpreter.
+  if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
+    const name = expression.callee.name;
+    const args = expression.args.map(arg => compileFastExpression(arg, bindings, locals));
+    const generatedArguments = compileGeneratedCallArguments(name, expression.args, args);
+    return context => {
+      const generated = context.bindings.referenceCalls?.[name];
+      if (generated) return generated(...generatedArguments(context));
+      const values = new Array<unknown>(args.length);
+      for (let index = 0; index < args.length; index++) values[index] = args[index]!(context);
+      return applyIdentifierCall(name, values, expression, context);
+    };
+  }
+  // Member calls and assignment expressions have nuanced reference/device
+  // semantics; retain their established evaluator while the enclosing
+  // operations and arithmetic remain precompiled.
   return context => evaluate(expression, context);
 }
 
+/**
+ * wrapValue with every decision about the declared type hoisted to compile
+ * time. A declared type is a source constant, but wrapValue re-derived it —
+ * regex included — on each of the thousands of narrowings a per-scanline
+ * renderer performs per frame.
+ *
+ * The branch order below is wrapValue's own; both must stay in step or the
+ * compiled and interpreted paths disagree about what a lowered program means.
+ */
 function compileValueWrapper(valueType: string | undefined): (value: unknown) => unknown {
-  const normalized = valueType?.replace(/\bconst\b/g, '').trim();
-  if (normalized === 'uint8_t' || normalized === 'u8') return value => toNumber(value) & 0xff;
-  if (normalized === 'int8_t' || normalized === 's8' || normalized === 'char') {
+  const packed = compilePackedPointerView(valueType);
+  // A scalar valueType says nothing about the value: MAME declares local
+  // arrays as `uint8_t objdata` initialised by ALLOC(4), so narrowing to a
+  // byte turned the array into 0 and silently dropped every indexed write.
+  const opaque = valueType === 'auto' ||
+    (valueType?.includes('*') ?? false) ||
+    (valueType?.includes('&') ?? false);
+  const declared = valueType?.replace(/\bconst\b/g, '').trim();
+  const narrow = compileValueNarrowing(declared);
+  return value => {
+    if (packed && value instanceof Uint8Array) return packed(value);
+    if (opaque) return value;
+    // `rectangle draw = cliprect` is a C++ value copy. Aliasing it instead
+    // let a handler narrow its own clip rectangle and then hand the mutated
+    // one back to its caller — frogger drew a flipped screen through a
+    // rectangle its callee had already shrunk.
+    if (declared === 'rectangle' && value && typeof value === 'object') {
+      return Object.assign(Object.create(Object.getPrototypeOf(value)), value);
+    }
+    if (value && typeof value === 'object') return value;
+    return narrow(value);
+  };
+}
+
+/**
+ * A `u16*`/`s16*` declaration over byte-addressed memory reinterprets the
+ * bytes rather than copying them, so the wider view writes through to the same
+ * shared memory the board handed out.
+ */
+function compilePackedPointerView(
+  valueType: string | undefined,
+): ((value: Uint8Array) => unknown) | undefined {
+  if (!valueType?.includes('*')) return undefined;
+  const normalized = valueType.replace(/\bconst\b/g, '').replace(/\s/g, '');
+  if (/^(?:u16|uint16_t)\*$/.test(normalized)) {
+    return value => new Uint16Array(value.buffer, value.byteOffset, value.byteLength >>> 1);
+  }
+  if (/^(?:s16|int16_t)\*$/.test(normalized)) {
+    return value => new Int16Array(value.buffer, value.byteOffset, value.byteLength >>> 1);
+  }
+  return undefined;
+}
+
+/** Narrowing for an already const-stripped declared type. */
+function compileValueNarrowing(declared: string | undefined): (value: unknown) => unknown {
+  if (declared === 'uint8_t' || declared === 'u8') return value => toNumber(value) & 0xff;
+  if (declared === 'int8_t' || declared === 's8' || declared === 'char') {
     return value => toNumber(value) << 24 >> 24;
   }
-  if (normalized === 'bool') return value => toNumber(value) ? 1 : 0;
-  if (normalized === 'uint16_t' || normalized === 'u16') return value => toNumber(value) & 0xffff;
-  if (normalized === 'int16_t' || normalized === 's16') {
+  if (declared === 'bool') return value => toNumber(value) ? 1 : 0;
+  if (declared === 'uint16_t' || declared === 'u16') return value => toNumber(value) & 0xffff;
+  if (declared === 'int16_t' || declared === 's16') {
     return value => toNumber(value) << 16 >> 16;
   }
-  if (normalized === 'uint32_t' || normalized === 'u32') return value => toNumber(value) >>> 0;
-  if (normalized === 'int32_t' || normalized === 's32') return value => toNumber(value) | 0;
-  if (normalized === 'uint64_t' || normalized === 'u64' ||
-      normalized === 'int64_t' || normalized === 's64') {
+  if (declared === 'uint32_t' || declared === 'u32') return value => toNumber(value) >>> 0;
+  if (declared === 'int32_t' || declared === 's32') return value => toNumber(value) | 0;
+  if (declared === 'uint64_t' || declared === 'u64' ||
+      declared === 'int64_t' || declared === 's64') {
     return value => Math.trunc(toNumber(value));
   }
-  return value => wrapValue(valueType, value);
+  // wrapValue's terminal case: an unnamed scalar type (`int`, `float`, a
+  // driver typedef) keeps its numeric value unchanged.
+  return toNumber;
 }
 
 // A MAME signature is a constant, so parsing it is cached by that string.
@@ -882,6 +1314,154 @@ function isFloatingExpression(expression: GeneratedExpression): boolean {
   return false;
 }
 
+/**
+ * Everything an identifier-callee call means once its arguments are values:
+ * MAME's macro intrinsics, the C++ primitives its sources use, and the
+ * browser/device endpoints a board binds.
+ *
+ * Shared so the compiled fast path can evaluate the arguments through
+ * compiled expressions and still reach exactly the semantics the interpreter
+ * gives the same call.
+ */
+function applyIdentifierCall(
+  name: string,
+  args: unknown[],
+  expression: Extract<GeneratedExpression, { kind: 'call' }>,
+  context: ExecutionContext,
+): unknown {
+  if (name === 'COMBINE_DATA') {
+    const pointer = args[0];
+    if (!isGeneratedPointer(pointer)) return 0;
+    const old = toNumber(pointerValue(pointer, 0));
+    const data = toNumber(context.locals.data);
+    const memMask = Object.hasOwn(context.locals, 'mem_mask')
+      ? toNumber(context.locals.mem_mask)
+      : 0xffff;
+    const combined = ((old & ~memMask) | (data & memMask)) >>> 0;
+    setPointerValue(pointer, 0, combined);
+    return combined;
+  }
+  if (name === 'BIT') {
+    // MAME BIT(x, n) extracts one bit; BIT(x, n, w) extracts a w-bit field.
+    const width = args.length > 2 ? toNumber(args[2]) : 1;
+    return (toNumber(args[0]) >> toNumber(args[1])) & ((1 << width) - 1);
+  }
+  if (name === 'BITSWAP') {
+    const source = toNumber(args[0]);
+    return args.slice(1).reduce<number>(
+      (result, bit) => (result << 1) | ((source >> toNumber(bit)) & 1),
+      0,
+    );
+  }
+  // C and C++ standard-library primitives MAME device sources rely on.
+  if (name === 'std::min') {
+    return Math.min(...args.map(toNumber));
+  }
+  if (name === 'std::max') {
+    return Math.max(...args.map(toNumber));
+  }
+  if (name === 'std::clamp') {
+    return Math.min(toNumber(args[2]), Math.max(toNumber(args[1]), toNumber(args[0])));
+  }
+  if (name === 'ALLOC' || name === 'make_unique_clear') {
+    return new Uint8Array(Math.max(0, toNumber(args[0])));
+  }
+  if (name === 'ARRAY') return args;
+  if (name === 'floor') return Math.floor(toNumber(args[0]));
+  if (name === 'cos') return Math.cos(toNumber(args[0]));
+  if (name === 'sin') return Math.sin(toNumber(args[0]));
+  if (name === 'DEGREE_TO_RADIAN') return toNumber(args[0]) * Math.PI / 180;
+  if (name === 'rgb_t') {
+    // rgb_t has both (r, g, b) and (a, r, g, b) constructors.  Treating
+    // the four-argument form as RGB made alpha become red and discarded
+    // blue, flattening Gottlieb games to a single yellow field.
+    const offset = args.length >= 4 ? 1 : 0;
+    const alpha = args.length >= 4 ? toNumber(args[0]) & 0xff : 0xff;
+    const red = toNumber(args[offset]) & 0xff;
+    const green = toNumber(args[offset + 1]) & 0xff;
+    const blue = toNumber(args[offset + 2]) & 0xff;
+    return (alpha << 24 | blue << 16 | green << 8 | red) >>> 0;
+  }
+  const paletteExpansion = /^pal([1-8])bit$/.exec(name);
+  if (paletteExpansion) {
+    const bits = Number(paletteExpansion[1]);
+    const maximum = (1 << bits) - 1;
+    return Math.round((toNumber(args[0]) & maximum) * 255 / maximum);
+  }
+  if (name === 'assert' || name === 'static_assert') return 0;
+  if (name === 'sizeof') {
+    return typeByteWidth(generatedExpressionName(expression.args[0]!));
+  }
+  if (name === 'memcpy' || name === 'memmove') {
+    copyGeneratedMemory(args[0], args[1], toNumber(args[2]));
+    return args[0];
+  }
+  if (name === 'std::copy_n') {
+    copyGeneratedMemory(args[2], args[0], toNumber(args[1]));
+    return args[2];
+  }
+  if (name === 'memset') {
+    fillGeneratedMemory(args[0], toNumber(args[1]), toNumber(args[2]));
+    return args[0];
+  }
+  if (name === 'rgb_t::black') return 0xff000000;
+  if (name === 'rgb_t::white') return 0xffffffff;
+  if (name === 'CAP_P') return toNumber(args[0]) * 1e-12;
+  if (name === 'CAP_N') return toNumber(args[0]) * 1e-9;
+  if (name === 'CAP_U') return toNumber(args[0]) * 1e-6;
+  if (name === 'RES_K') return toNumber(args[0]) * 1e3;
+  if (name === 'RES_M') return toNumber(args[0]) * 1e6;
+  if (name === 'attotime::from_hz') return 1 / Math.max(1, toNumber(args[0]));
+  if (name === 'attotime::from_ticks') {
+    return toNumber(args[0]) / Math.max(1, toNumber(args[1]));
+  }
+  if (name === 'TILE_FLIPYX') return toNumber(args[0]) & 3;
+  if (name === 'TILE_FLIPXY') {
+    const value = toNumber(args[0]);
+    return ((value & 2) >> 1) | ((value & 1) << 1);
+  }
+  if (name === 'TABLE') {
+    const values = args.slice(1);
+    const index = values.length
+      ? modulo(toNumber(args[0]), values.length)
+      : 0;
+    return values[index] ?? 0;
+  }
+  if (name === 'ioport') return reference(`ioport:${String(args[0] ?? '')}`);
+  // Driver handlers use the machine-level membank("tag") finder. Preserve
+  // its string tag as a reference so a following ->set_entry(...) reaches
+  // the source-derived bank binding instead of coercing the tag to zero.
+  if (name === 'membank') return reference(String(args[0] ?? ''));
+  if (['u8', 'uint8_t'].includes(name)) return toNumber(args[0]) & 0xff;
+  if (['s8', 'int8_t'].includes(name)) return (toNumber(args[0]) << 24) >> 24;
+  if (['u16', 'uint16_t'].includes(name)) return toNumber(args[0]) & 0xffff;
+  if (['s16', 'int16_t'].includes(name)) return (toNumber(args[0]) << 16) >> 16;
+  if (['u32', 'uint32_t'].includes(name)) return toNumber(args[0]) >>> 0;
+  if (['s32', 'int32_t'].includes(name)) return toNumber(args[0]) | 0;
+  if (['u64', 'uint64_t', 's64', 'int64_t'].includes(name)) {
+    return Math.trunc(toNumber(args[0]));
+  }
+  if (name === 'bool') return toNumber(args[0]) ? 1 : 0;
+  // The handler parser deliberately keeps C++ direct-initialization in its
+  // call-shaped form.  For inferred values and bitmap references this is an
+  // identity operation, not a call to a generated source handler.  Keeping
+  // the object intact is essential for declarations such as
+  // `bitmap_ind16 &bm(bitmap)` used by Popeye's renderer.
+  if (
+    name === 'auto' ||
+    name === 'bitmap_ind8' ||
+    name === 'bitmap_ind16' ||
+    name === 'bitmap_rgb32'
+  ) {
+    return args[0];
+  }
+  const handler = context.bindings.calls?.[name];
+  if (handler) return handler(...args.map(callArgument));
+  const member = context.bindings.members?.[name];
+  if (typeof member === 'function') return member(...args.map(callArgument));
+  return reference(`${name}()`);
+}
+
 function evaluateCall(
   expression: Extract<GeneratedExpression, { kind: 'call' }>,
   context: ExecutionContext,
@@ -892,138 +1472,12 @@ function evaluateCall(
     if (generated) {
       return generated(...generatedCallArguments(name, expression.args, context));
     }
-    const args = expression.args.map(arg => evaluate(arg, context));
-    if (name === 'COMBINE_DATA') {
-      const pointer = args[0];
-      if (!isGeneratedPointer(pointer)) return 0;
-      const old = toNumber(pointerValue(pointer, 0));
-      const data = toNumber(context.locals.data);
-      const memMask = Object.hasOwn(context.locals, 'mem_mask')
-        ? toNumber(context.locals.mem_mask)
-        : 0xffff;
-      const combined = ((old & ~memMask) | (data & memMask)) >>> 0;
-      setPointerValue(pointer, 0, combined);
-      return combined;
-    }
-    if (name === 'BIT') {
-      // MAME BIT(x, n) extracts one bit; BIT(x, n, w) extracts a w-bit field.
-      const width = args.length > 2 ? toNumber(args[2]) : 1;
-      return (toNumber(args[0]) >> toNumber(args[1])) & ((1 << width) - 1);
-    }
-    if (name === 'BITSWAP') {
-      const source = toNumber(args[0]);
-      return args.slice(1).reduce<number>(
-        (result, bit) => (result << 1) | ((source >> toNumber(bit)) & 1),
-        0,
-      );
-    }
-    // C and C++ standard-library primitives MAME device sources rely on.
-    if (name === 'std::min') {
-      return Math.min(...args.map(toNumber));
-    }
-    if (name === 'std::max') {
-      return Math.max(...args.map(toNumber));
-    }
-    if (name === 'std::clamp') {
-      return Math.min(toNumber(args[2]), Math.max(toNumber(args[1]), toNumber(args[0])));
-    }
-    if (name === 'ALLOC' || name === 'make_unique_clear') {
-      return new Uint8Array(Math.max(0, toNumber(args[0])));
-    }
-    if (name === 'ARRAY') return args;
-    if (name === 'floor') return Math.floor(toNumber(args[0]));
-    if (name === 'cos') return Math.cos(toNumber(args[0]));
-    if (name === 'sin') return Math.sin(toNumber(args[0]));
-    if (name === 'DEGREE_TO_RADIAN') return toNumber(args[0]) * Math.PI / 180;
-    if (name === 'rgb_t') {
-      // rgb_t has both (r, g, b) and (a, r, g, b) constructors.  Treating
-      // the four-argument form as RGB made alpha become red and discarded
-      // blue, flattening Gottlieb games to a single yellow field.
-      const offset = args.length >= 4 ? 1 : 0;
-      const alpha = args.length >= 4 ? toNumber(args[0]) & 0xff : 0xff;
-      const red = toNumber(args[offset]) & 0xff;
-      const green = toNumber(args[offset + 1]) & 0xff;
-      const blue = toNumber(args[offset + 2]) & 0xff;
-      return (alpha << 24 | blue << 16 | green << 8 | red) >>> 0;
-    }
-    const paletteExpansion = /^pal([1-8])bit$/.exec(name);
-    if (paletteExpansion) {
-      const bits = Number(paletteExpansion[1]);
-      const maximum = (1 << bits) - 1;
-      return Math.round((toNumber(args[0]) & maximum) * 255 / maximum);
-    }
-    if (name === 'assert' || name === 'static_assert') return 0;
-    if (name === 'sizeof') {
-      return typeByteWidth(generatedExpressionName(expression.args[0]!));
-    }
-    if (name === 'memcpy' || name === 'memmove') {
-      copyGeneratedMemory(args[0], args[1], toNumber(args[2]));
-      return args[0];
-    }
-    if (name === 'std::copy_n') {
-      copyGeneratedMemory(args[2], args[0], toNumber(args[1]));
-      return args[2];
-    }
-    if (name === 'memset') {
-      fillGeneratedMemory(args[0], toNumber(args[1]), toNumber(args[2]));
-      return args[0];
-    }
-    if (name === 'rgb_t::black') return 0xff000000;
-    if (name === 'rgb_t::white') return 0xffffffff;
-    if (name === 'CAP_P') return toNumber(args[0]) * 1e-12;
-    if (name === 'CAP_N') return toNumber(args[0]) * 1e-9;
-    if (name === 'CAP_U') return toNumber(args[0]) * 1e-6;
-    if (name === 'RES_K') return toNumber(args[0]) * 1e3;
-    if (name === 'RES_M') return toNumber(args[0]) * 1e6;
-    if (name === 'attotime::from_hz') return 1 / Math.max(1, toNumber(args[0]));
-    if (name === 'attotime::from_ticks') {
-      return toNumber(args[0]) / Math.max(1, toNumber(args[1]));
-    }
-    if (name === 'TILE_FLIPYX') return toNumber(args[0]) & 3;
-    if (name === 'TILE_FLIPXY') {
-      const value = toNumber(args[0]);
-      return ((value & 2) >> 1) | ((value & 1) << 1);
-    }
-    if (name === 'TABLE') {
-      const values = args.slice(1);
-      const index = values.length
-        ? modulo(toNumber(args[0]), values.length)
-        : 0;
-      return values[index] ?? 0;
-    }
-    if (name === 'ioport') return reference(`ioport:${String(args[0] ?? '')}`);
-    // Driver handlers use the machine-level membank("tag") finder. Preserve
-    // its string tag as a reference so a following ->set_entry(...) reaches
-    // the source-derived bank binding instead of coercing the tag to zero.
-    if (name === 'membank') return reference(String(args[0] ?? ''));
-    if (['u8', 'uint8_t'].includes(name)) return toNumber(args[0]) & 0xff;
-    if (['s8', 'int8_t'].includes(name)) return (toNumber(args[0]) << 24) >> 24;
-    if (['u16', 'uint16_t'].includes(name)) return toNumber(args[0]) & 0xffff;
-    if (['s16', 'int16_t'].includes(name)) return (toNumber(args[0]) << 16) >> 16;
-    if (['u32', 'uint32_t'].includes(name)) return toNumber(args[0]) >>> 0;
-    if (['s32', 'int32_t'].includes(name)) return toNumber(args[0]) | 0;
-    if (['u64', 'uint64_t', 's64', 'int64_t'].includes(name)) {
-      return Math.trunc(toNumber(args[0]));
-    }
-    if (name === 'bool') return toNumber(args[0]) ? 1 : 0;
-    // The handler parser deliberately keeps C++ direct-initialization in its
-    // call-shaped form.  For inferred values and bitmap references this is an
-    // identity operation, not a call to a generated source handler.  Keeping
-    // the object intact is essential for declarations such as
-    // `bitmap_ind16 &bm(bitmap)` used by Popeye's renderer.
-    if (
-      name === 'auto' ||
-      name === 'bitmap_ind8' ||
-      name === 'bitmap_ind16' ||
-      name === 'bitmap_rgb32'
-    ) {
-      return args[0];
-    }
-    const handler = context.bindings.calls?.[name];
-    if (handler) return handler(...args.map(callArgument));
-    const member = context.bindings.members?.[name];
-    if (typeof member === 'function') return member(...args.map(callArgument));
-    return reference(`${name}()`);
+    return applyIdentifierCall(
+      name,
+      expression.args.map(arg => evaluate(arg, context)),
+      expression,
+      context,
+    );
   }
   if (expression.callee.kind === 'member') {
     const generatedName = `${generatedExpressionName(expression.callee.object)}.${expression.callee.property}`;
@@ -1295,96 +1749,113 @@ function assignCallResult(
   );
 }
 
+type FastAssignmentValue = (current: unknown, value: unknown) => unknown;
+
+/**
+ * The value a compound assignment stores, with the operator resolved once.
+ * An assignment operator is a source constant, so the combiner is cached by it.
+ */
+const ASSIGNMENT_VALUES = new Map<string, FastAssignmentValue>();
+
+function compileAssignmentValue(operator: string): FastAssignmentValue {
+  let combine = ASSIGNMENT_VALUES.get(operator);
+  if (combine) return combine;
+  const apply = BINARY_OPERATORS[operator.slice(0, -1)] ?? UNKNOWN_BINARY;
+  if (operator === '=') combine = (_current, value) => value;
+  else if (operator === '+=') {
+    combine = (current, value) => isGeneratedPointer(current)
+      ? offsetPointer(current, toNumber(value))
+      : apply(toNumber(current), toNumber(value));
+  } else if (operator === '-=') {
+    combine = (current, value) => isGeneratedPointer(current)
+      ? offsetPointer(current, -toNumber(value))
+      : apply(toNumber(current), toNumber(value));
+  } else if (operator === '&=') {
+    combine = (current, value) => {
+      if (
+        current &&
+        typeof current === 'object' &&
+        typeof (current as { intersect?: unknown }).intersect === 'function'
+      ) {
+        (current as { intersect: (other: unknown) => void }).intersect(value);
+        return current;
+      }
+      return apply(toNumber(current), toNumber(value));
+    };
+  } else combine = (current, value) => apply(toNumber(current), toNumber(value));
+  ASSIGNMENT_VALUES.set(operator, combine);
+  return combine;
+}
+
 function assignmentValue(operator: string, current: unknown, value: unknown): unknown {
-  if (operator === '=') return value;
-  if (operator === '+=' && isGeneratedPointer(current)) {
-    return offsetPointer(current, toNumber(value));
+  return compileAssignmentValue(operator)(current, value);
+}
+
+/**
+ * A declared type is a source constant, so the wrapper it implies is cached by
+ * that string. Deriving it per value put a regex on the interpreter's
+ * assignment path, which a renderer walks once per local write per pixel.
+ */
+const VALUE_WRAPPERS = new Map<string, (value: unknown) => unknown>();
+
+function valueWrapper(valueType: string | undefined): (value: unknown) => unknown {
+  const key = valueType ?? '';
+  let wrapper = VALUE_WRAPPERS.get(key);
+  if (!wrapper) {
+    wrapper = compileValueWrapper(valueType);
+    VALUE_WRAPPERS.set(key, wrapper);
   }
-  if (operator === '-=' && isGeneratedPointer(current)) {
-    return offsetPointer(current, -toNumber(value));
-  }
-  if (
-    operator === '&=' &&
-    current &&
-    typeof current === 'object' &&
-    typeof (current as { intersect?: unknown }).intersect === 'function'
-  ) {
-    (current as { intersect: (other: unknown) => void }).intersect(value);
-    return current;
-  }
-  return binary(operator.slice(0, -1), toNumber(current), toNumber(value));
+  return wrapper;
 }
 
 function wrapValue(valueType: string | undefined, value: unknown): unknown {
-  if (valueType?.includes('*') && value instanceof Uint8Array) {
-    const normalized = valueType.replace(/\bconst\b/g, '').replace(/\s/g, '');
-    if (/^(?:u16|uint16_t)\*$/.test(normalized)) {
-      return new Uint16Array(value.buffer, value.byteOffset, value.byteLength >>> 1);
-    }
-    if (/^(?:s16|int16_t)\*$/.test(normalized)) {
-      return new Int16Array(value.buffer, value.byteOffset, value.byteLength >>> 1);
-    }
-  }
-  if (valueType === 'auto' || valueType?.includes('*') || valueType?.includes('&')) return value;
-  valueType = valueType?.replace(/\bconst\b/g, '').trim();
-  if (valueType === 'rectangle' && value && typeof value === 'object') {
-    return Object.assign(
-      Object.create(Object.getPrototypeOf(value)),
-      value,
-    );
-  }
-  if (value && typeof value === 'object') return value;
-  const number = toNumber(value);
-  if (valueType === 'uint8_t' || valueType === 'u8') return number & 0xff;
-  if (valueType === 'int8_t' || valueType === 's8') return (number << 24) >> 24;
-  if (valueType === 'char') return (number << 24) >> 24;
-  if (valueType === 'bool') return number ? 1 : 0;
-  if (valueType === 'uint16_t' || valueType === 'u16') return number & 0xffff;
-  if (valueType === 'int16_t' || valueType === 's16') return (number << 16) >> 16;
-  if (valueType === 'uint32_t' || valueType === 'u32') return number >>> 0;
-  if (valueType === 'int32_t' || valueType === 's32') return number | 0;
-  if (
-    valueType === 'uint64_t' || valueType === 'u64' ||
-    valueType === 'int64_t' || valueType === 's64'
-  ) {
-    return Math.trunc(number);
-  }
-  return number;
+  return valueWrapper(valueType)(value);
 }
 
-function binary(operator: string, left: number, right: number): number {
-  if (operator === '|') return left | right;
-  if (operator === '^') return left ^ right;
-  if (operator === '&') return left & right;
-  if (operator === '==') return left === right ? 1 : 0;
-  if (operator === '!=') return left !== right ? 1 : 0;
-  if (operator === '<') return left < right ? 1 : 0;
-  if (operator === '<=') return left <= right ? 1 : 0;
-  if (operator === '>') return left > right ? 1 : 0;
-  if (operator === '>=') return left >= right ? 1 : 0;
-  if (operator === '<<') return left << right;
-  if (operator === '>>') {
-    // C++ >> on unsigned operands is a logical shift. The IR is untyped, so
-    // infer signedness from the value: JS-negative means a signed C++ value
-    // (arithmetic shift); non-negative u32 values with bit 31 set (for
-    // example rgb_t 0xff000000) must not sign-extend, and wider-than-32-bit
-    // values shift via division rather than ToInt32 truncation.
+/**
+ * One definition of every numeric operator, shared by the interpreter and the
+ * compiled fast path. The fast path resolves the entry once when it compiles
+ * an expression, so a hot arithmetic node stops re-testing the operator string
+ * on every evaluation.
+ */
+const BINARY_OPERATORS: Record<string, (left: number, right: number) => number> = {
+  '|': (left, right) => left | right,
+  '^': (left, right) => left ^ right,
+  '&': (left, right) => left & right,
+  '==': (left, right) => left === right ? 1 : 0,
+  '!=': (left, right) => left !== right ? 1 : 0,
+  '<': (left, right) => left < right ? 1 : 0,
+  '<=': (left, right) => left <= right ? 1 : 0,
+  '>': (left, right) => left > right ? 1 : 0,
+  '>=': (left, right) => left >= right ? 1 : 0,
+  '<<': (left, right) => left << right,
+  // C++ >> on unsigned operands is a logical shift. The IR is untyped, so
+  // infer signedness from the value: JS-negative means a signed C++ value
+  // (arithmetic shift); non-negative u32 values with bit 31 set (for
+  // example rgb_t 0xff000000) must not sign-extend, and wider-than-32-bit
+  // values shift via division rather than ToInt32 truncation.
+  '>>': (left, right) => {
     if (left < 0) return left >> right;
     if (left <= 0xffffffff) return left >>> right;
     return Math.floor(left / 2 ** right);
-  }
-  if (operator === '+') return left + right;
-  if (operator === '-') return left - right;
-  if (operator === '*') return left * right;
-  if (operator === '/') {
-    // C++ integer division truncates; float division must not. The IR is
-    // untyped, so treat the operation as integral only when both operands
-    // are integers (float literals and CAP_/RES_-derived values stay exact).
+  },
+  '+': (left, right) => left + right,
+  '-': (left, right) => left - right,
+  '*': (left, right) => left * right,
+  // C++ integer division truncates; float division must not. The IR is
+  // untyped, so treat the operation as integral only when both operands
+  // are integers (float literals and CAP_/RES_-derived values stay exact).
+  '/': (left, right) => {
     const quotient = left / right;
     return Number.isInteger(left) && Number.isInteger(right) ? Math.trunc(quotient) : quotient;
-  }
-  if (operator === '%') return left % right;
-  return 0;
+  },
+  '%': (left, right) => left % right,
+};
+
+const UNKNOWN_BINARY = (): number => 0;
+
+function binary(operator: string, left: number, right: number): number {
+  return (BINARY_OPERATORS[operator] ?? UNKNOWN_BINARY)(left, right);
 }
 
 function modulo(value: number, divisor: number): number {
@@ -1554,6 +2025,24 @@ function resizeGeneratedMemory(
   assign(target, '=', resized, context);
 }
 
+/**
+ * C++ `*value`, with the same rules the interpreter applies.
+ *
+ * The operand's shape decides: a generated pointer reads through its source, a
+ * memory container yields its first element, and anything else — a MAME object
+ * reached through a pointer, such as `*m_gfxdecode->gfx(0)` — is already the
+ * value the source means and passes through untouched.
+ *
+ * Generated code calls this rather than assuming a pointer. Assuming one made
+ * `m_sp_palette->transpen_mask(*m_sp_gfxdecode->gfx(0), ...)` read `.source`
+ * off a gfx element that never had one.
+ */
+export function dereferenceGeneratedValue(value: unknown): unknown {
+  if (isGeneratedPointer(value)) return pointerValue(value, 0);
+  if (isIndexableMemory(value)) return indexValue(value, 0);
+  return value;
+}
+
 function isIndexableMemory(value: unknown): value is ArrayLike<unknown> {
   return ArrayBuffer.isView(value) || Array.isArray(value);
 }
@@ -1589,6 +2078,30 @@ function generatedCallArguments(
       : evaluate(expression, context));
 }
 
+/**
+ * generatedCallArguments with the argument expressions precompiled.
+ *
+ * Which parameters are C++ references stays a runtime lookup: a board can bind
+ * further generated handlers after a caller has already compiled, and a
+ * parameter wrongly treated as by-value silently drops the callee's writes.
+ */
+function compileGeneratedCallArguments(
+  name: string,
+  expressions: GeneratedExpression[],
+  compiled: FastExpression[],
+): (context: ExecutionContext) => GeneratedCallArgument[] {
+  return context => {
+    const parameters = context.bindings.callParameters?.[name];
+    const values = new Array<GeneratedCallArgument>(compiled.length);
+    for (let index = 0; index < compiled.length; index++) {
+      values[index] = parameters?.[index]?.includes('&')
+        ? lValue(expressions[index]!, context)
+        : compiled[index]!(context);
+    }
+    return values;
+  };
+}
+
 function lValue(expression: GeneratedExpression, context: ExecutionContext): GeneratedLValue {
   return {
     generatedLValue: true,
@@ -1597,7 +2110,24 @@ function lValue(expression: GeneratedExpression, context: ExecutionContext): Gen
   };
 }
 
+/**
+ * The binding key a call expression denotes is a property of the source text,
+ * and decoded IR nodes live as long as the board does — so each node's name is
+ * built once. Rebuilding it per call put a recursive string concatenation on
+ * the device-call path, which a renderer walks once per sprite row.
+ */
+const EXPRESSION_NAMES = new WeakMap<GeneratedExpression, string>();
+
 function generatedExpressionName(expression: GeneratedExpression): string {
+  let name = EXPRESSION_NAMES.get(expression);
+  if (name === undefined) {
+    name = buildGeneratedExpressionName(expression);
+    EXPRESSION_NAMES.set(expression, name);
+  }
+  return name;
+}
+
+function buildGeneratedExpressionName(expression: GeneratedExpression): string {
   if (expression.kind === 'identifier') return expression.name;
   if (expression.kind === 'member') {
     return `${generatedExpressionName(expression.object)}.${expression.property}`;

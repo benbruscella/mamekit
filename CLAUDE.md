@@ -28,6 +28,7 @@ historical evidence and may describe deleted architectures.
 - Generated output has one canonical location and must not import `src`.
 - ROMs are never committed, served or deployed.
 - Do not bind Control as a game input.
+- Do not run your own dev server; assume the user is already running one.
 
 ## ENVIRONMENT AND GATES
 

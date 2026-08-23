@@ -9,10 +9,12 @@ export const _1942: GameTestContract = {
   screen: { width: 256, height: 224 },
   soundKind: 'ay8910',
   frames: 1200,
-  // The source-derived scanline/PROM and layered tile renderer are currently
-  // interpreter-bound; retain a regression floor while later Capcom work
-  // moves these common paths onto compiled execution.
-  minimumFps: 10,
+  // MAME's 1942 sprite renderer is per-scanline: 224 scanlines x 24 sprite
+  // entries, so this board executes far more handler IR per frame than any
+  // other accepted target and remains the slowest. Issue #66 moved the common
+  // paths onto compiled execution; the floor tracks that with host-load
+  // headroom rather than the measured rate.
+  minimumFps: 20,
   checkpoints: [1, 60, 180, 300, 600, 900, 1200],
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },

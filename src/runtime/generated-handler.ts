@@ -17,6 +17,7 @@ export type {
 } from '../ir/execute.ts';
 export {
   compileGeneratedMachineHandler,
+  dereferenceGeneratedValue,
   executeGeneratedCallbackHandler,
   executeGeneratedHandler,
   executeGeneratedMachineHandler,

@@ -1,4 +1,5 @@
 import {
+  dereferenceGeneratedValue,
   executeGeneratedProgram,
   type GeneratedCallArgument,
   type GeneratedHandlerBindings,
@@ -76,6 +77,8 @@ export interface GeneratedDeviceExecutionContext {
   readIndex(value: unknown, index: number): unknown;
   writeIndex(value: unknown, index: number, next: unknown): unknown;
   addressOf(value: unknown, index: number): GeneratedPointer;
+  /** C++ `*value`, resolved by the operand's shape rather than assumed. */
+  dereference(value: unknown): unknown;
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
 }
 
@@ -491,6 +494,7 @@ class IrDevice implements Device {
           source: value as ArrayLike<number> & { [index: number]: number },
           offset: index,
         },
+      dereference: dereferenceGeneratedValue,
       invoke: (name, ...args) => {
         const method = this.selectMethod(name, args);
         if (method) return this.executeMethod(method, this.methodParams.get(method)!, args);

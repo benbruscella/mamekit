@@ -560,13 +560,25 @@ class HandlerParser {
       while (this.peek().kind === 'identifier' && TYPE_WORDS.has(this.peek().text)) {
         valueType.push(this.take().text);
       }
-      while (this.consume('*') || this.consume('&')) {
-        // Cast pointer/reference syntax is irrelevant to the numeric runtime.
+      // Recorded, not discarded. The interpreter can tell a pointer from a
+      // number by looking at the value, but generated code only has the
+      // declared type: dropping the `*` turned bublbobl's
+      // `*(uint32_t *)(&m_objectram[offs])` into a numeric narrowing of the
+      // address it was supposed to dereference. It is kept beside valueType
+      // rather than inside it so the interpreter's narrowing is unchanged.
+      const indirection: string[] = [];
+      while (this.peek().text === '*' || this.peek().text === '&') {
+        indirection.push(this.take().text);
       }
       this.consume(')');
       const operand = this.parseUnary();
       return operand
-        ? { kind: 'cast', valueType: valueType.filter(word => word !== 'const').join(' '), operand }
+        ? {
+            kind: 'cast',
+            valueType: valueType.filter(word => word !== 'const').join(' '),
+            ...(indirection.length ? { pointer: true } : {}),
+            operand,
+          }
         : undefined;
     }
     if (this.peek().text === '++' || this.peek().text === '--') {
