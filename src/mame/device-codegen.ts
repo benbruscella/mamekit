@@ -244,7 +244,8 @@ function supportsMethod(
   definition: CodegenScope,
   compiled: Set<string>,
 ): boolean {
-  const parameters = parseParameters(method.parameters);
+  const parameters = tryParseParameters(method.parameters);
+  if (!parameters) return false;
   const locals = new Set(parameters.map(parameter => parameter.name));
   collectLocalNames(method.program.operations, locals);
   const members = new Set([
@@ -762,7 +763,7 @@ function singleReturnedReference(
   method: GeneratedDeviceMethod,
 ): string | undefined {
   if (containsReturn(method.program.operations)) return undefined;
-  const assigned = parseParameters(method.parameters).filter(parameter =>
+  const assigned = (tryParseParameters(method.parameters) ?? []).filter(parameter =>
     isMutableReference(parameter.valueType) &&
     assignsIdentifier(method.program.operations, parameter.name));
   return assigned.length === 1 ? assigned[0]!.name : undefined;
@@ -809,7 +810,7 @@ function expressionName(expression: GeneratedExpression): string {
  */
 export function codegenWrappedParameters(method: GeneratedDeviceMethod): string[] {
   const returnedReference = singleReturnedReference(method);
-  return parseParameters(method.parameters)
+  return (tryParseParameters(method.parameters) ?? [])
     .filter(parameter =>
       isMutableReference(parameter.valueType) &&
       (
@@ -884,14 +885,31 @@ function targetInfo(expression: GeneratedExpression, context: EmitContext): Targ
 }
 
 function parseParameters(parameters: string): { name: string; valueType: string }[] {
-  return parameters.split(',').map(parameter => parameter.trim()).filter(Boolean).map(parameter => {
+  const parsed = tryParseParameters(parameters);
+  if (!parsed) throw new Error(`cannot emit device parameters "${parameters}"`);
+  return parsed;
+}
+
+/**
+ * Undefined when a signature names a parameter in a form this emitter cannot
+ * spell as a JavaScript binding — MAME's `double (&weights_r)[N]` reference to
+ * an array is one. Selection uses this to decline the method, which leaves it
+ * on the interpreter rather than failing the build: emitted code is an
+ * optimisation, and every method it declines still has a definition.
+ */
+function tryParseParameters(
+  parameters: string,
+): { name: string; valueType: string }[] | undefined {
+  const parsed: { name: string; valueType: string }[] = [];
+  for (const parameter of parameters.split(',').map(entry => entry.trim()).filter(Boolean)) {
     const name = /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter)?.[1];
-    if (!name) throw new Error(`cannot emit device parameter "${parameter}"`);
-    return {
+    if (!name) return undefined;
+    parsed.push({
       name,
       valueType: parameter.slice(0, parameter.lastIndexOf(name)).trim(),
-    };
-  });
+    });
+  }
+  return parsed;
 }
 
 function collectLocals(
