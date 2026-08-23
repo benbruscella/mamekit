@@ -185,6 +185,39 @@ function bothWays(
   );
 }
 
+// MAME reads every framework value through a call — `pixmap.width()` — while
+// the runtime models some of those surfaces as data and others as methods.
+// Both execution paths must let the value decide, or a renderer's mask comes
+// out as -1 and it samples past the end of every source row (Zaxxon's
+// background). This is also the case that used to keep such a handler
+// interpreted, so it doubles as proof that it is now selected.
+{
+  const sample = handler(
+    'sample_rows',
+    'int rows, bitmap_ind16 &source',
+    `int xmask = source.width() - 1;
+     int ymask = source.height() - 1;
+     for (int y = 0; y < rows; y++)
+       for (int x = 0; x < 8; x++)
+         m_videoram[y * 8 + x] = ((y + 6) & ymask) * 4 + ((x + 6) & xmask);`,
+  );
+  const machine = board([sample], ['videoram']);
+  const makeBindings = (): GeneratedHandlerBindings => ({
+    members: { m_videoram: new Uint8Array(64) },
+    calls: {},
+  });
+  // `width` is a plain field and `height` a method: one object, both spellings.
+  const source = { width: 4, height: (): number => 4 };
+  const { states } = bothWays(machine, sample, makeBindings, { rows: 8, source });
+  const [interpreted, compiled] = states as [
+    { m_videoram: Uint8Array },
+    { m_videoram: Uint8Array },
+  ];
+  assert.deepEqual([...compiled.m_videoram], [...interpreted.m_videoram]);
+  // (0 + 6) & 3 == 2 on both axes, so a live mask reaches 2 * 4 + 2.
+  assert.equal(compiled.m_videoram[0], 10);
+}
+
 // Selection is a property of the IR. A flat handler stays on the interpreter
 // however hot it might be, so nothing gains emitted code by accident.
 {

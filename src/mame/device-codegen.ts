@@ -671,16 +671,55 @@ function emitCall(
     // The bound branch never evaluates the object, matching the interpreter,
     // which resolves the name before it looks at any value.
     const boundName = context.boardScope ? memberCallName(expression) : undefined;
+    const onValue = emitValueMemberCall(expression, object, args);
     if (boundName) {
       const lookup = `runtime.calls[${JSON.stringify(boundName)}]`;
+      // The interpreter's own order, and the reason all three arms exist: a
+      // board binding wins; otherwise the value answers; and a member the
+      // board declared but never materialised (an optional device with no
+      // executable core) has no value at all, so its bare method name is the
+      // last thing tried before the call means nothing. Emitting only the
+      // first two arms turned such a call into a TypeError instead.
+      const bare = `runtime.calls[${JSON.stringify(expression.callee.property)}]`;
       return `(${lookup} ? ${lookup}(${args.join(', ')}) : ` +
-        `(${object}).${expression.callee.property}(${args.join(', ')}))`;
+        `(${object}) != null ? ${onValue} : ` +
+        `(${bare}?.(${args.join(', ')}) ?? 0))`;
     }
-    return `${object}.${expression.callee.property}(${args.join(', ')})`;
+    return onValue;
   }
   const args = expression.args.map(argument => emitExpression(argument, context));
   const callable = emitExpression(expression.callee, context);
   return `${callable}(${args.join(', ')})`;
+}
+
+/**
+ * A member call on a value, with MAME's accessor spelling reconciled against
+ * the runtime's own shape.
+ *
+ * MAME writes every framework read as a call — `pixmap.width()`,
+ * `bitmap.pix(y)` — while the runtime models some of those surfaces as plain
+ * data and others as methods. Only the value knows which, so a zero-argument
+ * call asks it: a function is invoked and a scalar is read, exactly as the
+ * interpreter resolves the same expression. Emitting the call form
+ * unconditionally is why a driver renderer that reaches a framework extent had
+ * to stay interpreted, and it is what made Zaxxon's background mask -1.
+ *
+ * The object is only re-spelled when it is a plain name or member chain, so
+ * the two mentions can never evaluate a call twice.
+ */
+function emitValueMemberCall(
+  expression: Extract<GeneratedExpression, { kind: 'call' }>,
+  object: string,
+  args: readonly string[],
+): string {
+  if (expression.callee.kind !== 'member') return `${object}(${args.join(', ')})`;
+  const property = expression.callee.property;
+  const access = `(${object}).${property}`;
+  if (args.length || !memberChainName(expression.callee.object)) {
+    return `${access}(${args.join(', ')})`;
+  }
+  return `(typeof ${access} === 'function' ? ${access}() : ` +
+    `typeof ${access} === 'number' || typeof ${access} === 'boolean' ? ${access} : 0)`;
 }
 
 /**

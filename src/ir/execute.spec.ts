@@ -382,6 +382,78 @@ check('finite hardware initialization loops may exceed 65536 iterations', () => 
   );
 });
 
+// MAME spells every framework read as a call. The runtime models some of those
+// surfaces as data — a generated pixmap's extent is a field — so the value has
+// to decide. Returning 0 for the data spelling turned `pixmap.width() - 1`
+// into an all-ones mask and let Zaxxon's background sample past every row.
+check('a zero-argument call on a scalar member is that member', () => {
+  assert.equal(
+    executeGeneratedHandler(
+      program([{
+        op: 'return',
+        value: {
+          kind: 'binary',
+          operator: '-',
+          left: {
+            kind: 'call',
+            callee: {
+              kind: 'member',
+              object: { kind: 'identifier', name: 'pixmap' },
+              property: 'width',
+            },
+            args: [],
+          },
+          right: { kind: 'number', value: 1 },
+        },
+      }]),
+      { members: { pixmap: { width: 256, height: (): number => 4096 } } },
+    ),
+    255,
+  );
+});
+
+// The method spelling of the same accessor keeps working, and a call with
+// arguments is still a call: neither may be answered with a stored value.
+check('a callable member is still called', () => {
+  const bindings = { members: { pixmap: { width: 256, height: (): number => 4096 } } };
+  assert.equal(
+    executeGeneratedHandler(
+      program([{
+        op: 'return',
+        value: {
+          kind: 'call',
+          callee: {
+            kind: 'member',
+            object: { kind: 'identifier', name: 'pixmap' },
+            property: 'height',
+          },
+          args: [],
+        },
+      }]),
+      bindings,
+    ),
+    4096,
+  );
+  assert.equal(
+    executeGeneratedHandler(
+      program([{
+        op: 'return',
+        value: {
+          kind: 'call',
+          callee: {
+            kind: 'member',
+            object: { kind: 'identifier', name: 'pixmap' },
+            property: 'width',
+          },
+          args: [{ kind: 'number', value: 1 }],
+        },
+      }]),
+      bindings,
+    ),
+    0,
+  );
+});
+
 // A program with diagnostics never lowered cleanly. Running it anyway would
 // execute a partial translation of the MAME source.
 check('a program with compiler diagnostics refuses to run', () => {

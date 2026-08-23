@@ -1568,6 +1568,16 @@ function evaluateCall(
       const args = expression.args.map(arg => evaluate(arg, context));
       const methodValue = (object as Record<string, unknown>)[method];
       if (typeof methodValue === 'function') return methodValue.apply(object, args);
+      // MAME spells every framework accessor as a call, but the runtime models
+      // some of those surfaces as plain data: a bitmap's extent is a field on
+      // the generated pixmap, not a method. A zero-argument call whose member
+      // resolves to a scalar is that scalar. Falling through to 0 instead made
+      // `pixmap.width() - 1` an all-ones mask, so Zaxxon's background sampled
+      // past the end of every source row and drew the next row's pixels.
+      if (
+        !args.length &&
+        (typeof methodValue === 'number' || typeof methodValue === 'boolean')
+      ) return methodValue;
       // MAME memory containers (required_shared_ptr, std::vector) expose their
       // extent and, for vectors, in-place resizing.
       if (isIndexableMemory(object)) {

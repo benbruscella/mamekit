@@ -6,6 +6,9 @@ export const zaxxon = sourceTarget({
   machine: { className: 'zaxxon_state', name: 'zaxxon' },
   screen: { width: 256, height: 224 },
   soundKind: 'samples',
+  // Its renderer is emitted rather than interpreted; the interpreted form
+  // managed 36 fps on the machine that recorded this.
+  minimumFps: 45,
   golden: {
     regions: {
       gfx_bg: '2503b654',
@@ -16,13 +19,13 @@ export const zaxxon = sourceTarget({
       tilemap_dat: 'd9964df2',
     },
     checkpoints: {
-      1: { video: '111c0df1', state: 'c42c1576' },
-      60: { video: '9a77055f', state: '6dabc971' },
-      180: { video: '9a77055f', state: 'fc293c4c' },
-      300: { video: 'fc347ba9', state: '34639980' },
-      600: { video: '2fa0cc3c', state: '7b139981' },
-      900: { video: '1f0174f3', state: '555b5890' },
-      1200: { video: 'bc3b9432', state: '104a3ff6' },
+      1: { video: '6c77a4f3', state: 'c42c1576' },
+      60: { video: '76424eb8', state: '6dabc971' },
+      180: { video: '76424eb8', state: 'fc293c4c' },
+      300: { video: '72d8ec6c', state: '34639980' },
+      600: { video: 'b135396f', state: '7b139981' },
+      900: { video: '0b59bcd5', state: '555b5890' },
+      1200: { video: 'c69b3e1b', state: '104a3ff6' },
     },
     audio: {
       writes: 2126,

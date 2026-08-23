@@ -13,7 +13,6 @@
 export const KNOWN_ISSUES: Record<string, string> = {
   rampage: 'no sound',
   sf2ce: 'fps',
-  zaxxon: 'graphic glitches',
   // Found by this suite rather than by play-testing, and not yet in #54.
   // The browser board diverges from the Node contract during boot: maincpu
   // X/Y/U and the CC E-flag differ by frame 22, m_irq_line by frame 24, and
