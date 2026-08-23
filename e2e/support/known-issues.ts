@@ -11,7 +11,6 @@
 // landed.
 
 export const KNOWN_ISSUES: Record<string, string> = {
-  carnival: 'sound explosion',
   rampage: 'no sound',
   sf2ce: 'fps',
   zaxxon: 'graphic glitches',
