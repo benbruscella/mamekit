@@ -27,6 +27,7 @@ import {
   emitGeneratedMachine,
   lowerAudioRoutes,
   lowerAuxiliaryAudioDevices,
+  lowerBiquadFilterChain,
 } from './emit-machine.ts';
 import type { BoardConfig } from '../runtime/types.ts';
 import type {
@@ -461,6 +462,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     if (select) spec.select = Number(select[1]);
     if (r.props.regionOffset !== undefined) spec.romOffset = Number(r.props.regionOffset);
     if (r.props.share) spec.share = String(r.props.share);
+    if (r.props.umask !== undefined) spec.umask = Number(r.props.umask);
     if (r.props.viewTag) spec.viewTag = String(r.props.viewTag);
     if (r.props.viewEntry !== undefined) spec.viewEntry = Number(r.props.viewEntry);
     if (r.props.readonly || r.props.nopw) spec.readOnly = true;
@@ -885,6 +887,19 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
                 kind: 'dac',
                 clock: cpus.find(cpu => /sound|audio/.test(cpu.tag))?.clock ?? cpus[0].clock,
                 chips: dacChips.length,
+                // Resolution and coding are per-chip MAME facts; the worklet
+                // resolves them from its lowered DAC_GENERATOR table.
+                deviceTypes: dacChips.map(device => String(device.props.type)),
+                // MAME's op-amp stages between the DAC and the board output.
+                ...(lowerBiquadFilterChain(graph, dacChips.map(device => ({
+                  id: device.id, tag: String(device.props.tag),
+                }))).length
+                  ? {
+                      filterChain: lowerBiquadFilterChain(graph, dacChips.map(device => ({
+                        id: device.id, tag: String(device.props.tag),
+                      }))),
+                    }
+                  : {}),
                 routes: lowerAudioRoutes(
                   graph,
                   dacChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),

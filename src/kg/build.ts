@@ -294,6 +294,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         if (r[flag]) props[flag] = true;
       }
       if (r.share) props.share = r.share;
+      if (r.umask !== undefined) props.umask = r.umask;
       if (r.viewTag) props.viewTag = r.viewTag;
       if (r.viewEntry !== undefined) props.viewEntry = r.viewEntry;
       if (r.portRead) props.portRead = r.portRead;

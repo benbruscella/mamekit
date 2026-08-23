@@ -36,6 +36,7 @@ export function generatedCpuCycleClock(type: string | undefined, clock: number):
 }
 import type {
   GeneratedAuxiliaryAudioDevice,
+  GeneratedBiquadStage,
   GeneratedDiscreteDacPlan,
   GeneratedDiscreteEffectsPlan,
   GeneratedNesApuPlan,
@@ -47,6 +48,7 @@ import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import type { BoardConfig } from '../runtime/types.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
+import { analogValue } from '../mame/audio-compiler.ts';
 
 export function lowerGeneratedMachine(
   graph: KnowledgeGraph,
@@ -523,7 +525,11 @@ export function lowerGeneratedMachine(
           deviceTag: dacDevices[0]!.tag,
           deviceTags: dacDevices.map(device => device.tag),
           deviceType: dacDevices[0]!.type,
+          deviceTypes: dacDevices.map(device => device.type),
           writeMethods: ['data_w', 'write'],
+          ...(lowerBiquadFilterChain(graph, dacDevices).length
+            ? { filterChain: lowerBiquadFilterChain(graph, dacDevices) }
+            : {}),
           enableMethods: [],
           controlOffset: -1,
           ...(lowerAudioRoutes(graph, dacDevices).length
@@ -835,6 +841,121 @@ export function lowerAudioRoutes(
     }
   });
   return routes;
+}
+
+/**
+ * MAME's filter_biquad_device::opamp_mfb_lowpass_calc.
+ *
+ * The three op-amp stages between the MCR "Sounds Good" DAC and its speaker
+ * are declared as resistor and capacitor values, not as a cutoff. Recovering
+ * the cutoff means running MAME's own arithmetic over those components.
+ */
+function opampMfbLowpassCalc(
+  components: readonly number[],
+): { type: GeneratedBiquadStage['type']; frequency: number; q: number; gain: number } | undefined {
+  const [r1, r2, r3, c1, c2] = components;
+  if (components.length !== 5) return undefined;
+  if (![r1, r2, r3, c1, c2].every(value => Number.isFinite(value))) return undefined;
+  // MAME fatalerrors on these: only c1 may be zero, and r2 with it.
+  if (r1 === 0 || (r2 === 0 && c1 !== 0) || r3 === 0 || c2 === 0) return undefined;
+  const gain = -r3! / r1!;
+  if (c1 === 0) {
+    return {
+      type: 'lowpass1p',
+      frequency: (r1! * r3!) /
+        (2 * Math.PI * ((r1! * r2!) + (r1! * r3!) + (r2! * r3!)) * r3! * c2!),
+      q: Math.SQRT2 / 2,
+      gain,
+    };
+  }
+  const root = Math.sqrt(r2! * r3! * c1! * c2!);
+  return {
+    type: 'lowpass',
+    frequency: 1 / (2 * Math.PI * root),
+    q: root / ((r3! * c2!) + (r2! * c2!) + ((r2! * c2!) * -gain)),
+    gain,
+  };
+}
+
+/** The filter_biquad_device setup helpers this compiler can lower. */
+const BIQUAD_SETUPS: Record<string, (components: readonly number[]) => ReturnType<typeof opampMfbLowpassCalc>> = {
+  opamp_mfb_lowpass_setup: opampMfbLowpassCalc,
+};
+
+/** Split a C++ argument list on its top-level commas. */
+function splitArguments(source: string): string[] {
+  const args: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const character of source) {
+    if (character === '(') depth++;
+    if (character === ')') depth--;
+    if (character === ',' && depth === 0) {
+      args.push(current.trim());
+      current = '';
+      continue;
+    }
+    current += character;
+  }
+  if (current.trim()) args.push(current.trim());
+  return args;
+}
+
+function biquadStage(node: KGNode): GeneratedBiquadStage | undefined {
+  const config = Array.isArray(node.props.config) ? node.props.config.map(String) : [];
+  for (const line of config) {
+    const call = /\.(\w*_setup)\s*\(([\s\S]*)\)\s*$/.exec(line);
+    if (!call) continue;
+    const params = BIQUAD_SETUPS[call[1]!]?.(splitArguments(call[2]!).map(analogValue));
+    if (!params) return undefined;
+    return {
+      deviceTag: String(node.props.tag),
+      ...params,
+      source: {
+        file: String(node.props.sourceFile),
+        line: Number(node.props.sourceLine),
+      },
+    };
+  }
+  return undefined;
+}
+
+/**
+ * Follow a sound device's add_route chain through the FILTER_BIQUAD stages
+ * MAME puts between it and its board output, in source order.
+ *
+ * An unrecognised stage abandons the whole chain rather than emitting a
+ * partial one: half of a three-pole filter is not a filter, and silently
+ * shipping it would be worse than shipping none.
+ */
+export function lowerBiquadFilterChain(
+  graph: KnowledgeGraph,
+  sources: { id: string; tag: string }[],
+): GeneratedBiquadStage[] {
+  const devices = graph.nodes.filter(node => node.label === 'Device');
+  const resolve = (reference: string): KGNode | undefined => devices.find(node =>
+    deviceMember(node.props) === reference ||
+    String(node.props.tag) === reference ||
+    String(node.props.tag).endsWith(`:${reference}`));
+  const stages: GeneratedBiquadStage[] = [];
+  const visited = new Set<string>();
+  let current = devices.find(node => node.id === sources[0]?.id);
+  while (current && !visited.has(current.id)) {
+    visited.add(current.id);
+    const config = Array.isArray(current.props.config) ? current.props.config.map(String) : [];
+    const route = config
+      .map(line => /add_route\s*\(\s*[^,]+,\s*([^,]+)\s*,/.exec(line))
+      .find(match => match !== null);
+    if (!route) break;
+    // "*this" leaves the device for its owner's mixer; a quoted tag is a speaker.
+    const next = resolve(route[1]!.trim());
+    if (!next || next.props.type !== 'FILTER_BIQUAD') break;
+    const stage = biquadStage(next);
+    if (!stage) return [];
+    stages.push(stage);
+    current = next;
+  }
+  return stages;
 }
 
 const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {

@@ -486,6 +486,20 @@ void qix_state::video_map(address_map &map)
 }
 
 {
+  // The MCR "Sounds Good" PIA sits on D8-D15 of the 68000 bus, so the range
+  // must carry the lane it is wired to rather than the full bus width.
+  const [map] = parseAddressMaps(`
+void midway_sounds_good_device::soundsgood_map(address_map &map)
+{
+  map(0x060000, 0x060007).mirror(0x00fff0).rw(m_pia, FUNC(pia6821_device::read_alt), FUNC(pia6821_device::write_alt)).umask16(0xff00);
+}
+`);
+  eq('umask16 byte lane', map.ranges[0]?.umask, 0xff00);
+  eq('umask16 keeps its mirror', map.ranges[0]?.mirror, 0x00fff0);
+  eq('umask16 keeps its handlers', map.ranges[0]?.write?.method, 'write_alt');
+}
+
+{
   const [map] = parseAddressMaps(`
 void seicross_state::mcu_map(address_map &map)
 {

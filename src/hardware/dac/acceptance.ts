@@ -10,9 +10,11 @@ export async function createDacProbe(context: AudioProbeContext): Promise<AudioF
     'runtime/generated',
     DAC_WORKLET_ARTIFACT.replace(/\.ts$/, '.js'),
   )).href) as {
-    GeneratedDacMixer: new (chips?: number, routes?: unknown, auxiliary?: unknown) => unknown;
+    GeneratedDacMixer: new (
+      chips?: number, routes?: unknown, auxiliary?: unknown, deviceTypes?: readonly string[],
+    ) => unknown;
     GeneratedDacFrameRenderer: new (
-      mixer: unknown, outputRate: number, refresh: number,
+      mixer: unknown, outputRate: number, refresh: number, filterChain?: unknown,
     ) => AudioFrameRenderer;
   };
   assert.ok(module.GeneratedDacMixer, 'generated DAC worklet exports no mixer');
@@ -21,8 +23,10 @@ export async function createDacProbe(context: AudioProbeContext): Promise<AudioF
       context.sound.chips ?? 1,
       context.sound.routes,
       context.sound.auxiliaryDevices,
+      context.sound.deviceTypes,
     ),
     context.outputRate,
     context.refresh,
+    context.sound.filterChain,
   ) as { render(writes: readonly ProbeSoundWrite[]): Float32Array };
 }

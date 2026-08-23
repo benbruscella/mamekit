@@ -18,6 +18,8 @@ export interface RangeSpec {
   write?: string;
   /** shared RAM tag; ranges with the same share alias the same bytes */
   share?: string;
+  /** MAME `.umask16(...)`: the data lines this range's handler is wired to. */
+  umask?: number;
   readOnly?: boolean;
   writeOnly?: boolean;
   /** The MAME write handler explicitly stores this shared RAM byte itself. */
@@ -53,6 +55,52 @@ function wordWriteHandler(handler: WriteHandler): WriteHandler {
     if (address & 1) handler(address, offset >>> 1, data & 0xff, 0x00ff);
     else handler(address, offset >>> 1, (data & 0xff) << 8, 0xff00);
   };
+}
+
+// MAME `.umask16(0xff00)` / `.umask16(0x00ff)`: an 8-bit device wired to one
+// byte lane of a 16-bit bus. It answers only on its own lane, its handler
+// offset counts whole words, and the byte reaches it right-justified — MAME's
+// unitmask machinery does that shift, so the generated device method never
+// sees the lane it happens to sit on. Without this, a byte written to the
+// high lane arrives as `data << 8` and truncates to zero inside the device.
+const HIGH_BYTE_LANE = 0xff00;
+const LOW_BYTE_LANE = 0x00ff;
+
+/** True when `umask` selects exactly one byte lane of a 16-bit bus. */
+function isByteLane(umask: number | undefined): umask is number {
+  return umask === HIGH_BYTE_LANE || umask === LOW_BYTE_LANE;
+}
+
+function laneReadHandler(handler: ReadHandler, umask: number): ReadHandler {
+  const lane = umask === HIGH_BYTE_LANE ? 0 : 1;
+  return (address, offset) =>
+    (address & 1) === lane ? handler(address, offset >>> 1) & 0xff : OPEN_BUS;
+}
+
+function laneWordReadHandler(handler: ReadHandler, umask: number): WordReadHandler {
+  const shift = umask === HIGH_BYTE_LANE ? 8 : 0;
+  // Nothing is wired to the other lane, so it reads as unmapped space.
+  const idle = umask === HIGH_BYTE_LANE ? OPEN_BUS : OPEN_BUS << 8;
+  return (address, offset) => ((handler(address, offset >>> 1) & 0xff) << shift) | idle;
+}
+
+// The byte reaches a lane handler right-justified, so the mem_mask it is
+// handed describes those eight delivered bits — not the bus lane they came
+// from. Handing it the lane instead would make the u8 width adapter in
+// generated-board shift a byte that is already in place.
+const LANE_MEM_MASK = 0xff;
+
+function laneWriteHandler(handler: WriteHandler, umask: number): WriteHandler {
+  const lane = umask === HIGH_BYTE_LANE ? 0 : 1;
+  return (address, offset, data) => {
+    if ((address & 1) === lane) handler(address, offset >>> 1, data & 0xff, LANE_MEM_MASK);
+  };
+}
+
+function laneWordWriteHandler(handler: WriteHandler, umask: number): WordWriteHandler {
+  const shift = umask === HIGH_BYTE_LANE ? 8 : 0;
+  return (address, offset, data) =>
+    handler(address, offset >>> 1, (data >>> shift) & 0xff, LANE_MEM_MASK);
 }
 
 export class Bus {
@@ -99,6 +147,26 @@ export class Bus {
       let write: WriteHandler | null = null;
       let wordRead: WordReadHandler | null = null;
       let wordWrite: WordWriteHandler | null = null;
+      // A byte-lane device is the only case where the handler is narrower than
+      // the bus; otherwise the handler owns the full bus width and the byte
+      // adapters split word accesses across it.
+      const lane = dataWidth === 16 && isByteLane(r.umask) ? r.umask : undefined;
+      const adaptRead = (h: ReadHandler): ReadHandler =>
+        lane !== undefined ? laneReadHandler(h, lane)
+          : dataWidth === 16 ? wordReadHandler(h)
+            : h;
+      const adaptWordRead = (h: ReadHandler): WordReadHandler | null =>
+        lane !== undefined ? laneWordReadHandler(h, lane)
+          : dataWidth === 16 ? (a, off) => h(a, off >>> 1) & 0xffff
+            : null;
+      const adaptWrite = (h: WriteHandler): WriteHandler =>
+        lane !== undefined ? laneWriteHandler(h, lane)
+          : dataWidth === 16 ? wordWriteHandler(h)
+            : h;
+      const adaptWordWrite = (h: WriteHandler): WordWriteHandler | null =>
+        lane !== undefined ? laneWordWriteHandler(h, lane)
+          : dataWidth === 16 ? (a, off, data) => h(a, off >>> 1, data & 0xffff, 0xffff)
+            : null;
 
       if (r.kind === 'rom') {
         const rangeRom = r.region ? regions?.[r.region] : rom;
@@ -128,15 +196,14 @@ export class Bus {
         if (r.write) {
           const h = registry.write[r.write];
           if (!h) throw new Error(`missing write handler: ${r.write}`);
-          const adapted = dataWidth === 16 ? wordWriteHandler(h) : h;
+          const adapted = adaptWrite(h);
           const ramWrite = write!;
           const ramWordWrite = wordWrite;
           write = r.writeHandlerOwnsRam
             ? adapted
             : (a, off, d) => { ramWrite(a, off, d); adapted(a, off, d); };
           if (dataWidth === 16) {
-            const handlerWordWrite: WordWriteHandler = (a, off, data) =>
-              h(a, off >>> 1, data & 0xffff, 0xffff);
+            const handlerWordWrite = adaptWordWrite(h)!;
             wordWrite = r.writeHandlerOwnsRam
               ? handlerWordWrite
               : (a, off, data) => {
@@ -151,24 +218,22 @@ export class Bus {
         if (r.read) {
           const h = registry.read[r.read];
           if (!h) throw new Error(`missing read handler: ${r.read}`);
-          read = dataWidth === 16 ? wordReadHandler(h) : h;
-          if (dataWidth === 16) wordRead = (a, off) => h(a, off >>> 1) & 0xffff;
+          read = adaptRead(h);
+          wordRead = adaptWordRead(h);
         }
       }
       if (r.kind === 'handler' || (r.kind !== 'ram' && (r.read || r.write))) {
         if (r.read) {
           const h = registry.read[r.read];
           if (!h) throw new Error(`missing read handler: ${r.read}`);
-          read = dataWidth === 16 ? wordReadHandler(h) : h;
-          if (dataWidth === 16) wordRead = (a, off) => h(a, off >>> 1) & 0xffff;
+          read = adaptRead(h);
+          wordRead = adaptWordRead(h);
         }
         if (r.write) {
           const h = registry.write[r.write];
           if (!h) throw new Error(`missing write handler: ${r.write}`);
-          write = dataWidth === 16 ? wordWriteHandler(h) : h;
-          if (dataWidth === 16) {
-            wordWrite = (a, off, data) => h(a, off >>> 1, data & 0xffff, 0xffff);
-          }
+          write = adaptWrite(h);
+          wordWrite = adaptWordWrite(h);
         }
       }
       if (r.writeOnly && !r.read) read = null;

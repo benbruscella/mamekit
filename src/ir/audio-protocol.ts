@@ -13,6 +13,23 @@ export interface GeneratedSpeakerFilterPlan {
   };
 }
 
+/**
+ * One MAME filter_biquad_device stage, lowered from the op-amp component
+ * values its machine configuration passes to a `*_setup` helper. MAME derives
+ * cutoff, Q and gain from resistors and capacitors, so those three numbers are
+ * the transferable fact; the digital coefficients depend on the sample rate
+ * the stage ends up running at and are computed where it runs.
+ */
+export interface GeneratedBiquadStage {
+  deviceTag: string;
+  /** filter_biquad_device::biquad_type, lowercased. */
+  type: 'lowpass' | 'lowpass1p';
+  frequency: number;
+  q: number;
+  gain: number;
+  source: { file: string; line: number };
+}
+
 /** Source-derived DAC/filter network mixed alongside a primary sound core. */
 export interface GeneratedDacFilterPlan {
   type: 'DAC_FILTER';

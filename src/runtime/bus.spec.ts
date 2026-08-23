@@ -168,9 +168,53 @@ assert.deepEqual(
 );
 assert.equal(wordBus.read16be(0x402002), 0xa55a);
 
+// MAME `.umask16(0xff00)`: an 8-bit device wired to one byte lane of a 16-bit
+// bus (the MCR "Sounds Good" PIA at 0x060000). It answers only on its lane,
+// its offset counts whole words, and the byte arrives right-justified.
+const laneWrites: Array<[number, number, number, number | undefined]> = [];
+const laneBus = new Bus([
+  {
+    start: 0x060000,
+    end: 0x060007,
+    mirror: 0x00fff0,
+    umask: 0xff00,
+    kind: 'handler',
+    read: 'laneRead',
+    write: 'laneWrite',
+  },
+  {
+    start: 0x070000,
+    end: 0x070007,
+    umask: 0x00ff,
+    kind: 'handler',
+    read: 'laneRead',
+    write: 'laneWrite',
+  },
+], rom, {
+  read: { laneRead: (_address, offset) => 0x80 | offset },
+  write: {
+    laneWrite: (address, offset, data, memMask) =>
+      laneWrites.push([address, offset, data, memMask]),
+  },
+}, {}, 16);
+laneBus.write(0x060004, 0x80);
+laneBus.write(0x060005, 0x5a);
+laneBus.write16be(0x061006, 0x3c00);
+laneBus.write(0x070005, 0x5a);
+assert.deepEqual(
+  laneWrites,
+  [[0x060004, 2, 0x80, 0xff], [0x061006, 3, 0x3c, 0xff], [0x070005, 2, 0x5a, 0xff]],
+  'only the wired lane reaches the handler, right-justified, at a word offset',
+);
+assert.equal(laneBus.read(0x060004), 0x82, 'high-lane byte read is the device byte');
+assert.equal(laneBus.read(0x060005), 0x00, 'the unwired lane reads as unmapped');
+assert.equal(laneBus.read16be(0x061006), 0x8300, 'a word read places the byte on its lane');
+assert.equal(laneBus.read(0x070005), 0x82, 'low-lane devices answer on odd addresses');
+assert.equal(laneBus.read16be(0x070004), 0x0082);
+
 assert.throws(
   () => new Bus([{ start: 0, end: 0, kind: 'handler', read: 'missing' }], rom, { read: {}, write: {} }),
   /missing read handler/,
 );
 
-console.log('bus.spec: byte/word ROM, RAM, mirrors/selects, handlers and open bus passed');
+console.log('bus.spec: byte/word ROM, RAM, mirrors/selects, byte lanes, handlers and open bus passed');

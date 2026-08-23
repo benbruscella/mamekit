@@ -1,6 +1,49 @@
-export function generatedDacWorkletSource(): string {
+/** One MAME DAC_GENERATOR declaration: resolution, coding and ladder gain. */
+export interface DacGenerator {
+  bits: number;
+  mapper: string;
+  gain: number;
+}
+
+export type DacGeneratorTable = Record<string, DacGenerator>;
+
+export function generatedDacWorkletSource(generators: DacGeneratorTable): string {
   return `// GENERATED — generic source-routed parallel DAC bank.
 export interface GeneratedDacWrite { offset: number; data: number; frac?: number; method?: string }
+
+// MAME's DAC device library, lowered from the DAC_GENERATOR calls in
+// src/devices/sound/dac.h. Resolution, coding and ladder gain are per-chip
+// facts; nothing here may be inferred from the values a game happens to write.
+const DAC_GENERATORS: Record<string, { bits: number; mapper: string; gain: number }> =
+  ${JSON.stringify(generators, null, 2).replace(/\n/g, '\n  ')};
+
+// dac_mapper_unsigned in src/devices/sound/dac.cpp.
+function dacUnsigned(input: number, bits: number): number {
+  const scale = 1 / (bits > 1 ? 2 ** bits : 1);
+  return (input & (2 ** bits - 1)) * scale;
+}
+
+/**
+ * dac_device_base's precomputed m_value_map, plus the output range it is
+ * scaled into: -1..1 for every DAC except a one-bit one, which is 0..1.
+ */
+function dacValueMap(generator: { bits: number; mapper: string; gain: number }): Float64Array {
+  const { bits, mapper, gain } = generator;
+  const rangeMin = bits === 1 ? 0 : -1;
+  const rangeMax = 1;
+  const map = new Float64Array(2 ** bits);
+  for (let code = 0; code < map.length; code++) {
+    const mapped = mapper === 'signed'
+      ? dacUnsigned(code ^ (1 << (bits - 1)), bits)
+      : mapper === 'ones_complement'
+        ? (code & (1 << (bits - 1))
+          ? 0.5 - 0.5 * dacUnsigned(~code, bits - 1)
+          : 0.5 + 0.5 * dacUnsigned(code, bits - 1))
+        : dacUnsigned(code, bits);
+    map[code] = rangeMin + mapped * gain * (rangeMax - rangeMin);
+  }
+  return map;
+}
 
 class GeneratedHc55516Core {
   private digit = false;
@@ -51,7 +94,7 @@ class GeneratedHc55516Core {
 export class GeneratedDacMixer {
   private readonly values: Float64Array;
   private readonly seen: Uint8Array;
-  private readonly wide: Uint8Array;
+  private readonly maps: Float64Array[];
   private readonly gains: Float64Array;
   private readonly cvsd = new GeneratedHc55516Core();
   private readonly cvsdGain: number;
@@ -60,10 +103,21 @@ export class GeneratedDacMixer {
     chips = 1,
     routes: readonly { chip: number; gain: number }[] = [],
     auxiliary: readonly { type: string; gain: number }[] = [],
+    deviceTypes: readonly string[] = [],
   ) {
     this.values = new Float64Array(chips);
     this.seen = new Uint8Array(chips);
-    this.wide = new Uint8Array(chips);
+    // One value map per chip, because a board may mix DAC resolutions. A chip
+    // whose MAME type is unknown here cannot be rendered at all: guessing its
+    // width silently wraps every code that overflows the guess.
+    this.maps = Array.from({ length: chips }, (_unused, chip) => {
+      const type = deviceTypes[chip] ?? deviceTypes[0];
+      const generator = type ? DAC_GENERATORS[type] : undefined;
+      if (!generator) {
+        throw new Error(\`no MAME DAC definition for chip \${chip} (\${type ?? 'untyped'})\`);
+      }
+      return dacValueMap(generator);
+    });
     this.gains = Float64Array.from({ length: chips }, (_unused, chip) =>
       Math.max(0, ...routes.filter(route => route.chip === chip).map(route => route.gain)) || 1);
     this.cvsdGain = Math.max(0, ...auxiliary
@@ -77,12 +131,10 @@ export class GeneratedDacMixer {
       return;
     }
     if (chip < 0 || chip >= this.values.length) return;
-    const byte = data & 0xff;
-    if (byte > 1) this.wide[chip] = 1;
+    // dac_device_base::set_value masks the code to the chip's own resolution.
+    const map = this.maps[chip]!;
     this.seen[chip] = 1;
-    this.values[chip] = this.wide[chip]
-      ? (byte - 128) / 128
-      : byte ? 1 : -1;
+    this.values[chip] = map[data & (map.length - 1)]!;
   }
 
   sample(): number {
@@ -101,19 +153,82 @@ export class GeneratedDacMixer {
   }
 }
 
+/**
+ * filter_biquad_device, running at the rate its host renders.
+ *
+ * MAME derives the digital coefficients in recalc() from the cutoff, Q and
+ * gain the machine configuration produced, against the stream's sample rate.
+ * Both are reproduced here so a lowered op-amp stage sounds the same offline
+ * in the acceptance probe as it does in the browser.
+ */
+class GeneratedBiquadFilter {
+  private b0 = 1;
+  private b1 = 0;
+  private b2 = 0;
+  private a1 = 0;
+  private a2 = 0;
+  private w0 = 0;
+  private w1 = 0;
+  private w2 = 0;
+
+  constructor(
+    stage: { type: string; frequency: number; q: number; gain: number },
+    sampleRate: number,
+  ) {
+    const { type, frequency, q, gain } = stage;
+    if (frequency >= sampleRate / 2) {
+      // Above Nyquist a lowpass simply passes the signal, as MAME does.
+      this.b0 = 1;
+    } else if (type === 'lowpass1p') {
+      const pole = Math.exp(-2 * Math.PI * (frequency / sampleRate));
+      this.b0 = 1 - pole;
+      this.a1 = -pole;
+    } else {
+      const k = Math.tan(Math.PI * frequency / sampleRate);
+      const kSquared = k * k;
+      const kOverQ = k / q;
+      const normal = 1 / (1 + kOverQ + kSquared);
+      this.b0 = kSquared * normal;
+      this.b1 = 2 * this.b0;
+      this.b2 = this.b0;
+      this.a1 = 2 * (kSquared - 1) * normal;
+      this.a2 = (1 - kOverQ + kSquared) * normal;
+    }
+    this.b0 *= gain;
+    this.b1 *= gain;
+    this.b2 *= gain;
+  }
+
+  step(input: number): number {
+    this.w2 = this.w1;
+    this.w1 = this.w0;
+    this.w0 = (-this.a1 * this.w1) + (-this.a2 * this.w2) + input;
+    return (this.b0 * this.w0) + (this.b1 * this.w1) + (this.b2 * this.w2);
+  }
+}
+
 export class GeneratedDacFrameRenderer {
   private sampleCarry = 0;
   private readonly mixer: GeneratedDacMixer;
   private readonly outputRate: number;
   private readonly refresh: number;
+  private readonly filters: GeneratedBiquadFilter[];
   constructor(
     mixer: GeneratedDacMixer,
     outputRate: number,
     refresh: number,
+    filterChain: readonly { type: string; frequency: number; q: number; gain: number }[] = [],
   ) {
     this.mixer = mixer;
     this.outputRate = outputRate;
     this.refresh = refresh;
+    this.filters = filterChain.map(stage => new GeneratedBiquadFilter(stage, outputRate));
+  }
+
+  private filtered(): number {
+    let sample = this.mixer.sample();
+    for (const filter of this.filters) sample = filter.step(sample);
+    return sample;
   }
 
   render(writes: readonly GeneratedDacWrite[]): Float32Array {
@@ -124,10 +239,10 @@ export class GeneratedDacFrameRenderer {
     let sampleIndex = 0;
     for (const write of writes) {
       const writeSample = Math.ceil(Math.max(0, Math.min(1, write.frac ?? 0)) * count);
-      while (sampleIndex < writeSample) output[sampleIndex++] = this.mixer.sample();
+      while (sampleIndex < writeSample) output[sampleIndex++] = this.filtered();
       this.mixer.write(write.offset, write.data, write.method);
     }
-    while (sampleIndex < count) output[sampleIndex++] = this.mixer.sample();
+    while (sampleIndex < count) output[sampleIndex++] = this.filtered();
     return output;
   }
 }
@@ -148,13 +263,21 @@ class GeneratedDacProcessor extends AudioWorkletProcessor {
       const message = event.data as {
         type: string; chips?: number; routes?: { chip: number; gain: number }[];
         auxiliaryDevices?: { type: string; gain: number }[];
+        deviceTypes?: string[];
+        filterChain?: { type: string; frequency: number; q: number; gain: number }[];
         refresh?: number; writes?: GeneratedDacWrite[];
       };
       if (message.type === 'init') {
         this.renderer = new GeneratedDacFrameRenderer(
-          new GeneratedDacMixer(message.chips ?? 1, message.routes, message.auxiliaryDevices),
+          new GeneratedDacMixer(
+            message.chips ?? 1,
+            message.routes,
+            message.auxiliaryDevices,
+            message.deviceTypes,
+          ),
           sampleRate,
           message.refresh ?? 60,
+          message.filterChain,
         );
       } else if (message.type === 'batch' && this.renderer) {
         this.frames.push(this.renderer.render(message.writes ?? []));

@@ -56,7 +56,8 @@ for (const contract of selectedContracts()) {
       const start = (await keysFor(page, 'IPT_START1'))[0];
       const fire = (await keysFor(page, 'IPT_BUTTON1'))[0];
       expect(coin, 'no generated IPT_COIN1 binding').toBeTruthy();
-      expect(start, 'no generated IPT_START1 binding').toBeTruthy();
+      // A start button is not universal: Rampage's MCR cabinet declares none,
+      // and coining in is what joins the game. Only the coin slot is required.
 
       // Wait exactly as long as this machine's token does before coining it.
       // A fixed wait coins Ghouls'n Ghosts 29 seconds into its boot, where the
@@ -66,8 +67,10 @@ for (const contract of selectedContracts()) {
       await page.waitForTimeout(await secondsToFrame(page, readyFrame(contract)) * 1000);
       await page.keyboard.press(coin!, { delay: 120 });
       await page.waitForTimeout(500);
-      await page.keyboard.press(start!, { delay: 120 });
-      await page.waitForTimeout(2_000);
+      if (start) {
+        await page.keyboard.press(start, { delay: 120 });
+        await page.waitForTimeout(2_000);
+      }
 
       for (let shot = 0; shot < 8 && fire; shot++) {
         await page.keyboard.press(fire, { delay: 80 });
