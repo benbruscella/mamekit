@@ -25,10 +25,20 @@ export interface CodegenScope {
   hotMethods?: string[];
   /** Source-declared calls that reach another generated component. */
   links?: { call: string }[];
+  /**
+   * This scope is a driver board rather than a device.
+   *
+   * Board handlers run against the board's own binding tables and its video
+   * framework objects, where a name may be bound as a call and a value may be
+   * an object rather than a pointer. Device methods were emitted and validated
+   * without those rules, so they keep their established forms.
+   */
+  boardScope?: boolean;
 }
 
 interface EmitContext {
   definition: CodegenScope;
+  boardScope: boolean;
   compiled: Set<string>;
   locals: Map<string, string | undefined>;
   wrappedReferences: Set<string>;
@@ -309,7 +319,13 @@ function emitMethod(
         .map(parameter => parameter.name),
     ),
     returnedReference,
-    pointerSafeIndex: Boolean(definition.hotMethods?.length),
+    // Board handlers build pointers into share memory as locals
+    // (`uint8_t *spriteram = m_galaga_ram1 + 0x380`), and indexing one of
+    // those with a plain subscript reads a property off the pointer object
+    // rather than the memory behind it.
+    pointerSafeIndex: Boolean(definition.hotMethods?.length) ||
+      Boolean(definition.boardScope),
+    boardScope: Boolean(definition.boardScope),
     typescript,
   };
   collectLocals(method.program.operations, context);
@@ -344,6 +360,14 @@ function emitOperation(
     const allocated = operation.value?.kind === 'call' &&
       operation.value.callee.kind === 'identifier' &&
       ['ALLOC', 'make_unique_clear'].includes(operation.value.callee.name);
+    // `rectangle draw = cliprect` is a C++ value copy. Aliasing it lets a
+    // handler narrow its own clip rectangle and hand the mutated one back to
+    // its caller — the interpreter copies here for exactly that reason.
+    const declared = operation.valueType?.replace(/\bconst\b/g, '').trim();
+    if (context.boardScope && declared === 'rectangle') {
+      return `${pad}let ${localName(operation.name)}${annotation} = ` +
+        `Object.assign(Object.create(Object.getPrototypeOf(${value})), ${value});`;
+    }
     return `${pad}let ${localName(operation.name)}${annotation} = ${
       allocated ? value : wrapType(value, operation.valueType)
     };`;
@@ -436,13 +460,19 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
   if (expression.kind === 'unary') {
     if (expression.operator === '&') return emitAddressOf(expression.operand, context);
     const operand = emitExpression(expression.operand, context);
+    // Resolved by the operand's shape at run time, exactly as the interpreter
+    // resolves it — and evaluated once, because the operand can be a call.
     if (expression.operator === '*') {
-      return `(${operand}).source[(${operand}).offset]`;
+      return context.boardScope
+        ? `runtime.dereference(${operand})`
+        : `(${operand}).source[(${operand}).offset]`;
     }
     return expression.operator === '!' ? `((${operand}) ? 0 : 1)` : `(${expression.operator}${operand})`;
   }
   if (expression.kind === 'cast') {
-    return wrapType(emitExpression(expression.operand, context), expression.valueType);
+    const operand = emitExpression(expression.operand, context);
+    // A cast to a pointer or reference retypes an address; it never narrows.
+    return expression.pointer ? operand : wrapType(operand, expression.valueType);
   }
   if (expression.kind === 'binary') {
     const left = emitExpression(expression.left, context);
@@ -604,8 +634,11 @@ function emitCall(
     if (
       expression.callee.object.kind === 'identifier' &&
       expression.callee.object.name === 'g_profiler' &&
-      expression.callee.property === 'start'
+      (expression.callee.property === 'start' || expression.callee.property === 'stop')
     ) {
+      // MAME's profiler is a host measurement facility with no emulated
+      // effect. Only `start` was elided, so `stop` reached a `g_profiler` that
+      // no runtime binds.
       return '0';
     }
     if (expression.callee.property === 'isnull') {
@@ -630,11 +663,50 @@ function emitCall(
     ) {
       return `(runtime.calls[${JSON.stringify(directName)}]?.(${args.join(', ')}) ?? 0)`;
     }
+    // A call through a member is the board's binding when it has one, and a
+    // method on the value only otherwise — the interpreter's own precedence.
+    // Reading `m_screen.frame_number` off the state object instead of through
+    // that binding silently gave galaxian's starfield a different frame count.
+    //
+    // The bound branch never evaluates the object, matching the interpreter,
+    // which resolves the name before it looks at any value.
+    const boundName = context.boardScope ? memberCallName(expression) : undefined;
+    if (boundName) {
+      const lookup = `runtime.calls[${JSON.stringify(boundName)}]`;
+      return `(${lookup} ? ${lookup}(${args.join(', ')}) : ` +
+        `(${object}).${expression.callee.property}(${args.join(', ')}))`;
+    }
     return `${object}.${expression.callee.property}(${args.join(', ')})`;
   }
   const args = expression.args.map(argument => emitExpression(argument, context));
   const callable = emitExpression(expression.callee, context);
   return `${callable}(${args.join(', ')})`;
+}
+
+/**
+ * The binding key a member call denotes, spelled the way the board binds it —
+ * `m_screen.frame_number`. Undefined when the object is not a plain member
+ * chain, in which case there is no name a board could have bound.
+ */
+function memberCallName(
+  expression: Extract<GeneratedExpression, { kind: 'call' }>,
+): string | undefined {
+  if (expression.callee.kind !== 'member') return undefined;
+  const objectName = memberChainName(expression.callee.object);
+  return objectName ? `${objectName}.${expression.callee.property}` : undefined;
+}
+
+function memberChainName(expression: GeneratedExpression): string | undefined {
+  if (expression.kind === 'identifier') return expression.name;
+  if (expression.kind === 'member') {
+    const object = memberChainName(expression.object);
+    return object ? `${object}.${expression.property}` : undefined;
+  }
+  if (expression.kind === 'index' && expression.index.kind === 'number') {
+    const object = memberChainName(expression.object);
+    return object ? `${object}[${expression.index.value}]` : undefined;
+  }
+  return undefined;
 }
 
 function linkedMemberCallName(

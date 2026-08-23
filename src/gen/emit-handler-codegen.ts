@@ -31,22 +31,27 @@ import type {
  * rather than compile to a reference to nothing. A share becomes `m_<tag>`
  * plus any declared aliases; a device finder keeps its source member spelling.
  */
-function boardMemberNames(machine: BoardIr): Set<string> {
-  const names = new Set<string>();
+function boardMemberNames(machine: BoardIr): Map<string, string> {
+  const names = new Map<string, string>();
+  // Share-bound members are byte-addressed memory, and MAME drivers do pointer
+  // arithmetic on them (`m_digdug_objram + 0x380`). The emitter decides
+  // between an address and a sum from the declared type, so leaving it blank
+  // turned every such sprite base into NaN and drew nothing at all.
+  const memory = 'uint8_t *';
   for (const cpu of machine.execution.cpus) {
     for (const range of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])]) {
-      if (range.share) names.add(`m_${range.share}`);
+      if (range.share) names.set(`m_${range.share}`, memory);
     }
   }
   for (const binding of machine.execution.shareBindings ?? []) {
-    names.add(binding.member);
-    names.add(`m_${binding.share}`);
+    names.set(binding.member, memory);
+    names.set(`m_${binding.share}`, memory);
   }
   for (const device of machine.devices ?? []) {
-    if (device.member) names.add(device.member);
+    if (device.member) names.set(device.member, '');
   }
   for (const bank of machine.execution.banks ?? []) {
-    if (bank.member) names.add(bank.member);
+    if (bank.member) names.set(bank.member, '');
   }
   return names;
 }
@@ -90,6 +95,123 @@ function assignedMemberNames(handlers: readonly GeneratedHandler[]): Set<string>
  * and how the interpreter resolves them; the declaring class disambiguates only
  * when two classes share a method, in which case the same-class handler wins.
  */
+/**
+ * Members a handler writes through an index without the board having bound
+ * them to memory.
+ *
+ * The interpreter materialises such an array the first time a handler indexes
+ * into it — `uint8_t m_draw_order[32][4]` exists only because taitosj writes
+ * to it. Emitted code has no such moment: it writes straight into `undefined`.
+ * A handler that needs that materialisation stays interpreted.
+ */
+function writesUnboundMemory(
+  handler: GeneratedHandler,
+  bound: ReadonlySet<string>,
+): boolean {
+  let found = false;
+  const visitOperations = (operations: readonly GeneratedHandlerOperation[]): void => {
+    for (const operation of operations) {
+      if (operation.op === 'assign' && operation.target.kind === 'index') {
+        let base = operation.target.object;
+        while (base.kind === 'index' || base.kind === 'member') base = base.object;
+        if (base.kind === 'identifier' && base.name.startsWith('m_') && !bound.has(base.name)) {
+          found = true;
+        }
+      }
+      for (const value of Object.values(operation)) {
+        if (Array.isArray(value) && value.length && typeof value[0] === 'object') {
+          const entries = value as { op?: string; body?: GeneratedHandlerOperation[] }[];
+          if (entries[0]?.op) visitOperations(entries as GeneratedHandlerOperation[]);
+          else for (const entry of entries) if (entry.body) visitOperations(entry.body);
+        }
+      }
+    }
+  };
+  visitOperations(handler.program?.operations ?? []);
+  return found;
+}
+
+
+/**
+ * Handlers whose object handling the emitter cannot reproduce from types alone.
+ *
+ * Calling a method on a local rather than on a board-bound member
+ * (`pixmap.width()`) is one: the board exposes those framework surfaces as
+ * data in some places and as calls in others, and only the value says which,
+ * so the emitter cannot choose between a property and a call from the type.
+ *
+ * Passing an object straight to a call is not this, so a renderer that hands
+ * `bitmap` and its clip rectangle to `transpen` still compiles.
+ */
+function callsMethodOnLocal(
+  handler: GeneratedHandler,
+  bound: ReadonlySet<string>,
+): boolean {
+  let found = false;
+  const visitExpression = (expression: unknown): void => {
+    if (found || !expression || typeof expression !== 'object') return;
+    const node = expression as {
+      kind?: string;
+      callee?: { kind?: string; object?: { kind?: string; name?: string } };
+    };
+    if (node.kind === 'call' && node.callee?.kind === 'member') {
+      let base = node.callee.object as { kind?: string; name?: string; object?: unknown };
+      while (base && (base.kind === 'index' || base.kind === 'member')) {
+        base = base.object as { kind?: string; name?: string; object?: unknown };
+      }
+      if (base?.kind === 'identifier' && !bound.has(base.name!)) found = true;
+    }
+    for (const value of Object.values(expression)) {
+      if (Array.isArray(value)) value.forEach(visitExpression);
+      else visitExpression(value);
+    }
+  };
+  const visitOperations = (operations: readonly GeneratedHandlerOperation[]): void => {
+    for (const operation of operations) {
+      for (const [key, value] of Object.entries(operation)) {
+        if (key === 'op') continue;
+        if (Array.isArray(value) && value.length && typeof value[0] === 'object') {
+          const entries = value as { op?: string; body?: GeneratedHandlerOperation[] }[];
+          if (entries[0]?.op) { visitOperations(entries as GeneratedHandlerOperation[]); continue; }
+          let nested = false;
+          for (const entry of entries) if (entry.body) { visitOperations(entry.body); nested = true; }
+          if (nested) continue;
+        }
+        visitExpression(value);
+      }
+    }
+  };
+  visitOperations(handler.program?.operations ?? []);
+  return found;
+}
+
+
+/**
+ * Every driver member a handler names, so selection can require that the board
+ * actually binds them.
+ *
+ * Scalar driver state (`m_star_rng_origin`, `m_stars_enabled`) has no binding:
+ * the board materialises it as handlers touch it, and its lifecycle lives in
+ * the interpreter. Share memory and device finders, by contrast, are bound
+ * before any handler runs and mean the same thing to emitted code.
+ */
+function referencedMembers(handler: GeneratedHandler): Set<string> {
+  const names = new Set<string>();
+  const visit = (node: unknown): void => {
+    if (!node || typeof node !== 'object') return;
+    const expression = node as { kind?: string; name?: string };
+    if (expression.kind === 'identifier' && expression.name?.startsWith('m_')) {
+      names.add(expression.name);
+    }
+    for (const value of Object.values(node)) {
+      if (Array.isArray(value)) value.forEach(visit);
+      else visit(value);
+    }
+  };
+  visit(handler.program?.operations ?? []);
+  return names;
+}
+
 export function boardCodegenScope(machine: BoardIr, ownerClass: string): CodegenScope {
   const handlers = (machine.handlers ?? []).filter(handler =>
     handler.program && handler.program.diagnostics.length === 0);
@@ -99,7 +221,11 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
       byMethod.set(handler.method, handler);
     }
   }
-  const members = [...boardMemberNames(machine), ...assignedMemberNames(handlers)];
+  const bound = boardMemberNames(machine);
+  const members = [
+    ...bound,
+    ...[...assignedMemberNames(handlers)].map(name => [name, ''] as const),
+  ];
   return {
     constants: Object.assign(
       {},
@@ -110,9 +236,10 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
     // The board resolves a member's width from its own binding, so the emitter
     // is told the name exists and nothing more. Declaring a width here would
     // narrow a value the board did not narrow.
-    members: members.map(name => ({ name, valueType: '' })),
+    members: members.map(([name, valueType]) => ({ name, valueType })),
     callbacks: [],
     timers: [],
+    boardScope: true,
     methods: [...byMethod.values()].map(handler => ({
       name: handler.method,
       parameters: handler.parameters ?? '',
@@ -132,9 +259,17 @@ export function generatedBoardHandlersSource(
   machine: BoardIr,
   typescript = false,
 ): { source: string; handlers: string[] } {
+  // Driver classes only. A board's handler list also carries device methods
+  // (`starfield_05xx_device.get_next_lfsr_state`), and those already reach the
+  // emitter through their own device package, whose scope knows their members,
+  // links and timers. Compiling them again against a board's scope would emit
+  // the same method against the wrong environment.
   const ownerClasses = [...new Set(
     (machine.handlers ?? [])
-      .filter(handler => handler.program && handler.program.diagnostics.length === 0)
+      .filter(handler =>
+        handler.program &&
+        handler.program.diagnostics.length === 0 &&
+        !handler.ownerClass.endsWith('_device'))
       .map(handler => handler.ownerClass),
   )];
   const parts: string[] = [];
@@ -150,10 +285,20 @@ export function generatedBoardHandlersSource(
     // Only this class's own handlers are exported. A dependency pulled in from
     // another class is compiled into the same closure, but its board key
     // belongs to its declaring class.
+    const bound = new Set(boardMemberNames(machine).keys());
+    const byMethod = new Map(
+      (machine.handlers ?? []).map(candidate => [candidate.method, candidate]),
+    );
     const exported = source.methods.filter(method =>
       own.has(method) &&
       !usesDevicePalette(scope, method) &&
-      !usesWrappedParameters(scope, method));
+      !usesWrappedParameters(scope, method) &&
+      !source.methods.some(name => {
+        const candidate = byMethod.get(name);
+        if (!candidate) return false;
+        return writesUnboundMemory(candidate, bound) ||
+          callsMethodOnLocal(candidate, bound);
+      }));
     if (!exported.length) continue;
     parts.push(`  ...(() => {
     const methods = ${source.source};

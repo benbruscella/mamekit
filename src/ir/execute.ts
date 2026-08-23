@@ -387,6 +387,7 @@ function preparedHandlerRuntime(
         source: value as ArrayLike<number> & { [index: number]: number },
         offset: index,
       },
+    dereference: dereferenceGeneratedValue,
     invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
       bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
   };
@@ -2022,6 +2023,24 @@ function resizeGeneratedMemory(
     : new Array<number>(length).fill(0);
   copyGeneratedMemory(resized, current, Math.min(length, current.length));
   assign(target, '=', resized, context);
+}
+
+/**
+ * C++ `*value`, with the same rules the interpreter applies.
+ *
+ * The operand's shape decides: a generated pointer reads through its source, a
+ * memory container yields its first element, and anything else — a MAME object
+ * reached through a pointer, such as `*m_gfxdecode->gfx(0)` — is already the
+ * value the source means and passes through untouched.
+ *
+ * Generated code calls this rather than assuming a pointer. Assuming one made
+ * `m_sp_palette->transpen_mask(*m_sp_gfxdecode->gfx(0), ...)` read `.source`
+ * off a gfx element that never had one.
+ */
+export function dereferenceGeneratedValue(value: unknown): unknown {
+  if (isGeneratedPointer(value)) return pointerValue(value, 0);
+  if (isIndexableMemory(value)) return indexValue(value, 0);
+  return value;
 }
 
 function isIndexableMemory(value: unknown): value is ArrayLike<unknown> {

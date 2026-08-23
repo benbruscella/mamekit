@@ -174,7 +174,16 @@ export type GeneratedExpression =
   | { kind: 'string'; value: string }
   | { kind: 'identifier'; name: string }
   | { kind: 'unary'; operator: string; operand: GeneratedExpression }
-  | { kind: 'cast'; valueType: string; operand: GeneratedExpression }
+  // `pointer` records that the source cast to a pointer or reference type.
+  // `valueType` keeps only the numeric words, so the interpreter narrows
+  // exactly as it always has; generated code, which has no value to inspect,
+  // uses `pointer` to know the cast is an identity.
+  | {
+      kind: 'cast';
+      valueType: string;
+      pointer?: boolean;
+      operand: GeneratedExpression;
+    }
   | { kind: 'binary'; operator: string; left: GeneratedExpression; right: GeneratedExpression }
   | {
       kind: 'assignment';
@@ -752,6 +761,8 @@ export interface GeneratedHandlerRuntime {
     source: ArrayLike<number> & { [index: number]: number };
     offset: number;
   };
+  /** C++ `*value`, resolved by the operand's shape rather than assumed. */
+  dereference(value: unknown): unknown;
   invoke(name: string, ...args: unknown[]): unknown;
 }
 
