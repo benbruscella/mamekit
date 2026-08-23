@@ -209,5 +209,41 @@ check('out-of-line template method class', outOfLine.functions[0]?.className,
   'buffered_spriteram_device');
 check('out-of-line template method name', outOfLine.functions[0]?.name, 'device_start');
 
+const virtuals = new MameAstIndex(parseMameAst([
+  {
+    file: 'popeye.h',
+    source: `
+class tnx1_state : public driver_device { };
+class tpp1_state : public tnx1_state { };
+class tpp2_state : public tpp1_state { };
+`,
+  },
+  {
+    file: 'popeye_v.cpp',
+    source: `
+void tnx1_state::draw_background(bitmap_ind16 &bitmap) { bitmap.pix(0, 0) = 1; }
+void tpp1_state::draw_background(bitmap_ind16 &bitmap) { bitmap.pix(0, 0) = 2; }
+void tpp2_state::draw_background(bitmap_ind16 &bitmap) { bitmap.pix(0, 0) = 3; }
+void tnx1_state::screen_vblank(int state) { m_field ^= 1; }
+void tpp2_state::screen_vblank(int state) { tnx1_state::screen_vblank(state); m_watchdog = 0; }
+`,
+  },
+]));
+check('overrides are collected most-derived-agnostic',
+  virtuals.overridesOf('tnx1_state', 'draw_background').map(fn => fn.className),
+  ['tpp1_state', 'tpp2_state']);
+check('derivesFrom walks the whole chain',
+  [virtuals.derivesFrom('tpp2_state', 'tnx1_state'), virtuals.derivesFrom('tnx1_state', 'tpp2_state')],
+  [true, false]);
+check('virtual call resolves against the driver class',
+  virtuals.findDispatchedFunction('tpp2_state', 'tnx1_state', 'draw_background')?.className,
+  'tpp2_state');
+check('an unrelated dynamic class does not hijack dispatch',
+  virtuals.findDispatchedFunction('galaxian_state', 'tnx1_state', 'draw_background')?.className,
+  'tnx1_state');
+check('an override that chains to its base keeps the base body',
+  virtuals.findDispatchedFunction('tpp2_state', 'tnx1_state', 'screen_vblank')?.className,
+  'tnx1_state');
+
 console.log(`ast.spec: ${passed} passed, ${failed} failed`);
 if (failed) process.exitCode = 1;

@@ -3410,16 +3410,33 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const scrollY = Number(scrollRaw[1] ?? 0);
     const scrollHigh = Number(scrollRaw[2] ?? 0) & 1;
 
+    // Which counter bits reach the background RAM address and nibble-select
+    // pins differs per board revision, so take them from the lowered plan
+    // rather than from whichever revision the base class happens to be.
+    const addressing = this.machine.video?.bankedBackground;
+    if (!addressing) return false;
+    const columnHigh = addressing.columnHighFromScroll ? scrollHigh << 8 : 0;
+    const rowNibbleBit = addressing.nibble.source === 'row'
+      ? 1 << addressing.nibble.bit
+      : 0;
+    const columnNibbleBit = addressing.nibble.source === 'column'
+      ? 1 << addressing.nibble.bit
+      : 0;
+
     for (let y = cliprect.min_y; y <= cliprect.max_y; y++) {
       const row = ((flipped ? ((y >>> 1) ^ 0xff) : y >>> 1) + scrollY) & 0x1ff;
-      const rowBase = row & 0x100 ? ((row >>> 2) & 0x3f) << 6 : 0;
+      const rowBase = row & 0x100
+        ? ((row >>> addressing.rowShift) & 0x3f) << 6
+        : 0;
+      const rowShift4 = row & rowNibbleBit ? 4 : 0;
       for (let x = cliprect.min_x; x <= cliprect.max_x; x++) {
-        const column = 0x38 + (x >>> 1) + scrollX + (scrollHigh << 8);
-        const shift = column & 0x100 ? 4 : 0;
+        const column = 0x38 + (x >>> 1) + scrollX + columnHigh;
+        const shift = column & columnNibbleBit ? 4 : rowShift4;
         composed['pix='](
           y,
           x,
-          ((backgroundRaw[rowBase | ((column >>> 2) & 0x3f)] ?? 0) >>> shift) & 0x0f,
+          ((backgroundRaw[rowBase | ((column >>> addressing.columnShift) & 0x3f)] ?? 0) >>>
+            shift) & 0x0f,
         );
       }
     }

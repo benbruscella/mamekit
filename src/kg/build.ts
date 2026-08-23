@@ -1452,6 +1452,23 @@ function emitSourceHandlerClosure(
   ));
   if (!fn) return handlerId;
 
+  // Virtual dispatch: a driver class further down the chain may redefine this
+  // method, and it is the GAME macro's class -- not the class this call is
+  // written in -- that picks the implementation. Record every candidate here;
+  // gameSubgraph resolves the one the selected machine actually runs.
+  for (const override of ast.overridesOf(fn.className, fn.name)) {
+    const overrideId = emitSourceHandlerClosure(
+      g,
+      ast,
+      override.className,
+      override.name,
+      constants,
+      override.span,
+      visited,
+    );
+    g.edge(handlerId, overrideId, 'OVERRIDDEN_BY', { class: override.className });
+  }
+
   const callNames = new Set(
     fn.statements.flatMap(statement => statement.calls).map(call => call.name),
   );
@@ -1596,6 +1613,17 @@ function resolveSlotInputs(
  * Extract the subgraph reachable from one game (clones resolve to parents for
  * shared machine/inputs). Everything the generator needs, nothing else.
  */
+/** Props that carry a source method's implementation rather than its identity. */
+const VIRTUAL_IMPLEMENTATION_PROPS = [
+  'sourceBody',
+  'sourceParameters',
+  'sourceConstants',
+  'inline',
+  'sourceFile',
+  'sourceLine',
+  'sourceColumn',
+] as const;
+
 export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGraph {
   const byId = new Map(graph.nodes.map(n => [n.id, n]));
   const out = new Map<string, boolean>();
@@ -1759,10 +1787,71 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
       !shadowedCallbacks.has(edge.from) && !shadowedCallbacks.has(edge.to));
   }
 
+  // Virtual dispatch. The GAME macro selects one driver class, and a virtual
+  // call written inside an inherited method runs that class's redefinition:
+  // popeye's screen_update lives in tnx1_state but must reach
+  // tpp2_state::draw_background. OVERRIDDEN_BY carries every candidate; fold
+  // the selected implementation onto the handler consumers already reference.
+  //
+  // An override that chains to its base (tpp2_state::screen_vblank calls
+  // tnx1_state::screen_vblank) needs both bodies live at once, and qualified
+  // calls are not distinguished from virtual ones downstream, so those keep
+  // the base implementation rather than recursing into themselves.
+  const classRank = new Map<string, number>();
+  for (const [index, configId] of configOrder.entries()) {
+    const cls = String(nodes.find(node => node.id === configId)?.props.cls ?? '');
+    if (cls && !classRank.has(cls)) classRank.set(cls, index);
+  }
+  const overriddenBy = edges.filter(edge => edge.rel === 'OVERRIDDEN_BY');
+  if (overriddenBy.length) {
+    const byId = new Map(nodes.map(node => [node.id, node]));
+    const rehomed: typeof edges = [];
+    for (const node of nodes) {
+      if (node.label !== 'Handler') continue;
+      const baseRank = classRank.get(String(node.props.ownerClass));
+      if (baseRank === undefined) continue;
+      const [chosen] = overriddenBy
+        .filter(edge => edge.from === node.id)
+        .map(edge => byId.get(edge.to))
+        .filter(candidate => candidate !== undefined)
+        .filter(candidate => (classRank.get(String(candidate.props.ownerClass)) ?? baseRank) < baseRank)
+        .filter(candidate => !new RegExp(`\\w+::${node.props.method}\\s*\\(`)
+          .test(String(candidate.props.sourceBody ?? '')))
+        .sort((left, right) =>
+          classRank.get(String(left.props.ownerClass))! -
+          classRank.get(String(right.props.ownerClass))!);
+      if (!chosen) continue;
+      for (const prop of VIRTUAL_IMPLEMENTATION_PROPS) {
+        if (chosen.props[prop] === undefined) delete node.props[prop];
+        else node.props[prop] = chosen.props[prop];
+      }
+      node.props.dispatchedFrom = String(chosen.props.ownerClass);
+      // The selected body calls the selected class's helpers, so its closure
+      // becomes the base handler's closure.
+      for (const edge of edges) {
+        if (edge.from !== chosen.id || edge.rel === 'OVERRIDDEN_BY') continue;
+        rehomed.push({ ...edge, from: node.id });
+      }
+    }
+    edges = [...edges, ...rehomed].filter(edge => edge.rel !== 'OVERRIDDEN_BY');
+  }
+
+  // Dropping shadowed callbacks and unselected overrides can orphan whole
+  // closures; keep only what the game still reaches.
+  const reachable = new Set<string>();
+  const pending = [rootGameId];
+  while (pending.length) {
+    const id = pending.shift()!;
+    if (reachable.has(id)) continue;
+    reachable.add(id);
+    for (const edge of edges) if (edge.from === id) pending.push(edge.to);
+  }
+
   return {
     meta: graph.meta,
     nodes: nodes.filter(node =>
+      reachable.has(node.id) &&
       !shadowedCallbacks.has(node.id) && !removedDeviceIds.has(node.id)),
-    edges,
+    edges: edges.filter(edge => reachable.has(edge.from) && reachable.has(edge.to)),
   };
 }

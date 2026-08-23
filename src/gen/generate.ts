@@ -33,7 +33,7 @@ import type {
   GeneratedDiscreteDacPlan,
   GeneratedDiscreteEffectsPlan,
 } from '../ir/audio-protocol.ts';
-import { compileMameVideo, effectiveGfxDecodes } from '../mame/video-compiler.ts';
+import { compileMameVideo, gfxRenderScale } from '../mame/video-compiler.ts';
 import {
   compileDiscreteDacAttenuator,
   compileDiscreteDacReferenceLevels,
@@ -684,37 +684,30 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
 
   // the galaxian driver renders horizontally pre-scaled (GFXDECODE_SCALE
   // xscale 3, h params scaled to match); divide back to native pixels
-  let xscale = 1;
-  {
-    for (const dec of effectiveGfxDecodes(graph, machine.id)) {
-      for (const { node: e } of g.out(dec.id, 'HAS_ENTRY')) {
-        xscale = Math.max(xscale, Number(e.props.xscale ?? 1));
-      }
-    }
-    if (xscale === 1) {
-      const screenCallback = graph.nodes.find(node =>
-        node.label === 'Callback' && node.props.signal === 'set_screen_update');
-      const screenHandler = graph.nodes.find(node =>
-        node.label === 'Handler' &&
-        node.props.ownerClass === screenCallback?.props.targetClass &&
-        node.props.method === screenCallback?.props.targetMethod);
-      const body = String(screenHandler?.props.sourceBody ?? '');
-      const values = Object.fromEntries(
-        (Array.isArray(screenHandler?.props.sourceConstants)
-          ? screenHandler.props.sourceConstants
-          : [])
-          .map(value => /^([^=]+)=(-?(?:\d+(?:\.\d+)?|Infinity))$/.exec(String(value)))
-          .filter((match): match is RegExpExecArray => Boolean(match))
-          .map(match => [match[1], Number(match[2])]),
-      );
-      for (const [name, value] of Object.entries(values)) {
-        if (
-          value > 1 &&
-          body.includes(`cliprect.min_x / ${name}`) &&
-          body.includes(`x * ${name}`)
-        ) {
-          xscale = Math.max(xscale, value);
-        }
+  let xscale = gfxRenderScale(graph, machine.id);
+  if (xscale === 1) {
+    const screenCallback = graph.nodes.find(node =>
+      node.label === 'Callback' && node.props.signal === 'set_screen_update');
+    const screenHandler = graph.nodes.find(node =>
+      node.label === 'Handler' &&
+      node.props.ownerClass === screenCallback?.props.targetClass &&
+      node.props.method === screenCallback?.props.targetMethod);
+    const body = String(screenHandler?.props.sourceBody ?? '');
+    const values = Object.fromEntries(
+      (Array.isArray(screenHandler?.props.sourceConstants)
+        ? screenHandler.props.sourceConstants
+        : [])
+        .map(value => /^([^=]+)=(-?(?:\d+(?:\.\d+)?|Infinity))$/.exec(String(value)))
+        .filter((match): match is RegExpExecArray => Boolean(match))
+        .map(match => [match[1], Number(match[2])]),
+    );
+    for (const [name, value] of Object.entries(values)) {
+      if (
+        value > 1 &&
+        body.includes(`cliprect.min_x / ${name}`) &&
+        body.includes(`x * ${name}`)
+      ) {
+        xscale = Math.max(xscale, value);
       }
     }
   }
