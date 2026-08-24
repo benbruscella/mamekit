@@ -794,6 +794,26 @@ export interface GeneratedHandlerRuntime {
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
   invoke(name: string, ...args: unknown[]): unknown;
+  /** Context-free MAME framework macros, identical to the interpreter's. */
+  macro(name: string, ...args: unknown[]): unknown;
+  /** MAME COMBINE_DATA against an emitted pointer. */
+  combineData(pointer: unknown, data: unknown, memMask: unknown): unknown;
+  /** C++ `/`: integral between integers, exact otherwise. */
+  divide(left: unknown, right: unknown): number;
+  /** C++ `==`/`!=` where an operand can be a pointer, not a number. */
+  same(left: unknown, right: unknown): boolean;
+  /** C++ `&=`: rectangle intersection when the target is one, else bitwise. */
+  andAssign(current: unknown, value: unknown): unknown;
+  /** A member read the state object has no entry for, as the interpreter resolves it. */
+  member(name: string): unknown;
+  /**
+   * The board package's own reference-call overrides — the base dictionary the
+   * interpreter consults before anything else (a video package's
+   * shape-recognised fast paths live here). Emitted board handlers check it
+   * before calling a sibling compiled method directly, so a runtime override
+   * keeps its interpreter precedence.
+   */
+  readonly overrides: Record<string, (...args: any[]) => unknown>;
 }
 
 export type GeneratedCompiledHandler = (

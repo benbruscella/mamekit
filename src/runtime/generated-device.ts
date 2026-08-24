@@ -1,6 +1,11 @@
 import {
+  applyCombineData,
+  applyGeneratedAndAssign,
+  applyGeneratedDivision,
+  applyGeneratedMacro,
   dereferenceGeneratedValue,
   executeGeneratedProgram,
+  generatedValuesEqual,
   type GeneratedCallArgument,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
@@ -80,6 +85,20 @@ export interface GeneratedDeviceExecutionContext {
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
+  /** Context-free MAME framework macros, identical to the interpreter's. */
+  macro(name: string, ...args: unknown[]): unknown;
+  /** MAME COMBINE_DATA against an emitted pointer. */
+  combineData(pointer: unknown, data: unknown, memMask: unknown): unknown;
+  /** C++ `/`: integral between integers, exact otherwise. */
+  divide(left: unknown, right: unknown): number;
+  /** C++ `==`/`!=` where an operand can be a pointer, not a number. */
+  same(left: unknown, right: unknown): boolean;
+  /** C++ `&=`: rectangle intersection when the target is one, else bitwise. */
+  andAssign(current: unknown, value: unknown): unknown;
+  /** A member read the state object has no entry for, as the interpreter resolves it. */
+  member(name: string): unknown;
+  /** Reference-call overrides; devices have none, boards may (see board IR). */
+  readonly overrides: Record<string, (...args: any[]) => unknown>;
 }
 
 export type GeneratedDeviceMethodExecutable = (
@@ -504,6 +523,15 @@ class IrDevice implements Device {
         if (typeof member === 'function') return member(...args);
         return 0;
       },
+      macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
+      combineData: applyCombineData,
+      divide: applyGeneratedDivision,
+      same: generatedValuesEqual,
+      andAssign: applyGeneratedAndAssign,
+      // Devices declare every member up front, so an absent one is genuinely
+      // absent; boards resolve finders and getters here (see execute.ts).
+      member: () => 0,
+      overrides: {},
     };
     const pendingTimers = [...this.timers.values()];
     this.bindings.calls!.timer_alloc = () => pendingTimers.shift()?.timer ?? 0;

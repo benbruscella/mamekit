@@ -16,6 +16,10 @@ export type {
   GeneratedLValue,
 } from '../ir/execute.ts';
 export {
+  applyCombineData,
+  applyGeneratedAndAssign,
+  applyGeneratedDivision,
+  applyGeneratedMacro,
   compileGeneratedMachineHandler,
   dereferenceGeneratedValue,
   executeGeneratedCallbackHandler,
@@ -24,6 +28,7 @@ export {
   executeGeneratedMachineProgram,
   executeGeneratedProgram,
   generatedPeriodicLines,
+  generatedValuesEqual,
 } from '../ir/execute.ts';
 
 /**

@@ -54,6 +54,13 @@ export interface GeneratedDeviceMethod {
   parameters: string;
   program: GeneratedHandlerProgram;
   source: BoardSourceRef;
+  /**
+   * Constants scoped to this method alone — a driver's template instantiation
+   * (`videoram_w<Which>`) gives each expansion its own value, so they must not
+   * merge into the shared scope. Resolved before the scope's constants,
+   * matching the interpreter's per-handler binding order.
+   */
+  constants?: Record<string, number>;
 }
 
 export interface GeneratedDeviceDefinition {

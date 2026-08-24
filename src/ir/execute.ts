@@ -134,7 +134,7 @@ function generatedLoopLimitError(kind: string, context: ExecutionContext): Error
   );
 }
 
-const DEFAULT_CONSTANTS: Record<string, number> = {
+export const DEFAULT_CONSTANTS: Record<string, number> = {
   ASSERT_LINE: 1,
   CLEAR_LINE: 0,
   HOLD_LINE: 2,
@@ -390,6 +390,31 @@ function preparedHandlerRuntime(
     dereference: dereferenceGeneratedValue,
     invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
       bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
+    macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
+    combineData: applyCombineData,
+    divide: applyGeneratedDivision,
+    same: generatedValuesEqual,
+    andAssign: applyGeneratedAndAssign,
+    // The board's state object only holds what a handler has written, so a
+    // read can miss three things the interpreter resolves: a declared getter,
+    // a member whose stored value is undefined, and a device finder, which
+    // answers as a resolved reference and is therefore truthy. Emitted code
+    // reaches this only when `members.<name>` is absent, so the fast path
+    // stays a plain property read.
+    member: name => {
+      const getter = bindings.getters?.[name];
+      if (getter) return getter();
+      if (Object.hasOwn(bindings.members ?? {}, name)) return bindings.members![name];
+      // The device set lives on the prepared table, not on the bindings this
+      // runtime closes over: an interpreted handler gets it grafted on per
+      // call (see preparedHandlerBindings), so reading it off `bindings` here
+      // found nothing and made every device finder falsy — bublbobl then
+      // skipped `if (m_ym2203) m_ym2203->reset()` and lost two chip resets.
+      return prepared.concreteDeviceMembers?.has(name)
+        ? { reference: name, resolved: true }
+        : 0;
+    },
+    overrides: bindings.referenceCalls ?? {},
   };
 }
 
@@ -896,9 +921,7 @@ function compileFastExpression(
     if (operator === '==' || operator === '!=') {
       const wantEqual = operator === '==';
       return context =>
-        (comparableValue(left(context)) === comparableValue(right(context))) === wantEqual
-          ? 1
-          : 0;
+        generatedValuesEqual(left(context), right(context)) === wantEqual ? 1 : 0;
     }
     // Division is integral only between integers, so it keeps the
     // interpreter's two exemptions: an attotime operand, and an operand the
@@ -1255,7 +1278,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
       };
     }
     if (expression.operator === '==' || expression.operator === '!=') {
-      const equal = comparableValue(leftValue) === comparableValue(rightValue);
+      const equal = generatedValuesEqual(leftValue, rightValue);
       return expression.operator === '==' ? Number(equal) : Number(!equal);
     }
     const left = toNumber(leftValue);
@@ -1298,7 +1321,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
   return evaluateCall(expression, context);
 }
 
-function isFloatingExpression(expression: GeneratedExpression): boolean {
+export function isFloatingExpression(expression: GeneratedExpression): boolean {
   if (expression.kind === 'number') return Boolean(expression.floating);
   if (expression.kind === 'cast') {
     return /\b(?:float|double)\b/.test(expression.valueType) ||
@@ -1323,24 +1346,12 @@ function isFloatingExpression(expression: GeneratedExpression): boolean {
  * compiled expressions and still reach exactly the semantics the interpreter
  * gives the same call.
  */
-function applyIdentifierCall(
-  name: string,
-  args: unknown[],
-  expression: Extract<GeneratedExpression, { kind: 'call' }>,
-  context: ExecutionContext,
-): unknown {
-  if (name === 'COMBINE_DATA') {
-    const pointer = args[0];
-    if (!isGeneratedPointer(pointer)) return 0;
-    const old = toNumber(pointerValue(pointer, 0));
-    const data = toNumber(context.locals.data);
-    const memMask = Object.hasOwn(context.locals, 'mem_mask')
-      ? toNumber(context.locals.mem_mask)
-      : 0xffff;
-    const combined = ((old & ~memMask) | (data & memMask)) >>> 0;
-    setPointerValue(pointer, 0, combined);
-    return combined;
-  }
+/**
+ * MAME framework macros with context-free semantics, shared between the
+ * interpreter and emitted handler code (`runtime.macro`). Returns undefined
+ * for a name it does not know, so callers keep their own fallbacks.
+ */
+export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'BIT') {
     // MAME BIT(x, n) extracts one bit; BIT(x, n, w) extracts a w-bit field.
     const width = args.length > 2 ? toNumber(args[2]) : 1;
@@ -1389,9 +1400,6 @@ function applyIdentifierCall(
     return Math.round((toNumber(args[0]) & maximum) * 255 / maximum);
   }
   if (name === 'assert' || name === 'static_assert') return 0;
-  if (name === 'sizeof') {
-    return typeByteWidth(generatedExpressionName(expression.args[0]!));
-  }
   if (name === 'memcpy' || name === 'memmove') {
     copyGeneratedMemory(args[0], args[1], toNumber(args[2]));
     return args[0];
@@ -1426,6 +1434,68 @@ function applyIdentifierCall(
       ? modulo(toNumber(args[0]), values.length)
       : 0;
     return values[index] ?? 0;
+  }
+  return undefined;
+}
+
+/**
+ * C++ `/` as the interpreter applies it, for emitted code: integral between
+ * integers, exact otherwise. Shared so both paths truncate identically.
+ */
+export function applyGeneratedDivision(left: unknown, right: unknown): number {
+  return BINARY_OPERATORS['/']!(toNumber(left), toNumber(right));
+}
+
+/**
+ * C++ `&=` as the interpreter applies it, for emitted code.
+ *
+ * `rectangle::operator&=` is an intersection, not a bitwise AND, and only the
+ * value knows which it is. Lowering it as `&` made `Number(rect) & Number(rect)`
+ * zero, which erased pacman's sprite clip entirely — Crush Roller's tunnel
+ * sprites then drew outside the region MAME confines them to.
+ */
+export function applyGeneratedAndAssign(current: unknown, value: unknown): unknown {
+  if (
+    current &&
+    typeof current === 'object' &&
+    typeof (current as { intersect?: unknown }).intersect === 'function'
+  ) {
+    (current as { intersect: (other: unknown) => void }).intersect(value);
+    return current;
+  }
+  return toNumber(current) & toNumber(value);
+}
+
+/** MAME COMBINE_DATA against a generated pointer, with explicit locals. */
+export function applyCombineData(
+  pointer: unknown,
+  data: unknown,
+  memMask: unknown,
+): number {
+  if (!isGeneratedPointer(pointer)) return 0;
+  const old = toNumber(pointerValue(pointer, 0));
+  const mask = toNumber(memMask);
+  const combined = ((old & ~mask) | (toNumber(data) & mask)) >>> 0;
+  setPointerValue(pointer, 0, combined);
+  return combined;
+}
+
+function applyIdentifierCall(
+  name: string,
+  args: unknown[],
+  expression: Extract<GeneratedExpression, { kind: 'call' }>,
+  context: ExecutionContext,
+): unknown {
+  if (name === 'COMBINE_DATA') {
+    const memMask = Object.hasOwn(context.locals, 'mem_mask')
+      ? context.locals.mem_mask
+      : 0xffff;
+    return applyCombineData(args[0], context.locals.data, memMask);
+  }
+  const macro = applyGeneratedMacro(name, args);
+  if (macro !== undefined) return macro;
+  if (name === 'sizeof') {
+    return typeByteWidth(generatedExpressionName(expression.args[0]!));
   }
   if (name === 'ioport') return reference(`ioport:${String(args[0] ?? '')}`);
   // Driver handlers use the machine-level membank("tag") finder. Preserve
@@ -1959,6 +2029,32 @@ function comparableValue(value: unknown): unknown {
   if (isReference(value) && value.resolved) return value;
   if (value && typeof value === 'object' && !isReference(value)) return value;
   return toNumber(value);
+}
+
+/**
+ * C++ `==` and `!=`, for values the runtime may hold as pointers.
+ *
+ * A generated pointer is an address, so two of them are equal when they name
+ * the same element of the same memory - not when they happen to be the same
+ * JavaScript object, which is an artifact of how the address was built.
+ * `runtime.addressOf(m_gfxram, n)` produces a fresh object every time, and a
+ * pointer walked with `p++` produces one per step.
+ *
+ * Emitted code shares this so equality means one thing in both paths. It could
+ * not simply reuse the numeric comparison: `Number()` of a pointer object is
+ * NaN, `NaN !== NaN` is true, and CPS1's
+ * `if (palette_ram != palette_base) palette_ram += 0x200` therefore skipped a
+ * page of gfxram before the first page was ever copied, so cps1_build_palette
+ * read the wrong half of palette RAM and left the palette black.
+ */
+export function generatedValuesEqual(left: unknown, right: unknown): boolean {
+  const leftValue = comparableValue(left);
+  const rightValue = comparableValue(right);
+  if (isGeneratedPointer(leftValue) && isGeneratedPointer(rightValue)) {
+    return leftValue.source === rightValue.source &&
+      leftValue.offset === rightValue.offset;
+  }
+  return leftValue === rightValue;
 }
 
 function truthy(value: unknown): boolean {

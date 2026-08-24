@@ -1,13 +1,13 @@
 import { sourceTarget } from './source-contract.ts';
 
-export const sf2ce = sourceTarget({
-  game: 'sf2ce',
+export const sf2 = sourceTarget({
+  game: 'sf2',
   driver: 'src/mame/capcom/cps1.cpp',
-  machine: { className: 'cps_state', name: 'cps1_12MHz' },
+  machine: { className: 'cps_state', name: 'cps1_10MHz' },
   screen: { width: 384, height: 224 },
   soundKind: 'ym2151',
-  // Issue #77: wired-hot handler codegen (bus handlers, tile-info callbacks)
-  // took this board from 48 to ~97 fps in Node; hold it above real time.
+  // Same CPS1 board as sf2ce (10 MHz 68000 instead of 12): ~103 fps in Node
+  // with wired-hot handler codegen; hold it above real time.
   minimumFps: 50,
   // The default schedule coins at 300 and presses start at 330, which CPS1 is
   // still in its power-on RAM test to notice: the golden then graded a title
@@ -28,28 +28,28 @@ export const sf2ce = sourceTarget({
   golden: {
     regions: {
       aboardplds: 'ffcf27eb',
-      audiocpu: 'aa925e71',
-      bboardplds: '6a5ff316',
+      audiocpu: 'cb027a88',
+      bboardplds: '8e74b895',
       cboardplds: '2da84956',
-      gfx: '1616e9ad',
-      maincpu: '06d02579',
+      gfx: 'b758db52',
+      maincpu: '490a0cca',
       oki: '6cfffb11',
     },
     checkpoints: {
-      1: { video: 'ccf6015f', state: '7d855a28' },
-      300: { video: 'a8421153', state: 'a779bbbe' },
-      1200: { video: '7c654bbb', state: 'a0e0c0f2' },
-      1800: { video: '5d6b118c', state: 'a1f05685' },
-      2400: { video: 'b16844f2', state: '87e14a8f' },
-      3000: { video: '0e7f6b63', state: '25606a20' },
-      3600: { video: 'f0d6473b', state: '7ab2c550' },
+      1: { video: 'ccf6015f', state: '36628212' },
+      300: { video: 'f61d0b33', state: '10feba8a' },
+      1200: { video: '42d4cf93', state: '0838f4ce' },
+      1800: { video: '42d4cf93', state: 'a8873310' },
+      2400: { video: '943a3b53', state: '73c1c620' },
+      3000: { video: 'ec15d850', state: '0bb19045' },
+      3600: { video: '740a1809', state: '666b2fd0' },
     },
     audio: {
-      writes: 127493,
-      nonzeroWrites: 108471,
-      writeHash: '0ecc44ea',
-      pcmHash: '4d51fdeb',
-      rms: 0.051585,
+      writes: 122153,
+      nonzeroWrites: 103898,
+      writeHash: '6500a543',
+      pcmHash: 'c396b89a',
+      rms: 0.064772,
     },
   },
 });
