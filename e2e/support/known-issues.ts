@@ -12,7 +12,7 @@
 
 export const KNOWN_ISSUES: Record<string, string> = {
   sf2ce: 'fps',
-  // Found by this suite rather than by play-testing, and not yet in #54.
+  // Found by this suite rather than by play-testing; tracked in #79.
   // The browser board diverges from the Node contract during boot: maincpu
   // X/Y/U and the CC E-flag differ by frame 22, m_irq_line by frame 24, and
   // pia2.m_out_b by frame 25 — an interrupt-timing difference, not a ROM or
