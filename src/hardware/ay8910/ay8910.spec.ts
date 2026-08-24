@@ -47,7 +47,7 @@ function context(sound: Sound): SoundRuntimeContext & {
     readSignal: () => undefined,
     readProgram: () => 0xff,
     stallCpu: () => {},
-    setCpuInputLine: () => {},
+    setCpuInputLine: () => {}, perfectQuantum: () => {},
   };
 }
 

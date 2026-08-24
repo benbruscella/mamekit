@@ -8,6 +8,9 @@ export interface GeneratedFrameProcessor {
   enabled?: () => boolean;
 }
 
+/** Cap on how far ahead one perfect_quantum boost may pull a processor. */
+const MAX_QUANTUM_SECONDS = 0.001;
+
 export interface GeneratedFrameRunnerOptions {
   machine: BoardIr;
   processors: GeneratedFrameProcessor[];
@@ -84,6 +87,31 @@ export class GeneratedFrameRunner {
 
   get currentCarry(): readonly number[] {
     return this.processors.map(processor => processor.carry);
+  }
+
+  /**
+   * MAME `scheduler::perfect_quantum` — run every processor except the one
+   * that asked, right now.
+   *
+   * The frame schedule interleaves processors once per scanline, which is
+   * coarse enough that a CPU can publish and overwrite a value inside a single
+   * slice: MCR's Sounds Good command latch presents two nibbles 45us apart,
+   * and the sound board only ever saw the second one. MAME's answer is to
+   * interleave finely for a short window, and the interval it asks for is the
+   * one honoured here. Cycles are charged against each processor's carry, so
+   * the boost changes when a processor runs, never how much.
+   */
+  boost(activeTag: string, seconds: number): void {
+    const window = Math.min(Math.max(seconds, 0), MAX_QUANTUM_SECONDS);
+    if (window === 0) return;
+    const denominator =
+      this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal;
+    for (const scheduled of this.processors) {
+      if (scheduled.processor.tag === activeTag) continue;
+      if (scheduled.processor.enabled && !scheduled.processor.enabled()) continue;
+      const cycles = Math.floor(window * scheduled.cyclesPerLine * denominator);
+      if (cycles > 0) scheduled.carry -= scheduled.processor.run(cycles);
+    }
   }
 
   reset(): void {

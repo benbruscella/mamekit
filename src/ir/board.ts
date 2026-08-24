@@ -10,6 +10,8 @@
 import { BOARD_IR_SCHEMA_VERSION } from './version.ts';
 import type {
   GeneratedAuxiliaryAudioDevice,
+  GeneratedBiquadStage,
+  GeneratedDacChip,
   GeneratedNesApuPlan,
 } from './audio-protocol.ts';
 
@@ -34,6 +36,13 @@ export interface RangeSpec {
   write?: string;
   /** shared RAM tag; ranges with the same share alias the same bytes */
   share?: string;
+  /**
+   * MAME `.umask16(...)`: the data lines this range's handler is wired to.
+   * An 8-bit device on a 16-bit bus answers only on its own byte lane, and
+   * the byte is shifted down to the handler's width. Absent means the handler
+   * spans the full bus width.
+   */
+  umask?: number;
   /** This memory range does not accept CPU writes. */
   readOnly?: boolean;
   /** This memory range does not return its stored bytes to the CPU. */
@@ -711,6 +720,10 @@ export interface GeneratedSoundBinding {
   deviceTag: string;
   deviceTags?: string[];
   deviceType: string;
+  /** MAME device type per chip index, when a bank mixes several chips. */
+  deviceTypes?: string[];
+  /** Resolution, coding and gain of each DAC, lowered from MAME source. */
+  dacs?: GeneratedDacChip[];
   writeMethods: string[];
   enableMethods: string[];
   controlOffset: number;
@@ -722,6 +735,8 @@ export interface GeneratedSoundBinding {
   auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
   /** RP2A03 internal APU plan, present only for the NES sound capability. */
   nesApu?: GeneratedNesApuPlan;
+  /** FILTER_BIQUAD stages MAME places between this core and its board output. */
+  filterChain?: GeneratedBiquadStage[];
 }
 
 export interface GeneratedAudioRoute {

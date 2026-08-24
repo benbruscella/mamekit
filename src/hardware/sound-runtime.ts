@@ -46,6 +46,11 @@ export interface SoundRuntimeContext {
   stallCpu(cpuTag: string, cycles: number): void;
   /** Drive a CPU input line without collapsing distinct IRQ sources. */
   setCpuInputLine(cpuTag: string, line: number, state: number): void;
+  /**
+   * MAME `scheduler::perfect_quantum` — let the other processors observe what
+   * was just published before the running one overwrites it.
+   */
+  perfectQuantum(seconds: number): void;
 }
 
 export interface SoundRuntimeHooks {

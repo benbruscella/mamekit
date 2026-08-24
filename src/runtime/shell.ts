@@ -9,7 +9,7 @@ import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig } from './types.ts';
 import type { GeneratedAudioRoute } from '../ir/board.ts';
-import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 import { fetchRomBytes } from './rom-source.ts';
 
 export interface RomLoad {
@@ -92,12 +92,18 @@ export interface SoundSpec {
   chips?: number;
   /** MAME device tags in chip-index order. */
   deviceTags?: string[];
+  /** MAME device type in chip-index order, when a bank mixes several chips. */
+  deviceTypes?: string[];
+  /** Resolution, coding and gain of each DAC, lowered from MAME source. */
+  dacs?: GeneratedDacChip[];
   /** Per-output routes lowered from MAME add_route calls. */
   routes?: GeneratedAudioRoute[];
   /** MAME discrete DAC/filter network mixed with the primary core. */
   auxiliary?: GeneratedDacFilterPlan;
   /** Source-routed secondary stream devices mixed by the generated worklet. */
   auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
+  /** FILTER_BIQUAD stages between the sound core and the board output. */
+  filterChain?: GeneratedBiquadStage[];
   /** MAME DISCRETE_SOUND_START network consuming primary stream outputs. */
   discreteMixer?: GeneratedDiscreteMixerPlan;
   discreteDac?: GeneratedDiscreteDacPlan;
@@ -572,9 +578,12 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
         sampleRom: cfg.sound.sampleRegion ? regions[cfg.sound.sampleRegion] : undefined,
         chips: cfg.sound.chips,
         deviceTags: cfg.sound.deviceTags,
+        deviceTypes: cfg.sound.deviceTypes,
+        dacs: cfg.sound.dacs,
         routes: cfg.sound.routes,
         auxiliary: cfg.sound.auxiliary,
         auxiliaryDevices: cfg.sound.auxiliaryDevices,
+        filterChain: cfg.sound.filterChain,
         discreteMixer: cfg.sound.discreteMixer,
         discreteDac: cfg.sound.discreteDac,
         discreteEffects: cfg.sound.discreteEffects,

@@ -1722,7 +1722,11 @@ function matchingDelimiter(
   return -1;
 }
 
-function analogValue(expression: string): number {
+/**
+ * Evaluate a MAME analogue component expression: RES_K(150), CAP_P(470) and
+ * the rest of rescap.h, in ohms and farads.
+ */
+export function analogValue(expression: string): number {
   let normalized = expression.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '').trim();
   const units: [RegExp, number][] = [
     [/RES_K\(([^()]+)\)/g, 1e3],
@@ -1732,7 +1736,14 @@ function analogValue(expression: string): number {
     [/CAP_P\(([^()]+)\)/g, 1e-12],
   ];
   for (const [pattern, scale] of units) {
-    normalized = normalized.replace(pattern, `(($1)*${scale})`);
+    // evalExpr reads C-style literals and has no exponent form, so a scale
+    // that only spells out in exponent notation (nano- and picofarads) has to
+    // become an exact integer divisor instead. Left as `1e-12` it stopped the
+    // number parser dead and every picofarad in the source evaluated to NaN.
+    const factor = String(scale).includes('e')
+      ? `/${Math.round(1 / scale)}`
+      : `*${scale}`;
+    normalized = normalized.replace(pattern, `(($1)${factor})`);
   }
   return evalExpr(normalized) ?? Number.NaN;
 }

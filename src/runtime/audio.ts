@@ -12,7 +12,7 @@
  * `clock` (defaults to sampleRate — for the WSG they are the same, 96000).
  */
 import type { GeneratedAudioRoute } from '../ir/board.ts';
-import type { GeneratedAuxiliaryAudioDevice, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 
 export interface WorkletCoreConfig {
   readonly sampleRate: number;
@@ -25,9 +25,15 @@ export interface WorkletCoreConfig {
   readonly chips?: number;
   /** MAME device tags in chip-index order, used by dynamic gain writes. */
   readonly deviceTags?: string[];
+  /** MAME device type in chip-index order, when a bank mixes several chips. */
+  readonly deviceTypes?: string[];
+  /** Resolution, coding and gain of each DAC, lowered from MAME source. */
+  readonly dacs?: GeneratedDacChip[];
   readonly routes?: GeneratedAudioRoute[];
   readonly auxiliary?: GeneratedDacFilterPlan;
   readonly auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
+  /** FILTER_BIQUAD stages between the sound core and the board output. */
+  readonly filterChain?: GeneratedBiquadStage[];
   readonly discreteMixer?: GeneratedDiscreteMixerPlan;
   readonly discreteDac?: GeneratedDiscreteDacPlan;
   readonly discreteEffects?: GeneratedDiscreteEffectsPlan;
@@ -111,9 +117,12 @@ export class AudioOutput {
       voices: core.voices,
       chips: core.chips,
       deviceTags: core.deviceTags,
+      deviceTypes: core.deviceTypes,
+      dacs: core.dacs,
       routes: core.routes,
       auxiliary: core.auxiliary,
       auxiliaryDevices: core.auxiliaryDevices,
+      filterChain: core.filterChain,
       discreteMixer: core.discreteMixer,
       discreteDac: core.discreteDac,
       discreteEffects: core.discreteEffects,

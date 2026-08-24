@@ -86,11 +86,14 @@ export interface AudioProbeContext {
     clock?: number;
     chips?: number;
     deviceTags?: string[];
+    deviceTypes?: string[];
+    dacs?: unknown;
     waveRegion?: string;
     sampleRegion?: string;
     routes?: unknown;
     auxiliary?: unknown;
     auxiliaryDevices?: unknown;
+    filterChain?: unknown;
     discreteMixer?: unknown;
     discreteDac?: unknown;
     discreteEffects?: unknown;

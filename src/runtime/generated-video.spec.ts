@@ -681,4 +681,62 @@ if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
   assert.equal(palette.colors[0], 0xff000000);
 }
 
-console.log('generated-video.spec: 23 passed');
+// MCR sprite priority. MAME draws sprite RAM from the end backwards, so the
+// first sprite to reach a pixel keeps it, and a second invisible pass claims
+// each sprite's "under tile" pen 8 to cut the sprites behind it away there.
+{
+  const priorityMachine: BoardIr = {
+    ...machine,
+    execution: {
+      ...machine.execution,
+      screen: { ...machine.execution.screen, width: 4, height: 4, xOffset: 0, yOffset: 0 },
+    },
+  };
+  const priority = new GeneratedMameVideoPrimitives(priorityMachine, {}, {}, {}).screenPriority();
+  // Pen 0 is the sprite background, pen 8 the under-tile mask, pen 1 visible.
+  const spriteGfx = new GeneratedGfxElement({
+    region: 'fixture',
+    offset: 0,
+    colorBase: 0,
+    colorCount: 1,
+    layout: {
+      width: 2, height: 1, total: 1, planes: 4,
+      planeOffsets: [0, 1, 2, 3], xOffsets: [0, 4], yOffsets: [0],
+      charIncrement: 8,
+    },
+    xscale: 1,
+    yscale: 1,
+  }, {
+    count: 1, width: 2, height: 1,
+    pixels: Uint8Array.of(1, 8),
+  }, {
+    colors: new Uint32Array(0),
+    transpen_mask: () => 0,
+    black_pen: () => 0,
+    pens: () => new Uint32Array(0),
+  }, true);
+  const painted = new Map<string, number>();
+  const bitmap = {
+    fill: () => {},
+    'pix=': (y: number, x: number, color: number) => { painted.set(`${x},${y}`, color); },
+  };
+  const clip = { min_x: 0, max_x: 3, min_y: 0, max_y: 3, contains: () => 1, intersect: () => {} };
+  const draw = (color: number, sx: number) => {
+    spriteGfx.prio_transmask(bitmap, clip as never, 0, color, 0, 0, sx, 0, priority, 0x00, 0x0101);
+    spriteGfx.prio_transmask(bitmap, clip as never, 0, color, 0, 0, sx, 0, priority, 0x02, 0xfeff);
+  };
+  priority.fill(1);
+  draw(1, 0);
+  assert.equal(painted.get('0,0'), 16 + 1, 'the visible pen is painted');
+  assert.equal(painted.has('1,0'), false, 'the under-tile pen is never painted');
+  // A second sprite overlapping both pixels must lose to the first one at the
+  // visible pixel and be cut away at the pen-8 mask.
+  draw(2, 0);
+  assert.equal(painted.get('0,0'), 16 + 1, 'a later sprite cannot repaint a claimed pixel');
+  assert.equal(painted.has('1,0'), false, 'pen 8 masks the sprites drawn behind it');
+  // Unclaimed pixels stay available.
+  draw(3, 2);
+  assert.equal(painted.get('2,0'), 3 * 16 + 1, 'an unclaimed pixel still takes the later sprite');
+}
+
+console.log('generated-video.spec: 24 passed');

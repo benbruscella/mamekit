@@ -564,6 +564,12 @@ export interface AddressRangeDef {
   /** Explicit ROM region and byte offset from .region("tag", offset). */
   region?: string; regionOffset?: number;
   share?: string;
+  /**
+   * `.umask16(0xff00)` and friends: the data lines this range's handler is
+   * actually wired to. A narrower-than-bus device only answers on those lanes,
+   * and MAME shifts the byte down to the handler's own width.
+   */
+  umask?: number;
   /** Entry-qualified memory_view mapping, e.g. m_rom_view[0](...). */
   viewTag?: string;
   viewEntry?: number;
@@ -625,6 +631,9 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
           case 'nopw': range.nopw = true; break;
           case 'nopr': range.nopr = true; break;
           case 'mirror': range.mirror = evalExpr(args[0]) ?? undefined; break;
+          case 'umask16': case 'umask32': case 'umask64':
+            range.umask = evalExpr(args[0]) ?? undefined;
+            break;
           // member-ref shares (.share(m_fgvideoram)) normalize to the tag MAME
           // derives from the member name (strip m_)
           case 'share': range.share = unquote(args[0]).replace(/^m_/, ''); break;
@@ -802,6 +811,14 @@ export interface MachineConfigDef {
   softwareLists: SoftwareListDef[];
   /** calls to other config helpers on the same class, e.g. galagab() calls galaga() */
   calls: string[];
+  /**
+   * How many of this config's own devices were declared before each call in
+   * `calls`. MAME composes a machine in statement order — Rampage's mono_sg
+   * calls its base first and then adds a sound board, while Qix's qix_base
+   * creates its main CPU first and calls qix_video last — and the order
+   * decides which CPU the frame schedule treats as the primary one.
+   */
+  callOrders: number[];
   /**
    * statements addressing a device instantiated in a CALLED config
    * (invaders(config) calls mw8080bw_root(config) then does
@@ -1113,6 +1130,7 @@ export function parseMachineConfigs(
       devices: [],
       softwareLists: [],
       calls: [],
+      callOrders: [],
       patches: [],
       removedAddrMaps: [],
       removedDevices: [],
@@ -1196,6 +1214,7 @@ export function parseMachineConfigs(
       // helper/base call: galaga(config) or tpp1_state::config(config).
       const call = /^(?:(\w+)::)?(\w+)\(\s*config\s*\)$/.exec(s);
       if (call) {
+        cfg.callOrders.push(cfg.devices.length);
         cfg.calls.push(call[1] ? `${call[1]}::${call[2]}` : call[2]!);
         continue;
       }

@@ -21,6 +21,12 @@ export interface GeneratedVideoPrimitives extends VideoRenderer {
   ): boolean;
   /** Resolve composed pen indices from the pen buffer into the RGBA frame. */
   resolveScreenPens?(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void;
+  /**
+   * MAME's one screen priority bitmap. A driver reaches it as both
+   * `m_screen->priority()` and `screen.priority()` inside the same update, so
+   * both must hand back the same buffer.
+   */
+  screenPriority?(): GeneratedPriorityBitmap;
   /** Route a MAME palette_device RAM write when the plan declares one. */
   writePaletteRam?(offset: number, data: number, ext?: boolean): void;
   /** Reapply driver-declared reset-time video state. */
@@ -323,6 +329,7 @@ export class GeneratedVideoRenderer implements VideoRenderer {
         yOffset * yScale,
         (yOffset + this.height) * yScale - 1,
       ),
+      priority: () => this.primitives.screenPriority?.(),
     };
     const handlerKey =
       `${this.screenUpdate.targetClass}.${this.screenUpdate.targetMethod}`;
@@ -485,6 +492,72 @@ class GeneratedRectangle {
     this.max_x = Math.min(this.max_x, Number(rectangle.max_x));
     this.min_y = Math.max(this.min_y, Number(rectangle.min_y));
     this.max_y = Math.min(this.max_y, Number(rectangle.max_y));
+  }
+}
+
+/**
+ * MAME's screen priority bitmap (bitmap_ind8).
+ *
+ * A gfx draw that is handed this claims every non-transparent pixel it
+ * touches, and refuses to paint where an earlier draw already claimed one.
+ * MCR boards rely on it twice over: sprites are drawn back to front from the
+ * end of sprite RAM, so the first one to reach a pixel keeps it, and each
+ * sprite's "under tile" pen 8 is drawn in a second, invisible pass whose only
+ * job is to claim pixels so the sprites behind it are cut away there.
+ *
+ * Coordinates arrive in the destination bitmap's space, so the buffer maps
+ * them back through the same screen offset and render scale the bitmap does.
+ */
+class GeneratedPriorityBitmap {
+  private readonly pixels: Uint8Array;
+  private readonly width: number;
+  private readonly height: number;
+  private readonly xOffset: number;
+  private readonly yOffset: number;
+  private readonly xScale: number;
+  private readonly yScale: number;
+
+  constructor(machine: BoardIr) {
+    const screen = machine.execution.screen;
+    this.width = screen.width;
+    this.height = screen.height;
+    this.xScale = machine.video?.renderScale?.x ?? 1;
+    this.yScale = machine.video?.renderScale?.y ?? 1;
+    this.xOffset = (screen.xOffset ?? 0) * this.xScale;
+    this.yOffset = (screen.yOffset ?? 0) * this.yScale;
+    this.pixels = new Uint8Array(this.width * this.height);
+  }
+
+  private index(x: number, y: number): number {
+    const column = Math.floor((x - this.xOffset) / this.xScale);
+    const row = Math.floor((y - this.yOffset) / this.yScale);
+    return column >= 0 && column < this.width && row >= 0 && row < this.height
+      ? row * this.width + column
+      : -1;
+  }
+
+  fill(value: number, rectangle?: GeneratedRectangle): void {
+    if (!rectangle) {
+      this.pixels.fill(value & 0xff);
+      return;
+    }
+    const firstX = Math.max(0, Math.ceil((rectangle.min_x - this.xOffset) / this.xScale));
+    const lastX = Math.min(this.width - 1, Math.floor((rectangle.max_x - this.xOffset) / this.xScale));
+    const firstY = Math.max(0, Math.ceil((rectangle.min_y - this.yOffset) / this.yScale));
+    const lastY = Math.min(this.height - 1, Math.floor((rectangle.max_y - this.yOffset) / this.yScale));
+    for (let row = firstY; row <= lastY; row++) {
+      this.pixels.fill(value & 0xff, row * this.width + firstX, row * this.width + lastX + 1);
+    }
+  }
+
+  get(x: number, y: number): number {
+    const index = this.index(x, y);
+    return index < 0 ? 0 : this.pixels[index]!;
+  }
+
+  set(x: number, y: number, value: number): void {
+    const index = this.index(x, y);
+    if (index >= 0) this.pixels[index] = value;
   }
 }
 
@@ -957,9 +1030,9 @@ export class GeneratedGfxElement {
   }
 
   /**
-   * Priority-buffer sprite draw. The first MAME pass (priority 0) contains
-   * the visible sprite pixels; later non-zero passes update only the priority
-   * mask and must not paint their special under-tile pen into the bitmap.
+   * gfx_element::prio_transmask — a draw checked against, and recorded in,
+   * the screen priority bitmap. MAME sets the mask's high bit implicitly, so
+   * a pixel an earlier draw claimed (it stores 31 there) is never repainted.
    */
   prio_transmask(
     bitmap: BitmapTarget,
@@ -970,12 +1043,17 @@ export class GeneratedGfxElement {
     flipY: number,
     sx: number,
     sy: number,
-    _priorityBitmap: unknown,
-    priority: number,
+    priorityBitmap: unknown,
+    priorityMask: number,
     transparentMask: number,
   ): void {
-    if (priority !== 0) return;
-    this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, transparentMask);
+    if (!(priorityBitmap instanceof GeneratedPriorityBitmap)) {
+      throw new Error('prio_transmask needs the screen priority bitmap');
+    }
+    this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, transparentMask, {
+      bitmap: priorityBitmap,
+      mask: priorityMask | (1 << 31),
+    });
   }
 
   transpen(
@@ -1047,6 +1125,7 @@ export class GeneratedGfxElement {
     sx: number,
     sy: number,
     transparentMask = 0,
+    priority?: { bitmap: GeneratedPriorityBitmap; mask: number },
   ): void {
     const gfx = this.decoded;
     const element = modulo(code, gfx.count);
@@ -1077,6 +1156,13 @@ export class GeneratedGfxElement {
         const sourceX = flipX ? gfx.width - 1 - px : px;
         const pen = gfx.pixels[base + sourceY * gfx.width + sourceX]!;
         if (transparentMask & (1 << pen)) continue;
+        if (priority) {
+          // PIXEL_OP_REBASE_TRANSMASK_PRIORITY: claim the pixel either way,
+          // but only paint it when nothing has claimed it already.
+          const claimed = priority.bitmap.get(x, y);
+          priority.bitmap.set(x, y, 31);
+          if (((1 << (claimed & 0x1f)) & priority.mask) !== 0) continue;
+        }
         const packed = this.indexed
           ? colorBase + pen
           : this.palette.colors[colorBase + pen] ?? 0xff000000;
@@ -1989,6 +2075,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private readonly directScreenShape?: GeneratedDirectScreenShape;
   private readonly memoryRead?: (address: number) => number;
   private ramPaletteMirror?: Uint16Array;
+  private priorityBitmap?: GeneratedPriorityBitmap;
 
   constructor(
     machine: BoardIr,
@@ -2485,7 +2572,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       width: () => this.width,
       height: () => this.height,
       update_partial: (line: number) => updatePartial?.(line),
-      priority: () => ({ fill: () => 0 }),
+      priority: () => this.screenPriority(),
       visible_area: () => new GeneratedRectangle(
         0,
         machine.execution.screen.width * (machine.video?.renderScale?.x ?? 1) - 1,
@@ -2647,6 +2734,11 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         : new GeneratedIndexedBitmap(bitmapWidth, bitmapHeight);
     }
     this.directScreenShape = generatedDirectScreenShape(machine);
+  }
+
+  /** MAME allocates one priority bitmap per screen; so does this. */
+  screenPriority(): GeneratedPriorityBitmap {
+    return (this.priorityBitmap ??= new GeneratedPriorityBitmap(this.machine));
   }
 
   generatedVideoBindings(_frame: Uint32Array): GeneratedHandlerBindings {

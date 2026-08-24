@@ -432,6 +432,7 @@ function decodeRanges(
     const start = reader.number(range.start, `${rangePath}.start`, source);
     const end = reader.number(range.end, `${rangePath}.end`, source);
     reader.optionalNumber(range.mirror, `${rangePath}.mirror`, source);
+    reader.optionalNumber(range.umask, `${rangePath}.umask`, source);
     reader.optionalString(range.region, `${rangePath}.region`, source);
     reader.optionalNumber(range.romOffset, `${rangePath}.romOffset`, source);
     reader.optionalString(range.viewTag, `${rangePath}.viewTag`, source);

@@ -155,4 +155,56 @@ const offscreenRunner = new GeneratedFrameRunner({
 offscreenRunner.frame(new Uint32Array(1));
 assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
 
-console.log('generated-frame.spec: 14 passed');
+// MAME scheduler::perfect_quantum. A CPU that publishes a value another
+// processor must read before it is overwritten cannot wait for the next
+// scanline boundary; MCR's Sounds Good command latch presents two nibbles
+// inside one slice. The boost runs the others now and charges the cycles
+// against their carry, so the total work per frame is unchanged.
+{
+  const twoCpu: BoardIr = {
+    ...machine,
+    callbacks: [],
+    execution: {
+      ...machine.execution,
+      cpus: [
+        { tag: 'maincpu', type: 'z80', clock: 60_000, region: 'maincpu' },
+        { tag: 'sound', type: 'z80', clock: 60_000, region: 'sound' },
+      ],
+      frameEvents: [],
+    },
+  };
+  const ran: Record<string, number> = { maincpu: 0, sound: 0 };
+  const order: string[] = [];
+  let boosted = false;
+  let runner!: GeneratedFrameRunner;
+  runner = new GeneratedFrameRunner({
+    machine: twoCpu,
+    processors: ['maincpu', 'sound'].map(tag => ({
+      tag,
+      run: (budget: number) => {
+        ran[tag]! += budget;
+        order.push(`${tag}:${budget}`);
+        // The main CPU publishes something mid-slice, once.
+        if (tag === 'maincpu' && !boosted) {
+          boosted = true;
+          runner.boost('maincpu', 0.005);
+        }
+        return budget;
+      },
+    })),
+  });
+  runner.frame(new Uint32Array(1));
+  // 600 Hz across three lines at 10 Hz is 20 cycles per processor per line.
+  // 60 kHz across three lines at 10 Hz is 2000 cycles per processor per line;
+  // the 1 ms boost is 60 of them.
+  assert.deepEqual(
+    order,
+    ['maincpu:2000', 'sound:60', 'sound:1940', 'maincpu:2000', 'sound:2000',
+      'maincpu:2000', 'sound:2000'],
+    'the other processor runs at once and repays the borrowed cycles in its own slice',
+  );
+  assert.equal(ran.maincpu, 6000, 'the boosting processor keeps its own budget');
+  assert.equal(ran.sound, 6000, 'a boost moves when a processor runs, never how much');
+}
+
+console.log('generated-frame.spec: 15 passed');

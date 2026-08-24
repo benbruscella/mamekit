@@ -65,6 +65,33 @@ eq('driver-init address-space installs lower as executable map overrides',
       className: 'board_state', method: 'protection_r' },
   ]);
 
+// --- machine config: composition order --------------------------------------
+// MAME builds a machine in statement order, and the first CPU declared is the
+// driver's own. Rampage's mono_sg calls its base before adding a sound board;
+// Qix's qix_base creates its main CPU first and calls qix_video last. Both
+// orders have to survive lowering or a sound board ends up ahead of the CPU
+// that drives it.
+{
+  const [derived, base] = parseMachineConfigs(`
+void mcr3_state::mono_sg(machine_config &config)
+{
+  mcrmono(config);
+  MIDWAY_SOUNDS_GOOD(config, m_sounds_good);
+}
+void qix_state::qix_base(machine_config &config)
+{
+  MC6809E(config, m_maincpu, 1250000);
+  NVRAM(config, "nvram");
+  qix_video(config);
+}
+`, { m_sounds_good: 'sg', m_maincpu: 'maincpu' }, {});
+  eq('a base called first contributes its devices first', derived!.callOrders, [0]);
+  eq('the derived config adds after it', derived!.devices.map(d => d.tag), ['sg']);
+  eq('a helper called last contributes its devices last', base!.callOrders, [2]);
+  eq('the calling config declared two devices first',
+    base!.devices.map(d => d.tag), ['maincpu', 'nvram']);
+}
+
 // --- machine config: inherited address-map removal --------------------------
 {
   const [cfg] = parseMachineConfigs(`
@@ -483,6 +510,20 @@ void qix_state::video_map(address_map &map)
 `);
   eq('readonly shared range', map.ranges[0]?.readonly, true);
   eq('readonly shared tag', map.ranges[0]?.share, 'scanline_latch');
+}
+
+{
+  // The MCR "Sounds Good" PIA sits on D8-D15 of the 68000 bus, so the range
+  // must carry the lane it is wired to rather than the full bus width.
+  const [map] = parseAddressMaps(`
+void midway_sounds_good_device::soundsgood_map(address_map &map)
+{
+  map(0x060000, 0x060007).mirror(0x00fff0).rw(m_pia, FUNC(pia6821_device::read_alt), FUNC(pia6821_device::write_alt)).umask16(0xff00);
+}
+`);
+  eq('umask16 byte lane', map.ranges[0]?.umask, 0xff00);
+  eq('umask16 keeps its mirror', map.ranges[0]?.mirror, 0x00fff0);
+  eq('umask16 keeps its handlers', map.ranges[0]?.write?.method, 'write_alt');
 }
 
 {
