@@ -42,3 +42,5 @@ artwork/
 *.tmp.*
 .files/
 dist.previous/
+
+.claude/worktrees
