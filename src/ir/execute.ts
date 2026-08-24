@@ -405,7 +405,12 @@ function preparedHandlerRuntime(
       const getter = bindings.getters?.[name];
       if (getter) return getter();
       if (Object.hasOwn(bindings.members ?? {}, name)) return bindings.members![name];
-      return bindings.concreteDeviceMembers?.has(name)
+      // The device set lives on the prepared table, not on the bindings this
+      // runtime closes over: an interpreted handler gets it grafted on per
+      // call (see preparedHandlerBindings), so reading it off `bindings` here
+      // found nothing and made every device finder falsy — bublbobl then
+      // skipped `if (m_ym2203) m_ym2203->reset()` and lost two chip resets.
+      return prepared.concreteDeviceMembers?.has(name)
         ? { reference: name, resolved: true }
         : 0;
     },
