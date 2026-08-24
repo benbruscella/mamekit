@@ -94,6 +94,18 @@ export function readyFrame(contract: GameContract): number {
   return contract.actions[0]?.atFrame ?? 0;
 }
 
+/**
+ * Frames a machine needs between its coin and its start button, taken from
+ * the gap its own token leaves there. Boards that reset on the coin edge
+ * ignore anything pressed during the reset, so a fixed pause is not portable.
+ */
+export function startDelayFrames(contract: GameContract): number {
+  const coin = contract.actions[0]?.atFrame;
+  const next = contract.actions[1]?.atFrame;
+  if (coin === undefined || next === undefined || next <= coin) return 30;
+  return next - coin;
+}
+
 /** One contract by MAME short name. */
 export function contractFor(game: string): GameContract {
   const contract = loadContracts().find(candidate => candidate.game === game);

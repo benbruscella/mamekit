@@ -5,7 +5,7 @@
 // MAMEKIT_E2E_GAMES=pacman,galaga while bringing a machine up.
 
 import { expect, test } from '@playwright/test';
-import { readyFrame, selectedContracts } from '../support/contracts.ts';
+import { readyFrame, selectedContracts, startDelayFrames } from '../support/contracts.ts';
 import { knownIssue } from '../support/known-issues.ts';
 import { audioPeak, bootGame, keysFor, replayContract, screenPng, screenRefresh, secondsToFrame, trackAudioPeak } from '../support/game.ts';
 
@@ -66,7 +66,14 @@ for (const contract of selectedContracts()) {
       await trackAudioPeak(page);
       await page.waitForTimeout(await secondsToFrame(page, readyFrame(contract)) * 1000);
       await page.keyboard.press(coin!, { delay: 120 });
-      await page.waitForTimeout(500);
+      // How long a machine needs between its coin and its start button is a
+      // machine fact, and its token already states it: Vic Dual resets the
+      // main CPU on the coin edge, so Carnival's schedule waits 300 frames
+      // before pressing start. A fixed pause lands mid-reset, the start is
+      // never seen, and the game sits silently on its attract screen.
+      await page.waitForTimeout(
+        await secondsToFrame(page, startDelayFrames(contract)) * 1000,
+      );
       if (start) {
         await page.keyboard.press(start, { delay: 120 });
         await page.waitForTimeout(2_000);
