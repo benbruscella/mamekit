@@ -9,10 +9,12 @@
 //
 // This derives the same emitter's neutral scope from BoardIr, so board handlers
 // and device methods share one definition of what a lowered operation means as
-// JavaScript. Selection stays a property of the IR — nested loop depth — and
-// never of a game or driver name.
+// JavaScript. Selection stays a property of the IR — nested loop depth, plus
+// how the board wires a handler (a CPU-range dispatch runs per bus access, a
+// tile-info callback per tile) — and never of a game or driver name.
 
 import {
+  calledIdentifiers,
   codegenWrappedParameters,
   generatedDeviceMethodsSource,
   type CodegenScope,
@@ -22,6 +24,7 @@ import type {
   GeneratedHandler,
   GeneratedHandlerOperation,
 } from '../ir/board.ts';
+import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
 
 /**
  * The names a board binds into handler state.
@@ -53,6 +56,12 @@ function boardMemberNames(machine: BoardIr): Map<string, string> {
   for (const bank of machine.execution.banks ?? []) {
     if (bank.member) names.set(bank.member, '');
   }
+  // Video-plan initial state (CPS-B configuration, scroll registers, size
+  // constants) is written into the board's members before any handler runs,
+  // so emitted code may read it exactly as the interpreter does.
+  for (const member of Object.keys(machine.video?.initialState ?? {})) {
+    names.set(member, '');
+  }
   return names;
 }
 
@@ -64,16 +73,31 @@ function boardMemberNames(machine: BoardIr): Map<string, string> {
  */
 function assignedMemberNames(handlers: readonly GeneratedHandler[]): Set<string> {
   const names = new Set<string>();
+  const claimRoot = (expression: { kind: string } | undefined): void => {
+    let target = expression as
+      | { kind: string; name?: string; object?: { kind: string } }
+      | undefined;
+    while (target && (target.kind === 'index' || target.kind === 'member')) {
+      target = target.object as typeof target;
+    }
+    if (target?.kind === 'identifier' && target.name?.startsWith('m_')) {
+      names.add(target.name);
+    }
+  };
   const visitOperations = (operations: readonly GeneratedHandlerOperation[]): void => {
     for (const operation of operations) {
       if (operation.op === 'assign') {
-        let target = operation.target;
-        while (target.kind === 'index' || target.kind === 'member') {
-          target = target.object;
-        }
-        if (target.kind === 'identifier' && target.name.startsWith('m_')) {
-          names.add(target.name);
-        }
+        claimRoot(operation.target);
+      }
+      // A memset/memcpy target is written just as surely as an assignment
+      // target: MAME lifecycle methods initialise member arrays this way
+      // (`memset(m_empty_tile, 0x0f, ...)`), and the interpreter materialises
+      // the member when that runs.
+      if (operation.op === 'call' &&
+        operation.expression.callee.kind === 'identifier' &&
+        (operation.expression.callee.name === 'memset' ||
+          operation.expression.callee.name === 'memcpy')) {
+        claimRoot(operation.expression.args[0]);
       }
       for (const value of Object.values(operation)) {
         if (Array.isArray(value) && value.length && typeof value[0] === 'object') {
@@ -158,6 +182,90 @@ function referencedMembers(handler: GeneratedHandler): Set<string> {
   return names;
 }
 
+/**
+ * Handlers that are hot by wiring rather than by shape: a method a CPU address
+ * range dispatches runs on every bus access to that range, a tilemap's
+ * tile-info or scan callback runs per tile, and the screen-update method runs
+ * every frame. Their bodies are often small and loop-free, so shape selection
+ * never picks them, yet their call counts dominate interpreter time.
+ */
+function wiredHotMethods(machine: BoardIr, ownerClass: string): string[] {
+  const names = new Set<string>();
+  const claim = (key: string | undefined): void => {
+    if (!key) return;
+    const dot = key.indexOf('.');
+    if (dot < 0 || key.slice(0, dot) !== ownerClass) return;
+    names.add(key.slice(dot + 1));
+  };
+  for (const cpu of machine.execution.cpus) {
+    for (const range of [
+      ...(cpu.ranges ?? []),
+      ...(cpu.opcode?.ranges ?? []),
+      ...(cpu.io?.ranges ?? []),
+    ]) {
+      claim(range.read);
+      claim(range.write);
+    }
+  }
+  for (const map of machine.maps ?? []) {
+    for (const range of map.ranges) {
+      claim(range.read);
+      claim(range.write);
+    }
+  }
+  for (const tilemap of machine.video?.tilemaps ?? []) {
+    claim(tilemap.tileInfo);
+    claim(tilemap.mapper);
+  }
+  claim(machine.execution.screenUpdate?.handler);
+  return [...names];
+}
+
+/**
+ * A method that stores through a pointer parameter (`*counter = ...` — the
+ * MAME out-parameter idiom) only works compiled when its caller hands it a
+ * real generated pointer. The board dispatch unwraps interpreted callers'
+ * l-values to plain numbers, so such a method must stay on the interpreter,
+ * whose l-value semantics make the write land. In-closure emitted callers are
+ * unaffected: their address-of arguments are real pointers.
+ */
+function writesThroughPointerParameter(handler: GeneratedHandler): boolean {
+  const pointerNames = new Set(
+    (handler.parameters ?? '')
+      .split(',')
+      .filter(parameter => parameter.includes('*'))
+      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+      .filter((name): name is string => Boolean(name)),
+  );
+  if (!pointerNames.size) return false;
+  let found = false;
+  const targetsPointer = (target: { kind: string } | undefined): boolean => {
+    let node = target as
+      | { kind: string; name?: string; operator?: string;
+          object?: { kind: string }; operand?: { kind: string } }
+      | undefined;
+    if (node?.kind === 'unary' && node.operator === '*') node = node.operand as typeof node;
+    while (node && (node.kind === 'index' || node.kind === 'member')) {
+      node = node.object as typeof node;
+    }
+    return node?.kind === 'identifier' && pointerNames.has(node.name ?? '');
+  };
+  const visitOperations = (operations: readonly GeneratedHandlerOperation[]): void => {
+    for (const operation of operations) {
+      if (operation.op === 'assign' && targetsPointer(operation.target)) found = true;
+      for (const value of Object.values(operation)) {
+        if (Array.isArray(value) && value.length && typeof value[0] === 'object') {
+          const entries = value as { op?: string; body?: GeneratedHandlerOperation[] }[];
+          if (entries[0]?.op) visitOperations(entries as GeneratedHandlerOperation[]);
+          else for (const entry of entries) if (entry.body) visitOperations(entry.body);
+        }
+      }
+    }
+  };
+  visitOperations(handler.program?.operations ?? []);
+  return found;
+}
+
 export function boardCodegenScope(machine: BoardIr, ownerClass: string): CodegenScope {
   const handlers = (machine.handlers ?? []).filter(handler =>
     handler.program && handler.program.diagnostics.length === 0);
@@ -173,12 +281,13 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
     ...[...assignedMemberNames(handlers)].map(name => [name, ''] as const),
   ];
   return {
-    constants: Object.assign(
-      {},
-      ...handlers
-        .filter(handler => handler.ownerClass === ownerClass)
-        .map(handler => handler.constants ?? {}),
-    ) as Record<string, number>,
+    hotMethods: wiredHotMethods(machine, ownerClass),
+    // Only the interpreter's shared line/IRQ constants live at scope level.
+    // A handler's own constants stay on its method entry: template expansions
+    // (`videoram_w<Which>` as videoram_w_0/videoram_w_1) give the same name a
+    // different value per method, and merging them here handed every handler
+    // the last one's value.
+    constants: { ...DEFAULT_CONSTANTS },
     // The board resolves a member's width from its own binding, so the emitter
     // is told the name exists and nothing more. Declaring a width here would
     // narrow a value the board did not narrow.
@@ -186,12 +295,22 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
     callbacks: [],
     timers: [],
     boardScope: true,
-    methods: [...byMethod.values()].map(handler => ({
-      name: handler.method,
-      parameters: handler.parameters ?? '',
-      program: handler.program!,
-      source: handler.source ?? { file: machine.driverFile, line: 0 },
-    })),
+    methods: [...byMethod.values()].map(handler => {
+      // The interpreter derives Which from the expanded method name's _N
+      // suffix, overriding whatever the handler's constant table says; the
+      // emitted method must resolve the same value.
+      const suffix = /_(\d+)$/.exec(handler.method);
+      return {
+        name: handler.method,
+        parameters: handler.parameters ?? '',
+        program: handler.program!,
+        source: handler.source ?? { file: machine.driverFile, line: 0 },
+        constants: {
+          ...handler.constants,
+          ...(suffix ? { Which: Number(suffix[1]) } : {}),
+        },
+      };
+    }),
   };
 }
 
@@ -235,14 +354,37 @@ export function generatedBoardHandlersSource(
     const byMethod = new Map(
       (machine.handlers ?? []).map(candidate => [candidate.method, candidate]),
     );
+    // A method the board must not dispatch compiled — it materialises unbound
+    // memory or reads a palette this scope cannot supply — taints every
+    // emitted method that reaches it through a direct in-closure call, because
+    // those calls bypass the interpreter fallback.
+    const closureMethods = new Set(source.methods);
+    const tainted = new Set(source.methods.filter(method => {
+      const candidate = byMethod.get(method);
+      return (candidate !== undefined && writesUnboundMemory(candidate, bound)) ||
+        usesDevicePalette(scope, method);
+    }));
+    let spread = true;
+    while (spread) {
+      spread = false;
+      for (const method of source.methods) {
+        if (tainted.has(method)) continue;
+        const target = scope.methods.find(candidate => candidate.name === method);
+        if (!target) continue;
+        for (const name of calledIdentifiers(target.program.operations)) {
+          if (closureMethods.has(name) && tainted.has(name)) {
+            tainted.add(method);
+            spread = true;
+            break;
+          }
+        }
+      }
+    }
     const exported = source.methods.filter(method =>
       own.has(method) &&
-      !usesDevicePalette(scope, method) &&
+      !tainted.has(method) &&
       !usesWrappedParameters(scope, method) &&
-      !source.methods.some(name => {
-        const candidate = byMethod.get(name);
-        return candidate ? writesUnboundMemory(candidate, bound) : false;
-      }));
+      !(byMethod.get(method) && writesThroughPointerParameter(byMethod.get(method)!)));
     if (!exported.length) continue;
     parts.push(`  ...(() => {
     const methods = ${source.source};

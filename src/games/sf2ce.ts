@@ -6,7 +6,9 @@ export const sf2ce = sourceTarget({
   machine: { className: 'cps_state', name: 'cps1_12MHz' },
   screen: { width: 384, height: 224 },
   soundKind: 'ym2151',
-  minimumFps: 9,
+  // Issue #77: wired-hot handler codegen (bus handlers, tile-info callbacks)
+  // took this board from 48 to ~97 fps in Node; hold it above real time.
+  minimumFps: 50,
   golden: {
     regions: {
       aboardplds: 'ffcf27eb',

@@ -16,6 +16,9 @@ export type {
   GeneratedLValue,
 } from '../ir/execute.ts';
 export {
+  applyCombineData,
+  applyGeneratedDivision,
+  applyGeneratedMacro,
   compileGeneratedMachineHandler,
   dereferenceGeneratedValue,
   executeGeneratedCallbackHandler,

@@ -134,7 +134,7 @@ function generatedLoopLimitError(kind: string, context: ExecutionContext): Error
   );
 }
 
-const DEFAULT_CONSTANTS: Record<string, number> = {
+export const DEFAULT_CONSTANTS: Record<string, number> = {
   ASSERT_LINE: 1,
   CLEAR_LINE: 0,
   HOLD_LINE: 2,
@@ -390,6 +390,10 @@ function preparedHandlerRuntime(
     dereference: dereferenceGeneratedValue,
     invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
       bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
+    macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
+    combineData: applyCombineData,
+    divide: applyGeneratedDivision,
+    overrides: bindings.referenceCalls ?? {},
   };
 }
 
@@ -1298,7 +1302,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
   return evaluateCall(expression, context);
 }
 
-function isFloatingExpression(expression: GeneratedExpression): boolean {
+export function isFloatingExpression(expression: GeneratedExpression): boolean {
   if (expression.kind === 'number') return Boolean(expression.floating);
   if (expression.kind === 'cast') {
     return /\b(?:float|double)\b/.test(expression.valueType) ||
@@ -1323,24 +1327,12 @@ function isFloatingExpression(expression: GeneratedExpression): boolean {
  * compiled expressions and still reach exactly the semantics the interpreter
  * gives the same call.
  */
-function applyIdentifierCall(
-  name: string,
-  args: unknown[],
-  expression: Extract<GeneratedExpression, { kind: 'call' }>,
-  context: ExecutionContext,
-): unknown {
-  if (name === 'COMBINE_DATA') {
-    const pointer = args[0];
-    if (!isGeneratedPointer(pointer)) return 0;
-    const old = toNumber(pointerValue(pointer, 0));
-    const data = toNumber(context.locals.data);
-    const memMask = Object.hasOwn(context.locals, 'mem_mask')
-      ? toNumber(context.locals.mem_mask)
-      : 0xffff;
-    const combined = ((old & ~memMask) | (data & memMask)) >>> 0;
-    setPointerValue(pointer, 0, combined);
-    return combined;
-  }
+/**
+ * MAME framework macros with context-free semantics, shared between the
+ * interpreter and emitted handler code (`runtime.macro`). Returns undefined
+ * for a name it does not know, so callers keep their own fallbacks.
+ */
+export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'BIT') {
     // MAME BIT(x, n) extracts one bit; BIT(x, n, w) extracts a w-bit field.
     const width = args.length > 2 ? toNumber(args[2]) : 1;
@@ -1389,9 +1381,6 @@ function applyIdentifierCall(
     return Math.round((toNumber(args[0]) & maximum) * 255 / maximum);
   }
   if (name === 'assert' || name === 'static_assert') return 0;
-  if (name === 'sizeof') {
-    return typeByteWidth(generatedExpressionName(expression.args[0]!));
-  }
   if (name === 'memcpy' || name === 'memmove') {
     copyGeneratedMemory(args[0], args[1], toNumber(args[2]));
     return args[0];
@@ -1426,6 +1415,48 @@ function applyIdentifierCall(
       ? modulo(toNumber(args[0]), values.length)
       : 0;
     return values[index] ?? 0;
+  }
+  return undefined;
+}
+
+/**
+ * C++ `/` as the interpreter applies it, for emitted code: integral between
+ * integers, exact otherwise. Shared so both paths truncate identically.
+ */
+export function applyGeneratedDivision(left: unknown, right: unknown): number {
+  return BINARY_OPERATORS['/']!(toNumber(left), toNumber(right));
+}
+
+/** MAME COMBINE_DATA against a generated pointer, with explicit locals. */
+export function applyCombineData(
+  pointer: unknown,
+  data: unknown,
+  memMask: unknown,
+): number {
+  if (!isGeneratedPointer(pointer)) return 0;
+  const old = toNumber(pointerValue(pointer, 0));
+  const mask = toNumber(memMask);
+  const combined = ((old & ~mask) | (toNumber(data) & mask)) >>> 0;
+  setPointerValue(pointer, 0, combined);
+  return combined;
+}
+
+function applyIdentifierCall(
+  name: string,
+  args: unknown[],
+  expression: Extract<GeneratedExpression, { kind: 'call' }>,
+  context: ExecutionContext,
+): unknown {
+  if (name === 'COMBINE_DATA') {
+    const memMask = Object.hasOwn(context.locals, 'mem_mask')
+      ? context.locals.mem_mask
+      : 0xffff;
+    return applyCombineData(args[0], context.locals.data, memMask);
+  }
+  const macro = applyGeneratedMacro(name, args);
+  if (macro !== undefined) return macro;
+  if (name === 'sizeof') {
+    return typeByteWidth(generatedExpressionName(expression.args[0]!));
   }
   if (name === 'ioport') return reference(`ioport:${String(args[0] ?? '')}`);
   // Driver handlers use the machine-level membank("tag") finder. Preserve

@@ -1,4 +1,5 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
+import { isFloatingExpression } from '../ir/execute.ts';
 import type {
   GeneratedDeviceCallback,
   GeneratedDeviceDefinition,
@@ -45,6 +46,8 @@ interface EmitContext {
   returnedReference?: string;
   pointerSafeIndex: boolean;
   typescript: boolean;
+  /** The emitted method's own constants, resolved before the scope's. */
+  methodConstants?: Record<string, number>;
 }
 
 interface Target {
@@ -210,7 +213,7 @@ function methodClosure(
   return [...selected.values()];
 }
 
-function calledIdentifiers(operations: GeneratedHandlerOperation[]): Set<string> {
+export function calledIdentifiers(operations: GeneratedHandlerOperation[]): Set<string> {
   const names = new Set<string>();
   visitOperations(operations, operation => {
     visitOperationExpressions(operation, expression => {
@@ -263,7 +266,10 @@ function supportsMethod(
     ...definition.callbacks.map(callback => callback.member),
     ...definition.timers.map(timer => timer.member),
   ]);
-  const constants = new Set(Object.keys(definition.constants));
+  const constants = new Set([
+    ...Object.keys(definition.constants),
+    ...Object.keys(method.constants ?? {}),
+  ]);
   const callees = calledIdentifiers(method.program.operations);
   let supported = true;
   visitOperations(method.program.operations, operation => {
@@ -276,7 +282,14 @@ function supportsMethod(
           callees.has(expression.name) ||
           ['true', 'false', 'nullptr', 'g_profiler',
             'attotime::zero', 'attotime::never'].includes(expression.name) ||
-          expression.name.startsWith('PROFILER_');
+          expression.name.startsWith('PROFILER_') ||
+          // MAME's mem_mask byte-lane tests, emitted against the handler's own
+          // mem_mask parameter exactly as the interpreter evaluates them.
+          (
+            (expression.name === 'ACCESSING_BITS_0_7' ||
+              expression.name === 'ACCESSING_BITS_8_15') &&
+            locals.has('mem_mask')
+          );
       } else if (expression.kind === 'unary') {
         supported = expression.operator !== '&' ||
           expression.operand.kind === 'index' ||
@@ -292,6 +305,17 @@ function supportsMethod(
         supported = true;
       } else if (expression.kind === 'call' && expression.callee.kind === 'index') {
         supported = true;
+      } else if (expression.kind === 'call' && expression.callee.kind === 'member') {
+        // A member call chained on another call's result — MAME framework
+        // service chains such as machine().bookkeeping().coin_counter_w(...) —
+        // has interpreter-only resolution unless the inner call is a method
+        // this scope compiles. The invoke fallback would hand the chain a
+        // number, so such a method stays interpreted.
+        const inner = expression.callee.object;
+        supported = inner.kind !== 'call' ||
+          inner.callee.kind !== 'identifier' ||
+          definition.methods.some(candidate => candidate.name ===
+            (inner.callee as { name: string }).name);
       }
     });
   });
@@ -327,6 +351,7 @@ function emitMethod(
       Boolean(definition.boardScope),
     boardScope: Boolean(definition.boardScope),
     typescript,
+    methodConstants: method.constants,
   };
   collectLocals(method.program.operations, context);
   const annotation = typescript ? ': any' : '';
@@ -453,7 +478,14 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     if (expression.name === 'attotime::zero') return '0';
     if (expression.name === 'attotime::never') return 'Infinity';
     if (expression.name.startsWith('PROFILER_')) return '0';
-    const constant = context.definition.constants[expression.name];
+    if (expression.name === 'ACCESSING_BITS_0_7') {
+      return `(((${localName('mem_mask')}) & 0x00ff) ? 1 : 0)`;
+    }
+    if (expression.name === 'ACCESSING_BITS_8_15') {
+      return `(((${localName('mem_mask')}) & 0xff00) ? 1 : 0)`;
+    }
+    const constant = context.methodConstants?.[expression.name] ??
+      context.definition.constants[expression.name];
     if (constant !== undefined) return String(constant);
     return `members.${expression.name}`;
   }
@@ -497,6 +529,16 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       return `((Number(${left}) ${operator} Number(${right})) ? 1 : 0)`;
     }
     if (expression.operator === '>>') return `((${left}) >>> (${right}))`;
+    if (expression.operator === '/') {
+      // C++ integer division truncates. The interpreter applies that whenever
+      // both operands are integers at run time, exempting expressions the
+      // source wrote as floating; emitted code must decide it the same way, or
+      // a `mark_tile_dirty(offset / 2)` index arrives as 1.5.
+      if (isFloatingExpression(expression.left) || isFloatingExpression(expression.right)) {
+        return `((${left}) / (${right}))`;
+      }
+      return `runtime.divide(${left}, ${right})`;
+    }
     return `((${left}) ${expression.operator} (${right}))`;
   }
   if (expression.kind === 'assignment') {
@@ -554,6 +596,16 @@ function emitCall(
 ): string {
   if (expression.callee.kind === 'identifier') {
     const name = expression.callee.name;
+    // A board package can override a source method with a shape-recognised
+    // runtime fast path (CPS1's gfxrom_bank_mapper pointer walk is one). The
+    // interpreter consults those overrides before anything else, so an emitted
+    // direct call must yield to them the same way. Both ternary arms reuse the
+    // same emitted argument text, so arguments still evaluate exactly once.
+    const yieldToOverride = (emission: string, argList: string[]): string =>
+      context.boardScope
+        ? `(runtime.overrides[${JSON.stringify(name)}] ? ` +
+          `runtime.overrides[${JSON.stringify(name)}](${argList.join(', ')}) : ${emission})`
+        : emission;
     if (context.compiled.has(name)) {
       const target = context.definition.methods.find(method => method.name === name);
       const parameters = parseParameters(target?.parameters ?? '');
@@ -570,9 +622,16 @@ function emitCall(
         const index = parameters.findIndex(parameter => parameter.name === returnedReference);
         return emitReturnedReferenceAssignment(expression.args[index]!, call, context);
       }
-      return call;
+      return yieldToOverride(call, args);
     }
     const args = expression.args.map(argument => emitExpression(argument, context));
+    if (name === 'COMBINE_DATA') {
+      // The interpreter reads data/mem_mask from the handler's locals; emitted
+      // code passes its own parameters, with MAME's full-mask default.
+      const data = context.locals.has('data') ? localName('data') : '0';
+      const memMask = context.locals.has('mem_mask') ? localName('mem_mask') : '0xffff';
+      return `runtime.combineData(${args[0] ?? '0'}, ${data}, ${memMask})`;
+    }
     if (name === 'BIT') {
       const mask = args[2] ? `((1 << (${args[2]})) - 1)` : '1';
       return `(((${args[0] ?? '0'}) >>> (${args[1] ?? '0'})) & ${mask})`;
@@ -591,7 +650,10 @@ function emitCall(
     }
     if (name === 'bool') return `((${args[0] ?? '0'}) ? 1 : 0)`;
     if (name === 'ALLOC' || name === 'make_unique_clear') {
-      return `new Uint8Array(Math.max(0, Number(${args[0] ?? '0'})))`;
+      return yieldToOverride(
+        `new Uint8Array(Math.max(0, Number(${args[0] ?? '0'})))`,
+        args,
+      );
     }
     if (name === 'sizeof') {
       const valueType = expression.args[0]
@@ -628,7 +690,12 @@ function emitCall(
     if (context.definition.callbacks.some(callback => callback.member === name)) {
       return `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''})`;
     }
-    return `(runtime.calls[${JSON.stringify(name)}]?.(${args.join(', ')}) ?? 0)`;
+    // Board/host bindings first — the interpreter's own precedence — then the
+    // shared framework-macro table, so rgb_t/TILE_FLIPYX/assert and friends
+    // mean the same thing here as they do interpreted.
+    return `(runtime.calls[${JSON.stringify(name)}] ? ` +
+      `runtime.calls[${JSON.stringify(name)}](${args.join(', ')}) : ` +
+      `runtime.macro(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''}))`;
   }
   if (expression.callee.kind === 'member') {
     if (

@@ -3582,8 +3582,15 @@ export function bindGeneratedShareState(
     ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1)
     : bytes;
   state[`m_${tag}`] = boundMemory;
-  for (const member of aliases) state[member] = boundMemory;
   const indexed = /^(.+)\[(\d+)\]$/.exec(tag);
+  for (const member of aliases) {
+    // An indexed share's finder member (`m_videoram` for share "videoram[1]")
+    // is the per-element array built below. Writing the raw buffer over it
+    // here destroyed the element bound for the earlier index, leaving
+    // m_videoram[0] a hole.
+    if (indexed && member === `m_${indexed[1]}`) continue;
+    state[member] = boundMemory;
+  }
   if (!indexed) return;
   const member = `m_${indexed[1]}`;
   const values = Array.isArray(state[member]) ? state[member] as unknown[] : [];

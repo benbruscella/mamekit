@@ -1,4 +1,7 @@
 import {
+  applyCombineData,
+  applyGeneratedDivision,
+  applyGeneratedMacro,
   dereferenceGeneratedValue,
   executeGeneratedProgram,
   type GeneratedCallArgument,
@@ -80,6 +83,14 @@ export interface GeneratedDeviceExecutionContext {
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
+  /** Context-free MAME framework macros, identical to the interpreter's. */
+  macro(name: string, ...args: unknown[]): unknown;
+  /** MAME COMBINE_DATA against an emitted pointer. */
+  combineData(pointer: unknown, data: unknown, memMask: unknown): unknown;
+  /** C++ `/`: integral between integers, exact otherwise. */
+  divide(left: unknown, right: unknown): number;
+  /** Reference-call overrides; devices have none, boards may (see board IR). */
+  readonly overrides: Record<string, (...args: any[]) => unknown>;
 }
 
 export type GeneratedDeviceMethodExecutable = (
@@ -504,6 +515,10 @@ class IrDevice implements Device {
         if (typeof member === 'function') return member(...args);
         return 0;
       },
+      macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
+      combineData: applyCombineData,
+      divide: applyGeneratedDivision,
+      overrides: {},
     };
     const pendingTimers = [...this.timers.values()];
     this.bindings.calls!.timer_alloc = () => pendingTimers.shift()?.timer ?? 0;
