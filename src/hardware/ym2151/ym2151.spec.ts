@@ -41,7 +41,7 @@ const context: SoundRuntimeContext = {
     if (signal === 'irq_handler') interrupts.push(value);
   },
   readSignal: () => undefined, readProgram: () => 0xff,
-  stallCpu: () => {}, setCpuInputLine: () => {},
+  stallCpu: () => {}, setCpuInputLine: () => {}, perfectQuantum: () => {},
 };
 
 const runtime = installYm2151Runtime(context);

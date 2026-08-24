@@ -34,7 +34,7 @@ installSoundRuntime({
   readSignal: () => undefined,
   readProgram: () => 0xff,
   stallCpu: () => {},
-  setCpuInputLine: () => {},
+  setCpuInputLine: () => {}, perfectQuantum: () => {},
 });
 
 assert.equal(typeof calls['m_discrete.write'], 'function');
@@ -88,7 +88,7 @@ installSoundRuntime({
   readSignal: () => undefined,
   readProgram: () => 0xff,
   stallCpu: () => {},
-  setCpuInputLine: () => {},
+  setCpuInputLine: () => {}, perfectQuantum: () => {},
 });
 
 assert.equal(typeof williamsCalls['williams_state.snd_cmd_w'], 'function');

@@ -88,6 +88,12 @@ export function installDacRuntime(context: SoundRuntimeContext): void {
     const write = (data = 0): number => {
       context.callDevice(piaTag, 'portb_w', (data >>> 1) & 0x0f);
       context.callDevice(piaTag, 'ca1_w', ~data & 1);
+      // midway_sounds_good_device::synced_write: "oftentimes games will write
+      // one nibble at a time; the sync on this is very important, so we boost
+      // the interleave briefly while this happens". Rampage presents its two
+      // command nibbles 45us apart, well inside one scanline slice, so without
+      // the boost the 68000 only ever sees the second half of every command.
+      context.perfectQuantum(250e-6);
       return 0;
     };
     const read = (): number => Number(context.state.m_status ?? 0) & 3;

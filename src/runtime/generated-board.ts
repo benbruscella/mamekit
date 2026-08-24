@@ -224,6 +224,9 @@ class IrBoard implements Board {
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
   private currentLineFraction = 0;
+  /** The processor whose slice is executing, so a boost never re-enters it. */
+  private runningCpu?: string;
+  private boosting = false;
   private soundRuntime?: SoundRuntimeHooks;
   private boardSpecificReset?: () => void;
   private readonly peripheralResets: Array<() => void> = [];
@@ -519,7 +522,14 @@ class IrBoard implements Board {
       runAutonomousNow();
       return 0;
     };
-    calls['machine().scheduler().perfect_quantum'] = () => 0;
+    // MAME boosts the scheduler's interleave when a device publishes something
+    // another processor has to observe before it is overwritten. The frame
+    // schedule is scanline-granular, so without this the observer never runs
+    // between the two halves of a handshake that a single slice contains.
+    calls['machine().scheduler().perfect_quantum'] = (seconds = 0) => {
+      this.perfectQuantum(seconds);
+      return 0;
+    };
     calls['machine().schedule_exidy_collision'] = (position, collision) => {
       const vtotal = Math.max(1, machine.execution.screen.vtotal);
       const line = ((Math.floor(position) % vtotal) + vtotal) % vtotal;
@@ -1182,22 +1192,32 @@ class IrBoard implements Board {
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
         run: (cycles: number) => {
-          const pendingStall = this.cpuStalls.get(specification.tag) ?? 0;
-          const stalled = Math.min(cycles, pendingStall);
-          this.cpuStalls.set(specification.tag, pendingStall - stalled);
-          if (specification.tag === timerClockCpu?.tag && stalled > 0) {
-            advanceTimedHardware(stalled / timerClockHz);
+          const outerCpu = this.runningCpu;
+          const outerFraction = this.currentLineFraction;
+          this.runningCpu = specification.tag;
+          try {
+            const pendingStall = this.cpuStalls.get(specification.tag) ?? 0;
+            const stalled = Math.min(cycles, pendingStall);
+            this.cpuStalls.set(specification.tag, pendingStall - stalled);
+            if (specification.tag === timerClockCpu?.tag && stalled > 0) {
+              advanceTimedHardware(stalled / timerClockHz);
+            }
+            const executed = stalled + (cycles > stalled
+              ? this.cpus.get(specification.tag)!.run(cycles - stalled)
+              : 0);
+            this.currentLineFraction = 0;
+            this.soundRuntime?.tickCpu?.(specification.tag, executed);
+            this.cpuCycles.set(
+              specification.tag,
+              (this.cpuCycles.get(specification.tag) ?? 0) + executed,
+            );
+            return executed;
+          } finally {
+            // A perfect_quantum boost runs another processor from inside this
+            // one's slice; restore what it interrupted rather than resetting.
+            this.runningCpu = outerCpu;
+            if (outerCpu) this.currentLineFraction = outerFraction;
           }
-          const executed = stalled + (cycles > stalled
-            ? this.cpus.get(specification.tag)!.run(cycles - stalled)
-            : 0);
-          this.currentLineFraction = 0;
-          this.soundRuntime?.tickCpu?.(specification.tag, executed);
-          this.cpuCycles.set(
-            specification.tag,
-            (this.cpuCycles.get(specification.tag) ?? 0) + executed,
-          );
-          return executed;
         },
       })), ...autonomousProcessors],
       onEvent: event => {
@@ -1551,6 +1571,24 @@ class IrBoard implements Board {
         [...this.devices].map(([tag, device]) => [tag, device.get('m_q')]),
       ),
     };
+  }
+
+  /**
+   * MAME `scheduler::perfect_quantum(duration)`.
+   *
+   * Hand the requested window to the frame schedule so every other processor
+   * observes what the running one just published. Re-entrant calls are
+   * ignored: a boosted processor that boosts in turn would recurse.
+   */
+  perfectQuantum(seconds: number): void {
+    const active = this.runningCpu;
+    if (!active || this.boosting) return;
+    this.boosting = true;
+    try {
+      this.frameRunner?.boost(active, seconds);
+    } finally {
+      this.boosting = false;
+    }
   }
 
   private installDeviceHandlers(
@@ -2967,6 +3005,7 @@ class IrBoard implements Board {
         const cpu = this.cpus.get(cpuTag);
         if (cpu) cpu.setInputLine(line, state);
       },
+      perfectQuantum: seconds => this.perfectQuantum(seconds),
     });
     for (const specification of machine.devices ?? []) {
       if (!/^(?:YM|AY|POKEY|TMS|OKI|MSM|SN|DAC|DISCRETE)/.test(specification.type)) continue;
