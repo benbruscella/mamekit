@@ -12,7 +12,7 @@
  * `clock` (defaults to sampleRate — for the WSG they are the same, 96000).
  */
 import type { GeneratedAudioRoute } from '../ir/board.ts';
-import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 
 export interface WorkletCoreConfig {
   readonly sampleRate: number;
@@ -27,6 +27,8 @@ export interface WorkletCoreConfig {
   readonly deviceTags?: string[];
   /** MAME device type in chip-index order, when a bank mixes several chips. */
   readonly deviceTypes?: string[];
+  /** Resolution, coding and gain of each DAC, lowered from MAME source. */
+  readonly dacs?: GeneratedDacChip[];
   readonly routes?: GeneratedAudioRoute[];
   readonly auxiliary?: GeneratedDacFilterPlan;
   readonly auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
@@ -116,6 +118,7 @@ export class AudioOutput {
       chips: core.chips,
       deviceTags: core.deviceTags,
       deviceTypes: core.deviceTypes,
+      dacs: core.dacs,
       routes: core.routes,
       auxiliary: core.auxiliary,
       auxiliaryDevices: core.auxiliaryDevices,

@@ -507,10 +507,16 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       const resolved = ast.findFunctionInHierarchy(cfg.cls, targetMethod);
       if (resolved?.className === targetClass) g.edge(cfgId, callback.id, 'HAS_CALLBACK');
     }
-    for (const callee of cfg.calls) {
+    cfg.calls.forEach((callee, index) => {
       const target = resolveConfig(cfg, callee);
-      if (target) g.edge(cfgId, `machine:${target.cls}.${target.name}`, 'CALLS');
-    }
+      // The call's position among this config's own device declarations, so
+      // composition can be replayed in MAME's statement order.
+      if (target) {
+        g.edge(cfgId, `machine:${target.cls}.${target.name}`, 'CALLS', {
+          order: cfg.callOrders[index] ?? cfg.devices.length,
+        });
+      }
+    });
     const bankRoots = [
       ...(machineStart ? [machineStart] : []),
       ...(videoStart ? [videoStart] : []),

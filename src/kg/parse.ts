@@ -812,6 +812,14 @@ export interface MachineConfigDef {
   /** calls to other config helpers on the same class, e.g. galagab() calls galaga() */
   calls: string[];
   /**
+   * How many of this config's own devices were declared before each call in
+   * `calls`. MAME composes a machine in statement order — Rampage's mono_sg
+   * calls its base first and then adds a sound board, while Qix's qix_base
+   * creates its main CPU first and calls qix_video last — and the order
+   * decides which CPU the frame schedule treats as the primary one.
+   */
+  callOrders: number[];
+  /**
    * statements addressing a device instantiated in a CALLED config
    * (invaders(config) calls mw8080bw_root(config) then does
    * m_maincpu->set_addrmap(AS_IO, ...)) — resolved to the owning device at
@@ -1122,6 +1130,7 @@ export function parseMachineConfigs(
       devices: [],
       softwareLists: [],
       calls: [],
+      callOrders: [],
       patches: [],
       removedAddrMaps: [],
       removedDevices: [],
@@ -1205,6 +1214,7 @@ export function parseMachineConfigs(
       // helper/base call: galaga(config) or tpp1_state::config(config).
       const call = /^(?:(\w+)::)?(\w+)\(\s*config\s*\)$/.exec(s);
       if (call) {
+        cfg.callOrders.push(cfg.devices.length);
         cfg.calls.push(call[1] ? `${call[1]}::${call[2]}` : call[2]!);
         continue;
       }

@@ -28,6 +28,7 @@ import {
   lowerAudioRoutes,
   lowerAuxiliaryAudioDevices,
   lowerBiquadFilterChain,
+  lowerDacChips,
 } from './emit-machine.ts';
 import type { BoardConfig } from '../runtime/types.ts';
 import type {
@@ -328,6 +329,56 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     method: string;
   }> = [];
   {
+    // Devices follow MAME's own composition order. A derived machine
+    // configuration calls its base before adding to it, so the base's devices
+    // are declared first; visiting the derived configuration first put a sound
+    // board ahead of the driver's own CPU. That is not cosmetic — the first
+    // CPU is the one the frame schedule runs first each scanline, and Rampage
+    // ended up running its Sounds Good 68000 ahead of the Z80 that drives it.
+    const seenDevices = new Set<string>();
+    // A composite device's own machine config is expanded after the whole
+    // configuration chain, keeping its children behind the board's devices.
+    const hostedConfigs: { id: string; hostTag: string }[] = [];
+    const collectDevices = (id: string, hostTag?: string): void => {
+      const visitKey = `${id}\0${hostTag ?? ''}`;
+      if (seenDevices.has(visitKey)) return;
+      seenDevices.add(visitKey);
+      const own = g.out(id, 'HAS_DEVICE');
+      const addDevice = (node: KGNode): void => {
+        const rawTag = String(node.props.tag);
+        // Devices installed by a composite device's machine config live in
+        // that device's tag namespace in MAME, even when the graph reuses a
+        // single Device node and therefore cannot reveal the collision by
+        // counting declarations (for example Venture's two "pia" devices).
+        const tag = hostTag && !rawTag.includes(':') ? `${hostTag}:${rawTag}` : rawTag;
+        devices.push(tag === rawTag ? node : {
+          ...node,
+          props: { ...node.props, tag },
+        });
+        hostedConfigs.push(...g.out(node.id, 'CALLS').map(called => ({
+          id: called.node.id,
+          hostTag: tag,
+        })));
+      };
+      // Replay the configuration's statements: each CALLS edge records how
+      // many of this config's own devices came before it.
+      const calls = [...g.out(id, 'CALLS')]
+        .map(called => ({ called, order: Number(called.edge.props?.order ?? own.length) }))
+        .sort((left, right) => left.order - right.order);
+      let next = 0;
+      for (const { called, order } of calls) {
+        for (; next < Math.min(order, own.length); next++) addDevice(own[next]!.node);
+        collectDevices(called.node.id, hostTag);
+      }
+      for (; next < own.length; next++) addDevice(own[next]!.node);
+    };
+    collectDevices(machine.id);
+    while (hostedConfigs.length) {
+      const hosted = hostedConfigs.shift()!;
+      collectDevices(hosted.id, hosted.hostTag);
+    }
+  }
+  {
     const seen = new Set<string>();
     const queue: { id: string; hostTag?: string }[] = [{ id: machine.id }];
     while (queue.length) {
@@ -337,15 +388,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       seen.add(visitKey);
       for (const d of g.out(id, 'HAS_DEVICE')) {
         const rawTag = String(d.node.props.tag);
-        // Devices installed by a composite device's machine config live in
-        // that device's tag namespace in MAME, even when the graph reuses a
-        // single Device node and therefore cannot reveal the collision by
-        // counting declarations (for example Venture's two "pia" devices).
         const tag = hostTag && !rawTag.includes(':') ? `${hostTag}:${rawTag}` : rawTag;
-        devices.push(tag === rawTag ? d.node : {
-          ...d.node,
-          props: { ...d.node.props, tag },
-        });
         // board-style devices carry a sub-machine (device_add_mconfig)
         queue.push(...g.out(d.node.id, 'CALLS').map(c => ({
           id: c.node.id,
@@ -890,6 +933,13 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
                 // Resolution and coding are per-chip MAME facts; the worklet
                 // resolves them from its lowered DAC_GENERATOR table.
                 deviceTypes: dacChips.map(device => String(device.props.type)),
+                dacs: lowerDacChips(opts.mameSrc, dacChips.map(device => ({
+                  tag: String(device.props.tag),
+                  type: String(device.props.type),
+                  config: Array.isArray(device.props.config)
+                    ? device.props.config.map(String)
+                    : [],
+                }))),
                 // MAME's op-amp stages between the DAC and the board output.
                 ...(lowerBiquadFilterChain(graph, dacChips.map(device => ({
                   id: device.id, tag: String(device.props.tag),

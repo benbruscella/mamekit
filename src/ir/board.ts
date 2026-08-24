@@ -11,6 +11,7 @@ import { BOARD_IR_SCHEMA_VERSION } from './version.ts';
 import type {
   GeneratedAuxiliaryAudioDevice,
   GeneratedBiquadStage,
+  GeneratedDacChip,
   GeneratedNesApuPlan,
 } from './audio-protocol.ts';
 
@@ -721,6 +722,8 @@ export interface GeneratedSoundBinding {
   deviceType: string;
   /** MAME device type per chip index, when a bank mixes several chips. */
   deviceTypes?: string[];
+  /** Resolution, coding and gain of each DAC, lowered from MAME source. */
+  dacs?: GeneratedDacChip[];
   writeMethods: string[];
   enableMethods: string[];
   controlOffset: number;

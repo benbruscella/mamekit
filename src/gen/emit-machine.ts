@@ -37,6 +37,7 @@ export function generatedCpuCycleClock(type: string | undefined, clock: number):
 import type {
   GeneratedAuxiliaryAudioDevice,
   GeneratedBiquadStage,
+  GeneratedDacChip,
   GeneratedDiscreteDacPlan,
   GeneratedDiscreteEffectsPlan,
   GeneratedNesApuPlan,
@@ -49,6 +50,8 @@ import type { BoardConfig } from '../runtime/types.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { analogValue } from '../mame/audio-compiler.ts';
+import { dacGeneratorTable } from '../hardware/dac/extract.ts';
+import type { DacGeneratorTable } from '../hardware/dac/worklet-source.ts';
 
 export function lowerGeneratedMachine(
   graph: KnowledgeGraph,
@@ -72,34 +75,46 @@ export function lowerGeneratedMachine(
   const queue: Array<{ id: string; hostTag?: string }> = [{ id: rootMachineId }];
   const visitedConfigs = new Set<string>();
   const visitedDevices = new Set<string>();
-  while (queue.length) {
-    const current = queue.shift()!;
-    const visitKey = `${current.id}\0${current.hostTag ?? ''}`;
-    if (visitedConfigs.has(visitKey)) continue;
+  // Replay each configuration's statements in MAME's own order: a CALLS edge
+  // records how many of the config's own devices were declared before it, so
+  // a base called first contributes its devices first and a helper called last
+  // (Qix's qix_video) contributes its own last.
+  const visitConfig = (id: string, hostTag?: string): void => {
+    const visitKey = `${id}\0${hostTag ?? ''}`;
+    if (visitedConfigs.has(visitKey)) return;
     visitedConfigs.add(visitKey);
-    for (const edge of graph.edges.filter(candidate =>
-      candidate.from === current.id && candidate.rel === 'HAS_DEVICE')) {
+    const own = graph.edges.filter(candidate =>
+      candidate.from === id && candidate.rel === 'HAS_DEVICE');
+    const addDevice = (edge: typeof own[number]): void => {
       const node = byId.get(edge.to);
-      if (!node) continue;
+      if (!node) return;
       const rawTag = String(node.props.tag);
-      const tag = current.hostTag && !rawTag.includes(':')
-        ? `${current.hostTag}:${rawTag}`
-        : rawTag;
+      const tag = hostTag && !rawTag.includes(':') ? `${hostTag}:${rawTag}` : rawTag;
       const deviceKey = `${node.id}\0${tag}`;
       if (!visitedDevices.has(deviceKey)) {
         visitedDevices.add(deviceKey);
-        reachableDevices.push({ node, tag, ...(current.hostTag ? { hostTag: current.hostTag } : {}) });
+        reachableDevices.push({ node, tag, ...(hostTag ? { hostTag } : {}) });
         emittedTags.set(node.id, tag);
       }
       for (const call of graph.edges.filter(candidate =>
         candidate.from === node.id && candidate.rel === 'CALLS')) {
         queue.push({ id: call.to, hostTag: tag });
       }
+    };
+    const calls = graph.edges
+      .filter(candidate => candidate.from === id && candidate.rel === 'CALLS')
+      .map(edge => ({ edge, order: Number(edge.props?.order ?? own.length) }))
+      .sort((left, right) => left.order - right.order);
+    let next = 0;
+    for (const { edge, order } of calls) {
+      for (; next < Math.min(order, own.length); next++) addDevice(own[next]!);
+      visitConfig(edge.to, hostTag);
     }
-    for (const call of graph.edges.filter(candidate =>
-      candidate.from === current.id && candidate.rel === 'CALLS')) {
-      queue.push({ id: call.to, ...(current.hostTag ? { hostTag: current.hostTag } : {}) });
-    }
+    for (; next < own.length; next++) addDevice(own[next]!);
+  };
+  while (queue.length) {
+    const current = queue.shift()!;
+    visitConfig(current.id, current.hostTag);
   }
   const emittedDeviceTag = (deviceId: string, rawTag: string): string =>
     emittedTags.get(deviceId) ?? rawTag;
@@ -526,6 +541,11 @@ export function lowerGeneratedMachine(
           deviceTags: dacDevices.map(device => device.tag),
           deviceType: dacDevices[0]!.type,
           deviceTypes: dacDevices.map(device => device.type),
+          dacs: lowerDacChips(graph.meta.mameSrc, dacDevices.map(device => ({
+            tag: device.tag,
+            type: device.type,
+            config: deviceConfigLines(byId.get(device.id)?.props),
+          }))),
           writeMethods: ['data_w', 'write'],
           ...(lowerBiquadFilterChain(graph, dacDevices).length
             ? { filterChain: lowerBiquadFilterChain(graph, dacDevices) }
@@ -877,6 +897,42 @@ function opampMfbLowpassCalc(
   };
 }
 
+/**
+ * Resolve every DAC on a board to the resolution, coding and gain MAME states
+ * for it.
+ *
+ * A real DAC chip declares them in its DAC_GENERATOR line in dac.h. A netlist
+ * integer input is not a DAC at all — its width is the mask its machine
+ * configuration passes, `NETLIST_INT_INPUT(config, tag, "DAC.VAL", 0, 255)`.
+ * Both are statements of fact in MAME source; neither may be inferred from the
+ * values a game happens to write.
+ */
+export function lowerDacChips(
+  mameSource: string,
+  devices: { tag: string; type: string; config?: readonly string[] }[],
+): GeneratedDacChip[] {
+  let table: DacGeneratorTable = {};
+  try {
+    table = dacGeneratorTable(mameSource);
+  } catch {
+    table = {};
+  }
+  return devices.flatMap(device => {
+    const generator = table[device.type];
+    if (generator) return [{ deviceTag: device.tag, ...generator }];
+    if (device.type !== 'NETLIST_INT_INPUT') return [];
+    // netlist_mame_int_input_device(param_name, shift, mask): the mask is the
+    // widest value the netlist parameter accepts.
+    const call = (device.config ?? [])
+      .map(line => /NETLIST_INT_INPUT\s*\([^,]+,[^,]+,[^,]+,\s*(\d+)\s*,\s*(\d+)\s*\)/.exec(line))
+      .find(match => match !== null);
+    const mask = call ? Number(call[2]) : Number.NaN;
+    if (!Number.isInteger(mask) || mask < 1) return [];
+    const bits = Math.floor(Math.log2(mask)) + 1;
+    return [{ deviceTag: device.tag, bits, mapper: 'unsigned', gain: 1 }];
+  });
+}
+
 /** The filter_biquad_device setup helpers this compiler can lower. */
 const BIQUAD_SETUPS: Record<string, (components: readonly number[]) => ReturnType<typeof opampMfbLowpassCalc>> = {
   opamp_mfb_lowpass_setup: opampMfbLowpassCalc,
@@ -1035,6 +1091,11 @@ export function lowerAuxiliaryAudioDevices(
       } : {}),
     }];
   });
+}
+
+/** The verbatim machine-config statements that instantiated a device. */
+function deviceConfigLines(props?: Record<string, unknown>): string[] {
+  return Array.isArray(props?.config) ? props.config.map(String) : [];
 }
 
 function deviceMember(props: Record<string, unknown>): string | undefined {

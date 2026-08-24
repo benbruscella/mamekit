@@ -30,6 +30,18 @@ export interface GeneratedBiquadStage {
   source: { file: string; line: number };
 }
 
+/**
+ * One DAC as MAME declares it: the chip's resolution and coding, or, for a
+ * netlist integer input, the mask its machine configuration passes.
+ */
+export interface GeneratedDacChip {
+  deviceTag: string;
+  bits: number;
+  /** dac_mapper_* without its prefix: unsigned, signed, ones_complement. */
+  mapper: string;
+  gain: number;
+}
+
 /** Source-derived DAC/filter network mixed alongside a primary sound core. */
 export interface GeneratedDacFilterPlan {
   type: 'DAC_FILTER';

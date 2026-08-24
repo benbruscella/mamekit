@@ -12,6 +12,12 @@
 
 export const KNOWN_ISSUES: Record<string, string> = {
   sf2ce: 'fps',
+  // Found by this suite. The board is fine: its contract replays on the app
+  // canvas with the accepted 190 AY writes, and the offline probe renders
+  // them at 0.073 RMS through the same browser output stage. The live
+  // AudioWorklet emits exactly 0 for the whole run. Verified on a clean tree
+  // at 3c6ab97, so it predates the composition-order work.
+  carnival: 'silent through the live AudioWorklet, audible offline',
   // Found by this suite rather than by play-testing, and not yet in #54.
   // The browser board diverges from the Node contract during boot: maincpu
   // X/Y/U and the CC E-flag differ by frame 22, m_irq_line by frame 24, and

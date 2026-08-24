@@ -65,6 +65,33 @@ eq('driver-init address-space installs lower as executable map overrides',
       className: 'board_state', method: 'protection_r' },
   ]);
 
+// --- machine config: composition order --------------------------------------
+// MAME builds a machine in statement order, and the first CPU declared is the
+// driver's own. Rampage's mono_sg calls its base before adding a sound board;
+// Qix's qix_base creates its main CPU first and calls qix_video last. Both
+// orders have to survive lowering or a sound board ends up ahead of the CPU
+// that drives it.
+{
+  const [derived, base] = parseMachineConfigs(`
+void mcr3_state::mono_sg(machine_config &config)
+{
+  mcrmono(config);
+  MIDWAY_SOUNDS_GOOD(config, m_sounds_good);
+}
+void qix_state::qix_base(machine_config &config)
+{
+  MC6809E(config, m_maincpu, 1250000);
+  NVRAM(config, "nvram");
+  qix_video(config);
+}
+`, { m_sounds_good: 'sg', m_maincpu: 'maincpu' }, {});
+  eq('a base called first contributes its devices first', derived!.callOrders, [0]);
+  eq('the derived config adds after it', derived!.devices.map(d => d.tag), ['sg']);
+  eq('a helper called last contributes its devices last', base!.callOrders, [2]);
+  eq('the calling config declared two devices first',
+    base!.devices.map(d => d.tag), ['maincpu', 'nvram']);
+}
+
 // --- machine config: inherited address-map removal --------------------------
 {
   const [cfg] = parseMachineConfigs(`

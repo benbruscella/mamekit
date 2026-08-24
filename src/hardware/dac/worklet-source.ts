@@ -1,4 +1,9 @@
-/** One MAME DAC_GENERATOR declaration: resolution, coding and ladder gain. */
+/**
+ * One DAC's electrical definition, as MAME states it: the resolution, the
+ * coding of the value written, and the ladder gain. For a real DAC chip these
+ * come from its DAC_GENERATOR line in src/devices/sound/dac.h; for a netlist
+ * integer input they come from the mask its machine configuration passes.
+ */
 export interface DacGenerator {
   bits: number;
   mapper: string;
@@ -7,15 +12,9 @@ export interface DacGenerator {
 
 export type DacGeneratorTable = Record<string, DacGenerator>;
 
-export function generatedDacWorkletSource(generators: DacGeneratorTable): string {
+export function generatedDacWorkletSource(): string {
   return `// GENERATED — generic source-routed parallel DAC bank.
 export interface GeneratedDacWrite { offset: number; data: number; frac?: number; method?: string }
-
-// MAME's DAC device library, lowered from the DAC_GENERATOR calls in
-// src/devices/sound/dac.h. Resolution, coding and ladder gain are per-chip
-// facts; nothing here may be inferred from the values a game happens to write.
-const DAC_GENERATORS: Record<string, { bits: number; mapper: string; gain: number }> =
-  ${JSON.stringify(generators, null, 2).replace(/\n/g, '\n  ')};
 
 // dac_mapper_unsigned in src/devices/sound/dac.cpp.
 function dacUnsigned(input: number, bits: number): number {
@@ -103,19 +102,16 @@ export class GeneratedDacMixer {
     chips = 1,
     routes: readonly { chip: number; gain: number }[] = [],
     auxiliary: readonly { type: string; gain: number }[] = [],
-    deviceTypes: readonly string[] = [],
+    dacs: readonly { bits: number; mapper: string; gain: number }[] = [],
   ) {
     this.values = new Float64Array(chips);
     this.seen = new Uint8Array(chips);
     // One value map per chip, because a board may mix DAC resolutions. A chip
-    // whose MAME type is unknown here cannot be rendered at all: guessing its
-    // width silently wraps every code that overflows the guess.
+    // the machine could not state a resolution for cannot be rendered at all:
+    // guessing its width silently wraps every code that overflows the guess.
     this.maps = Array.from({ length: chips }, (_unused, chip) => {
-      const type = deviceTypes[chip] ?? deviceTypes[0];
-      const generator = type ? DAC_GENERATORS[type] : undefined;
-      if (!generator) {
-        throw new Error(\`no MAME DAC definition for chip \${chip} (\${type ?? 'untyped'})\`);
-      }
+      const generator = dacs[chip] ?? dacs[0];
+      if (!generator) throw new Error(\`no lowered DAC definition for chip \${chip}\`);
       return dacValueMap(generator);
     });
     this.gains = Float64Array.from({ length: chips }, (_unused, chip) =>
@@ -263,7 +259,7 @@ class GeneratedDacProcessor extends AudioWorkletProcessor {
       const message = event.data as {
         type: string; chips?: number; routes?: { chip: number; gain: number }[];
         auxiliaryDevices?: { type: string; gain: number }[];
-        deviceTypes?: string[];
+        dacs?: { bits: number; mapper: string; gain: number }[];
         filterChain?: { type: string; frequency: number; q: number; gain: number }[];
         refresh?: number; writes?: GeneratedDacWrite[];
       };
@@ -273,7 +269,7 @@ class GeneratedDacProcessor extends AudioWorkletProcessor {
             message.chips ?? 1,
             message.routes,
             message.auxiliaryDevices,
-            message.deviceTypes,
+            message.dacs,
           ),
           sampleRate,
           message.refresh ?? 60,

@@ -38,26 +38,22 @@ export function parseDacGenerators(source: string): DacGeneratorTable {
   return table;
 }
 
+/** Read MAME's DAC device library from the checkout the closure was built from. */
+export function dacGeneratorTable(mameSource: string): DacGeneratorTable {
+  return parseDacGenerators(readFileSync(join(mameSource, DAC_HEADER), 'utf8'));
+}
+
 export function extractDac(input: CapabilityInput): CapabilityExtraction | undefined {
   const types = [...new Set(input.entries
     .map(entry => entry.type)
     .filter(type => DAC_MAME_TYPES.includes(type as typeof DAC_MAME_TYPES[number])))];
   if (!types.length) return undefined;
-  let table: DacGeneratorTable;
-  try {
-    table = parseDacGenerators(readFileSync(join(input.mameSource, DAC_HEADER), 'utf8'));
-  } catch {
-    return undefined;
-  }
-  // A DAC whose resolution and coding could not be recovered is not lowered:
-  // leaving it unresolved in the manifest is honest, guessing its width is not.
-  if (types.some(type => !table[type])) return undefined;
   return {
     executableTypes: types,
     executable: Object.fromEntries(types.map(type => [
       type,
       { kind: 'audio' as const, artifact: DAC_WORKLET_ARTIFACT },
     ])),
-    artifacts: [{ path: DAC_WORKLET_ARTIFACT, contents: generatedDacWorkletSource(table) }],
+    artifacts: [{ path: DAC_WORKLET_ARTIFACT, contents: generatedDacWorkletSource() }],
   };
 }

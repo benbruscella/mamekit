@@ -3,6 +3,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { lowerDacChips } from '../../gen/emit-machine.ts';
 import { parseDacGenerators } from './extract.ts';
 import { generatedDacWorkletSource } from './worklet-source.ts';
 
@@ -39,6 +40,23 @@ assert.equal(
   'the macro definition and its epilog are not chip declarations',
 );
 
+// A netlist integer input is not a DAC chip: Mario's sound is a netlist model
+// whose width is the mask its machine configuration passes, not a
+// DAC_GENERATOR line. Lowering has to read it from there.
+assert.deepEqual(
+  lowerDacChips('/nonexistent', [{
+    tag: 'snd_nl:dac',
+    type: 'NETLIST_INT_INPUT',
+    config: ['NETLIST_INT_INPUT(config, m_audio_dac, "DAC.VAL", 0, 255)'],
+  }]),
+  [{ deviceTag: 'snd_nl:dac', bits: 8, mapper: 'unsigned', gain: 1 }],
+);
+assert.deepEqual(
+  lowerDacChips('/nonexistent', [{ tag: 'x', type: 'NETLIST_INT_INPUT', config: [] }]),
+  [],
+  'a netlist input with no declared mask is left unlowered, not guessed',
+);
+
 // The emitted mixer must reproduce dac_device_base: a value map of
 // mapper(code, bits) * gain scaled into the chip's output range, and a code
 // masked to the chip's own resolution rather than to a byte.
@@ -50,20 +68,20 @@ assert.equal(
 
 const directory = mkdtempSync(join(tmpdir(), 'mamekit-dac-'));
 const modulePath = join(directory, 'dac-worklet.ts');
-writeFileSync(modulePath, generatedDacWorkletSource(table));
+writeFileSync(modulePath, generatedDacWorkletSource());
 const { GeneratedDacMixer } = await import(pathToFileURL(modulePath).href) as {
   GeneratedDacMixer: new (
     chips?: number,
     routes?: readonly { chip: number; gain: number }[],
     auxiliary?: readonly { type: string; gain: number }[],
-    deviceTypes?: readonly string[],
+    dacs?: readonly { bits: number; mapper: string; gain: number }[],
   ) => { write(chip: number, data: number, method?: string): void; sample(): number };
 };
 
 // Ten bits: MCR's Sounds Good drives 0..1023 through an AD7533. Masking that
 // to a byte wrapped the waveform four times per sweep, which is what made
 // Rampage sound like a sawtooth (issue #74).
-const ad7533 = new GeneratedDacMixer(1, [], [], ['AD7533']);
+const ad7533 = new GeneratedDacMixer(1, [], [], [table.AD7533!]);
 ad7533.write(0, 0);
 assert.equal(ad7533.sample(), -1);
 ad7533.write(0, 512);
@@ -74,14 +92,14 @@ ad7533.write(0, 256);
 assert.equal(ad7533.sample(), -0.5, 'a ten-bit code must not collapse to its low byte');
 
 // Eight bits behaves exactly as the byte path always did.
-const mc1408 = new GeneratedDacMixer(1, [], [], ['MC1408']);
+const mc1408 = new GeneratedDacMixer(1, [], [], [table.MC1408!]);
 for (const code of [0, 1, 128, 255]) {
   mc1408.write(0, code);
   assert.equal(mc1408.sample(), (code - 128) / 128);
 }
 
 // One-bit DACs sit in MAME's 0..1 range, not -1..1.
-const oneBit = new GeneratedDacMixer(1, [], [], ['DAC_1BIT']);
+const oneBit = new GeneratedDacMixer(1, [], [], [table.DAC_1BIT!]);
 oneBit.write(0, 0);
 assert.equal(oneBit.sample(), 0);
 oneBit.write(0, 1);
@@ -89,7 +107,7 @@ assert.equal(oneBit.sample(), 1);
 
 // Binary-weighted ladders carry twice the R-2R gain, so MAME's own value map
 // runs past full scale — dac_gain_bw is 2.0 against a -1..1 range.
-const weighted = new GeneratedDacMixer(1, [], [], ['DAC_4BIT_BINARY_WEIGHTED']);
+const weighted = new GeneratedDacMixer(1, [], [], [table.DAC_4BIT_BINARY_WEIGHTED!]);
 weighted.write(0, 0);
 assert.equal(weighted.sample(), -1);
 weighted.write(0, 8);
@@ -98,16 +116,16 @@ weighted.write(0, 15);
 assert.ok(Math.abs(weighted.sample() - 2.75) < 1e-9);
 
 // Twos-complement coding flips the top bit before mapping.
-const twos = new GeneratedDacMixer(1, [], [], ['DAC_8BIT_R2R_TWOS_COMPLEMENT']);
+const twos = new GeneratedDacMixer(1, [], [], [table.DAC_8BIT_R2R_TWOS_COMPLEMENT!]);
 twos.write(0, 0);
 assert.equal(twos.sample(), 0);
 twos.write(0, 0x80);
 assert.equal(twos.sample(), -1);
 
 assert.throws(
-  () => new GeneratedDacMixer(1, [], [], ['NOT_A_DAC']),
-  /no MAME DAC definition/,
-  'an unknown chip must fail rather than render at a guessed width',
+  () => new GeneratedDacMixer(1, [], [], []),
+  /no lowered DAC definition/,
+  'a chip with no lowered definition must fail rather than render at a guessed width',
 );
 
 console.log('dac.spec: DAC_GENERATOR lowering and value maps passed');
