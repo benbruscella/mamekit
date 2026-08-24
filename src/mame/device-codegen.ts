@@ -382,9 +382,14 @@ function emitOperation(
   if (operation.op === 'declare') {
     const value = operation.value ? emitExpression(operation.value, context) : '0';
     const annotation = context.typescript ? ': any' : '';
+    // A scalar valueType says nothing about the value: MAME declares local
+    // aggregates as `uint8_t protdata[0x1e] = {...}`, and narrowing that to a
+    // byte turns the whole table into 0. Crush Roller's protection read then
+    // answered 0 for every entry. The interpreter tests the value's shape at
+    // run time (compileValueWrapper); these are the IR's aggregate producers.
     const allocated = operation.value?.kind === 'call' &&
       operation.value.callee.kind === 'identifier' &&
-      ['ALLOC', 'make_unique_clear'].includes(operation.value.callee.name);
+      ['ALLOC', 'make_unique_clear', 'ARRAY'].includes(operation.value.callee.name);
     // `rectangle draw = cliprect` is a C++ value copy. Aliasing it lets a
     // handler narrow its own clip rectangle and hand the mutated one back to
     // its caller — the interpreter copies here for exactly that reason.
@@ -464,6 +469,43 @@ function emitOperation(
   return lines.filter(Boolean).join('\n');
 }
 
+/**
+ * A member read, as the interpreter resolves it.
+ *
+ * State only gains a driver scalar when something writes it: MAME's own
+ * `uint8_t m_gfx_bank = 0` default initialiser is a declaration fact that
+ * lowering does not carry, and the interpreter covers for it by reading an
+ * absent member as 0 (toNumber(undefined)). Emitted code has to agree, or
+ * `m_video_ram[i] + 256 * m_gfx_bank` is NaN until the first bank write and
+ * dkongjr decodes its whole first background frame from NaN tile codes.
+ *
+ * A call target uses `members.<name>` directly instead — see emitCallObject,
+ * where `?? 0` would make an unmaterialised device look present.
+ */
+function memberValue(name: string): string {
+  return `(members.${name} ?? 0)`;
+}
+
+/**
+ * The object of a member call. The call ladder tests this for materialisation,
+ * so it must stay undefined when the board never bound the member.
+ */
+function emitCallObject(
+  expression: GeneratedExpression,
+  context: EmitContext,
+): string {
+  if (
+    expression.kind === 'identifier' &&
+    expression.name.startsWith('m_') &&
+    !context.locals.has(expression.name) &&
+    context.methodConstants?.[expression.name] === undefined &&
+    context.definition.constants[expression.name] === undefined
+  ) {
+    return `members.${expression.name}`;
+  }
+  return emitExpression(expression, context);
+}
+
 function emitExpression(expression: GeneratedExpression, context: EmitContext): string {
   if (expression.kind === 'number') return String(expression.value);
   if (expression.kind === 'string') return JSON.stringify(expression.value);
@@ -487,7 +529,7 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     const constant = context.methodConstants?.[expression.name] ??
       context.definition.constants[expression.name];
     if (constant !== undefined) return String(constant);
-    return `members.${expression.name}`;
+    return memberValue(expression.name);
   }
   if (expression.kind === 'unary') {
     if (expression.operator === '&') return emitAddressOf(expression.operand, context);
@@ -728,7 +770,7 @@ function emitCall(
       return `(runtime.calls[${JSON.stringify(name)}]?.() ?? 0)`;
     }
     const args = expression.args.map(argument => emitExpression(argument, context));
-    const object = emitExpression(expression.callee.object, context);
+    const object = emitCallObject(expression.callee.object, context);
     if (expression.callee.property === 'empty' && !args.length) {
       return `((${object}).length === 0 ? 1 : 0)`;
     }
@@ -913,6 +955,11 @@ function pointerAssignment(
     const sign = operator === '+=' ? '+' : '-';
     return `({ ...(${current}), offset: ((${current}).offset ${sign} (${right})) })`;
   }
+  // `&=` is an intersection when the target is a rectangle and a bitwise AND
+  // otherwise, and only the value knows which. The interpreter decides it by
+  // shape at run time; emitting a bare `&` made `Number(rect) & Number(rect)`
+  // zero and erased pacman's sprite clip.
+  if (operator === '&=') return `runtime.andAssign(${current}, ${right})`;
   // `>>=` follows the binary `>>` rule above: unsigned C++ shifts stay logical.
   return operator === '='
     ? right

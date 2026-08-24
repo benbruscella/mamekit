@@ -1,5 +1,6 @@
 import {
   applyCombineData,
+  applyGeneratedAndAssign,
   applyGeneratedDivision,
   applyGeneratedMacro,
   dereferenceGeneratedValue,
@@ -92,6 +93,8 @@ export interface GeneratedDeviceExecutionContext {
   divide(left: unknown, right: unknown): number;
   /** C++ `==`/`!=` where an operand can be a pointer, not a number. */
   same(left: unknown, right: unknown): boolean;
+  /** C++ `&=`: rectangle intersection when the target is one, else bitwise. */
+  andAssign(current: unknown, value: unknown): unknown;
   /** Reference-call overrides; devices have none, boards may (see board IR). */
   readonly overrides: Record<string, (...args: any[]) => unknown>;
 }
@@ -522,6 +525,7 @@ class IrDevice implements Device {
       combineData: applyCombineData,
       divide: applyGeneratedDivision,
       same: generatedValuesEqual,
+      andAssign: applyGeneratedAndAssign,
       overrides: {},
     };
     const pendingTimers = [...this.timers.values()];

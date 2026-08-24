@@ -9,6 +9,22 @@ export const sf2ce = sourceTarget({
   // Issue #77: wired-hot handler codegen (bus handlers, tile-info callbacks)
   // took this board from 48 to ~97 fps in Node; hold it above real time.
   minimumFps: 50,
+  // The default schedule coins at 300 and presses start at 330, which CPS1 is
+  // still in its power-on RAM test to notice: the golden then graded a title
+  // screen holding one credit, and no sprite-bearing frame was ever reached.
+  // One press after the test is still not enough — the title takes the second
+  // one — so start twice, pick a fighter, and work the controls in the match.
+  // Checkpoints straddle attract, player select and a live round.
+  frames: 3600,
+  checkpoints: [1, 300, 1200, 1800, 2400, 3000, 3600],
+  actions: [
+    { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 900, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 1100, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 2700, code: 'Space', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 3300, code: 'ArrowRight', heldFrames: 60, releasedFrames: 20 },
+    { atFrame: 3400, code: 'Space', heldFrames: 10, releasedFrames: 20 },
+  ],
   golden: {
     regions: {
       aboardplds: 'ffcf27eb',
@@ -21,19 +37,19 @@ export const sf2ce = sourceTarget({
     },
     checkpoints: {
       1: { video: 'ccf6015f', state: '7d855a28' },
-      60: { video: 'ed045a42', state: '3e2101c7' },
-      180: { video: 'ca5b7e4e', state: '69e1553c' },
       300: { video: 'a8421153', state: 'a779bbbe' },
-      600: { video: 'dde1e339', state: '0e4c7fb0' },
-      900: { video: '2a0cd32d', state: '754c66ca' },
-      1200: { video: '2a0cd32d', state: 'ce3087fe' },
+      1200: { video: '7c654bbb', state: 'a0e0c0f2' },
+      1800: { video: '5d6b118c', state: 'a1f05685' },
+      2400: { video: 'b16844f2', state: '87e14a8f' },
+      3000: { video: '0e7f6b63', state: '25606a20' },
+      3600: { video: 'f0d6473b', state: '7ab2c550' },
     },
     audio: {
-      writes: 33137,
-      nonzeroWrites: 27428,
-      writeHash: '7001c9f7',
-      pcmHash: 'dbe1ae10',
-      rms: 0.011588,
+      writes: 127493,
+      nonzeroWrites: 108471,
+      writeHash: '0ecc44ea',
+      pcmHash: '4d51fdeb',
+      rms: 0.051585,
     },
   },
 });

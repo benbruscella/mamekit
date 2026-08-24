@@ -802,6 +802,8 @@ export interface GeneratedHandlerRuntime {
   divide(left: unknown, right: unknown): number;
   /** C++ `==`/`!=` where an operand can be a pointer, not a number. */
   same(left: unknown, right: unknown): boolean;
+  /** C++ `&=`: rectangle intersection when the target is one, else bitwise. */
+  andAssign(current: unknown, value: unknown): unknown;
   /**
    * The board package's own reference-call overrides — the base dictionary the
    * interpreter consults before anything else (a video package's

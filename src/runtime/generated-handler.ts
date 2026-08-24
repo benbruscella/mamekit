@@ -17,6 +17,7 @@ export type {
 } from '../ir/execute.ts';
 export {
   applyCombineData,
+  applyGeneratedAndAssign,
   applyGeneratedDivision,
   applyGeneratedMacro,
   compileGeneratedMachineHandler,

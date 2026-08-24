@@ -394,6 +394,7 @@ function preparedHandlerRuntime(
     combineData: applyCombineData,
     divide: applyGeneratedDivision,
     same: generatedValuesEqual,
+    andAssign: applyGeneratedAndAssign,
     overrides: bindings.referenceCalls ?? {},
   };
 }
@@ -1424,6 +1425,26 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
  */
 export function applyGeneratedDivision(left: unknown, right: unknown): number {
   return BINARY_OPERATORS['/']!(toNumber(left), toNumber(right));
+}
+
+/**
+ * C++ `&=` as the interpreter applies it, for emitted code.
+ *
+ * `rectangle::operator&=` is an intersection, not a bitwise AND, and only the
+ * value knows which it is. Lowering it as `&` made `Number(rect) & Number(rect)`
+ * zero, which erased pacman's sprite clip entirely — Crush Roller's tunnel
+ * sprites then drew outside the region MAME confines them to.
+ */
+export function applyGeneratedAndAssign(current: unknown, value: unknown): unknown {
+  if (
+    current &&
+    typeof current === 'object' &&
+    typeof (current as { intersect?: unknown }).intersect === 'function'
+  ) {
+    (current as { intersect: (other: unknown) => void }).intersect(value);
+    return current;
+  }
+  return toNumber(current) & toNumber(value);
 }
 
 /** MAME COMBINE_DATA against a generated pointer, with explicit locals. */
