@@ -1177,6 +1177,18 @@ class GeneratedYm2151Processor extends AudioWorkletProcessor {
     while (this.renderer) {
       const sample = this.renderer.nextSample();
       if (sample !== undefined) return (this.lastSample = sample);
+      // Every queued frame is a frame of latency, and it never comes back: a
+      // main-thread stall starves this worklet (holding lastSample below, so
+      // no queued audio time is consumed) and then delivers the catch-up
+      // frames all at once. Left unbounded the backlog only grows, which is
+      // why effects drift a half second behind the action. Fast-forward the
+      // excess instead of dropping it: the chip is a register state machine,
+      // so a discarded key-on would simply never sound.
+      while (this.frames.length > 3) {
+        for (const stale of this.frames.shift()!) {
+          this.mixer?.write(stale.offset, stale.data, stale.method);
+        }
+      }
       const writes = this.frames.shift();
       // Starved: hold the last sample. A 0-fill is a hard step on any mix
       // with a DC offset and pops loudly.
