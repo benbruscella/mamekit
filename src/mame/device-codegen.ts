@@ -479,11 +479,16 @@ function emitOperation(
  * `m_video_ram[i] + 256 * m_gfx_bank` is NaN until the first bank write and
  * dkongjr decodes its whole first background frame from NaN tile codes.
  *
+ * The fallback is not a plain 0: a device finder resolves to a reference the
+ * interpreter treats as present, and reading `m_ym2203` as 0 skipped the chip
+ * reset in bublbobl's common_sreset. It runs only when the property is absent,
+ * so the common path stays a plain property read.
+ *
  * A call target uses `members.<name>` directly instead — see emitCallObject,
- * where `?? 0` would make an unmaterialised device look present.
+ * where any fallback would make an unmaterialised device look present.
  */
 function memberValue(name: string): string {
-  return `(members.${name} ?? 0)`;
+  return `(members.${name} ?? runtime.member(${JSON.stringify(name)}))`;
 }
 
 /**

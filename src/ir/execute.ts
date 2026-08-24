@@ -395,6 +395,20 @@ function preparedHandlerRuntime(
     divide: applyGeneratedDivision,
     same: generatedValuesEqual,
     andAssign: applyGeneratedAndAssign,
+    // The board's state object only holds what a handler has written, so a
+    // read can miss three things the interpreter resolves: a declared getter,
+    // a member whose stored value is undefined, and a device finder, which
+    // answers as a resolved reference and is therefore truthy. Emitted code
+    // reaches this only when `members.<name>` is absent, so the fast path
+    // stays a plain property read.
+    member: name => {
+      const getter = bindings.getters?.[name];
+      if (getter) return getter();
+      if (Object.hasOwn(bindings.members ?? {}, name)) return bindings.members![name];
+      return bindings.concreteDeviceMembers?.has(name)
+        ? { reference: name, resolved: true }
+        : 0;
+    },
     overrides: bindings.referenceCalls ?? {},
   };
 }

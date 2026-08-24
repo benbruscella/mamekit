@@ -95,6 +95,8 @@ export interface GeneratedDeviceExecutionContext {
   same(left: unknown, right: unknown): boolean;
   /** C++ `&=`: rectangle intersection when the target is one, else bitwise. */
   andAssign(current: unknown, value: unknown): unknown;
+  /** A member read the state object has no entry for, as the interpreter resolves it. */
+  member(name: string): unknown;
   /** Reference-call overrides; devices have none, boards may (see board IR). */
   readonly overrides: Record<string, (...args: any[]) => unknown>;
 }
@@ -526,6 +528,9 @@ class IrDevice implements Device {
       divide: applyGeneratedDivision,
       same: generatedValuesEqual,
       andAssign: applyGeneratedAndAssign,
+      // Devices declare every member up front, so an absent one is genuinely
+      // absent; boards resolve finders and getters here (see execute.ts).
+      member: () => 0,
       overrides: {},
     };
     const pendingTimers = [...this.timers.values()];

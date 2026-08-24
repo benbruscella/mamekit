@@ -804,6 +804,8 @@ export interface GeneratedHandlerRuntime {
   same(left: unknown, right: unknown): boolean;
   /** C++ `&=`: rectangle intersection when the target is one, else bitwise. */
   andAssign(current: unknown, value: unknown): unknown;
+  /** A member read the state object has no entry for, as the interpreter resolves it. */
+  member(name: string): unknown;
   /**
    * The board package's own reference-call overrides — the base dictionary the
    * interpreter consults before anything else (a video package's
