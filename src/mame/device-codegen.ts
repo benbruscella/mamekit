@@ -794,7 +794,7 @@ function emitAssignment(
     const current = `runtime.readIndex(${object}, ${index})`;
     const next = operator === '='
       ? right
-      : `((${current}) ${operator.slice(0, -1)} (${right}))`;
+      : `((${current}) ${operator === '>>=' ? '>>>' : operator.slice(0, -1)} (${right}))`;
     return `runtime.writeIndex(${object}, ${index}, ${next})`;
   }
   const target = targetInfo(expression, context);
@@ -826,9 +826,10 @@ function pointerAssignment(
     const sign = operator === '+=' ? '+' : '-';
     return `({ ...(${current}), offset: ((${current}).offset ${sign} (${right})) })`;
   }
+  // `>>=` follows the binary `>>` rule above: unsigned C++ shifts stay logical.
   return operator === '='
     ? right
-    : `((${current}) ${operator.slice(0, -1)} (${right}))`;
+    : `((${current}) ${operator === '>>=' ? '>>>' : operator.slice(0, -1)} (${right}))`;
 }
 
 function emitAddressOf(

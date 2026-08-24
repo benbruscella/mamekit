@@ -1920,6 +1920,16 @@ class GeneratedYm2203Processor extends AudioWorkletProcessor {
     while (this.renderer) {
       const sample = this.renderer.nextSample();
       if (sample !== undefined) return sample;
+      // Every queued frame is a frame of latency, and it never comes back: a
+      // main-thread stall starves this worklet and then delivers the catch-up
+      // frames all at once, so an unbounded backlog only grows. Fast-forward
+      // the excess rather than dropping it — the chip is a register state
+      // machine, so a discarded key-on would simply never sound.
+      while (this.frames.length > 3) {
+        for (const stale of this.frames.shift()!) {
+          this.mixer?.write(stale.offset, stale.data, stale.method);
+        }
+      }
       const writes = this.frames.shift();
       if (!writes) return 0;
       this.renderer.begin(writes);

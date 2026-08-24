@@ -765,6 +765,11 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
         : expression.operator === '!=' ? '!==' : expression.operator;
       return `((Number(${left}) ${operator} Number(${right})) ? 1 : 0)`;
     }
+    // MAME CPU cores shift unsigned values; C++ `>>` on them is a logical
+    // shift. JavaScript `>>` sign-extends anything with bit 31 set (the m68k
+    // SWAP of 0xC0000800 became 0xFFFFC000). Arithmetic shifts in these cores
+    // are written as explicit sign-fill (m68ki_shift_*_table), never `>>`.
+    if (expression.operator === '>>') return `((${left}) >>> (${right}))`;
     return `((${left}) ${expression.operator} (${right}))`;
   }
   if (expression.kind === 'assignment') {
@@ -1031,9 +1036,10 @@ function emitAssignment(
   }
   const targetValue = targetInfo(target, context);
   const right = emitExpression(value, context);
+  // `>>=` follows the binary `>>` rule: these are unsigned C++ shifts.
   const next = operator === '='
     ? right
-    : `((${targetValue.code}) ${operator.slice(0, -1)} (${right}))`;
+    : `((${targetValue.code}) ${operator === '>>=' ? '>>>' : operator.slice(0, -1)} (${right}))`;
   const assignment = `${targetValue.code} = ${wrapTarget(next, targetValue)}`;
   return postfix
     ? `(() => { const previous = ${targetValue.code}; ${assignment}; return previous; })()`
