@@ -4,6 +4,7 @@ import {
   applyGeneratedMacro,
   dereferenceGeneratedValue,
   executeGeneratedProgram,
+  generatedValuesEqual,
   type GeneratedCallArgument,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
@@ -89,6 +90,8 @@ export interface GeneratedDeviceExecutionContext {
   combineData(pointer: unknown, data: unknown, memMask: unknown): unknown;
   /** C++ `/`: integral between integers, exact otherwise. */
   divide(left: unknown, right: unknown): number;
+  /** C++ `==`/`!=` where an operand can be a pointer, not a number. */
+  same(left: unknown, right: unknown): boolean;
   /** Reference-call overrides; devices have none, boards may (see board IR). */
   readonly overrides: Record<string, (...args: any[]) => unknown>;
 }
@@ -518,6 +521,7 @@ class IrDevice implements Device {
       macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
       combineData: applyCombineData,
       divide: applyGeneratedDivision,
+      same: generatedValuesEqual,
       overrides: {},
     };
     const pendingTimers = [...this.timers.values()];

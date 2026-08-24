@@ -800,6 +800,8 @@ export interface GeneratedHandlerRuntime {
   combineData(pointer: unknown, data: unknown, memMask: unknown): unknown;
   /** C++ `/`: integral between integers, exact otherwise. */
   divide(left: unknown, right: unknown): number;
+  /** C++ `==`/`!=` where an operand can be a pointer, not a number. */
+  same(left: unknown, right: unknown): boolean;
   /**
    * The board package's own reference-call overrides — the base dictionary the
    * interpreter consults before anything else (a video package's

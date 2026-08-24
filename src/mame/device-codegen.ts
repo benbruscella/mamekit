@@ -524,6 +524,21 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       return `(((${left}) ${expression.operator} (${right})) ? 1 : 0)`;
     }
     if (['==', '!=', '<', '<=', '>', '>='].includes(expression.operator)) {
+      // A pointer is an address, not a number. `Number()` of one is NaN, and
+      // `NaN !== NaN` is true, so CPS1's `if (palette_ram != palette_base)`
+      // fired before the pointer had moved and cps1_build_palette skipped a
+      // page of gfxram, leaving ghouls with a black palette. Equality between
+      // operands that can hold a pointer uses the comparison the interpreter
+      // uses; ordinary integer comparisons keep the direct numeric form.
+      if (
+        (expression.operator === '==' || expression.operator === '!=') &&
+        (leftType?.includes('*') || rightType?.includes('*'))
+      ) {
+        const equal = `runtime.same(${left}, ${right})`;
+        return expression.operator === '=='
+          ? `(${equal} ? 1 : 0)`
+          : `(${equal} ? 0 : 1)`;
+      }
       const operator = expression.operator === '==' ? '===' :
         expression.operator === '!=' ? '!==' : expression.operator;
       return `((Number(${left}) ${operator} Number(${right})) ? 1 : 0)`;
@@ -783,7 +798,12 @@ function emitValueMemberCall(
   const property = expression.callee.property;
   const access = `(${object}).${property}`;
   if (args.length || !memberChainName(expression.callee.object)) {
-    return `${access}(${args.join(', ')})`;
+    // The value may not implement the accessor MAME spells here: the runtime
+    // models a gfx_element without `mark_dirty`, and the interpreter answers
+    // such a call with 0 rather than failing. Emitting the bare call instead
+    // made junglek and elevator throw a TypeError out of `characterram_w`.
+    // The optional call costs nothing when the method is there.
+    return `(${access}?.(${args.join(', ')}) ?? 0)`;
   }
   return `(typeof ${access} === 'function' ? ${access}() : ` +
     `typeof ${access} === 'number' || typeof ${access} === 'boolean' ? ${access} : 0)`;

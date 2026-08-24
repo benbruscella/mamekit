@@ -393,6 +393,7 @@ function preparedHandlerRuntime(
     macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
     combineData: applyCombineData,
     divide: applyGeneratedDivision,
+    same: generatedValuesEqual,
     overrides: bindings.referenceCalls ?? {},
   };
 }
@@ -900,9 +901,7 @@ function compileFastExpression(
     if (operator === '==' || operator === '!=') {
       const wantEqual = operator === '==';
       return context =>
-        (comparableValue(left(context)) === comparableValue(right(context))) === wantEqual
-          ? 1
-          : 0;
+        generatedValuesEqual(left(context), right(context)) === wantEqual ? 1 : 0;
     }
     // Division is integral only between integers, so it keeps the
     // interpreter's two exemptions: an attotime operand, and an operand the
@@ -1259,7 +1258,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
       };
     }
     if (expression.operator === '==' || expression.operator === '!=') {
-      const equal = comparableValue(leftValue) === comparableValue(rightValue);
+      const equal = generatedValuesEqual(leftValue, rightValue);
       return expression.operator === '==' ? Number(equal) : Number(!equal);
     }
     const left = toNumber(leftValue);
@@ -1990,6 +1989,32 @@ function comparableValue(value: unknown): unknown {
   if (isReference(value) && value.resolved) return value;
   if (value && typeof value === 'object' && !isReference(value)) return value;
   return toNumber(value);
+}
+
+/**
+ * C++ `==` and `!=`, for values the runtime may hold as pointers.
+ *
+ * A generated pointer is an address, so two of them are equal when they name
+ * the same element of the same memory - not when they happen to be the same
+ * JavaScript object, which is an artifact of how the address was built.
+ * `runtime.addressOf(m_gfxram, n)` produces a fresh object every time, and a
+ * pointer walked with `p++` produces one per step.
+ *
+ * Emitted code shares this so equality means one thing in both paths. It could
+ * not simply reuse the numeric comparison: `Number()` of a pointer object is
+ * NaN, `NaN !== NaN` is true, and CPS1's
+ * `if (palette_ram != palette_base) palette_ram += 0x200` therefore skipped a
+ * page of gfxram before the first page was ever copied, so cps1_build_palette
+ * read the wrong half of palette RAM and left the palette black.
+ */
+export function generatedValuesEqual(left: unknown, right: unknown): boolean {
+  const leftValue = comparableValue(left);
+  const rightValue = comparableValue(right);
+  if (isGeneratedPointer(leftValue) && isGeneratedPointer(rightValue)) {
+    return leftValue.source === rightValue.source &&
+      leftValue.offset === rightValue.offset;
+  }
+  return leftValue === rightValue;
 }
 
 function truthy(value: unknown): boolean {

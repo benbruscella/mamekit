@@ -27,6 +27,7 @@ export {
   executeGeneratedMachineProgram,
   executeGeneratedProgram,
   generatedPeriodicLines,
+  generatedValuesEqual,
 } from '../ir/execute.ts';
 
 /**
