@@ -247,7 +247,16 @@ export async function runGameAcceptance(
     }
     audio.render(pendingWrites, diagnosticCapture || snapshot.frame >= 120);
     pendingWrites.length = 0;
-    if (checkpointFrames.has(snapshot.frame)) {
+    // First occurrence wins. A contract may soft-reset mid-replay (Qix's
+    // operator flow stores a language in NVRAM, then resets), and reset puts
+    // the board's frame counter back to zero — so every checkpoint below the
+    // reset frame is passed a second time. Recording unconditionally
+    // overwrote the boot values with post-reset ones, which the browser
+    // replay in e2e/support/game.ts never does: it walks its checkpoint list
+    // monotonically and records each frame once. That mismatch, not any
+    // execution difference, is what made Qix look like it diverged (#79).
+    if (checkpointFrames.has(snapshot.frame) &&
+      checkpoints[String(snapshot.frame)] === undefined) {
       checkpoints[String(snapshot.frame)] = {
         video: hash(new Uint8Array(framebuffer.buffer)),
         state: stateHash(snapshot),

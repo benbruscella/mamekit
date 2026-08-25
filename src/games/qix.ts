@@ -36,8 +36,8 @@ export const qix: GameTestContract = {
     checkpoints: {
       1: { video: '21f25028', state: 'cd482843' },
       10: { video: '21f25028', state: '783ffcfa' },
-      30: { video: '21f25028', state: '7644b46e' },
-      60: { video: '21f25028', state: 'fa4b9e53' },
+      30: { video: '21f25028', state: '32f47f8f' },
+      60: { video: '52eb2598', state: '4f6badf9' },
       180: { video: '261be9dd', state: '5d9f3825' },
       300: { video: '7b0b7216', state: '35273fd3' },
       480: { video: '49a1916a', state: 'c4de14dc' },
