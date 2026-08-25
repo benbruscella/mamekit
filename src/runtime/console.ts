@@ -29,6 +29,7 @@ import {
 } from './nes-ines.ts';
 import { readZip, crc32 } from './zip.ts';
 import { artworkSources } from './artwork-source.ts';
+import { consoleDeckSvg } from './console-art.ts';
 import {
   cartAvailability,
   fetchRomBytes,
@@ -353,39 +354,6 @@ function cartSvg(o: {
   </svg>`;
 }
 
-function consoleArt(W: number, H: number): string {
-  const cw = W * 0.82, cx = (W - cw) / 2, ch = cw * 0.6, cy = (H - ch) / 2 - H * 0.03;
-  const n = (x: number) => x.toFixed(1);
-  const stripeX = cx + cw * 0.08, stripeW = cw * 0.84;
-  const ledX = cx + cw * 0.13, ledY = cy + ch * 0.33, ledR = cw * 0.017;
-  const wmX = cx + cw * 0.3, wmY = cy + ch * 0.4, wmW = cw * 0.4, wmH = ch * 0.17;
-  const flapX = cx + cw * 0.06, flapY = cy + ch * 0.63, flapW = cw * 0.88, flapH = ch * 0.3;
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
-    <defs>
-      <linearGradient id="cd" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#e0dcd2"/><stop offset="1" stop-color="#c6c2b7"/>
-      </linearGradient>
-      <radialGradient id="led" cx="0.5" cy="0.5" r="0.5">
-        <stop offset="0" stop-color="#ff5a63"/><stop offset="0.55" stop-color="${ACCENT}"/><stop offset="1" stop-color="rgba(230,0,18,0)"/>
-      </radialGradient>
-    </defs>
-    <ellipse cx="${n(cx + cw / 2)}" cy="${n(cy + ch + 8)}" rx="${n(cw * 0.52)}" ry="${n(ch * 0.09)}" fill="rgba(0,0,0,.45)"/>
-    <rect x="${n(cx)}" y="${n(cy)}" width="${n(cw)}" height="${n(ch)}" rx="${n(cw * 0.05)}" fill="url(#cd)"/>
-    <rect x="${n(cx)}" y="${n(cy)}" width="${n(cw)}" height="3" rx="1.5" fill="rgba(255,255,255,.6)"/>
-    <rect x="${n(stripeX)}" y="${n(cy + ch * 0.14)}" width="${n(stripeW)}" height="${n(ch * 0.03)}" fill="#17150f"/>
-    <rect x="${n(stripeX)}" y="${n(cy + ch * 0.2)}" width="${n(stripeW)}" height="${n(ch * 0.03)}" fill="#17150f"/>
-    <circle cx="${n(ledX)}" cy="${n(ledY)}" r="${n(ledR * 2.6)}" fill="url(#led)"/>
-    <circle cx="${n(ledX)}" cy="${n(ledY)}" r="${n(ledR)}" fill="${ACCENT}"/>
-    <rect x="${n(cx + cw * 0.78)}" y="${n(cy + ch * 0.29)}" width="${n(cw * 0.05)}" height="${n(ch * 0.06)}" rx="1" fill="#2c2a27"/>
-    <rect x="${n(cx + cw * 0.86)}" y="${n(cy + ch * 0.29)}" width="${n(cw * 0.05)}" height="${n(ch * 0.06)}" rx="1" fill="#2c2a27"/>
-    <rect x="${n(wmX)}" y="${n(wmY)}" width="${n(wmW)}" height="${n(wmH)}" rx="2" fill="#cbc7bc" stroke="rgba(0,0,0,.25)"/>
-    <text x="${n(wmX + wmW / 2)}" y="${n(wmY + wmH * 0.68)}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="${n(wmH * 0.55)}" font-weight="700" letter-spacing="1.5" fill="#6a655b">CONTROL DECK</text>
-    <rect x="${n(cx + cw * 0.45)}" y="${n(flapY - ch * 0.04)}" width="${n(cw * 0.1)}" height="${n(ch * 0.05)}" rx="2" fill="#8f8b82"/>
-    <rect x="${n(flapX)}" y="${n(flapY)}" width="${n(flapW)}" height="${n(flapH)}" rx="4" fill="#a7a39a"/>
-    <rect x="${n(flapX)}" y="${n(flapY)}" width="${n(flapW)}" height="2" fill="rgba(255,255,255,.25)"/>
-    <rect x="${n(flapX + flapW * 0.04)}" y="${n(flapY + flapH * 0.5)}" width="${n(flapW * 0.92)}" height="1.5" fill="rgba(0,0,0,.3)"/>
-  </svg>`;
-}
 
 async function fetchCatalog(cfg: ShellConfig): Promise<SoftCatalog | null> {
   // catalogUrl is relative to the canonical generated machine directory.
@@ -525,7 +493,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   // the front-loader hero (inline SVG, crisp at any DPR)
   const hero = el('div', 'width:230px;height:132px;flex:0 0 auto;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))');
   hero.setAttribute('data-console-hero', '');
-  hero.innerHTML = consoleArt(230, 132);
+  hero.innerHTML = consoleDeckSvg(230, 132, { idPrefix: 'hero' });
   const aboutBtn = document.createElement('button');
   aboutBtn.textContent = 'About this console';
   aboutBtn.setAttribute('data-about', '');
