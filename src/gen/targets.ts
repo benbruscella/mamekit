@@ -9,11 +9,11 @@ import { discoverGameNames } from '../games/discovery.ts';
  */
 export const REQUIRED_TARGETS: readonly string[] = [
   ...discoverGameNames(),
-  // Consoles have no real-ROM acceptance contract yet, so one is listed here
-  // until it has one. The list is empty: play-testing for issue #53 found the
-  // generated `nes` target no longer works, so it is not built. Restoring it
-  // means putting 'nes' back here — or, better, giving it a contract module in
-  // src/games/ like every arcade target has.
+  // Consoles have no real-ROM acceptance contract yet, so they are listed here
+  // until they do. A console's software arrives on cartridges the visitor
+  // supplies, so there is no romset a contract module could name; the console
+  // room is covered by the browser suite instead (e2e/specs/console.spec.ts).
+  'nes',
 ];
 
 /**

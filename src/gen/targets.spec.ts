@@ -54,11 +54,12 @@ check('gen:all builds every required target', () => {
   assert.deepEqual([...GENERATION_TARGETS], [...REQUIRED_TARGETS]);
 });
 
-// Issue #53: the generated console stopped working, so it is not in the build
-// either. Consoles have no contract module to park in src/games/disabled, so
-// the only place the decision can be read is targets.ts.
-check('the broken console target is not generated', () => {
-  assert.ok(!GENERATION_TARGETS.includes('nes'));
+// Issue #85 turned the console back on. It has no contract module to discover,
+// so targets.ts is the only place the decision can be read — and a console
+// dropping out of the build silently is exactly what issue #53 did.
+check('the console target is generated', () => {
+  assert.ok(GENERATION_TARGETS.includes('nes'));
+  assert.ok(!ACCEPTED_TARGETS.includes('nes'), 'a console has no romset to accept against');
 });
 
 // gen:all must not restate the target set; it asks the CLI for it.

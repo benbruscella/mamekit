@@ -2,6 +2,7 @@ import { Bus, type HandlerRegistry } from './bus.ts';
 import { createCpu, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
 import {
   createDevice,
+  generatedTimerBacklog,
   hasGeneratedDevice,
   type Device,
   type GeneratedMemoryBank,
@@ -224,6 +225,25 @@ class IrBoard implements Board {
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
   private currentLineFraction = 0;
+  /**
+   * Device time already delivered into the scanline the beam is on.
+   *
+   * Generated device timers are armed against raster positions —
+   * `screen().time_until_pos(next_scanline)` — so the device clock and the
+   * beam have to agree at every line boundary. Instruction-time deltas alone
+   * cannot hold that: a CPU slice runs until it PASSES its cycle target, and
+   * `run()` reports only the target, so every overrun is charged to the frame
+   * runner's carry and lost to this clock. The devices then fall about 1% per
+   * line behind the beam, and a one-shot that re-arms itself for "the next
+   * line" eventually asks for a line that has already gone by. MAME's answer
+   * to that is a whole frame's delay, which is permanent: the NES PPU stalled
+   * on it about 90 scanlines into its first frame and never set the VBLANK
+   * flag its boot loop spins on.
+   *
+   * Each line boundary settles the difference SIGNED, so sub-instruction edges
+   * still land where the deltas put them and no drift accumulates.
+   */
+  private timedHardwareDelivered = 0;
   /** The processor whose slice is executing, so a boost never re-enters it. */
   private runningCpu?: string;
   private boosting = false;
@@ -266,6 +286,10 @@ class IrBoard implements Board {
     this.inputs = inputs;
     this.fbWidth = machine.execution.screen.width;
     this.fbHeight = machine.execution.screen.height;
+    // The first line boundary is the beam arriving at line 0 with nothing run
+    // yet, so it owes the devices nothing. Every boundary after it settles a
+    // line that has actually executed.
+    this.timedHardwareDelivered = this.lineSeconds();
 
     // MAME devices may alias board memory shares (buffered spriteram binds its
     // own tag), so every declared share exists before any device is created.
@@ -291,7 +315,17 @@ class IrBoard implements Board {
           time_until_pos: (position: number) => {
             const vtotal = Math.max(1, machine.execution.screen.vtotal);
             const target = ((Math.floor(position) % vtotal) + vtotal) % vtotal;
-            let lines = target - this.currentLine;
+            // Answered in the clock the device timers themselves run on, not
+            // in whole beam lines. MAME measures the beam to the attosecond,
+            // so a scanline callback re-arming for "one line further on"
+            // always gets exactly one line; against an integer line counter
+            // the same call lands on the line it is already standing at
+            // whenever the two clocks disagree by a hair, and `lines <= 0`
+            // then defers it a whole frame — which is where the NES PPU used
+            // to lose its VBLANK flag for good. The fractional part is the
+            // device time already delivered into this line, so a timer that
+            // expired at line N asks from exactly line N.
+            let lines = target - this.beamPosition();
             if (lines <= 0) lines += vtotal;
             return lines / (machine.execution.screen.refresh * vtotal);
           },
@@ -504,6 +538,8 @@ class IrBoard implements Board {
     };
     let tickHostedProcessors = (_seconds: number): void => {};
     const advanceTimedHardware = (seconds: number): void => {
+      if (!(seconds > 0)) return;
+      this.timedHardwareDelivered += seconds;
       tickGeneratedDevices(seconds);
       tickHostedProcessors(seconds);
     };
@@ -1310,13 +1346,16 @@ class IrBoard implements Board {
         // runs every device clock at 2x (Neo Geo's per-line sprite parser then
         // alternates between stale even/odd lists, producing striped video).
         if (phase === 'before-processors') {
-          const seconds = 1 /
-            (this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal);
-          // A held primary CPU produces no instruction progress, but board
-          // timers continue in wall-clock time. Runnable CPUs advance these
-          // same devices through the timing hook above.
-          if (timerClockCpu && this.cpuHeld.get(timerClockCpu.tag)) {
-            advanceTimedHardware(seconds);
+          const seconds = this.lineSeconds();
+          // Settle the device clock against the beam, which has just moved on
+          // to `line`: the line it left is now a line in the past, so retire
+          // one from the running offset and pay whatever the CPU's instruction
+          // deltas did not deliver — a whole line when the primary CPU is
+          // held, a slice overrun's worth when it ran. The remainder carries
+          // signed, so an over-delivered line is not paid for twice.
+          this.timedHardwareDelivered -= seconds;
+          if (this.timedHardwareDelivered < 0) {
+            advanceTimedHardware(-this.timedHardwareDelivered);
           }
           for (const tick of this.peripheralTicks) tick(seconds);
         }
@@ -1504,7 +1543,28 @@ class IrBoard implements Board {
     this.vicdualCoinPrevious = false;
     this.vicdualCoinFrames = 0;
     this.currentLine = 0;
+    this.timedHardwareDelivered = this.lineSeconds();
     this.runMachineReset();
+  }
+
+  /**
+   * The beam's position in scanlines, fractional, on the device-timer clock.
+   *
+   * `currentLine` alone is the integer line the frame runner is on; the
+   * remainder is how far the running CPU slice has carried the device clock
+   * into it, less whatever a firing timer has not reached yet. Only timer
+   * arithmetic needs the fraction — `vpos()` stays the whole line MAME's
+   * drivers read.
+   */
+  private beamPosition(): number {
+    return this.currentLine +
+      (this.timedHardwareDelivered - generatedTimerBacklog()) / this.lineSeconds();
+  }
+
+  /** One scanline of emulated wall time — the unit both clocks settle in. */
+  private lineSeconds(): number {
+    const screen = this.machine.execution.screen;
+    return 1 / (Math.max(1, screen.refresh) * Math.max(1, screen.vtotal));
   }
 
   /**

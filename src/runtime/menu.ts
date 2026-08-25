@@ -39,6 +39,8 @@ interface GameEntry {
   kind?: 'arcade' | 'console';
   hasRom: boolean;
   hasArt: boolean;
+  /** a promotional flyer exists in the covers tree; absent on an older manifest */
+  hasCover?: boolean;
   /** the compiled app contains this game's board module (games.json) */
   supported?: boolean;
   /** KG-reachable MAME hardware types without executable generated artifacts. */
@@ -250,6 +252,13 @@ export async function runMenu(): Promise<void> {
   // a socket. They ship with the site now (shipWebArtwork in src/gen/
   // generate.ts): same origin, multiplexed over the connection the app already
   // has, ~12 ms each. Deferring them would only trade that for pop-in.
+
+  // Declared before the shelf is painted, not beside coverShot below: painting
+  // starts synchronously in the loop under it, and a cover that reaches the
+  // screenshot ladder without awaiting anything first found this `const` still
+  // in its temporal dead zone. That threw once per tile into an unhandled
+  // rejection, so the covers simply never appeared and nothing said why.
+  const coverRuns = new Map<string, Promise<HTMLImageElement | null>>();
   for (const entry of games) {
     const box = buildBox(entry);
     boxes.push({ entry, box, visible: true });
@@ -636,7 +645,12 @@ export async function runMenu(): Promise<void> {
     //    user-supplied) — real box art beats anything synthesized
     // The sibling the site ships, falling back to the bucket scan only when one
     // is missing — a wasted miss rather than the 1.3 MB it saves everywhere.
-    const flyer = await loadArtworkImage(`covers/${entry.game}.png`);
+    // `hasCover` is the manifest saying whether the scan exists at all, so a
+    // machine without one goes straight to its own art instead of waiting out
+    // two 404s (the console sat black for the whole of the bucket's round trip).
+    const flyer = entry.hasCover === false
+      ? null
+      : await loadArtworkImage(`covers/${entry.game}.png`);
     if (flyer) {
       const source = darkCoverCrop(flyer);
       const s = Math.max(canvas.width / source.width, canvas.height / source.height);
@@ -719,7 +733,6 @@ export async function runMenu(): Promise<void> {
    * COVER_FRAMES frames (chunked so the shelf stays responsive), rotate per
    * the config, cache as a data URL. Same ROMs -> same frame, every visit.
    */
-  const coverRuns = new Map<string, Promise<HTMLImageElement | null>>();
   function coverShot(entry: GameEntry): Promise<HTMLImageElement | null> {
     let run = coverRuns.get(entry.game);
     if (!run) { run = makeCoverShot(entry); coverRuns.set(entry.game, run); }

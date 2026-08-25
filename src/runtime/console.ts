@@ -28,7 +28,7 @@ import {
   type SoftEntry,
 } from './nes-ines.ts';
 import { readZip, crc32 } from './zip.ts';
-import { artworkUrl } from './artwork-source.ts';
+import { artworkSources } from './artwork-source.ts';
 import {
   cartAvailability,
   fetchRomBytes,
@@ -771,8 +771,18 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       if (sticker) fitLabelToArt(cover, img);
       img.style.opacity = '1';
     });
-    img.addEventListener('error', () => img.remove());
-    img.src = artworkUrl(`carts/${list}/${file}`);
+    // The site's own `.webp` sibling first, the archival scan on the bucket as
+    // the fallback — the rule every other artwork tree follows. A supported
+    // cartridge's scan ships inside dist (WEB_ARTWORK_TREES in src/gen), so its
+    // box arrives same-origin at ~30 KB instead of half a megabyte from an
+    // object store six connections deep; one added without a sibling still
+    // renders, just slowly.
+    const [web, archival] = artworkSources(`carts/${list}/${file}`);
+    img.addEventListener('error', () => {
+      if (img.src.endsWith(web)) { img.src = archival; return; }
+      img.remove();
+    });
+    img.src = web;
     cover.appendChild(img);
   }
 

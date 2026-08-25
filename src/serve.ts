@@ -86,6 +86,23 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
         meta.category = category;
         meta.dataPath = gameDataPath(category, entry);
         meta.hasArt = await stat(join(artDir, `${entry}.zip`)).then(() => true, () => false);
+        // Whether a promotional flyer exists to crop the menu tile from. The
+        // menu used to just ask for one and let it 404: two wasted round trips
+        // per coverless machine, the second against a bucket that answers in
+        // ~1.8s, and the tile sat black until both had failed. Every arcade
+        // target has a scan, so only the console showed it.
+        //
+        // Asked of what the SITE serves first — dist/artwork holds the shipped
+        // `.webp` sibling — and only then of the local scan tree, which
+        // `--serve` does not mount at all. Reading .data alone would answer
+        // "no cover" for every machine on the deployed shape and take the
+        // whole shelf's artwork down with it.
+        meta.hasCover = await Promise.all([
+          stat(join(outRoot, 'artwork/covers', `${entry}.webp`)).then(() => true, () => false),
+          ...(artDir ? ['png', 'webp'].map(extension =>
+            stat(join(artDir, 'covers', `${entry}.${extension}`)).then(() => true, () => false),
+          ) : []),
+        ]).then(found => found.some(Boolean));
         const report = await readFile(join(dir, 'runtime-report.json'), 'utf8')
           .then(text => JSON.parse(text) as {
             playable?: boolean;

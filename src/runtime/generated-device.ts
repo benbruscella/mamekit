@@ -5,6 +5,7 @@ import {
   applyGeneratedMacro,
   dereferenceGeneratedValue,
   executeGeneratedProgram,
+  generatedReferent,
   generatedValuesEqual,
   type GeneratedCallArgument,
   type GeneratedHandlerBindings,
@@ -271,6 +272,22 @@ class IrAttotime {
   }
 }
 
+/**
+ * Seconds of the tick a firing device timer has NOT consumed yet.
+ *
+ * Device time is delivered in instruction-sized lumps, so a timer that expires
+ * partway through one is serviced with the clock already credited to the far
+ * end of the lump. MAME's scheduler instead stops at the expiry, and anything
+ * the callback then asks about the beam is answered from there. This is that
+ * difference, readable for as long as the callback runs and zero outside one.
+ */
+let timerBacklogSeconds = 0;
+
+/** @see timerBacklogSeconds */
+export function generatedTimerBacklog(): number {
+  return timerBacklogSeconds;
+}
+
 class IrTimer {
   private remainingSeconds = Infinity;
   private intervalSeconds = Infinity;
@@ -287,7 +304,15 @@ class IrTimer {
   }
 
   remaining(): IrAttotime {
-    return new IrAttotime(this.remainingSeconds);
+    // MAME's scheduler stops exactly at a timer's expiry, so a callback asking
+    // its own timer how long is left reads zero. Host device time arrives in
+    // instruction-sized lumps, so by the time the callback runs the deadline
+    // is usually already a hair in the past — a value MAME can never produce,
+    // and one that silently fails the `== attotime::zero` tests real hardware
+    // models gate on. The NES PPU has two: skipping them left every scanline
+    // rendering nametable row 0, so a fully drawn title screen came out as one
+    // flat colour.
+    return new IrAttotime(Math.max(0, this.remainingSeconds));
   }
 
   elapsed(): IrAttotime {
@@ -310,7 +335,16 @@ class IrTimer {
       const overshoot = -this.remainingSeconds;
       const firedPeriod = this.period;
       const generation = this.adjustmentGeneration;
-      callback(this.parameter);
+      // The callback runs at the expiry, not at the end of the lump that
+      // carried the clock past it: a scanline tick re-arming for the next line
+      // must measure that line from where it actually fired.
+      const outerBacklog = timerBacklogSeconds;
+      timerBacklogSeconds = outerBacklog + overshoot;
+      try {
+        callback(this.parameter);
+      } finally {
+        timerBacklogSeconds = outerBacklog;
+      }
 
       // MAME callbacks commonly re-arm their own one-shot timer. Honour that
       // new schedule instead of disabling it based on the timer state that
@@ -713,7 +747,21 @@ class IrDevice implements Device {
       const resolvedArgs = parameterNames.map((_name, index) =>
         args[index] ?? defaults?.[index] ?? 0);
       const compiled = this.definition.compiledMethods?.[method.name];
-      if (compiled) return compiled(this.executionContext, ...resolvedArgs);
+      // A `&` parameter always arrives as a get/set wrapper, because the caller
+      // cannot know whether the callee reassigns it. Only methods that do NOT
+      // reassign one reach this map (the emitter keeps the others out of it,
+      // since their ABI is one an emitted caller satisfies directly), so an
+      // emitted method here wants the referent — the same unwrapping the
+      // board's compiled-handler path performs. Without it the NES PPU's
+      // emitted draw_tile_pixel wrote through `u32*& dest` as if the wrapper
+      // itself were the pointer, and one background tile threw.
+      if (compiled) {
+        return compiled(
+          this.executionContext,
+          ...resolvedArgs.map(argument =>
+            generatedReferent(argument) as GeneratedCallArgument),
+        );
+      }
       const locals: Record<string, unknown> = {};
       for (let index = 0; index < parameterNames.length; index++) {
         locals[parameterNames[index]!] = resolvedArgs[index];

@@ -38,12 +38,12 @@ export const digdug: GameTestContract = {
     checkpoints: {
       1: { video: 'fa37277c', state: '3a2718a7' },
       300: { video: 'caacaddb', state: 'fd652c7a' },
-      600: { video: '21864713', state: '6ae1ab13' },
-      1200: { video: '9417a472', state: '155e8de9' },
-      1800: { video: 'c96ac5af', state: '5b3590ce' },
+      600: { video: '21864713', state: '038b7cd4' },
+      1200: { video: '9417a472', state: '43c95e11' },
+      1800: { video: 'c96ac5af', state: '91f8e9a9' },
       2000: { video: '092c8b6e', state: '4c797e8e' },
-      2200: { video: '9912afd4', state: '025bb418' },
-      2400: { video: '72ec44c9', state: '78d2394b' },
+      2200: { video: '9912afd4', state: '9c050cb1' },
+      2400: { video: '72ec44c9', state: 'e7d461ea' },
     },
     audio: {
       writes: 78964,

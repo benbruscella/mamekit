@@ -337,6 +337,17 @@ It has two responsibilities.
 - `generated-video.ts`: executes video plans;
 - `generated-frame.ts`: schedules generated scanline/frame events.
 
+The frame runner interleaves processors once per scanline and charges each
+one's overrun to a carry, so a frame's cycle count stays exact. Device timers
+run on a second clock, advanced by instruction-time deltas so an edge can land
+between instructions, and **settled against the beam at every line boundary**:
+the shortfall a slice did not deliver is paid there and the remainder carries
+signed. That invariant is load bearing, not tidiness — device timers are armed
+against raster positions (`screen().time_until_pos`), and a callback that
+re-arms itself for "the next line" one line late gets MAME's answer, a whole
+frame's delay, permanently. `time_until_pos` is answered in the timer clock's
+own fractional line position for the same reason.
+
 ### BROWSER SERVICES
 
 - `bus.ts`: builds memory and I/O buses from generated ranges;
@@ -359,7 +370,11 @@ or renderer is an architectural regression.
 4. The app fetches `games/<category>/<target>/config.json`.
 5. Arcade targets request a user-supplied ROM zip and validate every required
    chip against graph-derived names and CRCs.
-6. The shell creates the generated board, starts frame scheduling, presents the
+6. Console targets open their cartridge room instead: the generated softlist
+   catalog identifies a dropped or fetched dump by chip CRC, and the shell is
+   handed the identified PRG/CHR regions with the cart's mapper, mirroring and
+   battery injected into a clone of the board config.
+7. The shell creates the generated board, starts frame scheduling, presents the
    framebuffer, and activates generated audio worklets after a user gesture.
 
 Static route pages use `<base href="../../">`; runtime URLs are relative to
