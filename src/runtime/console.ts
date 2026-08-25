@@ -119,6 +119,29 @@ function el(tag: string, css: string): HTMLElement {
   return e;
 }
 
+/**
+ * The game's name, under the cartridge.
+ *
+ * The drawn label prints the title, but a cart with a box scan composites that
+ * scan OVER the label — so every cart that has art lost the one place its name
+ * appeared, leaving a wall of boxes captioned only by board and set name. Two
+ * lines, clamped: enough for "The Addams Family - Pugsley's Scavenger Hunt",
+ * and a fixed height so tiles in a row still line up on the shelf lip.
+ */
+function titleLine(text: string, maxWidth: number): HTMLElement {
+  // Fixed two-line box so every tile in a row lines up, but the text is centred
+  // inside it: a one-line title left at the top hangs a hole under itself.
+  const box = el('div', `max-width:${maxWidth}px;height:26px;display:flex;
+    align-items:center;justify-content:center`);
+  const line = el('div', `display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;color:#cbd1ff;font:600 11px ui-sans-serif,system-ui,sans-serif;
+    line-height:13px;text-align:center;word-break:break-word`);
+  line.textContent = text;
+  box.title = text;
+  box.appendChild(line);
+  return box;
+}
+
 /** greedy word-wrap into at most 2 lines, ellipsizing overflow */
 export function wrapCartTitle(s: string, max = 17): string[] {
   const words = s.split(/\s+/).filter(Boolean);
@@ -232,6 +255,10 @@ function cartSvg(o: {
    * publisher, zip name — are left out rather than peeking around the photo.
    */
   sticker?: boolean;
+  /** mapper board, moulded into the shell's base: "MMC3" */
+  board?: string;
+  /** dump verified against the software list — the seal beside the board */
+  verified?: boolean;
 }): string {
   const hash = artHash(o.artKey ?? o.title);
   const hue = hash % 360;
@@ -312,6 +339,16 @@ function cartSvg(o: {
     <path d="M92 208 H108 L100 222 Z" fill="rgba(0,0,0,.26)"/>
     <rect x="68" y="228" width="64" height="9" rx="3" fill="rgba(0,0,0,.13)"/>
     ${dim ? `<rect x="6" y="4" width="188" height="242" rx="9" fill="rgba(6,7,15,.5)"/>` : ''}
+    <!-- base moulding: the board on the left, its verification seal on the
+         right, both on the bottom lip so the insertion arrow keeps its own band.
+         They live on the shell rather than in the caption because a cartridge
+         with a box scan has no drawn label left to print them on, and they are
+         struck the same way — engraved, one shadowed and one green — so the
+         pair reads as moulding rather than as a badge stuck to the plastic. -->
+    ${o.board ? `<text x="18" y="240" font-family="ui-monospace,monospace" font-size="10" font-weight="800"
+      letter-spacing=".6" fill="rgba(20,20,20,.42)">${esc(o.board)}</text>` : ''}
+    ${o.verified ? `<text x="182" y="240.5" text-anchor="end" font-family="ui-sans-serif,system-ui,sans-serif"
+      font-size="13" font-weight="900" fill="${SEAL_GREEN}" opacity=".85">✓</text>` : ''}
     ${chip}${mark}
   </svg>`;
 }
@@ -859,6 +896,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     item.dataset.slot = row.slot;
     if (row.avail) item.dataset.bucket = row.tier;
     const artName = row.entry?.name ?? row.avail?.name ?? '';
+    const pcb = row.slot === '' ? 'UNKNOWN BOARD' : (SLOT_PCB[row.slot] ?? row.slot.toUpperCase());
     const cover = coverEl(cartSvg({
       title: row.title,
       sub: row.sub,
@@ -866,6 +904,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       artKey: row.key,
       code: zipName,
       sticker: hasSticker(artName),
+      board: pcb,
+      verified: row.tier === 'verified',
     }), false, !row.avail);
     cover.style.width = '160px';
     cover.style.height = '200px';
@@ -879,25 +919,29 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       cover.style.transform = 'perspective(700px) rotateY(-2deg)';
       cover.style.boxShadow = '0 12px 22px rgba(0,0,0,.45)';
     });
-    const pcb = row.slot === '' ? 'UNKNOWN BOARD' : (SLOT_PCB[row.slot] ?? row.slot.toUpperCase());
-    const label = el('div', `max-width:164px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-      font:700 10px ui-monospace,monospace;letter-spacing:.5px;text-align:center;
+    // The board and the verified seal are moulded into the cartridge itself now,
+    // so this line carries only what the shell cannot say — and stays in the
+    // DOM either way, because a web fetch writes its progress into it.
+    const label = el('div', `max-width:164px;overflow:hidden;text-overflow:ellipsis;
+      white-space:nowrap;font:700 10px ui-monospace,monospace;letter-spacing:.5px;text-align:center;
       color:${row.tier === 'verified' ? '#5ecf7a' : row.avail ? '#e6a02a' : playableBoard ? '#e8b64c' : '#737ba7'}`);
-    label.textContent = row.tier === 'verified' ? `${pcb} · VERIFIED DUMP`
-      : row.tier === 'experimental' ? `${pcb} · EXPERIMENTAL`
-        : playableBoard ? `${pcb} · READY FOR DUMP`
-          : `${pcb} · DISPLAY ONLY`;
+    label.textContent = row.tier === 'verified' ? ''
+      : row.tier === 'experimental' ? 'EXPERIMENTAL'
+        : playableBoard ? 'READY FOR DUMP'
+          : 'DISPLAY ONLY';
+    // A verified cart says so on its own shell now, so this line is empty --
+    // and an empty flex child still spends the row's gap either side of it.
+    // beginCartFetch puts it back when it has progress to report.
+    if (!label.textContent) label.style.display = 'none';
     label.title = row.avail
-      ? `${row.title} — ${row.tier === 'verified'
+      ? `${row.title} — ${pcb}, ${row.tier === 'verified'
         ? 'verified against nes.xml' : 'unverified dump'}; search the web for this dump`
-      : `${row.title} — ${label.textContent}`;
-    // The set name is what you type at MAME or look for on disk, so it gets a
-    // line of its own rather than only the 8px print on the label.
-    const file = el('div', `max-width:164px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-      color:#6f78ab;font:600 10px ui-monospace,monospace;text-align:center`);
-    file.textContent = zipName;
-    file.title = zipName;
-    item.append(cover, label, file);
+      : `${row.title} — ${pcb}, ${label.textContent}`;
+    // The set name is what you type at MAME or look for on disk, but a shelf is
+    // read by title: it lives in the tile's tooltip and in the details modal's
+    // Zip row rather than under all 945 cartridges.
+    item.append(cover, titleLine(row.title, 164), label);
+    item.title = `${row.title} — ${zipName}`;
 
     const startFetch = (): void => {
       if (!row.avail) { picker.click(); return; }
@@ -907,21 +951,39 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       item,
       canPlay: () => row.avail !== undefined && coreSupported,
       play: startFetch,
-      info: () => openTargetModal(row.entry, row.key),
+      info: () => openTargetModal(row.entry, row.key, zipName),
       eject: () => {},
     };
-    // Every tile carries a button row, present or not, so tiles in a row share
-    // one height and the cartridges line up on the shelf lip.
-    const buttons = el('div', 'display:flex;gap:8px;align-items:center;justify-content:center;min-height:30px');
-    if (row.avail) {
-      const f = mkBtn('⌕ Search', 'data-fetch', true, coreSupported);
-      f.addEventListener('click', ev => { ev.stopPropagation(); card.play(); });
-      buttons.appendChild(f);
-    }
-    const i = mkBtn('i', 'data-info', false, true);
-    i.addEventListener('click', ev => { ev.stopPropagation(); card.info(); });
-    buttons.appendChild(i);
-    item.appendChild(buttons);
+    // The cartridge IS the button. Clicking it already did what the row of
+    // buttons underneath did, and 48 tiles each shouting a yellow "⌕ Search"
+    // buried the shelf they were meant to serve — so both actions moved onto
+    // the cartridge and surface on hover. They stay real buttons rather than
+    // becoming decoration: keyboard reaches them, and so does the e2e spec.
+    cover.style.position = 'relative';
+    const fetchBtn = mkBtn(row.avail ? '⌕ Search' : '◍ Insert', 'data-fetch', true, coreSupported && row.avail !== undefined);
+    // A tag on the shell's base, not a bar across it: the cartridge is still the
+    // thing being looked at, and the base band is plastic rather than art.
+    fetchBtn.style.cssText += `;position:absolute;left:50%;transform:translateX(-50%);bottom:11px;
+      padding:4px 12px;font-size:10px;letter-spacing:.6px;white-space:nowrap;opacity:0;
+      transition:opacity .15s ease;box-shadow:0 6px 14px rgba(0,0,0,.55)`;
+    fetchBtn.addEventListener('click', ev => { ev.stopPropagation(); card.play(); });
+    const infoBtn = mkBtn('i', 'data-info', false, true);
+    // Top left, over the ribbed grip — the one part of the shell no box scan
+    // covers, so the badge never sits on the artwork.
+    infoBtn.style.cssText += `;position:absolute;top:8px;left:7px;padding:0;width:20px;height:20px;
+      border-radius:10px;line-height:1;font-size:11px;background:rgba(8,10,24,.88);
+      opacity:0;transition:opacity .15s ease`;
+    infoBtn.title = 'Cartridge details';
+    infoBtn.addEventListener('click', ev => { ev.stopPropagation(); card.info(); });
+    cover.append(fetchBtn, infoBtn);
+    const revealActions = (shown: boolean): void => {
+      fetchBtn.style.opacity = shown ? '1' : '0';
+      infoBtn.style.opacity = shown ? '1' : '0';
+    };
+    cover.addEventListener('mouseenter', () => revealActions(true));
+    cover.addEventListener('mouseleave', () => revealActions(false));
+    cover.addEventListener('focusin', () => revealActions(true));
+    cover.addEventListener('focusout', () => revealActions(false));
     cover.onclick = row.avail ? card.play : card.info;
     return card;
   }
@@ -1000,10 +1062,12 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     item.dataset.tier = resolved ? resolved.tier : 'unreadable';
 
     const artName = resolved?.meta?.name ?? '';
+    const ownBoard = resolved?.meta?.slot ? (SLOT_PCB[resolved.meta.slot] ?? resolved.meta.slot.toUpperCase()) : '';
     const cover = coverEl(cartSvg({
       title, sub: dumpSub, state,
       code: ownZipName,
       sticker: hasSticker(artName),
+      board: ownBoard,
     }), state === 'lit', state === 'unsupported');
     applyCartArt(cover, artName);
     cover.onclick = () => other.info();
@@ -1017,11 +1081,6 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     else { status.style.color = '#8b93c4'; status.textContent = (resolved.reason ?? 'MAPPER NOT SUPPORTED').toUpperCase(); }
     status.title = status.textContent;
 
-    const fileLine = el('div', `max-width:${CART_W}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-      color:#6f78ab;font:600 10px ui-monospace,monospace;text-align:center`);
-    fileLine.textContent = ownZipName;
-    fileLine.title = ownZipName;
-
     const buttons = el('div', 'display:flex;gap:8px;align-items:center;justify-content:center;min-height:30px');
     const other: Other = {
       rec, resolved, item,
@@ -1033,6 +1092,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
           title, sub: dumpSub, state,
           code: ownZipName,
           sticker: hasSticker(artName),
+          board: ownBoard,
         });
         applyCartArt(cover, artName);
       },
@@ -1053,7 +1113,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       buttons.append(p, i, e);
     }
     rebuild();
-    item.append(cover, status, fileLine, buttons);
+    item.append(cover, titleLine(title, CART_W), status, buttons);
+    item.title = `${title} — ${ownZipName}`;
     return other;
   }
 
@@ -1113,9 +1174,12 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     const backdrop = el('div', `position:fixed;inset:0;z-index:50;background:rgba(3,4,10,.86);
       display:flex;align-items:center;justify-content:center;padding:24px`);
     backdrop.setAttribute('data-modal', '');
+    // The room sets its typeface on its own root, but a modal hangs off
+    // document.body — outside that subtree — so it has to say so itself or the
+    // browser serves its default serif.
     const card = el('div', `max-width:720px;width:100%;max-height:92vh;border-radius:12px;
       background:linear-gradient(#141838,#0c0f24);border:2px solid ${GOLD};
-      box-shadow:0 24px 80px rgba(0,0,0,.8);font-size:14px;line-height:1.55;
+      box-shadow:0 24px 80px rgba(0,0,0,.8);font:14px/1.55 ui-sans-serif,system-ui;
       display:flex;flex-direction:column;overflow:hidden`);
     const scroller = el('div', 'overflow:auto;flex:1;min-height:0');
     const footer = el('div', `display:flex;gap:12px;flex-wrap:wrap;align-items:center;flex-shrink:0;
@@ -1236,7 +1300,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   }
 
   // info for an EMPTY verified slot — describes the target dump to hunt for
-  function openTargetModal(catEntry: SoftEntry | undefined, name: string): void {
+  function openTargetModal(catEntry: SoftEntry | undefined, name: string, zipName?: string): void {
     const verified = support.games.includes(name) ||
       (catEntry?.cloneof !== undefined && support.games.includes(catEntry.cloneof));
     const playableBoard = catEntry !== undefined && support.slots.includes(catEntry.slot);
@@ -1262,6 +1326,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
         if (catEntry.prg?.roms[0]) row(cat, 'PRG CRC', catEntry.prg.roms[0].crc);
         if (catEntry.chr?.roms[0]) row(cat, 'CHR CRC', catEntry.chr.roms[0].crc);
         row(cat, 'Softlist name', catEntry.name);
+        row(cat, 'Zip', zipName ?? `${catEntry.name}.zip`);
       }
       const note = el('div', 'color:#7f8ac9;font-size:13px;line-height:1.6');
       note.textContent = verified
@@ -1471,6 +1536,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   function beginCartFetch(cover: HTMLElement, label: HTMLElement): CartFetchAnim {
     const restoreLabel = label.textContent;
     const restoreColor = label.style.color;
+    const restoreDisplay = label.style.display;
+    label.style.display = '';
     const restoreShadow = cover.style.boxShadow;
     label.textContent = '⌕ SEARCHING THE WEB…';
     label.style.color = GOLD;
@@ -1567,6 +1634,13 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   picker.type = 'file';
   picker.accept = '.nes,.zip';
   picker.multiple = true;
+  // In the document, not merely constructed: Chrome opens a picker for a
+  // detached input but WebKit ignores the click outright, which left "click to
+  // choose" doing nothing there while the drop half of the same slot worked.
+  picker.tabIndex = -1;
+  picker.setAttribute('aria-hidden', 'true');
+  picker.style.cssText = 'position:fixed;left:-9999px;width:1px;height:1px;opacity:0';
+  root.appendChild(picker);
   picker.addEventListener('change', () => {
     const fs = [...(picker.files ?? [])];
     picker.value = '';
