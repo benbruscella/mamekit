@@ -79,10 +79,28 @@ export function compileSn76489(
   };
 }
 
-export function generatedSn76489WorkletSource(plan: GeneratedSn76489Plan): string {
-  return `// GENERATED from ${plan.source.file}:${plan.source.line}; do not edit.
+/**
+ * One worklet hosts every SN76496-family variant the closure resolved. The
+ * family shares MAME's `sn76496_base_device` implementation but not its
+ * constructor arguments: an SN76489 clocks a 15-bit LFSR with inverted output
+ * while an SN76489A clocks a 17-bit one straight, so a board is only correct
+ * when each chip runs the plan of the type its machine config declared.
+ */
+export function generatedSn76489WorkletSource(
+  plans: readonly GeneratedSn76489Plan[],
+): string {
+  if (!plans.length) throw new Error('SN76489 worklet needs at least one variant plan');
+  const first = plans[0]!;
+  return `// GENERATED from ${plans.map(plan => `${plan.source.file}:${plan.source.line}`).join(', ')}; do not edit.
 // Register protocol, divider, polarity and LFSR taps come from MAME.
-const plan = ${JSON.stringify(plan, null, 2)};
+const plans = ${JSON.stringify(plans, null, 2)};
+type GeneratedSn76489Plan = (typeof plans)[number];
+const planByType = new Map(plans.map(entry => [entry.type, entry]));
+
+/** The chip's own MAME type selects its variant; an unnamed chip keeps ${first.type}. */
+function generatedSn76489Plan(type: string | undefined): GeneratedSn76489Plan {
+  return (type ? planByType.get(type) : undefined) ?? plans[0]!;
+}
 
 export interface GeneratedSn76489Write {
   offset: number;
@@ -103,10 +121,14 @@ class GeneratedSn76489Core {
   private readonly counts = new Int32Array(4);
   private readonly outputs = new Int32Array(4);
   private readonly volumeTable = new Float64Array(16);
-  private lastRegister = plan.segaStyle ? 3 : 0;
-  private rng = plan.feedbackMask;
+  private readonly plan: GeneratedSn76489Plan;
+  private lastRegister: number;
+  private rng: number;
 
-  constructor() {
+  constructor(plan: GeneratedSn76489Plan = plans[0]!) {
+    this.plan = plan;
+    this.lastRegister = plan.segaStyle ? 3 : 0;
+    this.rng = plan.feedbackMask;
     let level = 0.25;
     for (let index = 0; index < 15; index++) {
       this.volumeTable[index] = level;
@@ -127,9 +149,9 @@ class GeneratedSn76489Core {
       register = (data & 0x70) >> 4;
       this.lastRegister = register;
       if (
-        plan.ncrStyle && register === 6 &&
+        this.plan.ncrStyle && register === 6 &&
         ((data & 4) !== (this.registers[6]! & 4))
-      ) this.rng = plan.feedbackMask;
+      ) this.rng = this.plan.feedbackMask;
       this.registers[register] =
         (this.registers[register]! & 0x3f0) | (data & 0x0f);
     } else {
@@ -141,7 +163,7 @@ class GeneratedSn76489Core {
         this.registers[register] =
           (this.registers[register]! & 0x0f) | ((data & 0x3f) << 4);
       }
-      this.periods[channel] = this.registers[register] || plan.segaStyle
+      this.periods[channel] = this.registers[register] || this.plan.segaStyle
         ? this.registers[register]!
         : 0x400;
       if (register === 4 && (this.registers[6]! & 3) === 3) {
@@ -162,7 +184,7 @@ class GeneratedSn76489Core {
       this.periods[3] = (noise & 3) === 3
         ? this.periods[2]! << 1
         : 1 << (5 + (noise & 3));
-      if (!plan.ncrStyle) this.rng = plan.feedbackMask;
+      if (!this.plan.ncrStyle) this.rng = this.plan.feedbackMask;
     }
   }
 
@@ -174,12 +196,12 @@ class GeneratedSn76489Core {
       }
     }
     if (--this.counts[3]! <= 0) {
-      const tap1 = (this.rng & plan.whiteNoiseTap1) !== 0;
-      const tap2 = (this.rng & plan.whiteNoiseTap2) !==
-        (plan.ncrStyle ? plan.whiteNoiseTap2 : 0);
+      const tap1 = (this.rng & this.plan.whiteNoiseTap1) !== 0;
+      const tap2 = (this.rng & this.plan.whiteNoiseTap2) !==
+        (this.plan.ncrStyle ? this.plan.whiteNoiseTap2 : 0);
       const feedback = tap1 !== (tap2 && Boolean(this.registers[6]! & 4));
       this.rng >>>= 1;
-      if (feedback) this.rng |= plan.feedbackMask;
+      if (feedback) this.rng |= this.plan.feedbackMask;
       this.outputs[3] = this.rng & 1;
       this.counts[3] = this.periods[3]!;
     }
@@ -190,25 +212,40 @@ class GeneratedSn76489Core {
     for (let channel = 0; channel < 4; channel++) {
       if (this.outputs[channel]) output += this.volumes[channel]!;
     }
-    return plan.negate ? -output : output;
+    return this.plan.negate ? -output : output;
   }
 }
 
 export class GeneratedSn76489Mixer {
   private readonly cores: GeneratedSn76489Core[];
   private readonly phases: Float64Array;
-  private readonly stepsPerSample: number;
+  private readonly stepsPerSample: Float64Array;
   private readonly gains: Float64Array;
 
+  /**
+   * deviceTypes and clocks are per chip: a machine config may fit two
+   * different family members, or the same one at two clocks (Congo Bongo runs
+   * its second SN76489A at a quarter of the first's).
+   */
   constructor(
     clock: number,
     chips: number,
     outputRate: number,
     routes: readonly GeneratedSn76489Route[] = [],
+    deviceTypes: readonly (string | undefined)[] = [],
+    clocks: readonly (number | undefined)[] = [],
   ) {
-    this.cores = Array.from({ length: chips }, () => new GeneratedSn76489Core());
+    const chipPlan = (chip: number) => generatedSn76489Plan(deviceTypes[chip]);
+    this.cores = Array.from(
+      { length: chips },
+      (_unused, chip) => new GeneratedSn76489Core(chipPlan(chip)),
+    );
     this.phases = new Float64Array(chips);
-    this.stepsPerSample = clock / (2 * plan.clockDivider * outputRate);
+    this.stepsPerSample = Float64Array.from(
+      { length: chips },
+      (_unused, chip) =>
+        (clocks[chip] ?? clock) / (2 * chipPlan(chip).clockDivider * outputRate),
+    );
     this.gains = Float64Array.from(
       { length: chips },
       (_unused, chip) => Math.max(
@@ -225,7 +262,7 @@ export class GeneratedSn76489Mixer {
   sample(): number {
     let mixed = 0;
     for (let chip = 0; chip < this.cores.length; chip++) {
-      this.phases[chip] += this.stepsPerSample;
+      this.phases[chip] += this.stepsPerSample[chip]!;
       while (this.phases[chip] >= 1) {
         this.cores[chip]!.step();
         this.phases[chip]--;
@@ -293,6 +330,8 @@ class GeneratedSn76489Processor extends AudioWorkletProcessor {
         type: string;
         clock?: number;
         chips?: number;
+        deviceTypes?: string[];
+        clocks?: number[];
         routes?: GeneratedSn76489Route[];
         refresh?: number;
         writes?: GeneratedSn76489Write[];
@@ -303,6 +342,8 @@ class GeneratedSn76489Processor extends AudioWorkletProcessor {
           message.chips ?? 1,
           sampleRate,
           message.routes,
+          message.deviceTypes,
+          message.clocks,
         );
         this.renderer = new GeneratedSn76489FrameRenderer(
           mixer,

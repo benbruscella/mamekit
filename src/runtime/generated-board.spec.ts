@@ -87,6 +87,7 @@ const lineCpu = {
   setInputLine() {},
   nmi() { nmis++; },
   get() { return 0; },
+  stateInt() { return 0; },
   set() {},
   invoke() { return 0; },
 };
@@ -318,6 +319,7 @@ registerGeneratedCpu({
       setInputLine() {},
       nmi() {},
       get() { return 0; },
+      stateInt() { return 0; },
       set() {},
       invoke() { return 0; },
     };
@@ -471,6 +473,7 @@ registerGeneratedCpu({
       setInputLine() {},
       nmi() {},
       get() { return 0; },
+      stateInt() { return 0; },
       set() {},
       invoke() { return 0; },
     };
@@ -580,6 +583,7 @@ registerGeneratedCpu({
       setInputLine() {},
       nmi() {},
       get() { return 0; },
+      stateInt() { return 0; },
       set() {},
       invoke() { return 0; },
     };

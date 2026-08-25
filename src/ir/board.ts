@@ -181,7 +181,13 @@ export interface GeneratedHandler {
 export type GeneratedExpression =
   | { kind: 'number'; value: number; floating?: boolean }
   | { kind: 'string'; value: string }
-  | { kind: 'identifier'; name: string }
+  /**
+   * `floating` marks an identifier the source declared `float`/`double`. C++
+   * decides `a / b` from the operands' declared types, and the IR otherwise
+   * only sees a float when the text has a literal or a cast -- so a resistor
+   * network computed entirely through float locals divided as integers.
+   */
+  | { kind: 'identifier'; name: string; floating?: boolean }
   | { kind: 'unary'; operator: string; operand: GeneratedExpression }
   // `pointer` records that the source cast to a pointer or reference type.
   // `valueType` keeps only the numeric words, so the interpreter narrows
@@ -345,6 +351,8 @@ export interface GeneratedExecutionPlan {
      */
     entryOffsets: (number | null)[];
     dynamicShift?: number;
+    /** Entry the driver selects at power on, when it is not the first one. */
+    initialEntry?: number;
     source?: BoardSourceRef;
   }[];
   screen: GeneratedScreen;
@@ -520,6 +528,29 @@ export interface GeneratedPromPalettePlan {
 }
 
 /**
+ * A palette init callback MAME wrote as ordinary code rather than as one of the
+ * resistor-network idioms the declarative plan above recognizes. Mr. Do! builds
+ * its own 16-entry weight table from parallel resistances and a diode drop, so
+ * there is no compute_resistor_weights call to read the network out of.
+ *
+ * The callback is lowered to handler IR and executed once at machine start
+ * against the same palette_device operations MAME's callback calls. It is the
+ * fallback, not the preferred form: a declarative plan stays inspectable data,
+ * while this preserves behavior no fixed vocabulary covers.
+ */
+export interface GeneratedProgramPalettePlan {
+  /** palette_device pen count from the machine configuration. */
+  entries: number;
+  /** indirect_entries, or 0 when the device colors its pens directly. */
+  indirectEntries: number;
+  /** Callback parameter naming the palette_device (`palette_device &palette`). */
+  deviceParameter: string;
+  program: GeneratedHandlerProgram;
+  constants?: Record<string, number>;
+  source?: BoardSourceRef;
+}
+
+/**
  * MAME palette_device configured by set_format over CPU-writable palette RAM
  * (no color PROM). The channel decode comes from the emupal.cpp overload the
  * driver names, and the share tags follow palette_device::device_start, which
@@ -658,6 +689,8 @@ export interface GeneratedVideoPlan {
     member: string;
     plan: GeneratedPromPalettePlan;
   }[];
+  /** Executed palette init callback, when no declarative palette shape fits. */
+  paletteProgram?: GeneratedProgramPalettePlan;
   /** Palette RAM decoded by a MAME set_format converter instead of a PROM. */
   ramPalette?: GeneratedRamPalettePlan;
   tilemaps: GeneratedTilemapPlan[];

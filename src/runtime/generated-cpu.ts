@@ -116,6 +116,8 @@ export interface Cpu {
   setInputLine(inputnum: number, state: number): void;
   nmi(): void;
   get(name: string): number;
+  /** MAME device_state_interface::state_int, by the CPU's own state index. */
+  stateInt(index: number): number;
   set(name: string, value: number): void;
   invoke(name: string, ...args: number[]): number;
 }
@@ -158,6 +160,8 @@ class IrCpu implements Cpu {
   private readonly bindings: GeneratedHandlerBindings;
   private irqData: number | (() => number) = 0xff;
   private irqHold = false;
+  /** The CPU's state enum, resolved to register names on first use. */
+  private stateIndexNames?: Map<number, string>;
   private readonly internalRam = new Map<number, number>();
   private readonly portData: number[];
   private readonly portDirection: number[];
@@ -310,6 +314,31 @@ class IrCpu implements Cpu {
     const alias = this.definition.aliases[name];
     const value = alias ? this.readAlias(alias) : this.readPath(name);
     return Number(value) || 0;
+  }
+
+  /**
+   * A driver reads a live register through MAME's state interface, naming it by
+   * the CPU family's own enum (`m_maincpu->state_int(Z80_HL)`). The enum is
+   * lowered with the rest of the CPU's constants, and MAME names each entry
+   * after the register it exposes, so the index resolves back to a register
+   * this CPU already knows.
+   */
+  stateInt(index: number): number {
+    const name = this.stateNames().get(index);
+    return name === undefined ? 0 : this.get(name);
+  }
+
+  private stateNames(): Map<number, string> {
+    if (this.stateIndexNames) return this.stateIndexNames;
+    const names = new Map<number, string>();
+    for (const [name, value] of Object.entries(this.definition.constants)) {
+      const register = /^[A-Z][A-Z0-9]*_([A-Z0-9_]+)$/.exec(name)?.[1];
+      if (register && this.definition.aliases[register] && !names.has(value)) {
+        names.set(value, register);
+      }
+    }
+    this.stateIndexNames = names;
+    return names;
   }
 
   set(name: string, value: number): void {

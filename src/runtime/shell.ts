@@ -8,7 +8,8 @@ import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig } from './types.ts';
-import type { GeneratedAudioRoute } from '../ir/board.ts';
+import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
+import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 import { fetchRomBytes } from './rom-source.ts';
 
@@ -94,6 +95,8 @@ export interface SoundSpec {
   deviceTags?: string[];
   /** MAME device type in chip-index order, when a bank mixes several chips. */
   deviceTypes?: string[];
+  /** Per-chip clock in chip-index order, when a bank clocks them differently. */
+  clocks?: number[];
   /** Resolution, coding and gain of each DAC, lowered from MAME source. */
   dacs?: GeneratedDacChip[];
   /** Per-output routes lowered from MAME add_route calls. */
@@ -282,6 +285,20 @@ export type RomTransform =
       table: number[];
     }
   | {
+      /**
+       * MAME's driver init preserved as a program, for the inits whose work has
+       * no declarative shape (Ms. Pac-Man decrypts a whole second bank through
+       * address and data bit permutations, then patches it). Executed over the
+       * assembled regions, exactly where MAME runs it.
+       */
+      kind: 'init-program';
+      method: string;
+      parameters: string;
+      program: GeneratedHandlerProgram;
+      helpers: { method: string; parameters: string; program: GeneratedHandlerProgram }[];
+      source?: { file: string; line: number; column?: number };
+    }
+  | {
       kind: 'sega-z80-decrypt';
       algorithm: 'segacrpt' | 'segacrp2';
       sourceRegion: string;
@@ -292,6 +309,59 @@ export type RomTransform =
       xorTable?: number[];
       swapTable?: number[];
     };
+
+/**
+ * Run a lowered driver init over the assembled ROM regions.
+ *
+ * The environment is deliberately small: MAME's region finder, and the memory
+ * bank finder as a recorder. Bank configuration is already lowered declaratively
+ * from the same function, so the calls the init makes into it are accepted and
+ * discarded rather than being a reason to refuse the program.
+ */
+function executeDriverInitProgram(
+  transform: Extract<RomTransform, { kind: 'init-program' }>,
+  regions: Regions,
+): void {
+  const where = transform.source
+    ? `${transform.source.file}:${transform.source.line}`
+    : transform.method;
+  const referenceCalls: Record<string, (...args: unknown[]) => unknown> = {
+    memregion: (...args: unknown[]) => {
+      const tag = String(argumentValue(args[0]) ?? '');
+      const bytes = regions[tag];
+      if (!bytes) throw new Error(`${where}: driver init has no ROM region "${tag}"`);
+      return { base: () => bytes, bytes: () => bytes.length };
+    },
+    membank: () => ({
+      configure_entries: () => 0,
+      configure_entry: () => 0,
+      set_entry: () => 0,
+    }),
+  };
+  for (const helper of transform.helpers) {
+    const names = helper.parameters
+      .split(',')
+      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+      .filter((name): name is string => Boolean(name));
+    referenceCalls[helper.method] = (...args: unknown[]) => executeGeneratedHandler(
+      helper.program,
+      { constants: {}, members: {}, referenceCalls },
+      Object.fromEntries(names.map((name, index) => [name, argumentValue(args[index])])),
+    );
+  }
+  executeGeneratedHandler(
+    transform.program,
+    { constants: {}, members: {}, referenceCalls },
+  );
+}
+
+/** Unwrap the l-value a generated call receives for a reference parameter. */
+function argumentValue(value: unknown): unknown {
+  return value && typeof value === 'object' &&
+    typeof (value as { get?: unknown }).get === 'function'
+    ? (value as { get(): unknown }).get()
+    : value;
+}
 
 export function applyRomTransforms(regions: Regions, transforms: readonly RomTransform[]): void {
   for (const transform of transforms) {
@@ -360,6 +430,10 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
           0,
         );
       }
+      continue;
+    }
+    if (transform.kind === 'init-program') {
+      executeDriverInitProgram(transform, regions);
       continue;
     }
     const source = regions[transform.sourceRegion];
@@ -579,6 +653,7 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
         chips: cfg.sound.chips,
         deviceTags: cfg.sound.deviceTags,
         deviceTypes: cfg.sound.deviceTypes,
+        clocks: cfg.sound.clocks,
         dacs: cfg.sound.dacs,
         routes: cfg.sound.routes,
         auxiliary: cfg.sound.auxiliary,

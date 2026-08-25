@@ -15,7 +15,7 @@ import {
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
   parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
   parseInitPatches, parseInitRomTransforms, parseInstalledHandlers, parseTextMacros, parseMemoryBanks, evalExpr,
-  parseEnumConstants,
+  parseEnumConstants, normalizeTemplatedMethod,
   type InputPortsDef,
 } from './parse.ts';
 
@@ -595,6 +595,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         offset: bank.offset,
         stride: bank.stride,
         ...(bank.dynamicShift !== undefined ? { dynamicShift: bank.dynamicShift } : {}),
+        ...(bank.initialEntry !== undefined ? { initialEntry: bank.initialEntry } : {}),
         raw: bank.raw,
         ...spanProps(source),
       });
@@ -1369,8 +1370,7 @@ function emitCallbacks(
     }
     if (func) {
       props.targetClass = func[1] ?? '';
-      props.targetMethod = func[2].replace(/<([^>]+)>/, (_match, argument: string) =>
-        `_${argument.replace(/[^A-Za-z0-9_]+/g, '_')}`);
+      props.targetMethod = normalizeTemplatedMethod(func[2]);
     }
 
     g.node('Callback', callbackId, props);

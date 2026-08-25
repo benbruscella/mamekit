@@ -19,6 +19,8 @@ export async function createSn76489Probe(
       chips: number,
       outputRate: number,
       routes?: unknown,
+      deviceTypes?: readonly (string | undefined)[],
+      clocks?: readonly (number | undefined)[],
     ) => unknown;
     GeneratedSn76489FrameRenderer: new (
       mixer: unknown,
@@ -32,6 +34,8 @@ export async function createSn76489Probe(
     context.sound.chips ?? 1,
     context.outputRate,
     context.sound.routes,
+    context.sound.deviceTypes,
+    context.sound.clocks,
   );
   return new module.GeneratedSn76489FrameRenderer(
     mixer,

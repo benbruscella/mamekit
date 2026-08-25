@@ -290,6 +290,17 @@ IR. Drivers that call `screen.update_partial` select partial raster composition,
 so mid-frame video RAM changes are rendered at the source-declared boundary
 rather than from a torn end-of-frame snapshot.
 
+A declarative plan is always preferred, because data is inspectable. Where a
+driver's palette callback computes its network in source rather than declaring
+one — Mr. Do! builds its own sixteen resistor weights from parallel resistances,
+a pull-down and a diode drop — the callback is instead lowered to handler IR and
+executed once at machine start against the palette_device operations MAME's own
+callback calls. The same fallback exists for a driver init that rewrites ROM
+with no declarative shape (`src/mame/driver-init-compiler.ts`): Ms. Pac-Man
+builds a whole second program bank out of address-scrambled, bit-permuted copies
+of the Pac-Man ROMs, so the shape is the code. Both are last resorts, reached
+only when nothing declarative was recovered from the same source.
+
 ### AUDIO
 
 Audio families are capability packages over `src/mame/audio-compiler.ts`, which

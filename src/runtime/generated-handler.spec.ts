@@ -574,4 +574,48 @@ executeGeneratedHandler(
 assert.ok(ArrayBuffer.isView(resized.m_buffered), 'resize must preserve the container');
 assert.equal((resized.m_buffered as Uint8Array).length, 4);
 
-console.log('generated-handler.spec: 21 passed');
+// MAME hands a handler its CPU's address_space when the signature declares
+// one, and the space belongs to the CPU whose map named the handler — not to
+// whichever CPU the board happens to list first.
+{
+  const spaceMachine: BoardIr = {
+    ...machine,
+    execution: {
+      ...machine.execution,
+      cpus: [
+        {
+          tag: 'audiocpu', clock: 1, region: 'audiocpu',
+          ranges: [{ start: 0, end: 0, kind: 'handler' }],
+        },
+        {
+          tag: 'maincpu', clock: 1, region: 'maincpu',
+          ranges: [{
+            start: 0x10, end: 0x10, kind: 'handler', write: 'fixture_state.dma',
+          }],
+        },
+      ],
+    },
+    handlers: [{
+      id: 'handler:fixture_state:dma',
+      ownerClass: 'fixture_state',
+      method: 'dma',
+      parameters: 'address_space &space, offs_t offset, uint8_t data',
+      program: compileMameHandler('m_latch = space.read_byte(data);'),
+    }],
+    maps: [],
+  };
+  const state: Record<string, unknown> = {};
+  let requested: string | undefined;
+  const spaceRegistry = generatedHandlerRegistry(spaceMachine, {
+    members: state,
+    addressSpace: cpuTag => {
+      requested = cpuTag;
+      return { read_byte: (address: number) => address + 1 };
+    },
+  });
+  spaceRegistry.write['fixture_state.dma']!(0x10, 0, 0x41, undefined);
+  assert.equal(requested, 'maincpu', 'the space belongs to the CPU whose map has the handler');
+  assert.equal(state.m_latch, 0x42);
+}
+
+console.log('generated-handler.spec: 22 passed');

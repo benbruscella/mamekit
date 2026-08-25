@@ -51,9 +51,38 @@ async function auditGame(game: string): Promise<void> {
   const images = [...xml.matchAll(/<image\s+file="([^"]+)"/g)].map(match =>
     match[1]!.toLowerCase());
   assert.ok(images.length, `${game}: ${zipPath} layout references no images`);
-  for (const image of images) {
+  // Only the images a view actually draws. A MAME pack may declare an element
+  // no view references — Mr. Do!'s official pack carries a leftover work-in-
+  // progress element whose PNG was never shipped — and neither MAME nor the
+  // bezel builder ever asks for that file.
+  for (const image of drawnImages(xml)) {
     assert.ok(entries.has(image), `${game}: ${zipPath} is missing layout image ${image}`);
   }
+}
+
+/** Layout images reachable from a `<view>`, lowercased as the zip stores them. */
+function drawnImages(xml: string): string[] {
+  const elementFiles = new Map<string, string[]>();
+  for (const element of xml.matchAll(
+    /<element\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/element>/g,
+  )) {
+    elementFiles.set(
+      element[1]!,
+      [...element[2]!.matchAll(/<image\s+file="([^"]+)"/g)]
+        .map(image => image[1]!.toLowerCase()),
+    );
+  }
+  const drawn = new Set<string>();
+  for (const view of xml.matchAll(/<view\s[^>]*>([\s\S]*?)<\/view>/g)) {
+    for (const reference of view[1]!.matchAll(/\belement="([^"]+)"/g)) {
+      for (const file of elementFiles.get(reference[1]!) ?? []) drawn.add(file);
+    }
+    // A view may also name an image inline rather than through an element.
+    for (const inline of view[1]!.matchAll(/<image\s+file="([^"]+)"/g)) {
+      drawn.add(inline[1]!.toLowerCase());
+    }
+  }
+  return [...drawn];
 }
 
 function requireFile(path: string): void {

@@ -1,11 +1,12 @@
 import type { VideoRenderer } from './types.ts';
 import type { Regions, VideoRenderer as Renderer } from './types.ts';
-import type { BoardIr, GeneratedGfxEntry, GeneratedHandler, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
+import type { BoardIr, GeneratedGfxEntry, GeneratedHandler, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
 import {
   executeGeneratedCallbackHandler,
   executeGeneratedMachineProgram,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
+import { executeGeneratedHandler } from '../ir/execute.ts';
 import { decodeGfx, type GfxSet } from './gfx.ts';
 import { executeDvgDisplayList } from '../hardware/vector/dvg.ts';
 
@@ -729,6 +730,109 @@ class GeneratedBitmapPalette implements GeneratedPaletteDevice {
 
   pens(): Uint32Array {
     return this.colors;
+  }
+}
+
+/**
+ * A palette whose colors come from executing MAME's own init callback.
+ *
+ * The declarative PROM palette above is the normal path and stays preferred:
+ * it is inspectable data. This is for callbacks that compute their network in
+ * source instead of declaring it (Mr. Do! derives sixteen resistor weights from
+ * parallel resistances, a pull-down and a diode drop). The callback runs once
+ * here against the palette_device operations it calls in MAME.
+ */
+class GeneratedProgramPalette implements GeneratedPaletteDevice {
+  readonly colors: Uint32Array;
+  readonly indirect: Uint16Array;
+  private readonly indirectColors: Uint32Array;
+
+  constructor(plan: GeneratedProgramPalettePlan, regions: Regions, game: string) {
+    this.colors = new Uint32Array(Math.max(1, plan.entries));
+    this.indirect = new Uint16Array(this.colors.length);
+    this.indirectColors = new Uint32Array(Math.max(1, plan.indirectEntries));
+    const device: Record<string, (...args: number[]) => unknown> = {
+      set_indirect_color: (index, color) => {
+        if (index >= 0 && index < this.indirectColors.length) {
+          this.indirectColors[index] = color >>> 0;
+        }
+        return 0;
+      },
+      set_pen_indirect: (pen, indirect) => {
+        if (pen >= 0 && pen < this.indirect.length) this.indirect[pen] = indirect & 0xffff;
+        return 0;
+      },
+      set_pen_color: (pen, colorOrRed, green, blue) => {
+        if (pen < 0 || pen >= this.colors.length) return 0;
+        this.colors[pen] = green === undefined || blue === undefined
+          ? colorOrRed >>> 0
+          : packRgb(colorOrRed, green, blue);
+        return 0;
+      },
+      entries: () => this.colors.length,
+      indirect_entries: () => this.indirectColors.length,
+    };
+    const calls: Record<string, (...args: number[]) => unknown> = {};
+    for (const [method, implementation] of Object.entries(device)) {
+      // The callback names the device by its own parameter; a driver that
+      // calls the method unqualified reaches the same implementation.
+      calls[`${plan.deviceParameter}.${method}`] = implementation;
+      calls[method] = implementation;
+    }
+    executeGeneratedHandler(plan.program, {
+      constants: plan.constants ?? {},
+      members: {},
+      calls,
+      referenceCalls: {
+        memregion: (...args: unknown[]) => {
+          const tag = String(generatedArgumentValue(args[0]) ?? '');
+          const bytes = regions[tag];
+          if (!bytes) throw new Error(`${game}: missing palette ROM region "${tag}"`);
+          return { base: () => bytes, bytes: () => bytes.length };
+        },
+      },
+    });
+    // MAME resolves a pen lazily from its indirect entry, so the callback is
+    // free to write the lookup table before the colors it points at.
+    if (plan.indirectEntries) {
+      for (let pen = 0; pen < this.colors.length; pen++) {
+        this.colors[pen] = this.indirectColors[this.indirect[pen]!] ?? 0xff000000;
+      }
+    }
+  }
+
+  transpen_mask(gfx: GeneratedGfxElement, color: number, transparent: number): number {
+    let mask = 0;
+    const base = gfx.entry.colorBase + color * gfx.granularity();
+    for (let pen = 0; pen < gfx.granularity(); pen++) {
+      if (this.indirect[base + pen] === transparent) mask |= 1 << pen;
+    }
+    return mask;
+  }
+
+  black_pen(): number {
+    for (let pen = 0; pen < this.colors.length; pen++) {
+      if (this.colors[pen] === 0xff000000) return pen;
+    }
+    return 0;
+  }
+
+  pens(): Uint32Array {
+    return this.colors;
+  }
+
+  set_pen_indirect(pen: number, indirect: number): void {
+    if (pen < 0 || pen >= this.colors.length) return;
+    const color = indirect & 0xffff;
+    this.indirect[pen] = color;
+    this.colors[pen] = this.indirectColors[color] ?? 0xff000000;
+  }
+
+  set_pen_color(pen: number, colorOrRed: number, green?: number, blue?: number): void {
+    if (pen < 0 || pen >= this.colors.length) return;
+    this.colors[pen] = green === undefined || blue === undefined
+      ? colorOrRed >>> 0
+      : packRgb(colorOrRed, green, blue);
   }
 }
 
@@ -2204,6 +2308,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         machine.video.palette.dynamic?.kind === 'tnx1-banked'
           ? new GeneratedTnx1Palette(machine.video.palette.dynamic, regions)
           : new GeneratedPalette(machine.video.palette, regions),
+      );
+    }
+    if (machine.video?.paletteProgram) {
+      this.palettes.set(
+        'm_palette',
+        new GeneratedProgramPalette(machine.video.paletteProgram, regions, machine.game),
       );
     }
     const ramPalettePlan = machine.video?.ramPalette ?? (machine.family === 'neogeo'

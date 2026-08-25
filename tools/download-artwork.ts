@@ -1,3 +1,14 @@
+// Fetch the local, gitignored presentation package for one or more targets.
+//
+// Two archives cover it, and both are the sources docs/CONTRIBUTING.md names:
+// the MAME artwork collection on archive.org supplies each board's bezel pack
+// and default.lay, and the Arcade Database mirrors progetto-SNAPS flyers,
+// cabinets and marquees under the same MAME short names.
+//
+// Usage: node tools/download-artwork.ts [game ...]
+// With no argument it fetches whatever every discovered game contract is still
+// missing, so the target list stays derived rather than hand-kept.
+
 import { spawnSync } from 'node:child_process';
 import {
   existsSync,
@@ -10,18 +21,33 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-
-const games = [
-  '1942', 'arkanoid', 'asteroid', 'berzerk', 'carnival', 'crush', 'defender',
-  'dkongjr', 'ddragon', 'elevator', 'gauntlet', 'ghouls', 'gberet', 'gunsmoke',
-  'jumpbug', 'matmania', 'mslug', 'outrun', 'pengo', 'phoenix', 'polepos',
-  'popeye', 'qbert', 'rtype', 'rampage', 'rygar', 'sinistar', 'panic',
-  'spyhunt', 'sf2ce', 'mario', 'tmnt', 'simpsons', 'trackfld', 'tutankhm',
-  'upndown', 'venture', 'wardner', 'wboy', 'zaxxon',
-] as const;
+import { discoverGameNames } from '../src/games/discovery.ts';
 
 const root = resolve(import.meta.dirname, '..');
 const artwork = join(root, '.data/artwork');
+const mediaKinds = [
+  { remote: 'flyers', local: 'covers' },
+  { remote: 'cabinets', local: 'media/cabinets' },
+  { remote: 'marquees', local: 'media/marquees' },
+] as const;
+
+/** Everything a complete local package holds for one target. */
+function packageFiles(game: string): string[] {
+  return [
+    join(artwork, `${game}.zip`),
+    ...mediaKinds.map(kind => join(artwork, kind.local, `${game}.png`)),
+  ];
+}
+
+const requested = process.argv.slice(2).filter(argument => !argument.startsWith('-'));
+const games = requested.length
+  ? requested
+  : discoverGameNames(join(root, 'src/games'))
+    .filter(game => packageFiles(game).some(file => !existsSync(file)));
+if (!games.length) {
+  console.log('artwork: every discovered game already has a local package');
+  process.exit(0);
+}
 const pngSignature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const fallbackBezels: Record<string, {
   url: string;
@@ -138,11 +164,6 @@ const bezelFailures = await pool(games, async game => {
 }, 6);
 repairKnownLayoutTypos();
 
-const mediaKinds = [
-  { remote: 'flyers', local: 'covers' },
-  { remote: 'cabinets', local: 'media/cabinets' },
-  { remote: 'marquees', local: 'media/marquees' },
-] as const;
 const mediaFailures = await pool(
   games.flatMap(game => mediaKinds.map(kind => ({ game, ...kind }))),
   async ({ game, remote, local }) => download(
@@ -153,6 +174,10 @@ const mediaFailures = await pool(
   10,
 );
 
-console.log(`issue #50 artwork: ${games.length - bezelFailures.length}/40 bezel packs, ` +
-  `${games.length * mediaKinds.length - mediaFailures.length}/120 media images`);
+console.log(
+  `artwork: ${games.length - bezelFailures.length}/${games.length} bezel packs, ` +
+  `${games.length * mediaKinds.length - mediaFailures.length}/` +
+  `${games.length * mediaKinds.length} media images ` +
+  `(${games.join(', ')})`,
+);
 for (const failure of [...bezelFailures, ...mediaFailures]) console.log(`missing: ${failure}`);

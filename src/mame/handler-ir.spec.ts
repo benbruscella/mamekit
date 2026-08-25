@@ -304,4 +304,43 @@ const crystalClock = compileMameHandler(`
 `);
 assert.deepEqual(crystalClock.diagnostics, []);
 
-console.log('handler-ir.spec: 40 passed');
+// MAME's bit helpers are free function templates. Left as a plain call the
+// width is lost and nothing resolves it, so the expression evaluated to zero.
+const bitPermutation = compileMameHandler(`
+  return bitswap<8>(value, 0, 1, 2, 3, 4, 5, 6, 7);
+`);
+assert.deepEqual(bitPermutation.diagnostics, []);
+assert.equal(
+  executeGeneratedProgram(bitPermutation, {}, { value: 0x12 }).value,
+  0x48,
+);
+
+// A resistor network computed through float locals: `float(R1)` is a functional
+// cast rather than a call, and `pull / (pull + par)` divides as floating point
+// because `par` was declared float even though the text has no literal.
+const resistorNetwork = compileMameHandler(`
+  constexpr int R1 = 150;
+  constexpr int pull = 220;
+  float par = 0;
+  par += 1.0f / float(R1);
+  par = 1 / par;
+  float pot = pull / (pull + par);
+  return pot * 1000;
+`);
+assert.deepEqual(resistorNetwork.diagnostics, []);
+assert.equal(
+  Math.round(Number(executeGeneratedProgram(resistorNetwork, {}).value)),
+  Math.round(220 / (220 + 150) * 1000),
+);
+
+// A local array takes its element type from the declaration; ALLOC only knows
+// the length, so a float table used to be allocated as bytes and clamped.
+const floatTable = compileMameHandler(`
+  float weights[4];
+  weights[1] = 3 / 2.0;
+  return weights[1] * 100;
+`);
+assert.deepEqual(floatTable.diagnostics, []);
+assert.equal(executeGeneratedProgram(floatTable, {}).value, 150);
+
+console.log('handler-ir.spec: 43 passed');

@@ -240,6 +240,14 @@ ${emitPublicGetCases(definition)}
     }
   }
 
+  /** MAME device_state_interface::state_int, by the CPU's own state index. */
+  stateInt(index: number): number {
+    switch (index) {
+${emitStateIntCases(definition)}
+      default: return 0;
+    }
+  }
+
   set(name: string, value: number): void {
     switch (name) {
 ${emitPublicSetCases(definition)}
@@ -525,6 +533,25 @@ function emitInvokeCases(definition: GeneratedCpuDefinition): string {
       `        return ${calls[0]!.call};`,
     ].join('\n');
   }).join('\n');
+}
+
+/**
+ * The CPU family's state enum, resolved back to the registers it names.
+ *
+ * A driver reads a live register through `state_int(Z80_HL)`. The enum is
+ * lowered with the rest of the CPU's constants, and MAME names each entry after
+ * the register it exposes, so the index maps onto a register this CPU has.
+ */
+function emitStateIntCases(definition: GeneratedCpuDefinition): string {
+  const seen = new Set<number>();
+  const lines: string[] = [];
+  for (const [name, value] of Object.entries(definition.constants)) {
+    const register = /^[A-Z][A-Z0-9]*_([A-Z0-9_]+)$/.exec(name)?.[1];
+    if (!register || !definition.aliases[register] || seen.has(value)) continue;
+    seen.add(value);
+    lines.push(`      case ${value}: return this.${register}; // ${name}`);
+  }
+  return lines.join('\n');
 }
 
 function emitPublicGetCases(definition: GeneratedCpuDefinition): string {
