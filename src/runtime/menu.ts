@@ -18,6 +18,7 @@ import { readZip, crc32 } from './zip.ts';
 import { decodeGfx, type GfxLayout } from './gfx.ts';
 import { loadArtwork } from './artwork.ts';
 import { artworkSources, loadArtworkImage } from './artwork-source.ts';
+import { consoleDeckSvg } from './console-art.ts';
 import {
   findDarkCoverCrop,
   fitCoverCropAspect,
@@ -39,6 +40,8 @@ interface GameEntry {
   kind?: 'arcade' | 'console';
   hasRom: boolean;
   hasArt: boolean;
+  /** a promotional flyer exists in the covers tree; absent on an older manifest */
+  hasCover?: boolean;
   /** the compiled app contains this game's board module (games.json) */
   supported?: boolean;
   /** KG-reachable MAME hardware types without executable generated artifacts. */
@@ -250,6 +253,13 @@ export async function runMenu(): Promise<void> {
   // a socket. They ship with the site now (shipWebArtwork in src/gen/
   // generate.ts): same origin, multiplexed over the connection the app already
   // has, ~12 ms each. Deferring them would only trade that for pop-in.
+
+  // Declared before the shelf is painted, not beside coverShot below: painting
+  // starts synchronously in the loop under it, and a cover that reaches the
+  // screenshot ladder without awaiting anything first found this `const` still
+  // in its temporal dead zone. That threw once per tile into an unhandled
+  // rejection, so the covers simply never appeared and nothing said why.
+  const coverRuns = new Map<string, Promise<HTMLImageElement | null>>();
   for (const entry of games) {
     const box = buildBox(entry);
     boxes.push({ entry, box, visible: true });
@@ -636,7 +646,12 @@ export async function runMenu(): Promise<void> {
     //    user-supplied) — real box art beats anything synthesized
     // The sibling the site ships, falling back to the bucket scan only when one
     // is missing — a wasted miss rather than the 1.3 MB it saves everywhere.
-    const flyer = await loadArtworkImage(`covers/${entry.game}.png`);
+    // `hasCover` is the manifest saying whether the scan exists at all, so a
+    // machine without one goes straight to its own art instead of waiting out
+    // two 404s (the console sat black for the whole of the bucket's round trip).
+    const flyer = entry.hasCover === false
+      ? null
+      : await loadArtworkImage(`covers/${entry.game}.png`);
     if (flyer) {
       const source = darkCoverCrop(flyer);
       const s = Math.max(canvas.width / source.width, canvas.height / source.height);
@@ -719,7 +734,6 @@ export async function runMenu(): Promise<void> {
    * COVER_FRAMES frames (chunked so the shelf stays responsive), rotate per
    * the config, cache as a data URL. Same ROMs -> same frame, every visit.
    */
-  const coverRuns = new Map<string, Promise<HTMLImageElement | null>>();
   function coverShot(entry: GameEntry): Promise<HTMLImageElement | null> {
     let run = coverRuns.get(entry.game);
     if (!run) { run = makeCoverShot(entry); coverRuns.set(entry.game, run); }
@@ -839,41 +853,12 @@ export async function runMenu(): Promise<void> {
     host.style.display = 'flex';
     host.style.alignItems = 'center';
     host.style.justifyContent = 'center';
-    host.innerHTML = nesConsoleSvg();
+    host.innerHTML = consoleDeckSvg(300, 400, {
+      caption: '▸ ENTER TO INSERT CARTS', idPrefix: 'menu', top: 400 * 0.34,
+    });
     canvas.replaceWith(host);
   }
 
-  function nesConsoleSvg(): string {
-    const W = 300, H = 400;
-    const cw = W * 0.84, cx = (W - cw) / 2, ch = cw * 0.62, cy = H * 0.30;
-    const n = (x: number) => x.toFixed(1);
-    const sx = cx + cw * 0.08, sw = cw * 0.84;
-    const ledX = cx + cw * 0.13, ledY = cy + ch * 0.32, ledR = cw * 0.016;
-    const wmX = cx + cw * 0.3, wmY = cy + ch * 0.38, wmW = cw * 0.4, wmH = ch * 0.16;
-    const fx = cx + cw * 0.06, fy = cy + ch * 0.62, fw = cw * 0.88, fh = ch * 0.32;
-    return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NES console">
-      <defs>
-        <linearGradient id="mcd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2ded4"/><stop offset="1" stop-color="#c4c0b5"/></linearGradient>
-        <radialGradient id="mled" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ff6068"/><stop offset="0.55" stop-color="#e60012"/><stop offset="1" stop-color="rgba(230,0,18,0)"/></radialGradient>
-      </defs>
-      <ellipse cx="${n(cx + cw / 2)}" cy="${n(cy + ch + 12)}" rx="${n(cw * 0.54)}" ry="${n(ch * 0.08)}" fill="rgba(0,0,0,.5)"/>
-      <rect x="${n(cx)}" y="${n(cy)}" width="${n(cw)}" height="${n(ch)}" rx="${n(cw * 0.045)}" fill="url(#mcd)"/>
-      <rect x="${n(cx)}" y="${n(cy)}" width="${n(cw)}" height="3" rx="1.5" fill="rgba(255,255,255,.65)"/>
-      <rect x="${n(sx)}" y="${n(cy + ch * 0.13)}" width="${n(sw)}" height="${n(ch * 0.028)}" fill="#17150f"/>
-      <rect x="${n(sx)}" y="${n(cy + ch * 0.19)}" width="${n(sw)}" height="${n(ch * 0.028)}" fill="#17150f"/>
-      <circle cx="${n(ledX)}" cy="${n(ledY)}" r="${n(ledR * 2.8)}" fill="url(#mled)"/>
-      <circle cx="${n(ledX)}" cy="${n(ledY)}" r="${n(ledR)}" fill="#e60012"/>
-      <rect x="${n(cx + cw * 0.78)}" y="${n(cy + ch * 0.28)}" width="${n(cw * 0.05)}" height="${n(ch * 0.06)}" rx="1" fill="#2c2a27"/>
-      <rect x="${n(cx + cw * 0.86)}" y="${n(cy + ch * 0.28)}" width="${n(cw * 0.05)}" height="${n(ch * 0.06)}" rx="1" fill="#2c2a27"/>
-      <rect x="${n(wmX)}" y="${n(wmY)}" width="${n(wmW)}" height="${n(wmH)}" rx="2" fill="#cbc7bc" stroke="rgba(0,0,0,.25)"/>
-      <text x="${n(wmX + wmW / 2)}" y="${n(wmY + wmH * 0.68)}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="${n(wmH * 0.5)}" font-weight="700" letter-spacing="1.5" fill="#6a655b">CONTROL DECK</text>
-      <rect x="${n(cx + cw * 0.45)}" y="${n(fy - ch * 0.04)}" width="${n(cw * 0.1)}" height="${n(ch * 0.05)}" rx="2" fill="#8f8b82"/>
-      <rect x="${n(fx)}" y="${n(fy)}" width="${n(fw)}" height="${n(fh)}" rx="4" fill="#a7a39a"/>
-      <rect x="${n(fx)}" y="${n(fy)}" width="${n(fw)}" height="2" fill="rgba(255,255,255,.28)"/>
-      <rect x="${n(fx + fw * 0.04)}" y="${n(fy + fh * 0.5)}" width="${n(fw * 0.92)}" height="1.5" fill="rgba(0,0,0,.3)"/>
-      <text x="${n(W / 2)}" y="${n(cy + ch + 40)}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="13" font-weight="700" letter-spacing="3" fill="#5b6486">▸ ENTER TO INSERT CARTS</text>
-    </svg>`;
-  }
 
   function paintPlaceholder(entry: GameEntry, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
     let hash = 0;

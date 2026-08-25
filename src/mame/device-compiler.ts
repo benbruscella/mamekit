@@ -718,14 +718,23 @@ function memberDeclarations(
   const patterns = [
     /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(m_\w+)\s*(?:\[[^\]]+\])?\s*;/gm,
     /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(m_\w+)\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*\*\s*(m_\w+)\s*(?:\[[^\]]+\])?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(m_\w+)\s*(?:\[[^\]]+\])?\s*;/gm,
   ];
   for (const pattern of patterns) {
     for (const match of declaration.body.matchAll(pattern)) {
-      if (members.some(member => member.name === match[2])) continue;
+      // The last pattern captures the `*` of a pointer declaration in group 2,
+      // so the member's name is one group further along. Keeping the star is
+      // not cosmetic: `uint8_t *m_vrom` recorded as plain `uint8_t` told the
+      // emitter that `m_vrom != nullptr` was an integer comparison, and
+      // `Number(<128 KB Uint8Array>)` stringifies the whole CHR ROM before
+      // answering NaN. MMC3 asks that question on every CHR bank switch, and
+      // Super Mario Bros. 3 ran at 9 fps because of it.
+      const star = match.length > 3 ? match[2] : undefined;
+      const name = match.length > 3 ? match[3]! : match[2]!;
+      if (members.some(member => member.name === name)) continue;
       members.push({
-        valueType: match[1]!.replace(/\s+/g, ' ').trim(),
-        name: match[2]!,
+        valueType: `${match[1]!.replace(/\s+/g, ' ').trim()}${star ?? ''}`,
+        name,
       });
     }
   }

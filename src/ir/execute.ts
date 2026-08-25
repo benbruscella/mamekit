@@ -172,6 +172,7 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   TILEMAP_FLIPY: 2,
   TILEMAP_DRAW_OPAQUE: 0x80,
   'attotime::never': Infinity,
+  'attotime::zero': 0,
 };
 
 const CACHE_ONLY_METHODS = new Set([
@@ -2027,7 +2028,17 @@ function toNumber(value: unknown): number {
 function comparableValue(value: unknown): unknown {
   if (isLValue(value)) return comparableValue(value.get());
   if (isReference(value) && value.resolved) return value;
-  if (value && typeof value === 'object' && !isReference(value)) return value;
+  if (value && typeof value === 'object' && !isReference(value)) {
+    // A numeric wrapper compares as its number. `attotime` is the one that
+    // reaches here — MAME writes `m_scanline_timer->remaining() ==
+    // attotime::zero` — and the runtime carries it as seconds behind an
+    // attotime method surface. Everything else a handler holds as an object
+    // (arrays, pointers, bitmaps, device references) leaves valueOf alone and
+    // still compares by identity.
+    const primitive = (value as { valueOf(): unknown }).valueOf();
+    if (typeof primitive === 'number') return primitive;
+    return value;
+  }
   return toNumber(value);
 }
 
@@ -2151,6 +2162,18 @@ export function dereferenceGeneratedValue(value: unknown): unknown {
 
 function isIndexableMemory(value: unknown): value is ArrayLike<unknown> {
   return ArrayBuffer.isView(value) || Array.isArray(value);
+}
+
+/**
+ * The referent behind a C++ reference argument, or the value itself.
+ *
+ * A caller cannot know whether the callee reassigns a `&` parameter, so every
+ * one of them crosses as a get/set wrapper. Code generation only ever claims a
+ * method that does NOT reassign its references, so an emitted callee must be
+ * handed what the reference points at instead.
+ */
+export function generatedReferent(value: unknown): unknown {
+  return isLValue(value) ? value.get() : value;
 }
 
 function isLValue(value: unknown): value is GeneratedLValue {

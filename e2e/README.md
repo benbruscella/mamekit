@@ -16,6 +16,7 @@ e2e/
 ├── playwright.config.ts   projects, the dev server, snapshot locations
 ├── specs/
 │   ├── arcade.spec.ts     every accepted machine, boot -> coin -> play
+│   ├── console.spec.ts    the console room: tab, shelf, cartridge fetch
 │   └── rom-search.spec.ts opt-in: is the romset findable on the web
 ├── support/
 │   ├── contracts.ts       the src/games inventory, as data
@@ -42,6 +43,13 @@ the page is untouched. It then compares:
 
 The goldens are the ones the Node contract already owns. There is no second
 baseline to keep in step: a browser failure means the app path diverged.
+
+`console.spec.ts` is the only end-to-end gate the console has, because a
+console holds no romset of its own to write a Node contract against. It checks
+that the boot menu offers a CONSOLES tab with the machine on it, and that every
+title the machine claims support for is on the shelf with a cartridge scan and
+an enabled "⌕ Search" button. With `MAMEKIT_E2E_ROMSEARCH=1` it also fetches a
+cartridge from the mirror, boots it, and asserts the canvas is not blank.
 
 The **live pass** loads the same machine with its normal run loop and plays it
 in real time with real key events. It checks that the machine reaches full

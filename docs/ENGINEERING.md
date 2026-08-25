@@ -66,9 +66,11 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 
 The broad `test:generation` command is destructive to `dist` and expensive. It
 generates every target in `REQUIRED_TARGETS`, which is the accepted set plus
-any console that has no acceptance contract yet. Issue #53 removed the only
-console entry, `nes`, after play-testing found the generated build no longer
-works, so the required set is currently the accepted set exactly.
+any console that has no acceptance contract yet. `nes` is the one console: its
+software arrives on cartridges the visitor supplies, so there is no romset a
+contract module could name. It is covered by the browser suite instead
+(`e2e/specs/console.spec.ts`), which is the gate issue #53 lacked when it
+dropped the target and nothing went red.
 
 Neither command holds a target list of its own. `gen:all` is
 `node bin/mamekit.js --all`, and the set is derived from the acceptance

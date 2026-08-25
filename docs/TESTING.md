@@ -168,6 +168,30 @@ The suite is local only for the same reason `test:games` is: it needs ROMs. See
 environment switches, and the opt-in `rom-search` spec, which requires the
 public mirror to hand back a bootable set.
 
+### THE CONSOLE
+
+A console has no romset of its own, so it cannot hold a real-ROM contract the
+way an arcade machine does: its software arrives on cartridges the visitor
+supplies. `e2e/specs/console.spec.ts` is therefore the only end-to-end gate the
+machine has, and it asserts what issue #85 asked for:
+
+- the boot menu offers a CONSOLES tab and the machine is on that shelf. The tab
+  bar is derived from what the manifest holds (`menuTabs`), so its presence is
+  the honest signal that the target is in the build — issue #53 dropped it and
+  nothing went red;
+- every title in the machine's `cart.games` support list is on the shelf with a
+  cartridge scan and an enabled "⌕ Search" button, which is what "playable
+  without owning a dump" means;
+- with `MAMEKIT_E2E_ROMSEARCH=1`, that button really does fetch a cartridge,
+  shelve it and boot it to a drawn frame. The assertion is on pixels, because a
+  cartridge that boots to a blank screen is exactly the state the console was
+  found in.
+
+The support list, the cartridge scans and the fetchable dumps are one contract:
+`node tools/nes-cart-art.ts --check` (or `make cart-art-check` in `.data/`)
+reports any title missing either, and derives its work list from the generated
+machine so the three cannot drift apart.
+
 ## 3. GAME TOKENS
 
 The `src/games` directory is the supported-machine QA inventory. Each machine

@@ -136,8 +136,18 @@ export function generatedDeviceMethodsSource(
   // also passed validation. Other calls retain the interpreter fallback.
   const functions = supported.map(method =>
     emitMethod(definition, method, supportedNames, typescript)).join('\n\n');
-  const entries = supported.map(method =>
-    `${JSON.stringify(method.name)}: method_${safeName(method.name)}`).join(',\n    ');
+  // A method that assigns through a C++ reference is emitted against the
+  // get/set (or single returned reference) ABI, which only an emitted caller
+  // knows how to satisfy — and those call it as a plain function, not through
+  // this map. The map is what an INTERPRETED caller reaches, and it hands
+  // arguments in one shape only, so publishing such a method there silently
+  // drops the write: the NES PPU's shift_tile_plane_data returned each
+  // background pixel to a caller that ignored it, and the whole screen came
+  // out as palette entry zero.
+  const entries = supported
+    .filter(method => codegenWrappedParameters(method).length === 0)
+    .map(method =>
+      `${JSON.stringify(method.name)}: method_${safeName(method.name)}`).join(',\n    ');
   const source = `(() => {
 ${functions}
   return {
@@ -311,8 +321,20 @@ function supportsMethod(
         // has interpreter-only resolution unless the inner call is a method
         // this scope compiles. The invoke fallback would hand the chain a
         // number, so such a method stays interpreted.
+        //
+        // A chain the device DECLARES as a link is the exception: emitCall
+        // spells it as the same direct `runtime.calls["space().read_byte"]`
+        // lookup the interpreter resolves, so nothing is lost. Declining it
+        // here left the NES PPU's readbyte interpreted, and every renderer
+        // that reaches VRAM through it followed — the console drew Super
+        // Mario Bros. at 5 fps.
+        const linked = linkedMemberCallName(expression);
         const inner = expression.callee.object;
-        supported = inner.kind !== 'call' ||
+        supported = (
+          linked !== undefined &&
+          (definition.links ?? []).some(link => link.call === linked)
+        ) ||
+          inner.kind !== 'call' ||
           inner.callee.kind !== 'identifier' ||
           definition.methods.some(candidate => candidate.name ===
             (inner.callee as { name: string }).name);

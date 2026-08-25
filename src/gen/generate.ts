@@ -234,8 +234,33 @@ const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
 // the mapper — titles are added one at a time as they're verified end-to-end
 // (user directive 2026-07-07: "support explicit games, not all, so I can
 // test"). The full catalog still identifies every cart on the shelf.
+//
+// Every name here was booted on the generated board for issue #85 and its
+// framebuffer read back: each reaches its title or attract screen and keeps
+// drawing. Two that did not are deliberately absent — Ninja Gaiden III and
+// Tecmo Super Bowl stay black past 1,800 frames.
+//
+// Each also has to be a title the console room can actually get hold of: a
+// verified dump the "⌕ Search" button can fetch, and a cartridge scan.
+// `node tools/nes-cart-art.ts --check` is that audit, and it derives its work
+// list from this one — so adding a title here is the only edit a new game
+// needs.
 const CART_GAME_SUPPORT: Record<string, string[]> = {
-  nes: ['smb'], // Super Mario Bros. (parent set; covers smb1 "World" etc.)
+  nes: [
+    // NROM
+    'smb', 'dkong', 'dkongjr', 'dkong3', 'mario', 'iceclimb', 'balonfgt',
+    'excitbik', 'kungfu', 'galaga', 'pacman', 'mspacman', 'duckhunt', 'digdug2',
+    // CNROM
+    'gradius', 'paperboy', 'dkongcl', 'advislnd',
+    // UxROM
+    'cvania', 'megaman', 'ducktale', 'rygar', 'salamand', 'rbislant', 'paperbo2',
+    // MMC1 (SxROM)
+    'zelda', 'zelda2', 'metroid', 'megaman2', 'tetris', 'ffant', 'dwarr',
+    'bmaster', 'bionicc', 'ddragon', 'kidicars', 'radracer', 'cvania2', 'bublbobl',
+    // MMC3 (TxROM)
+    'smb2', 'smb3', 'megaman3', 'megaman4', 'megaman5', 'megaman6', 'kirby',
+    'batman', 'ddragon2', 'advisln3', 'bublbob2',
+  ],
 };
 
 class Graph {
@@ -1894,7 +1919,10 @@ function machineDossierMarkdown(d: {
 
 /** Build the app, shared runtime, and canonical per-game executable modules. */
 /** Image trees whose `.webp` siblings ship with the site. */
-const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets'];
+// carts/ joins them for issue #85: a console's shelf is box scans, and every
+// title the machine claims support for now has one. Shipping them means the
+// supported shelf draws itself from the site, not from a bucket sync.
+const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets', 'carts/nes'];
 
 /**
  * Copy the `.webp` siblings into dist/artwork so the site serves its own
