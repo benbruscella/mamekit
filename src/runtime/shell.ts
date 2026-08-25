@@ -766,8 +766,13 @@ function fnLabel(label: string): string {
   if (map[label]) return map[label];
   if (/JOYSTICK|_LEFT|_RIGHT|_UP|_DOWN/.test(label)) return 'move';
   // console pads carry the real button name ("A", "B") in the label — keep
-  // short names verbatim, lowercase longer IPT-derived words
-  const name = label.replace(/^IPT_/, '').replace(/_/g, ' ');
+  // short names verbatim, lowercase longer IPT-derived words. A PORT_NAME may
+  // also name the player it belongs to ("P1 Jab Punch"); only player one is
+  // ever bound, so that prefix is noise repeated once per button.
+  const name = label
+    .replace(/^IPT_/, '')
+    .replace(/^(?:P|Player )1 /, '')
+    .replace(/_/g, ' ');
   return name.length <= 2 ? name : name.toLowerCase();
 }
 
