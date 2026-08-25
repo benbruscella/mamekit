@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 import { evalExpr } from '../kg/parse.ts';
-import type { BoardSourceRef, GeneratedHandler, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
+import type { BoardSourceRef, GeneratedHandler, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
 import { MameAstIndex, parseMameAst, splitMameArgs, type MameFunction } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
@@ -376,7 +376,14 @@ export function compileMameVideo(
         constants,
       )
     );
-  if (!palette && !ramPalette && palettes.length !== paletteMembers.length) {
+  // Last resort before failing: execute the source callback itself. A driver
+  // that computes its own resistor weights has a palette no declarative shape
+  // describes, but its callback is ordinary code the handler IR already covers.
+  const paletteProgram = palette || ramPalette || palettes.length
+    ? undefined
+    : compileProgramPalette(graph, machineIds, ast, constants);
+  if (!palette && !ramPalette && !paletteProgram &&
+    palettes.length !== paletteMembers.length) {
     return fail(`palette callback did not lower`);
   }
   const colorTables = compileVideoColorTables(source, constants);
@@ -396,6 +403,7 @@ export function compileMameVideo(
       ...(palette ? { palette } : {}),
       ...(palettes.length ? { palettes } : {}),
       ...(ramPalette ? { ramPalette } : {}),
+      ...(paletteProgram ? { paletteProgram } : {}),
       tilemaps: executableTilemaps,
       initialState: {
         ...arrayState(memberDefaults),
@@ -2007,6 +2015,66 @@ function compileRamPaletteReset(
 
 function lineOf(source: string, offset: number): number {
   return source.slice(0, offset).split('\n').length;
+}
+
+/**
+ * Lower a palette init callback by preserving it as an executable program.
+ *
+ * MAME's palette callbacks mostly speak one of a few resistor-network idioms,
+ * and those lower to inspectable data. Mr. Do! writes its network by hand --
+ * parallel resistances, a pull-down and a diode drop, into its own 16-entry
+ * weight table -- so there is nothing declarative to read out. Rather than
+ * grow the vocabulary one driver at a time, keep the source semantics: the
+ * callback body is already within the handler IR's reach.
+ */
+function compileProgramPalette(
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+  ast: MameAstIndex,
+  constants: Record<string, number>,
+): GeneratedProgramPalettePlan | undefined {
+  const deviceIds = new Set(graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
+    .map(edge => edge.to));
+  const device = graph.nodes.find(node =>
+    deviceIds.has(node.id) && node.label === 'Device' && node.props.type === 'PALETTE');
+  const raw = ((device?.props.config as string[] | undefined) ?? []).join('\n');
+  const macro = raw.indexOf('PALETTE');
+  const open = macro < 0 ? -1 : raw.indexOf('(', macro);
+  // PALETTE(config, tag, init, entries [, indirect_entries]).
+  const configured = open < 0
+    ? []
+    : splitMameArgs(raw.slice(open + 1, matchingPair(raw, open, '(', ')')));
+  const callback = /FUNC\(\s*(\w+)::(\w+)\s*\)/.exec(raw);
+  if (!callback) return undefined;
+  const fn = ast.findFunctionInHierarchy(callback[1]!, callback[2]!);
+  if (!fn) return undefined;
+  const program = compileMameHandler(fn.body);
+  if (program.diagnostics.length) {
+    if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
+      console.error('program palette: callback did not compile', program.diagnostics);
+    }
+    return undefined;
+  }
+  const entries = expressionNumber(configured[3], constants);
+  const indirectEntries = configured.length > 4
+    ? expressionNumber(configured[4], constants)
+    : 0;
+  if (!entries) return undefined;
+  const deviceParameter = /(\w+)\s*$/.exec((fn.parameters ?? '').split(',')[0]?.trim() ?? '')?.[1];
+  if (!deviceParameter) return undefined;
+  const identifiers = new Set(fn.body.match(/\b[A-Za-z_]\w*\b/g) ?? []);
+  const scoped = Object.fromEntries(
+    Object.entries(constants).filter(([name]) => identifiers.has(name)),
+  );
+  return {
+    entries,
+    indirectEntries,
+    deviceParameter,
+    program,
+    ...(Object.keys(scoped).length ? { constants: scoped } : {}),
+    source: sourceRef(fn),
+  };
 }
 
 function compilePalette(

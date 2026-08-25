@@ -749,9 +749,20 @@ function parseHandlerArgs(args: string[]): HandlerRef | undefined {
   return ref;
 }
 
-function normalizeTemplatedMethod(method: string): string {
-  return method.replace(/<([^>]+)>/, (_match, argument: string) =>
-    `_${argument.replace(/[^A-Za-z0-9_]+/g, '_')}`);
+/**
+ * MAME writes a handler's non-type template argument in whichever radix reads
+ * best at the call site: `bgxpos_w<0>` beside `mspacman_disable_decode_r<0x3ff0>`.
+ * Normalize a numeric argument to decimal so one specialization has one name and
+ * every downstream `_<n>` rule -- source specialization, read/write classification,
+ * codegen -- stays a single rule instead of one per radix.
+ */
+export function normalizeTemplatedMethod(method: string): string {
+  return method.replace(/<([^>]+)>/, (_match, argument: string) => {
+    const numeric = /^-?(?:0[xX][0-9a-fA-F]+|\d+)$/.exec(argument.trim());
+    return numeric
+      ? `_${Number(numeric[0])}`
+      : `_${argument.replace(/[^A-Za-z0-9_]+/g, '_')}`;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -861,6 +872,8 @@ export interface MemoryBankDef {
   stride: number;
   /** Entry selects base + ((entry << shift) & region-derived mask). */
   dynamicShift?: number;
+  /** Entry the same source function selects after configuring the bank. */
+  initialEntry?: number;
   raw: string;
 }
 
@@ -969,11 +982,22 @@ export function parseMemoryBanks(
     const stride = plural ? evalExpr(args[3]!, consts) : 0;
     if ((!source && !owned) || startEntry === null || entries === null || stride === null) continue;
     const member = match[1]?.replace(/\s+/g, '') ?? match[2]!;
+    const tag = match[2] ?? memberTags[member] ?? member.replace(/^m_/, '');
+    // A bank that powers on anywhere but its first configured entry says so in
+    // the same function: `membank("bank1")->set_entry(1)`. Without it Ms.
+    // Pac-Man boots into the plain Pac-Man half of its ROM.
+    const selected = new RegExp(
+      String.raw`(?:\b${member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}` +
+      String.raw`|membank\(\s*"${tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"\s*\))` +
+      String.raw`\s*->\s*set_entry\s*\(\s*([^)]+)\s*\)`,
+    ).exec(body);
+    const initialEntry = selected ? evalExpr(selected[1]!, consts) : null;
     banks.push({
       member,
-      tag: match[2] ?? memberTags[member] ?? member.replace(/^m_/, ''),
+      tag,
       startEntry,
       entries,
+      ...(initialEntry === null ? {} : { initialEntry }),
       ...(source ? { region: source.region, offset: source.offset } : {
         entryMember: owned![1]!.replace(/\s+/g, ''),
         offset: Number(owned![2] ?? 0),

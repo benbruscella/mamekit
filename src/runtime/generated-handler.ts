@@ -60,6 +60,13 @@ export function generatedHandlerRegistry(
     ...(cpu.opcode?.ranges ?? []),
     ...(cpu.io?.ranges ?? []),
   ]);
+  // The CPU whose map names a handler is the one whose address_space MAME
+  // hands it, so resolve that before the handler is built rather than falling
+  // back to the first CPU on a two-CPU board.
+  const cpuTagFor = (key: string): string | undefined =>
+    machine.execution.cpus.find(cpu =>
+      [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? []), ...(cpu.opcode?.ranges ?? [])]
+        .some(range => range.read === key || range.write === key))?.tag;
   for (const ranges of [
     ...(machine.maps ?? []).map(map => map.ranges),
     executableRanges,
@@ -68,18 +75,35 @@ export function generatedHandlerRegistry(
       if (range.read) {
         const handler = resolve(range.read);
         if (handler?.program && !registry.read[range.read]) {
-          registry.read[range.read] = makeReadHandler(machine, handler, bindings);
+          registry.read[range.read] =
+            makeReadHandler(machine, handler, bindings, cpuTagFor(range.read));
         }
       }
       if (range.write) {
         const handler = resolve(range.write);
         if (handler?.program && !registry.write[range.write]) {
-          registry.write[range.write] = makeWriteHandler(machine, handler, bindings);
+          registry.write[range.write] =
+            makeWriteHandler(machine, handler, bindings, cpuTagFor(range.write));
         }
       }
     }
   }
   return registry;
+}
+
+/**
+ * MAME's `address_space &space` handler parameter, when the source declares
+ * one. Congo Bongo's sprite DMA reads its source list straight out of the
+ * program space through it.
+ */
+function handlerSpace(
+  handler: GeneratedHandler,
+  bindings: GeneratedHandlerBindings,
+  cpuTag: string | undefined,
+): Record<string, unknown> {
+  return /\baddress_space\b/.test(handler.parameters ?? '') && bindings.addressSpace
+    ? { space: bindings.addressSpace(cpuTag) }
+    : {};
 }
 
 /** Wire a generated device signal to the effects bound for its callbacks. */
@@ -134,12 +158,14 @@ function makeReadHandler(
   machine: BoardIr,
   handler: GeneratedHandler,
   bindings: GeneratedHandlerBindings,
+  cpuTag?: string,
 ): ReadHandler {
+  const space = handlerSpace(handler, bindings, cpuTag);
   return (addr, offset) => executeGeneratedMachineHandler(
     machine,
     handler,
     bindings,
-    { addr, offset },
+    { addr, offset, ...space },
   ) ?? 0xff;
 }
 
@@ -148,17 +174,26 @@ function makeWriteHandler(
   machine: BoardIr,
   handler: GeneratedHandler,
   bindings: GeneratedHandlerBindings,
+  cpuTag?: string,
 ): WriteHandler {
   const directVideoRamWrite = makeDirectVideoRamWrite(handler, bindings);
   if (directVideoRamWrite) return directVideoRamWrite;
   const directObjectRamWrite = makeDirectObjectRamWrite(handler, bindings);
   if (directObjectRamWrite) return directObjectRamWrite;
+  const space = handlerSpace(handler, bindings, cpuTag);
   return (addr, offset, data, memMask) => {
     executeGeneratedMachineHandler(
       machine,
       handler,
       bindings,
-      { addr, offset, data, state: data, ...(memMask !== undefined ? { mem_mask: memMask } : {}) },
+      {
+        addr,
+        offset,
+        data,
+        state: data,
+        ...space,
+        ...(memMask !== undefined ? { mem_mask: memMask } : {}),
+      },
     );
   };
 }

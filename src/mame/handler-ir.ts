@@ -1,5 +1,6 @@
 import { maskComments } from './ast.ts';
 import type { GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
+import { walkExpressions, walkOperations } from '../ir/walk.ts';
 
 interface Token {
   kind: 'identifier' | 'number' | 'string' | 'operator' | 'punctuation' | 'eof';
@@ -8,7 +9,7 @@ interface Token {
 }
 
 const TYPE_WORDS = new Set([
-  'auto', 'bool', 'char', 'const', 'constexpr', 'double', 'int', 'offs_t', 'pen_t', 'static',
+  'auto', 'bool', 'char', 'const', 'constexpr', 'double', 'float', 'int', 'offs_t', 'pen_t', 'static',
   'rectangle', 'rgb_t', 'tilemap_memory_index',
   's8', 's16', 's32', 's64', 'u8', 'u16', 'u32', 'u64',
   'int8_t', 'int16_t', 'int32_t', 'int64_t',
@@ -67,7 +68,34 @@ export function compileMameHandler(body: string): GeneratedHandlerProgram {
     .replace(/\b(\d+(?:\.\d+)?)_kHz_XTAL\b/g, (_all, khz) =>
       String(Number(khz) * 1_000));
   const parser = new HandlerParser(tokenize(executable));
-  return parser.parse();
+  const program = parser.parse();
+  markFloatingLocals(program.operations);
+  return program;
+}
+
+/** Locals whose declared type makes every read of them a floating-point value. */
+const FLOATING_TYPES = /\b(?:float|double)\b/;
+
+/**
+ * C++ picks integer or floating division from the operands' declared types, but
+ * the IR expression tree only records the text. Mark identifiers that name a
+ * `float`/`double` local so `isFloatingExpression` sees what the compiler saw:
+ * Mr. Do!'s palette computes its whole resistor network through float locals
+ * with no literal or cast in the divisions, and truncated to a black palette.
+ */
+function markFloatingLocals(operations: GeneratedHandlerOperation[]): void {
+  const floating = new Set<string>();
+  walkOperations(operations, operation => {
+    if (operation.op === 'declare' && FLOATING_TYPES.test(operation.valueType ?? '')) {
+      floating.add(operation.name);
+    }
+  });
+  if (!floating.size) return;
+  walkExpressions(operations, expression => {
+    if (expression.kind === 'identifier' && floating.has(expression.name)) {
+      expression.floating = true;
+    }
+  });
 }
 
 class HandlerParser {
@@ -618,10 +646,30 @@ class HandlerParser {
     let expression = this.parsePrimary();
     if (!expression) return undefined;
     while (true) {
+      // A free function can be a template too: MAME's bit helpers are written
+      // `bitswap<8>(value, 7, 6, ...)`. Fold a numeric argument into the name
+      // the same way a templated member call does.
+      if (expression.kind === 'identifier' && this.atText('<')) {
+        const templateArgs = this.consumeTemplateArguments();
+        if (!templateArgs) break;
+        if (templateArgs.every(argument => /^\d+$/.test(argument))) {
+          expression = {
+            kind: 'identifier',
+            name: `${expression.name}_${templateArgs.join('_')}`,
+          };
+        }
+        continue;
+      }
       if (this.consume('(')) {
         const args = this.parseArguments();
         if (!args) return undefined;
-        expression = { kind: 'call', callee: expression, args };
+        // `float(R1)` is a functional cast, not a call. Left as a call it
+        // resolved to no builtin, so MAME's resistor arithmetic divided by
+        // zero instead of by the resistor value.
+        expression = expression.kind === 'identifier' &&
+            TYPE_WORDS.has(expression.name) && args.length === 1
+          ? { kind: 'cast', valueType: expression.name, operand: args[0]! }
+          : { kind: 'call', callee: expression, args };
       } else if (this.consume('[')) {
         const index = this.parseExpression();
         if (!index || !this.consume(']')) return undefined;

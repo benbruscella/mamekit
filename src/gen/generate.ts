@@ -50,6 +50,7 @@ import { compileNesApu } from '../mame/nes-apu-compiler.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
 import { compileDriverRomTransforms } from '../mame/driver-rom-compiler.ts';
+import { compileDriverInitProgram } from '../mame/driver-init-compiler.ts';
 import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 import { artworkSources } from '../runtime/artwork-source.ts';
 import { artworkDir, romsDir } from '../paths.ts';
@@ -970,6 +971,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
                 kind: 'sn76489',
                 clock: Number(snChips[0].props.clock),
                 chips: snChips.length,
+                // Per chip, because a board fits family variants and clocks
+                // independently: Congo Bongo's second SN76489A runs at a
+                // quarter of the first's.
+                deviceTypes: snChips.map(chip => String(chip.props.type)),
+                clocks: snChips.map(chip => Number(chip.props.clock)),
                 ...(snRoutes.length ? { routes: snRoutes } : {}),
               };
             })()
@@ -1595,6 +1601,18 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     String(game.props.cls),
     Object.fromEntries(roms.map(region => [region.region, region.size])),
   ) as unknown as Record<string, unknown>[]);
+  // Declarative transforms are the preferred lowering, so the executable init
+  // program is only reached when nothing declarative was recovered from the
+  // same function — otherwise the two would both rewrite the same region.
+  if (!romPatches && !romTransforms.length) {
+    const initProgram = compileDriverInitProgram(
+      opts.mameSrc,
+      String(graph.meta.driverFile),
+      String(game.props.cls),
+      String(game.props.init ?? ''),
+    );
+    if (initProgram) romTransforms.push(initProgram as unknown as Record<string, unknown>);
+  }
   for (const [index, device] of cpuDevs.entries()) {
     const cpu = cpus[index]!;
     if (!cpu.opcode) continue;

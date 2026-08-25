@@ -463,4 +463,36 @@ check('a program with compiler diagnostics refuses to run', () => {
   );
 });
 
+// C++ pointer arithmetic on a bare memory container. MAME walks a PROM this
+// way (`color_prom += 0x40`); combining it as a number turned the local into a
+// scalar and every later read through it returned zero.
+check('advancing a pointer local keeps addressing its memory', () => {
+  const program = compileMameHandler(`
+    const uint8_t *rom = memregion("proms")->base();
+    rom += 0x40;
+    return rom[1];
+  `);
+  assert.deepEqual(program.diagnostics, []);
+  const bytes = Uint8Array.from({ length: 0x80 }, (_unused, index) => index);
+  assert.equal(
+    executeGeneratedProgram(program, {
+      referenceCalls: { memregion: () => ({ base: () => bytes, bytes: () => bytes.length }) },
+    }).value,
+    0x41,
+  );
+});
+
+// A local array is only a byte array when the source says so. The declared
+// element type has to reach the allocation, or wider values are silently
+// clamped as they are stored.
+check('a local array is allocated at its declared element width', () => {
+  const program = compileMameHandler(`
+    rgb_t pens[2];
+    pens[0] = 0xff804020;
+    return pens[0];
+  `);
+  assert.deepEqual(program.diagnostics, []);
+  assert.equal(executeGeneratedProgram(program, {}).value, 0xff804020);
+});
+
 console.log(`execute.spec: ${passed} passed, 0 failed`);

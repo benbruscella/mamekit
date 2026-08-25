@@ -787,6 +787,7 @@ function lowerMemoryBanks(
       entryRegions[index] ??= null;
     }
     const first = nodes[0]!;
+    const selected = nodes.find(node => node.props.initialEntry !== undefined);
     return {
       tag,
       member: String(first.props.member),
@@ -799,6 +800,7 @@ function lowerMemoryBanks(
       ...(first.props.dynamicShift !== undefined
         ? { dynamicShift: Number(first.props.dynamicShift) }
         : {}),
+      ...(selected ? { initialEntry: Number(selected.props.initialEntry) } : {}),
       ...(sourceRef(first.props) ? { source: sourceRef(first.props)! } : {}),
     };
   });

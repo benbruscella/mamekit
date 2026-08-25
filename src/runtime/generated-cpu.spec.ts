@@ -33,6 +33,40 @@ const definition = (
   ...overrides,
 });
 
+// MAME's device_state_interface. A driver names a live register by the CPU
+// family's enum, which is lowered with the rest of the CPU's constants and
+// names each entry after the register it exposes.
+registerGeneratedCpu(definition('stateful', {
+  constants: {
+    ASSERT_LINE: 1,
+    CLEAR_LINE: 0,
+    INPUT_LINE_IRQ0: 0,
+    INPUT_LINE_NMI: -1,
+    FIX_A: 2,
+    FIX_HL: 13,
+    // Not a register on this CPU, so it resolves to nothing rather than to a
+    // register that happens to sit at the same index.
+    FIX_IM: 20,
+  },
+  aliases: {
+    A: { member: 'm_pair', part: 'high', bits: 8 },
+    HL: { member: 'm_word', part: 'word', bits: 16 },
+  },
+  members: [{ name: 'm_pair', pair: true }, { name: 'm_word', bits: 16 }],
+}));
+const stateful = createCpu('stateful', {
+  read: () => 0,
+  write: () => {},
+  in: () => 0,
+  out: () => {},
+});
+stateful.set('HL', 0x1234);
+stateful.set('A', 0x5a);
+assert.equal(stateful.stateInt(13), 0x1234);
+assert.equal(stateful.stateInt(2), 0x5a);
+assert.equal(stateful.stateInt(20), 0);
+assert.equal(stateful.stateInt(999), 0);
+
 clearGeneratedCpus();
 assert.equal(hasGeneratedCpu('fixture'), false);
 assert.throws(
@@ -238,4 +272,4 @@ assert.equal(delegated, 1);
 clearGeneratedCpus();
 assert.equal(hasGeneratedCpu('fixture'), false);
 
-console.log('generated-cpu.spec: registration, bus, state, IRQ and internal I/O passed');
+console.log('generated-cpu.spec: registration, bus, state_int, IRQ and internal I/O passed');

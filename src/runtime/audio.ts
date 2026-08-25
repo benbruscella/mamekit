@@ -27,6 +27,8 @@ export interface WorkletCoreConfig {
   readonly deviceTags?: string[];
   /** MAME device type in chip-index order, when a bank mixes several chips. */
   readonly deviceTypes?: string[];
+  /** Per-chip clock in chip-index order, when a bank clocks them differently. */
+  readonly clocks?: number[];
   /** Resolution, coding and gain of each DAC, lowered from MAME source. */
   readonly dacs?: GeneratedDacChip[];
   readonly routes?: GeneratedAudioRoute[];
@@ -118,6 +120,7 @@ export class AudioOutput {
       chips: core.chips,
       deviceTags: core.deviceTags,
       deviceTypes: core.deviceTypes,
+      clocks: core.clocks,
       dacs: core.dacs,
       routes: core.routes,
       auxiliary: core.auxiliary,

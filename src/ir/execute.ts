@@ -41,6 +41,13 @@ export interface GeneratedHandlerBindings {
    */
   referenceCalls?: Record<string, (...args: GeneratedCallArgument[]) => unknown>;
   callParameters?: Record<string, string[]>;
+  /**
+   * MAME's address_space for a handler whose signature takes one
+   * (`void congo_sprite_custom_w(address_space &space, ...)`). The space is the
+   * one belonging to the CPU whose map reached the handler, so the board
+   * resolves it by tag rather than handing out a single global bus.
+   */
+  addressSpace?: (cpuTag?: string) => unknown;
   /** Device-finder members whose calls must resolve only to concrete hardware. */
   concreteDeviceMembers?: ReadonlySet<string>;
 }
@@ -633,6 +640,19 @@ function compileFastOperations(
       localNames.add(operation.name);
       const name = operation.name;
       const valueType = operation.valueType;
+      const arrayLength = declaredArrayLength(operation.value);
+      if (arrayLength) {
+        const length = compileFastExpression(arrayLength, bindings, localNames);
+        if (!length) return undefined;
+        compiled.push(context => {
+          context.localTypes[name] = valueType;
+          const size = toNumber(length(context));
+          context.locals[name] = allocateDeclaredArray(valueType, size) ??
+            new Uint8Array(Math.max(0, Math.trunc(size)));
+          return undefined;
+        });
+        continue;
+      }
       const value = operation.value
         ? compileFastExpression(operation.value, bindings, localNames)
         : () => 0;
@@ -1016,6 +1036,46 @@ function compileFastExpression(
 }
 
 /**
+ * `float pot[16]` and `rgb_t pens[16]` allocate an array of that element type.
+ * ALLOC alone cannot know it -- the array length is the only thing at the call
+ * site -- so every declaration used to land in a byte array and silently clamp
+ * anything wider. Mr. Do!'s resistor weights became zero and its whole palette
+ * came out black.
+ */
+function allocateDeclaredArray(
+  valueType: string | undefined,
+  length: number,
+): ArrayBufferView | undefined {
+  const size = Math.max(0, Math.trunc(length));
+  switch (valueType?.replace(/\bconst\b/g, '').trim()) {
+    // MAME computes in single precision where the source says float, and the
+    // difference is visible: Mr. Do!'s palette normalises against its own
+    // brightest weight, which lands on 255 in float and 254.999 in double.
+    case 'float': return new Float32Array(size);
+    case 'double': return new Float64Array(size);
+    case 'int': case 'int32_t': case 's32': return new Int32Array(size);
+    case 'unsigned': case 'uint32_t': case 'u32': case 'offs_t':
+    case 'pen_t': case 'rgb_t': return new Uint32Array(size);
+    case 'int16_t': case 's16': return new Int16Array(size);
+    case 'uint16_t': case 'u16': return new Uint16Array(size);
+    case 'int8_t': case 's8': return new Int8Array(size);
+    // uint8_t, char and every unnamed type keep ALLOC's byte array.
+    default: return undefined;
+  }
+}
+
+/** The ALLOC(length) a local array declaration lowers to, if this is one. */
+function declaredArrayLength(
+  value: GeneratedExpression | undefined,
+): GeneratedExpression | undefined {
+  return value?.kind === 'call' &&
+    value.callee.kind === 'identifier' &&
+    value.callee.name === 'ALLOC'
+    ? value.args[0] ?? { kind: 'number', value: 0 }
+    : undefined;
+}
+
+/**
  * wrapValue with every decision about the declared type hoisted to compile
  * time. A declared type is a source constant, but wrapValue re-derived it —
  * regex included — on each of the thousands of narrowings a per-scanline
@@ -1085,7 +1145,10 @@ function compileValueNarrowing(declared: string | undefined): (value: unknown) =
       declared === 'int64_t' || declared === 's64') {
     return value => Math.trunc(toNumber(value));
   }
-  // wrapValue's terminal case: an unnamed scalar type (`int`, `float`, a
+  // A `float` local rounds to single precision on every store, as it does in
+  // C++; `double` and every unnamed scalar type keep their value unchanged.
+  if (declared === 'float') return value => Math.fround(toNumber(value));
+  // wrapValue's terminal case: an unnamed scalar type (`int`, `double`, a
   // driver typedef) keeps its numeric value unchanged.
   return toNumber;
 }
@@ -1115,7 +1178,11 @@ function executeOperations(
   for (const operation of operations) {
     if (operation.op === 'declare') {
       context.localTypes[operation.name] = operation.valueType;
-      context.locals[operation.name] = wrapValue(operation.valueType, operation.value
+      const arrayLength = declaredArrayLength(operation.value);
+      const typed = arrayLength
+        ? allocateDeclaredArray(operation.valueType, toNumber(evaluate(arrayLength, context)))
+        : undefined;
+      context.locals[operation.name] = typed ?? wrapValue(operation.valueType, operation.value
         ? evaluate(operation.value, context)
         : 0);
     } else if (operation.op === 'assign') {
@@ -1324,6 +1391,9 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
 
 export function isFloatingExpression(expression: GeneratedExpression): boolean {
   if (expression.kind === 'number') return Boolean(expression.floating);
+  if (expression.kind === 'identifier') return Boolean(expression.floating);
+  // `weights[i]` is as floating as the array it indexes.
+  if (expression.kind === 'index') return isFloatingExpression(expression.object);
   if (expression.kind === 'cast') {
     return /\b(?:float|double)\b/.test(expression.valueType) ||
       isFloatingExpression(expression.operand);
@@ -1393,6 +1463,16 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     const green = toNumber(args[offset + 1]) & 0xff;
     const blue = toNumber(args[offset + 2]) & 0xff;
     return (alpha << 24 | blue << 16 | green << 8 | red) >>> 0;
+  }
+  // MAME's bitswap<N>(value, b(N-1), ..., b0): the first listed source bit
+  // becomes the most significant bit of the N-bit result.
+  if (name.startsWith('bitswap_')) {
+    const value = toNumber(args[0]);
+    let swapped = 0;
+    for (let index = 1; index < args.length; index++) {
+      swapped = (swapped << 1) | ((value >>> toNumber(args[index])) & 1);
+    }
+    return swapped >>> 0;
   }
   const paletteExpansion = /^pal([1-8])bit$/.exec(name);
   if (paletteExpansion) {
@@ -1843,14 +1923,22 @@ function compileAssignmentValue(operator: string): FastAssignmentValue {
   if (combine) return combine;
   const apply = BINARY_OPERATORS[operator.slice(0, -1)] ?? UNKNOWN_BINARY;
   if (operator === '=') combine = (_current, value) => value;
+  // `color_prom += 0x40` walks a pointer, exactly as the binary `+` path
+  // already handles. Advancing a bare memory container turned the local into a
+  // number, so every later read through it returned zero -- Mr. Do!'s sprite
+  // lookup PROM read as all-zero after the palette loop stepped past it.
   else if (operator === '+=') {
     combine = (current, value) => isGeneratedPointer(current)
       ? offsetPointer(current, toNumber(value))
-      : apply(toNumber(current), toNumber(value));
+      : isIndexableMemory(current)
+        ? { generatedPointer: true, source: current, offset: toNumber(value) }
+        : apply(toNumber(current), toNumber(value));
   } else if (operator === '-=') {
     combine = (current, value) => isGeneratedPointer(current)
       ? offsetPointer(current, -toNumber(value))
-      : apply(toNumber(current), toNumber(value));
+      : isIndexableMemory(current)
+        ? { generatedPointer: true, source: current, offset: -toNumber(value) }
+        : apply(toNumber(current), toNumber(value));
   } else if (operator === '&=') {
     combine = (current, value) => {
       if (

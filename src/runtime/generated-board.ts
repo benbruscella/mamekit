@@ -190,6 +190,14 @@ export function pulseGeneratedCpuInputLine(cpu: Cpu, line: number): void {
   }
 }
 
+/** What a generated call received, unwrapping a reference parameter's l-value. */
+function generatedCallValue(value: unknown): unknown {
+  return value && typeof value === 'object' &&
+    typeof (value as { get?: unknown }).get === 'function'
+    ? (value as { get(): unknown }).get()
+    : value;
+}
+
 /** Address-map data width exposed by generated CPU families used here. */
 function generatedCpuDataWidth(type: string): 8 | 16 {
   return ['m68000', 'm68010', 'z8002'].includes(type.toLowerCase()) ? 16 : 8;
@@ -654,8 +662,33 @@ class IrBoard implements Board {
       members: this.state,
       inputs: generatedInputs,
       calls,
-      referenceCalls: {},
+      referenceCalls: {
+        // MAME's region finder. Video handlers already have it; a machine
+        // handler can want it too — Mr. Do!'s protection read answers with a
+        // byte of its own program ROM.
+        memregion: (...args: unknown[]) => {
+          const tag = String(generatedCallValue(args[0]) ?? '');
+          const bytes = regions[tag];
+          if (!bytes) throw new Error(`${machine.game}: no ROM region "${tag}"`);
+          return { base: () => bytes, bytes: () => bytes.length };
+        },
+      },
       callParameters: {},
+      // MAME's address_space, for a handler whose signature takes one. The
+      // buses are created after the bindings, so resolve lazily.
+      addressSpace: (cpuTag?: string) => {
+        const tag = cpuTag ?? machine.execution.cpus[0]?.tag ?? '';
+        return {
+          read_byte: (address: number) => this.cpuBuses.get(tag)?.read(address) ?? 0xff,
+          write_byte: (address: number, value: number) =>
+            this.cpuBuses.get(tag)?.write(address, value),
+          device: () => ({
+            execute: () => ({
+              adjust_icount: (delta: number) => this.adjustGeneratedIcount(tag, delta),
+            }),
+          }),
+        };
+      },
     };
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
@@ -984,6 +1017,15 @@ class IrBoard implements Board {
       };
       calls[`m_${specification.tag}.total_cycles`] = () =>
         this.cpuCycles.get(specification.tag) ?? 0;
+      // MAME's device_state_interface, by the state index the CPU's own lowered
+      // enum gives the driver (`m_maincpu->state_int(Z80_HL)`).
+      calls[`m_${specification.tag}.state_int`] = state => cpu.stateInt(state);
+      // A driver charges its own CPU for cycles hardware stole from it (Congo
+      // Bongo's sprite DMA bills five per entry copied).
+      calls[`m_${specification.tag}.adjust_icount`] = delta => {
+        this.adjustGeneratedIcount(specification.tag, delta);
+        return 0;
+      };
       calls[`m_${specification.tag}.suspended`] = () => {
         const reported = this.cpuReportedSuspended.get(specification.tag) ?? false;
         this.cpuReportedSuspended.set(
@@ -999,7 +1041,7 @@ class IrBoard implements Board {
       if (member) {
         const cpuMethods = [
           'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
-          'suspended',
+          'suspended', 'state_int', 'adjust_icount',
         ];
         for (const name of cpuMethods) {
           calls[`${member}.${name}`] = calls[`m_${specification.tag}.${name}`]!;
@@ -1736,13 +1778,8 @@ class IrBoard implements Board {
                     bus?.write(address, value),
                   device: () => ({
                     execute: () => ({
-                      adjust_icount: (delta: number) => {
-                        if (!cpuTag || delta >= 0) return;
-                        this.cpuStalls.set(
-                          cpuTag,
-                          (this.cpuStalls.get(cpuTag) ?? 0) - delta,
-                        );
-                      },
+                      adjust_icount: (delta: number) =>
+                        this.adjustGeneratedIcount(cpuTag ?? '', delta),
                     }),
                   }),
                 };
@@ -1757,6 +1794,20 @@ class IrBoard implements Board {
         }
       }
     }
+  }
+
+  /**
+   * MAME device_execute_interface::adjust_icount. A negative adjustment is the
+   * common one: hardware stole cycles from the CPU, so the board holds it back
+   * for that many. A positive adjustment gives cycles back.
+   */
+  private adjustGeneratedIcount(cpuTag: string, delta: number): number {
+    if (!cpuTag || !delta) return 0;
+    this.cpuStalls.set(
+      cpuTag,
+      Math.max(0, (this.cpuStalls.get(cpuTag) ?? 0) - delta),
+    );
+    return 0;
   }
 
   /**
@@ -2950,7 +3001,7 @@ class IrBoard implements Board {
       if (!region && !ownedEntries?.some(Boolean)) {
         throw new Error(`${machine.game}: memory bank "${bank.tag}" has no backing storage`);
       }
-      let entry = bank.entryOffsets.findIndex(value => value !== null);
+      let entry = bank.initialEntry ?? bank.entryOffsets.findIndex(value => value !== null);
       if (entry < 0) entry = 0;
       const setEntry = (value: number): number => {
         const configured = bank.entryOffsets[value];
