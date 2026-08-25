@@ -138,6 +138,28 @@ const KEYMAP: Record<string, string[]> = {
   IPT_SELECT: ['ShiftRight'],
 };
 
+/**
+ * Street Fighter II's panel: three punches on a top row (Jab, Strong, Fierce =
+ * IPT_BUTTON1..3 on IN1) and three kicks on the row below (Short, Forward,
+ * Roundhouse = IPT_BUTTON4..6, on the C-board's IN2). MAME names all six, so
+ * the roles need no probing; what was missing is that the shared map stops at
+ * BUTTON3 and the generator drops any input it cannot bind, so the entire kick
+ * row was absent from the emitted bindings (issue #82).
+ *
+ * Two keyboard rows for two panel rows: punches on ASD, kicks on ZXC directly
+ * below them, which keeps a quarter-circle's stick hand and button hand apart.
+ * Jab also keeps the shared map's Space so the universal "fire" key does
+ * something here, as it does on every other machine.
+ */
+const CPS1_SIX_BUTTON: Record<string, string[]> = {
+  IPT_BUTTON1: ['KeyA', 'Space'],  // Jab Punch
+  IPT_BUTTON2: ['KeyS'],           // Strong Punch
+  IPT_BUTTON3: ['KeyD'],           // Fierce Punch
+  IPT_BUTTON4: ['KeyZ'],           // Short Kick
+  IPT_BUTTON5: ['KeyX'],           // Forward Kick
+  IPT_BUTTON6: ['KeyC'],           // Roundhouse Kick
+};
+
 // Games whose physical control order differs from the shared two-button
 // convention. Keep these local: swapping the global X/Z mapping would silently
 // change every established game and the NES pad.
@@ -188,6 +210,8 @@ const GAME_KEYMAP: Record<string, Record<string, string[]>> = {
     IPT_BUTTON2: ['KeyX', 'Space'],
     IPT_BUTTON3: ['KeyC'],
   },
+  sf2: CPS1_SIX_BUTTON,
+  sf2ce: CPS1_SIX_BUTTON,
 };
 
 export function inputKeys(game: string, type: string): string[] | undefined {

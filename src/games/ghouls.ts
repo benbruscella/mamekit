@@ -34,10 +34,10 @@ export const ghouls = {
       600: { video: '7d0b9182', state: '79899531' },
       1200: { video: '24a3a263', state: 'be3a1cc9' },
       1400: { video: 'ccf6015f', state: '622782d4' },
-      1800: { video: '510362b1', state: '5ada1da6' },
+      1800: { video: 'ac7f3d18', state: '5ada1da6' },
       2100: { video: '8d3f7e4f', state: '264a9726' },
       2160: { video: '6c66700a', state: '3de34a96' },
-      2300: { video: '89ee3046', state: 'f8805672' },
+      2300: { video: '7bd41995', state: 'f8805672' },
     },
     audio: {
       writes: 98354,

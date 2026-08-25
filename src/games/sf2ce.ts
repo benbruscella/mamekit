@@ -38,11 +38,11 @@ export const sf2ce = sourceTarget({
     checkpoints: {
       1: { video: 'ccf6015f', state: '7d855a28' },
       300: { video: 'a8421153', state: 'a779bbbe' },
-      1200: { video: '7c654bbb', state: 'a0e0c0f2' },
-      1800: { video: '5d6b118c', state: 'a1f05685' },
-      2400: { video: 'b16844f2', state: '87e14a8f' },
-      3000: { video: '0e7f6b63', state: '25606a20' },
-      3600: { video: 'f0d6473b', state: '7ab2c550' },
+      1200: { video: '7897b1bf', state: 'a0e0c0f2' },
+      1800: { video: '9da89037', state: 'a1f05685' },
+      2400: { video: '720bb115', state: '87e14a8f' },
+      3000: { video: '839a67e3', state: '25606a20' },
+      3600: { video: 'f5bcc732', state: '7ab2c550' },
     },
     audio: {
       writes: 127493,

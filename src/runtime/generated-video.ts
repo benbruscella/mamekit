@@ -399,6 +399,21 @@ interface TileInfo {
   group: number;
 }
 
+/**
+ * What a draw does to the screen priority bitmap.
+ *
+ * MAME has two rules and they are not interchangeable. A gfx draw through one
+ * of the `prio_*` entry points *claims* each pixel it touches (storing 31) and
+ * refuses to paint where an earlier claim matches its mask; a tilemap draw
+ * *stamps* `(pri & priority_mask) | priority` on every pixel it paints and
+ * rejects nothing. CPS1 needs both at once: the tilemap stamp is what puts a
+ * high-priority scenery pen in front of a sprite, and the sprite claim is what
+ * makes the first entry in the object list win against the ones behind it.
+ */
+type GeneratedPriorityOp =
+  | { kind: 'claim'; bitmap: GeneratedPriorityBitmap; mask: number }
+  | { kind: 'stamp'; bitmap: GeneratedPriorityBitmap; value: number; keep: number };
+
 /** Minimal bitmap_ind16 surface used by generated temporary pixmaps. */
 class GeneratedIndexedBitmap implements BitmapTarget {
   readonly pixels: Uint32Array;
@@ -1051,6 +1066,35 @@ export class GeneratedGfxElement {
       throw new Error('prio_transmask needs the screen priority bitmap');
     }
     this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, transparentMask, {
+      kind: 'claim',
+      bitmap: priorityBitmap,
+      mask: priorityMask | (1 << 31),
+    });
+  }
+
+  /**
+   * gfx_element::prio_transpen — prio_transmask for a single transparent pen.
+   * The implicit high mask bit is what makes an already-claimed pixel opaque
+   * to every later draw, so a sprite list is front-to-back in table order.
+   */
+  prio_transpen(
+    bitmap: BitmapTarget,
+    clip: GeneratedRectangle,
+    code: number,
+    color: number,
+    flipX: number,
+    flipY: number,
+    sx: number,
+    sy: number,
+    priorityBitmap: unknown,
+    priorityMask: number,
+    transparentPen: number,
+  ): void {
+    if (!(priorityBitmap instanceof GeneratedPriorityBitmap)) {
+      throw new Error('prio_transpen needs the screen priority bitmap');
+    }
+    this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, 1 << transparentPen, {
+      kind: 'claim',
       bitmap: priorityBitmap,
       mask: priorityMask | (1 << 31),
     });
@@ -1125,7 +1169,7 @@ export class GeneratedGfxElement {
     sx: number,
     sy: number,
     transparentMask = 0,
-    priority?: { bitmap: GeneratedPriorityBitmap; mask: number },
+    priority?: GeneratedPriorityOp,
   ): void {
     const gfx = this.decoded;
     const element = modulo(code, gfx.count);
@@ -1157,11 +1201,20 @@ export class GeneratedGfxElement {
         const pen = gfx.pixels[base + sourceY * gfx.width + sourceX]!;
         if (transparentMask & (1 << pen)) continue;
         if (priority) {
-          // PIXEL_OP_REBASE_TRANSMASK_PRIORITY: claim the pixel either way,
-          // but only paint it when nothing has claimed it already.
-          const claimed = priority.bitmap.get(x, y);
-          priority.bitmap.set(x, y, 31);
-          if (((1 << (claimed & 0x1f)) & priority.mask) !== 0) continue;
+          if (priority.kind === 'stamp') {
+            // tilemap_t::draw: the drawn pixel records priority, and nothing
+            // is ever rejected — the layer is what claims the pixel.
+            priority.bitmap.set(
+              x, y,
+              (priority.bitmap.get(x, y) & priority.keep) | priority.value,
+            );
+          } else {
+            // PIXEL_OP_REBASE_TRANSMASK_PRIORITY: claim the pixel either way,
+            // but only paint it when nothing has claimed it already.
+            const claimed = priority.bitmap.get(x, y);
+            priority.bitmap.set(x, y, 31);
+            if (((1 << (claimed & 0x1f)) & priority.mask) !== 0) continue;
+          }
         }
         const packed = this.indexed
           ? colorBase + pen
@@ -1422,9 +1475,14 @@ class GeneratedTilemap {
     bitmap: BitmapTarget,
     clip: GeneratedRectangle,
     _flags: number,
-    _priority: number,
+    _priority = 0,
+    _priorityMask = 0xff,
   ): void {
     if (!this.active) return;
+    // tilemap_t::configure_blit_parameters packs the pair into one code and
+    // skips the priority bitmap entirely when it comes out as 0xff00 — the
+    // default "I am not using priority" call every ordinary driver makes.
+    const priority = generatedTilemapPriorityOp(_screen, _priority, _priorityMask);
     const members = this.bindings().members ?? {};
     const globalFlip = Number(members.__flip_screen ?? 0) ? 3 : 0;
     const mapFlip = this.flip | globalFlip;
@@ -1619,12 +1677,31 @@ class GeneratedTilemap {
               wrappedX,
               wrappedY,
               transparentMask,
+              priority,
             );
           }
         }
       }
     }
   }
+}
+
+/**
+ * The priority operation a tilemap_t::draw performs, or undefined when MAME
+ * would leave the priority bitmap alone. MAME encodes the pair as
+ * `priority | (priority_mask << 8)` and short-circuits on 0xff00, which is
+ * what an unspecified priority with the default 0xff mask produces.
+ */
+function generatedTilemapPriorityOp(
+  screen: unknown,
+  priority: number,
+  priorityMask: number,
+): GeneratedPriorityOp | undefined {
+  const code = (priority & 0xff) | ((priorityMask & 0xff) << 8);
+  if (code === 0xff00) return undefined;
+  const bitmap = (screen as { priority?: () => unknown } | undefined)?.priority?.();
+  if (!(bitmap instanceof GeneratedPriorityBitmap)) return undefined;
+  return { kind: 'stamp', bitmap, value: priority & 0xff, keep: priorityMask & 0xff };
 }
 
 export function generatedTileGroupTransparentMask(
@@ -2463,11 +2540,19 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
           let base = reverse ? last : 0;
           const baseAdd = reverse ? -4 : 4;
           const screenFlipped = Boolean(state.__flip_screen);
+          // DRAWSPRITE is prio_transpen(..., screen.priority(), 0x02, 15), not
+          // a plain transpen. Both halves of that matter: pmask 0x02 hides the
+          // sprite under a scenery pen the tilemap pass stamped with 1, and the
+          // implicit high mask bit means an object already drawn keeps the
+          // pixel — CPS1 sprite priority is the object table's own order, and a
+          // plain transpen inverts it (sf2's "INSERT COIN" vanished behind
+          // Blanka; issue #82).
+          const priority = this.screenPriority();
           const draw = (
             code: number, color: number, flipX: number, flipY: number,
             sx: number, sy: number,
           ) => {
-            gfx.transpen(
+            gfx.prio_transpen(
               bitmap,
               clip,
               code,
@@ -2476,6 +2561,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
               screenFlipped ? Number(!flipY) : flipY,
               screenFlipped ? 512 - 16 - sx : sx,
               screenFlipped ? 256 - 16 - sy : sy,
+              priority,
+              0x02,
               15,
             );
           };
