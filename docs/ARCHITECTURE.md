@@ -220,11 +220,21 @@ MAME runs every processor to `min(basetime + quantum, next timer expiry)` and
 executes timers only then, so what a processor does between two scheduled
 events is atomic as far as the others are concerned. A board's frame events
 are those timers, so the generated frame schedule hands over at their lines
-rather than at every scanline; a board that schedules per-line work keeps the
-per-line cadence. `perfect_quantum` shortens that window for the duration the
-source asks for — it does not run another processor from inside the caller's
-instruction stream, which would let the far side answer before the caller has
-finished setting up for the answer.
+rather than at every scanline.
+
+Three things bound that interval. A board that schedules per-line work — a
+periodic event, a scanline-updated screen — keeps the per-line cadence. So
+does a board whose machine configuration calls `set_perfect_quantum`, which is
+MAME's way of saying its processors share state through a handshake nothing
+coarser survives. And every board is bounded by one millisecond, because
+MAME's own quantum is bounded by all of its device timers and the timers
+modelled here tick once per scanline: claiming a whole frame of atomicity
+would claim more than the model supports.
+
+`perfect_quantum` shortens the window for the duration the source asks for. It
+does not run another processor from inside the caller's instruction stream,
+which would let the far side answer before the caller has finished setting up
+for the answer.
 
 ### ADDRESS-SPACE TAPS
 

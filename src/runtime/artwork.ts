@@ -52,6 +52,13 @@ export interface LayoutView {
   screen: ArtWindow;
   art: ArtWindow;
   file: string;
+  /**
+   * MAME `<image alphafile="...">`: a second member whose luminance is the
+   * art's alpha channel. The window a bezel is drawn around lives here, not in
+   * `file`, on every pack that uses it — the build composites the two and
+   * ships one image, so nothing downstream needs it.
+   */
+  alphaFile?: string;
   rotate: number;
   tints: ArtTint[];
 }
@@ -60,7 +67,7 @@ export interface LayoutView {
  * What the build ships beside a bezel `.webp`: the lay view that produced it,
  * minus the `file` that named a zip member the site no longer serves.
  */
-export type BezelSidecar = Omit<LayoutView, 'file'>;
+export type BezelSidecar = Omit<LayoutView, 'file' | 'alphaFile'>;
 
 /**
  * A game's cabinet bezel, or null when the site ships none for it.
@@ -171,12 +178,18 @@ export function parseArtworkLayout(source: string): LayoutView | null {
   const lay = source.replace(/<!--[\s\S]*?-->/g, '');
   const elementBodies = new Map<string, string>();
   const images = new Map<string, string>();
+  const alphaImages = new Map<string, string>();
   for (const match of lay.matchAll(
     /<element\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/element>/g,
   )) {
     elementBodies.set(match[1], match[2]);
-    const file = /<image\s+[^>]*file="([^"]+)"/.exec(match[2])?.[1];
+    // `[^>]*` greedily backtracks into `alphafile="`, whose tail is `file="`,
+    // so a greedy match picks the mask and ships it as the bezel: Gauntlet's
+    // was a flat grey frame. The word boundary is what keeps them apart.
+    const file = /<image\s[^>]*?\bfile="([^"]+)"/.exec(match[2])?.[1];
     if (file) images.set(match[1], file);
+    const alpha = /<image\s[^>]*?\balphafile="([^"]+)"/.exec(match[2])?.[1];
+    if (alpha) alphaImages.set(match[1], alpha);
   }
 
   const views: LayoutView[] = [];
@@ -221,6 +234,7 @@ export function parseArtworkLayout(source: string): LayoutView | null {
     }
     const art = layoutBounds(artTag);
     const file = artElement ? images.get(artElement) : undefined;
+    const alphaFile = artElement ? alphaImages.get(artElement) : undefined;
     if (!art?.w || !art.h || !file) continue;
 
     const overlayCollection = /<collection\s+name="Overlay"[^>]*>([\s\S]*?)<\/collection>/i
@@ -239,7 +253,16 @@ export function parseArtworkLayout(source: string): LayoutView | null {
     const rotate = Number(
       /<orientation\s+[^>]*rotate="(\d+)"/.exec(artTag ?? '')?.[1] ?? 0,
     );
-    views.push({ name, ...(bounds ? { bounds } : {}), screen, art, file, rotate, tints });
+    views.push({
+      name,
+      ...(bounds ? { bounds } : {}),
+      screen,
+      art,
+      file,
+      ...(alphaFile ? { alphaFile } : {}),
+      rotate,
+      tints,
+    });
   }
   const viewScore = (view: LayoutView): number =>
     /bezel/i.test(view.name) ? 2 : /upright/i.test(view.name) ? 1 : 0;

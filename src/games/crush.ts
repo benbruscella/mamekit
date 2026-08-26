@@ -38,9 +38,9 @@ export const crush: GameTestContract = {
     audio: {
       writes: 23605,
       nonzeroWrites: 9110,
-      writeHash: '0cf4214c',
-      pcmHash: '7b298f6e',
-      rms: 0.085915,
+      writeHash: '62eac0f4',
+      pcmHash: 'e72761ca',
+      rms: 0.086185,
     },
   },
 };

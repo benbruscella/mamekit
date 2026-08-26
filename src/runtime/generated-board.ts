@@ -638,12 +638,9 @@ class IrBoard implements Board {
             line = this.neoGeoRtcLine('data');
           } else if (custom.source === 'device-line') {
             const device = custom.deviceTag ? this.devices.get(custom.deviceTag) : undefined;
-            if (!device?.methodNames().includes(custom.member)) {
-              throw new Error(
-                `${machine.game}: port ${custom.port} reads ` +
-                `${custom.deviceTag}.${custom.member}, which is not a generated device line`,
-              );
-            }
+            // See above: hardware the board does not instantiate leaves the
+            // bit alone rather than claiming a level for it.
+            if (!device?.methodNames().includes(custom.member)) continue;
             const raw = Number(device.invoke(custom.member)) ? 1 : 0;
             line = custom.activeLow ? Number(!raw) : raw;
           } else {
@@ -2793,13 +2790,12 @@ class IrBoard implements Board {
           // PORT_READ_LINE_DEVICE_MEMBER: the bit is another device's output
           // line, answered live rather than by a switch.
           if (custom.source === 'device-line') {
+            // A line belonging to hardware the board does not instantiate —
+            // Asteroids reads the DVG's done flag, and the vector generator is
+            // a host service — leaves the bit as the port supplies it, which is
+            // what an unresolved handler custom already does.
             const device = custom.deviceTag ? this.devices.get(custom.deviceTag) : undefined;
-            if (!device?.methodNames().includes(custom.member)) {
-              throw new Error(
-                `${machine.game}: port ${custom.port} reads ` +
-                `${custom.deviceTag}.${custom.member}, which is not a generated device line`,
-              );
-            }
+            if (!device?.methodNames().includes(custom.member)) continue;
             const line = Number(device.invoke(custom.member)) ? 1 : 0;
             const level = custom.activeLow ? Number(!line) : line;
             const shift = trailingZeroBits(custom.mask);
