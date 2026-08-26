@@ -195,10 +195,10 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   });
   runner.frame(new Uint32Array(1));
   // 60 kHz across three lines at 10 Hz is 2000 cycles per processor per line;
-  // the 1 ms boost is 60 of them.
+  // the 250 us boost is 15 of them.
   assert.deepEqual(
     order,
-    ['maincpu:2000', 'sound:60', 'sound:1940', 'maincpu:2000', 'sound:2000',
+    ['maincpu:2000', 'sound:15', 'sound:1985', 'maincpu:2000', 'sound:2000',
       'maincpu:2000', 'sound:2000'],
     'the other processor runs at once and repays the borrowed cycles in its own slice',
   );
@@ -284,12 +284,12 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   });
   runner.frame(new Uint32Array(1));
   // 1,584,000 Hz over 264 lines at 60 Hz is 100 cycles a line, and a line is
-  // 63 us, so the one-millisecond bound is 15 of them. This board schedules
-  // nothing before vbstart, so that bound is what it runs on.
+  // 63 us, so the 250 us bound is three of them. This board schedules nothing
+  // before vbstart, so that bound is what it runs on.
   assert.deepEqual(
     slices.slice(0, 4),
-    [1500, 1500, 1500, 1500],
-    'an unscheduled board still hands over at the millisecond bound',
+    [300, 300, 300, 300],
+    'an unscheduled board still hands over at the quantum bound',
   );
   assert.equal(
     slices.reduce((total, slice) => total + slice, 0),
@@ -301,7 +301,7 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   runner.frame(new Uint32Array(1));
   assert.deepEqual(
     slices.slice(0, 3),
-    [100, 100, 1500],
+    [100, 100, 300],
     'the window interleaves per line for as long as it lasts, then reopens',
   );
 }

@@ -33,9 +33,9 @@ export const invaders: GameTestContract = {
     audio: {
       writes: 721,
       nonzeroWrites: 717,
-      writeHash: '8e5d6278',
-      pcmHash: '2bdcbf44',
-      rms: 0.03521,
+      writeHash: 'ffe9394f',
+      pcmHash: '61cf4217',
+      rms: 0.035225,
     },
   },
 };

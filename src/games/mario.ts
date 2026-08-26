@@ -42,9 +42,9 @@ export const mario = {
     audio: {
       writes: 375780,
       nonzeroWrites: 6260,
-      writeHash: 'f88c4018',
-      pcmHash: '6d1aa7a3',
-      rms: 0.996189,
+      writeHash: '727ccb23',
+      pcmHash: '1b652bdb',
+      rms: 0.996151,
     },
   },
 };

@@ -16,11 +16,27 @@ export interface GeneratedFrameProcessor {
  * scanline. Claiming a whole frame of atomicity on a board that schedules
  * nothing is therefore claiming more than the model supports: Phoenix and
  * Rampage both stop drawing when their processors run a couple of hundred
- * lines at a stretch. One millisecond is the same bound a perfect_quantum
- * boost already uses, and it is an order of magnitude longer than the
- * handshakes that need the interval (Gauntlet's is 37 us).
+ * lines at a stretch.
+ *
+ * The bound is squeezed from both sides, and the window is narrower than it
+ * looks. Too coarse and a fast processor runs thousands of cycles while the
+ * one it is handshaking with waits: at one millisecond Gyruss lost half of
+ * its sound writes and Juno First a third, both boards where an 8 MHz i8039
+ * feeds a DAC under a slower CPU's direction. Too fine and a driver's own
+ * `perfect_quantum` request stops meaning anything -- Gauntlet asks for 100
+ * us, so at a 100 us bound the boost can no longer shorten the interval and
+ * the sound handshake it exists to protect breaks again.
+ *
+ * 250 us sits between them: fine enough that no board's handshake starves,
+ * coarse enough that a 100 us boost still tightens the schedule. It restores
+ * every regressed board to within 0.4% of its pre-quantum write count while
+ * leaving Gauntlet's intact.
+ *
+ * This is an empirical bound, not a derived one. The derived version is to
+ * lower the device timers MAME clamps its own timeslice against, which would
+ * make the cap redundant for boards that schedule real work.
  */
-const MAX_QUANTUM_SECONDS = 0.001;
+const MAX_QUANTUM_SECONDS = 0.00025;
 
 export interface GeneratedFrameRunnerOptions {
   machine: BoardIr;

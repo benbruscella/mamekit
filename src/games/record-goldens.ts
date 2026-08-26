@@ -54,6 +54,9 @@ function property(name: string): string {
     : `'${name}'`;
 }
 
+/** Fraction of sound writes a re-record may move before it is called out. */
+const AUDIO_WRITE_SWING = 0.05;
+
 async function record(games: readonly string[], formatOnly = false): Promise<void> {
   const contracts = await loadGameContracts();
   const selected = games.length
@@ -67,6 +70,23 @@ async function record(games: readonly string[], formatOnly = false): Promise<voi
       ? contract.golden
       : await runGameAcceptance(contract, projectRoot, { recording: true });
     if (!golden) throw new Error(`${contract.game}: no acceptance golden is recorded`);
+    // A re-record is how a real regression gets blessed. Gyruss lost half its
+    // sound writes to a scheduling change and Juno First a third, and both
+    // were recorded straight over because the picture was untouched and no
+    // hard assertion moved. The write count is the one number that noticed,
+    // so a large swing has to be stated out loud rather than silently stored.
+    const before = contract.golden?.audio;
+    if (before?.writes) {
+      const swing = (golden.audio.writes - before.writes) / before.writes;
+      if (Math.abs(swing) >= AUDIO_WRITE_SWING) {
+        console.warn(
+          `${contract.game}: WARNING sound writes ${before.writes} -> ` +
+            `${golden.audio.writes} (${(swing * 100).toFixed(1)}%). A swing this ` +
+            'large is a behaviour change, not drift — confirm it is intended ' +
+            'before committing this golden.',
+        );
+      }
+    }
     const sourcePath = join(projectRoot, 'src/games', `${contract.game}.ts`);
     const source = readFileSync(sourcePath, 'utf8');
     const updated = replaceGolden(source, golden);

@@ -226,10 +226,20 @@ Three things bound that interval. A board that schedules per-line work — a
 periodic event, a scanline-updated screen — keeps the per-line cadence. So
 does a board whose machine configuration calls `set_perfect_quantum`, which is
 MAME's way of saying its processors share state through a handshake nothing
-coarser survives. And every board is bounded by one millisecond, because
+coarser survives. And every board is bounded by 250 microseconds, because
 MAME's own quantum is bounded by all of its device timers and the timers
 modelled here tick once per scanline: claiming a whole frame of atomicity
 would claim more than the model supports.
+
+That bound is squeezed from both sides. Too coarse and a fast processor runs
+thousands of cycles while the one it is handshaking with waits, which is how
+Gyruss lost half of its sound writes and Juno First a third — both boards
+where an 8 MHz i8039 feeds a DAC under a slower CPU's direction. Too fine and
+a driver's own `perfect_quantum` request stops meaning anything, since a boost
+cannot shorten an interval that is already the shortest one available. It is
+an empirical bound; the derived version is to lower the device timers MAME
+clamps its own timeslice against, which would make the cap redundant wherever
+a board schedules real work.
 
 `perfect_quantum` shortens the window for the duration the source asks for. It
 does not run another processor from inside the caller's instruction stream,

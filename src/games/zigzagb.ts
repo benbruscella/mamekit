@@ -38,9 +38,9 @@ export const zigzagb: GameTestContract = {
     audio: {
       writes: 6121,
       nonzeroWrites: 5352,
-      writeHash: 'c5e1bce7',
-      pcmHash: '1efabc03',
-      rms: 0.100572,
+      writeHash: '23fcef82',
+      pcmHash: '326b752a',
+      rms: 0.100738,
     },
   },
 };

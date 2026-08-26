@@ -26,9 +26,9 @@ export const panic = sourceTarget({
     audio: {
       writes: 623,
       nonzeroWrites: 0,
-      writeHash: '31346fcf',
-      pcmHash: '89b97f71',
-      rms: 0.0666,
+      writeHash: 'd50cfed9',
+      pcmHash: 'd48ae836',
+      rms: 0.066602,
     },
   },
 });

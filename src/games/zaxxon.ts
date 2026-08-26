@@ -30,9 +30,9 @@ export const zaxxon = sourceTarget({
     audio: {
       writes: 2126,
       nonzeroWrites: 2116,
-      writeHash: '23f54169',
-      pcmHash: '1c955a5e',
-      rms: 0.064563,
+      writeHash: '78bad6e2',
+      pcmHash: 'b6286b49',
+      rms: 0.064642,
     },
   },
 });

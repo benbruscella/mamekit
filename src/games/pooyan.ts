@@ -34,9 +34,9 @@ export const pooyan: GameTestContract = {
     audio: {
       writes: 2305,
       nonzeroWrites: 1986,
-      writeHash: '1741f141',
-      pcmHash: '76a7b440',
-      rms: 0.020779,
+      writeHash: '528254be',
+      pcmHash: '80ec7b6f',
+      rms: 0.020793,
     },
   },
 };
