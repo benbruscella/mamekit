@@ -65,6 +65,7 @@ async function record(games: readonly string[], formatOnly = false): Promise<voi
   const missing = games.filter(game => !selected.some(contract => contract.game === game));
   if (missing.length) throw new Error(`unknown supported game(s): ${missing.join(', ')}`);
 
+  const swings: { game: string; before: number; after: number }[] = [];
   for (const contract of selected) {
     const golden = formatOnly
       ? contract.golden
@@ -79,6 +80,7 @@ async function record(games: readonly string[], formatOnly = false): Promise<voi
     if (before?.writes) {
       const swing = (golden.audio.writes - before.writes) / before.writes;
       if (Math.abs(swing) >= AUDIO_WRITE_SWING) {
+        swings.push({ game: contract.game, before: before.writes, after: golden.audio.writes });
         console.warn(
           `${contract.game}: WARNING sound writes ${before.writes} -> ` +
             `${golden.audio.writes} (${(swing * 100).toFixed(1)}%). A swing this ` +
@@ -92,6 +94,27 @@ async function record(games: readonly string[], formatOnly = false): Promise<voi
     const updated = replaceGolden(source, golden);
     if (updated !== source) writeFileSync(sourcePath, updated);
     console.log(`${contract.game}: ${formatOnly ? 'formatted' : 'recorded'}`);
+  }
+
+  // The per-game warning above scrolls past in a fifty-target run, and it only
+  // fires once: the second recording compares against the values the first one
+  // already wrote, so a regression blessed today is invisible tomorrow. Repeat
+  // it as a summary and fail the run, so a swing has to be looked at once
+  // rather than merely printed. The goldens are still written, so the diff is
+  // there to inspect; recording again is silent because nothing swings twice.
+  if (swings.length) {
+    console.error(`\n${swings.length} target(s) changed sound writes by ` +
+      `${AUDIO_WRITE_SWING * 100}% or more:`);
+    for (const swing of swings) {
+      const percent = ((swing.after - swing.before) / swing.before) * 100;
+      console.error(`  ${swing.game}: ${swing.before} -> ${swing.after} ` +
+        `(${percent > 0 ? '+' : ''}${percent.toFixed(1)}%)`);
+    }
+    console.error(
+      'Confirm each is intended before committing. Re-running the recorder ' +
+        'will not warn again.',
+    );
+    process.exitCode = 1;
   }
 }
 
