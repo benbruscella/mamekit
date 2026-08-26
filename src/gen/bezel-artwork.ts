@@ -32,6 +32,7 @@ import {
 } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { parseArtworkLayout, type BezelSidecar } from '../runtime/artwork.ts';
+import { applyAlphaMask, decodePng, encodeRgbaPng } from './png.ts';
 import { readZip } from '../runtime/zip.ts';
 
 /**
@@ -137,20 +138,36 @@ async function deriveOne(
   const png = files.get(view.file) ?? files.get(view.file.toLowerCase());
   if (!png) return null;
 
+  // MAME keeps a bezel's colour and its transparency in two members when the
+  // lay names an alphafile, and the transparency is the half that matters:
+  // the shell draws the bezel over the running game, so shipping the colour
+  // alone would hide it. A pack whose pair cannot be composited ships no
+  // bezel, which is the visible, cheap failure this module prefers.
+  let source = png;
+  if (view.alphaFile) {
+    const mask = files.get(view.alphaFile) ?? files.get(view.alphaFile.toLowerCase());
+    if (!mask) return null;
+    try {
+      source = encodeRgbaPng(applyAlphaMask(decodePng(png), decodePng(mask)));
+    } catch {
+      return null;
+    }
+  }
+
   mkdirSync(dirname(webp), { recursive: true });
   const staged = `${webp}.png`;
   try {
-    writeFileSync(staged, png);
+    writeFileSync(staged, source);
     if (!encodeWebp(staged, webp)) return null;
   } finally {
     rmSync(staged, { force: true });
   }
 
-  // `file` named a zip member the site does not serve; everything else is
-  // geometry composeBezel() maps onto whatever the .webp decodes to.
-  const { file: _file, ...geometry } = view;
+  // `file` and `alphaFile` named zip members the site does not serve;
+  // everything else is geometry composeBezel() maps onto the decoded .webp.
+  const { file: _file, alphaFile: _alphaFile, ...geometry } = view;
   writeFileSync(sidecar, `${JSON.stringify(geometry satisfies BezelSidecar, null, 2)}\n`);
-  return { bytes: statSync(webp).size, sourceBytes: png.length };
+  return { bytes: statSync(webp).size, sourceBytes: source.length };
 }
 
 /**

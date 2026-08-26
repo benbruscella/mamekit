@@ -10,11 +10,15 @@ export interface CpuBus {
   read(address: number): number;
   /** Atomic big-endian word access for native 16-bit address-map handlers. */
   read16be?(address: number): number;
+  /** A 68000 long access, which MAME performs as two word accesses. */
+  read32be?(address: number): number;
   /** AS_OPCODES fetch when the board maps encrypted opcodes separately. */
   readOpcode?(address: number): number;
   write(address: number, data: number): void;
   /** Atomic big-endian word access for native 16-bit address-map handlers. */
   write16be?(address: number, data: number): void;
+  /** A 68000 long access, which MAME performs as two word accesses. */
+  write32be?(address: number, data: number): void;
   in(port: number): number;
   out(port: number, data: number): void;
   /** Optional source-derived interrupt-acknowledge address-space read. */
@@ -390,6 +394,9 @@ class IrCpu implements Cpu {
       },
       READ32BE: address => {
         const location = dataAddress(address);
+        if (this.bus.read32be && !this.definition.internal) {
+          return this.bus.read32be(location);
+        }
         return (
           (this.readMemory(location) << 24) |
           (this.readMemory(location + 1) << 16) |
@@ -428,6 +435,10 @@ class IrCpu implements Cpu {
       },
       WRITE32BE: (address, value) => {
         const location = dataAddress(address);
+        if (this.bus.write32be && !this.definition.internal) {
+          this.bus.write32be(location, value >>> 0);
+          return 0;
+        }
         this.writeMemory(location, value >>> 24);
         this.writeMemory(location + 1, value >>> 16);
         this.writeMemory(location + 2, value >>> 8);

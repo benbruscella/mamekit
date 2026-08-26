@@ -3,6 +3,7 @@ import { compileMameDevice } from '../../mame/device-compiler.ts';
 import { compileMameHandler } from '../../mame/handler-ir.ts';
 import type { MameHardwareDefinition } from '../../mame/hardware.ts';
 import { compileInputMerger } from '../../mame/input-merger-compiler.ts';
+import { lowerSlapstic } from '../../mame/slapstic-compiler.ts';
 import type {
   CapabilityArtifact,
   CapabilityExtraction,
@@ -29,6 +30,7 @@ string,
   MOS6532: compileMos6532,
   NEOGEO_SPRITE_OPTIMZIED: compileNeogeoSprite,
   PIT8253: compilePit8253,
+  SLAPSTIC: compileSlapstic,
   Z80CTC: compileZ80Ctc,
 };
 
@@ -126,6 +128,74 @@ function compilePit8253(
   replaceMethod(device, 'set_clk', `
     return;
   `);
+  return refreshSummary(device);
+}
+
+/**
+ * Give the Atari slapstic its state machine back.
+ *
+ * Everything in slapstic.cpp lowers except `device_start`, which is where the
+ * chip actually lives: it builds ten polymorphic `state` objects out of one
+ * `slapstic_data` table and installs the two lambdas that drive them from an
+ * address-space tap. `src/mame/slapstic-compiler.ts` parses those tables out
+ * of the same source and re-expresses the state objects as one flat `test()`,
+ * so the chip's data stays MAME's and only its dispatch shape changes.
+ */
+function compileSlapstic(
+  mameSource: string,
+  definition: MameHardwareDefinition,
+): Compiled {
+  const device = compileMameDevice(mameSource, definition, 'SLAPSTIC');
+  const lowering = lowerSlapstic(mameSource);
+  Object.assign(device.constants, lowering.constants);
+  // MAME holds the live state as a `const state*`; flattened, it is the
+  // state_id() the device already saves and restores.
+  const state = device.members.find(member => member.name === 'm_state');
+  if (state) state.valueType = 'u8';
+  for (const member of lowering.members) {
+    const existing = device.members.find(candidate => candidate.name === member.name);
+    if (existing) Object.assign(existing, member);
+    else device.members.push(member);
+  }
+  const source = {
+    file: definition.sourceFile,
+    line: definition.sourceLine,
+    column: definition.sourceColumn,
+  };
+  for (const method of lowering.methods) {
+    const existing = device.methods.find(candidate => candidate.name === method.name);
+    const program = compileMameHandler(method.body);
+    if (existing) existing.program = program;
+    else {
+      device.methods.push({
+        name: method.name,
+        parameters: method.parameters,
+        program,
+        source,
+      });
+    }
+  }
+  // The chip number is the value the machine config passes as the device's
+  // clock (`SLAPSTIC(config, m_slapstic, 104)` reaches the u32-clock
+  // constructor), which MAME's own int-clock overload copies into m_chipnum.
+  replaceMethod(device, 'device_start', 'm_chipnum = clock();');
+  replaceMethod(device, 'device_reset', `
+    m_state = S_IDLE;
+    change_bank(m_tbl_bankstart[m_chipnum - SLAPSTIC_FIRST_CHIP]);
+  `);
+  // MAME's m_bank/m_view both point at storage the board owns, so the board
+  // supplies the entry setter and the device keeps only the bank number.
+  replaceMethod(device, 'change_bank', `
+    m_current_bank = bank;
+    set_bank_entry(m_current_bank);
+  `);
+  replaceMethod(device, 'device_pre_save', 'm_saved_state = m_state;');
+  replaceMethod(device, 'device_post_load', 'm_state = m_saved_state;');
+  // The chip decodes the address of *every* access on the space it watches —
+  // 17,700 a frame on Gauntlet — so interpreting the state machine costs more
+  // than the two CPUs put together. It has no loop for the usual hot-method
+  // heuristic to spot, so name it directly.
+  device.hotMethods = [...new Set([...(device.hotMethods ?? []), 'test', 'tmatch'])];
   return refreshSummary(device);
 }
 

@@ -87,6 +87,13 @@ import {
 } from './ym2151/definition.ts';
 import { extractYm2151 } from './ym2151/extract.ts';
 import {
+  TMS5220_ID,
+  TMS5220_MAME_TYPES,
+  TMS5220_MASTER_GAIN,
+  TMS5220_PORTS,
+} from './tms5220/definition.ts';
+import { extractTms5220 } from './tms5220/extract.ts';
+import {
   OKIM6295_ID,
   OKIM6295_MAME_TYPES,
   OKIM6295_MASTER_GAIN,
@@ -197,6 +204,13 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     ports: YM2151_PORTS,
     extract: extractYm2151,
     masterGain: YM2151_MASTER_GAIN,
+  },
+  {
+    id: TMS5220_ID,
+    mameTypes: TMS5220_MAME_TYPES,
+    ports: TMS5220_PORTS,
+    extract: extractTms5220,
+    masterGain: TMS5220_MASTER_GAIN,
   },
   {
     id: OKIM6295_ID,

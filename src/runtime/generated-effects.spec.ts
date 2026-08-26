@@ -61,6 +61,7 @@ function machineWith(connections: BoardIr['connections']): BoardIr {
 
 const calls: string[] = [];
 const bindings: EffectBindings = {
+  perfectQuantum: () => undefined,
   cpuLine: (tag, line, delivery) => state => { calls.push(`cpu ${tag}.${line}/${delivery}=${state}`); },
   deviceMethod: (tag, method) =>
     tag === 'absent' ? undefined : state => { calls.push(`device ${tag}.${method}=${state}`); },

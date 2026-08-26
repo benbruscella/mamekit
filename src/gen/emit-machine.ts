@@ -186,6 +186,9 @@ export function lowerGeneratedMachine(
       if (props.inputLine) callback.inputLine = String(props.inputLine);
       const lineDelivery = /\b(HOLD|ASSERT|PULSE)_LINE\b/.exec(String(props.raw ?? ''))?.[1];
       if (lineDelivery) callback.delivery = lineDelivery.toLowerCase() as 'hold' | 'assert' | 'pulse';
+      if (props.quantumSeconds !== undefined) {
+        callback.quantumSeconds = Number(props.quantumSeconds);
+      }
       if (props.periodHz !== undefined) callback.periodHz = Number(props.periodHz);
       if (props.periodExpr) callback.periodExpr = String(props.periodExpr);
       if (Array.isArray(props.scanlines)) callback.scanlines = props.scanlines.map(Number);
@@ -338,6 +341,14 @@ export function lowerGeneratedMachine(
     ? selectedMachine.props.startHandlers.map(String)
     : [];
   const shareBindings = lowerShareBindings(graph);
+  // Any config in the selected machine's chain may declare it; MAME applies
+  // the request to the whole machine however deep it is set.
+  const perfectQuantumBoard = graph.nodes.some(node =>
+    node.label === 'MachineConfig' && node.props.perfectQuantum === true);
+  const memoryBanks = graph.nodes.some(node => node.label === 'MemoryBank')
+    ? lowerMemoryBanks(graph, sourceRef)
+    : [];
+  const accessTaps = lowerAccessTaps(graph, devices, memoryBanks, sourceRef);
   const execution: GeneratedExecutionPlan = {
     cpus: board.cpus.map(cpu => {
       const interruptVectorWriters = inferInterruptVectorWriters(
@@ -381,9 +392,9 @@ export function lowerGeneratedMachine(
     ...(shareBindings.length ? { shareBindings } : {}),
     ...(startHandlers.length ? { startHandlers } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
-    ...(graph.nodes.some(node => node.label === 'MemoryBank') ? {
-      banks: lowerMemoryBanks(graph, sourceRef),
-    } : {}),
+    ...(perfectQuantumBoard ? { perfectQuantum: true } : {}),
+    ...(memoryBanks.length ? { banks: memoryBanks } : {}),
+    ...(accessTaps.length ? { accessTaps } : {}),
     screen: {
       ...board.screen,
       // Neo Geo's LSPC sprite-line timer requests one partial update per
@@ -752,6 +763,85 @@ export function inferredMemberIndexRank(
  * banks may be configured by more than one call, so the entry table is the
  * faithful shape rather than a single base/stride pair.
  */
+/**
+ * Devices that watch every access on a CPU's address space.
+ *
+ * MAME expresses this as `install_readwrite_tap` inside the device's own
+ * `device_start`, configured from the machine config with
+ * `set_range(cpu, space, start, end, mirror)` and, where the device drives a
+ * ROM window, `set_bank(bank)`. Neither call leaves a trace in an address
+ * map, so without lowering them the device sees nothing and its bank never
+ * moves.
+ */
+export function lowerAccessTaps(
+  graph: KnowledgeGraph,
+  devices: GeneratedDevice[],
+  banks: NonNullable<BoardIr['execution']['banks']>,
+  sourceRef: (props: Record<string, unknown>) => BoardSourceRef | undefined,
+): NonNullable<BoardIr['execution']['accessTaps']> {
+  const tagByMember = new Map(
+    devices.filter(device => device.member).map(device => [device.member!, device.tag]),
+  );
+  const bankByMember = new Map(banks.map(bank => [bank.member, bank.tag]));
+  const taps: NonNullable<BoardIr['execution']['accessTaps']> = [];
+  for (const node of graph.nodes) {
+    if (node.label !== 'Device') continue;
+    const tag = String(node.props.tag ?? '');
+    if (!devices.some(device => device.tag === tag)) continue;
+    const config = Array.isArray(node.props.config) ? node.props.config.map(String) : [];
+    const range = config
+      .map(line => /->set_range\(([^)]*)\)/.exec(line.trim()))
+      .find((match): match is RegExpExecArray => Boolean(match));
+    if (!range) continue;
+    const args = range[1]!.split(',').map(argument => argument.trim());
+    if (args.length !== 5) {
+      throw new BoardIrError(
+        'access tap',
+        [{ path: `devices.${tag}.set_range`, message: `device "${tag}" set_range takes five arguments`, source: sourceRef(node.props) }],
+      );
+    }
+    const [cpuMember, space, ...bounds] = args as [string, string, string, string, string];
+    const cpu = tagByMember.get(cpuMember) ?? cpuMember.replace(/^m_/, '');
+    if (space !== 'AS_PROGRAM') {
+      throw new BoardIrError(
+        'access tap',
+        [{ path: `devices.${tag}.set_range`, message: `device "${tag}" taps address space ${space}, which is not lowered`, source: sourceRef(node.props) }],
+      );
+    }
+    const [start, end, mirror] = bounds.map(Number);
+    if (![start, end, mirror].every(value => Number.isFinite(value))) {
+      throw new BoardIrError(
+        'access tap',
+        [{ path: `devices.${tag}.set_range`, message: `device "${tag}" set_range bounds are not constant`, source: sourceRef(node.props) }],
+      );
+    }
+    const bankMember = config
+      .map(line => /->set_bank\(([^)]*)\)/.exec(line.trim()))
+      .find((match): match is RegExpExecArray => Boolean(match))?.[1]?.trim();
+    const bank = bankMember ? bankByMember.get(bankMember) : undefined;
+    if (bankMember && !bank) {
+      throw new BoardIrError(
+        'access tap',
+        [{ path: `devices.${tag}.set_bank`, message: `device "${tag}" selects bank "${bankMember}", which the board does not configure`, source: sourceRef(node.props) }],
+      );
+    }
+    taps.push({
+      cpu,
+      space: 'program',
+      device: tag,
+      // The installed tap forwards the access to the device's own decoder;
+      // MAME writes that entry point as `m_state->test(offset)`.
+      method: 'test',
+      start: start!,
+      end: end!,
+      mirror: mirror!,
+      ...(bank ? { bank } : {}),
+      ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
+    });
+  }
+  return taps;
+}
+
 function lowerMemoryBanks(
   graph: KnowledgeGraph,
   sourceRef: (props: Record<string, unknown>) => BoardSourceRef | undefined,
@@ -1025,6 +1115,9 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   HC55516: ['digit_w', 'clock_w'],
   POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
   OKIM6295: ['write', 'set_pin7'],
+  POKEY: ['write'],
+  TMS5220: ['data_w'],
+  TMS5220C: ['data_w'],
 };
 
 /**

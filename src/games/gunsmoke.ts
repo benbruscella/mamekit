@@ -50,9 +50,9 @@ export const gunsmoke: GameTestContract = {
     audio: {
       writes: 355126,
       nonzeroWrites: 193209,
-      writeHash: '7bc34749',
-      pcmHash: 'f6721b37',
-      rms: 0.085147,
+      writeHash: 'df645c60',
+      pcmHash: '4fb969ca',
+      rms: 0.084883,
     },
   },
 };

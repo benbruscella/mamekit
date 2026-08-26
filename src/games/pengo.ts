@@ -36,9 +36,9 @@ export const pengo: GameTestContract = {
     audio: {
       writes: 5758,
       nonzeroWrites: 4473,
-      writeHash: '5bd1757f',
-      pcmHash: 'a4eb450d',
-      rms: 0.113761,
+      writeHash: '289474b0',
+      pcmHash: '1f20f406',
+      rms: 0.112674,
     },
   },
 };

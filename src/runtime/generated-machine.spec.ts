@@ -93,6 +93,7 @@ check('lshift is applied', applyBoardTransforms(1, [{ kind: 'lshift', bits: 3 }]
 
 const states: number[] = [];
 const bindings: EffectBindings = {
+  perfectQuantum: () => undefined,
   cpuLine: () => undefined,
   deviceMethod: (tag, method) =>
     tag === 'screen' && method === 'flip_w' ? state => states.push(state * 10) : undefined,

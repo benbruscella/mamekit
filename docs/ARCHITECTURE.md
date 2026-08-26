@@ -208,6 +208,54 @@ interpreted, and it runs during generation. A callback it cannot resolve fails
 the build with its source line. Previously the same regexes ran in the browser,
 where an unrecognised name performed no operation and reported nothing.
 
+Not every devcb drives a wire. A driver may append a
+`scheduler().perfect_quantum(...)` request to a latch callback, asking for a
+finer interleave the moment the far side has work; that lowers to a
+`perfect-quantum` effect carrying the source duration rather than being
+discarded as unconnected.
+
+### SCHEDULING
+
+MAME runs every processor to `min(basetime + quantum, next timer expiry)` and
+executes timers only then, so what a processor does between two scheduled
+events is atomic as far as the others are concerned. A board's frame events
+are those timers, so the generated frame schedule hands over at their lines
+rather than at every scanline.
+
+Three things bound that interval. A board that schedules per-line work — a
+periodic event, a scanline-updated screen — keeps the per-line cadence. So
+does a board whose machine configuration calls `set_perfect_quantum`, which is
+MAME's way of saying its processors share state through a handshake nothing
+coarser survives. And every board is bounded by 250 microseconds, because
+MAME's own quantum is bounded by all of its device timers and the timers
+modelled here tick once per scanline: claiming a whole frame of atomicity
+would claim more than the model supports.
+
+That bound is squeezed from both sides. Too coarse and a fast processor runs
+thousands of cycles while the one it is handshaking with waits, which is how
+Gyruss lost half of its sound writes and Juno First a third — both boards
+where an 8 MHz i8039 feeds a DAC under a slower CPU's direction. Too fine and
+a driver's own `perfect_quantum` request stops meaning anything, since a boost
+cannot shorten an interval that is already the shortest one available. It is
+an empirical bound; the derived version is to lower the device timers MAME
+clamps its own timeslice against, which would make the cap redundant wherever
+a board schedules real work.
+
+`perfect_quantum` shortens the window for the duration the source asks for. It
+does not run another processor from inside the caller's instruction stream,
+which would let the far side answer before the caller has finished setting up
+for the answer.
+
+### ADDRESS-SPACE TAPS
+
+Some hardware is invisible to an address map. MAME's `install_readwrite_tap`
+lets a device watch every access on another device's space without answering
+any of them, which is how a protection chip decodes the *sequence* of
+addresses a CPU touches. The Atari slapstic is the example: the machine config
+hands it a window with `set_range` and a ROM bank with `set_bank`, and neither
+call appears in any map. `execution.accessTaps` carries that pair, and the
+board installs a bus tap that offers each access to the device's own decoder.
+
 ### VALIDATION
 
 `src/ir/validate.ts` cross-references the decoded board before it is written:
@@ -290,6 +338,16 @@ IR. Drivers that call `screen.update_partial` select partial raster composition,
 so mid-frame video RAM changes are rendered at the source-declared boundary
 rather than from a torn end-of-frame snapshot.
 
+A sprite engine shared across a hardware family is configured rather than
+written: `atari_motion_objects_device` is one implementation whose behavior on
+a given board comes entirely from the `atari_motion_objects_config` aggregate
+the driver declares — which gfx set, how the four words of a sprite-RAM entry
+are laid out, and which bits carry the link, code, colour, position, size and
+flips. `src/mame/atarimo-compiler.ts` reads the struct declaration for its
+field order and the driver's initializer for its values, derives each
+word/shift/mask exactly as `sprite_parameter::set` does, and emits a
+`video.motionObjects` plan the generic video runtime executes.
+
 A declarative plan is always preferred, because data is inspectable. Where a
 driver's palette callback computes its network in source rather than declaring
 one — Mr. Do! builds its own sixteen resistor weights from parallel resistances,
@@ -324,6 +382,31 @@ IR records that boundary instead of hiding it in a checked-in game sound class.
 A family's post-mix master gain is declared by its capability package and
 written into the generated config, so the shell applies whatever the family
 states rather than holding a table keyed by sound kind.
+
+A board is rarely one chip. The chip that decides `sound.kind` owns the
+worklet; every other chip routed to the same speaker is lowered as an entry in
+`sound.auxiliaryDevices`, carrying its tag, clock and the gain its own
+`add_route` gave it, and is hosted inside that worklet. Gauntlet is the widest
+case: a YM2151 for music, a POKEY for effects and a TMS5220C for speech, all
+three answering one two-input speaker.
+
+Where a chip's engine runs is decided by what reads it back, not by what it
+sounds like. A chip the CPU only writes to belongs in the worklet, and POKEY
+is emitted that way — `src/mame/pokey-compiler.ts` reads its register map,
+prescaler divisors, polynomial taps and output gain out of `pokey.cpp` and
+emits an engine that runs MAME's `step_one_clock` once per chip clock.
+
+A chip whose pins are wired back into a port the CPU polls cannot be, and the
+TMS5220 is the case that forces the distinction. Its `/READY` pin feeds a port
+bit the sound CPU tests before every byte it writes; ready depends on the FIFO
+level, the FIFO level depends on how fast the frame parser consumes bits, and
+the parser is the synthesiser. Splitting that across a worklet boundary means
+keeping the chip's state twice, so the whole engine is emitted as a main-thread
+device instead: a generated device IR whose methods are backed by compiled
+JavaScript, loaded by the board exactly like any other generated device. Only
+the PCM it produces crosses to the audio sink, forwarded a sample at a time
+and resampled by the worklet against the chip's live clock — live because
+Gauntlet's speech-squeak line retunes the chip while it is talking.
 
 ### DSL ARTIFACTS
 

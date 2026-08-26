@@ -574,6 +574,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     // .bankr(m_mainbank) -> "bank.mainbank" (the board owns bank switching)
     if (r.props.bankRead) spec.read = `bank.${r.props.bankRead}`;
     if (r.props.bankWrite) spec.write = `bank.${r.props.bankWrite}`;
+    if (r.props.bankRead || r.props.bankWrite) {
+      spec.bank = String(r.props.bankRead ?? r.props.bankWrite);
+    }
     // MAME embeds the MOS6532's RAM and register maps with `.m(...)`. Preserve
     // those source-declared submaps as executable device handlers instead of
     // collapsing them to NOP ranges. Composite-device tags inherit their
@@ -1426,6 +1429,14 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           });
           continue;
         }
+        // Any other device output line read straight into a port bit. Gauntlet
+        // publishes both sound-latch pending flags this way, and the main
+        // board refuses to send a command while its own is still full — so a
+        // bit that silently reads as nothing is not a cosmetic gap.
+        const anyDeviceLine = mods
+          .map(modifier =>
+            /PORT_READ_LINE_DEVICE_MEMBER\s*\(\s*"([^"]+)"\s*,\s*FUNC\s*\(\s*\w+::(\w+)\s*\)/.exec(modifier))
+          .find((match): match is RegExpExecArray => Boolean(match));
         const rtcLine = mods
           .map(modifier => /PORT_READ_LINE_DEVICE_MEMBER\s*\(\s*"([^"]+)"\s*,\s*FUNC\s*\(\s*upd1990a_device::(tp_r|data_out_r)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
@@ -1435,6 +1446,17 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             mask,
             member: rtcLine[2]!,
             source: rtcLine[2] === 'tp_r' ? 'rtc-tp' : 'rtc-data',
+            activeLow,
+          });
+          continue;
+        }
+        if (type === 'IPT_CUSTOM' && anyDeviceLine) {
+          customs.push({
+            port: tag,
+            mask,
+            member: anyDeviceLine[2]!,
+            source: 'device-line',
+            deviceTag: anyDeviceLine[1]!,
             activeLow,
           });
           continue;

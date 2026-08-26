@@ -5,6 +5,7 @@ import {
   inferredMemberIndexRank,
   lowerAudioRoutes,
   lowerAuxiliaryAudioDevices,
+  lowerAccessTaps,
   lowerGeneratedMachine,
   resolveInputPortTag,
 } from './emit-machine.ts';
@@ -448,4 +449,53 @@ if (inferredMemberIndexRank([filterHandlers[1]!], 'm_filter') !== 2) {
   throw new Error('matrix MAME device arrays must retain two-dimensional filter layout');
 }
 
-console.log('emit-machine.spec: callbacks, provenance, IR and filter rank passed');
+// MAME devices that watch an address space configure themselves with
+// set_range/set_bank in the machine config and install their tap inside their
+// own device_start. Neither call leaves a trace in an address map, so without
+// lowering them the device sees nothing: the Atari slapstic decodes only the
+// sequence of addresses the 68000 touches, and its bank never moves.
+const tapDevice = {
+  id: 'device:state.base/slapstic',
+  label: 'Device' as const,
+  props: {
+    type: 'SLAPSTIC',
+    tag: 'slapstic',
+    clock: 104,
+    config: [
+      'SLAPSTIC(config, m_slapstic, 104)',
+      'm_slapstic->set_range(m_maincpu, AS_PROGRAM, 0x38000, 0x3ffff, 0x280000)',
+      'm_slapstic->set_bank(m_slapstic_bank)',
+    ],
+    sourceFile: 'src/mame/atari/gauntlet.cpp',
+    sourceLine: 821,
+  },
+};
+const tapGraph = { nodes: [tapDevice], edges: [], meta: {} } as never;
+const tapDevices = [
+  { id: 'device:state.base/maincpu', tag: 'maincpu', type: 'M68010', member: 'm_maincpu' },
+  { id: tapDevice.id, tag: 'slapstic', type: 'SLAPSTIC', member: 'm_slapstic' },
+];
+const tapBanks = [{ tag: 'slapstic_bank', member: 'm_slapstic_bank', entryOffsets: [0] }];
+const taps = lowerAccessTaps(tapGraph, tapDevices, tapBanks, () => undefined);
+if (JSON.stringify(taps) !== JSON.stringify([{
+  cpu: 'maincpu',
+  space: 'program',
+  device: 'slapstic',
+  method: 'test',
+  start: 0x38000,
+  end: 0x3ffff,
+  mirror: 0x280000,
+  bank: 'slapstic_bank',
+}])) {
+  throw new Error(`set_range/set_bank must lower to an access tap: ${JSON.stringify(taps)}`);
+}
+if (lowerAccessTaps(
+  { nodes: [{ ...tapDevice, props: { ...tapDevice.props, config: ['SLAPSTIC(config, m_x, 104)'] } }], edges: [], meta: {} } as never,
+  tapDevices,
+  tapBanks,
+  () => undefined,
+).length !== 0) {
+  throw new Error('a device with no set_range must not claim an address-space tap');
+}
+
+console.log('emit-machine.spec: callbacks, provenance, IR, filter rank and access taps passed');

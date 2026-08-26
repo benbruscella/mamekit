@@ -194,12 +194,11 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
     })),
   });
   runner.frame(new Uint32Array(1));
-  // 600 Hz across three lines at 10 Hz is 20 cycles per processor per line.
   // 60 kHz across three lines at 10 Hz is 2000 cycles per processor per line;
-  // the 1 ms boost is 60 of them.
+  // the 250 us boost is 15 of them.
   assert.deepEqual(
     order,
-    ['maincpu:2000', 'sound:60', 'sound:1940', 'maincpu:2000', 'sound:2000',
+    ['maincpu:2000', 'sound:15', 'sound:1985', 'maincpu:2000', 'sound:2000',
       'maincpu:2000', 'sound:2000'],
     'the other processor runs at once and repays the borrowed cycles in its own slice',
   );
@@ -207,4 +206,104 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   assert.equal(ran.sound, 6000, 'a boost moves when a processor runs, never how much');
 }
 
-console.log('generated-frame.spec: 15 passed');
+// The quantum is the interval between scheduled events, as MAME's is the
+// interval between timers. A board with a scanline timer every two lines hands
+// over on those lines and nowhere else, so what a processor does between them
+// is atomic as far as the others are concerned — which is what stops a reader
+// from seeing each write of a burst separately (gauntlet, issue #88).
+{
+  const scanTimer: BoardIr = {
+    ...machine,
+    callbacks: [{
+      id: 'callback:scan',
+      ownerTag: 'scantimer',
+      signal: 'configure_scanline',
+      operation: 'configure_scanline',
+    }],
+    execution: {
+      ...machine.execution,
+      cpus: [
+        { tag: 'maincpu', type: 'z80', clock: 60_000, region: 'maincpu' },
+        { tag: 'sound', type: 'z80', clock: 60_000, region: 'sound' },
+      ],
+      screen: { width: 1, height: 1, refresh: 10, vtotal: 6, vbstart: 5, rotate: 0 },
+      frameEvents: [0, 2, 4].map(line => ({
+        callbackId: 'callback:scan',
+        ownerTag: 'scantimer',
+        signal: 'configure_scanline',
+        line,
+        state: line,
+      })),
+    },
+  };
+  const order: string[] = [];
+  const runner = new GeneratedFrameRunner({
+    machine: scanTimer,
+    processors: ['maincpu', 'sound'].map(tag => ({
+      tag,
+      run: (budget: number) => { order.push(`${tag}:${budget}`); return budget; },
+    })),
+  });
+  runner.frame(new Uint32Array(1));
+  // 60 kHz over six lines at 10 Hz is 1000 cycles per line. Events sit on
+  // lines 0, 2 and 4, vbstart on 5, and the last line always closes the frame.
+  assert.deepEqual(order, [
+    'maincpu:1000', 'sound:1000',   // line 0: its own event line
+    'maincpu:1000', 'sound:1000',   // line 2: backlog of line 1
+    'maincpu:1000', 'sound:1000',   // line 2 itself
+    'maincpu:1000', 'sound:1000',   // line 4: backlog of line 3
+    'maincpu:1000', 'sound:1000',   // line 4 itself
+    'maincpu:1000', 'sound:1000',   // line 5: vbstart and last line
+  ], 'processors hand over at scheduled events, not at every scanline');
+  assert.equal(
+    order.filter(entry => entry.startsWith('maincpu')).length,
+    6,
+    'six hand-overs across six lines, all of them at a boundary',
+  );
+}
+
+// A perfect_quantum window drops back to the per-line schedule for as long as
+// the source asks for, without running anyone from inside the caller's slice.
+{
+  // Real screen timing, so the source's own microsecond window is meaningful:
+  // 60 Hz over 264 lines is 63 us a line, and MAME's usual request is 100 us.
+  const idle: BoardIr = {
+    ...machine,
+    callbacks: [],
+    execution: {
+      ...machine.execution,
+      cpus: [{ tag: 'maincpu', type: 'z80', clock: 1_584_000, region: 'maincpu' }],
+      screen: { width: 1, height: 1, refresh: 60, vtotal: 264, vbstart: 240, rotate: 0 },
+      frameEvents: [],
+    },
+  };
+  const slices: number[] = [];
+  const runner = new GeneratedFrameRunner({
+    machine: idle,
+    processors: [{ tag: 'maincpu', run: (budget: number) => { slices.push(budget); return budget; } }],
+  });
+  runner.frame(new Uint32Array(1));
+  // 1,584,000 Hz over 264 lines at 60 Hz is 100 cycles a line, and a line is
+  // 63 us, so the 250 us bound is three of them. This board schedules nothing
+  // before vbstart, so that bound is what it runs on.
+  assert.deepEqual(
+    slices.slice(0, 4),
+    [300, 300, 300, 300],
+    'an unscheduled board still hands over at the quantum bound',
+  );
+  assert.equal(
+    slices.reduce((total, slice) => total + slice, 0),
+    26_400,
+    'the frame is worth the same cycles however it is divided',
+  );
+  slices.length = 0;
+  runner.quantumWindow(0.0001);
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(
+    slices.slice(0, 3),
+    [100, 100, 300],
+    'the window interleaves per line for as long as it lasts, then reopens',
+  );
+}
+
+console.log('generated-frame.spec: 17 passed');

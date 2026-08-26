@@ -12,6 +12,8 @@ export type EffectExecutor = (value: number, ...sourceArgs: number[]) => number 
 
 export interface EffectBindings {
   cpuLine(tag: string, line: CpuLine, delivery: CpuLineDelivery): EffectExecutor | undefined;
+  /** MAME scheduler::perfect_quantum requested by an appended devcb. */
+  perfectQuantum(seconds: number): EffectExecutor | undefined;
   deviceMethod(tag: string, method: string, ownerClass?: string): EffectExecutor | undefined;
   handler(key: string, deviceTag?: string): EffectExecutor | undefined;
   portRead(port: string): EffectExecutor | undefined;
@@ -46,6 +48,7 @@ function executorFor(effect: BoardEffect, bindings: EffectBindings): EffectExecu
     case 'video-control': return bindings.videoControl(effect.control);
     case 'audio-control': return bindings.audioControl(effect.tag, effect.control, effect.offset);
     case 'audio-write': return bindings.audioWrite(effect.tag, effect.method);
+    case 'perfect-quantum': return bindings.perfectQuantum(effect.seconds);
   }
 }
 

@@ -33,9 +33,9 @@ export const pacman: GameTestContract = {
     audio: {
       writes: 5831,
       nonzeroWrites: 2375,
-      writeHash: '2553b996',
-      pcmHash: '029b50e1',
-      rms: 0.1691,
+      writeHash: '56f27f1f',
+      pcmHash: 'a64d8fb6',
+      rms: 0.170261,
     },
   },
 };

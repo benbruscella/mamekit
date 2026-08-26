@@ -47,9 +47,9 @@ export const bankp: GameTestContract = {
     audio: {
       writes: 1299,
       nonzeroWrites: 1219,
-      writeHash: '78e64797',
-      pcmHash: '3d566050',
-      rms: 0.082484,
+      writeHash: '9fc6f0b1',
+      pcmHash: 'd4b089dc',
+      rms: 0.082498,
     },
   },
 };

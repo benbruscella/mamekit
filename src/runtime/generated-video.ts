@@ -1,6 +1,6 @@
 import type { VideoRenderer } from './types.ts';
 import type { Regions, VideoRenderer as Renderer } from './types.ts';
-import type { BoardIr, GeneratedGfxEntry, GeneratedHandler, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
+import type { BoardIr, GeneratedGfxEntry, GeneratedHandler, GeneratedMotionObjectsPlan, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
 import {
   executeGeneratedCallbackHandler,
   executeGeneratedMachineProgram,
@@ -1112,6 +1112,194 @@ class GeneratedTnx1Palette implements GeneratedPaletteDevice {
   }
 }
 
+/**
+ * MAME `atari_motion_objects_device`.
+ *
+ * The device is one sprite engine every Atari raster board shares; what makes
+ * it a particular board's hardware is the configuration the driver declares,
+ * which `src/mame/atarimo-compiler.ts` lowers into the plan this executes.
+ * Objects render into the device's own indexed bitmap, cleared to 0xffff, and
+ * the driver's screen update merges that bitmap over its playfield — which is
+ * why nothing here composes with the screen itself.
+ */
+class GeneratedMotionObjects {
+  readonly bitmap: GeneratedIndexedBitmap;
+  private readonly plan: GeneratedMotionObjectsPlan;
+  private readonly gfx: GeneratedGfxElement;
+  private readonly spriteRam: () => ArrayLike<number> | undefined;
+  private readonly slipRam: () => ArrayLike<number> | undefined;
+  private readonly activeList: number[] = [];
+  private readonly visited: Uint8Array;
+  /** compute_log of the gfx tile size, as device_start derives it. */
+  private readonly tileXShift: number;
+  private readonly tileYShift: number;
+  private nextXpos = 123456;
+  private lastXpos = 0;
+  bank = 0;
+  xscroll = 0;
+  yscroll = 0;
+
+  constructor(
+    plan: GeneratedMotionObjectsPlan,
+    gfx: GeneratedGfxElement,
+    spriteRam: () => ArrayLike<number> | undefined,
+    slipRam: () => ArrayLike<number> | undefined,
+    width: number,
+    height: number,
+  ) {
+    this.plan = plan;
+    this.gfx = gfx;
+    this.spriteRam = spriteRam;
+    this.slipRam = slipRam;
+    this.visited = new Uint8Array(Math.max(1, plan.entryCount));
+    this.tileXShift = Math.round(Math.log2(Math.max(1, gfx.decoded.width)));
+    this.tileYShift = Math.round(Math.log2(Math.max(1, gfx.decoded.height)));
+    this.bitmap = new GeneratedIndexedBitmap(width, height);
+  }
+
+  /** MAME `sprite_device::draw_async`: clear to "no pixel", then render. */
+  draw_async(clip: GeneratedRectangle): void {
+    this.bitmap.fill(0xffff, clip);
+    this.draw(clip);
+  }
+
+  private extract(parameter: { word: number; shift: number; mask: number }, at: number): number {
+    return (this.activeList[at + parameter.word]! >>> parameter.shift) & parameter.mask;
+  }
+
+  /** MAME `atari_motion_objects_device::draw`. */
+  private draw(clip: GeneratedRectangle): void {
+    const plan = this.plan;
+    const mask = plan.bitmapHeight - 1;
+    let startBand = ((clip.min_y + this.yscroll - plan.slipOffset) & mask) >> plan.slipShift;
+    let stopBand = ((clip.max_y + this.yscroll - plan.slipOffset) & mask) >> plan.slipShift;
+    if (startBand > stopBand) startBand -= plan.bitmapHeight >> plan.slipShift;
+    if (plan.slipShift === 0) stopBand = startBand;
+    const slip = this.slipRam();
+    for (let band = startBand; band <= stopBand; band++) {
+      let bandMinY = clip.min_y;
+      let bandMaxY = clip.max_y;
+      let link = 0;
+      if (plan.slipShift !== 0) {
+        const slipCount = Math.max(1, plan.bitmapHeight >> plan.slipShift);
+        const entry = slip?.[band & (slipCount - 1)] ?? 0;
+        link = (entry >>> plan.link.shift) & plan.link.mask;
+        let minY = ((band << plan.slipShift) - this.yscroll + plan.slipOffset) & mask;
+        if (minY >= this.bitmap.height) minY -= plan.bitmapHeight;
+        bandMinY = Math.max(clip.min_y, minY);
+        bandMaxY = Math.min(clip.max_y, minY + (1 << plan.slipShift) - 1);
+        if (bandMinY > bandMaxY) continue;
+      }
+      this.buildActiveList(link);
+      this.nextXpos = 123456;
+      if (!this.activeList.length) continue;
+      const bandClip = new GeneratedRectangle(clip.min_x, clip.max_x, bandMinY, bandMaxY);
+      const last = this.activeList.length - 4;
+      if (plan.reverse) {
+        for (let at = last; at >= 0; at -= 4) this.renderObject(bandClip, at);
+      } else {
+        for (let at = 0; at <= last; at += 4) this.renderObject(bandClip, at);
+      }
+    }
+  }
+
+  /** MAME `atari_motion_objects_device::build_active_list`. */
+  private buildActiveList(start: number): void {
+    const plan = this.plan;
+    const sprites = this.spriteRam();
+    this.activeList.length = 0;
+    if (!sprites) return;
+    this.visited.fill(0, 0, plan.entryCount);
+    const bankBase = this.bank << (plan.entryBits + 2);
+    let link = start;
+    for (let visits = 0; visits < plan.maxPerLine && !this.visited[link]; visits++) {
+      const at = this.activeList.length;
+      if (plan.split) {
+        for (let word = 0; word < 4; word++) {
+          this.activeList.push(sprites[bankBase + link + (word << plan.entryBits)] ?? 0);
+        }
+      } else {
+        for (let word = 0; word < 4; word++) {
+          this.activeList.push(sprites[bankBase + link * 4 + word] ?? 0);
+        }
+      }
+      this.visited[link] = 1;
+      link = plan.linked
+        ? this.extract(plan.link, at)
+        : (link + 1) & plan.link.mask;
+    }
+  }
+
+  /** MAME `atari_motion_objects_device::render_object`. */
+  private renderObject(clip: GeneratedRectangle, at: number): void {
+    const plan = this.plan;
+    const rawcode = this.extract(plan.code, at);
+    let code = plan.codeXor === undefined ? rawcode : rawcode ^ plan.codeXor;
+    const colorIndex = this.extract(plan.color, at);
+    let xpos = this.extract(plan.xpos, at);
+    let ypos = -this.extract(plan.ypos, at);
+    const hflip = this.extract(plan.hflip, at);
+    const vflip = this.extract(plan.vflip, at);
+    const width = this.extract(plan.width, at) + 1;
+    const height = this.extract(plan.height, at) + 1;
+    const priority = this.extract(plan.priority, at);
+    const tileWidth = this.gfx.decoded.width;
+    const tileHeight = this.gfx.decoded.height;
+    const tileXShift = this.tileXShift;
+    const tileYShift = this.tileYShift;
+    const penBase =
+      ((colorIndex * this.gfx.granularity()) | (priority << 12)) + plan.paletteBase;
+
+    if (!this.extract(plan.absolute, at)) {
+      xpos -= this.xscroll;
+      ypos -= this.yscroll;
+    }
+    ypos -= height << tileYShift;
+    if (this.nextXpos !== 123456) xpos = this.nextXpos;
+    this.nextXpos = 123456;
+    if (this.extract(plan.neighbor, at) !== 0) {
+      if (!plan.nextNeighbor) xpos = this.lastXpos + tileWidth;
+      else this.nextXpos = xpos + tileWidth;
+    }
+    this.lastXpos = xpos;
+
+    xpos &= plan.bitmapWidth - 1;
+    ypos &= plan.bitmapHeight - 1;
+    if (xpos >= this.bitmap.width) xpos -= plan.bitmapWidth;
+    if (ypos >= this.bitmap.height) ypos -= plan.bitmapHeight;
+    if (plan.special.mask !== 0 && this.extract(plan.special, at) === plan.specialValue) return;
+
+    let xadv = tileWidth;
+    if (hflip) { xpos += (width - 1) << tileXShift; xadv = -xadv; }
+    let yadv = tileHeight;
+    if (vflip) { ypos += (height - 1) << tileYShift; yadv = -yadv; }
+
+    if (!plan.swapXy) {
+      for (let y = 0, sy = ypos; y < height; y++, sy += yadv) {
+        if (sy <= clip.min_y - tileHeight) { code += width; continue; }
+        if (sy > clip.max_y) break;
+        for (let x = 0, sx = xpos; x < width; x++, sx += xadv, code++) {
+          if (sx <= -clip.min_x - tileWidth || sx > clip.max_x) continue;
+          this.gfx.transpen_raw(
+            this.bitmap, clip, code, penBase, hflip, vflip, sx, sy, plan.transparentPen,
+          );
+        }
+      }
+      return;
+    }
+    for (let x = 0, sx = xpos; x < width; x++, sx += xadv) {
+      if (sx <= clip.min_x - tileWidth) { code += height; continue; }
+      if (sx > clip.max_x) break;
+      for (let y = 0, sy = ypos; y < height; y++, sy += yadv, code++) {
+        if (sy <= -clip.min_y - tileHeight || sy > clip.max_y) continue;
+        this.gfx.transpen_raw(
+          this.bitmap, clip, code, penBase, hflip, vflip, sx, sy, plan.transparentPen,
+        );
+      }
+    }
+  }
+}
+
 export class GeneratedGfxElement {
   readonly entry: GeneratedGfxEntry;
   readonly decoded: GfxSet;
@@ -1229,6 +1417,40 @@ export class GeneratedGfxElement {
     sy: number,
   ): void {
     this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, 0);
+  }
+
+  /**
+   * MAME `gfx_element::transpen_raw`: `color` is already the absolute pen
+   * base, not a colour index to be scaled by the granularity. Sprite engines
+   * that fold a priority or a palette base into the value draw this way.
+   */
+  transpen_raw(
+    bitmap: BitmapTarget,
+    clip: GeneratedRectangle,
+    code: number,
+    penBase: number,
+    flipX: number,
+    flipY: number,
+    sx: number,
+    sy: number,
+    transparentPen: number,
+  ): void {
+    const gfx = this.decoded;
+    const element = modulo(code, gfx.count);
+    const base = element * gfx.width * gfx.height;
+    for (let py = 0; py < gfx.height; py++) {
+      const y = sy + py;
+      if (y < clip.min_y || y > clip.max_y) continue;
+      const sourceY = flipY ? gfx.height - 1 - py : py;
+      for (let px = 0; px < gfx.width; px++) {
+        const x = sx + px;
+        if (x < clip.min_x || x > clip.max_x) continue;
+        const sourceX = flipX ? gfx.width - 1 - px : px;
+        const pen = gfx.pixels[base + sourceY * gfx.width + sourceX]!;
+        if (pen === transparentPen) continue;
+        bitmap['pix='](y, x, penBase + pen);
+      }
+    }
   }
 
   indirectMask(color: number, transparent: number): number {
@@ -2246,6 +2468,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   readonly height: number;
   private readonly machine: BoardIr;
   private readonly state: Record<string, unknown>;
+  private readonly motionObjects?: GeneratedMotionObjects;
   private readonly gfx: GeneratedGfxElement[];
   private readonly palette?: GeneratedPaletteDevice;
   private readonly palettes = new Map<string, GeneratedPaletteDevice>();
@@ -2388,6 +2611,22 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       }
       return gfx;
     });
+    const motionObjectsPlan = machine.video?.motionObjects;
+    const motionObjectsGfx = motionObjectsPlan && this.gfx[motionObjectsPlan.gfxIndex];
+    if (motionObjectsPlan && motionObjectsGfx) {
+      const share = (name?: string) => (): ArrayLike<number> | undefined => {
+        const bytes = name === undefined ? undefined : state[`m_${name}`];
+        return ArrayBuffer.isView(bytes) ? bytes as unknown as ArrayLike<number> : undefined;
+      };
+      this.motionObjects = new GeneratedMotionObjects(
+        motionObjectsPlan,
+        motionObjectsGfx,
+        share(motionObjectsPlan.spriteShare),
+        share(motionObjectsPlan.slipShare),
+        this.width,
+        this.height,
+      );
+    }
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {
       ...bindings.referenceCalls,
       'std::make_unique': (...args) => new GeneratedIndexedBitmap(
@@ -3155,23 +3394,68 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         !ArrayBuffer.isView(playfield) || !ArrayBuffer.isView(alpha) ||
         !playfieldGfx || !alphaGfx
       ) return false;
-      const pf = playfield as unknown as Uint8Array;
-      const al = alpha as unknown as Uint8Array;
-      const word = (bytes: Uint8Array, index: number) =>
-        (bytes[index * 2] ?? 0) | ((bytes[index * 2 + 1] ?? 0) << 8);
+      // A share mapped by a 16-bit CPU is bound as a Uint16Array, so the word
+      // is the element; an 8-bit board hands over the raw bytes. Indexing the
+      // wrong one reads every other tile of the map.
+      const wordReader = (view: ArrayBufferView): ((index: number) => number) => {
+        const words = view as unknown as { BYTES_PER_ELEMENT?: number } & ArrayLike<number>;
+        return words.BYTES_PER_ELEMENT === 2
+          ? index => words[index] ?? 0
+          : index => (words[index * 2] ?? 0) | ((words[index * 2 + 1] ?? 0) << 8);
+      };
+      const pfWord = wordReader(playfield);
+      const alWord = wordReader(alpha);
       bitmap.fill(0);
       const tileBank = Number(this.state.m_playfield_tile_bank ?? 0) & 3;
       const colorBank = Number(this.state.m_playfield_color_bank ?? 1) & 1;
+      // xscroll_w/yscroll_w hand these to tilemap_device::set_scrollx and
+      // set_scrolly; the playfield is a 64x64 map of 8x8 tiles, so both wrap
+      // at 512 pixels and the visible window is always one wrapped copy.
+      const xscrollRam = this.state.m_xscroll;
+      const yscrollRam = this.state.m_yscroll;
+      const scrollX = ArrayBuffer.isView(xscrollRam)
+        ? wordReader(xscrollRam)(0) & 0x1ff
+        : 0;
+      const scrollY = ArrayBuffer.isView(yscrollRam)
+        ? (wordReader(yscrollRam)(0) >>> 7) & 0x1ff
+        : 0;
+      const wrap = (value: number, limit: number): number => {
+        const wrapped = ((value % 512) + 512) % 512;
+        return wrapped > limit ? wrapped - 512 : wrapped;
+      };
       for (let column = 0; column < 64; column++) {
-        const x = column * 8;
-        if (x > cliprect.max_x) break;
+        const x = wrap(column * 8 - scrollX, cliprect.max_x);
+        if (x <= -8) continue;
         for (let row = 0; row < 64; row++) {
-          const y = row * 8;
-          if (y > cliprect.max_y) break;
-          const data = word(pf, column * 64 + row);
+          const y = wrap(row * 8 - scrollY, cliprect.max_y);
+          if (y <= -8) continue;
+          const data = pfWord(column * 64 + row);
           const code = ((tileBank * 0x1000) + (data & 0x0fff)) ^ 0x0800;
           const color = 0x10 + colorBank * 8 + ((data >>> 12) & 7);
           playfieldGfx.opaque(bitmap, cliprect, code, color, data & 0x8000, 0, x, y);
+        }
+      }
+      // The motion objects render into the device's own bitmap and the
+      // driver merges them: an MO pen of 1 clears playfield colour bit 0x80
+      // (verified against the schematics in gauntlet.cpp), any other pen
+      // replaces the playfield pixel outright.
+      const mob = this.motionObjects;
+      if (mob) {
+        mob.xscroll = scrollX;
+        mob.yscroll = scrollY;
+        mob.draw_async(cliprect);
+        const mo = mob.bitmap.pixels;
+        const width = mob.bitmap.width;
+        for (let y = Math.max(0, cliprect.min_y); y <= cliprect.max_y; y++) {
+          for (let x = Math.max(0, cliprect.min_x); x <= cliprect.max_x; x++) {
+            const pen = mo[y * width + x]!;
+            if (pen === 0xffff) continue;
+            if ((pen & 0x0f) === 1) {
+              bitmap['pix='](y, x, (bitmap.pix?.(y, x) ?? 0) ^ 0x80);
+            } else {
+              bitmap['pix='](y, x, pen);
+            }
+          }
         }
       }
       for (let row = 0; row < 31; row++) {
@@ -3180,7 +3464,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         for (let column = 0; column < 64; column++) {
           const x = column * 8;
           if (x > cliprect.max_x) break;
-          const data = word(al, row * 64 + column);
+          const data = alWord(row * 64 + column);
           const code = data & 0x03ff;
           const color = ((data >>> 10) & 0x0f) | ((data >>> 9) & 0x20);
           if (data & 0x8000) {

@@ -27,9 +27,9 @@ export const popeye = sourceTarget({
     audio: {
       writes: 2539,
       nonzeroWrites: 1856,
-      writeHash: '6aa63e43',
-      pcmHash: '40a92f49',
-      rms: 0.087813,
+      writeHash: 'cccee114',
+      pcmHash: '241a7d8e',
+      rms: 0.087796,
     },
   },
 });

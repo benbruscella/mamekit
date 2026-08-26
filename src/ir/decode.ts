@@ -147,7 +147,7 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
     reader.string(callback.signal, `${path}.signal`, source);
     reader.string(callback.operation, `${path}.operation`, source);
     reader.optionalNumber(callback.slot, `${path}.slot`, source);
-    for (const field of ['periodHz', 'scanlineStart', 'scanlineIncrement']) {
+    for (const field of ['periodHz', 'scanlineStart', 'scanlineIncrement', 'quantumSeconds']) {
       reader.optionalNumber(callback[field], `${path}.${field}`, source);
     }
     for (const field of ['targetTag', 'targetClass', 'targetMethod', 'targetPort', 'inputLine']) {
@@ -177,7 +177,7 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
 
 const EFFECT_KINDS = new Set([
   'cpu-line', 'device-method', 'handler', 'port-read',
-  'video-control', 'audio-control', 'audio-write', 'unconnected',
+  'video-control', 'audio-control', 'audio-write', 'perfect-quantum', 'unconnected',
 ]);
 const CPU_LINES = new Set([
   'irq', 'irq1', 'irq2', 'irq3', 'irq4', 'irq5', 'irq6', 'irq7',
@@ -230,6 +230,8 @@ function decodeConnections(reader: Reader, value: unknown): void {
       reader.string(effect.tag, `${path}.effect.tag`, source);
       reader.string(effect.control, `${path}.effect.control`, source);
       reader.optionalNumber(effect.offset, `${path}.effect.offset`, source);
+    } else if (kind === 'perfect-quantum') {
+      reader.number(effect.seconds, `${path}.effect.seconds`, source);
     }
 
     for (const [position, raw] of reader.array(
@@ -387,6 +389,23 @@ function decodeExecution(reader: Reader, value: unknown): void {
     reader.optionalNumber(event.frequency, `${path}.frequency`, source);
   }
 
+  if (execution.accessTaps !== undefined) {
+    for (const [index, entry] of reader.array(
+      execution.accessTaps, 'execution.accessTaps').entries()) {
+      const path = `execution.accessTaps[${index}]`;
+      const tap = reader.object(entry, path);
+      const source = sourceOf(tap);
+      reader.string(tap.cpu, `${path}.cpu`, source);
+      reader.string(tap.space, `${path}.space`, source);
+      reader.string(tap.device, `${path}.device`, source);
+      reader.string(tap.method, `${path}.method`, source);
+      reader.number(tap.start, `${path}.start`, source);
+      reader.number(tap.end, `${path}.end`, source);
+      reader.number(tap.mirror, `${path}.mirror`, source);
+      reader.optionalString(tap.bank, `${path}.bank`, source);
+    }
+  }
+
   if (execution.banks !== undefined) {
     for (const [index, entry] of reader.array(execution.banks, 'execution.banks').entries()) {
       const path = `execution.banks[${index}]`;
@@ -450,6 +469,7 @@ function decodeRanges(
     reader.optionalString(range.read, `${rangePath}.read`, source);
     reader.optionalString(range.write, `${rangePath}.write`, source);
     reader.optionalString(range.share, `${rangePath}.share`, source);
+    reader.optionalString(range.bank, `${rangePath}.bank`, source);
   }
 }
 

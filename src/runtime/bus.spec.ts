@@ -212,9 +212,74 @@ assert.equal(laneBus.read16be(0x061006), 0x8300, 'a word read places the byte on
 assert.equal(laneBus.read(0x070005), 0x82, 'low-lane devices answer on odd addresses');
 assert.equal(laneBus.read16be(0x070004), 0x0082);
 
+// MAME `.bankr()`: a bank window is byte-addressed storage even on a 16-bit
+// bus. Reading it through the native-16-bit handler adapter halves the offset,
+// which returns every other byte of the bank and nothing MAME would show
+// (Gauntlet's slapstic window, issue #88).
+const bankBytes = Uint8Array.from({ length: 16 }, (_value, index) => 0x40 + index);
+const bankReads: number[] = [];
+const bankWrites: Array<[number, number]> = [];
+const bankBus = new Bus([
+  {
+    start: 0x038000,
+    end: 0x039fff,
+    mirror: 0x286000,
+    kind: 'handler',
+    bank: 'slapstic_bank',
+    read: 'bank.slapstic_bank',
+    write: 'bank.slapstic_bank',
+  },
+], rom, {
+  read: {
+    'bank.slapstic_bank': (_address, offset) => {
+      bankReads.push(offset);
+      return bankBytes[offset & 0xf]!;
+    },
+  },
+  write: {
+    'bank.slapstic_bank': (_address, offset, data) => { bankWrites.push([offset, data]); },
+  },
+}, {}, 16);
+assert.equal(bankBus.read(0x038000), 0x40);
+assert.equal(bankBus.read(0x038001), 0x41);
+assert.equal(bankBus.read16be(0x038002), 0x4243, 'a word read is two consecutive bank bytes');
+assert.equal(
+  bankBus.read16be(0x2be004),
+  0x4445,
+  'the mirror image reads the same bank offset',
+);
+assert.deepEqual(
+  bankReads,
+  [0, 1, 2, 3, 4, 5],
+  'the bank handler is offset by byte, never by word',
+);
+bankBus.write16be(0x038006, 0x1234);
+assert.deepEqual(
+  bankWrites,
+  [[6, 0x12], [7, 0x34]],
+  'a word write splits big-endian across two bank bytes',
+);
+
 assert.throws(
   () => new Bus([{ start: 0, end: 0, kind: 'handler', read: 'missing' }], rom, { read: {}, write: {} }),
   /missing read handler/,
 );
 
-console.log('bus.spec: byte/word ROM, RAM, mirrors/selects, byte lanes, handlers and open bus passed');
+// MAME `install_readwrite_tap`: a device that watches the space sees one call
+// per access, at the access address, and a word access is one access.
+const tapped: number[] = [];
+const tapBus = new Bus([
+  { start: 0, end: 0xffff, kind: 'ram' },
+], rom, { read: {}, write: {} }, {}, 16);
+tapBus.installAccessTap(address => tapped.push(address));
+tapBus.read(0x1234);
+tapBus.read16be(0x2000);
+tapBus.write16be(0x2004, 0x1111);
+tapBus.read32be(0x3000);
+assert.deepEqual(
+  tapped,
+  [0x1234, 0x2000, 0x2004, 0x3000, 0x3002],
+  'byte and word accesses tap once; a long taps as the two word accesses it is',
+);
+
+console.log('bus.spec: byte/word ROM, RAM, mirrors/selects, byte lanes, banks, taps and open bus passed');

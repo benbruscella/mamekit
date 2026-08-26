@@ -315,4 +315,29 @@ check('an unmodelled transform blocks the connection', () => {
   assert.match(unresolved[0]!.reason, /devcb transform xor\(3\) has no lowering/);
 });
 
+// A devcb whose appended lambda only asks the scheduler for a finer
+// interleave targets no device at all. MAME writes it as
+// `.append([this](int state){ if (state) machine().scheduler().perfect_quantum(...); })`
+// on the latch that hands work to another processor.
+check('an appended perfect_quantum request lowers to a scheduler effect', () => {
+  const { connections, unresolved } = lowerConnections([callback({
+    operation: 'perfect_quantum',
+    quantumSeconds: 0.0001,
+    targetClass: undefined,
+    targetMethod: undefined,
+  })], context);
+  assert.deepEqual(unresolved, []);
+  assert.deepEqual(connections[0]!.effect, { kind: 'perfect-quantum', seconds: 0.0001 });
+});
+
+check('a perfect_quantum request with no duration does not lower', () => {
+  const { connections, unresolved } = lowerConnections([callback({
+    operation: 'perfect_quantum',
+    targetClass: undefined,
+    targetMethod: undefined,
+  })], context);
+  assert.deepEqual(connections, []);
+  assert.equal(unresolved.length, 1);
+});
+
 console.log(`lower-connections.spec: ${passed} passed, 0 failed`);
