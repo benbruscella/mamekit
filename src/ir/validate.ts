@@ -281,6 +281,17 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     );
   }
   for (const [index, custom] of (board.execution.customs ?? []).entries()) {
+    if (custom.source === 'device-line') {
+      // The bit is a device output line, so it resolves against the device
+      // list rather than the driver's own handlers.
+      if (custom.deviceTag && deviceTags.has(custom.deviceTag)) continue;
+      fail(
+        `execution.customs[${index}]`,
+        `custom input port "${custom.port}" reads device "${custom.deviceTag}", ` +
+        'which the board does not configure',
+      );
+      continue;
+    }
     if (custom.source === 'screen-vblank' || custom.source === 'rtc-tp' || custom.source === 'rtc-data') continue;
     const resolved = custom.handler
       ? handlerKeys.has(custom.handler)

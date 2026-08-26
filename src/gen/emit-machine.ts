@@ -341,6 +341,10 @@ export function lowerGeneratedMachine(
     ? selectedMachine.props.startHandlers.map(String)
     : [];
   const shareBindings = lowerShareBindings(graph);
+  // Any config in the selected machine's chain may declare it; MAME applies
+  // the request to the whole machine however deep it is set.
+  const perfectQuantumBoard = graph.nodes.some(node =>
+    node.label === 'MachineConfig' && node.props.perfectQuantum === true);
   const memoryBanks = graph.nodes.some(node => node.label === 'MemoryBank')
     ? lowerMemoryBanks(graph, sourceRef)
     : [];
@@ -388,6 +392,7 @@ export function lowerGeneratedMachine(
     ...(shareBindings.length ? { shareBindings } : {}),
     ...(startHandlers.length ? { startHandlers } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
+    ...(perfectQuantumBoard ? { perfectQuantum: true } : {}),
     ...(memoryBanks.length ? { banks: memoryBanks } : {}),
     ...(accessTaps.length ? { accessTaps } : {}),
     screen: {

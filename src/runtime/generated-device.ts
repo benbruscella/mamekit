@@ -737,10 +737,11 @@ class IrDevice implements Device {
         method.name === 'write'
       ) {
         // generic_latch_8_device defers the store with
-        // scheduler().synchronize(sync_callback, data) so both CPUs observe
-        // it at an execution boundary. Generated CPU method calls already are
-        // such a boundary; run the source callback immediately rather than
-        // dropping the opaque timer_expired_delegate expression.
+        // scheduler().synchronize(sync_callback, data) so the reading
+        // processor cannot observe each write of a burst separately. The
+        // quantum is what provides that here — it runs to the next scheduled
+        // event, as MAME's runs to the next timer — so the store itself is
+        // applied directly rather than dropping the timer_expired_delegate.
         return this.invoke('sync_callback', args[0] ?? 0);
       }
       const defaults = this.methodDefaults.get(method);

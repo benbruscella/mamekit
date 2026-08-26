@@ -214,6 +214,18 @@ finer interleave the moment the far side has work; that lowers to a
 `perfect-quantum` effect carrying the source duration rather than being
 discarded as unconnected.
 
+### SCHEDULING
+
+MAME runs every processor to `min(basetime + quantum, next timer expiry)` and
+executes timers only then, so what a processor does between two scheduled
+events is atomic as far as the others are concerned. A board's frame events
+are those timers, so the generated frame schedule hands over at their lines
+rather than at every scanline; a board that schedules per-line work keeps the
+per-line cadence. `perfect_quantum` shortens that window for the duration the
+source asks for — it does not run another processor from inside the caller's
+instruction stream, which would let the far side answer before the caller has
+finished setting up for the answer.
+
 ### ADDRESS-SPACE TAPS
 
 Some hardware is invisible to an address map. MAME's `install_readwrite_tap`

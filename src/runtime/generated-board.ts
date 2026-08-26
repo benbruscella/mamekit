@@ -636,6 +636,16 @@ class IrBoard implements Board {
             line = this.neoGeoRtcLine('tp');
           } else if (custom.source === 'rtc-data') {
             line = this.neoGeoRtcLine('data');
+          } else if (custom.source === 'device-line') {
+            const device = custom.deviceTag ? this.devices.get(custom.deviceTag) : undefined;
+            if (!device?.methodNames().includes(custom.member)) {
+              throw new Error(
+                `${machine.game}: port ${custom.port} reads ` +
+                `${custom.deviceTag}.${custom.member}, which is not a generated device line`,
+              );
+            }
+            const raw = Number(device.invoke(custom.member)) ? 1 : 0;
+            line = custom.activeLow ? Number(!raw) : raw;
           } else {
             if (custom.member === 'startsel_edge_joy_r') {
               line = inputs.read('edge:START') & 0x0f;
@@ -2780,6 +2790,22 @@ class IrBoard implements Board {
             value = (value & ~custom.mask) | ((line << shift) & custom.mask);
             continue;
           }
+          // PORT_READ_LINE_DEVICE_MEMBER: the bit is another device's output
+          // line, answered live rather than by a switch.
+          if (custom.source === 'device-line') {
+            const device = custom.deviceTag ? this.devices.get(custom.deviceTag) : undefined;
+            if (!device?.methodNames().includes(custom.member)) {
+              throw new Error(
+                `${machine.game}: port ${custom.port} reads ` +
+                `${custom.deviceTag}.${custom.member}, which is not a generated device line`,
+              );
+            }
+            const line = Number(device.invoke(custom.member)) ? 1 : 0;
+            const level = custom.activeLow ? Number(!line) : line;
+            const shift = trailingZeroBits(custom.mask);
+            value = (value & ~custom.mask) | ((level << shift) & custom.mask);
+            continue;
+          }
           const handler = machine.handlers?.find(candidate =>
             custom.handler
               ? `${candidate.ownerClass}.${candidate.method}` === custom.handler
@@ -3393,10 +3419,12 @@ class IrBoard implements Board {
   private effectBindings(sinks: BoardSinks, registry: HandlerRegistry): EffectBindings {
     return {
       // MAME scheduler::perfect_quantum, asked for by a devcb rather than by a
-      // handler: give every other processor real time the moment the latch is
-      // written, instead of at the next scanline boundary.
+      // handler. It shortens the quantum for the requested window; it does not
+      // run the other processor from inside the writing one's instruction
+      // stream, which would let it answer before the writer has finished
+      // setting up for the answer.
       perfectQuantum: (seconds: number) => state => {
-        if (state) this.perfectQuantum(seconds);
+        if (state) this.frameRunner?.quantumWindow(seconds);
       },
       cpuLine: (tag, line, delivery) => {
         // Validated against the IR, not the live map: a generated CPU can fire

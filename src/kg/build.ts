@@ -444,10 +444,16 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         )
       : ast.findFunctionInHierarchy(cfg.cls, 'video_start');
     const startHandlers = videoStart ? [`${videoStart.className}.${videoStart.name}`] : [];
+    // MAME `machine_config::set_perfect_quantum(device)`: this board is
+    // interleaved as finely as the scheduler can manage, for the whole run.
+    // Qix's three processors share RAM through a handshake that will not
+    // survive anything coarser.
+    const perfectQuantum = /\bset_perfect_quantum\s*\(/.test(cfg.raw);
     g.node('MachineConfig', cfgId, {
       cls: cfg.cls,
       name: cfg.name,
       calls: cfg.calls,
+      ...(perfectQuantum ? { perfectQuantum: true } : {}),
       ...(resetHandlers.length ? { resetHandlers } : {}),
       ...(startHandlers.length ? { startHandlers } : {}),
       ...(installedHandlers.length

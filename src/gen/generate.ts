@@ -1429,6 +1429,14 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           });
           continue;
         }
+        // Any other device output line read straight into a port bit. Gauntlet
+        // publishes both sound-latch pending flags this way, and the main
+        // board refuses to send a command while its own is still full — so a
+        // bit that silently reads as nothing is not a cosmetic gap.
+        const anyDeviceLine = mods
+          .map(modifier =>
+            /PORT_READ_LINE_DEVICE_MEMBER\s*\(\s*"([^"]+)"\s*,\s*FUNC\s*\(\s*\w+::(\w+)\s*\)/.exec(modifier))
+          .find((match): match is RegExpExecArray => Boolean(match));
         const rtcLine = mods
           .map(modifier => /PORT_READ_LINE_DEVICE_MEMBER\s*\(\s*"([^"]+)"\s*,\s*FUNC\s*\(\s*upd1990a_device::(tp_r|data_out_r)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
@@ -1438,6 +1446,17 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             mask,
             member: rtcLine[2]!,
             source: rtcLine[2] === 'tp_r' ? 'rtc-tp' : 'rtc-data',
+            activeLow,
+          });
+          continue;
+        }
+        if (type === 'IPT_CUSTOM' && anyDeviceLine) {
+          customs.push({
+            port: tag,
+            mask,
+            member: anyDeviceLine[2]!,
+            source: 'device-line',
+            deviceTag: anyDeviceLine[1]!,
             activeLow,
           });
           continue;

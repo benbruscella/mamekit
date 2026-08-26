@@ -75,7 +75,14 @@ export interface BoardConfig {
     mask: number;
     member: string;
     handler?: string;
-    source?: 'screen-vblank' | 'rtc-tp' | 'rtc-data';
+    source?: 'screen-vblank' | 'rtc-tp' | 'rtc-data' | 'device-line';
+    /**
+     * MAME `PORT_READ_LINE_DEVICE_MEMBER(tag, FUNC(class::method))`: the bit
+     * is an output line of another device rather than a switch. The device
+     * answers it live, so a board that reads its own latch status through an
+     * input port sees the real thing.
+     */
+    deviceTag?: string;
     activeLow?: boolean;
   }[];
   /**

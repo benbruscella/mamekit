@@ -374,12 +374,26 @@ export interface GeneratedExecutionPlan {
     source?: BoardSourceRef;
   }[];
   screen: GeneratedScreen;
+  /**
+   * MAME `machine_config::set_perfect_quantum`: interleave the processors as
+   * finely as the schedule can for the whole run, rather than between
+   * scheduled events. A board says this when its processors share state
+   * through a handshake nothing coarser survives.
+   */
+  perfectQuantum?: boolean;
   customs?: {
     port: string;
     mask: number;
     member: string;
     handler?: string;
-    source?: 'screen-vblank' | 'rtc-tp' | 'rtc-data';
+    source?: 'screen-vblank' | 'rtc-tp' | 'rtc-data' | 'device-line';
+    /**
+     * MAME `PORT_READ_LINE_DEVICE_MEMBER(tag, FUNC(class::method))`: the bit
+     * is an output line of another device rather than a switch. The device
+     * answers it live, so a board that reads its own latch status through an
+     * input port sees the real thing.
+     */
+    deviceTag?: string;
     activeLow?: boolean;
   }[];
   inputMembers?: { member: string; tags: string[] }[];
