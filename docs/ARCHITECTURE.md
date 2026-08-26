@@ -208,6 +208,22 @@ interpreted, and it runs during generation. A callback it cannot resolve fails
 the build with its source line. Previously the same regexes ran in the browser,
 where an unrecognised name performed no operation and reported nothing.
 
+Not every devcb drives a wire. A driver may append a
+`scheduler().perfect_quantum(...)` request to a latch callback, asking for a
+finer interleave the moment the far side has work; that lowers to a
+`perfect-quantum` effect carrying the source duration rather than being
+discarded as unconnected.
+
+### ADDRESS-SPACE TAPS
+
+Some hardware is invisible to an address map. MAME's `install_readwrite_tap`
+lets a device watch every access on another device's space without answering
+any of them, which is how a protection chip decodes the *sequence* of
+addresses a CPU touches. The Atari slapstic is the example: the machine config
+hands it a window with `set_range` and a ROM bank with `set_bank`, and neither
+call appears in any map. `execution.accessTaps` carries that pair, and the
+board installs a bus tap that offers each access to the device's own decoder.
+
 ### VALIDATION
 
 `src/ir/validate.ts` cross-references the decoded board before it is written:
@@ -289,6 +305,16 @@ memory. Tile categories, groups and `set_transmask` layer masks remain explicit
 IR. Drivers that call `screen.update_partial` select partial raster composition,
 so mid-frame video RAM changes are rendered at the source-declared boundary
 rather than from a torn end-of-frame snapshot.
+
+A sprite engine shared across a hardware family is configured rather than
+written: `atari_motion_objects_device` is one implementation whose behavior on
+a given board comes entirely from the `atari_motion_objects_config` aggregate
+the driver declares — which gfx set, how the four words of a sprite-RAM entry
+are laid out, and which bits carry the link, code, colour, position, size and
+flips. `src/mame/atarimo-compiler.ts` reads the struct declaration for its
+field order and the driver's initializer for its values, derives each
+word/shift/mask exactly as `sprite_parameter::set` does, and emits a
+`video.motionObjects` plan the generic video runtime executes.
 
 A declarative plan is always preferred, because data is inspectable. Where a
 driver's palette callback computes its network in source rather than declaring

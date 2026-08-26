@@ -223,6 +223,17 @@ class IrBoard implements Board {
   private readonly cpuReportedSuspended = new Map<string, boolean>();
   private readonly devices = new Map<string, Device>();
   private readonly generatedBanks: Record<string, GeneratedMemoryBank> = {};
+  /** MAME `memory_bank::set_entry` per board bank tag. */
+  private readonly bankEntry = new Map<string, (entry: number) => number>();
+  /**
+   * A device that powers on before its bank exists.
+   *
+   * MAME starts every device after memory is configured; here a generated
+   * device runs its own device_start/device_reset as it is constructed, and
+   * banks are installed once every device's address map is known. The
+   * power-on entry is held until the bank is there rather than dropped.
+   */
+  private readonly pendingBankEntry = new Map<string, number>();
   private readonly generatedResources: Record<string, unknown> = {};
   private readonly state: Record<string, unknown> = {};
   private readonly shares: Record<string, Uint8Array> = {};
@@ -342,6 +353,8 @@ class IrBoard implements Board {
           height: () => Math.max(1, machine.execution.screen.vtotal),
           frame_number: () => this.frameRunner?.frameCount ?? 0,
         };
+        const tapBank = machine.execution.accessTaps
+          ?.find(tap => tap.device === specification.tag)?.bank;
         const device = createDevice(specification.type, {
           clock: specification.clock,
           tag: specification.tag,
@@ -426,6 +439,19 @@ class IrBoard implements Board {
           calls: {
             screen: () => screenHost,
             exists: () => 1,
+            // A tapping device drives a bank the board owns; MAME reaches it
+            // through the device's own required_memory_bank finder, which
+            // resolves to exactly this setter.
+            ...(tapBank ? {
+              set_bank_entry: (entry: number) => {
+                const set = this.bankEntry.get(tapBank);
+                if (!set) {
+                  this.pendingBankEntry.set(tapBank, entry);
+                  return entry;
+                }
+                return set(entry);
+              },
+            } : {}),
             ...(specification.type === 'NEOGEO_CTRL_EDGE_CONNECTOR' ? {
               // The MVS cabinet controls are a source-declared card in the
               // edge-connector slot. The generic host exposes those card
@@ -903,12 +929,16 @@ class IrBoard implements Board {
         // these methods here makes the CPU fall back to two byte transactions
         // and the second byte overwrites the first handler value.
         read16be: address => bus.read16be(address & mask),
+        // A 68000 long access is two word accesses on the real bus, so keep
+        // it that way: address-space taps must see the same two.
+        read32be: address => bus.read32be(address & mask),
         ...(bus.readOpcode ? {
           // AS_OPCODES has its own global mask; do not inherit AS_PROGRAM's.
           readOpcode: address => bus.readOpcode!(address),
         } : {}),
         write: (address, data) => bus.write(address & mask, data),
         write16be: (address, data) => bus.write16be(address & mask, data),
+        write32be: (address, data) => bus.write32be(address & mask, data),
         in: bus.in,
         out: bus.out,
         ...(specification.interruptAcknowledge ? {
@@ -1404,6 +1434,7 @@ class IrBoard implements Board {
       },
       video,
     });
+    this.installAccessTaps(machine);
     this.runMachineLifecycle('startHandlers');
     this.runMachineReset();
     if (neoGeoInterrupts && Number(this.state.m_irq3_pending ?? 0)) {
@@ -2960,6 +2991,45 @@ class IrBoard implements Board {
     }
   }
 
+  /**
+   * MAME `install_readwrite_tap` on a CPU's program space.
+   *
+   * The watching device is handed the window the machine config gave it and
+   * the bus width it is looking at, which is what MAME's `checker` needs to
+   * build its address predicates, then every access on that space is offered
+   * to the device's decoder.
+   */
+  private installAccessTaps(machine: BoardIr): void {
+    for (const tap of machine.execution.accessTaps ?? []) {
+      const bus = this.cpuBuses.get(tap.cpu);
+      const device = this.devices.get(tap.device);
+      if (!bus || !device) {
+        throw new Error(
+          `${machine.game}: access tap ${tap.device}.${tap.method} has no ` +
+          `${bus ? 'device' : 'CPU bus'} for "${bus ? tap.device : tap.cpu}"`,
+        );
+      }
+      if (!device.methodNames().includes(tap.method)) {
+        throw new Error(
+          `${machine.game}: access tap device "${tap.device}" has no generated ` +
+          `method "${tap.method}"`,
+        );
+      }
+      const cpu = machine.execution.cpus.find(candidate => candidate.tag === tap.cpu);
+      device.invoke(
+        'configure_range',
+        tap.start,
+        tap.end,
+        tap.mirror,
+        generatedCpuDataWidth(cpu?.type ?? ''),
+      );
+      const decode = (address: number): void => {
+        device.invoke(tap.method, address);
+      };
+      bus.installAccessTap(decode);
+    }
+  }
+
   private installMemoryBanks(
     machine: BoardIr,
     regions: Regions,
@@ -3013,6 +3083,12 @@ class IrBoard implements Board {
         entry = value;
         return value;
       };
+      this.bankEntry.set(bank.tag, setEntry);
+      const pending = this.pendingBankEntry.get(bank.tag);
+      if (pending !== undefined) {
+        setEntry(pending);
+        this.pendingBankEntry.delete(bank.tag);
+      }
       for (const alias of [bank.tag, `m_${bank.tag}`, bank.member]) {
         this.bindings.calls![`${alias}.set_entry`] = setEntry;
         if (ownedEntries) {
@@ -3316,6 +3392,12 @@ class IrBoard implements Board {
 
   private effectBindings(sinks: BoardSinks, registry: HandlerRegistry): EffectBindings {
     return {
+      // MAME scheduler::perfect_quantum, asked for by a devcb rather than by a
+      // handler: give every other processor real time the moment the latch is
+      // written, instead of at the next scanline boundary.
+      perfectQuantum: (seconds: number) => state => {
+        if (state) this.perfectQuantum(seconds);
+      },
       cpuLine: (tag, line, delivery) => {
         // Validated against the IR, not the live map: a generated CPU can fire
         // a signal from inside its own constructor (the I8039 resets on

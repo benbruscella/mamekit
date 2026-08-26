@@ -1553,11 +1553,25 @@ export function applyCombineData(
   data: unknown,
   memMask: unknown,
 ): number {
-  if (!isGeneratedPointer(pointer)) return 0;
-  const old = toNumber(pointerValue(pointer, 0));
+  // MAME's macro is `(*(ptr) = ((*(ptr) & ~mem_mask) | (data & mem_mask)))`,
+  // and the pointer a driver passes is usually its own memory-share finder.
+  // A share is bound as the array itself, not as a pointer object; refusing
+  // it here left every write-only scroll register at its power-on value,
+  // because nothing else on such a range stores the word (Gauntlet's
+  // xscroll_w, issue #88).
+  const target = isGeneratedPointer(pointer)
+    ? undefined
+    : ArrayBuffer.isView(pointer) || Array.isArray(pointer)
+      ? pointer as unknown as { [index: number]: unknown }
+      : undefined;
+  if (!isGeneratedPointer(pointer) && !target) return 0;
+  const old = toNumber(
+    target ? target[0] : pointerValue(pointer as GeneratedPointer, 0),
+  );
   const mask = toNumber(memMask);
   const combined = ((old & ~mask) | (toNumber(data) & mask)) >>> 0;
-  setPointerValue(pointer, 0, combined);
+  if (target) target[0] = combined;
+  else setPointerValue(pointer as GeneratedPointer, 0, combined);
   return combined;
 }
 

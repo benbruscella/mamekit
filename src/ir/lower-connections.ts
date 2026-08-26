@@ -131,6 +131,13 @@ export function lowerCallbackEffect(
   context: ConnectionContext,
 ): BoardEffect | undefined {
   if (callback.operation === 'set_nop') return { kind: 'unconnected' };
+  // An appended devcb that only asks the scheduler to interleave finely, which
+  // MAME drivers use to give the far side of a latch real time straight away.
+  if (callback.operation === 'perfect_quantum') {
+    return callback.quantumSeconds! > 0
+      ? { kind: 'perfect-quantum', seconds: callback.quantumSeconds! }
+      : undefined;
+  }
 
   // set_ioport pulls a value from a port; targetTag repeats the port name.
   if (callback.targetPort) return { kind: 'port-read', port: callback.targetPort };

@@ -18,6 +18,8 @@ export interface RangeSpec {
   write?: string;
   /** shared RAM tag; ranges with the same share alias the same bytes */
   share?: string;
+  /** MAME `.bankr()/.bankw()`: this range is a byte-addressed bank window. */
+  bank?: string;
   /** MAME `.umask16(...)`: the data lines this range's handler is wired to. */
   umask?: number;
   readOnly?: boolean;
@@ -128,6 +130,28 @@ export class Bus {
   shares: Record<string, Uint8Array>;
   /** Optional board-provided AS_OPCODES read path. */
   readOpcode?: (addr: number) => number;
+  /**
+   * MAME `address_space::install_readwrite_tap`.
+   *
+   * A tap observes an access without answering it. Protection hardware such
+   * as the Atari slapstic decodes nothing but the sequence of addresses the
+   * CPU touches, so it is invisible to the address map and has to watch the
+   * space itself. A word access fires one tap, as it does in MAME, rather
+   * than one per byte lane.
+   */
+  private readonly accessTaps: ((address: number) => void)[] = [];
+  private tapDepth = 0;
+
+  installAccessTap(tap: (address: number) => void): void {
+    this.accessTaps.push(tap);
+  }
+
+  private tap(address: number): void {
+    if (this.tapDepth) return;
+    this.tapDepth++;
+    for (const tap of this.accessTaps) tap(address);
+    this.tapDepth--;
+  }
 
   constructor(
     ranges: RangeSpec[],
@@ -151,20 +175,33 @@ export class Bus {
       // the bus; otherwise the handler owns the full bus width and the byte
       // adapters split word accesses across it.
       const lane = dataWidth === 16 && isByteLane(r.umask) ? r.umask : undefined;
+      // A bank window is storage, so its handler is byte-addressed at every
+      // bus width, exactly like the rom and ram ranges beside it. Only a MAME
+      // device handler is native to the bus and indexed by word.
       const adaptRead = (h: ReadHandler): ReadHandler =>
-        lane !== undefined ? laneReadHandler(h, lane)
+        r.bank ? h
+          : lane !== undefined ? laneReadHandler(h, lane)
           : dataWidth === 16 ? wordReadHandler(h)
             : h;
       const adaptWordRead = (h: ReadHandler): WordReadHandler | null =>
-        lane !== undefined ? laneWordReadHandler(h, lane)
+        r.bank ? (dataWidth === 16 ? (a, off) => ((h(a, off) << 8) | h(a, off + 1)) & 0xffff : null)
+          : lane !== undefined ? laneWordReadHandler(h, lane)
           : dataWidth === 16 ? (a, off) => h(a, off >>> 1) & 0xffff
             : null;
       const adaptWrite = (h: WriteHandler): WriteHandler =>
-        lane !== undefined ? laneWriteHandler(h, lane)
+        r.bank ? h
+          : lane !== undefined ? laneWriteHandler(h, lane)
           : dataWidth === 16 ? wordWriteHandler(h)
             : h;
       const adaptWordWrite = (h: WriteHandler): WordWriteHandler | null =>
-        lane !== undefined ? laneWordWriteHandler(h, lane)
+        r.bank
+          ? (dataWidth === 16
+            ? (a, off, data) => {
+              h(a, off, (data >>> 8) & 0xff, 0xffff);
+              h(a, off + 1, data & 0xff, 0xffff);
+            }
+            : null)
+          : lane !== undefined ? laneWordWriteHandler(h, lane)
           : dataWidth === 16 ? (a, off, data) => h(a, off >>> 1, data & 0xffff, 0xffff)
             : null;
 
@@ -349,6 +386,7 @@ export class Bus {
 
   read = (addr: number): number => {
     addr &= this.addressMask;
+    if (this.accessTaps.length) this.tap(addr);
     if (addr <= 0xffff) {
       return this.readFns[this.readId[addr]](addr, addr - (this.base[addr] & 0xffff)) & 0xff;
     }
@@ -361,6 +399,16 @@ export class Bus {
 
   read16be = (addr: number): number => {
     addr &= this.addressMask;
+    if (this.accessTaps.length) this.tap(addr);
+    this.tapDepth++;
+    try {
+      return this.read16beUntapped(addr);
+    } finally {
+      this.tapDepth--;
+    }
+  };
+
+  private read16beUntapped(addr: number): number {
     const mapping = this.wordMapping(addr, false);
     const next = this.wordMapping((addr + 1) & this.addressMask, false);
     const direct = mapping && next && mapping.id === next.id && mapping.base === next.base
@@ -369,10 +417,15 @@ export class Bus {
     return direct
       ? direct(addr, addr - mapping!.base) & 0xffff
       : ((this.read(addr) << 8) | this.read(addr + 1)) & 0xffff;
-  };
+  }
+
+  /** MAME reads a 68000 long as two word accesses, and taps it as two. */
+  read32be = (addr: number): number =>
+    ((this.read16be(addr) << 16) | this.read16be(addr + 2)) >>> 0;
 
   write = (addr: number, data: number): void => {
     addr &= this.addressMask;
+    if (this.accessTaps.length) this.tap(addr);
     if (addr <= 0xffff) {
       this.writeFns[this.writeId[addr]](addr, addr - (this.base[addr] >>> 16), data & 0xff);
       return;
@@ -386,6 +439,21 @@ export class Bus {
 
   write16be = (addr: number, data: number): void => {
     addr &= this.addressMask;
+    if (this.accessTaps.length) this.tap(addr);
+    this.tapDepth++;
+    try {
+      this.write16beUntapped(addr, data);
+    } finally {
+      this.tapDepth--;
+    }
+  };
+
+  write32be = (addr: number, data: number): void => {
+    this.write16be(addr, (data >>> 16) & 0xffff);
+    this.write16be(addr + 2, data & 0xffff);
+  };
+
+  private write16beUntapped(addr: number, data: number): void {
     const mapping = this.wordMapping(addr, true);
     const next = this.wordMapping((addr + 1) & this.addressMask, true);
     const direct = mapping && next && mapping.id === next.id && mapping.base === next.base
@@ -397,7 +465,7 @@ export class Bus {
     }
     this.write(addr, data >>> 8);
     this.write(addr + 1, data);
-  };
+  }
 
   private wordMapping(addr: number, write: boolean): { id: number; base: number } | undefined {
     if (addr <= 0xffff) {

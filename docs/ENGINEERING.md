@@ -295,6 +295,8 @@ Choose the layer from evidence, not from the visible symptom.
 | IR is correct but execution is wrong for every target | generic runtime |
 | Only one game needs a hardcoded branch | source/graph/IR model is still missing a fact |
 | A callback does nothing at run time | connection lowering in `src/ir/lower-connections.ts` |
+| A device decodes bus traffic no map mentions | `execution.accessTaps` from its `set_range` |
+| A two-CPU handshake half-works | the frame quantum, before the device (both directions) |
 | A hardware family needs a new central branch | it needs a capability package instead |
 | Audit reports a mixed build | regenerate fully; `--targets` builds are partial by design |
 | App cannot locate config/module | output layout, manifest `dataPath`, or relative URL |

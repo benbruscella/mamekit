@@ -574,6 +574,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     // .bankr(m_mainbank) -> "bank.mainbank" (the board owns bank switching)
     if (r.props.bankRead) spec.read = `bank.${r.props.bankRead}`;
     if (r.props.bankWrite) spec.write = `bank.${r.props.bankWrite}`;
+    if (r.props.bankRead || r.props.bankWrite) {
+      spec.bank = String(r.props.bankRead ?? r.props.bankWrite);
+    }
     // MAME embeds the MOS6532's RAM and register maps with `.m(...)`. Preserve
     // those source-declared submaps as executable device handlers instead of
     // collapsing them to NOP ranges. Composite-device tags inherit their

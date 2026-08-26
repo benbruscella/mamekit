@@ -13,6 +13,17 @@ export function isUnconnectedCallback(callback: GeneratedCallback): boolean {
   return callback.operation === 'set_nop';
 }
 
+/**
+ * A callback whose target is the scheduler rather than a wire.
+ *
+ * MAME drivers append `perfect_quantum` to a devcb to say "give the other
+ * processor real time now"; the request names no device or CPU, so there is
+ * no endpoint for it to resolve to, but it is still an executable effect.
+ */
+export function isSchedulerCallback(callback: GeneratedCallback): boolean {
+  return callback.operation === 'perfect_quantum';
+}
+
 /** Configuration selectors consumed by their owning subsystem, not signals. */
 export function isDeclarativeCallback(callback: GeneratedCallback): boolean {
   return callback.signal === 'set_screen_update';
@@ -106,7 +117,7 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
         callback.source,
       );
     }
-    if (isUnconnectedCallback(callback)) continue;
+    if (isUnconnectedCallback(callback) || isSchedulerCallback(callback)) continue;
     if (!callbackEndpointKey(callback)) {
       fail(
         `${path}`,
@@ -222,6 +233,29 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
       `memory bank "${bank.tag}" has no configured entry`,
       bank.source,
     );
+  }
+  for (const [index, tap] of (board.execution.accessTaps ?? []).entries()) {
+    if (!board.execution.cpus.some(cpu => cpu.tag === tap.cpu)) {
+      fail(
+        `execution.accessTaps[${index}].cpu`,
+        `access tap watches unknown CPU "${tap.cpu}"`,
+        tap.source,
+      );
+    }
+    if (!board.devices?.some(device => device.tag === tap.device)) {
+      fail(
+        `execution.accessTaps[${index}].device`,
+        `access tap targets unknown device "${tap.device}"`,
+        tap.source,
+      );
+    }
+    if (tap.bank !== undefined && !bankTags.has(tap.bank)) {
+      fail(
+        `execution.accessTaps[${index}].bank`,
+        `access tap selects bank "${tap.bank}", which the board does not configure`,
+        tap.source,
+      );
+    }
   }
   for (const [index, cpu] of board.execution.cpus.entries()) {
     for (const [position, range] of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])].entries()) {

@@ -37,6 +37,15 @@ export interface RangeSpec {
   /** shared RAM tag; ranges with the same share alias the same bytes */
   share?: string;
   /**
+   * MAME `.bankr()/.bankw()`: the memory bank this range is a window on.
+   *
+   * A bank is byte-addressed storage, not a device handler. On a 16-bit bus
+   * that distinction is the whole meaning of the range: a native 16-bit
+   * handler is indexed by word, a bank by byte, and reading a bank through
+   * the word adapter returns every other byte.
+   */
+  bank?: string;
+  /**
    * MAME `.umask16(...)`: the data lines this range's handler is wired to.
    * An 8-bit device on a 16-bit bus answers only on its own byte lane, and
    * the byte is shifted down to the handler's width. Absent means the handler
@@ -75,6 +84,8 @@ export interface GeneratedCallback {
   scanlineIncrement?: number;
   /** Skip a source scanline callback when its PROM lookup is electrically zero. */
   promGate?: { member: string; mask: number };
+  /** MAME scheduler::perfect_quantum duration requested by an appended devcb. */
+  quantumSeconds?: number;
   transforms?: string[];
   source?: BoardSourceRef;
 }
@@ -129,6 +140,13 @@ export type BoardEffect =
    * so the write is forwarded to the audio sink by name.
    */
   | { kind: 'audio-write'; tag: string; method: string }
+  /**
+   * MAME `scheduler::perfect_quantum`: interleave every processor finely for
+   * this long. A driver appends it to a devcb when the other side of a latch
+   * must be given real time as soon as the latch is written, rather than at
+   * the next scheduling boundary.
+   */
+  | { kind: 'perfect-quantum'; seconds: number }
   /** MAME .set_nop(): the board deliberately leaves this output unconnected. */
   | { kind: 'unconnected' };
 
@@ -375,6 +393,30 @@ export interface GeneratedExecutionPlan {
     handler: string;
   }[];
   frameEvents: GeneratedFrameEvent[];
+  /**
+   * MAME devices that watch every access on another device's address space.
+   *
+   * `install_readwrite_tap` is how a protection chip sees the access pattern
+   * it decodes; the Atari slapstic changes its ROM bank purely from the
+   * sequence of addresses the 68000 touches, and nothing it does is visible
+   * in an address map. The window the machine config hands the device with
+   * `set_range` is carried here with the bank it drives.
+   */
+  accessTaps?: {
+    /** CPU whose address space is watched. */
+    cpu: string;
+    space: 'program';
+    /** Device tag receiving the tap. */
+    device: string;
+    /** Device method invoked with the accessed offset. */
+    method: string;
+    start: number;
+    end: number;
+    mirror: number;
+    /** Memory bank the device selects, when the source declares one. */
+    bank?: string;
+    source?: BoardSourceRef;
+  }[];
   screenUpdate?: {
     handler: string;
     source?: BoardSourceRef;
@@ -668,6 +710,72 @@ export interface GeneratedBitmapPlan {
   source?: BoardSourceRef;
 }
 
+/**
+ * One `sprite_parameter` from an `atari_motion_objects_config` entry: which
+ * of the four words of a sprite-RAM entry carries the field, how far it is
+ * shifted down, and the mask that remains after the shift. This is exactly
+ * what `sprite_parameter::set` derives from the driver's mask words.
+ */
+export interface GeneratedSpriteParameter {
+  word: number;
+  shift: number;
+  mask: number;
+}
+
+/**
+ * MAME `atari_motion_objects_device` configured by one driver.
+ *
+ * The device is generic and the configuration is the hardware description, so
+ * everything here is lowered from the driver's `atari_motion_objects_config`
+ * aggregate and from `atarimo.h`'s own derivations of it.
+ */
+export interface GeneratedMotionObjectsPlan {
+  /** Device tag. */
+  tag: string;
+  /** Index into the machine's gfx sets. */
+  gfxIndex: number;
+  bankCount: number;
+  /** Entries chain through the link field rather than running in order. */
+  linked: boolean;
+  /** The four words of an entry are strided across sprite RAM, not adjacent. */
+  split: boolean;
+  reverse: boolean;
+  swapXy: boolean;
+  nextNeighbor: boolean;
+  /** Pixels per SLIP entry; zero for a board with no SLIP RAM. */
+  slipHeight: number;
+  slipShift: number;
+  slipOffset: number;
+  maxPerLine: number;
+  paletteBase: number;
+  transparentPen: number;
+  specialValue: number;
+  /** Derived in device_start from the link/xpos/ypos masks. */
+  entryCount: number;
+  entryBits: number;
+  bitmapWidth: number;
+  bitmapHeight: number;
+  /** Memory shares holding sprite RAM and, when present, SLIP RAM. */
+  spriteShare: string;
+  slipShare?: string;
+  /** Whole-table XOR the driver's video_start applies to the code lookup. */
+  codeXor?: number;
+  link: GeneratedSpriteParameter;
+  code: GeneratedSpriteParameter;
+  color: GeneratedSpriteParameter;
+  xpos: GeneratedSpriteParameter;
+  ypos: GeneratedSpriteParameter;
+  width: GeneratedSpriteParameter;
+  height: GeneratedSpriteParameter;
+  hflip: GeneratedSpriteParameter;
+  vflip: GeneratedSpriteParameter;
+  priority: GeneratedSpriteParameter;
+  neighbor: GeneratedSpriteParameter;
+  absolute: GeneratedSpriteParameter;
+  special: GeneratedSpriteParameter;
+  source?: BoardSourceRef;
+}
+
 export interface GeneratedVideoPlan {
   /**
    * Rendering cadence required by the lowered video implementation. This is
@@ -694,6 +802,8 @@ export interface GeneratedVideoPlan {
   /** Palette RAM decoded by a MAME set_format converter instead of a PROM. */
   ramPalette?: GeneratedRamPalettePlan;
   tilemaps: GeneratedTilemapPlan[];
+  /** MAME `ATARI_MOTION_OBJECTS` sprite engine, configured by the driver. */
+  motionObjects?: GeneratedMotionObjectsPlan;
   initialState: Record<string, unknown>;
   /** MAME may render at a hardware sub-pixel scale (Galaxian uses 3x horizontally). */
   renderScale?: { x: number; y: number };

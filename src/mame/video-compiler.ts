@@ -2,7 +2,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 import { evalExpr } from '../kg/parse.ts';
-import type { BoardSourceRef, GeneratedHandler, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
+import type { BoardSourceRef, GeneratedHandler, GeneratedMotionObjectsPlan, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
+import { compileAtariMotionObjects } from './atarimo-compiler.ts';
 import { MameAstIndex, parseMameAst, splitMameArgs, type MameFunction } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
@@ -386,6 +387,7 @@ export function compileMameVideo(
     palettes.length !== paletteMembers.length) {
     return fail(`palette callback did not lower`);
   }
+  const motionObjects = compileMotionObjects(graph, mameSrc, driver, start?.body);
   const colorTables = compileVideoColorTables(source, constants);
   const lfsrTable = compileVideoLfsr(ast, String(machine.props.cls), constants);
   const needsClassDefaults = renderScale !== 1 ||
@@ -405,6 +407,7 @@ export function compileMameVideo(
       ...(ramPalette ? { ramPalette } : {}),
       ...(paletteProgram ? { paletteProgram } : {}),
       tilemaps: executableTilemaps,
+      ...(motionObjects ? { motionObjects } : {}),
       initialState: {
         ...arrayState(memberDefaults),
         ...(needsClassDefaults ? memberDefaults : {}),
@@ -1061,6 +1064,59 @@ function compileDirectBitmap(
     white: 0xffffffff,
     source: sourceRef(screen),
   };
+}
+
+/**
+ * The driver's `ATARI_MOTION_OBJECTS` sprite engine.
+ *
+ * The device is created with the driver's configuration aggregate as its last
+ * constructor argument; the sprite RAM is the share named after the device tag
+ * and the SLIP RAM, where the board has one, the `<tag>:slip` share beside it.
+ */
+function compileMotionObjects(
+  graph: KnowledgeGraph,
+  mameSrc: string,
+  driverFile: string,
+  videoStartBody?: string,
+): GeneratedMotionObjectsPlan | undefined {
+  const device = graph.nodes.find(node =>
+    node.label === 'Device' && node.props.type === 'ATARI_MOTION_OBJECTS');
+  if (!device) return undefined;
+  const tag = String(device.props.tag ?? '');
+  const construction = (Array.isArray(device.props.config) ? device.props.config.map(String) : [])
+    .find(line => line.startsWith('ATARI_MOTION_OBJECTS('));
+  const configName = construction
+    ? splitMameArgs(construction.slice(
+        construction.indexOf('(') + 1,
+        construction.lastIndexOf(')'),
+      )).at(-1)?.trim()
+    : undefined;
+  if (!configName || !/^[\w:]+$/.test(configName)) return undefined;
+  const shares = new Set(graph.nodes
+    .filter(node => node.label === 'AddressRange')
+    .map(node => String(node.props.share ?? ''))
+    .filter(Boolean));
+  if (!shares.has(tag)) return undefined;
+  return compileAtariMotionObjects(mameSrc, {
+    tag,
+    configName,
+    driverFile,
+    spriteShare: tag,
+    ...(shares.has(`${tag}:slip`) ? { slipShare: `${tag}:slip` } : {}),
+    ...(videoStartBody ? { videoStartBody } : {}),
+    ...(typeof device.props.sourceFile === 'string' &&
+      typeof device.props.sourceLine === 'number'
+      ? {
+        source: {
+          file: device.props.sourceFile,
+          line: device.props.sourceLine,
+          ...(typeof device.props.sourceColumn === 'number'
+            ? { column: device.props.sourceColumn }
+            : {}),
+        },
+      }
+      : {}),
+  });
 }
 
 function compileTilemaps(

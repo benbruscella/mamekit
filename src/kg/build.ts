@@ -1266,6 +1266,30 @@ export function attotimeFrequency(
     : undefined;
 }
 
+/**
+ * Seconds from a MAME `attotime::from_*` expression.
+ *
+ * A devcb may append a scheduler request rather than an output: Gauntlet's
+ * sound latch asks for `perfect_quantum(attotime::from_usec(100))` so the
+ * sound board is given a real timeslice as soon as it has a command.
+ */
+export function attotimeSeconds(
+  value: string,
+  constants: Record<string, number> = {},
+): number | undefined {
+  const unit = /\bfrom_(usec|msec|nsec|seconds|ticks|hz)\s*\(/.exec(value)?.[1];
+  if (!unit) return undefined;
+  if (unit === 'hz' || unit === 'ticks') {
+    const hz = attotimeFrequency(value, constants);
+    return hz !== undefined && hz > 0 ? 1 / hz : undefined;
+  }
+  const argument = /\bfrom_\w+\s*\(([^)]*)\)/.exec(value)?.[1];
+  const amount = argument === undefined ? null : evalExpr(argument, constants);
+  if (amount === null) return undefined;
+  const scale = unit === 'usec' ? 1e-6 : unit === 'msec' ? 1e-3 : unit === 'nsec' ? 1e-9 : 1;
+  return amount * scale;
+}
+
 function emitCallbacks(
   g: GraphBuilder,
   ast: MameAstIndex,
@@ -1315,13 +1339,25 @@ function emitCallbacks(
     const callbackId = `${devId}/callback:${callbackOwner}:${callbackIndex++}`;
     const props: Record<string, PropValue> = {
       signal: signal.name,
+      // A devcb whose appended lambda only asks the scheduler for a finer
+      // interleave is a scheduling fact, not an unconnected output.
       operation: operation.name === 'append' && raw.includes('perfect_quantum(')
-        ? 'set_nop'
+        ? 'perfect_quantum'
         : operation.name,
       raw,
       ownerTag: deviceTag,
       ...spanProps(source),
     };
+    if (props.operation === 'perfect_quantum') {
+      const request = /perfect_quantum\s*\(([^;]*?)\)\s*;/.exec(raw)?.[1];
+      const seconds = request ? attotimeSeconds(request, constants) : undefined;
+      if (seconds === undefined) {
+        throw new Error(
+          `${source?.file ?? 'unknown'}: perfect_quantum request "${raw}" has no duration`,
+        );
+      }
+      props.quantumSeconds = seconds;
+    }
     if (signal.templateArgs.length) props.slot = signal.templateArgs.join(',');
     if (transforms.length) props.transforms = transforms;
     if (operation.name === 'set_periodic_int') {
