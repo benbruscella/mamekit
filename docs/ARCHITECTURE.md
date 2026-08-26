@@ -373,6 +373,31 @@ A family's post-mix master gain is declared by its capability package and
 written into the generated config, so the shell applies whatever the family
 states rather than holding a table keyed by sound kind.
 
+A board is rarely one chip. The chip that decides `sound.kind` owns the
+worklet; every other chip routed to the same speaker is lowered as an entry in
+`sound.auxiliaryDevices`, carrying its tag, clock and the gain its own
+`add_route` gave it, and is hosted inside that worklet. Gauntlet is the widest
+case: a YM2151 for music, a POKEY for effects and a TMS5220C for speech, all
+three answering one two-input speaker.
+
+Where a chip's engine runs is decided by what reads it back, not by what it
+sounds like. A chip the CPU only writes to belongs in the worklet, and POKEY
+is emitted that way — `src/mame/pokey-compiler.ts` reads its register map,
+prescaler divisors, polynomial taps and output gain out of `pokey.cpp` and
+emits an engine that runs MAME's `step_one_clock` once per chip clock.
+
+A chip whose pins are wired back into a port the CPU polls cannot be, and the
+TMS5220 is the case that forces the distinction. Its `/READY` pin feeds a port
+bit the sound CPU tests before every byte it writes; ready depends on the FIFO
+level, the FIFO level depends on how fast the frame parser consumes bits, and
+the parser is the synthesiser. Splitting that across a worklet boundary means
+keeping the chip's state twice, so the whole engine is emitted as a main-thread
+device instead: a generated device IR whose methods are backed by compiled
+JavaScript, loaded by the board exactly like any other generated device. Only
+the PCM it produces crosses to the audio sink, forwarded a sample at a time
+and resampled by the worklet against the chip's live clock — live because
+Gauntlet's speech-squeak line retunes the chip while it is talking.
+
 ### DSL ARTIFACTS
 
 Source-derived DSL AST/IR remains available as JSON for auditability. Data-only

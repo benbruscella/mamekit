@@ -1115,6 +1115,9 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   HC55516: ['digit_w', 'clock_w'],
   POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
   OKIM6295: ['write', 'set_pin7'],
+  POKEY: ['write'],
+  TMS5220: ['data_w'],
+  TMS5220C: ['data_w'],
 };
 
 /**

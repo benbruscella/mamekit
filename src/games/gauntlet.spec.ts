@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { compileMameVideo } from '../mame/video-compiler.ts';
+import { lowerAuxiliaryAudioDevices } from '../gen/emit-machine.ts';
 import { gauntlet } from './gauntlet.ts';
 import { gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
@@ -52,6 +53,29 @@ const bank = graph.nodes.find(node => node.label === 'MemoryBank');
 assert.ok(bank);
 assert.equal(bank.props.tag, 'slapstic_bank');
 
+// The sound board answers one speaker with three chips. The YM2151 is the
+// board's primary sound kind; the POKEY and the TMS5220C reach the same
+// speaker as routed auxiliaries, and each one has to carry the gain the
+// driver's own add_route gave it or the mix is not the board's mix.
+const auxiliary = lowerAuxiliaryAudioDevices(
+  graph,
+  devices.map(node => ({
+    id: node.id,
+    tag: String(node.props.tag),
+    type: String(node.props.type),
+    ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
+  })),
+);
+assert.deepEqual(
+  auxiliary.map(device => [device.type, device.deviceTag, device.gain]),
+  [['POKEY', 'pokey', 0.32], ['TMS5220C', 'tms', 0.8]],
+);
+// 14.318181 MHz over 8 and over 2*11; the speech clock is what its sample
+// rate is derived from, and the driver retunes it while the chip talks.
+assert.equal(Math.round(auxiliary[0]!.clock), 1789773);
+assert.equal(Math.round(auxiliary[1]!.clock), 650826);
+assert.deepEqual(auxiliary[1]!.writeMethods, ['data_w']);
+
 const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video, 'gauntlet MAME video source must lower to executable video IR');
 const motionObjects = video.plan.motionObjects;
@@ -61,4 +85,4 @@ assert.equal(motionObjects.codeXor, 0x800);
 assert.equal(motionObjects.spriteShare, 'mob');
 assert.equal(motionObjects.slipShare, 'mob:slip');
 
-console.log('gauntlet.spec: slapstic, tilemap/motion-object video and sound board passed');
+console.log('gauntlet.spec: slapstic, tilemap/motion-object video and three-chip sound board passed');

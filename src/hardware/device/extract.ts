@@ -191,6 +191,11 @@ function compileSlapstic(
   `);
   replaceMethod(device, 'device_pre_save', 'm_saved_state = m_state;');
   replaceMethod(device, 'device_post_load', 'm_state = m_saved_state;');
+  // The chip decodes the address of *every* access on the space it watches —
+  // 17,700 a frame on Gauntlet — so interpreting the state machine costs more
+  // than the two CPUs put together. It has no loop for the usual hot-method
+  // heuristic to spot, so name it directly.
+  device.hotMethods = [...new Set([...(device.hotMethods ?? []), 'test', 'tmatch'])];
   return refreshSummary(device);
 }
 

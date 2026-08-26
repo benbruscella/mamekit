@@ -297,6 +297,9 @@ Choose the layer from evidence, not from the visible symptom.
 | A callback does nothing at run time | connection lowering in `src/ir/lower-connections.ts` |
 | A device decodes bus traffic no map mentions | `execution.accessTaps` from its `set_range` |
 | A two-CPU handshake half-works | the frame quantum, before the device (both directions) |
+| A board is audible but one chip is silent | `sound.auxiliaryDevices`; the kind names one chip only |
+| A sound chip's pin is polled by a CPU | its engine belongs on the main thread, not the worklet |
+| A main-thread chip runs at double or half speed | `tickCpu` fires per processor; drive it from one, and not one that can be held in reset |
 | A hardware family needs a new central branch | it needs a capability package instead |
 | Audit reports a mixed build | regenerate fully; `--targets` builds are partial by design |
 | App cannot locate config/module | output layout, manifest `dataPath`, or relative URL |

@@ -2880,12 +2880,9 @@ class IrBoard implements Board {
         };
         continue;
       }
-      if (
-        deviceType === 'POKEY' || deviceType === 'YM3812' ||
-        deviceType.startsWith('TMS5220')
-      ) {
-        // Primary-board audio remains live; these auxiliary chips currently
-        // expose their register bus so the unmodified sound CPU can progress.
+      if (deviceType === 'YM3812') {
+        // Primary-board audio remains live; this auxiliary chip still exposes
+        // its register bus so the unmodified sound CPU can progress.
         registry.write[key] = () => {};
         continue;
       }

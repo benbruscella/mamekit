@@ -88,6 +88,49 @@ export function installYm2151Runtime(context: SoundRuntimeContext): {
   // MSM5205 ADPCM chips mixed by the worklet: the board never instantiates
   // them, so driver calls (m_adpcm[0]->data_w from the vck feeder) and mapped
   // writes go straight to the sink, tagged by device and method name.
+  // A TMS5220 runs its engine on the main thread, because its /READY pin
+  // feeds a port the sound CPU polls. Here we only pump it: the board's own
+  // clock decides how many native samples are due, and each one is forwarded
+  // to the sink as finished PCM.
+  const speech = (context.sound.auxiliaryDevices ?? [])
+    .filter(device => device.type.startsWith('TMS5220'))
+    .map(device => {
+      const clock = context.board.devices?.find(candidate =>
+        candidate.tag === device.deviceTag)?.clock ?? device.clock;
+      context.calls[`${device.deviceTag}.set_unscaled_clock`]?.(clock);
+      // tickCpu fires once per processor, so exactly one of them has to drive
+      // the clock or the same elapsed time is counted twice and the chip
+      // speaks at nearly double speed. It cannot be the CPU that owns the
+      // bus either: gauntlet holds its sound 6502 in reset, and a speech chip
+      // does not stop running just because the CPU talking to it has.
+      return {
+        deviceTag: device.deviceTag,
+        ownerCpu: context.board.execution.cpus[0]?.tag ?? '',
+        rate: clock / 80,
+        carry: 0,
+      };
+    });
+
+  // A POKEY answering the same speaker: the register offset carries the
+  // channel, so unlike the MSM5205 feeder its writes forward the offset too.
+  for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
+    if (auxiliary.type !== 'POKEY') continue;
+    const name = `${auxiliary.deviceTag}.write`;
+    context.registry.write[name] = (_address, offset, data) => {
+      context.soundWrite(offset, data, context.fraction(), name);
+    };
+    for (const alias of deviceAliases(context.board, auxiliary.deviceTag)) {
+      context.calls[`${alias}.write`] = (...args: number[]) => {
+        context.soundWrite(
+          Number(args.at(-2) ?? 0) || 0,
+          args.at(-1) ?? 0,
+          context.fraction(),
+          name,
+        );
+        return 0;
+      };
+    }
+  }
   for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
     if (auxiliary.type !== 'MSM5205') continue;
     const aliases = [
@@ -144,6 +187,25 @@ export function installYm2151Runtime(context: SoundRuntimeContext): {
               timer.remaining[index] += timerPeriod(timer, index);
             }
             updateIrq(timer);
+          }
+        }
+      }
+      const speechCpu = context.board.execution.cpus.find(candidate =>
+        candidate.tag === cpuTag);
+      if (speechCpu && speech.length) {
+        const elapsed = cycles / Math.max(1, speechCpu.cycleClock ?? speechCpu.clock);
+        for (const chip of speech) {
+          if (chip.ownerCpu !== cpuTag) continue;
+          const live = Number(context.calls[`${chip.deviceTag}.sample_rate`]?.() ?? 0);
+          chip.carry += elapsed * (live > 0 ? live : chip.rate);
+          let due = Math.floor(chip.carry);
+          chip.carry -= due;
+          // A long stall must not turn into an unbounded catch-up burst.
+          if (due > 2048) due = 2048;
+          const generate = context.calls[`${chip.deviceTag}.sound_stream_update`];
+          if (!generate) continue;
+          for (let index = 0; index < due; index++) {
+            context.soundWrite(0, Number(generate()), context.fraction(), `${chip.deviceTag}.pcm`);
           }
         }
       }

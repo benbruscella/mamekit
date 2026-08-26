@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import type { MameHardwareDefinition } from './hardware.ts';
 import type { GeneratedMsm5205Plan } from './audio-compiler.ts';
+import { generatedPokeyCoreSource, type GeneratedPokeyPlan } from './pokey-compiler.ts';
 import {
   algorithmOps,
   constant,
@@ -263,11 +264,13 @@ function validate(plan: GeneratedYm2151Plan): void {
  * Emit the generated YM2151 worklet. The engine below is a direct execution of
  * ymfm's OPM algorithm; every table, bitfield offset and constant it consumes
  * comes from `plan`, which is read out of MAME's ymfm sources. An OKIM6295 or
- * MSM5205 bank routed into the same speaker is hosted beside the FM chips.
+ * MSM5205 bank or POKEY routed into the same speaker is hosted beside the FM
+ * chips.
  */
 export function generatedYm2151WorkletSource(
   plan: GeneratedYm2151Plan,
   msm5205Plan?: GeneratedMsm5205Plan,
+  pokeyPlanSource?: GeneratedPokeyPlan,
 ): string {
   return `// GENERATED from ${plan.source.file}:${plan.source.line}; do not edit.
 // The OPM FM engine, register bitfield map, die-extracted sine, power,
@@ -275,6 +278,14 @@ export function generatedYm2151WorkletSource(
 // from MAME's bundled ymfm implementation.
 const plan = ${JSON.stringify(plan, null, 2)};
 const msmPlan = (${JSON.stringify(msm5205Plan ?? null, null, 2)}) as GeneratedMsm5205PlanData | null;
+${pokeyPlanSource ? generatedPokeyCoreSource(pokeyPlanSource) : ''}
+/** Null on a board with no POKEY, so the engine above is only emitted when one exists. */
+const pokeyFactory: ((clock: number, rate: number) => {
+  write(offset: number, data: number): void;
+  sample(): number;
+}) | null = ${pokeyPlanSource
+    ? '(clock, rate) => new GeneratedPokeyCore(clock, rate)'
+    : 'null'};
 
 interface GeneratedMsm5205PlanData {
   indexShift: number[];
@@ -947,6 +958,21 @@ export class GeneratedYm2151Mixer {
     core: GeneratedMsm5205Core;
     method: string;
   }>();
+  private readonly pokeyChips: {
+    deviceTag: string;
+    gain: number;
+    core: { write(offset: number, data: number): void; sample(): number };
+  }[];
+  // A speech chip whose engine runs on the main thread streams finished PCM
+  // in rather than register writes; all this side does is resample it.
+  private readonly pcmChips: {
+    deviceTag: string;
+    gain: number;
+    rate: number;
+    queue: number[];
+    phase: number;
+    held: number;
+  }[];
   private readonly routes: GeneratedYmRoute[];
   private readonly chipRate: number;
   private readonly outputRate: number;
@@ -987,6 +1013,26 @@ export class GeneratedYm2151Mixer {
         this.msmWrites.set(device.deviceTag + '.' + method, { core: device.core, method });
       }
     }
+    this.pokeyChips = pokeyFactory
+      ? auxiliaryDevices
+          .filter(device => device.type === 'POKEY')
+          .map(device => ({
+            deviceTag: device.deviceTag,
+            gain: device.gain,
+            core: pokeyFactory(device.clock, outputRate),
+          }))
+      : [];
+    this.pcmChips = auxiliaryDevices
+      .filter(device => device.type.startsWith('TMS5220'))
+      .map(device => ({
+        deviceTag: device.deviceTag,
+        gain: device.gain,
+        // The engine reports its own rate with each sample; this is the start.
+        rate: device.clock / 80,
+        queue: [] as number[],
+        phase: 0,
+        held: 0,
+      }));
     this.chipRate = clock / plan.sampleRateDivider;
     this.outputRate = outputRate;
     this.held = this.chips.map(() => new Int32Array(2));
@@ -1002,6 +1048,20 @@ export class GeneratedYm2151Mixer {
     if (msm) {
       msm.core.write(msm.method, data);
       return;
+    }
+    for (const pcm of this.pcmChips) {
+      if (method === pcm.deviceTag + '.pcm') {
+        // Never let a stalled consumer grow the queue without bound; a
+        // quarter second of speech is already far more than the sink is behind.
+        if (pcm.queue.length < 4096) pcm.queue.push(data / 32768);
+        return;
+      }
+    }
+    for (const pokey of this.pokeyChips) {
+      if (method === pokey.deviceTag + '.write') {
+        pokey.core.write(offset, data);
+        return;
+      }
     }
     if (this.oki && method?.startsWith(this.oki.tag + '.')) {
       if (method.endsWith('.set_pin7')) this.oki.core.setPin7(data);
@@ -1039,6 +1099,15 @@ export class GeneratedYm2151Mixer {
     let output = this.lastSample / 32768;
     output += (this.oki?.core.sample() ?? 0) * (this.oki?.gain ?? 0);
     for (const device of this.msmChips) output += device.core.sample() * device.gain;
+    for (const device of this.pokeyChips) output += device.core.sample() * device.gain;
+    for (const device of this.pcmChips) {
+      device.phase += device.rate / this.outputRate;
+      while (device.phase >= 1) {
+        device.phase -= 1;
+        if (device.queue.length) device.held = device.queue.shift()!;
+      }
+      output += device.held * device.gain;
+    }
     return Math.max(-1, Math.min(1, output));
   }
 
