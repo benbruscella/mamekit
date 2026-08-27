@@ -767,5 +767,16 @@ eq(
   [0x00, 0x20, 0x08],
 );
 
+// MAME writes the macro both ways. coleco.cpp spaces it, and a set the regex
+// skipped left the driver with no ROMs at all rather than with a diagnostic.
+eq('ROM_START accepts a space before its argument list', parseRomSets(`
+ROM_START (coleco)
+  ROM_REGION( 0x10000, "maincpu", 0 )
+  ROM_LOAD( "313_10031-4005_73108a.u2", 0x0000, 0x2000, CRC(3aa93ef3) )
+ROM_END
+`).map(set => ({ name: set.name, region: set.regions[0]?.tag })), [
+  { name: 'coleco', region: 'maincpu' },
+]);
+
 console.log(`\nparse.spec: ${totalPass} passed, ${totalFail} failed`);
 if (totalFail > 0) process.exitCode = 1;

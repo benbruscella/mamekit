@@ -224,11 +224,28 @@ export function inputKeys(game: string, type: string): string[] | undefined {
 // softlist catalog carries every cart's slot; the app greys out the rest.
 const CART_SLOT_SUPPORT: Record<string, string[]> = {
   nes: ['nrom', 'uxrom', 'cnrom', 'sxrom', 'txrom'], // iNES mappers 0, 2, 3, 1, 4
+  // Every PCB src/hardware/coleco lowers from MAME's colecovision_cartridges.
+  // coleco.spec.ts asserts this same set against that source list, so the two
+  // cannot drift apart silently.
+  coleco: [
+    'standard', 'megacart', 'xin1',
+    'activision', 'activision_256b', 'activision_32k',
+    'sgc_1mbit', 'sgc_2mbit', 'sgc_4mbit',
+  ],
 };
 
 const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
   nes: 'nes_cart',
+  coleco: 'coleco_cart',
 };
+
+// What a cartridge slot does when a software-list entry names no PCB, and
+// where a PCB loads its ROM. Both are the slot device's own facts; the NES
+// resolves its board from the iNES mapper instead and needs neither.
+// src/hardware/coleco/coleco.spec.ts asserts both against MAME source, so
+// this table cannot drift away from the device it describes.
+const CART_DEFAULT_SLOT: Record<string, string> = { coleco: 'standard' };
+const CART_ROM_REGION: Record<string, string> = { coleco: 'coleco_cart:rom' };
 
 // Explicitly supported cartridge titles (softlist parent short-names; clones
 // of a listed parent count too). Playability is gated on THIS list, not just
@@ -769,6 +786,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // coordinates -- so its visible rectangle is the whole raster.
   const screenDev = devices.find(d => d.props.type === 'SCREEN')
     ?? devices.find(d => d.props.type === 'VECTOR');
+  // A machine built around a video-display processor leaves its SCREEN bare
+  // (coleco.cpp: `SCREEN(config, "screen")`). The graph has already asked the
+  // device that claimed it, so the geometry arrives here like any other.
   const raw = screenDev?.props.screenRaw as number[] | undefined;
   let pixclock: number, htotal: number, hbend: number, hbstart: number, vtotal: number, vbend: number, vbstart: number;
   if (raw) {
@@ -1582,6 +1602,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         ...(artCount ? { cartArt } : {}),
         slots: CART_SLOT_SUPPORT[family] ?? [],
         games: CART_GAME_SUPPORT[family] ?? [],
+        ...(CART_DEFAULT_SLOT[family] ? { defaultSlot: CART_DEFAULT_SLOT[family] } : {}),
+        ...(CART_ROM_REGION[family] ? { romRegion: CART_ROM_REGION[family] } : {}),
       };
       if (shelved) console.log(`cart shelf index: ${shelved} dumps available for ${set}`);
       if (artCount) console.log(`cart artwork: ${artCount} cartridge(s) with local photography`);
@@ -1599,6 +1621,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           catalogUrl: 'softlist.json',
           slots: CART_SLOT_SUPPORT[family] ?? [],
           games: CART_GAME_SUPPORT[family] ?? [],
+          ...(CART_DEFAULT_SLOT[family] ? { defaultSlot: CART_DEFAULT_SLOT[family] } : {}),
+          ...(CART_ROM_REGION[family] ? { romRegion: CART_ROM_REGION[family] } : {}),
         };
       }
     }
@@ -2352,3 +2376,4 @@ function writeCartShelfIndex(setDir: string, outDir: string, set: string): numbe
   writeFileSync(join(outDir, 'carts.json'), JSON.stringify({ set, carts }));
   return carts.length;
 }
+

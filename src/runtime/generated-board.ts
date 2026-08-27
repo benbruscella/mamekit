@@ -11,6 +11,7 @@ import { GeneratedFrameRunner } from './generated-frame.ts';
 import {
   GeneratedMameVideoPrimitives,
   GeneratedVideoRenderer,
+  type DeviceScreenUpdate,
 } from './generated-video.ts';
 import {
   compileGeneratedMachineHandler,
@@ -22,7 +23,7 @@ import {
   wireGeneratedDevice,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
-import type { BoardIr } from '../ir/board.ts';
+import { HOST_SERVICE_CALLS, type BoardIr } from '../ir/board.ts';
 import {
   applyBoardTransforms,
   bindBoardEffects,
@@ -348,11 +349,33 @@ class IrBoard implements Board {
             if (lines <= 0) lines += vtotal;
             return lines / (machine.execution.screen.refresh * vtotal);
           },
-          vpos: () => this.currentLine,
+          // The same beam the arithmetic above measures against, floored the
+          // way MAME's screen_device::vpos() derives the line from emulated
+          // time. Reading the frame runner's integer line instead leaves the
+          // two a whole line apart at a boundary -- exactly where a scanline
+          // one-shot re-arms itself -- so `time_until_pos(vpos() + 1)` asks
+          // for the line it is already standing on and gets deferred a frame.
+          vpos: () => {
+            const vtotal = Math.max(1, machine.execution.screen.vtotal);
+            return Math.floor(this.beamPosition()) % vtotal;
+          },
           hpos: () => 0,
           height: () => Math.max(1, machine.execution.screen.vtotal),
           frame_number: () => this.frameRunner?.frameCount ?? 0,
         };
+        // The same services under the chain names a generated device emits:
+        // `screen().vpos()` resolves to one lookup rather than evaluating
+        // `screen()` and then a property, which is what lets codegen compile a
+        // scanline renderer instead of leaving it to the interpreter.
+        const screenServiceCalls: Record<string, (...args: number[]) => unknown> = {};
+        for (const name of HOST_SERVICE_CALLS) {
+          const property = name.slice('screen().'.length);
+          const service = (screenHost as Record<string, unknown>)[property];
+          if (typeof service === 'function') {
+            screenServiceCalls[name] = (...args: number[]) =>
+              (service as (...rest: number[]) => unknown)(...args);
+          }
+        }
         const tapBank = machine.execution.accessTaps
           ?.find(tap => tap.device === specification.tag)?.bank;
         const device = createDevice(specification.type, {
@@ -383,9 +406,7 @@ class IrBoard implements Board {
             },
           } : {}),
           ...(specification.slotDefault ? { slot: specification.slotDefault } : {}),
-          selectors: {
-            'cart.mapper': config.cart?.mapper,
-          },
+          selectors: cartSelectors(config.cart),
           finder: (rawTag, member) => {
             const inferredTag = member?.replace(/^m_/, '');
             const tag = rawTag.replace(/^[\^:]+/, '') ||
@@ -438,6 +459,7 @@ class IrBoard implements Board {
           },
           calls: {
             screen: () => screenHost,
+            ...screenServiceCalls,
             exists: () => 1,
             // A tapping device drives a bank the board owns; MAME reaches it
             // through the device's own required_memory_bank finder, which
@@ -1360,7 +1382,22 @@ class IrBoard implements Board {
           (index: number) => group[index] ?? 0,
         );
       }
-      video = new GeneratedVideoRenderer(machine, primitives);
+      // A video-display processor draws its own picture: hand the renderer the
+      // generated device's update instead of a driver handler to execute.
+      const deviceTag = machine.execution.screenUpdate.deviceTag;
+      const updateMethod = machine.execution.screenUpdate.handler.split('.').pop()!;
+      const deviceUpdate: DeviceScreenUpdate | undefined = deviceTag
+        ? (screen, bitmap, cliprect) => {
+            const device = this.devices.get(deviceTag);
+            if (!device) {
+              throw new Error(
+                `${machine.game}: screen-update device "${deviceTag}" is not composed`,
+              );
+            }
+            return Number(device.invoke(updateMethod, screen, bitmap, cliprect) ?? 0);
+          }
+        : undefined;
+      video = new GeneratedVideoRenderer(machine, primitives, deviceUpdate);
     }
     this.frameRunner = new GeneratedFrameRunner({
       machine,
@@ -3874,4 +3911,25 @@ function usedHandlers(
     ...(cpu.opcode?.ranges ?? []),
     ...(cpu.io?.ranges ?? []),
   ]).flatMap(range => range[kind] ? [range[kind]!] : []);
+}
+
+/**
+ * The mounted cartridge's facts, offered to slot devices under their own
+ * names. A capability package declares which one selects its card
+ * (`cart.mapper` for the NES, `cart.slot` for the ColecoVision), so adding a
+ * cartridge bus never means editing this list.
+ *
+ * A card is selected by a name or a number; a flag such as `battery`
+ * describes the cartridge rather than choosing a PCB, so it is left out.
+ */
+function cartSelectors(
+  cart: BoardConfig['cart'],
+): Record<string, string | number | undefined> {
+  const selectors: Record<string, string | number | undefined> = {};
+  for (const [fact, value] of Object.entries(cart ?? {})) {
+    if (typeof value === 'string' || typeof value === 'number') {
+      selectors[`cart.${fact}`] = value;
+    }
+  }
+  return selectors;
 }

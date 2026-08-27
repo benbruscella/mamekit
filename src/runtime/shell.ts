@@ -147,10 +147,19 @@ export interface DropZone {
  * Look for the romset on the web. Sources and their order live in
  * rom-source.ts, shared with the console room's cartridge fetch.
  */
-async function fetchRomSet(game: string): Promise<Uint8Array> {
-  const bytes = await fetchRomBytes(`arcade/${game}.zip`);
+async function fetchRomSet(game: string, category = 'arcade'): Promise<Uint8Array> {
+  const bytes = await fetchRomBytes(`${category}/${game}.zip`);
   if (!bytes) throw new Error(`no web source had ${game}.zip`);
   return bytes;
+}
+
+/**
+ * Where this machine's own romset lives, mirroring the .data/roms layout:
+ * "arcade/pacman.zip", "consoles/coleco.zip". A console's cartridges sit one
+ * level deeper, under the machine's own directory.
+ */
+function romCategory(dataPath: string): string {
+  return dataPath.replace(/^games\//, '').split('/')[0] ?? 'arcade';
 }
 
 /** result of checking an uploaded zip against the knowledge-graph manifest */
@@ -238,6 +247,15 @@ export interface ShellConfig {
   /** console cart facts from the generator (catalog url, capability lists) */
   cart?: {
     interface: string; list: string; catalogUrl: string; slots: string[]; games: string[];
+    /**
+     * The slot option a cartridge takes when its software-list entry names
+     * none, as MAME's own slot device declares it. coleco.xml names a slot on
+     * no entry at all, so without this every ColecoVision cartridge would
+     * resolve to no board.
+     */
+    defaultSlot?: string;
+    /** ROM region a cartridge PCB loads into, as MAME's rom_alloc names it. */
+    romRegion?: string;
     /** generated cartridge availability index, when a local dump audit existed */
     cartsUrl?: string;
     /**
@@ -551,7 +569,14 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   // (persisted only in the visitor's own browser via cartstore, by explicit
   // user approval 2026-07-07).
   let regions: Regions;
-  if (preloaded) {
+  // A cartridge is the whole machine only when the machine needs no ROM files
+  // of its own. The NES declares a maincpu region with nothing in it -- the
+  // cartridge fills it -- while the ColecoVision declares a real BIOS, so its
+  // cartridge mounts ON TOP of the romset rather than instead of it. Keying on
+  // the region list instead of the loads inside it would send the NES looking
+  // for an nes.zip that does not exist.
+  const needsRomFiles = cfg.roms.some(spec => spec.loads.length > 0);
+  if (preloaded && !needsRomFiles) {
     regions = preloaded;
   } else {
     // Device firmware is just as boot-critical as CPU code even though MAME
@@ -563,8 +588,11 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
       ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
       : '';
     ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (never stored).`);
-    const files = await waitForZip(ui, zone, cfg.roms, critical, cfg.game);
+    const files = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath));
     regions = assembleRegions(cfg.roms, files, ui.status, critical);
+    // The cartridge the console room already resolved wins over anything of
+    // the same name in the machine set.
+    if (preloaded) Object.assign(regions, preloaded);
   }
 
   // driver-init ROM byte patches from the graph (rocnrope's one-instruction fix)
@@ -1210,6 +1238,7 @@ function waitForZip(
   specs: RomRegionSpec[],
   critical: Set<string>,
   game: string,
+  category: string,
 ): Promise<Map<string, Uint8Array>> {
   return new Promise(resolve => {
     const pick = document.createElement('input');
@@ -1280,7 +1309,7 @@ function waitForZip(
         fn();
       }, Math.max(0, 2400 - (performance.now() - started)));
       const sets = [game, ...dependencyRomSets(specs, game)];
-      Promise.allSettled(sets.map(async set => ({ set, raw: await fetchRomSet(set) }))).then(
+      Promise.allSettled(sets.map(async set => ({ set, raw: await fetchRomSet(set, category) }))).then(
         results => finish(() => {
           const found = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : []);
           if (!found.length) {

@@ -1,5 +1,6 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
 import { isFloatingExpression } from '../ir/execute.ts';
+import { HOST_SERVICE_CALLS } from '../ir/board.ts';
 import type {
   GeneratedDeviceCallback,
   GeneratedDeviceDefinition,
@@ -332,7 +333,12 @@ function supportsMethod(
         const inner = expression.callee.object;
         supported = (
           linked !== undefined &&
-          (definition.links ?? []).some(link => link.call === linked)
+          (
+            (definition.links ?? []).some(link => link.call === linked) ||
+            // A framework service the board binds for every device: same
+            // direct lookup, no target device to resolve.
+            HOST_SERVICE_CALLS.includes(linked)
+          )
         ) ||
           inner.kind !== 'call' ||
           inner.callee.kind !== 'identifier' ||
@@ -485,7 +491,14 @@ function emitOperation(
     } else {
       lines.push(`${pad}  default:`);
     }
+    // C++ gives each case its own scope; a JavaScript switch gives all of them
+    // one. MAME writes a `uint16_t addr` per arm as a matter of course -- the
+    // TMS9928A declares `addr`, `fg` and `bg` in several of its display-mode
+    // arms -- so without a block per case the emitted method redeclares them
+    // and does not compile at all. Braces do not affect fall-through.
+    lines.push(`${pad}  {`);
     lines.push(emitOperations(entry.body, context, indentation + 4));
+    lines.push(`${pad}  }`);
   }
   lines.push(`${pad}}`);
   return lines.filter(Boolean).join('\n');
@@ -810,7 +823,10 @@ function emitCall(
     const directName = linkedMemberCallName(expression);
     if (
       directName &&
-      context.definition.links?.some(link => link.call === directName)
+      (
+        context.definition.links?.some(link => link.call === directName) ||
+        HOST_SERVICE_CALLS.includes(directName)
+      )
     ) {
       return `(runtime.calls[${JSON.stringify(directName)}]?.(${args.join(', ')}) ?? 0)`;
     }

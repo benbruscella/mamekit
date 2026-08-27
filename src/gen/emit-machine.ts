@@ -184,6 +184,7 @@ export function lowerGeneratedMachine(
       if (props.targetClass) callback.targetClass = String(props.targetClass);
       if (props.targetMethod) callback.targetMethod = String(props.targetMethod);
       if (props.targetPort) callback.targetPort = String(props.targetPort);
+      if (props.deviceTag) callback.deviceTag = String(props.deviceTag);
       if (props.inputLine) callback.inputLine = String(props.inputLine);
       const lineDelivery = /\b(HOLD|ASSERT|PULSE)_LINE\b/.exec(String(props.raw ?? ''))?.[1];
       if (lineDelivery) callback.delivery = lineDelivery.toLowerCase() as 'hold' | 'assert' | 'pulse';
@@ -429,6 +430,9 @@ export function lowerGeneratedMachine(
     ...(screenCallback?.targetClass && screenCallback.targetMethod ? {
       screenUpdate: {
         handler: `${screenCallback.targetClass}.${screenCallback.targetMethod}`,
+        // Set when the update belongs to a generated device rather than the
+        // driver's own state class.
+        ...(screenCallback.deviceTag ? { deviceTag: screenCallback.deviceTag } : {}),
         ...((screenHandler?.source ?? screenCallback.source)
           ? { source: screenHandler?.source ?? screenCallback.source }
           : {}),

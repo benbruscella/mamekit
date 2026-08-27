@@ -343,4 +343,105 @@ const floatTable = compileMameHandler(`
 assert.deepEqual(floatTable.diagnostics, []);
 assert.equal(executeGeneratedProgram(floatTable, {}).value, 150);
 
-console.log('handler-ir.spec: 43 passed');
+// Range-for. `for (auto &elem : m_Regs)` gives the element name no storage of
+// its own, so a write through it must reach the sequence -- which is the whole
+// point of the reference in tms9928a_device::device_reset.
+const rangeClear = compileMameHandler(`
+  for (auto & elem : m_Regs)
+    elem = 0;
+`);
+assert.deepEqual(rangeClear.diagnostics, []);
+assert.equal(rangeClear.operations[0]?.op, 'for');
+{
+  const m_Regs = [1, 2, 3, 4];
+  executeGeneratedProgram(rangeClear, { members: { m_Regs } });
+  assert.deepEqual(m_Regs, [0, 0, 0, 0]);
+}
+
+// Reads through the binding see the element, and the sequence is walked in
+// order rather than by value.
+const rangeSum = compileMameHandler(`
+  int total = 0;
+  for (const auto &value : m_table)
+    total += value;
+  return total;
+`);
+assert.deepEqual(rangeSum.diagnostics, []);
+assert.equal(
+  executeGeneratedProgram(rangeSum, { members: { m_table: [10, 20, 30] } }).value,
+  60,
+);
+
+// A nested range-for keeps each loop's own binding, and the inner one restores
+// the outer's name when it ends.
+const rangeNested = compileMameHandler(`
+  int total = 0;
+  for (auto &outer : m_rows) {
+    for (auto &inner : m_cols)
+      total += inner;
+    total += outer;
+  }
+  return total;
+`);
+assert.deepEqual(rangeNested.diagnostics, []);
+assert.equal(
+  executeGeneratedProgram(rangeNested, {
+    members: { m_rows: [1, 2], m_cols: [10, 20] },
+  }).value,
+  63,
+);
+
+// A counted for whose clause holds a conditional is not a range-for: the `:`
+// belongs to the `?`, and misreading it would silently drop the loop.
+const conditionalClause = compileMameHandler(`
+  for (int i = 0; i < (m_wide ? 4 : 2); i++)
+    m_values[i] = data;
+`);
+assert.deepEqual(conditionalClause.diagnostics, []);
+assert.equal(conditionalClause.operations[0]?.op, 'for');
+
+// A template argument list belongs to the type. Read as `<` and `>` it made
+// `std::vector<uint32_t> &codelookup = ...` an assignment to a comparison --
+// and silently, with no diagnostic, so gauntlet_state::video_start emitted a
+// broken operation the moment its range-for stopped blocking the handler.
+const templateReference = compileMameHandler(`
+  std::vector<uint32_t> &codelookup = m_mob->code_lookup();
+  for (auto & elem : codelookup)
+    elem ^= 0x800;
+`);
+assert.deepEqual(templateReference.diagnostics, []);
+assert.deepEqual(templateReference.operations.map(operation => operation.op), ['declare', 'for']);
+{
+  // The declaration binds a reference, so the loop must reach the real table.
+  const table = [0x000, 0x001, 0x800];
+  executeGeneratedProgram(templateReference, {
+    referenceCalls: { 'm_mob.code_lookup': () => table },
+  });
+  assert.deepEqual(table, [0x800, 0x801, 0x000]);
+}
+
+// Nested template arguments close on the right bracket, not the first one.
+const nestedTemplate = compileMameHandler('std::vector<std::pair<int, int>> rows = source();');
+assert.deepEqual(nestedTemplate.diagnostics, []);
+assert.equal(nestedTemplate.operations[0]?.op, 'declare');
+assert.equal(
+  (nestedTemplate.operations[0] as { name: string }).name,
+  'rows',
+  'the declared name follows the whole template argument list',
+);
+
+// A genuine comparison must not be mistaken for one: nothing declarator-shaped
+// follows the closing bracket, so these stay expressions.
+const angleComparison = compileMameHandler('if (m_count < m_limit) return m_high > m_low;');
+assert.deepEqual(angleComparison.diagnostics, []);
+assert.equal(angleComparison.operations[0]?.op, 'if');
+assert.equal(
+  executeGeneratedProgram(
+    compileMameHandler('return a < b > c;'),
+    { members: { a: 1, b: 2, c: 0 } },
+  ).value,
+  1,
+  '`a < b > c` is still two comparisons',
+);
+
+console.log('handler-ir.spec: 55 passed');

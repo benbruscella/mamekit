@@ -311,6 +311,17 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
       // hardware plan. Source-shaped direct renderers likewise execute the
       // callback without requiring the generic handler compiler to lower it.
       screenUpdates++;
+    } else if (screenUpdate.deviceTag) {
+      // A video-display processor draws its own picture, so the update is one
+      // of its generated device methods and never appears among the driver's
+      // handlers. What must hold is that the board actually composes it.
+      if (machine.devices?.some(device => device.tag === screenUpdate.deviceTag)) {
+        screenUpdates++;
+      } else {
+        failures.push(
+          `${target}: screen-update device "${screenUpdate.deviceTag}" is not composed`,
+        );
+      }
     } else {
       const handler = handlers.get(screenUpdate.handler);
       if (!handler?.program) failures.push(`${target}: screen update ${screenUpdate.handler} has no program`);

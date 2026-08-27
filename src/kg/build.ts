@@ -10,6 +10,7 @@ import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
 } from '../ir/execute.ts';
+import { deviceConfiguredScreen } from '../mame/screen-config.ts';
 import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
@@ -844,6 +845,8 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       textMacros.strings,
     );
   }
+
+  recordDeviceConfiguredScreen(g, mameSrc);
 
   return g.toGraph({
     tool: 'mamekit',
@@ -2018,4 +2021,63 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
       !shadowedCallbacks.has(node.id) && !removedDeviceIds.has(node.id)),
     edges: edges.filter(edge => reachable.has(edge.from) && reachable.has(edge.to)),
   };
+}
+
+/**
+ * Record what a video-display processor configures on the screen it owns.
+ *
+ * A driver normally sets its screen up itself -- raw parameters, and
+ * `m_screen->set_screen_update(FUNC(pacman_state::screen_update_pacman))`. A
+ * machine built around a VDP does neither: coleco.cpp writes only
+ * `SCREEN(config, "screen")`, and the TMS9928A fills both in from its own
+ * `device_config_complete()`. Those calls are as real as a driver's, so the
+ * graph carries their results -- the geometry on the screen, and the update as
+ * the callback it is, owned by the SCREEN and pointing at the device that
+ * draws.
+ */
+function recordDeviceConfiguredScreen(g: GraphBuilder, mameSrc: string): void {
+  const nodes = [...g.nodes.values()];
+  if (nodes.some(node =>
+    node.label === 'Callback' && node.props.signal === 'set_screen_update')) return;
+  const screen = nodes.find(node =>
+    node.label === 'Device' && node.props.type === 'SCREEN');
+  const tag = screen && String(screen.props.tag ?? '');
+  if (!screen || !tag) return;
+  // Geometry already declared by the driver means the screen is the driver's
+  // to configure, and a device did not claim it.
+  if (screen.props.screenRaw || screen.props.screenRefreshHz) return;
+  const claims = new RegExp(`\\.set_screen\\(\\s*"${tag}"\\s*\\)`);
+  for (const device of nodes) {
+    if (device.label !== 'Device' || device === screen) continue;
+    const config = Array.isArray(device.props.config) ? device.props.config.map(String) : [];
+    if (!config.some(line => claims.test(line))) continue;
+    const configured = deviceConfiguredScreen(
+      mameSrc,
+      String(device.props.type),
+      Number(device.props.clock ?? 0),
+    );
+    if (!configured) continue;
+    const { raw } = configured;
+    screen.props.screenRaw = [
+      raw.pixclock, raw.htotal, raw.hbend, raw.hbstart,
+      raw.vtotal, raw.vbend, raw.vbstart,
+    ];
+    if (!configured.screenUpdate) return;
+    const className = String(
+      device.props.cls ?? `${String(device.props.type).toLowerCase()}_device`);
+    const id = `${screen.id}/callback:${tag}:device`;
+    g.node('Callback', id, {
+      signal: 'set_screen_update',
+      operation: 'set_screen_update',
+      raw: `screen().set_screen_update(*this, FUNC(${className}::${configured.screenUpdate}))`,
+      ownerTag: tag,
+      deviceTag: String(device.props.tag),
+      targetClass: className,
+      targetMethod: configured.screenUpdate,
+      ...(device.props.sourceFile ? { sourceFile: device.props.sourceFile } : {}),
+      ...(device.props.sourceLine ? { sourceLine: device.props.sourceLine } : {}),
+    });
+    g.edge(screen.id, id, 'HAS_CALLBACK');
+    return;
+  }
 }

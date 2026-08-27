@@ -33,6 +33,7 @@ export interface SoftEntry {
   /** human board name ("NES-NROM-256") */
   pcb?: string;
   mirroring?: string;
+  /** the program area: "prg" on the NES, "rom" on a single-area list */
   prg: SoftArea;
   chr?: SoftArea;
   /** RAM sizes in bytes, when declared */
@@ -149,7 +150,12 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       if (areaName === 'vram') { entry.vram = size; continue; }
       if (areaName === 'wram') { entry.wram = size; continue; }
       if (areaName === 'bwram') { entry.bwram = size; continue; }
-      if (areaName !== 'prg' && areaName !== 'chr') continue;
+      // Every list names its program area for its own hardware. The NES splits
+      // a cartridge into "prg" and "chr"; most consoles -- ColecoVision,
+      // SG-1000, Atari 2600 -- have one area called "rom". Both are the
+      // program area, so both land in `prg` and one identification path
+      // serves every list.
+      if (areaName !== 'prg' && areaName !== 'chr' && areaName !== 'rom') continue;
       const area: SoftArea = { size, roms: [] };
       for (const rm of areaBlock.matchAll(/<rom\b[^>]*\/>/g)) {
         const rAttrs = attrs(rm[0]);
@@ -165,8 +171,8 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
           offset: parseOffset(rAttrs.offset),
         });
       }
-      if (areaName === 'prg') entry.prg = area;
-      else entry.chr = area;
+      if (areaName === 'chr') entry.chr = area;
+      else entry.prg = area;
     }
 
     out.entries.push(entry);

@@ -53,6 +53,12 @@ import {
 } from './nes/definition.ts';
 import { extractNes } from './nes/extract.ts';
 import {
+  COLECO_ID,
+  COLECO_MAME_TYPES,
+  COLECO_PORTS,
+} from './coleco/definition.ts';
+import { extractColeco } from './coleco/extract.ts';
+import {
   SN76489_ID,
   SN76489_MAME_TYPES,
   SN76489_MASTER_GAIN,
@@ -148,6 +154,12 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     ports: NES_PORTS,
     extract: extractNes,
     masterGain: NES_MASTER_GAIN,
+  },
+  {
+    id: COLECO_ID,
+    mameTypes: COLECO_MAME_TYPES,
+    ports: COLECO_PORTS,
+    extract: extractColeco,
   },
   // Audio
   {
