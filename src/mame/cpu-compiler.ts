@@ -1072,7 +1072,7 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
     m_dar[15] = m68ki_read_32(0);
     m_sp[4] = m_dar[15];
     m_pc = m68ki_read_32(4);
-    cycles = 132;
+    cycles = m_cyc_reset;
   `);
   const input = compileMameHandler(`
     if (inputnum >= 1 && inputnum <= 7) {
@@ -1143,6 +1143,7 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
     EXCEPTION_INTERRUPT_AUTOVECTOR: 24,
     EXCEPTION_TRAP_BASE: 32,
     EXCEPTION_MMU_CONFIGURATION: 56,
+    ...m68000CycleConstants(dataFile, dataSource, operations),
   };
   const shiftTable = (name: string): number[] => {
     const body = new RegExp(`${name}\\[65\\]\\s*=\\s*\\{([\\s\\S]*?)\\};`)
@@ -1199,6 +1200,41 @@ export function compileMameM68000(mameSrc: string): GeneratedCpuDefinition {
   };
 }
 
+/**
+ * The per-variant cycle adjustments `m_icount -= m_cyc_*` subtracts.
+ *
+ * These are variant facts rather than opcode facts, so MAME keeps them in
+ * `init_cpu_m68000()` instead of the opcode cycle table the decode rows carry.
+ * The generated bodies reference them by name, and an identifier the codegen
+ * cannot resolve emits 0 -- which charged every untaken Bcc its taken price and
+ * ran a 68000 board measurably slow.  A member the initializer leaves alone
+ * (`m_cyc_movem_store_*` on a plain 68000) is declared 0 here rather than left
+ * unresolved, because MAME's own `x ? x : fallback` reads it as zero.
+ */
+function m68000CycleConstants(
+  dataFile: string,
+  dataSource: string,
+  operations: string,
+): Record<string, number> {
+  const body = /::init_cpu_m68000\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/.exec(dataSource)?.[1];
+  if (!body) {
+    throw new Error(`MAME M68000 source is missing init_cpu_m68000 in ${dataFile}`);
+  }
+  const constants: Record<string, number> = {};
+  for (const [name] of operations.matchAll(/\bm_cyc_\w+/g)) {
+    constants[name!] = 0;
+  }
+  let assigned = 0;
+  for (const [, name, value] of body.matchAll(/\b(m_cyc_\w+)\s*=\s*(-?\d+)\s*;/g)) {
+    constants[name!] = Number(value);
+    assigned++;
+  }
+  if (assigned === 0) {
+    throw new Error(`MAME init_cpu_m68000 declares no m_cyc_* cycle counts in ${dataFile}`);
+  }
+  return constants;
+}
+
 function normalizeM68000Source(body: string): string {
   // JavaScript numbers exactly represent the 33-bit intermediates used by
   // ROXL/ROXR; keeping these locals unwrapped preserves that extra carry bit.
@@ -1215,6 +1251,12 @@ function normalizeM68000Source(body: string): string {
     source = source.replace(new RegExp(`\\*\\s*${name}\\b`, 'g'), `(${target})`);
   }
   return normalizeMameExecutionSource(source)
+    // A generated opcode body charges its own variable cost against m_icount --
+    // MOVEM per register, an untaken Bcc, DBcc's two outcomes, Scc true. The
+    // emitted core returns a per-step cycle count instead of decrementing a
+    // budget, so those adjustments have to land in `cycles` the way every other
+    // lowered CPU core already routes them, or they are silently discarded.
+    .replace(/\bm_icount\s*-=\s*([^;]+);/g, 'cycles += $1;')
     .replace(/\bDX\(\)/g, 'm_dar[(m_ir >> 9) & 7]')
     .replace(/\bDY\(\)/g, 'm_dar[m_ir & 7]')
     .replace(/\bAX\(\)/g, 'm_dar[8 + ((m_ir >> 9) & 7)]')

@@ -1132,7 +1132,14 @@ function emitIdentifier(name: string, context: EmitContext): string {
   if (context.definition.aliases[name]) return `this.${name}`;
   const member = context.definition.members.find(candidate => candidate.name === name);
   if (member) return member.pair ? `this.${name}.w` : `this.${name}`;
-  return '0';
+  // Emitting 0 for a name the definition never declared is how the M68000's
+  // per-variant cycle counts went missing without a single diagnostic: every
+  // `m_icount -= m_cyc_bcc_notake_b` became `-= 0` and the core ran slow. An
+  // unresolved identifier is an incomplete lowering, so it fails the build.
+  throw new Error(
+    `${context.definition.type} source references "${name}", which the generated ` +
+    'CPU definition declares as neither constant, alias, member nor local',
+  );
 }
 
 function emitPath(path: string, context: EmitContext): string {
