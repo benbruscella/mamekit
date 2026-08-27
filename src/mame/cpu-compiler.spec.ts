@@ -387,6 +387,20 @@ assert.equal(m68000Definition.summary.opcodes, 1699);
 assert.equal(m68000Definition.summary.compiledOpcodes, 1699);
 assert.equal(m68000Definition.summary.diagnostics, 0);
 assert.equal(m68000Definition.addressMask, 0xffffff);
+// init_cpu_m68000()'s per-variant cycle adjustments, which the opcode bodies
+// subtract from m_icount by name. Emitting 0 for them charged an untaken Bcc
+// its taken price on every 68000 board.
+assert.equal(m68000Definition.constants.m_cyc_bcc_notake_b, -2);
+assert.equal(m68000Definition.constants.m_cyc_bcc_notake_w, 2);
+assert.equal(m68000Definition.constants.m_cyc_dbcc_f_noexp, -2);
+assert.equal(m68000Definition.constants.m_cyc_dbcc_f_exp, 2);
+assert.equal(m68000Definition.constants.m_cyc_scc_r_true, 2);
+assert.equal(m68000Definition.constants.m_cyc_movem_w, 4);
+assert.equal(m68000Definition.constants.m_cyc_movem_l, 8);
+assert.equal(m68000Definition.constants.m_cyc_reset, 132);
+// A 68000 leaves these unset, so MAME's `x ? x : m_cyc_movem_w` reads zero.
+assert.equal(m68000Definition.constants.m_cyc_movem_store_w, 0);
+assert.equal(m68000Definition.constants.m_cyc_movem_store_l, 0);
 const m68000Source = generatedCpuExecutableSource(m68000Definition);
 assert.ok(m68000Source.length > 1_000_000);
 assert.match(m68000Source, /address & 16777215/);
@@ -400,6 +414,27 @@ assert.match(
   m68000Source,
   /this\.bus\.write16be\(/,
   'generated 68000 word and long writes must preserve atomic 16-bit bus handlers',
+);
+assert.match(
+  m68000Source,
+  /this\.cycles = \(\(this\.cycles\) \+ \(-2\)\);/,
+  'an untaken Bcc must charge the source cycle adjustment, not the taken price',
+);
+assert.doesNotMatch(
+  m68000Source,
+  /this\.m_icount = \(\(this\.m_icount\) - /,
+  'a cycle charge left on m_icount is discarded: the core returns `cycles`',
+);
+assert.throws(
+  () => generatedCpuExecutableSource({
+    ...m68000Definition,
+    constants: Object.fromEntries(
+      Object.entries(m68000Definition.constants)
+        .filter(([name]) => name !== 'm_cyc_bcc_notake_b'),
+    ),
+  }),
+  /m_cyc_bcc_notake_b/,
+  'an identifier the CPU definition never declares must fail generation, not emit 0',
 );
 clearGeneratedCpus();
 registerGeneratedCpu(m68000Definition);
