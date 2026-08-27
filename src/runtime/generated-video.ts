@@ -3173,6 +3173,17 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   }
 
   /** MAME allocates one priority bitmap per screen; so does this. */
+  /**
+   * Decoded graphics owned by one MAME decode member.
+   *
+   * A device_gfx_interface device answers its own `gfx(n)` from the table its
+   * machine-config line gave it, not from the driver's m_gfxdecode, so the
+   * composition host needs the group by member name to bind that call.
+   */
+  gfxForDecodeMember(member: string): GeneratedGfxElement[] | undefined {
+    return this.gfxByDecode.get(member);
+  }
+
   screenPriority(): GeneratedPriorityBitmap {
     return (this.priorityBitmap ??= new GeneratedPriorityBitmap(this.machine));
   }
@@ -4102,13 +4113,20 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const spriteBitmap = this.state.m_sprite_bitmap;
     const mixCollide = this.state.m_mix_collide;
     const spriteCollide = this.state.m_sprite_collide;
+    // The collision arrays reach here as whatever video_start's
+    // make_unique_clear<u8[]> produced. That is a typed array, not the plain
+    // array the plan's initial state declares, and requiring one shape
+    // silently dropped this whole path back to the interpreter: Wonder Boy
+    // then ran at 6 fps with no background at all.
+    const numbers = (value: unknown): value is { [index: number]: number } =>
+      ArrayBuffer.isView(value) || Array.isArray(value);
     if (
       !Array.isArray(pages) || !(pages[0] instanceof GeneratedTilemap) ||
       !(pages[1] instanceof GeneratedTilemap) ||
-      !(ArrayBuffer.isView(video) || Array.isArray(video)) ||
+      !numbers(video) ||
       !ArrayBuffer.isView(sprites) || !ArrayBuffer.isView(spriteRom) ||
       !ArrayBuffer.isView(lookup) || !(spriteBitmap instanceof GeneratedIndexedBitmap) ||
-      !Array.isArray(mixCollide) || !Array.isArray(spriteCollide)
+      !numbers(mixCollide) || !numbers(spriteCollide)
     ) return false;
 
     if (Number(this.state.m_video_mode ?? 0) & 0x10) {
@@ -4185,8 +4203,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       }
     }
 
-    let xScroll = (videoRam[0xffc] ?? 0) | ((videoRam[0xffd] ?? 0) << 8);
-    xScroll += 28;
+    // MAME takes the s16 of (raw + 28), so a scroll past 0x7fff is negative
+    // there and a large positive here; and its `/ 2` truncates toward zero
+    // where Math.floor would step an extra pixel on every negative odd value.
+    let xScroll = (((videoRam[0xffc] ?? 0) | ((videoRam[0xffd] ?? 0) << 8)) + 28) << 16 >> 16;
     let yScroll = videoRam[0xfbd] ?? 0;
     if (flipped) {
       xScroll = 640 - (xScroll & 0x1ff);
@@ -4195,7 +4215,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     for (let y = cliprect.min_y; y <= cliprect.max_y; y++) {
       const backgroundY = (y + yScroll) & 0x1ff;
       for (let x = cliprect.min_x; x <= cliprect.max_x; x++) {
-        const backgroundX = Math.floor((x - xScroll) / 2) & 0x1ff;
+        const backgroundX = Math.trunc((x - xScroll) / 2) & 0x1ff;
         const foregroundPixel = foreground.pix(y & 0xff, Math.floor(x / 2) & 0xff);
         // System 1's four background quadrants all point at page zero here;
         // pixmap coordinates wrap at 256 exactly as the source pointer array.

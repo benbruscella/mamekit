@@ -134,6 +134,8 @@ export interface GeneratedDeviceDefinition {
   };
   role?: string;
   links?: GeneratedDeviceLink[];
+  /** Machine-config setter -> device_delegate member it assigns. */
+  delegates?: Record<string, string>;
   clockDivider?: number;
   dataAddressBits?: number;
   compiledMethods?: GeneratedDeviceMethodMap;
@@ -168,6 +170,8 @@ export interface Device {
   cycleClock(): number;
   dataAddressBits(): number | undefined;
   bus(): GeneratedDeviceDefinition['bus'];
+  /** Machine-config setter -> device_delegate member it assigns. */
+  delegates?(): Record<string, string>;
   role(): string | undefined;
   links(): readonly GeneratedDeviceLink[];
   invokeSlot(name: string, ...args: GeneratedCallArgument[]): unknown;
@@ -711,6 +715,10 @@ class IrDevice implements Device {
 
   bus(): GeneratedDeviceDefinition['bus'] {
     return this.definition.bus;
+  }
+
+  delegates(): Record<string, string> {
+    return this.definition.delegates ?? {};
   }
 
   role(): string | undefined {

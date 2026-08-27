@@ -116,6 +116,15 @@ export interface GeneratedDeviceDefinition {
       method: string;
     }[];
   }[];
+  /**
+   * Machine-config setter -> device_delegate member it assigns.
+   *
+   * MAME spells a device delegate's configuration as an inline forwarding
+   * setter (`set_pri_callback(...) { m_pri_cb.set(...); }`), so the driver's
+   * FUNC() names the setter while the device's own code calls the member.
+   * Composition needs both halves to connect the two.
+   */
+  delegates?: Record<string, string>;
   /** Ratio between the configured input clock and one execute_run cycle. */
   clockDivider?: number;
   /** Address width of the device's internal data space, when source-declared. */
@@ -376,6 +385,14 @@ export function compileMameDevice(
         callbackMethods.has(method.name)
       ))
     .map(method => method.name);
+  const delegates: Record<string, string> = {};
+  for (const className of hierarchy) {
+    for (const setter of (classes.get(className)?.body ?? '').matchAll(
+      /\btemplate\s*<[^>]*>\s*void\s+(\w+)\s*\([^)]*\)\s*\{\s*(m_\w+)\s*\.set\s*\(/g,
+    )) {
+      delegates[setter[1]!] = resolvedMemberName(className, setter[2]!);
+    }
+  }
   return {
     schemaVersion: 1,
     type,
@@ -387,6 +404,7 @@ export function compileMameDevice(
     callbacks,
     timers,
     methods,
+    ...(Object.keys(delegates).length ? { delegates } : {}),
     ...(hotMethods.length ? { hotMethods } : {}),
     ...(clockDivider ? { clockDivider } : {}),
     ...(dataAddressBits ? { dataAddressBits } : {}),
@@ -612,7 +630,7 @@ function classHierarchy(
 function compileMethod(
   method: MameFunction,
   interruptCallbacks: { member: string; line: string; signal: string }[] = [],
-  sourceTables: Record<string, string[]> = {},
+  sourceTables: Record<string, ConstantTable> = {},
 ): GeneratedDeviceMethod {
   let body = method.body.replace(
     /\bm_\w+\s*=\s*std::make_unique\s*<[^;]+;\s*/g,
@@ -628,11 +646,24 @@ function compileMethod(
       `m_${callback.signal}($1)`,
     );
   }
-  for (const [name, values] of Object.entries(sourceTables)) {
-    body = body.replace(
-      new RegExp(`\\b${name}\\s*\\[((?:[^\\[\\]]|\\[[^\\]]*\\])*)\\]`, 'g'),
-      (_entry, index: string) => `TABLE(${index}, ${values.join(', ')})`,
-    );
+  const subscript = '((?:[^\\[\\]]|\\[[^\\]]*\\])*)';
+  for (const [name, table] of Object.entries(sourceTables)) {
+    // A table this method declares itself is a local, and the execution-source
+    // normalizer folds those together with their declaration. Substituting
+    // here as well leaves `static const double TABLE(...) = {...}` behind.
+    if (new RegExp(`\\bstatic\\s+(?:const|constexpr)[^;{]*\\b${name}\\s*\\[`).test(body)) {
+      continue;
+    }
+    body = table.columns === undefined
+      ? body.replace(
+          new RegExp(`\\b${name}\\s*\\[${subscript}\\]`, 'g'),
+          (_entry, index: string) => `TABLE(${index}, ${table.values.join(', ')})`,
+        )
+      : body.replace(
+          new RegExp(`\\b${name}\\s*\\[${subscript}\\]\\s*\\[${subscript}\\]`, 'g'),
+          (_entry, row: string, column: string) =>
+            `TABLE((${row}) * ${table.columns} + (${column}), ${table.values.join(', ')})`,
+        );
   }
   return {
     name: method.name,
@@ -1012,13 +1043,37 @@ function fixedMemberArrays(
   return arrays;
 }
 
-function constantTables(source: string): Record<string, string[]> {
-  return Object.fromEntries([...source.matchAll(
+/**
+ * File-scope `static const` lookup table, flattened row-major.
+ *
+ * `columns` is set for a two-dimensional declaration, which is how MAME
+ * spells a chained-sprite tile order (tecmo_spr.cpp's `layout[8][8]`); the
+ * substitution then folds `t[row][column]` into one flat index.
+ */
+interface ConstantTable {
+  values: string[];
+  columns?: number;
+}
+
+function constantTables(source: string): Record<string, ConstantTable> {
+  const tables: Record<string, ConstantTable> = {};
+  for (const match of source.matchAll(
+    /\bstatic\s+const\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/g,
+  )) {
+    const columns = Number(match[3]);
+    const values = [...match[4]!.matchAll(/\{([^{}]*)\}/g)]
+      .flatMap(row => splitMameArgs(row[1]!).map(value => value.trim()).filter(Boolean));
+    if (values.length !== Number(match[2]) * columns) continue;
+    tables[match[1]!] = { values, columns };
+  }
+  for (const match of source.matchAll(
     /\bstatic\s+const\s+\w+\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
-  )].map(match => [
-    match[1]!,
-    splitMameArgs(match[2]!).map(value => value.trim()),
-  ]));
+  )) {
+    tables[match[1]!] = {
+      values: splitMameArgs(match[2]!).map(value => value.trim()),
+    };
+  }
+  return tables;
 }
 
 function matchingBrace(source: string, open: number): number {

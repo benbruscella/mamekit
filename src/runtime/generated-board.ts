@@ -650,18 +650,6 @@ class IrBoard implements Board {
               value = (value & ~custom.mask) | ((line << shift) & custom.mask);
               continue;
             }
-            if (
-              machine.game === 'arkanoid' &&
-              custom.member === 'arkanoid_semaphore_input_r' &&
-              (!this.devices.has('mcu:mcu') ||
-                usesProtectionProtocolBridge(machine, 'mcu:mcu'))
-            ) {
-              // Immediate protocol mirror: host latch consumed, MCU reply ready.
-              line = 1;
-              const shift = trailingZeroBits(custom.mask);
-              value = (value & ~custom.mask) | ((line << shift) & custom.mask);
-              continue;
-            }
             const handler = machine.handlers?.find(candidate =>
               custom.handler
                 ? `${candidate.ownerClass}.${candidate.method}` === custom.handler
@@ -1148,7 +1136,6 @@ class IrBoard implements Board {
       const firmware = regions[specification.tag] ?? regions[
         Object.keys(regions).find(name => name.endsWith(`:${leaf}`)) ?? ''
       ];
-      if (usesProtectionProtocolBridge(machine, specification.tag)) return [];
       if (
         device && !host && firmware && specification.type === 'M68705P5' &&
         device.methodNames().includes('execute_run') &&
@@ -1258,6 +1245,66 @@ class IrBoard implements Board {
         this.effects,
       );
     }
+    // A machine-config device whose behaviour is compiled board handlers
+    // rather than an executable core (MAME's protection interface devices are
+    // the common case). MAME reaches those methods through the finder member,
+    // and an unresolved `m_member->method()` silently evaluates to zero — that
+    // is how Arkanoid's MCU never saw its own reset line. The device's class
+    // hierarchy is what says whose `reset_w` a member call means.
+    for (const specification of machine.devices ?? []) {
+      if (this.devices.has(specification.tag)) continue;
+      const hierarchy = specification.classHierarchy ?? [];
+      if (!hierarchy.length) continue;
+      const aliases = [
+        specification.member,
+        specification.tag,
+        `m_${specification.tag}`,
+      ].filter((alias): alias is string => Boolean(alias));
+      for (const alias of aliases) {
+        // required_device/optional_device finders: the board instantiated it.
+        this.bindings.calls![`${alias}.found`] ??= () => 1;
+      }
+      const bound = new Set<string>();
+      for (const className of hierarchy) {
+        for (const handler of machine.handlers ?? []) {
+          if (handler.ownerClass !== className || bound.has(handler.method)) continue;
+          if (!handler.program || handler.program.diagnostics.length) continue;
+          bound.add(handler.method);
+          const names = handlerParameterNames(handler.parameters);
+          const run = (...args: unknown[]) => executeGeneratedMachineHandler(
+            machine,
+            handler,
+            this.bindings,
+            Object.fromEntries(names.map((name, index) => [name, args[index] ?? 0])),
+          ) ?? 0;
+          for (const alias of aliases) {
+            this.bindings.calls![`${alias}.${handler.method}`] ??= run;
+          }
+        }
+      }
+    }
+    // A device_delegate configured in machine_config: the driver names the
+    // device's inline setter (m_sprgen->set_pri_callback(FUNC(state::pri_cb)))
+    // while the device's own code calls the member that setter assigns. The
+    // device IR carries that setter -> member map, so the two halves connect
+    // without either side naming the other.
+    for (const callback of machine.callbacks) {
+      const device = this.devices.get(callback.ownerTag);
+      const member = device?.delegates?.()[callback.signal];
+      if (!device || !member || !callback.targetMethod) continue;
+      const handler = machine.handlers?.find(candidate =>
+        candidate.ownerClass === callback.targetClass &&
+        candidate.method === callback.targetMethod);
+      if (!handler?.program || handler.program.diagnostics.length) continue;
+      const names = handlerParameterNames(handler.parameters);
+      device.bindCall(member, (...args: unknown[]) =>
+        executeGeneratedMachineHandler(
+          machine,
+          handler,
+          this.bindings,
+          Object.fromEntries(names.map((name, index) => [name, args[index] ?? 0])),
+        ) ?? 0);
+    }
     let activeFramebuffer: Uint32Array | undefined;
     let video: GeneratedVideoRenderer | undefined;
     const neoGeoInterrupts = machine.family === 'neogeo';
@@ -1299,6 +1346,20 @@ class IrBoard implements Board {
         referenceCalls: this.bindings.referenceCalls,
         callParameters: this.bindings.callParameters,
       });
+      // MAME's device_gfx_interface gives a device its own decoded graphics,
+      // and its draw routines call the bare `gfx(n)` of that set rather than
+      // the driver's m_gfxdecode. The decode member on each plan entry is what
+      // ties the two together; without this binding such a device draws
+      // nothing at all (Rygar's sprites live on TECMO_SPRITE).
+      for (const specification of machine.devices ?? []) {
+        const member = specification.member;
+        const group = member && primitives.gfxForDecodeMember(member);
+        if (!group?.length) continue;
+        this.devices.get(specification.tag)?.bindCall(
+          'gfx',
+          (index: number) => group[index] ?? 0,
+        );
+      }
       video = new GeneratedVideoRenderer(machine, primitives);
     }
     this.frameRunner = new GeneratedFrameRunner({
@@ -2657,39 +2718,7 @@ class IrBoard implements Board {
       initialize();
       return reset;
     }
-    if (
-      machine.game !== 'arkanoid' ||
-      (this.devices.has('mcu:mcu') &&
-        !usesProtectionProtocolBridge(machine, 'mcu:mcu'))
-    ) return undefined;
-
-    // The original Arkanoid boot streams 0xc000 program bytes to its 68705,
-    // then reads the two-byte self-test reply (0x55, 0x00), after one power-on
-    // latch read that returns the interface's source-initialized 0xff.  The paddle and
-    // gameplay controls use the AY input ports; this endpoint is the board's
-    // hardware-test semaphore/latch protocol only.
-    let response = 0;
-    const reset = () => { response = 0; };
-    const dataRead = () => {
-      const pc = this.cpus.get('maincpu')?.get('PC') ?? -1;
-      if (pc === 0x17de) return 0xff;
-      if (pc === 0x0382) return 0x55;
-      // LD A,(0xd018) spans 0x038e..0x0390; the generated Z80 exposes the
-      // post-instruction PC while the mapped read is delivered.
-      if (pc === 0x0391) return 0x00;
-      return [0xff, 0x55, 0x00][response++] ?? 0x00;
-    };
-    const dataWrite = () => {};
-    registry.read['mcu.data_r'] = dataRead;
-    registry.write['mcu.data_w'] = dataWrite;
-    for (const alias of ['mcu', 'm_mcuintf']) {
-      this.bindings.calls![`${alias}.data_r`] = dataRead;
-      this.bindings.calls![`${alias}.data_w`] = dataWrite;
-      this.bindings.calls![`${alias}.host_semaphore_r`] = () => 0;
-      this.bindings.calls![`${alias}.mcu_semaphore_r`] = () => 0;
-      this.bindings.calls![`${alias}.reset_w`] = reset;
-    }
-    return reset;
+    return undefined;
   }
 
   /**
@@ -2809,11 +2838,6 @@ class IrBoard implements Board {
           if (!handler?.program || handler.program.diagnostics.length) continue;
           const result = custom.member === 'startsel_edge_joy_r'
             ? inputs.read('edge:START') & 0x0f
-            : machine.game === 'arkanoid' &&
-            custom.member === 'arkanoid_semaphore_input_r' &&
-            (!this.devices.has('mcu:mcu') ||
-              usesProtectionProtocolBridge(machine, 'mcu:mcu'))
-            ? 1
             : executeGeneratedMachineHandler(
                 machine,
                 handler,
@@ -3620,22 +3644,6 @@ class IrBoard implements Board {
   }
 }
 
-/**
- * Arkanoid still uses its bounded source-level boot protocol.  Taito SJ must
- * execute the dumped MCU: its firmware is a bus master and participates in
- * gameplay after the cold-boot exchange.
- */
-export function usesProtectionProtocolBridge(
-  machine: BoardIr,
-  childTag: string,
-): boolean {
-  const child = machine.devices?.find(device => device.tag === childTag);
-  const host = child?.hostTag
-    ? machine.devices?.find(device => device.tag === child.hostTag)
-    : undefined;
-  return host?.type === 'ARKANOID_68705P5';
-}
-
 /** Scope a composite device's conventional m_cpu finder to its hosted CPU. */
 export function generatedCpuMemberBindings(
   bindings: GeneratedHandlerBindings,
@@ -3772,6 +3780,14 @@ export function bindGeneratedInputState(
     }));
     state[input.member] = ports.length === 1 ? ports[0] : ports;
   }
+}
+
+/** Declared parameter names of a generated handler, in order. */
+function handlerParameterNames(parameters: string | undefined): string[] {
+  return (parameters ?? '')
+    .split(',')
+    .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+    .filter((name): name is string => Boolean(name));
 }
 
 function trailingZeroBits(value: number): number {

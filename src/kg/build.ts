@@ -667,6 +667,17 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       const devId = `device:${cfg.cls}.${cfg.name}/${dev.tag}`;
       const props: Record<string, PropValue> = {
         type: dev.type, tag: dev.tag, clock: dev.clock, config: dev.config,
+        // The C++ classes DEFINE_DEVICE_TYPE gave this device type, most
+        // derived first. Composition needs them to tell whose compiled
+        // handlers a `m_member->method()` call belongs to when the device has
+        // no executable core of its own and its methods are the board's
+        // generated handlers (two unrelated devices both declare reset_w).
+        ...(deviceTypes[dev.type]
+          ? {
+              cls: deviceTypes[dev.type],
+              clsHierarchy: sourceClassHierarchy(ast, deviceTypes[dev.type]!),
+            }
+          : {}),
         ...spanProps(ast.findStatement(dev.config[0] ?? '', cfgFunction)?.span),
       };
       const configCalls = dev.config.flatMap(raw => {
@@ -1229,6 +1240,9 @@ function annotateInputHandlerClosure(
   }
 }
 
+/** MAME's inline device_delegate setter: set_<name>_callback / set_<name>_cb. */
+const DELEGATE_SETTER_RE = /^set_\w+_(?:callback|cb)$/;
+
 const CALLBACK_OPERATIONS = new Set([
   'set', 'append', 'set_ioport', 'set_inputline', 'append_inputline', 'set_nop',
   'set_screen_update', 'set_vblank_int', 'set_periodic_int',
@@ -1296,6 +1310,42 @@ export function attotimeSeconds(
   return amount * scale;
 }
 
+/**
+ * A device class and its MAME-declared base classes, most derived first.
+ *
+ * Only classes the parsed sources actually declare are listed; MAME's own
+ * device_t roots are not part of any generated handler set.
+ */
+function sourceClassHierarchy(ast: MameAstIndex, className: string): string[] {
+  const classes = new Map(
+    ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]),
+  );
+  const result: string[] = [];
+  const seen = new Set<string>();
+  const visit = (name: string): void => {
+    if (seen.has(name)) return;
+    seen.add(name);
+    const declaration = classes.get(name);
+    if (!declaration) return;
+    result.push(name);
+    for (const base of declaration.bases) visit(base.split('::').at(-1)!);
+  };
+  visit(className);
+  return result;
+}
+
+/**
+ * A MAME method body that only computes and returns a value.
+ *
+ * Anything that assigns, increments or calls out is excluded: the generated
+ * handlers share one member namespace, so a speculatively compiled mutator can
+ * write a member another class owns.
+ */
+function isSourceAccessor(body: string): boolean {
+  const statements = stripComments(body).trim();
+  return /^return\b[^;]*;$/.test(statements) && !/[-+]{2}|[^=!<>]=[^=]/.test(statements);
+}
+
 function emitCallbacks(
   g: GraphBuilder,
   ast: MameAstIndex,
@@ -1321,7 +1371,15 @@ function emitCallbacks(
       source?.file ?? 'unknown', raw, source?.start ?? 0,
     );
     const operationIndex = calls.findIndex(call =>
-      CALLBACK_OPERATIONS.has(call.name) &&
+      (
+        CALLBACK_OPERATIONS.has(call.name) ||
+        // A device_delegate is configured through an inline forwarding setter
+        // rather than a devcb chain: TECMO_SPRITE's sprite priority arrives as
+        // m_sprgen->set_pri_callback(FUNC(tecmo_state::pri_cb)). The naming is
+        // a MAME-wide convention, so match the shape, not the device.
+        (DELEGATE_SETTER_RE.test(call.name) &&
+          call.args.some(arg => /FUNC\s*\(/.test(arg)))
+      ) &&
       (call.name !== 'set' || call.args.some(arg => /FUNC\s*\(|INPUT_LINE_/.test(arg))),
     );
     if (operationIndex < 0) continue;
@@ -1345,6 +1403,12 @@ function emitCallbacks(
     const callbackId = `${devId}/callback:${callbackOwner}:${callbackIndex++}`;
     const props: Record<string, PropValue> = {
       signal: signal.name,
+      // A device_delegate setter is machine configuration, not a devcb the
+      // board dispatches at runtime: the device calls the delegate itself.
+      ...(DELEGATE_SETTER_RE.test(operation.name) &&
+        !CALLBACK_OPERATIONS.has(operation.name)
+        ? { delegate: 1 }
+        : {}),
       // A devcb whose appended lambda only asks the scheduler for a finer
       // interleave is a scheduling fact, not an unconnected output.
       operation: operation.name === 'append' && raw.includes('perfect_quantum(')
@@ -1558,10 +1622,30 @@ function emitSourceHandlerClosure(
   // video_register_w -> acknowledge_interrupt path is one example). Scan
   // unqualified call syntax as a conservative supplement; AST lookup below
   // rejects keywords, macros and unrelated functions.
+  // Reads through a device finder (`m_mcuintf->host_semaphore_r()`) that the
+  // statement index missed. Arkanoid's semaphore field reads two of them and
+  // only the second was ever compiled, so the host half silently answered zero
+  // for the whole boot handshake. Only side-effect-free accessors are followed
+  // here: every generated handler shares one member namespace, so compiling a
+  // mutating device method this speculatively can overwrite a driver share of
+  // the same name (atari_motion_objects_device::set_xscroll and Gauntlet's
+  // m_xscroll are the pair that proved it).
+  const accessorNames = new Set<string>();
   for (const match of fn.body.matchAll(/\b([A-Za-z_]\w*)\s*(?:<[^;{}()]+>)?\s*\(/g)) {
     const before = match.index ? fn.body[match.index - 1] : '';
-    if (before === '.' || before === '>' || before === ':') continue;
+    if (before === '.' || before === '>' || before === ':') {
+      if (before === '>' && match.index > 1 && fn.body[match.index - 2] === '-') {
+        accessorNames.add(match[1]!);
+      }
+      continue;
+    }
     callNames.add(match[1]!);
+  }
+  for (const callName of accessorNames) {
+    if (callNames.has(callName)) continue;
+    const accessor = ast.findFunctionInHierarchy(fn.className, callName)
+      ?? ast.findUniqueFunction(callName);
+    if (accessor && isSourceAccessor(accessor.body)) callNames.add(callName);
   }
   for (const callName of callNames) {
     // Calls through a required_device member may enter a composed device
