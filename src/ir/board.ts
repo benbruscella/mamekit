@@ -73,6 +73,13 @@ export interface GeneratedCallback {
   targetClass?: string;
   targetMethod?: string;
   targetPort?: string;
+  /**
+   * MAME `device_delegate` configuration (`set_pri_callback(FUNC(...))`)
+   * rather than a devcb the board dispatches: the owning device calls the
+   * delegate itself, so composition binds it to the device instead of
+   * lowering it to a board connection.
+   */
+  delegate?: boolean;
   inputLine?: string;
   /** Constant line state supplied by MAME's set_inputline helper. */
   delivery?: CpuLineDelivery;

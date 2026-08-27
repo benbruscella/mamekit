@@ -1334,6 +1334,18 @@ function sourceClassHierarchy(ast: MameAstIndex, className: string): string[] {
   return result;
 }
 
+/**
+ * A MAME method body that only computes and returns a value.
+ *
+ * Anything that assigns, increments or calls out is excluded: the generated
+ * handlers share one member namespace, so a speculatively compiled mutator can
+ * write a member another class owns.
+ */
+function isSourceAccessor(body: string): boolean {
+  const statements = stripComments(body).trim();
+  return /^return\b[^;]*;$/.test(statements) && !/[-+]{2}|[^=!<>]=[^=]/.test(statements);
+}
+
 function emitCallbacks(
   g: GraphBuilder,
   ast: MameAstIndex,
@@ -1391,6 +1403,12 @@ function emitCallbacks(
     const callbackId = `${devId}/callback:${callbackOwner}:${callbackIndex++}`;
     const props: Record<string, PropValue> = {
       signal: signal.name,
+      // A device_delegate setter is machine configuration, not a devcb the
+      // board dispatches at runtime: the device calls the delegate itself.
+      ...(DELEGATE_SETTER_RE.test(operation.name) &&
+        !CALLBACK_OPERATIONS.has(operation.name)
+        ? { delegate: 1 }
+        : {}),
       // A devcb whose appended lambda only asks the scheduler for a finer
       // interleave is a scheduling fact, not an unconnected output.
       operation: operation.name === 'append' && raw.includes('perfect_quantum(')
@@ -1604,16 +1622,30 @@ function emitSourceHandlerClosure(
   // video_register_w -> acknowledge_interrupt path is one example). Scan
   // unqualified call syntax as a conservative supplement; AST lookup below
   // rejects keywords, macros and unrelated functions.
+  // Reads through a device finder (`m_mcuintf->host_semaphore_r()`) that the
+  // statement index missed. Arkanoid's semaphore field reads two of them and
+  // only the second was ever compiled, so the host half silently answered zero
+  // for the whole boot handshake. Only side-effect-free accessors are followed
+  // here: every generated handler shares one member namespace, so compiling a
+  // mutating device method this speculatively can overwrite a driver share of
+  // the same name (atari_motion_objects_device::set_xscroll and Gauntlet's
+  // m_xscroll are the pair that proved it).
+  const accessorNames = new Set<string>();
   for (const match of fn.body.matchAll(/\b([A-Za-z_]\w*)\s*(?:<[^;{}()]+>)?\s*\(/g)) {
     const before = match.index ? fn.body[match.index - 1] : '';
-    const arrow = before === '>' && match.index > 1 && fn.body[match.index - 2] === '-';
-    // A call through a device-finder member is part of the closure, and the
-    // statement index only records the last chain in a statement: Arkanoid's
-    // semaphore field reads both m_mcuintf->host_semaphore_r() and
-    // ->mcu_semaphore_r(), and only the second was ever compiled, so the host
-    // half silently answered zero for the whole boot handshake.
-    if (!arrow && (before === '.' || before === '>' || before === ':')) continue;
+    if (before === '.' || before === '>' || before === ':') {
+      if (before === '>' && match.index > 1 && fn.body[match.index - 2] === '-') {
+        accessorNames.add(match[1]!);
+      }
+      continue;
+    }
     callNames.add(match[1]!);
+  }
+  for (const callName of accessorNames) {
+    if (callNames.has(callName)) continue;
+    const accessor = ast.findFunctionInHierarchy(fn.className, callName)
+      ?? ast.findUniqueFunction(callName);
+    if (accessor && isSourceAccessor(accessor.body)) callNames.add(callName);
   }
   for (const callName of callNames) {
     // Calls through a required_device member may enter a composed device

@@ -26,7 +26,9 @@ export function isSchedulerCallback(callback: GeneratedCallback): boolean {
 
 /** Configuration selectors consumed by their owning subsystem, not signals. */
 export function isDeclarativeCallback(callback: GeneratedCallback): boolean {
-  return callback.signal === 'set_screen_update';
+  // A device_delegate setter belongs to the same class: the owning device
+  // holds the delegate and calls it, so there is no board effect to dispatch.
+  return callback.signal === 'set_screen_update' || callback.delegate === true;
 }
 
 /**

@@ -170,6 +170,7 @@ export function lowerGeneratedMachine(
         signal: String(props.signal),
         operation: String(props.operation),
       };
+      if (props.delegate) callback.delegate = true;
       if (props.slot !== undefined && Number.isFinite(Number(props.slot))) {
         callback.slot = Number(props.slot);
       }
@@ -621,7 +622,10 @@ export function lowerGeneratedMachine(
         : undefined;
   // set_screen_update selects the renderer entry point; it is consumed by
   // GeneratedVideoRenderer and is not a devcb signal dispatched at runtime.
-  const effectCallbacks = callbacks.filter(callback => callback.signal !== 'set_screen_update');
+  // A device_delegate setter is configuration too: the owning device invokes
+  // the delegate itself, so there is no board connection to dispatch.
+  const effectCallbacks = callbacks.filter(callback =>
+    callback.signal !== 'set_screen_update' && !callback.delegate);
   const lowered = lowerConnections(effectCallbacks, {
     cpuTags: new Set(execution.cpus.map(cpu => cpu.tag)),
     deviceTags: new Set(devices.map(device => device.tag)),
