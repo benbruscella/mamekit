@@ -1113,6 +1113,26 @@ export function parseMemberTags(src: string): Record<string, string> {
  * Element count of each finder-array declaration. Device arrays use
  * `<Type, N>`, while memory-bank arrays use `<N>`.
  */
+/**
+ * Names declared by `GFXDECODE_START(<name>)` in the parsed source.
+ *
+ * Memoised per source string: the device loop asks once per instantiation and
+ * a combined driver source is megabytes long.
+ */
+let gfxDecodeTableNameSource: string | undefined;
+let gfxDecodeTableNameSet = new Set<string>();
+
+function gfxDecodeTableNames(src: string): Set<string> {
+  if (gfxDecodeTableNameSource === src) return gfxDecodeTableNameSet;
+  const names = new Set<string>();
+  for (const match of src.matchAll(/\bGFXDECODE_START\s*\(\s*(\w+)\s*\)/g)) {
+    names.add(match[1]!);
+  }
+  gfxDecodeTableNameSource = src;
+  gfxDecodeTableNameSet = names;
+  return names;
+}
+
 function arrayFinderCounts(src: string): Record<string, number> {
   const counts: Record<string, number> = {};
   const re = /\b(?:required|optional)_\w*array\s*<([^<>]*)>\s+(m_\w+)\s*;/g;
@@ -1284,8 +1304,21 @@ export function parseMachineConfigs(
         byRef.set(dev.tag, dev);
         if (ref.startsWith('"')) byRef.set(unquote(ref), dev);
         // GFXDECODE(config, m_gfxdecode, m_palette, gfx_galaga)
-        if (type === 'GFXDECODE' && args.length > 2) {
-          dev.gfxDecodeName = args[args.length - 1]?.trim();
+        //
+        // A GFXDECODE device is not the only owner of a decode table: any
+        // device_gfx_interface device takes its own palette + table through
+        // the same constructor shape, and MAME then answers that device's
+        // gfx(n) from it rather than from the driver's m_gfxdecode
+        // (TECMO_SPRITE(config, m_sprgen, m_palette, gfx_tecmo_spr) is where
+        // Rygar's sprites live). Recognise the table by its declaration in
+        // source instead of by device type, so the rule holds for every such
+        // device without naming any of them.
+        const trailing = args.length > 2 ? args[args.length - 1]?.trim() ?? '' : '';
+        if (
+          trailing &&
+          (type === 'GFXDECODE' || gfxDecodeTableNames(src).has(trailing))
+        ) {
+          dev.gfxDecodeName = trailing;
         }
         // Slot device with an options table + quoted default.  Most option
         // tables use a *_devices name (NES), but MAME also uses board-specific

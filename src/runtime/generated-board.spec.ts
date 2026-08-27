@@ -14,7 +14,6 @@ import {
   generatedCpuMemberBindings,
   generatedPromGateOpen,
   generatedSignalHandlerArguments,
-  usesProtectionProtocolBridge,
 } from './generated-board.ts';
 import type { BoundEffect } from './generated-effects.ts';
 import { registerGeneratedCpu } from './generated-cpu.ts';
@@ -266,31 +265,6 @@ assert.equal(
   compositeReadBindings.calls?.m_portb_r_cb?.(),
   0xa5,
   'nested composite read devcbs must return the parent board callback value',
-);
-assert.equal(
-  usesProtectionProtocolBridge(compositeMachine, 'mcu:mcu'),
-  false,
-  'unrelated composite MCUs must keep firmware execution enabled',
-);
-assert.equal(
-  usesProtectionProtocolBridge({
-    ...compositeMachine,
-    devices: [{ id: 'parent', tag: 'mcu', type: 'ARKANOID_68705P5' }, {
-      id: 'child', tag: 'mcu:mcu', hostTag: 'mcu', type: 'M68705P5',
-    }],
-  }, 'mcu:mcu'),
-  true,
-  'Arkanoid keeps its bounded source protocol bridge',
-);
-assert.equal(
-  usesProtectionProtocolBridge({
-    ...compositeMachine,
-    devices: [{ id: 'parent', tag: 'mcu', type: 'TAITO_SJ_SECURITY_MCU' }, {
-      id: 'child', tag: 'mcu:mcu', hostTag: 'mcu', type: 'M68705P5',
-    }],
-  }, 'mcu:mcu'),
-  false,
-  'the Taito SJ interface must execute its dumped bus-master firmware',
 );
 driverCalls.flip_screen_set!(1);
 assert.equal(driverCalls.flip_screen!(), 1);

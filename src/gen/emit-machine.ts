@@ -236,6 +236,10 @@ export function lowerGeneratedMachine(
       id: node.id,
       tag,
       type: String(node.props.type),
+      ...(node.props.cls ? { className: String(node.props.cls) } : {}),
+      ...(Array.isArray(node.props.clsHierarchy) && node.props.clsHierarchy.length
+        ? { classHierarchy: node.props.clsHierarchy.map(String) }
+        : {}),
       ...(hostTag ? { hostTag } : {}),
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),

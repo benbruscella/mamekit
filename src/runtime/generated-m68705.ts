@@ -45,6 +45,11 @@ export class GeneratedM68705P5Device implements Device {
   private readonly listeners = new Map<string, DeviceCallbackListener[]>();
   private readonly calls: Record<string, (...args: any[]) => unknown> = {};
   private readonly portLatch = Uint8Array.from([0xff, 0xff, 0xff]);
+  // Levels an external device drives onto the port pins. MAME keeps these in
+  // m_port_input, written by pa_w/pb_w/pc_w and refreshed from a port read
+  // callback when one is configured; a read then merges them with the output
+  // latch through the DDR. Arkanoid's host latch reaches its MCU only here.
+  private readonly portInput = Uint8Array.from([0xff, 0xff, 0xff]);
   private readonly portDdr = new Uint8Array(3);
   private a = 0;
   private x = 0;
@@ -60,6 +65,7 @@ export class GeneratedM68705P5Device implements Device {
   private timerDivisor = 7;
   private timerSource = 0;
   private waiting = false;
+  private resetHeld = false;
   private icount = 0;
 
   constructor(options: GeneratedDeviceOptions) {
@@ -74,6 +80,7 @@ export class GeneratedM68705P5Device implements Device {
 
   reset(): void {
     this.portDdr.fill(0);
+    this.portInput.fill(0xff);
     this.a = 0;
     this.x = 0;
     this.sp = 0x7f;
@@ -103,13 +110,26 @@ export class GeneratedM68705P5Device implements Device {
       const line = Number(args[0] ?? 0);
       const active = Number(args[1] ?? 0) !== 0;
       if (line === -2) {
-        if (active) this.reset();
+        // MAME holds the core in reset for as long as the line is asserted and
+        // lets it start from that state when the line is released. Resetting
+        // on the edge and running through the assert window instead let the
+        // firmware complete its power-on handshake while its host still had
+        // the semaphores forced clear, so the reply was thrown away and never
+        // repeated (Arkanoid's "BAD HARDWARE").
+        if (active && !this.resetHeld) this.reset();
+        this.resetHeld = active;
         return 0;
       }
       if (line === 0 && active !== this.irqLine) {
         this.irqLine = active;
         if (active) this.irq = true;
       }
+      return 0;
+    }
+    const portInput = /^p([abc])_w$/.exec(name);
+    if (portInput) {
+      const index = portInput[1]!.charCodeAt(0) - 97;
+      this.portInput[index] = Number(args[0] ?? 0xff) & (index === 2 ? 0x0f : 0xff);
       return 0;
     }
     return this.calls[name]?.(...args) ?? 0;
@@ -173,13 +193,18 @@ export class GeneratedM68705P5Device implements Device {
   }
 
   methodNames(): readonly string[] {
-    return ['execute_run', 'execute_set_input', 'set_input_line'];
+    return [
+      'execute_run', 'execute_set_input', 'set_input_line',
+      'pa_w', 'pb_w', 'pc_w',
+    ];
   }
   arity(name: string): number {
-    return name === 'execute_set_input' || name === 'set_input_line' ? 2 : 0;
+    if (name === 'execute_set_input' || name === 'set_input_line') return 2;
+    return /^p[abc]_w$/.test(name) ? 1 : 0;
   }
   parameters(name: string): readonly string[] {
-    return name === 'execute_set_input' ? ['inputnum', 'state'] : [];
+    if (name === 'execute_set_input') return ['inputnum', 'state'];
+    return /^p[abc]_w$/.test(name) ? ['data'] : [];
   }
   signalNames(): readonly string[] {
     return [
@@ -208,6 +233,10 @@ export class GeneratedM68705P5Device implements Device {
 
   private run(): number {
     const target = Math.max(0, this.icount | 0);
+    if (this.resetHeld) {
+      this.icount -= target;
+      return target;
+    }
     let used = 0;
     while (used < target) {
       if ((this.irq || this.timerIrq) && !(this.cc & I)) {
@@ -458,8 +487,11 @@ export class GeneratedM68705P5Device implements Device {
   private readPort(port: number): number {
     const mask = port === 2 ? 0xf0 : 0;
     const signal = ['porta_r', 'portb_r', 'portc_r'][port]!;
-    const input = Number(this.listeners.get(signal)?.[0]?.() ?? 0xff);
+    const callback = this.listeners.get(signal)?.[0];
+    if (callback) this.portInput[port] = Number(callback() ?? 0xff) & ~mask;
+
     const ddr = this.portDdr[port] ?? 0;
+    const input = this.portInput[port] ?? 0xff;
     return (mask | ((this.portLatch[port] ?? 0xff) & ddr) | (input & ~ddr)) & 0xff;
   }
 

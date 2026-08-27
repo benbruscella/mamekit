@@ -47,11 +47,35 @@ export function generatedHandlerRegistry(
       .filter(handler => handler.program && handler.program.diagnostics.length === 0)
       .map(handler => [`${handler.ownerClass}.${handler.method}`, handler]),
   );
+  // Which MAME classes each device tag's methods may come from. A map entry
+  // names a device tag, not a class, so `watchdog.reset_w` and the Arkanoid
+  // MCU interface's `reset_w` are the same bare method name on two unrelated
+  // devices. Resolving by name alone sent every watchdog kick into the MCU's
+  // reset line, holding the 68705 in reset for the whole boot handshake.
+  const deviceClasses = new Map(
+    (machine.devices ?? [])
+      .filter(device => device.classHierarchy?.length)
+      .map(device => [device.tag, device.classHierarchy!]),
+  );
+  const ownedClasses = new Set([...deviceClasses.values()].flat());
   const resolve = (key: string): GeneratedHandler | undefined => {
     const exact = handlers.get(key);
     if (exact) return exact;
-    const method = key.slice(key.indexOf('.') + 1);
-    const matches = [...handlers.values()].filter(handler => handler.method === method);
+    const separator = key.indexOf('.');
+    const tag = key.slice(0, separator);
+    const method = key.slice(separator + 1);
+    const hierarchy = deviceClasses.get(tag);
+    for (const className of hierarchy ?? []) {
+      const owned = handlers.get(`${className}.${method}`);
+      if (owned) return owned;
+    }
+    // The device's own classes have no such compiled method. A same-named
+    // method that belongs to *another* device is never a substitute — that is
+    // what routed every `watchdog.reset_w` kick into the Arkanoid MCU's reset
+    // line — while one declared by the driver itself still is.
+    const matches = [...handlers.values()].filter(handler =>
+      handler.method === method &&
+      (hierarchy?.includes(handler.ownerClass) || !ownedClasses.has(handler.ownerClass)));
     return matches.length === 1 ? matches[0] : undefined;
   };
 

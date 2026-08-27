@@ -172,6 +172,10 @@ export interface GeneratedDevice {
   id: string;
   tag: string;
   type: string;
+  /** C++ class DEFINE_DEVICE_TYPE binds to this device type. */
+  className?: string;
+  /** That class and its MAME base classes, most derived first. */
+  classHierarchy?: string[];
   /** Owning board device for a device_add_mconfig child. */
   hostTag?: string;
   member?: string;

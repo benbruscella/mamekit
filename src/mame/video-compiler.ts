@@ -1418,14 +1418,47 @@ function compileDecodeBindings(
   // A derived machine can replace the layout table of a GFXDECODE device
   // instantiated by its base config (`m_gfxdecode->set_info(gfx_pacmanbl)`).
   // Carry the original device's member/palette binding onto the replacement.
+  //
+  // The same edge also carries decodes owned by a device_gfx_interface device
+  // rather than by GFXDECODE — TECMO_SPRITE(config, m_sprgen, m_palette,
+  // gfx_tecmo_spr). Those answer their own gfx(n), so they need their own
+  // member binding; without one the entries never reach the plan and the
+  // device draws nothing.
   for (const edge of graph.edges.filter(edge =>
     machineIds.has(edge.from) && edge.rel === 'DECODES')) {
     const deviceTag = String(edge.props?.deviceTag ?? '');
-    const binding = bindingsByTag.get(deviceTag);
     const decode = graph.nodes.find(node => node.id === edge.to);
-    if (binding && decode) bindings.set(String(decode.props.name), binding);
+    if (!decode) continue;
+    const binding = bindingsByTag.get(deviceTag)
+      ?? deviceGfxInterfaceBinding(graph, deviceIds, deviceTag);
+    if (binding) bindings.set(String(decode.props.name), binding);
   }
   return bindings;
+}
+
+/**
+ * Member/palette binding for a non-GFXDECODE device that owns a decode table.
+ *
+ * MAME's device_gfx_interface constructor takes the palette and the table in
+ * the two arguments after the device reference, which is the same shape the
+ * GFXDECODE macro uses.
+ */
+function deviceGfxInterfaceBinding(
+  graph: KnowledgeGraph,
+  deviceIds: Set<string>,
+  deviceTag: string,
+): { decodeMember: string; paletteMember: string } | undefined {
+  const device = graph.nodes.find(node =>
+    deviceIds.has(node.id) &&
+    node.label === 'Device' &&
+    String(node.props.tag) === deviceTag);
+  if (!device) return undefined;
+  const raw = ((device.props.config as string[] | undefined) ?? []).join('\n');
+  const args = new RegExp(
+    `\\b[A-Z][A-Z0-9_]+\\s*\\(\\s*config\\s*,\\s*(m_\\w+)\\s*,\\s*(m_\\w+)\\s*,\\s*(\\w+)`,
+  ).exec(raw);
+  if (!args) return undefined;
+  return { decodeMember: args[1]!, paletteMember: args[2]! };
 }
 
 interface PaletteNetwork {
