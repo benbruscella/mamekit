@@ -865,7 +865,10 @@ export async function runMenu(): Promise<void> {
     // sibling first, the archival scan once if that is missing.
     const [web, archival] = artworkSources(`media/consoles/${game}.png`);
     const photo = document.createElement('img');
-    photo.loading = 'lazy';
+    // NOT lazy: this image is held out of the document until it has decoded,
+    // and lazy loading is driven by intersection with the viewport -- a
+    // detached element never intersects anything, so the fetch is deferred
+    // for ever, `load` never fires and the tile keeps the drawn deck.
     photo.decoding = 'async';
     photo.alt = '';
     photo.style.cssText =
