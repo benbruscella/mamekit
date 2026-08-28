@@ -881,7 +881,13 @@ function emitValueMemberCall(
 ): string {
   if (expression.callee.kind !== 'member') return `${object}(${args.join(', ')})`;
   const property = expression.callee.property;
-  const access = `(${object}).${property}`;
+  // A member holding a C++ pointer is a generated pointer at run time, not the
+  // thing it points at: `m_vram_space = &space(AS_DATA)` makes every
+  // `m_vram_space->read_byte(...)` a call on the wrapper. The interpreter
+  // dereferences before it looks for the method, and emitted code that did not
+  // found no `read_byte`, took the `?? 0` fallback, and drew the TMS9928A's
+  // whole active display as empty VRAM.
+  const access = `(runtime.dereference(${object})).${property}`;
   if (args.length || !memberChainName(expression.callee.object)) {
     // The value may not implement the accessor MAME spells here: the runtime
     // models a gfx_element without `mark_dirty`, and the interpreter answers

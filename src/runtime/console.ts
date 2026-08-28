@@ -496,16 +496,34 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     void runShell(cfg2, regions);
   };
 
+  /**
+   * The link that boots this cartridge again.
+   *
+   * Absolute, because the room's page carries `<base href="../../">` so a
+   * relative pushState resolves against /app/ and drops the `g/<console>/`
+   * route -- which left a shareable-looking `/app/?cart=...` that reloads into
+   * the main menu, since only the console room reads `?cart`. Keeping
+   * `location.pathname` also preserves a Pages base path.
+   *
+   * The record id is `<console>:<crc>`; on the console's own route the prefix
+   * is noise, so the link carries the crc alone.
+   */
+  const cartLink = (rec: CartRecord): string =>
+    `${location.pathname}?cart=${encodeURIComponent(rec.id.split(':').pop() ?? rec.id)}`;
+
   const bootCart = (rec: CartRecord, resolved: ResolvedCart | null): void => {
     if (!playable(resolved)) return;
-    history.pushState(null, '', '?cart=' + encodeURIComponent(rec.id));
+    history.pushState(null, '', cartLink(rec));
     boot(rec, resolved);
   };
 
   // --- deep link: ?cart=<id> boots straight into the game ---------------------
   const cartParam = new URLSearchParams(location.search).get('cart');
   if (cartParam) {
-    const rec = await store.get(cartParam);
+    // A bare crc names a cart of THIS console; a fully qualified id still
+    // works, so links made before the short form keep resolving.
+    const id = cartParam.includes(':') ? cartParam : `${cfg.game}:${cartParam}`;
+    const rec = await store.get(id);
     const resolved = rec ? resolveRec(rec, catalog, support) : null;
     if (rec && playable(resolved)) { boot(rec, resolved); return; }
     history.replaceState(null, '', location.pathname); // unknown/unplayable id — show the room

@@ -219,6 +219,52 @@ export function inputKeys(game: string, type: string): string[] | undefined {
   return GAME_KEYMAP[game]?.[type] ?? KEYMAP[type];
 }
 
+/**
+ * The browser key for one key of a MAME keypad, taken from the name the field
+ * carries. A keypad has no fixed set of buttons -- the ColecoVision's twelve
+ * are 0-9, * and # -- so the label is the only thing that says which key this
+ * is, and MAME writes it for the player to read.
+ */
+export function keypadKeys(name: string | undefined): string[] | undefined {
+  // "0", "1 (pad 1)", "* (SAC pad 2)": the key is the leading token.
+  const label = /^\s*([0-9*#])(?![0-9A-Za-z])/.exec(name ?? '')?.[1];
+  if (!label) return undefined;
+  if (label >= '0' && label <= '9') return [`Digit${label}`, `Numpad${label}`];
+  // MAME puts these on the numeric keypad's own symbols.
+  return label === '*' ? ['NumpadMultiply', 'Minus'] : ['NumpadSubtract', 'Equal'];
+}
+
+/**
+ * Does a field's PORT_CONDITION hold for the machine as configured?
+ *
+ * MAME hangs alternate controllers off the same ports and marks each field
+ * with the selector value it belongs to: the ColecoVision's Super Action
+ * Controller, Driving Controller and Roller Controller all live beside the
+ * standard pad. Ignoring the condition binds every one of them at once, which
+ * gave coleco a control legend offering "purple action button" and "steer
+ * left" on keys the standard pad already uses.
+ */
+export function fieldConditionHolds(
+  modifiers: readonly string[],
+  settings: ReadonlyMap<string, number>,
+): boolean {
+  for (const modifier of modifiers) {
+    const match = /PORT_CONDITION\s*\(\s*"([^"]+)"\s*,\s*([^,]+),\s*(\w+)\s*,\s*([^)]+)\)/
+      .exec(modifier);
+    if (!match) continue;
+    const current = settings.get(match[1]!.trim());
+    // A selector the machine does not configure leaves the field as MAME
+    // leaves it: available.
+    if (current === undefined) continue;
+    const masked = current & Number(match[2]!.trim());
+    const value = Number(match[4]!.trim());
+    if (!Number.isFinite(masked) || !Number.isFinite(value)) continue;
+    const holds = match[3] === 'NOTEQUALS' ? masked !== value : masked === value;
+    if (!holds) return false;
+  }
+  return true;
+}
+
 // Cart-slot options (mappers/PCBs) each runtime board family implements —
 // a device-library capability table like CPU_TYPES, not a game fact. The
 // softlist catalog carries every cart's slot; the app greys out the rest.
@@ -1355,6 +1401,24 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const portSpecs: { tag: string; init: number }[] = [];
   const bindings: unknown[] = [];
   const dipDefaults: unknown[] = [];
+  /** The one keypad given keyboard keys; see the keypad binding below. */
+  let boundKeypad: string | undefined;
+  /**
+   * Configuration-switch defaults, which PORT_CONDITION reads by port tag.
+   *
+   * Collected before anything is bound: MAME declares the selector wherever it
+   * likes, and coleco.cpp puts CTRLSEL last -- after every field whose
+   * availability depends on it.
+   */
+  const selectorDefaults = new Map<string, number>();
+  for (const port of ports) {
+    for (const field of port.fields) {
+      if (field.props.kind !== 'dip') continue;
+      const mask = Number(field.props.mask);
+      const value = Number(field.props.defaultValue ?? mask);
+      selectorDefaults.set(port.tag, (selectorDefaults.get(port.tag) ?? 0) | (value & mask));
+    }
+  }
   const customs: NonNullable<BoardConfig['customs']> = [];
   const inputLatches: NonNullable<BoardConfig['inputLatches']> = [];
   const changedLatchMembers = new Map<string, string | undefined>();
@@ -1483,6 +1547,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         }
         if (mods.includes('PORT_COCKTAIL')) continue;  // player-2 cocktail path: unbound
         if (mods.includes('PORT_PLAYER(2)')) continue; // don't double-bind P1 keys
+        // An alternate controller's fields belong to a selector setting this
+        // machine is not configured for. They stay in the port map -- the
+        // source declares them -- but they are not bound or advertised.
+        if (!fieldConditionHolds(mods, selectorDefaults)) continue;
         const sourceNumber = (value: string): number => Number(value.trim());
         const minMax = mods
           .map(modifier => /PORT_MINMAX\s*\(\s*([^,]+),\s*([^\)]+)\)/.exec(modifier))
@@ -1503,7 +1571,20 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           });
           continue;
         }
-        const keys = inputKeys(opts.game, type);
+        // A keypad key is identified by its label, not by its IPT type: every
+        // one of the twelve is IPT_KEYPAD.
+        //
+        // Only the first keypad is bound. A ColecoVision has two, each with
+        // the same twelve keys, and one keyboard cannot press "1" on one pad
+        // without pressing it on the other -- so the second stays reachable as
+        // a raw port rather than shadowing the first.
+        let keys = type === 'IPT_KEYPAD'
+          ? keypadKeys(named)
+          : inputKeys(opts.game, type);
+        if (type === 'IPT_KEYPAD') {
+          if (boundKeypad && boundKeypad !== tag) keys = undefined;
+          else boundKeypad = tag;
+        }
         if (keys) bindings.push({
           port: tag,
           mask,
