@@ -554,10 +554,29 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   const sub = el('div', 'color:#7f8ac9;letter-spacing:6px;font-size:11px;font-weight:600');
   sub.textContent = ['CONSOLE', entry?.manufacturer, entry?.year].filter(Boolean).join(' · ');
   marquee.append(title, sub);
-  // the front-loader hero (inline SVG, crisp at any DPR)
-  const hero = el('div', 'width:230px;height:132px;flex:0 0 auto;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))');
+  // The machine itself: its own photograph when the artwork tree has one, and
+  // the drawn deck when it does not -- that deck is one generic front-loader,
+  // so every console wore an NES body until this.
+  const hero = el('div', `width:230px;height:132px;flex:0 0 auto;display:flex;
+    align-items:center;justify-content:center;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))`);
   hero.setAttribute('data-console-hero', '');
   hero.innerHTML = consoleDeckSvg(230, 132, { idPrefix: 'hero' });
+  {
+    const [web, archival] = artworkSources(`media/consoles/${cfg.game}.png`);
+    const photo = document.createElement('img');
+    photo.decoding = 'async';
+    photo.alt = '';
+    // The cutout has no background of its own, so it sits in the banner rather
+    // than as a pasted-on white rectangle; the shadow is the machine's.
+    photo.style.cssText = `max-width:100%;max-height:100%;object-fit:contain;
+      filter:drop-shadow(0 6px 14px rgba(0,0,0,.55))`;
+    photo.addEventListener('error', () => {
+      if (!photo.src.endsWith(archival)) photo.src = archival;
+    });
+    // Swap only once it has decoded, so a console with no scan keeps the deck.
+    photo.addEventListener('load', () => { hero.innerHTML = ''; hero.append(photo); });
+    photo.src = web;
+  }
   const aboutBtn = document.createElement('button');
   aboutBtn.textContent = 'About this console';
   aboutBtn.setAttribute('data-about', '');

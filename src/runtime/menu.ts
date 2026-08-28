@@ -649,6 +649,11 @@ export async function runMenu(): Promise<void> {
     // `hasCover` is the manifest saying whether the scan exists at all, so a
     // machine without one goes straight to its own art instead of waiting out
     // two 404s (the console sat black for the whole of the bucket's round trip).
+    // A console is known by the machine, not by a flyer: the catalog's console
+    // flyers are regional advertising -- an Italian mail-order page for the
+    // ColecoVision, a Japanese Famicom spread for the NES -- and either one
+    // beat the hardware to the tile while this ran first.
+    if (entry.kind === 'console') { swapConsoleCover(entry.game, canvas); return; }
     const flyer = entry.hasCover === false
       ? null
       : await loadArtworkImage(`covers/${entry.game}.png`);
@@ -669,9 +674,6 @@ export async function runMenu(): Promise<void> {
       );
       return;
     }
-    // consoles: no cabinet/screenshot ladder — a stylized front-loader
-    // placeholder unless real box art (step 0 above) exists
-    if (entry.kind === 'console') { swapConsoleCover(canvas); return; }
     // 1. cabinet artwork frame (drawn immediately; the deterministic
     //    screenshot fills the CRT window when it's ready)
     if (entry.hasArt && await paintArtwork(entry, canvas, ctx)) return;
@@ -839,22 +841,50 @@ export async function runMenu(): Promise<void> {
   }
 
   /**
-   * Stylized console hardware cover: a grey front-loader deck (lighter top,
-   * darker lower front, near-black flap) with the thin red accent stripe —
-   * no trademarked artwork, pure geometry.
+   * The console's cover: its own photograph when the artwork tree has one,
+   * and a stylized deck when it does not.
+   *
+   * The drawn deck is one generic front-loader, so every console wore the same
+   * body — a ColecoVision looked like an NES. A machine photograph is the same
+   * kind of asset an arcade cabinet shot is, lives in the same tree under the
+   * same short name, and simply reads as the actual hardware.
    */
-  // Consoles get a crisp inline-SVG front-loader instead of a canvas painter:
-  // swap the <canvas> cover for a <div> holding the SVG (sharp at any DPR).
-  // Trademark-free: neutral "CONTROL DECK" wordmark, classic dark stripes,
-  // red power LED, cartridge flap. Matches the console room's hero art.
-  function swapConsoleCover(canvas: HTMLCanvasElement): void {
+  function swapConsoleCover(game: string, canvas: HTMLCanvasElement): void {
     const host = el('div', canvas.style.cssText);
     host.style.background = 'linear-gradient(#171a2b,#0a0b14)';
     host.style.display = 'flex';
     host.style.alignItems = 'center';
     host.style.justifyContent = 'center';
-    host.innerHTML = consoleDeckSvg(300, 400, {
-      caption: '▸ ENTER TO INSERT CARTS', idPrefix: 'menu', top: 400 * 0.34,
+    const drawDeck = (): void => {
+      host.innerHTML = consoleDeckSvg(300, 400, {
+        caption: '▸ ENTER TO INSERT CARTS', idPrefix: 'menu', top: 400 * 0.34,
+      });
+    };
+    drawDeck();
+    // Same two-source ladder the modal's artwork uses: the shipped .webp
+    // sibling first, the archival scan once if that is missing.
+    const [web, archival] = artworkSources(`media/consoles/${game}.png`);
+    const photo = document.createElement('img');
+    photo.loading = 'lazy';
+    photo.decoding = 'async';
+    photo.alt = '';
+    photo.style.cssText =
+      `max-width:92%;max-height:62%;object-fit:contain;
+       filter:drop-shadow(0 16px 26px rgba(0,0,0,.7))`;
+    photo.addEventListener('error', () => {
+      if (!photo.src.endsWith(archival)) photo.src = archival;
+    });
+    photo.src = web;
+    // Only replace the drawn deck once the photograph has actually decoded, so
+    // a console with no scan never flashes an empty tile.
+    photo.addEventListener('load', () => {
+      host.innerHTML = '';
+      host.style.flexDirection = 'column';
+      host.style.gap = '18px';
+      const caption = el('div',
+        `font:700 13px ui-monospace,monospace;letter-spacing:2px;color:#7f8ac9`);
+      caption.textContent = '▸ ENTER TO INSERT CARTS';
+      host.append(photo, caption);
     });
     canvas.replaceWith(host);
   }

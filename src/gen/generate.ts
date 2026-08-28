@@ -2067,7 +2067,7 @@ function machineDossierMarkdown(d: {
 // carts/ joins them for issue #85: a console's shelf is box scans, and every
 // title the machine claims support for now has one. Shipping them means the
 // supported shelf draws itself from the site, not from a bucket sync.
-const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets', 'carts/nes'];
+const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets', 'media/consoles', 'carts/nes'];
 
 /**
  * Copy the `.webp` siblings into dist/artwork so the site serves its own
