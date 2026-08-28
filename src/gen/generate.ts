@@ -236,6 +236,42 @@ export function keypadKeys(name: string | undefined): string[] | undefined {
 }
 
 /**
+ * The browser key MAME itself names on a field, via `PORT_CODE(KEYCODE_x)`.
+ *
+ * Most controls are identified by their IPT type, which is why KEYMAP is keyed
+ * that way. A console's front-panel switches are not: the Atari 2600's Select
+ * and Reset are plain `IPT_OTHER`, and the only thing that says which key they
+ * belong on is the PORT_CODE MAME writes beside them. Reading it binds those
+ * controls from the source rather than from a guess about what IPT_OTHER means
+ * on this particular machine.
+ *
+ * Used only as a fallback, so a curated KEYMAP choice always wins: this can add
+ * a binding where there was none, never move one.
+ */
+export function portCodeKeys(modifiers: readonly string[]): string[] | undefined {
+  const code = modifiers
+    .map(modifier => /^PORT_CODE\s*\(\s*KEYCODE_(\w+)\s*\)$/.exec(modifier.trim())?.[1])
+    .find((value): value is string => value !== undefined);
+  if (!code) return undefined;
+  if (/^[A-Z]$/.test(code)) return [`Key${code}`];
+  if (/^[0-9]$/.test(code)) return [`Digit${code}`, `Numpad${code}`];
+  if (/^F([1-9]|1[0-2])$/.test(code)) return [code];
+  // Escape and Tab belong to the shell (menu, focus); a machine control must
+  // not take them away from the page, so neither is listed here.
+  const named: Record<string, string> = {
+    SPACE: 'Space', ENTER: 'Enter', BACKSPACE: 'Backspace',
+    LEFT: 'ArrowLeft', RIGHT: 'ArrowRight', UP: 'ArrowUp', DOWN: 'ArrowDown',
+    LSHIFT: 'ShiftLeft', RSHIFT: 'ShiftRight', LALT: 'AltLeft', RALT: 'AltRight',
+    MINUS: 'Minus', EQUALS: 'Equal', COMMA: 'Comma', STOP: 'Period',
+    SLASH: 'Slash', BACKSLASH: 'Backslash', COLON: 'Semicolon', QUOTE: 'Quote',
+    OPENBRACE: 'BracketLeft', CLOSEBRACE: 'BracketRight', TILDE: 'Backquote',
+    HOME: 'Home', END: 'End', INSERT: 'Insert', DEL: 'Delete',
+    PGUP: 'PageUp', PGDN: 'PageDown',
+  };
+  return named[code] ? [named[code]] : undefined;
+}
+
+/**
  * Does a field's PORT_CONDITION hold for the machine as configured?
  *
  * MAME hangs alternate controllers off the same ports and marks each field
@@ -1436,6 +1472,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const dipDefaults: unknown[] = [];
   /** The one keypad given keyboard keys; see the keypad binding below. */
   let boundKeypad: string | undefined;
+  // Keys already spoken for on this machine. A PORT_CODE fallback must not take
+  // a key a curated binding already uses.
+  const boundKeys = new Set<string>();
   /**
    * Configuration-switch defaults, which PORT_CONDITION reads by port tag.
    *
@@ -1618,6 +1657,21 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           if (boundKeypad && boundKeypad !== tag) keys = undefined;
           else boundKeypad = tag;
         }
+        // Nothing in the shared map covers this control, but MAME may have
+        // named its key on the field. A console's Select and Reset switches
+        // arrive that way, and without this they were unreachable: the Atari
+        // 2600 shipped with a legend offering only move and fire.
+        //
+        // Only a field MAME also NAMES: a name is MAME saying a player operates
+        // this control. Donkey Kong Jr's `TST` port carries PORT_CODEs with no
+        // names and sits behind a preprocessor guard the input parser does not
+        // honour, so binding on the code alone put a compiled-out debug switch
+        // on the keyboard.
+        if (!keys && named) {
+          const coded = portCodeKeys(mods)?.filter(key => !boundKeys.has(key));
+          if (coded?.length) keys = coded;
+        }
+        for (const key of keys ?? []) boundKeys.add(key);
         if (keys) bindings.push({
           port: tag,
           mask,

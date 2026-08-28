@@ -227,6 +227,17 @@ class IrBoard implements Board {
   private readonly generatedBanks: Record<string, GeneratedMemoryBank> = {};
   /** MAME address-space taps a mounted cartridge installed over the CPU space. */
   private cartridgeTaps: ((address: number) => void)[] = [];
+  /**
+   * Cycles a CPU has run inside the slice it is running now.
+   *
+   * `cpuCycles` is only banked when a slice ends, so on its own it makes
+   * `total_cycles()` a staircase: every access inside one slice reads the same
+   * number and the count then jumps a whole quantum. Hardware that derives a
+   * beam position from it therefore stood still and teleported -- the Atari
+   * 2600's TIA drew one scanline where three belonged, leaving two of every
+   * three lines black and the picture flickering.
+   */
+  private readonly cpuSliceCycles = new Map<string, number>();
   /** MAME `memory_bank::set_entry` per board bank tag. */
   private readonly bankEntry = new Map<string, (entry: number) => number>();
   /**
@@ -449,7 +460,7 @@ class IrBoard implements Board {
                     cycles / Math.max(1, cpuSpec.cycleClock ?? cpuSpec.clock);
                 }
                 if (method === 'total_cycles') {
-                  return () => this.cpuCycles.get(cpuSpec.tag) ?? 0;
+                  return () => this.totalCycles(cpuSpec.tag);
                 }
                 if (method === 'reset') return () => this.cpus.get(cpuSpec.tag)?.reset();
                 if (method === 'set_input_line') {
@@ -986,6 +997,10 @@ class IrBoard implements Board {
         } : {}),
         timing: (elapsed, target) => {
           this.currentLineFraction = target > 0 ? Math.min(1, elapsed / target) : 0;
+          this.cpuSliceCycles.set(
+            specification.tag,
+            Math.max(0, Math.min(target, elapsed)),
+          );
           if (specification.tag === timerClockCpu?.tag) {
             const current = Math.max(0, Math.min(target, elapsed));
             // run() calls timing(0,target) at the start of each slice and
@@ -1083,7 +1098,7 @@ class IrBoard implements Board {
         }
       };
       calls[`m_${specification.tag}.total_cycles`] = () =>
-        this.cpuCycles.get(specification.tag) ?? 0;
+        this.totalCycles(specification.tag);
       // MAME's device_state_interface, by the state index the CPU's own lowered
       // enum gives the driver (`m_maincpu->state_int(Z80_HL)`).
       calls[`m_${specification.tag}.state_int`] = state => cpu.stateInt(state);
@@ -1440,6 +1455,7 @@ class IrBoard implements Board {
               : 0);
             this.currentLineFraction = 0;
             this.soundRuntime?.tickCpu?.(specification.tag, executed);
+            this.cpuSliceCycles.set(specification.tag, 0);
             this.cpuCycles.set(
               specification.tag,
               (this.cpuCycles.get(specification.tag) ?? 0) + executed,
@@ -1957,6 +1973,14 @@ class IrBoard implements Board {
    * common one: hardware stole cycles from the CPU, so the board holds it back
    * for that many. A positive adjustment gives cycles back.
    */
+  /**
+   * MAME's `total_cycles()`: everything this CPU has run, including the slice
+   * it is inside. Banked cycles alone advance only at slice boundaries.
+   */
+  private totalCycles(cpuTag: string): number {
+    return (this.cpuCycles.get(cpuTag) ?? 0) + (this.cpuSliceCycles.get(cpuTag) ?? 0);
+  }
+
   private adjustGeneratedIcount(cpuTag: string, delta: number): number {
     if (!cpuTag || !delta) return 0;
     this.cpuStalls.set(

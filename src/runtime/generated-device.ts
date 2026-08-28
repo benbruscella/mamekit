@@ -32,6 +32,8 @@ interface DeviceMember {
   };
   /** Declared array bound for an object-typed member (`bitmap_ind16 h[2]`). */
   arrayLength?: number;
+  /** Fields of a member whose type is a struct the device declares. */
+  fields?: { name: string; length?: number }[];
 }
 
 interface DeviceCallback {
@@ -445,6 +447,12 @@ class IrDevice implements Device {
             ? (member.arrayLength
                 ? Array.from({ length: member.arrayLength }, () => new IrMemoryBank())
                 : new IrMemoryBank())
+          // A struct the device declares: build the shape its source gives it,
+          // so the fields a method writes exist to be written.
+          : member.fields
+            ? (member.arrayLength
+                ? Array.from({ length: member.arrayLength }, () => structMember(member.fields!))
+                : structMember(member.fields))
         : member.memory
         ? memoryMember(member, options)
         : member.values ? [...member.values]
@@ -1182,4 +1190,17 @@ function generatedDeviceSpace(addressBits: number): GeneratedDeviceSpace {
  */
 function rgbPixel(red: number, green: number, blue: number): number {
   return ((0xff << 24) | ((blue & 0xff) << 16) | ((green & 0xff) << 8) | (red & 0xff)) >>> 0;
+}
+
+/** A plain-old-data struct member, with each declared field present. */
+function structMember(
+  fields: readonly { name: string; length?: number }[],
+): Record<string, number | number[]> {
+  const value: Record<string, number | number[]> = {};
+  for (const field of fields) {
+    value[field.name] = field.length
+      ? Array.from({ length: field.length }, () => 0)
+      : 0;
+  }
+  return value;
 }

@@ -41,6 +41,15 @@ export interface GeneratedDeviceMember {
    * `values`/`memory`; this is what tells the host to make two of something.
    */
   arrayLength?: number;
+  /**
+   * Fields of a member whose type is a struct the device declares.
+   *
+   * Without a shape the host leaves the member a number and every field access
+   * reads nothing: the TIA hands both its sprite states to one shared draw
+   * routine as `&p0gfx`, and a numeric stand-in drew no players or missiles at
+   * all.
+   */
+  fields?: { name: string; length?: number }[];
 }
 
 export interface GeneratedDeviceCallback {
@@ -240,6 +249,8 @@ export function compileMameDevice(
     coreAddressSpaces(mameSrc),
     ...sources.map(({ source }) => numericConstants(source)),
   );
+  // Struct shapes for members whose type is one the device declares.
+  const structFields = structDeclarations(sources, constants);
   const sourceTables = Object.assign(
     {},
     ...sources.map(({ source }) => constantTables(source)),
@@ -362,6 +373,9 @@ export function compileMameDevice(
         ...(memory ? { memory } : {}),
         ...(finder ? { finder } : {}),
         ...(member.arrayLength ? { arrayLength: member.arrayLength } : {}),
+        ...(structFields.get(member.valueType.replace(/\*$/, '').trim())
+          ? { fields: structFields.get(member.valueType.replace(/\*$/, '').trim()) }
+          : {}),
       }];
     });
   });
@@ -1226,4 +1240,40 @@ function deviceAddressSpaces(
     });
   }
   return spaces;
+}
+
+/**
+ * Every `struct Name { ... };` the device's own sources declare, as field lists.
+ *
+ * MAME gives a device's plain-old-data state its own struct as readily as it
+ * gives it a scalar member, and the host needs the shape to build one. Only the
+ * fields matter here: a name, and an array bound when the field is an array.
+ */
+function structDeclarations(
+  sources: readonly { file: string; source: string }[],
+  constants: Record<string, number>,
+): Map<string, { name: string; length?: number }[]> {
+  const structs = new Map<string, { name: string; length?: number }[]>();
+  for (const { source } of sources) {
+    for (const match of source.matchAll(
+      /\bstruct\s+(\w+)\s*\{([^{}]*)\}\s*;/g,
+    )) {
+      const [, name, body] = match;
+      if (!name || structs.has(name)) continue;
+      const fields: { name: string; length?: number }[] = [];
+      for (const field of body!.matchAll(
+        /^\s*(?:const\s+)?[\w:]+\s+(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/gm,
+      )) {
+        const bound = field[2] === undefined
+          ? undefined
+          : evalExpr(field[2], constants) ?? undefined;
+        fields.push({
+          name: field[1]!,
+          ...(bound !== undefined && bound > 0 ? { length: bound } : {}),
+        });
+      }
+      if (fields.length) structs.set(name, fields);
+    }
+  }
+  return structs;
 }
