@@ -14,6 +14,10 @@ export const REQUIRED_TARGETS: readonly string[] = [
   // supplies, so there is no romset a contract module could name; the console
   // room is covered by the browser suite instead (e2e/specs/console.spec.ts).
   'nes',
+  // The ColecoVision differs from the NES in one way that matters here: its
+  // BIOS is a romset of its own, so it can hold a real contract as soon as
+  // that dump is available. Until then it sits with the NES.
+  'coleco',
 ];
 
 /**

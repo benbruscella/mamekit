@@ -10,6 +10,17 @@ import { executeGeneratedHandler } from '../ir/execute.ts';
 import { decodeGfx, type GfxSet } from './gfx.ts';
 import { executeDvgDisplayList } from '../hardware/vector/dvg.ts';
 
+/**
+ * The screen update of a generated video device, called with MAME's own
+ * `screen_update(screen, bitmap, cliprect)` arguments. Returns the method's
+ * result, or undefined when the device could not run it.
+ */
+export type DeviceScreenUpdate = (
+  screen: { visible_area(): GeneratedRectangle },
+  bitmap: BitmapTarget,
+  cliprect: GeneratedRectangle,
+) => number | undefined;
+
 export interface GeneratedVideoPrimitives extends VideoRenderer {
   generatedVideoBindings(frame: Uint32Array): GeneratedHandlerBindings;
   generatedVideoArgs?(frame: Uint32Array): Record<string, unknown>;
@@ -136,6 +147,12 @@ export class GeneratedVideoRenderer implements VideoRenderer {
   private readonly machine: BoardIr;
   private readonly primitives: GeneratedVideoPrimitives;
   private readonly screenUpdate: NonNullable<BoardIr['callbacks']>[number];
+  /**
+   * Set when a video-display processor draws the picture itself. The device is
+   * generated from its own MAME source, so the update is one of its methods
+   * rather than a driver handler the board can execute.
+   */
+  private readonly deviceScreenUpdate?: DeviceScreenUpdate;
   private readonly indexed: boolean;
   /**
    * bitmap_ind16 machines compose pen indices here, persisting across frames
@@ -145,15 +162,26 @@ export class GeneratedVideoRenderer implements VideoRenderer {
   private readonly penBuffer?: Uint32Array;
   private partialNextY: number;
 
-  constructor(machine: BoardIr, primitives: GeneratedVideoPrimitives) {
+  constructor(
+    machine: BoardIr,
+    primitives: GeneratedVideoPrimitives,
+    deviceScreenUpdate?: DeviceScreenUpdate,
+  ) {
     const screenUpdate = machine.callbacks.find(callback =>
       callback.signal === 'set_screen_update');
     if (!screenUpdate) {
       throw new Error(`generated machine "${machine.game}" has no screen-update callback`);
     }
+    if (machine.execution.screenUpdate?.deviceTag && !deviceScreenUpdate) {
+      throw new Error(
+        `generated machine "${machine.game}": screen update belongs to device ` +
+        `"${machine.execution.screenUpdate.deviceTag}", which the board did not supply`,
+      );
+    }
     this.machine = machine;
     this.primitives = primitives;
     this.screenUpdate = screenUpdate;
+    this.deviceScreenUpdate = deviceScreenUpdate;
     this.indexed = isIndexedScreen(machine);
     this.width = primitives.width;
     this.height = primitives.height;
@@ -342,7 +370,9 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     ) ?? false;
     const result = direct
       ? 0
-      : executeGeneratedCallbackHandler(
+      : this.deviceScreenUpdate
+        ? this.deviceScreenUpdate(screen, bitmap, cliprect)
+        : executeGeneratedCallbackHandler(
           this.machine,
           this.screenUpdate,
           this.primitives.generatedVideoBindings(frame),

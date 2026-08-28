@@ -195,4 +195,40 @@ assert.ok(
   'an overridden source method must retain its qualified base implementation',
 );
 
-console.log('device-compiler.spec: source-derived latch, ER2055 and MB8844 devices passed');
+// A device_memory_interface device keeps its display memory off the CPU bus.
+// The declaration is split three ways in MAME source -- the address_space_config
+// in the constructor initializer, the space index in memory_space_config(), and
+// the map itself -- and all three have to agree for the runtime to back it.
+const vdpDefinition = hardware.get('TMS9928A');
+assert.ok(vdpDefinition, 'MAME hardware index should resolve TMS9928A');
+const generatedVdp = compileMameDevice(mameSrc, vdpDefinition, 'TMS9928A');
+assert.deepEqual(generatedVdp.spaces, [{
+  index: 1, // AS_DATA, read from src/emu/emumem.h rather than restated here
+  name: 'vram',
+  addressBits: 14,
+  dataBits: 8,
+  ram: true,
+}], 'the TMS9928A must carry its own 16K VRAM space');
+assert.equal(
+  generatedVdp.summary.diagnostics,
+  0,
+  'every TMS9928A method must lower, the per-scanline renderer included',
+);
+assert.ok(
+  generatedVdp.methods.some(method => method.name === 'update_line') &&
+  generatedVdp.methods.some(method => method.name === 'screen_update'),
+  'the VDP rendering entry points must be present',
+);
+// The constructor-injected constants pick the NTSC/PAL branch of
+// device_config_complete, so they have to survive the delegating constructor.
+assert.deepEqual(
+  ['m_total_horz', 'm_50hz'].map(name =>
+    generatedVdp.members.find(member => member.name === name)?.initial),
+  [342, 0],
+);
+
+// A device with no address space of its own must not gain one.
+const latchSpaces = compileMameDevice(mameSrc, hardware.get('LS259')!, 'LS259').spaces;
+assert.equal(latchSpaces, undefined, 'a device without a declared space must have none');
+
+console.log('device-compiler.spec: source-derived latch, ER2055, MB8844 and TMS9928A devices passed');

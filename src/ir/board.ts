@@ -89,6 +89,11 @@ export interface GeneratedCallback {
   /** TIMER.configure_scanline start and cadence, expanded against screen vtotal. */
   scanlineStart?: number;
   scanlineIncrement?: number;
+  /**
+   * The generated device whose method the callback names, when a device
+   * installed the callback on itself instead of the driver declaring it.
+   */
+  deviceTag?: string;
   /** Skip a source scanline callback when its PROM lookup is electrically zero. */
   promGate?: { member: string; mask: number };
   /** MAME scheduler::perfect_quantum duration requested by an appended devcb. */
@@ -206,6 +211,29 @@ export interface GeneratedHandler {
   program?: GeneratedHandlerProgram;
   source?: BoardSourceRef;
 }
+
+/**
+ * MAME framework service calls a generated device may reach directly, spelled
+ * as the chain its source writes: `screen().vpos()`.
+ *
+ * These are not device-to-device links -- there is no target device to resolve
+ * -- but services the board binds for every device it composes. The emitter
+ * and the runtime both read this list, so a chain one side emits and the other
+ * never binds cannot exist. Without it a video device's scanline renderer is
+ * declined by codegen and runs interpreted: the TMS9928A's `update_line` calls
+ * `screen().vpos()` on its first line, which took the ColecoVision to 17 fps.
+ */
+export const HOST_SERVICE_CALLS: readonly string[] = [
+  'screen().vpos',
+  'screen().hpos',
+  'screen().height',
+  'screen().frame_number',
+  'screen().time_until_pos',
+  // MAME guards a register write with this so a debugger peek changes nothing.
+  // It sits at the top of the TMS9928A's `read` and `register_write`, and left
+  // the whole port path -- every VRAM byte a game writes -- interpreted.
+  'machine().side_effects_disabled',
+];
 
 export type GeneratedExpression =
   | { kind: 'number'; value: number; floating?: boolean }
@@ -444,6 +472,14 @@ export interface GeneratedExecutionPlan {
   }[];
   screenUpdate?: {
     handler: string;
+    /**
+     * The generated device that owns the update, when a video-display
+     * processor installed it on itself rather than the driver naming a
+     * method of its own state class. MAME's TMS9928A does exactly this in
+     * `device_config_complete()`, so coleco.cpp declares no screen update at
+     * all and the picture is the device's to draw.
+     */
+    deviceTag?: string;
     source?: BoardSourceRef;
   };
 }

@@ -129,6 +129,25 @@ export interface GeneratedDeviceDefinition {
   clockDivider?: number;
   /** Address width of the device's internal data space, when source-declared. */
   dataAddressBits?: number;
+  /**
+   * Address spaces the device declares for itself through
+   * `device_memory_interface`. MAME's video-display processors keep their
+   * display memory this way rather than on the CPU bus: the TMS9928A declares
+   * `address_space_config("vram", ENDIANNESS_BIG, 8, 14, 0, ...)` and reaches
+   * it as `space(AS_DATA)`.
+   *
+   * Only a space whose own address map is flat RAM across the whole range is
+   * recorded. Anything else is a bus the runtime would have to decode, and a
+   * device is left without its space rather than given a wrong one.
+   */
+  spaces?: {
+    /** MAME address-space index, as `space(n)` is called with. */
+    index: number;
+    name: string;
+    addressBits: number;
+    dataBits: number;
+    ram: true;
+  }[];
   start?: string;
   reset?: string;
   summary: {
@@ -212,6 +231,7 @@ export function compileMameDevice(
   const constants = Object.assign(
     {},
     coreLineStates(mameSrc),
+    coreAddressSpaces(mameSrc),
     ...sources.map(({ source }) => numericConstants(source)),
   );
   const sourceTables = Object.assign(
@@ -243,8 +263,15 @@ export function compileMameDevice(
   ]);
   const methods: GeneratedDeviceMethod[] = [];
   const methodOwners = new Map<string, string>();
+  // Raw C++ bodies, kept beside the compiled programs for the few facts that
+  // are read from the source text rather than from IR -- the address-space
+  // declarations below are one.
+  const methodBodies = new Map<string, string>();
   const replaceOrAppend = (method: MameFunction): void => {
     const specialized = specializeMethod(method, specialize);
+    // Recorded even for an ignored method: `memory_space_config` is not
+    // executable device behaviour, but it is where the space indices are said.
+    methodBodies.set(specialized.name, specialized.body);
     if (ignoredMethods.has(specialized.name) || specialized.parameters.includes('...')) return;
     const signature = methodSignature(specialized.name, specialized.parameters);
     const existing = methods.findIndex(candidate =>
@@ -369,6 +396,7 @@ export function compileMameDevice(
   const source = sources.map(candidate => candidate.source).join('\n');
   const clockDivider = executionClockDivider(source);
   const dataAddressBits = executionDataAddressBits(definition.className, source, constants);
+  const spaces = deviceAddressSpaces(definition.className, hierarchy, source, constants, methodBodies);
   // Bitmap entry points are necessarily frame/scanline hot paths. Methods
   // installed through FUNC(...) are hardware callbacks too: a child MCU can
   // invoke a tiny parent-port handler hundreds of thousands of times per
@@ -408,6 +436,7 @@ export function compileMameDevice(
     ...(hotMethods.length ? { hotMethods } : {}),
     ...(clockDivider ? { clockDivider } : {}),
     ...(dataAddressBits ? { dataAddressBits } : {}),
+    ...(spaces.length ? { spaces } : {}),
     ...(methods.some(method => method.name === 'device_start') ? { start: 'device_start' } : {}),
     ...(methods.some(method => method.name === 'device_reset') ? { reset: 'device_reset' } : {}),
     summary: {
@@ -960,6 +989,23 @@ function coreLineStates(mameSrc: string): Record<string, number> {
   return states;
 }
 
+/**
+ * MAME's address-space indices (`AS_PROGRAM`, `AS_DATA`, ...), read from the
+ * emulator core rather than restated here. A device names them when it asks
+ * for one of its own spaces: `space(AS_DATA)`.
+ */
+function coreAddressSpaces(mameSrc: string): Record<string, number> {
+  const header = join(mameSrc, 'src/emu/emumem.h');
+  if (!existsSync(header)) return {};
+  const spaces: Record<string, number> = {};
+  for (const match of readFileSync(header, 'utf8').matchAll(
+    /^\s*constexpr\s+int\s+(AS_\w+)\s*=\s*(-?\d+)\s*;/gm,
+  )) {
+    spaces[match[1]!] = Number(match[2]);
+  }
+  return spaces;
+}
+
 function numericConstants(source: string): Record<string, number> {
   const expressions = new Map<string, string>();
   for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^\r\n/]+)/gmi)) {
@@ -1087,4 +1133,73 @@ function matchingPair(source: string, open: number, left: string, right: string)
     else if (source[index] === right && --depth === 0) return index;
   }
   return -1;
+}
+
+/**
+ * Address spaces the device declares for itself, when the space is plain RAM.
+ *
+ * The declaration is split across three places in MAME source: the
+ * `address_space_config` member is constructed in the initializer list with
+ * its width and its map, `memory_space_config()` says which space index it
+ * answers for, and the named map says what is in it. A space is recorded only
+ * when that map is a single `.ram()` covering the whole address range -- the
+ * shape a display memory has. A device whose map decodes anything else gets no
+ * space here, so the runtime reports it missing instead of backing a bus with
+ * a flat buffer.
+ */
+function deviceAddressSpaces(
+  className: string,
+  hierarchy: readonly string[],
+  source: string,
+  constants: Record<string, number>,
+  methodBodies: ReadonlyMap<string, string>,
+): NonNullable<GeneratedDeviceDefinition['spaces']> {
+  const spaces: NonNullable<GeneratedDeviceDefinition['spaces']> = [];
+  const configs = new Map<string, { name: string; dataBits: number; addressBits: number; map: string }>();
+  for (const owner of hierarchy) {
+    const escaped = owner.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    for (const match of source.matchAll(new RegExp(
+      `(m_\\w*space_config\\w*)\\s*\\(\\s*"([^"]*)"\\s*,\\s*ENDIANNESS_\\w+\\s*,` +
+      `\\s*([^,]+),\\s*([^,]+),\\s*([^,]+),\\s*address_map_constructor\\s*\\(\\s*FUNC\\s*\\(\\s*${escaped}::(\\w+)`,
+      'g',
+    ))) {
+      const dataBits = evalExpr(match[3]!.trim(), constants);
+      const addressBits = evalExpr(match[4]!.trim(), constants);
+      if (!Number.isInteger(dataBits) || !Number.isInteger(addressBits)) continue;
+      configs.set(match[1]!, {
+        name: match[2]!,
+        dataBits: Number(dataBits),
+        addressBits: Number(addressBits),
+        map: match[6]!,
+      });
+    }
+  }
+  if (!configs.size) return spaces;
+  const vector = methodBodies.get('memory_space_config');
+  if (vector === undefined) return spaces;
+  for (const pair of vector.matchAll(
+    /std::make_pair\s*\(\s*(\w+)\s*,\s*&\s*(m_\w+)\s*\)/g,
+  )) {
+    const index = Number(constants[pair[1]!]);
+    const config = configs.get(pair[2]!);
+    if (config === undefined || !Number.isInteger(index)) continue;
+    const map = methodBodies.get(config.map);
+    if (map === undefined) continue;
+    // The whole range, as RAM, and nothing else -- `has_configured_map` guards
+    // are MAME asking whether the owner supplied a map instead, which the
+    // driver here does not.
+    const statements = [...map.matchAll(/\bmap\s*\(([^)]*)\)\s*\.\s*(\w+)\s*\(\s*\)/g)];
+    if (statements.length !== 1 || statements[0]![2] !== 'ram') continue;
+    const [start, end] = splitMameArgs(statements[0]![1]!)
+      .map(value => Number(evalExpr(value.trim(), constants)));
+    if (start !== 0 || end !== (1 << config.addressBits) - 1) continue;
+    spaces.push({
+      index,
+      name: config.name,
+      addressBits: config.addressBits,
+      dataBits: config.dataBits,
+      ram: true,
+    });
+  }
+  return spaces;
 }

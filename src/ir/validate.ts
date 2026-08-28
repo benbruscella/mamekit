@@ -276,11 +276,22 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
 
   const screenUpdate = board.execution.screenUpdate;
   if (screenUpdate && !handlerKeys.has(screenUpdate.handler)) {
-    fail(
-      'execution.screenUpdate.handler',
-      `screen update handler "${screenUpdate.handler}" was not generated`,
-      screenUpdate.source,
-    );
+    // A video-display processor installs its own update, so the method is the
+    // device's and resolves against the device list rather than the driver's
+    // handlers -- the same split the device-line custom inputs below make.
+    if (!screenUpdate.deviceTag) {
+      fail(
+        'execution.screenUpdate.handler',
+        `screen update handler "${screenUpdate.handler}" was not generated`,
+        screenUpdate.source,
+      );
+    } else if (!deviceTags.has(screenUpdate.deviceTag)) {
+      fail(
+        'execution.screenUpdate.deviceTag',
+        `screen update belongs to device "${screenUpdate.deviceTag}", which the board does not compose`,
+        screenUpdate.source,
+      );
+    }
   }
   for (const [index, custom] of (board.execution.customs ?? []).entries()) {
     if (custom.source === 'device-line') {

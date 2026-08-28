@@ -102,6 +102,14 @@ class HandlerParser {
   private index = 0;
   private diagnostics: string[] = [];
   private readonly tokens: Token[];
+  /**
+   * Range-for bindings in scope. `for (auto &elem : m_Regs)` gives `elem` no
+   * storage of its own -- it names one element of the sequence -- so the name
+   * resolves to that element's subscript wherever the body mentions it, reads
+   * and writes alike.
+   */
+  private readonly rangeBindings = new Map<string, GeneratedExpression>();
+  private rangeDepth = 0;
 
   constructor(tokens: Token[]) {
     this.tokens = tokens;
@@ -289,6 +297,7 @@ class HandlerParser {
       this.unsupportedStatement('for without control clause');
       return undefined;
     }
+    if (this.atRangeForClause()) return this.parseRangeFor();
     let initialize: GeneratedHandlerOperation[] = [];
     if (this.consume(';')) {
       initialize = [];
@@ -316,6 +325,98 @@ class HandlerParser {
     }
     const body = this.parseStatementAsBlock();
     return { op: 'for', initialize, condition, iterate, body };
+  }
+
+  /**
+   * Is the clause a range-for? Its declarator and sequence are separated by a
+   * lone `:` -- distinct from `::` in a qualified name, and from the `?:` of a
+   * conditional, whose `?` is seen first.
+   */
+  private atRangeForClause(): boolean {
+    let depth = 0;
+    let conditional = 0;
+    for (let cursor = this.index; cursor < this.tokens.length; cursor++) {
+      const text = this.tokens[cursor]?.text ?? '';
+      if (text === '(' || text === '[' || text === '{') depth++;
+      else if (text === ']' || text === '}') depth--;
+      else if (text === ')') {
+        if (depth === 0) return false;
+        depth--;
+      } else if (depth === 0 && text === ';') return false;
+      else if (depth === 0 && text === '?') conditional++;
+      else if (depth === 0 && text === ':') {
+        if (conditional > 0) conditional--;
+        else return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Lower `for (auto &elem : sequence)` to the counted loop the IR already
+   * executes. The element name is bound to `sequence[index]` for the body, so
+   * an assignment through it stores back into the sequence exactly as the
+   * reference does in C++.
+   */
+  private parseRangeFor(): GeneratedHandlerOperation | undefined {
+    while (this.peek().kind === 'identifier' && this.tokens[this.index + 1]?.text !== ':') {
+      this.take();
+    }
+    while (this.atText('*') || this.atText('&')) this.take();
+    const name = this.peek();
+    if (name.kind !== 'identifier' || this.tokens[this.index + 1]?.text !== ':') {
+      this.unsupportedStatement('invalid range-for declarator');
+      return undefined;
+    }
+    this.take();
+    this.consume(':');
+    const sequence = this.parseExpression();
+    if (!sequence || !this.consume(')')) {
+      this.unsupportedStatement('invalid range-for sequence');
+      return undefined;
+    }
+    // The sequence is evaluated once in C++; hoisting it keeps that true for a
+    // sequence that is a call, and keeps the emitted loop cheap either way.
+    const depth = this.rangeDepth++;
+    const sequenceName = `__range${depth}`;
+    const indexName = `__range${depth}_index`;
+    const element: GeneratedExpression = {
+      kind: 'index',
+      object: { kind: 'identifier', name: sequenceName },
+      index: { kind: 'identifier', name: indexName },
+    };
+    const shadowed = this.rangeBindings.get(name.text);
+    this.rangeBindings.set(name.text, element);
+    const body = this.parseStatementAsBlock();
+    if (shadowed) this.rangeBindings.set(name.text, shadowed);
+    else this.rangeBindings.delete(name.text);
+    this.rangeDepth--;
+    return {
+      op: 'for',
+      // The sequence declaration belongs to the loop's own scope, exactly as
+      // the range-init does in C++.
+      initialize: [
+        { op: 'declare', name: sequenceName, value: sequence },
+        { op: 'declare', name: indexName, value: { kind: 'number', value: 0 } },
+      ],
+      condition: {
+        kind: 'binary',
+        operator: '<',
+        left: { kind: 'identifier', name: indexName },
+        right: {
+          kind: 'member',
+          object: { kind: 'identifier', name: sequenceName },
+          property: 'length',
+        },
+      },
+      iterate: [{
+        op: 'assign',
+        target: { kind: 'identifier', name: indexName },
+        operator: '+=',
+        value: { kind: 'number', value: 1 },
+      }],
+      body,
+    };
   }
 
   private parseWhile(): GeneratedHandlerOperation | undefined {
@@ -451,20 +552,68 @@ class HandlerParser {
   private isDeclaration(): boolean {
     if (this.peek().kind !== 'identifier') return false;
     if (TYPE_WORDS.has(this.peek().text)) return true;
-    let cursor = this.index + 1;
+    // A template argument list belongs to the type, not to a comparison:
+    // `std::vector<uint32_t> &codelookup = ...` is a declaration, and reading
+    // its angle brackets as `<` and `>` yields an assignment to a comparison.
+    let cursor = this.skipTemplateArguments(this.skipQualifiedName(this.index));
     while (this.tokens[cursor]?.text === '*' || this.tokens[cursor]?.text === '&') cursor++;
     return this.tokens[cursor]?.kind === 'identifier' &&
       ['=', '(', '[', ',', ';'].includes(this.tokens[cursor + 1]?.text ?? '');
   }
 
+  /** Index just past `a::b::c`, having started on its first identifier. */
+  private skipQualifiedName(start: number): number {
+    let cursor = start + 1;
+    while (
+      this.tokens[cursor]?.text === '::' &&
+      this.tokens[cursor + 1]?.kind === 'identifier'
+    ) cursor += 2;
+    return cursor;
+  }
+
+  /**
+   * Index just past a template argument list, or `start` when there is none.
+   *
+   * C++ cannot tell `a < b > c` from a template by tokens alone; neither can
+   * this. What settles it here is what follows the closing bracket -- only a
+   * declarator does, and `isDeclaration` checks for one. A run that reaches a
+   * statement boundary first was never a template list.
+   */
+  private skipTemplateArguments(start: number): number {
+    if (this.tokens[start]?.text !== '<') return start;
+    let depth = 0;
+    for (let cursor = start; cursor < this.tokens.length; cursor++) {
+      const text = this.tokens[cursor]?.text ?? '';
+      if (text === '<') depth++;
+      // `vector<pair<int, int>>` ends on one shift token, which closes both.
+      else if (text === '>' || text === '>>') {
+        depth -= text.length;
+        if (depth <= 0) return cursor + 1;
+      } else if (text === ';' || text === '{' || text === '}' || text === ')') {
+        return start;
+      }
+    }
+    return start;
+  }
+
   private parseDeclaration(): GeneratedHandlerOperation[] {
     const typeWords: string[] = [];
     if (this.peek().kind === 'identifier' && !TYPE_WORDS.has(this.peek().text)) {
-      typeWords.push(this.take().text);
+      // Keep a qualified type name whole: `std::vector` is one name, and
+      // stopping at `std` leaves `::` to be read as an operator.
+      let name = this.take().text;
+      while (this.atText('::') && this.tokens[this.index + 1]?.kind === 'identifier') {
+        this.take();
+        name += `::${this.take().text}`;
+      }
+      typeWords.push(name);
     }
     while (this.peek().kind === 'identifier' && TYPE_WORDS.has(this.peek().text)) {
       typeWords.push(this.take().text);
     }
+    // The type's template arguments, if it has any. They name no value the IR
+    // carries, so they are consumed rather than recorded.
+    this.index = this.skipTemplateArguments(this.index);
     const valueType = typeWords.find(word =>
       word !== 'const' && word !== 'constexpr' && word !== 'static');
     const declarations: GeneratedHandlerOperation[] = [];
@@ -786,6 +935,8 @@ class HandlerParser {
     if (token.kind === 'identifier') {
       if (token.text === 'true') return { kind: 'number', value: 1 };
       if (token.text === 'false' || token.text === 'nullptr') return { kind: 'number', value: 0 };
+      const bound = this.rangeBindings.get(token.text);
+      if (bound) return structuredClone(bound);
       return { kind: 'identifier', name: token.text };
     }
     if (token.text === '(') {

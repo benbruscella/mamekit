@@ -93,7 +93,14 @@ export interface SoftCatalog {
 export type CartTier = 'tested' | 'experimental' | 'unsupported';
 
 export interface ResolvedCart {
-  ines: INesInfo;
+  /**
+   * The parsed iNES image, present only for an NES cartridge. A console whose
+   * cartridges are flat images resolves through cart-identify.ts and carries
+   * `image` instead.
+   */
+  ines?: INesInfo;
+  /** A flat cartridge image, for every console that is not the NES. */
+  image?: { bytes: Uint8Array; size: number; crc: string };
   /** matched softlist entry (undefined when the dump isn't catalogued) */
   meta?: SoftEntry;
   /** true when a catalog entry was matched */
@@ -101,7 +108,7 @@ export interface ResolvedCart {
   /** slot/mapper family name; null when the mapper number has no known slot */
   slot: string | null;
   mapper: number;
-  /** exact: every chip crc verified; prg-only matches are flagged approx */
+  /** exact: every chip crc verified; partial matches are flagged approx */
   approx: boolean;
   tier: CartTier;
   /** playable at all (tested or experimental) */
@@ -109,8 +116,8 @@ export interface ResolvedCart {
   /** true only for the verified allowlist tier (green badge / lit placeholder) */
   supported: boolean;
   reason?: string;
-  prgCrc: string;
-  chrCrc: string | null;
+  prgCrc?: string;
+  chrCrc?: string | null;
 }
 
 const hex8 = (n: number) => n.toString(16).padStart(8, '0');

@@ -219,16 +219,79 @@ export function inputKeys(game: string, type: string): string[] | undefined {
   return GAME_KEYMAP[game]?.[type] ?? KEYMAP[type];
 }
 
+/**
+ * The browser key for one key of a MAME keypad, taken from the name the field
+ * carries. A keypad has no fixed set of buttons -- the ColecoVision's twelve
+ * are 0-9, * and # -- so the label is the only thing that says which key this
+ * is, and MAME writes it for the player to read.
+ */
+export function keypadKeys(name: string | undefined): string[] | undefined {
+  // "0", "1 (pad 1)", "* (SAC pad 2)": the key is the leading token.
+  const label = /^\s*([0-9*#])(?![0-9A-Za-z])/.exec(name ?? '')?.[1];
+  if (!label) return undefined;
+  if (label >= '0' && label <= '9') return [`Digit${label}`, `Numpad${label}`];
+  // MAME puts these on the numeric keypad's own symbols.
+  return label === '*' ? ['NumpadMultiply', 'Minus'] : ['NumpadSubtract', 'Equal'];
+}
+
+/**
+ * Does a field's PORT_CONDITION hold for the machine as configured?
+ *
+ * MAME hangs alternate controllers off the same ports and marks each field
+ * with the selector value it belongs to: the ColecoVision's Super Action
+ * Controller, Driving Controller and Roller Controller all live beside the
+ * standard pad. Ignoring the condition binds every one of them at once, which
+ * gave coleco a control legend offering "purple action button" and "steer
+ * left" on keys the standard pad already uses.
+ */
+export function fieldConditionHolds(
+  modifiers: readonly string[],
+  settings: ReadonlyMap<string, number>,
+): boolean {
+  for (const modifier of modifiers) {
+    const match = /PORT_CONDITION\s*\(\s*"([^"]+)"\s*,\s*([^,]+),\s*(\w+)\s*,\s*([^)]+)\)/
+      .exec(modifier);
+    if (!match) continue;
+    const current = settings.get(match[1]!.trim());
+    // A selector the machine does not configure leaves the field as MAME
+    // leaves it: available.
+    if (current === undefined) continue;
+    const masked = current & Number(match[2]!.trim());
+    const value = Number(match[4]!.trim());
+    if (!Number.isFinite(masked) || !Number.isFinite(value)) continue;
+    const holds = match[3] === 'NOTEQUALS' ? masked !== value : masked === value;
+    if (!holds) return false;
+  }
+  return true;
+}
+
 // Cart-slot options (mappers/PCBs) each runtime board family implements —
 // a device-library capability table like CPU_TYPES, not a game fact. The
 // softlist catalog carries every cart's slot; the app greys out the rest.
 const CART_SLOT_SUPPORT: Record<string, string[]> = {
   nes: ['nrom', 'uxrom', 'cnrom', 'sxrom', 'txrom'], // iNES mappers 0, 2, 3, 1, 4
+  // Every PCB src/hardware/coleco lowers from MAME's colecovision_cartridges.
+  // coleco.spec.ts asserts this same set against that source list, so the two
+  // cannot drift apart silently.
+  coleco: [
+    'standard', 'megacart', 'xin1',
+    'activision', 'activision_256b', 'activision_32k',
+    'sgc_1mbit', 'sgc_2mbit', 'sgc_4mbit',
+  ],
 };
 
 const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
   nes: 'nes_cart',
+  coleco: 'coleco_cart',
 };
+
+// What a cartridge slot does when a software-list entry names no PCB, and
+// where a PCB loads its ROM. Both are the slot device's own facts; the NES
+// resolves its board from the iNES mapper instead and needs neither.
+// src/hardware/coleco/coleco.spec.ts asserts both against MAME source, so
+// this table cannot drift away from the device it describes.
+const CART_DEFAULT_SLOT: Record<string, string> = { coleco: 'standard' };
+const CART_ROM_REGION: Record<string, string> = { coleco: 'coleco_cart:rom' };
 
 // Explicitly supported cartridge titles (softlist parent short-names; clones
 // of a listed parent count too). Playability is gated on THIS list, not just
@@ -769,6 +832,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // coordinates -- so its visible rectangle is the whole raster.
   const screenDev = devices.find(d => d.props.type === 'SCREEN')
     ?? devices.find(d => d.props.type === 'VECTOR');
+  // A machine built around a video-display processor leaves its SCREEN bare
+  // (coleco.cpp: `SCREEN(config, "screen")`). The graph has already asked the
+  // device that claimed it, so the geometry arrives here like any other.
   const raw = screenDev?.props.screenRaw as number[] | undefined;
   let pixclock: number, htotal: number, hbend: number, hbstart: number, vtotal: number, vbend: number, vbstart: number;
   if (raw) {
@@ -1335,6 +1401,24 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const portSpecs: { tag: string; init: number }[] = [];
   const bindings: unknown[] = [];
   const dipDefaults: unknown[] = [];
+  /** The one keypad given keyboard keys; see the keypad binding below. */
+  let boundKeypad: string | undefined;
+  /**
+   * Configuration-switch defaults, which PORT_CONDITION reads by port tag.
+   *
+   * Collected before anything is bound: MAME declares the selector wherever it
+   * likes, and coleco.cpp puts CTRLSEL last -- after every field whose
+   * availability depends on it.
+   */
+  const selectorDefaults = new Map<string, number>();
+  for (const port of ports) {
+    for (const field of port.fields) {
+      if (field.props.kind !== 'dip') continue;
+      const mask = Number(field.props.mask);
+      const value = Number(field.props.defaultValue ?? mask);
+      selectorDefaults.set(port.tag, (selectorDefaults.get(port.tag) ?? 0) | (value & mask));
+    }
+  }
   const customs: NonNullable<BoardConfig['customs']> = [];
   const inputLatches: NonNullable<BoardConfig['inputLatches']> = [];
   const changedLatchMembers = new Map<string, string | undefined>();
@@ -1463,6 +1547,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         }
         if (mods.includes('PORT_COCKTAIL')) continue;  // player-2 cocktail path: unbound
         if (mods.includes('PORT_PLAYER(2)')) continue; // don't double-bind P1 keys
+        // An alternate controller's fields belong to a selector setting this
+        // machine is not configured for. They stay in the port map -- the
+        // source declares them -- but they are not bound or advertised.
+        if (!fieldConditionHolds(mods, selectorDefaults)) continue;
         const sourceNumber = (value: string): number => Number(value.trim());
         const minMax = mods
           .map(modifier => /PORT_MINMAX\s*\(\s*([^,]+),\s*([^\)]+)\)/.exec(modifier))
@@ -1483,7 +1571,20 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           });
           continue;
         }
-        const keys = inputKeys(opts.game, type);
+        // A keypad key is identified by its label, not by its IPT type: every
+        // one of the twelve is IPT_KEYPAD.
+        //
+        // Only the first keypad is bound. A ColecoVision has two, each with
+        // the same twelve keys, and one keyboard cannot press "1" on one pad
+        // without pressing it on the other -- so the second stays reachable as
+        // a raw port rather than shadowing the first.
+        let keys = type === 'IPT_KEYPAD'
+          ? keypadKeys(named)
+          : inputKeys(opts.game, type);
+        if (type === 'IPT_KEYPAD') {
+          if (boundKeypad && boundKeypad !== tag) keys = undefined;
+          else boundKeypad = tag;
+        }
         if (keys) bindings.push({
           port: tag,
           mask,
@@ -1582,6 +1683,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         ...(artCount ? { cartArt } : {}),
         slots: CART_SLOT_SUPPORT[family] ?? [],
         games: CART_GAME_SUPPORT[family] ?? [],
+        ...(CART_DEFAULT_SLOT[family] ? { defaultSlot: CART_DEFAULT_SLOT[family] } : {}),
+        ...(CART_ROM_REGION[family] ? { romRegion: CART_ROM_REGION[family] } : {}),
       };
       if (shelved) console.log(`cart shelf index: ${shelved} dumps available for ${set}`);
       if (artCount) console.log(`cart artwork: ${artCount} cartridge(s) with local photography`);
@@ -1599,6 +1702,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           catalogUrl: 'softlist.json',
           slots: CART_SLOT_SUPPORT[family] ?? [],
           games: CART_GAME_SUPPORT[family] ?? [],
+          ...(CART_DEFAULT_SLOT[family] ? { defaultSlot: CART_DEFAULT_SLOT[family] } : {}),
+          ...(CART_ROM_REGION[family] ? { romRegion: CART_ROM_REGION[family] } : {}),
         };
       }
     }
@@ -1962,7 +2067,7 @@ function machineDossierMarkdown(d: {
 // carts/ joins them for issue #85: a console's shelf is box scans, and every
 // title the machine claims support for now has one. Shipping them means the
 // supported shelf draws itself from the site, not from a bucket sync.
-const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets', 'carts/nes'];
+const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets', 'media/consoles', 'carts/nes'];
 
 /**
  * Copy the `.webp` siblings into dist/artwork so the site serves its own
@@ -2352,3 +2457,4 @@ function writeCartShelfIndex(setDir: string, outDir: string, set: string): numbe
   writeFileSync(join(outDir, 'carts.json'), JSON.stringify({ set, carts }));
   return carts.length;
 }
+

@@ -138,6 +138,18 @@ export interface GeneratedDeviceDefinition {
   delegates?: Record<string, string>;
   clockDivider?: number;
   dataAddressBits?: number;
+  /**
+   * Address spaces the device owns, declared through MAME's
+   * `device_memory_interface`. A video-display processor keeps its display
+   * memory here rather than on the CPU bus.
+   */
+  spaces?: {
+    index: number;
+    name: string;
+    addressBits: number;
+    dataBits: number;
+    ram: true;
+  }[];
   compiledMethods?: GeneratedDeviceMethodMap;
   start?: string;
   reset?: string;
@@ -383,6 +395,8 @@ class IrDevice implements Device {
   private readonly bindings: GeneratedHandlerBindings;
   private readonly executionContext: GeneratedDeviceExecutionContext;
   private readonly timers = new Map<string, { timer: IrTimer; callback: string }>();
+  /** Backing store for each address space the device declares, by MAME index. */
+  private readonly spaces = new Map<number, GeneratedDeviceSpace>();
   private readonly clock: number;
   private slotChild?: IrDevice;
 
@@ -393,6 +407,9 @@ class IrDevice implements Device {
   ) {
     this.definition = definition;
     this.clock = clock;
+    for (const config of definition.spaces ?? []) {
+      this.spaces.set(config.index, generatedDeviceSpace(config.addressBits));
+    }
     const resourceCache = options.resourceCache ?? {};
     const resourceOptions = { ...options, resourceCache };
     const resourceMembers = definition.resources?.members ?? {};
@@ -499,6 +516,10 @@ class IrDevice implements Device {
           return 0;
         },
         pen_color: entry => palette[entry] ?? 0xff000000,
+        // device_palette_interface::pen(i). With no indirection table MAME
+        // points m_pens straight at the adjusted entry colours, so the pen a
+        // device writes into a bitmap_rgb32 is the colour itself.
+        pen: entry => palette[entry] ?? 0xff000000,
         floor: value => Math.floor(value),
         cos: value => Math.cos(value),
         sin: value => Math.sin(value),
@@ -513,10 +534,18 @@ class IrDevice implements Device {
           const blue = components[offset + 2]! & 0xff;
           return (alpha << 24 | blue << 16 | green << 8 | red) >>> 0;
         },
-        copybitmap: (destination, source) => {
-          copyGeneratedBitmap(destination, source);
+        // MAME: copybitmap(dest, src, flipx, flipy, destx, desty, cliprect).
+        // The arguments past the two bitmaps are not decoration -- a video
+        // device's own bitmap is its whole raster, wider than the visible
+        // screen, so a copy that ignores stride and offset shears the picture.
+        copybitmap: (destination, source, _flipx, _flipy, destX, destY, cliprect) => {
+          copyGeneratedBitmap(destination, source, destX, destY, cliprect);
           return 0;
         },
+        // `space(n)`: the device's own address space, as MAME's
+        // device_memory_interface hands it out. Every declared space is flat
+        // RAM (the extractor records no other shape), so the map is the buffer.
+        space: index => this.spaces.get(Number(index)) ?? 0,
         ...options.calls,
       },
       referenceCalls,
@@ -917,26 +946,75 @@ class GeneratedBitmapRgb32 {
   }
 }
 
-function copyGeneratedBitmap(destination: unknown, source: unknown): void {
-  const pixels = source && typeof source === 'object' &&
-    ArrayBuffer.isView((source as { pixels?: unknown }).pixels)
-    ? (source as { pixels: Uint32Array }).pixels
-    : undefined;
-  if (!pixels || !destination || typeof destination !== 'object') return;
-  const direct = (destination as { direct?: { pixels?: Uint32Array } }).direct?.pixels;
-  if (direct) {
-    direct.set(pixels.subarray(0, direct.length));
+interface GeneratedBitmapClip {
+  min_x: number; max_x: number; min_y: number; max_y: number;
+}
+
+interface GeneratedDirectBitmap {
+  pixels: Uint32Array;
+  width: number;
+  height: number;
+  xScale: number;
+  yScale: number;
+  scaledXOffset: number;
+  scaledYOffset: number;
+}
+
+/**
+ * MAME's copybitmap: `dest(x, y) = src(x - destX, y - destY)` over the clip.
+ *
+ * Both bitmaps are addressed in the screen's own raster coordinates, and the
+ * source is normally the whole raster -- the TMS9928A's is 342 x 313 for a
+ * 280 x 216 visible screen. Copying the backing arrays linearly therefore
+ * shears the picture by the difference in stride once per line, which looks
+ * like a correctly laid out screen made of scrambled pixels.
+ */
+function copyGeneratedBitmap(
+  destination: unknown,
+  source: unknown,
+  destX: unknown = 0,
+  destY: unknown = 0,
+  clip?: unknown,
+): void {
+  if (!source || typeof source !== 'object' || !destination || typeof destination !== 'object') return;
+  const bitmap = source as { pixels?: unknown; bitmapWidth?: number; bitmapHeight?: number };
+  if (!ArrayBuffer.isView(bitmap.pixels)) return;
+  const pixels = bitmap.pixels as Uint32Array;
+  const sourceWidth = bitmap.bitmapWidth ?? 0;
+  const sourceHeight = bitmap.bitmapHeight ?? 0;
+  if (sourceWidth <= 0 || sourceHeight <= 0) return;
+
+  const offsetX = Number(destX) || 0;
+  const offsetY = Number(destY) || 0;
+  const rectangle = clip && typeof clip === 'object' ? clip as GeneratedBitmapClip : undefined;
+  // Absent a clip the whole source lands, placed where destX/destY put it.
+  const minX = Math.max(rectangle?.min_x ?? offsetX, offsetX);
+  const maxX = Math.min(rectangle?.max_x ?? offsetX + sourceWidth - 1, offsetX + sourceWidth - 1);
+  const minY = Math.max(rectangle?.min_y ?? offsetY, offsetY);
+  const maxY = Math.min(rectangle?.max_y ?? offsetY + sourceHeight - 1, offsetY + sourceHeight - 1);
+
+  const direct = (destination as { direct?: GeneratedDirectBitmap }).direct;
+  if (direct?.pixels) {
+    for (let y = minY; y <= maxY; y++) {
+      const row = (y - offsetY) * sourceWidth;
+      const visibleY = Math.floor((y - direct.scaledYOffset) / direct.yScale);
+      if (visibleY < 0 || visibleY >= direct.height) continue;
+      const target = visibleY * direct.width;
+      for (let x = minX; x <= maxX; x++) {
+        const visibleX = Math.floor((x - direct.scaledXOffset) / direct.xScale);
+        if (visibleX < 0 || visibleX >= direct.width) continue;
+        direct.pixels[target + visibleX] = pixels[row + (x - offsetX)]! >>> 0;
+      }
+    }
     return;
   }
+
   const setPixel = (destination as Record<string, unknown>)['pix='];
   if (typeof setPixel !== 'function') return;
-  const width = Math.max(1, Math.floor(Math.sqrt(pixels.length)));
-  for (let index = 0; index < pixels.length; index++) {
-    (setPixel as (y: number, x: number, value: number) => void)(
-      Math.floor(index / width),
-      index % width,
-      pixels[index]!,
-    );
+  const write = setPixel as (y: number, x: number, value: number) => void;
+  for (let y = minY; y <= maxY; y++) {
+    const row = (y - offsetY) * sourceWidth;
+    for (let x = minX; x <= maxX; x++) write(y, x, pixels[row + (x - offsetX)]!);
   }
 }
 
@@ -962,6 +1040,8 @@ function memoryMember(
 }
 
 function splitParameters(parameters: string): string[] {
+  // `(void)` is C's empty parameter list, not a parameter named `void`.
+  if (parameters.trim() === 'void') return [];
   return parameters.split(',').map(parameter => parameter.trim()).filter(Boolean);
 }
 
@@ -1013,4 +1093,31 @@ function wrap(value: number, bits?: 1 | 8 | 16 | 32, signed = false): number {
   if (bits === 16) return signed ? value << 16 >> 16 : value & 0xffff;
   if (bits === 32) return signed ? value | 0 : value >>> 0;
   return value;
+}
+
+/**
+ * One of MAME's `address_space`s, as a generated device reaches it.
+ *
+ * Only flat-RAM spaces are recorded by the device compiler, so the whole
+ * space is one buffer and the address wraps at the declared width -- which is
+ * what MAME's address mask does for a space whose map covers its full range.
+ */
+export interface GeneratedDeviceSpace {
+  read_byte(address: number): number;
+  write_byte(address: number, data: number): number;
+  /** The backing bytes, for board wiring and for reading state back in tests. */
+  readonly memory: Uint8Array;
+}
+
+function generatedDeviceSpace(addressBits: number): GeneratedDeviceSpace {
+  const memory = new Uint8Array(1 << addressBits);
+  const mask = memory.length - 1;
+  return {
+    memory,
+    read_byte: address => memory[address & mask]!,
+    write_byte: (address, data) => {
+      memory[address & mask] = data & 0xff;
+      return 0;
+    },
+  };
 }

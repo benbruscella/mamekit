@@ -115,7 +115,18 @@ export interface BoardConfig {
    * identifying a user-dropped cart (never present in generated config.json —
    * the cart bytes arrive as regions.prg / regions.chr alongside it).
    */
-  cart?: { mapper: number; mirroring: 'horizontal' | 'vertical' | 'four' | 'single0' | 'single1'; battery?: boolean };
+  /**
+   * The mounted cartridge, as the console room identified it. Each bus reads
+   * the facts its own PCBs are selected by: the NES card slot keys off
+   * `mapper`, the ColecoVision's off `slot`.
+   */
+  cart?: {
+    mapper?: number;
+    mirroring?: 'horizontal' | 'vertical' | 'four' | 'single0' | 'single1';
+    battery?: boolean;
+    /** MAME cartridge-slot option name, e.g. "standard" or "megacart". */
+    slot?: string;
+  };
 }
 
 export interface BoardSinks {

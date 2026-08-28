@@ -31,11 +31,42 @@ const mediaKinds = [
   { remote: 'marquees', local: 'media/marquees' },
 ] as const;
 
+/**
+ * Where a target's "cabinet" image belongs.
+ *
+ * The catalog files a console's photograph under `cabinets` because that is
+ * the MAME machine image, but a ColecoVision has no cabinet -- the shelf shows
+ * it as the machine itself, so it lives in its own tree.
+ */
+function mediaDir(game: string, kind: (typeof mediaKinds)[number]): string {
+  return kind.remote === 'cabinets' && isConsole(game) ? 'media/consoles' : kind.local;
+}
+
+/** Generation puts a console under dist/games/consoles/<game>. */
+function isConsole(game: string): boolean {
+  return existsSync(join(root, 'dist/games/consoles', game));
+}
+
+/**
+ * Which media kinds a target actually has.
+ *
+ * A console's catalog flyer is regional advertising rather than box art -- the
+ * ColecoVision's is an Italian mail-order page, the NES's a Japanese Famicom
+ * spread -- and the shelf shows a console as its hardware, so neither the
+ * flyer nor the marquee is fetched for one.
+ */
+function kindsFor(game: string): readonly (typeof mediaKinds)[number][] {
+  return isConsole(game)
+    ? mediaKinds.filter(kind => kind.remote === 'cabinets')
+    : mediaKinds;
+}
+
 /** Everything a complete local package holds for one target. */
 function packageFiles(game: string): string[] {
   return [
-    join(artwork, `${game}.zip`),
-    ...mediaKinds.map(kind => join(artwork, kind.local, `${game}.png`)),
+    // A console has no bezel pack; its machine photograph stands in for one.
+    ...(isConsole(game) ? [] : [join(artwork, `${game}.zip`)]),
+    ...kindsFor(game).map(kind => join(artwork, mediaDir(game, kind), `${game}.png`)),
   ];
 }
 
@@ -151,7 +182,8 @@ if (!metadataResponse.ok) throw new Error(`artwork metadata: HTTP ${metadataResp
 const metadata = await metadataResponse.json() as { files: { name: string }[] };
 const archiveNames = new Set(metadata.files.map(file => file.name));
 
-const bezelFailures = await pool(games, async game => {
+const bezelGames = games.filter(game => !isConsole(game));
+const bezelFailures = await pool(bezelGames, async game => {
   const name = `${game}.zip`;
   if (!archiveNames.has(name)) {
     await buildFallbackBezel(game, join(artwork, name));
@@ -164,20 +196,20 @@ const bezelFailures = await pool(games, async game => {
 }, 6);
 repairKnownLayoutTypos();
 
+const mediaWanted = games.reduce((total, game) => total + kindsFor(game).length, 0);
 const mediaFailures = await pool(
-  games.flatMap(game => mediaKinds.map(kind => ({ game, ...kind }))),
-  async ({ game, remote, local }) => download(
-    `https://adb.arcadeitalia.net/media/mame.current/${remote}/${game}.png`,
-    join(artwork, local, `${game}.png`),
+  games.flatMap(game => kindsFor(game).map(kind => ({ game, kind }))),
+  async ({ game, kind }) => download(
+    `https://adb.arcadeitalia.net/media/mame.current/${kind.remote}/${game}.png`,
+    join(artwork, mediaDir(game, kind), `${game}.png`),
     validPng,
   ),
   10,
 );
 
 console.log(
-  `artwork: ${games.length - bezelFailures.length}/${games.length} bezel packs, ` +
-  `${games.length * mediaKinds.length - mediaFailures.length}/` +
-  `${games.length * mediaKinds.length} media images ` +
+  `artwork: ${bezelGames.length - bezelFailures.length}/${bezelGames.length} bezel packs, ` +
+  `${mediaWanted - mediaFailures.length}/${mediaWanted} media images ` +
   `(${games.join(', ')})`,
 );
 for (const failure of [...bezelFailures, ...mediaFailures]) console.log(`missing: ${failure}`);

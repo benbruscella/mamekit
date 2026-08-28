@@ -124,5 +124,36 @@ eq('entry count (pre-filter)', parsed.entries.length, 3);
   eq('no filter keeps everything', unfiltered.entries.length, 3);
 }
 
+// A single-area list. The ColecoVision, SG-1000 and Atari 2600 all describe a
+// cartridge as one "rom" dataarea rather than the NES's prg/chr pair; skipping
+// it left every entry with no chips and the catalog with an empty crcIndex, so
+// no dump of those consoles could ever be identified.
+{
+  const parsed = parseSoftwareList(`
+<softwarelist name="coleco" description="ColecoVision cartridges">
+  <software name="carnival">
+    <description>Carnival</description>
+    <year>1982</year>
+    <publisher>Coleco / CBS</publisher>
+    <part name="cart" interface="coleco_cart">
+      <dataarea name="rom" size="16384">
+        <rom name="carnival.1" size="8192" crc="3cab8c1f" offset="0x0000" />
+        <rom name="carnival.2" size="8192" crc="4cf856a9" offset="0x2000" />
+      </dataarea>
+    </part>
+  </software>
+</softwarelist>`);
+  const entry = parsed.entries[0]!;
+  eq('rom dataarea becomes the program area', entry.prg.size, 16384);
+  eq('rom dataarea keeps every chip', entry.prg.roms, [
+    { size: 8192, crc: '3cab8c1f', offset: 0 },
+    { size: 8192, crc: '4cf856a9', offset: 8192 },
+  ]);
+  eq('a single-area list has no chr', entry.chr, undefined);
+  const cat = buildCatalog(parsed);
+  eq('single-area entries reach the crc index', cat.crcIndex['3cab8c1f'], [0]);
+  eq('single-area catalog meta', [cat.list, cat.interface], ['coleco', 'coleco_cart']);
+}
+
 console.log(`\nsoftlist.spec: ${totalPass} passed, ${totalFail} failed`);
 if (totalFail > 0) process.exitCode = 1;

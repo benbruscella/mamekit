@@ -191,6 +191,19 @@ export class AudioOutput {
   }
 
   /**
+   * Throw away the frame's register writes instead of sending them.
+   *
+   * Fast-forward emits frames far faster than the worklet consumes them, and a
+   * queued frame is permanent latency rather than a dropped one -- the sound
+   * would still be playing the boot screen minutes later. Discarding keeps the
+   * chip's own state advancing (the board writes it either way) while nothing
+   * reaches the audio graph.
+   */
+  discard(): void {
+    this.pending.length = 0;
+  }
+
+  /**
    * Drain one frame to the worklet, batching consecutive register writes into
    * one 'batch' message but breaking the batch at every data push so ordering
    * (write < data < write) is preserved across the port.

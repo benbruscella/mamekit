@@ -20,7 +20,7 @@ ROMs and artwork are copyrighted, so they live outside version control in one
 hidden, gitignored tree:
 
 ```text
-.data/roms/<category>/<target>.zip    acceptance ROMs (arcade, consoles/nes)
+.data/roms/<category>/<target>.zip    acceptance ROMs (arcade, consoles/*)
 .data/artwork/                        bezels, flyers, cabinet and marquee scans
 .data/Makefile                        npm wrappers + the DreamObjects sync
 .data/.env                            DH_ACCESS_KEY_ID / DH_SECRET_KEY
@@ -66,11 +66,14 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 
 The broad `test:generation` command is destructive to `dist` and expensive. It
 generates every target in `REQUIRED_TARGETS`, which is the accepted set plus
-any console that has no acceptance contract yet. `nes` is the one console: its
-software arrives on cartridges the visitor supplies, so there is no romset a
-contract module could name. It is covered by the browser suite instead
-(`e2e/specs/console.spec.ts`), which is the gate issue #53 lacked when it
-dropped the target and nothing went red.
+any console that has no acceptance contract yet. `nes` and `coleco` are the
+consoles. NES software arrives entirely on cartridges the visitor supplies, so
+there is no romset a contract module could name; it is covered by the browser
+suite instead (`e2e/specs/console.spec.ts`), which is the gate issue #53 lacked
+when it dropped the target and nothing went red. `coleco` is listed for the
+same reason today, but unlike the NES it has a romset of its own -- the
+ColecoVision BIOS -- so it can carry a real-ROM contract once that dump is on
+the shelf.
 
 Neither command holds a target list of its own. `gen:all` is
 `node bin/mamekit.js --all`, and the set is derived from the acceptance
@@ -302,6 +305,10 @@ Choose the layer from evidence, not from the visible symptom.
 | A board is audible but one chip is silent | `sound.auxiliaryDevices`; the kind names one chip only |
 | A sound chip's pin is polled by a CPU | its engine belongs on the main thread, not the worklet |
 | A main-thread chip runs at double or half speed | `tickCpu` fires per processor; drive it from one, and not one that can be held in reset |
+| A machine's SCREEN carries no geometry | the video device that claimed it with `set_screen`, whose `device_config_complete` sets the raw params |
+| A device reads display memory no CPU map mentions | its own `device_memory_interface` space, not a board share |
+| A scanline one-shot fires once per frame | `vpos()` and the device-timer beam disagreeing at a line boundary |
+| A statement lowers with no diagnostic but wrong | a silently mis-parsed form; add the spec before the fix |
 | A hardware family needs a new central branch | it needs a capability package instead |
 | Audit reports a mixed build | regenerate fully; `--targets` builds are partial by design |
 | App cannot locate config/module | output layout, manifest `dataPath`, or relative URL |

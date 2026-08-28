@@ -27,6 +27,7 @@ import {
   type SoftCatalog,
   type SoftEntry,
 } from './nes-ines.ts';
+import { cartImageFromSoftlistSet, resolveFlatCart } from './cart-identify.ts';
 import { readZip, crc32 } from './zip.ts';
 import { artworkSources } from './artwork-source.ts';
 import { consoleDeckSvg } from './console-art.ts';
@@ -370,14 +371,33 @@ async function fetchOwnEntry(cfg: ShellConfig): Promise<MenuEntry | null> {
   } catch { return null; }
 }
 
-/** parse + identify a stored record against this visit's catalog */
+/**
+ * Parse + identify a stored record against this visit's catalog.
+ *
+ * Which reader applies is the console's own property, taken from the software
+ * list's cartridge interface. Sniffing the bytes instead lets parseINes accept
+ * a ColecoVision dump whose first bytes happen to pass, and the NES matcher
+ * then grades it against a catalog that is not the NES's.
+ */
 function resolveRec(
   rec: CartRecord,
   catalog: SoftCatalog | null,
-  support: { slots: string[]; games: string[]; mapperSlots?: Record<number, string> },
+  support: CartSupport,
 ): ResolvedCart | null {
-  const ines = parseINes(new Uint8Array(rec.bytes));
+  const bytes = new Uint8Array(rec.bytes);
+  if (!support.ines) return resolveFlatCart(bytes, catalog, support);
+  const ines = parseINes(bytes);
   return ines ? identify(ines, catalog, support) : null;
+}
+
+/** What this console can play, and how its cartridges are read. */
+interface CartSupport {
+  slots: string[];
+  games: string[];
+  mapperSlots?: Record<number, string>;
+  /** The NES is the one console whose dumps carry a header and two areas. */
+  ines: boolean;
+  defaultSlot?: string;
 }
 
 /** unified navigable shelf entry (placeholder slot OR a dropped "other" cart) */
@@ -395,10 +415,20 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   // rebuild it, so a reload is the honest implementation
   addEventListener('popstate', () => location.reload());
 
-  const support = {
+  // The NES is the one console whose dumps carry a header and two areas; every
+  // other cartridge is a flat image. The software list says which this is, so
+  // nothing below is written per console.
+  const inesCarts = (cfg.cart?.interface ?? 'nes_cart') === 'nes_cart';
+  const cartExtensions = inesCarts ? ['.nes'] : ['.rom', '.col', '.bin'];
+  const cartExtensionList = cartExtensions.join(' / ');
+  /** The MAME hash file this console's catalogue came from. */
+  const softlistFile = `${cfg.cart?.list ?? 'nes'}.xml`;
+  const support: CartSupport = {
     slots: cfg.cart?.slots ?? [],
     games: cfg.cart?.games ?? [],
     mapperSlots: MAPPER_SLOTS,
+    ines: inesCarts,
+    ...(cfg.cart?.defaultSlot ? { defaultSlot: cfg.cart.defaultSlot } : {}),
   };
   // The bucket key for this console's set mirrors .data/roms: games/consoles/nes
   // -> consoles/nes. Availability is best-effort: with no manifest reachable the
@@ -436,30 +466,64 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   const boot = (rec: CartRecord, resolved: ResolvedCart): void => {
     inRoom = false;
     document.body.textContent = '';
-    const regions: Regions = { prg: mountedINesPrg(resolved.ines) };
-    if (resolved.ines.chr) regions.chr = resolved.ines.chr; // omitted => CHR-RAM cart
+    // An NES cartridge mounts as the two areas its header describes; every
+    // other console's mounts as one image into the region its PCB loads from.
+    const regions: Regions = {};
+    let cart: NonNullable<ShellConfig['board']['cart']>;
+    if (resolved.ines) {
+      regions.prg = mountedINesPrg(resolved.ines);
+      if (resolved.ines.chr) regions.chr = resolved.ines.chr; // omitted => CHR-RAM cart
+      cart = {
+        mapper: resolved.mapper,
+        mirroring: resolved.ines.mirroring,
+        battery: resolved.ines.battery,
+      };
+    } else {
+      const region = cfg.cart?.romRegion;
+      if (!region || !resolved.image) return;
+      regions[region] = resolved.image.bytes;
+      cart = { ...(resolved.slot ? { slot: resolved.slot } : {}) };
+    }
     const cfg2: ShellConfig = {
       ...cfg,
       title: resolved.meta?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, ''),
       menuUrl: `g/${encodeURIComponent(cfg.game)}/`, // Esc: back to this room
       board: {
         ...cfg.board, // CLONE — never mutate the fetched config
-        cart: { mapper: resolved.mapper, mirroring: resolved.ines.mirroring, battery: resolved.ines.battery },
+        cart,
       },
     };
     void runShell(cfg2, regions);
   };
 
+  /**
+   * The link that boots this cartridge again.
+   *
+   * Absolute, because the room's page carries `<base href="../../">` so a
+   * relative pushState resolves against /app/ and drops the `g/<console>/`
+   * route -- which left a shareable-looking `/app/?cart=...` that reloads into
+   * the main menu, since only the console room reads `?cart`. Keeping
+   * `location.pathname` also preserves a Pages base path.
+   *
+   * The record id is `<console>:<crc>`; on the console's own route the prefix
+   * is noise, so the link carries the crc alone.
+   */
+  const cartLink = (rec: CartRecord): string =>
+    `${location.pathname}?cart=${encodeURIComponent(rec.id.split(':').pop() ?? rec.id)}`;
+
   const bootCart = (rec: CartRecord, resolved: ResolvedCart | null): void => {
     if (!playable(resolved)) return;
-    history.pushState(null, '', '?cart=' + encodeURIComponent(rec.id));
+    history.pushState(null, '', cartLink(rec));
     boot(rec, resolved);
   };
 
   // --- deep link: ?cart=<id> boots straight into the game ---------------------
   const cartParam = new URLSearchParams(location.search).get('cart');
   if (cartParam) {
-    const rec = await store.get(cartParam);
+    // A bare crc names a cart of THIS console; a fully qualified id still
+    // works, so links made before the short form keep resolving.
+    const id = cartParam.includes(':') ? cartParam : `${cfg.game}:${cartParam}`;
+    const rec = await store.get(id);
     const resolved = rec ? resolveRec(rec, catalog, support) : null;
     if (rec && playable(resolved)) { boot(rec, resolved); return; }
     history.replaceState(null, '', location.pathname); // unknown/unplayable id — show the room
@@ -490,10 +554,29 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   const sub = el('div', 'color:#7f8ac9;letter-spacing:6px;font-size:11px;font-weight:600');
   sub.textContent = ['CONSOLE', entry?.manufacturer, entry?.year].filter(Boolean).join(' · ');
   marquee.append(title, sub);
-  // the front-loader hero (inline SVG, crisp at any DPR)
-  const hero = el('div', 'width:230px;height:132px;flex:0 0 auto;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))');
+  // The machine itself: its own photograph when the artwork tree has one, and
+  // the drawn deck when it does not -- that deck is one generic front-loader,
+  // so every console wore an NES body until this.
+  const hero = el('div', `width:230px;height:132px;flex:0 0 auto;display:flex;
+    align-items:center;justify-content:center;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))`);
   hero.setAttribute('data-console-hero', '');
   hero.innerHTML = consoleDeckSvg(230, 132, { idPrefix: 'hero' });
+  {
+    const [web, archival] = artworkSources(`media/consoles/${cfg.game}.png`);
+    const photo = document.createElement('img');
+    photo.decoding = 'async';
+    photo.alt = '';
+    // The cutout has no background of its own, so it sits in the banner rather
+    // than as a pasted-on white rectangle; the shadow is the machine's.
+    photo.style.cssText = `max-width:100%;max-height:100%;object-fit:contain;
+      filter:drop-shadow(0 6px 14px rgba(0,0,0,.55))`;
+    photo.addEventListener('error', () => {
+      if (!photo.src.endsWith(archival)) photo.src = archival;
+    });
+    // Swap only once it has decoded, so a console with no scan keeps the deck.
+    photo.addEventListener('load', () => { hero.innerHTML = ''; hero.append(photo); });
+    photo.src = web;
+  }
   const aboutBtn = document.createElement('button');
   aboutBtn.textContent = 'About this console';
   aboutBtn.setAttribute('data-about', '');
@@ -556,7 +639,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     slot.style.boxShadow = 'none';
     slot.style.background = 'linear-gradient(#10142a,#0a0c1c)';
     slotBig.textContent = 'INSERT CARTRIDGE';
-    slotSmall.textContent = 'drop .nes or .zip files, or click to choose';
+    slotSmall.textContent = `drop ${cartExtensionList} or .zip files, or click to choose`;
   };
   const slotArmed = (): void => {
     slot.style.transform = 'scale(1.01)';
@@ -610,7 +693,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   boardFilter.style.cssText = `padding:11px 14px;border-radius:8px;border:2px solid #303a78;
     background:#111633;color:#d8dcff;font:inherit;cursor:pointer`;
   for (const [value, label] of [
-    ['all', 'All cartridges (nes.xml)'],
+    ['all', `All cartridges (${softlistFile})`],
     ['playable', 'Playable boards'],
     ...support.slots.map(slot => [slot, SLOT_PCB[slot] ?? slot.toUpperCase()]),
   ]) {
@@ -903,7 +986,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     if (!label.textContent) label.style.display = 'none';
     label.title = row.avail
       ? `${row.title} — ${pcb}, ${row.tier === 'verified'
-        ? 'verified against nes.xml' : 'unverified dump'}; search the web for this dump`
+        ? `verified against ${softlistFile}` : 'unverified dump'}; search the web for this dump`
       : `${row.title} — ${pcb}, ${label.textContent}`;
     // The set name is what you type at MAME or look for on disk, but a shelf is
     // read by title: it lives in the tile's tooltip and in the details modal's
@@ -1232,11 +1315,13 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       const h = el('div', `font-size:24px;font-weight:800;color:${GOLD};line-height:1.2;margin-bottom:2px`);
       h.textContent = meta?.description ?? rec.name;
       const subh = el('div', `font-size:12px;font-weight:700;letter-spacing:.8px;color:${b.color};margin-bottom:14px`);
-      subh.textContent = b.text + (resolved?.approx ? ' · PRG match, CHR differs' : '');
+      subh.textContent = b.text + (resolved?.approx
+        ? (resolved.ines ? ' · PRG match, CHR differs' : ' · a different dump of this title')
+        : '');
       inner.append(h, subh);
 
       if (meta) {
-        const cat = section(inner, 'From the software list (MAME hash/nes.xml)');
+        const cat = section(inner, `From the software list (MAME hash/${cfg.cart?.list ?? 'nes'}.xml)`);
         row(cat, 'Title', meta.description);
         if (meta.year) row(cat, 'Year', meta.year);
         if (meta.publisher) row(cat, 'Publisher', meta.publisher);
@@ -1247,11 +1332,19 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
 
       const tech = section(inner, 'The cartridge');
       row(tech, 'File', `${rec.name} · ${(rec.size / 1024).toFixed(0)} KB`);
-      row(tech, 'PRG ROM', `${(rec.ines.prgSize / 1024).toFixed(0)} KB · crc ${rec.prgCrc}`);
-      row(tech, 'CHR', rec.ines.chrSize ? `${(rec.ines.chrSize / 1024).toFixed(0)} KB ROM · crc ${rec.chrCrc}` : 'CHR RAM');
-      row(tech, 'Mapper', `${rec.ines.mapper}${resolved?.slot ? ` (${resolved.slot})` : ''}`);
-      row(tech, 'Mirroring (header)', rec.ines.mirroring);
-      row(tech, 'Battery', rec.ines.battery ? 'yes' : 'no');
+      // An iNES header has facts a flat cartridge image simply does not carry.
+      if (rec.ines) {
+        row(tech, 'PRG ROM', `${(rec.ines.prgSize / 1024).toFixed(0)} KB · crc ${rec.prgCrc}`);
+        row(tech, 'CHR', rec.ines.chrSize
+          ? `${(rec.ines.chrSize / 1024).toFixed(0)} KB ROM · crc ${rec.chrCrc}`
+          : 'CHR RAM');
+        row(tech, 'Mapper', `${rec.ines.mapper}${resolved?.slot ? ` (${resolved.slot})` : ''}`);
+        row(tech, 'Mirroring (header)', rec.ines.mirroring);
+        row(tech, 'Battery', rec.ines.battery ? 'yes' : 'no');
+      } else {
+        row(tech, 'ROM', `${(rec.size / 1024).toFixed(0)} KB · crc ${rec.imageCrc ?? '—'}`);
+        if (resolved?.slot) row(tech, 'Board', resolved.slot.toUpperCase());
+      }
       if (resolved?.reason) row(tech, 'Status', resolved.reason);
 
       const p = footerBtn('▶ Play', true, playable(resolved));
@@ -1298,9 +1391,9 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       }
       const note = el('div', 'color:#7f8ac9;font-size:13px;line-height:1.6');
       note.textContent = verified
-        ? 'Bring your own legally obtained ROM dump. Drop the .nes (or a .zip containing it) into the slot above and this cartridge lights up — verified and ready to play.'
+        ? `Bring your own legally obtained ROM dump. Drop the ${cartExtensions[0]} (or a .zip containing it) into the slot above and this cartridge lights up — verified and ready to play.`
         : playableBoard
-          ? 'Bring your own legally obtained ROM dump. This board is implemented, so a matching .nes file can be inserted and played as experimental until it is fully verified.'
+          ? `Bring your own legally obtained ROM dump. This board is implemented, so a matching ${cartExtensions[0]} file can be inserted and played as experimental until it is fully verified.`
           : 'This cartridge is part of the complete MAME software-list shelf. Its board is not implemented yet, so it remains a display piece for now.';
       inner.appendChild(note);
 
@@ -1419,9 +1512,11 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
 
   // --- cart ingestion ------------------------------------------------------------------
   async function shelve(name: string, bytes: Uint8Array): Promise<void> {
-    const ines = parseINes(bytes);
-    if (!ines) return; // callers pre-check; belt and braces
-    const resolved = identify(ines, catalog, support);
+    const ines = support.ines ? parseINes(bytes) : null;
+    if (support.ines && !ines) return; // callers pre-check; belt and braces
+    const resolved = ines
+      ? identify(ines, catalog, support)
+      : resolveFlatCart(bytes, catalog, support);
     const id = `${cfg.game}:${hex8(crc32(bytes))}`;
     // dedupe against a cartridge already on the shelf
     const existing = others.find(o => o.rec.id === id);
@@ -1433,9 +1528,17 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       bytes: bytes.slice().buffer,
       size: bytes.length,
       addedAt: Date.now(),
-      ines: { mapper: ines.mapper, prgSize: ines.prgSize, chrSize: ines.chrSize, mirroring: ines.mirroring, battery: ines.battery },
-      prgCrc: resolved.prgCrc,
-      chrCrc: resolved.chrCrc,
+      ...(ines ? {
+        ines: {
+          mapper: ines.mapper,
+          prgSize: ines.prgSize,
+          chrSize: ines.chrSize,
+          mirroring: ines.mirroring,
+          battery: ines.battery,
+        },
+        ...(resolved.prgCrc ? { prgCrc: resolved.prgCrc } : {}),
+        chrCrc: resolved.chrCrc ?? null,
+      } : { imageCrc: resolved.image?.crc ?? hex8(crc32(bytes)) }),
     };
     try {
       await store.add(rec);
@@ -1448,9 +1551,9 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   }
 
   /**
-   * Shelve one .nes or .zip payload, whoever produced it: the drop zone, the
-   * file picker or a cartridge fetched from the mirror bucket. Returns false
-   * when nothing on the shelf changed, so callers can explain why.
+   * Shelve one cartridge payload, whoever produced it: the drop zone, the file
+   * picker or a cartridge fetched from the mirror bucket. Returns false when
+   * nothing on the shelf changed, so callers can explain why.
    */
   async function ingest(name: string, bytes: Uint8Array): Promise<boolean> {
     if (bytes.length > MAX_CART) { toast(`${name}: bigger than 8 MiB — not a cartridge`); return false; }
@@ -1458,6 +1561,24 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       let zentries: Map<string, Uint8Array>;
       try { zentries = await readZip(bytes); }
       catch { toast(`${name} isn't a readable zip`); return false; }
+      if (!support.ines) {
+        // A software-list set is the cart's individual chips, and their file
+        // names do not sort into load order -- only the catalog says where
+        // each chip belongs, matched by crc.
+        const set = cartImageFromSoftlistSet(zentries, catalog);
+        if (set) { await shelve(`${set.entry.name}.zip`, set.bytes); return true; }
+        // Otherwise the zip holds the cartridge image itself.
+        const parts = [...zentries.entries()].filter(([, data]) => data.length > 0);
+        if (!parts.length) { toast(`${name}: nothing inside`); return false; }
+        if (parts.length > 1) {
+          toast(`${name}: several files inside and no catalogued set matches them`);
+          return false;
+        }
+        const [innerName, image] = parts[0]!;
+        if (image.length > MAX_CART) { toast(`${name}: bigger than 8 MiB — not a cartridge`); return false; }
+        await shelve(innerName.split('/').pop() ?? name, image);
+        return true;
+      }
       let shelved = 0;
       for (const [zname, data] of zentries) {
         if (data.length > MAX_CART) continue;
@@ -1474,6 +1595,9 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       toast(`${name}: no iNES cartridge or known chip set inside`);
       return false;
     }
+    // A flat console takes the file as the cartridge; only the NES can reject
+    // one on sight, because only it has a header to check.
+    if (!support.ines) { await shelve(name, bytes); return true; }
     if (parseINes(bytes)) { await shelve(name, bytes); return true; }
     toast(`${name} isn't an iNES cartridge (.nes)`);
     return false;
@@ -1600,7 +1724,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
 
   const picker = document.createElement('input');
   picker.type = 'file';
-  picker.accept = '.nes,.zip';
+  picker.accept = [...cartExtensions, '.zip'].join(',');
   picker.multiple = true;
   // In the document, not merely constructed: Chrome opens a picker for a
   // detached input but WebKit ignores the click outright, which left "click to

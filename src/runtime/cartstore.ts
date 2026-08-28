@@ -22,10 +22,16 @@ export interface CartRecord {
   bytes: ArrayBuffer;
   size: number;
   addedAt: number;
-  /** parsed header summary (identification re-runs against a fresh catalog each visit) */
-  ines: { mapper: number; prgSize: number; chrSize: number; mirroring: string; battery: boolean };
-  prgCrc: string;
-  chrCrc: string | null;
+  /**
+   * Parsed iNES header summary, for an NES cartridge only. Identification
+   * re-runs against a fresh catalog each visit, so this is a display summary
+   * rather than the identity.
+   */
+  ines?: { mapper: number; prgSize: number; chrSize: number; mirroring: string; battery: boolean };
+  prgCrc?: string;
+  chrCrc?: string | null;
+  /** Whole-image crc, for a console whose cartridges are flat images. */
+  imageCrc?: string;
 }
 
 export interface CartStore {

@@ -26,6 +26,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { identify, inesFromSoftlistSet, parseINes } from '../src/runtime/nes-ines.ts';
+import { identifyCartImage } from '../src/runtime/cart-identify.ts';
 import { crc32, readZip } from '../src/runtime/zip.ts';
 import { DATA_DIR } from '../src/paths.ts';
 
@@ -33,6 +34,10 @@ const root = resolve(import.meta.dirname, '..');
 const argv = process.argv.slice(2);
 const list = flagValue('--list') ?? 'nes';
 const dryRun = argv.includes('--dry-run');
+// A set the visitor already owns is more useful on the shelf under its own
+// name than parked out of sight, so importing one in place can keep the dumps
+// no catalog entry claims.
+const keepUnmatched = argv.includes('--keep-unmatched');
 
 if (!/^[a-z0-9_-]+$/i.test(list)) fail(`implausible list "${list}"`);
 
@@ -51,6 +56,9 @@ if (!existsSync(catalogPath)) {
 }
 
 const catalog = JSON.parse(readFileSync(catalogPath, 'utf8'));
+// The NES is the one list whose dumps are a header plus two areas; every other
+// console dumps a cartridge flat. The catalog's own interface says which.
+const inesList = catalog.interface === 'nes_cart';
 // identify() resolves `meta` purely by CRC; the support lists only colour the
 // tier, which filing does not care about, so empty lists are correct here.
 const support = { slots: [], games: [], mapperSlots: {} };
@@ -73,10 +81,16 @@ let importedCount = 0, duplicateCount = 0, unidentifiedCount = 0;
 for (const file of inputs) {
   const src = join(newDir, file);
   const raw = new Uint8Array(readFileSync(src));
-  const loaded = await loadImage(raw);
+  // Which reader applies is the LIST's property, not a guess about the bytes:
+  // the catalog says what its cartridges are (`nes_cart`, `coleco_cart`, ...).
+  // Sniffing instead lets parseINes accept a ColecoVision dump whose first
+  // bytes happen to pass, and the NES matcher then "identifies" it against a
+  // catalog that is not the NES's at all.
+  const loaded = inesList ? await loadImage(raw) : null;
 
   if (!loaded) {
-    report(file, 'unidentified', 'no iNES image inside');
+    if (await importFlatImage(file, src, raw)) continue;
+    report(file, 'unidentified', 'no cartridge image inside');
     park(src, file, 'unidentified');
     unidentifiedCount++;
     continue;
@@ -124,6 +138,154 @@ console.log(`\n${dryRun ? '[dry run] ' : ''}imported ${importedCount}, duplicate
 if (manifestRows.length) {
   console.log(dryRun ? `[dry run] would add ${manifestRows.length} row(s) to _manifest.json`
     : `_manifest.json: +${manifestRows.length} row(s)`);
+}
+
+/**
+ * Import a flat cartridge image: identify it, repack it as the MAME chip set
+ * its catalog entry describes, and file it under the software-list short name.
+ *
+ * Returns false when the input is not a usable image at all, so the caller can
+ * park it. An image that IS usable but matches nothing is filed under its own
+ * name when --keep-unmatched is given, because a set the visitor already owns
+ * is more useful on the shelf than parked out of sight.
+ */
+async function importFlatImage(file: string, src: string, raw: Uint8Array): Promise<boolean> {
+  const { image, inner, innerCount } = await flatImage(raw);
+  if (!image?.length) return false;
+
+  const match = identifyCartImage(image, catalog);
+  if (!match) {
+    // Only file something that plausibly IS a dump: --keep-unmatched must not
+    // sweep a stray .dat or readme sitting beside the set into it.
+    if (!keepUnmatched || !looksLikeDump(file, raw)) return false;
+    report(file, 'unidentified', `${image.length}B -- no catalog match, filed as-is`);
+    manifestRows.push(flatRow(file, file, image, null, raw.length, inner, innerCount));
+    // Filed under the name it arrived with: there is no short name to give it,
+    // and the shelf keys on the file it can actually fetch.
+    if (!dryRun) {
+      mkdirSync(destDir, { recursive: true });
+      renameSync(src, join(destDir, file));
+    }
+    unidentifiedCount++;
+    return true;
+  }
+
+  const meta = match.entry;
+  const dest = join(destDir, `${meta.name}.zip`);
+  if (existsSync(dest)) {
+    report(file, 'duplicate', `${meta.name} -- ${meta.description}`);
+    park(src, file, 'duplicate');
+    duplicateCount++;
+    return true;
+  }
+
+  // Splitting into the entry's chips is only meaningful when those chips are
+  // what the dump actually holds. A variant's real chip boundaries are not
+  // known -- and its layout need not even fit -- so it is stored whole.
+  const chips = match.verified ? flatChips(image, meta) : null;
+  const packaged = chips ?? [{ name: `${meta.name}.bin`, bytes: image }];
+  const detail = match.verified
+    ? `${meta.name} -- ${meta.description}`
+    : `${meta.name} -- ${meta.description} (${match.matched}/${match.total} chips)`;
+  report(file, match.verified ? 'import' : 'variant', detail);
+  const zipBytes = storedZip(packaged);
+  manifestRows.push(flatRow(
+    file, `${meta.name}.zip`, image, match, zipBytes.length, inner, innerCount,
+    chips ? 'mame-softlist-chips' : 'flat-image',
+  ));
+  if (!dryRun) {
+    mkdirSync(destDir, { recursive: true });
+    writeFileSync(dest, zipBytes);
+    park(src, file, 'imported');
+  }
+  importedCount++;
+  return true;
+}
+
+/** The chip names a verified entry is packed under, for the manifest row. */
+function chipsOf(match: ReturnType<typeof identifyCartImage>): string[] | null {
+  if (!match?.verified || !xml) return null;
+  const labels = chipNames(xml, match.entry.name)?.prg;
+  return labels?.length ? labels : null;
+}
+
+/**
+ * Is this input plausibly a cartridge dump rather than something filed beside
+ * one? A zip counts, as does any of MAME's own cartridge file extensions.
+ */
+function looksLikeDump(file: string, raw: Uint8Array): boolean {
+  if (raw[0] === 0x50 && raw[1] === 0x4b) return true;
+  return /\.(rom|col|bin|a26|sg|sms|gg|nes)$/i.test(file);
+}
+
+/** The cartridge image inside an input: the file itself, or a zip's largest member. */
+async function flatImage(
+  raw: Uint8Array,
+): Promise<{ image: Uint8Array | null; inner: string; innerCount: number }> {
+  const isZip = raw[0] === 0x50 && raw[1] === 0x4b;
+  if (!isZip) return { image: raw, inner: '', innerCount: 1 };
+  let files: Map<string, Uint8Array>;
+  try {
+    files = await readZip(raw);
+  } catch {
+    return { image: null, inner: '', innerCount: 0 };
+  }
+  // A cartridge zip holds one image; the largest member is it either way.
+  const [inner, image] = [...files.entries()]
+    .sort((left, right) => right[1].length - left[1].length)[0] ?? ['', null];
+  return { image, inner, innerCount: files.size };
+}
+
+/** Cut a flat image into the chips the entry declares, at their own offsets. */
+function flatChips(
+  image: Uint8Array,
+  meta: { name: string; prg: { roms: Array<{ size: number; offset: number }> } },
+): Array<{ name: string; bytes: Uint8Array }> | null {
+  const labels = xml ? chipNames(xml, meta.name) : null;
+  const chips: Array<{ name: string; bytes: Uint8Array }> = [];
+  for (const [index, rom] of meta.prg.roms.entries()) {
+    const end = rom.offset + rom.size;
+    if (end > image.length) return null;
+    const fallback = `${meta.name}${meta.prg.roms.length > 1 ? `.${index + 1}` : ''}.bin`;
+    chips.push({ name: labels?.prg?.[index] ?? fallback, bytes: image.subarray(rom.offset, end) });
+  }
+  return chips.length ? chips : null;
+}
+
+/** A manifest row for a flat-image cartridge, in the same shape the NES rows use. */
+function flatRow(
+  file: string,
+  target: string,
+  image: Uint8Array,
+  match: ReturnType<typeof identifyCartImage>,
+  zipBytes: number,
+  inner: string,
+  innerCount: number,
+  packaging = 'as-supplied',
+): Record<string, unknown> {
+  return {
+    file,
+    zip_bytes: zipBytes,
+    inner: inner || basename(file),
+    inner_count: innerCount,
+    image_sha1: sha1(image),
+    image_crc32: hex8(crc32(image)),
+    image: { format: 'raw cartridge', size: image.length },
+    status: match?.verified ? 'verified' : match ? 'variant' : 'unidentified',
+    ...(match ? { chips_matched: match.matched, chips_total: match.total } : {}),
+    match: match ? {
+      name: match.entry.name,
+      description: match.entry.description ?? null,
+      cloneof: match.entry.cloneof ?? null,
+      year: match.entry.year ?? null,
+      publisher: match.entry.publisher ?? null,
+      slot: match.entry.slot ?? null,
+    } : null,
+    target,
+    packaging,
+    ...(chipsOf(match) ? { members: chipsOf(match) } : {}),
+    imported_by: 'import-new-roms',
+  };
 }
 
 /**
@@ -200,7 +362,10 @@ function chipNames(source: string, entry: string): { prg: string[]; chr: string[
     const slice = block.slice(start, end < 0 ? undefined : end);
     return [...slice.matchAll(/<rom name="([^"]+)"/g)].map(match => match[1]);
   };
-  return { prg: area('prg'), chr: area('chr') };
+  // A single-area list calls its program area "rom"; the catalog folds both
+  // spellings into `prg`, so the labels have to follow.
+  const program = area('prg');
+  return { prg: program.length ? program : area('rom'), chr: area('chr') };
 }
 
 /** A row in the shape the existing audit writes, so both readers stay happy. */

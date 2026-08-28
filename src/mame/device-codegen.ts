@@ -1,5 +1,6 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
 import { isFloatingExpression } from '../ir/execute.ts';
+import { HOST_SERVICE_CALLS } from '../ir/board.ts';
 import type {
   GeneratedDeviceCallback,
   GeneratedDeviceDefinition,
@@ -97,6 +98,11 @@ export function generatedDeviceMethodsSource(
     (
       definition.hotMethods?.includes(method.name) ||
       definition.timers.some(timer => timer.callback === method.name) ||
+      // A bus entry point: MAME spells a memory handler's address as `offs_t`,
+      // and a processor calls one once per access. These carry no loop for the
+      // shape rules below to notice, so the ColecoVision's Z80 drove every VDP
+      // port write through the interpreter -- 41% of a frame at 33 fps.
+      isBusEntryPoint(method) ||
       maximumLoopDepth(method.program.operations) >= 2 ||
       (
         maximumLoopDepth(method.program.operations) >= 1 &&
@@ -262,6 +268,26 @@ function maximumLoopDepth(
   return maximum;
 }
 
+/**
+ * Is this a method a processor reaches through an address map?
+ *
+ * MAME writes every memory handler with an `offs_t` address first, so the
+ * signature says it without the device having to be named. The closure pulls
+ * in whatever such a method calls, which is how the whole register/VRAM path
+ * ends up compiled with it.
+ */
+function isBusEntryPoint(method: GeneratedDeviceMethod): boolean {
+  const first = method.parameters.split(',')[0]?.trim() ?? '';
+  // MAME's handlers take the address first and call it `offset`, always. The
+  // NAME is the discriminator, not the arity: the slapstic's
+  // `configure_range(offs_t start, ...)` is configuration rather than a bus
+  // handler, while a ColecoVision cartridge's
+  // `read(offs_t offset, int _8000, int _a000, int _c000, int _e000)` carries
+  // four chip selects besides the address -- and runs on every instruction
+  // fetch, because the game code lives in cartridge ROM.
+  return /^offs_t\s+offset$/.test(first);
+}
+
 function supportsMethod(
   method: GeneratedDeviceMethod,
   definition: CodegenScope,
@@ -332,7 +358,12 @@ function supportsMethod(
         const inner = expression.callee.object;
         supported = (
           linked !== undefined &&
-          (definition.links ?? []).some(link => link.call === linked)
+          (
+            (definition.links ?? []).some(link => link.call === linked) ||
+            // A framework service the board binds for every device: same
+            // direct lookup, no target device to resolve.
+            HOST_SERVICE_CALLS.includes(linked)
+          )
         ) ||
           inner.kind !== 'call' ||
           inner.callee.kind !== 'identifier' ||
@@ -485,7 +516,14 @@ function emitOperation(
     } else {
       lines.push(`${pad}  default:`);
     }
+    // C++ gives each case its own scope; a JavaScript switch gives all of them
+    // one. MAME writes a `uint16_t addr` per arm as a matter of course -- the
+    // TMS9928A declares `addr`, `fg` and `bg` in several of its display-mode
+    // arms -- so without a block per case the emitted method redeclares them
+    // and does not compile at all. Braces do not affect fall-through.
+    lines.push(`${pad}  {`);
     lines.push(emitOperations(entry.body, context, indentation + 4));
+    lines.push(`${pad}  }`);
   }
   lines.push(`${pad}}`);
   return lines.filter(Boolean).join('\n');
@@ -810,7 +848,10 @@ function emitCall(
     const directName = linkedMemberCallName(expression);
     if (
       directName &&
-      context.definition.links?.some(link => link.call === directName)
+      (
+        context.definition.links?.some(link => link.call === directName) ||
+        HOST_SERVICE_CALLS.includes(directName)
+      )
     ) {
       return `(runtime.calls[${JSON.stringify(directName)}]?.(${args.join(', ')}) ?? 0)`;
     }
@@ -865,7 +906,13 @@ function emitValueMemberCall(
 ): string {
   if (expression.callee.kind !== 'member') return `${object}(${args.join(', ')})`;
   const property = expression.callee.property;
-  const access = `(${object}).${property}`;
+  // A member holding a C++ pointer is a generated pointer at run time, not the
+  // thing it points at: `m_vram_space = &space(AS_DATA)` makes every
+  // `m_vram_space->read_byte(...)` a call on the wrapper. The interpreter
+  // dereferences before it looks for the method, and emitted code that did not
+  // found no `read_byte`, took the `?? 0` fallback, and drew the TMS9928A's
+  // whole active display as empty VRAM.
+  const access = `(runtime.dereference(${object})).${property}`;
   if (args.length || !memberChainName(expression.callee.object)) {
     // The value may not implement the accessor MAME spells here: the runtime
     // models a gfx_element without `mark_dirty`, and the interpreter answers
@@ -1174,6 +1221,11 @@ function tryParseParameters(
   parameters: string,
 ): { name: string; valueType: string }[] | undefined {
   const parsed: { name: string; valueType: string }[] = [];
+  // C spells an empty parameter list `(void)`, and MAME still writes it that
+  // way in places. Read as a parameter it becomes one named `void`, so the
+  // emitted method took an argument its callers never pass -- which is a
+  // compile error the moment such a method is selected for codegen.
+  if (parameters.trim() === 'void') return parsed;
   for (const parameter of parameters.split(',').map(entry => entry.trim()).filter(Boolean)) {
     const name = /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter)?.[1];
     if (!name) return undefined;

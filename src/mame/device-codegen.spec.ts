@@ -324,4 +324,127 @@ assert.equal(
   'compiled pointer addition must retain the original memory and offset',
 );
 
-console.log('device-codegen.spec: IR selection, dependency closure and execution passed');
+// A C++ switch scopes each case; JavaScript scopes the whole statement. MAME
+// declares a working local per arm as a matter of course -- the TMS9928A has
+// `addr`, `fg` and `bg` in several of its display-mode arms -- so without a
+// block per case the emitted method redeclares them and does not parse.
+{
+  const switchScopes: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['pick'],
+    methods: [{
+      name: 'pick',
+      parameters: 'uint8_t mode',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler(`
+        switch (mode)
+        {
+        case 0:
+          {
+            uint16_t addr = 1;
+            m_total = addr;
+            break;
+          }
+        case 1:
+          {
+            uint16_t addr = 2;
+            m_total = addr;
+            break;
+          }
+        }
+      `),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(switchScopes);
+  assert.ok(emitted.methods.includes('pick'), 'the switch method must be emitted');
+  // The proof is that it parses and runs at all: a redeclared `let` is a
+  // SyntaxError, which Function() raises here exactly as tsc does in a build.
+  const built = new Function(`return ${emitted.source}`)() as
+    Record<string, (runtime: unknown, mode: number) => unknown>;
+  for (const [mode, expected] of [[0, 1], [1, 2]] as const) {
+    const runtime = { members: { m_total: 0 } };
+    built.pick!(runtime, mode);
+    assert.equal(runtime.members.m_total, expected, `case ${mode} keeps its own local`);
+  }
+}
+
+// A member holding a C++ pointer is a generated pointer at run time, not the
+// object it points at. The interpreter dereferences before it looks for the
+// method; emitted code that did not found no `read_byte` on the wrapper, took
+// its `?? 0` fallback, and read the TMS9928A's whole display memory as zero.
+{
+  const pointerCalls: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['fetch'],
+    members: [{ name: 'm_space', valueType: 'address_space*', bits: 32 }],
+    methods: [{
+      name: 'fetch',
+      parameters: 'uint16_t addr',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler('return m_space->read_byte(addr);'),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(pointerCalls);
+  assert.ok(emitted.methods.includes('fetch'));
+  const built = new Function(`return ${emitted.source}`)() as
+    Record<string, (runtime: unknown, addr: number) => unknown>;
+  const space = { read_byte: (address: number) => 0x40 + address };
+  const runtime = {
+    members: { m_space: { generatedPointer: true, source: [space], offset: 0 } },
+    dereference: (value: unknown) => {
+      const pointer = value as { generatedPointer?: boolean; source?: unknown[]; offset?: number };
+      return pointer?.generatedPointer ? pointer.source![pointer.offset!] : value;
+    },
+  };
+  assert.equal(built.fetch!(runtime, 2), 0x42,
+    'a member call must reach through the pointer, as the interpreter does');
+}
+
+// A framework service chained on a call -- `screen().vpos()` -- has no target
+// device to resolve, so it used to disqualify a method from codegen entirely.
+// That left the TMS9928A's per-scanline renderer interpreted and the
+// ColecoVision at 17 fps; the runtime binds these chains for every device.
+{
+  const hostService: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['line'],
+    methods: [{
+      name: 'line',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler('m_total = screen().vpos() * 2;'),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(hostService);
+  assert.ok(
+    emitted.methods.includes('line'),
+    'a method calling a bound framework service must still compile',
+  );
+  assert.match(emitted.source, /runtime\.calls\["screen\(\)\.vpos"\]/);
+  const built = new Function(`return ${emitted.source}`)() as
+    Record<string, (runtime: unknown) => unknown>;
+  const runtime = { members: { m_total: 0 }, calls: { 'screen().vpos': () => 21 } };
+  built.line!(runtime);
+  assert.equal(runtime.members.m_total, 42);
+}
+
+// A chain the runtime does NOT bind still keeps its method interpreted, so the
+// emitter never invents a service that would silently answer 0.
+{
+  const unknownService: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['odd'],
+    methods: [{
+      name: 'odd',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler('m_total = cassette().position();'),
+    }],
+  };
+  assert.ok(
+    !generatedDeviceMethodsSource(unknownService).methods.includes('odd'),
+    'an unbound framework chain must leave the method interpreted',
+  );
+}
+
+console.log('device-codegen.spec: IR selection, dependency closure, case scoping, host services and pointer calls passed');

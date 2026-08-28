@@ -147,10 +147,19 @@ export interface DropZone {
  * Look for the romset on the web. Sources and their order live in
  * rom-source.ts, shared with the console room's cartridge fetch.
  */
-async function fetchRomSet(game: string): Promise<Uint8Array> {
-  const bytes = await fetchRomBytes(`arcade/${game}.zip`);
+async function fetchRomSet(game: string, category = 'arcade'): Promise<Uint8Array> {
+  const bytes = await fetchRomBytes(`${category}/${game}.zip`);
   if (!bytes) throw new Error(`no web source had ${game}.zip`);
   return bytes;
+}
+
+/**
+ * Where this machine's own romset lives, mirroring the .data/roms layout:
+ * "arcade/pacman.zip", "consoles/coleco.zip". A console's cartridges sit one
+ * level deeper, under the machine's own directory.
+ */
+function romCategory(dataPath: string): string {
+  return dataPath.replace(/^games\//, '').split('/')[0] ?? 'arcade';
 }
 
 /** result of checking an uploaded zip against the knowledge-graph manifest */
@@ -238,6 +247,15 @@ export interface ShellConfig {
   /** console cart facts from the generator (catalog url, capability lists) */
   cart?: {
     interface: string; list: string; catalogUrl: string; slots: string[]; games: string[];
+    /**
+     * The slot option a cartridge takes when its software-list entry names
+     * none, as MAME's own slot device declares it. coleco.xml names a slot on
+     * no entry at all, so without this every ColecoVision cartridge would
+     * resolve to no board.
+     */
+    defaultSlot?: string;
+    /** ROM region a cartridge PCB loads into, as MAME's rom_alloc names it. */
+    romRegion?: string;
     /** generated cartridge availability index, when a local dump audit existed */
     cartsUrl?: string;
     /**
@@ -551,7 +569,14 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   // (persisted only in the visitor's own browser via cartstore, by explicit
   // user approval 2026-07-07).
   let regions: Regions;
-  if (preloaded) {
+  // A cartridge is the whole machine only when the machine needs no ROM files
+  // of its own. The NES declares a maincpu region with nothing in it -- the
+  // cartridge fills it -- while the ColecoVision declares a real BIOS, so its
+  // cartridge mounts ON TOP of the romset rather than instead of it. Keying on
+  // the region list instead of the loads inside it would send the NES looking
+  // for an nes.zip that does not exist.
+  const needsRomFiles = cfg.roms.some(spec => spec.loads.length > 0);
+  if (preloaded && !needsRomFiles) {
     regions = preloaded;
   } else {
     // Device firmware is just as boot-critical as CPU code even though MAME
@@ -563,8 +588,11 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
       ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
       : '';
     ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (never stored).`);
-    const files = await waitForZip(ui, zone, cfg.roms, critical, cfg.game);
+    const files = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath));
     regions = assembleRegions(cfg.roms, files, ui.status, critical);
+    // The cartridge the console room already resolved wins over anything of
+    // the same name in the machine set.
+    if (preloaded) Object.assign(regions, preloaded);
   }
 
   // driver-init ROM byte patches from the graph (rocnrope's one-instruction fix)
@@ -612,13 +640,23 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   // One emulated frame, exactly as the run loop advances it. Browser QA drives
   // this directly so a test can run a precise frame count instead of racing the
   // wall clock; nothing about the machine lives here.
+  // Declared before the frame helpers that read it: `step()` is exposed on
+  // window.mamekit and can run a frame before the run loop is set up.
+  let fastForward = false;
+
+  /** One emulated frame, without presenting it. */
+  const runFrame = (): void => {
+    input.advance();
+    board.frame(fb);
+    // Fast-forward outruns the worklet, and a queued frame is permanent
+    // latency rather than a dropped one, so its audio is discarded instead.
+    if (fastForward) audio.discard();
+    else audio.flush(); // one batch message per emulated frame
+    frames++;
+  };
+
   const stepFrames = (count: number): void => {
-    for (let index = 0; index < count; index++) {
-      input.advance();
-      board.frame(fb);
-      audio.flush(); // one batch message per emulated frame
-      frames++;
-    }
+    for (let index = 0; index < count; index++) runFrame();
     if (count > 0) ui.blit(image);
   };
 
@@ -680,6 +718,30 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   }
   ui.overlayHide();
 
+  // --- fast-forward -------------------------------------------------------------
+  //
+  // Every machine here makes you wait for something before you can play: a
+  // ColecoVision spends twelve seconds on its BIOS screen before it hands over
+  // to the cartridge, and an arcade board runs its own self-test and attract
+  // loop. F runs the machine as fast as it will go until F is pressed again,
+  // for whatever is running -- this is the shell every target boots through.
+  //
+  // The unthrottled path is the same frame step the timestep uses, given a
+  // wall-clock budget instead of a frame count, so input, emulation and the
+  // blit all still happen -- it is the pacing that changes, nothing else.
+  // Sound is muted while it runs, because a machine at several times speed is
+  // a screech rather than a fast tune.
+  const masterVolume = cfg.sound.masterGain ?? 1;
+  const setFastForward = (on: boolean): void => {
+    fastForward = on;
+    audio.setVolume(on ? 0 : masterVolume);
+  };
+  addEventListener('keydown', event => {
+    if (event.code !== 'KeyF' || event.metaKey || event.ctrlKey || event.altKey) return;
+    event.preventDefault();
+    setFastForward(!fastForward);
+  });
+
   // --- run loop: fixed timestep at the board's refresh rate --------------------
   const refresh = cfg.board.screen.refresh;
   const frameMs = 1000 / refresh;
@@ -699,10 +761,20 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
       acc -= frameMs;
       due++;
     }
-    if (!qaDrive) stepFrames(due);
+    if (fastForward && !qaDrive) {
+      // As many frames as fit the budget, presented once. The budget is
+      // shorter than a display frame so the page stays responsive enough to
+      // press F again, and the cap stops a fast machine running away.
+      const until = performance.now() + 10;
+      let batch = 0;
+      do { runFrame(); batch++; } while (performance.now() < until && batch < 60);
+      ui.blit(image);
+      acc = 0; // the timestep's backlog means nothing at this speed
+    } else if (!qaDrive) stepFrames(due);
     if (now - fpsWindowStart >= 1000) {
       const snap = board.snapshot();
       const parts = [`${frames} fps`, `pc=${hex4(snap.cpus[0].pc)}`];
+      if (fastForward) parts.unshift('▶▶ FAST-FORWARD (F)');
       if (snap.cpus.length > 1) parts.push(`sub=${snap.cpus[1].held ? 'held' : hex4(snap.cpus[1].pc)}`);
       if (snap.credits !== undefined) parts.push(`credits=${snap.credits}`);
       if (input.debug) parts.push(input.dump());
@@ -872,7 +944,7 @@ function controlsHelp(cfg: ShellConfig): string {
       ? 'Arrows' : order.filter(k => dirKeys.has(k)).map(keyLabel).join('');
     head.push(`${arrows}: move`);
   }
-  return [...head, ...parts, 'Esc: menu'].join(' · ');
+  return [...head, ...parts, 'F: fast-forward', 'Esc: menu'].join(' · ');
 }
 
 function buildDom(cfg: ShellConfig) {
@@ -1210,6 +1282,7 @@ function waitForZip(
   specs: RomRegionSpec[],
   critical: Set<string>,
   game: string,
+  category: string,
 ): Promise<Map<string, Uint8Array>> {
   return new Promise(resolve => {
     const pick = document.createElement('input');
@@ -1280,7 +1353,7 @@ function waitForZip(
         fn();
       }, Math.max(0, 2400 - (performance.now() - started)));
       const sets = [game, ...dependencyRomSets(specs, game)];
-      Promise.allSettled(sets.map(async set => ({ set, raw: await fetchRomSet(set) }))).then(
+      Promise.allSettled(sets.map(async set => ({ set, raw: await fetchRomSet(set, category) }))).then(
         results => finish(() => {
           const found = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : []);
           if (!found.length) {

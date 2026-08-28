@@ -436,7 +436,7 @@ export function parseRomSets(
   consts: Record<string, number> = parseDefines(src),
 ): RomSetDef[] {
   const out: RomSetDef[] = [];
-  const re = /ROM_START\(\s*(\w+)\s*\)([\s\S]*?)ROM_END/g;
+  const re = /ROM_START\s*\(\s*(\w+)\s*\)([\s\S]*?)ROM_END/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const set: RomSetDef = { name: m[1], regions: [] };
