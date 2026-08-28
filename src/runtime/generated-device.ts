@@ -1040,6 +1040,8 @@ function memoryMember(
 }
 
 function splitParameters(parameters: string): string[] {
+  // `(void)` is C's empty parameter list, not a parameter named `void`.
+  if (parameters.trim() === 'void') return [];
   return parameters.split(',').map(parameter => parameter.trim()).filter(Boolean);
 }
 

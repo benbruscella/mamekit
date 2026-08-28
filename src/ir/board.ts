@@ -229,6 +229,10 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   'screen().height',
   'screen().frame_number',
   'screen().time_until_pos',
+  // MAME guards a register write with this so a debugger peek changes nothing.
+  // It sits at the top of the TMS9928A's `read` and `register_write`, and left
+  // the whole port path -- every VRAM byte a game writes -- interpreted.
+  'machine().side_effects_disabled',
 ];
 
 export type GeneratedExpression =

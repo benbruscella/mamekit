@@ -98,6 +98,11 @@ export function generatedDeviceMethodsSource(
     (
       definition.hotMethods?.includes(method.name) ||
       definition.timers.some(timer => timer.callback === method.name) ||
+      // A bus entry point: MAME spells a memory handler's address as `offs_t`,
+      // and a processor calls one once per access. These carry no loop for the
+      // shape rules below to notice, so the ColecoVision's Z80 drove every VDP
+      // port write through the interpreter -- 41% of a frame at 33 fps.
+      isBusEntryPoint(method) ||
       maximumLoopDepth(method.program.operations) >= 2 ||
       (
         maximumLoopDepth(method.program.operations) >= 1 &&
@@ -261,6 +266,26 @@ function maximumLoopDepth(
     }
   }
   return maximum;
+}
+
+/**
+ * Is this a method a processor reaches through an address map?
+ *
+ * MAME writes every memory handler with an `offs_t` address first, so the
+ * signature says it without the device having to be named. The closure pulls
+ * in whatever such a method calls, which is how the whole register/VRAM path
+ * ends up compiled with it.
+ */
+function isBusEntryPoint(method: GeneratedDeviceMethod): boolean {
+  const first = method.parameters.split(',')[0]?.trim() ?? '';
+  // MAME's handlers take the address first and call it `offset`, always. The
+  // NAME is the discriminator, not the arity: the slapstic's
+  // `configure_range(offs_t start, ...)` is configuration rather than a bus
+  // handler, while a ColecoVision cartridge's
+  // `read(offs_t offset, int _8000, int _a000, int _c000, int _e000)` carries
+  // four chip selects besides the address -- and runs on every instruction
+  // fetch, because the game code lives in cartridge ROM.
+  return /^offs_t\s+offset$/.test(first);
 }
 
 function supportsMethod(
@@ -1196,6 +1221,11 @@ function tryParseParameters(
   parameters: string,
 ): { name: string; valueType: string }[] | undefined {
   const parsed: { name: string; valueType: string }[] = [];
+  // C spells an empty parameter list `(void)`, and MAME still writes it that
+  // way in places. Read as a parameter it becomes one named `void`, so the
+  // emitted method took an argument its callers never pass -- which is a
+  // compile error the moment such a method is selected for codegen.
+  if (parameters.trim() === 'void') return parsed;
   for (const parameter of parameters.split(',').map(entry => entry.trim()).filter(Boolean)) {
     const name = /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter)?.[1];
     if (!name) return undefined;

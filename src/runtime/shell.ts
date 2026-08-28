@@ -640,13 +640,23 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   // One emulated frame, exactly as the run loop advances it. Browser QA drives
   // this directly so a test can run a precise frame count instead of racing the
   // wall clock; nothing about the machine lives here.
+  // Declared before the frame helpers that read it: `step()` is exposed on
+  // window.mamekit and can run a frame before the run loop is set up.
+  let fastForward = false;
+
+  /** One emulated frame, without presenting it. */
+  const runFrame = (): void => {
+    input.advance();
+    board.frame(fb);
+    // Fast-forward outruns the worklet, and a queued frame is permanent
+    // latency rather than a dropped one, so its audio is discarded instead.
+    if (fastForward) audio.discard();
+    else audio.flush(); // one batch message per emulated frame
+    frames++;
+  };
+
   const stepFrames = (count: number): void => {
-    for (let index = 0; index < count; index++) {
-      input.advance();
-      board.frame(fb);
-      audio.flush(); // one batch message per emulated frame
-      frames++;
-    }
+    for (let index = 0; index < count; index++) runFrame();
     if (count > 0) ui.blit(image);
   };
 
@@ -708,6 +718,30 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
   }
   ui.overlayHide();
 
+  // --- fast-forward -------------------------------------------------------------
+  //
+  // Every machine here makes you wait for something before you can play: a
+  // ColecoVision spends twelve seconds on its BIOS screen before it hands over
+  // to the cartridge, and an arcade board runs its own self-test and attract
+  // loop. F runs the machine as fast as it will go until F is pressed again,
+  // for whatever is running -- this is the shell every target boots through.
+  //
+  // The unthrottled path is the same frame step the timestep uses, given a
+  // wall-clock budget instead of a frame count, so input, emulation and the
+  // blit all still happen -- it is the pacing that changes, nothing else.
+  // Sound is muted while it runs, because a machine at several times speed is
+  // a screech rather than a fast tune.
+  const masterVolume = cfg.sound.masterGain ?? 1;
+  const setFastForward = (on: boolean): void => {
+    fastForward = on;
+    audio.setVolume(on ? 0 : masterVolume);
+  };
+  addEventListener('keydown', event => {
+    if (event.code !== 'KeyF' || event.metaKey || event.ctrlKey || event.altKey) return;
+    event.preventDefault();
+    setFastForward(!fastForward);
+  });
+
   // --- run loop: fixed timestep at the board's refresh rate --------------------
   const refresh = cfg.board.screen.refresh;
   const frameMs = 1000 / refresh;
@@ -727,10 +761,20 @@ export async function runShell(cfg: ShellConfig, preloaded?: Regions): Promise<v
       acc -= frameMs;
       due++;
     }
-    if (!qaDrive) stepFrames(due);
+    if (fastForward && !qaDrive) {
+      // As many frames as fit the budget, presented once. The budget is
+      // shorter than a display frame so the page stays responsive enough to
+      // press F again, and the cap stops a fast machine running away.
+      const until = performance.now() + 10;
+      let batch = 0;
+      do { runFrame(); batch++; } while (performance.now() < until && batch < 60);
+      ui.blit(image);
+      acc = 0; // the timestep's backlog means nothing at this speed
+    } else if (!qaDrive) stepFrames(due);
     if (now - fpsWindowStart >= 1000) {
       const snap = board.snapshot();
       const parts = [`${frames} fps`, `pc=${hex4(snap.cpus[0].pc)}`];
+      if (fastForward) parts.unshift('▶▶ FAST-FORWARD (F)');
       if (snap.cpus.length > 1) parts.push(`sub=${snap.cpus[1].held ? 'held' : hex4(snap.cpus[1].pc)}`);
       if (snap.credits !== undefined) parts.push(`credits=${snap.credits}`);
       if (input.debug) parts.push(input.dump());
@@ -900,7 +944,7 @@ function controlsHelp(cfg: ShellConfig): string {
       ? 'Arrows' : order.filter(k => dirKeys.has(k)).map(keyLabel).join('');
     head.push(`${arrows}: move`);
   }
-  return [...head, ...parts, 'Esc: menu'].join(' · ');
+  return [...head, ...parts, 'F: fast-forward', 'Esc: menu'].join(' · ');
 }
 
 function buildDom(cfg: ShellConfig) {

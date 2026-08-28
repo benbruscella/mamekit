@@ -366,11 +366,16 @@ class IrBoard implements Board {
         // The same services under the chain names a generated device emits:
         // `screen().vpos()` resolves to one lookup rather than evaluating
         // `screen()` and then a property, which is what lets codegen compile a
-        // scanline renderer instead of leaving it to the interpreter.
+        // scanline renderer -- and a port handler -- instead of leaving either
+        // to the interpreter.
+        const hostServiceHosts: Record<string, Record<string, unknown>> = {
+          screen: screenHost as unknown as Record<string, unknown>,
+          machine: { side_effects_disabled: () => 0 },
+        };
         const screenServiceCalls: Record<string, (...args: number[]) => unknown> = {};
         for (const name of HOST_SERVICE_CALLS) {
-          const property = name.slice('screen().'.length);
-          const service = (screenHost as Record<string, unknown>)[property];
+          const [host, property] = name.split('().');
+          const service = hostServiceHosts[host!]?.[property!];
           if (typeof service === 'function') {
             screenServiceCalls[name] = (...args: number[]) =>
               (service as (...rest: number[]) => unknown)(...args);
