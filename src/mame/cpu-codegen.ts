@@ -821,6 +821,11 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
   if (expression.kind === 'index') {
     return `${emitExpression(expression.object, context)}[${emitExpression(expression.index, context)}]`;
   }
+  if (expression.kind === 'lambda') {
+    // No MAME CPU core writes one inside an operation body. Refusing loudly
+    // beats emitting something that looks like a core and is not one.
+    throw new Error('CPU code generation reached a lambda expression');
+  }
   return emitCall(expression, context);
 }
 

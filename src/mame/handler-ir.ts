@@ -8,7 +8,14 @@ interface Token {
   offset: number;
 }
 
-const TYPE_WORDS = new Set([
+/**
+ * C++ type keywords, shared with the emitters.
+ *
+ * `sizeof` is the reason this is exported: `sizeof(uint8_t)` names a type and
+ * answers with that type's width, while `sizeof buffer` names a value and
+ * answers with the whole object's size. Only this set separates the two.
+ */
+export const TYPE_WORDS = new Set([
   'auto', 'bool', 'char', 'const', 'constexpr', 'double', 'float', 'int', 'offs_t', 'pen_t', 'static',
   'rectangle', 'rgb_t', 'tilemap_memory_index',
   's8', 's16', 's32', 's64', 'u8', 'u16', 'u32', 'u64',
@@ -318,8 +325,11 @@ class HandlerParser {
       this.unsupportedStatement('invalid for condition');
       return undefined;
     }
-    const iterate = this.parseMutationList(')');
-    if (!iterate?.length) {
+    // The iteration clause is optional in C++: a loop that advances from
+    // inside its own body leaves it empty, as TIA's sample loop does
+    // (`for (int sampindex = 0; sampindex < stream.samples(); )`).
+    const iterate = this.consume(')') ? [] : this.parseMutationList(')');
+    if (!iterate) {
       this.unsupportedStatement('invalid for iteration');
       return undefined;
     }
@@ -737,6 +747,13 @@ class HandlerParser {
       while (this.peek().kind === 'identifier' && TYPE_WORDS.has(this.peek().text)) {
         valueType.push(this.take().text);
       }
+      // A cast to a class type -- `(tia *)_chip`. `isCast` only admits the
+      // pointer form, and a pointer to a class narrows nothing, so the name is
+      // consumed and left out of valueType: what matters is `pointer`, which
+      // tells generated code the cast is an identity.
+      if (!valueType.length && this.peek().kind === 'identifier') {
+        this.index = this.skipQualifiedName(this.index);
+      }
       // Recorded, not discarded. The interpreter can tell a pointer from a
       // number by looking at the value, but generated code only has the
       // declared type: dropping the `*` turned bublbobl's
@@ -770,6 +787,22 @@ class HandlerParser {
           }
         : undefined;
     }
+    // `sizeof buffer`, without parentheses. The parenthesized `sizeof(T)` form
+    // already reads as an ordinary call and is left alone; this one would
+    // otherwise be two identifiers in a row and fail the whole statement, which
+    // is what dropped every `memset(line, 0xFF, sizeof line)` in TIA's
+    // scanline compositor.
+    if (this.atText('sizeof') && this.tokens[this.index + 1]?.text !== '(') {
+      this.take();
+      const operand = this.parseUnary();
+      return operand
+        ? {
+            kind: 'call',
+            callee: { kind: 'identifier', name: 'sizeof' },
+            args: [operand],
+          }
+        : undefined;
+    }
     if (['!', '~', '-', '+', '&', '*'].includes(this.peek().text)) {
       const operator = this.take().text;
       const operand = this.parseUnary();
@@ -780,8 +813,16 @@ class HandlerParser {
 
   private isCast(): boolean {
     let cursor = this.index + 1;
-    if (this.tokens[cursor]?.kind !== 'identifier' || !TYPE_WORDS.has(this.tokens[cursor]!.text)) {
-      return false;
+    if (this.tokens[cursor]?.kind !== 'identifier') return false;
+    if (!TYPE_WORDS.has(this.tokens[cursor]!.text)) {
+      // A cast to a class type -- `(tia *)_chip`, how MAME's C-style sound
+      // modules recover their own state from a void pointer. Only a pointer or
+      // reference form can be told from a parenthesized expression by tokens
+      // alone: `(name)` on its own is far more often a value than a cast.
+      cursor = this.skipQualifiedName(cursor);
+      if (this.tokens[cursor]?.text !== '*' && this.tokens[cursor]?.text !== '&') return false;
+      while (this.tokens[cursor]?.text === '*' || this.tokens[cursor]?.text === '&') cursor++;
+      return this.tokens[cursor]?.text === ')';
     }
     while (
       this.tokens[cursor]?.kind === 'identifier' &&
@@ -896,6 +937,14 @@ class HandlerParser {
     return args;
   }
 
+  /**
+   * A braced list up to `terminator`.
+   *
+   * C++ allows a trailing comma in an aggregate initializer, and MAME's
+   * hand-aligned tables use one freely -- TIA's `delay[0x40]` write-latency
+   * table is written that way. Reading the comma as the start of another
+   * element rejected the whole declaration.
+   */
   private parseDelimitedExpressions(terminator: string): GeneratedExpression[] | undefined {
     const values: GeneratedExpression[] = [];
     if (this.consume(terminator)) return values;
@@ -905,6 +954,7 @@ class HandlerParser {
       values.push(value);
       if (this.consume(terminator)) return values;
       if (!this.consume(',')) return undefined;
+      if (this.consume(terminator)) return values;
     }
     return undefined;
   }
@@ -943,12 +993,77 @@ class HandlerParser {
       const expression = this.parseExpression();
       return expression && this.consume(')') ? expression : undefined;
     }
+    // A `[` where a value is expected introduces a lambda -- a subscript is
+    // postfix and never reaches here. MAME installs address-space taps with
+    // one, which is how every Atari 2600 bank-switch cartridge switches banks.
+    if (token.text === '[') {
+      this.index--;
+      return this.parseLambda();
+    }
     this.index--;
     return undefined;
   }
 
+  /**
+   * `[capture] (params) [mutable] [-> type] { body }`.
+   *
+   * The capture list is skipped: everything a MAME lambda captures is `this`,
+   * which the enclosing program already resolves. A parameter the source left
+   * unnamed -- `[this] (offs_t address, u8 &, u8)` names only the first --
+   * keeps its position with an empty name so the arguments still line up.
+   */
+  private parseLambda(): GeneratedExpression | undefined {
+    if (!this.consume('[')) return undefined;
+    let depth = 1;
+    while (depth > 0 && !this.at('eof')) {
+      const text = this.take().text;
+      if (text === '[') depth++;
+      else if (text === ']') depth--;
+    }
+    if (!this.consume('(')) return undefined;
+    const parameters: string[] = [];
+    if (!this.consume(')')) {
+      while (!this.at('eof')) {
+        const words: string[] = [];
+        let nesting = 0;
+        while (!this.at('eof')) {
+          const text = this.peek().text;
+          if (nesting === 0 && (text === ',' || text === ')')) break;
+          if (text === '(' || text === '<') nesting++;
+          else if (text === ')' || text === '>') nesting--;
+          words.push(this.take().text);
+        }
+        // The declarator is the last identifier, unless the declaration ends
+        // on a type word or on `*`/`&` -- then the parameter has no name.
+        const last = words.at(-1) ?? '';
+        parameters.push(
+          /^\w+$/.test(last) && !TYPE_WORDS.has(last) && words.length > 1 ? last : '',
+        );
+        if (this.consume(')')) break;
+        if (!this.consume(',')) return undefined;
+      }
+    }
+    while (this.atText('mutable') || this.atText('constexpr')) this.take();
+    if (this.consume('->')) {
+      while (!this.at('eof') && !this.atText('{')) this.take();
+    }
+    if (!this.consume('{')) return undefined;
+    return { kind: 'lambda', parameters, body: this.parseOperations('}') };
+  }
+
+  /**
+   * Record a diagnostic and resynchronize on the next statement boundary.
+   *
+   * This must always consume at least one token. A statement that fails on the
+   * enclosing block's own `}` used to put that brace back and return, leaving
+   * the parser exactly where it started: `parseOperations` asked for the same
+   * statement again, forever, until the diagnostics array outgrew its maximum
+   * length. Progress is the invariant, so the brace goes back only when
+   * something else was consumed ahead of it.
+   */
   private unsupportedStatement(message: string): void {
     this.diagnostics.push(message);
+    const start = this.index;
     let parens = 0;
     let braces = 0;
     while (!this.at('eof')) {
@@ -958,7 +1073,7 @@ class HandlerParser {
       else if (token === '{') braces++;
       else if (token === '}') {
         if (braces === 0) {
-          this.index--;
+          if (this.index - 1 > start) this.index--;
           return;
         }
         braces--;

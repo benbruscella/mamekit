@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 import { parseSoftwareList, buildCatalog } from '../kg/softlist.ts';
+import { evalExpr } from '../kg/parse.ts';
 import {
   buildRuntimeReport, runtimeReportMarkdown, type RuntimeConfigShape,
 } from './runtime-report.ts';
@@ -441,6 +442,13 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     className: string;
     method: string;
   }> = [];
+  // Numeric members the game's state class fixes in its own constructor. A
+  // machine config shared with a sibling game -- a2600 and a2600p share
+  // everything but their crystal -- leaves those clocks as source expressions
+  // for exactly this step.
+  const classConstants: Record<string, number> = game.props.classConstants
+    ? JSON.parse(String(game.props.classConstants))
+    : {};
   {
     // Devices follow MAME's own composition order. A derived machine
     // configuration calls its base before adding to it, so the base's devices
@@ -464,9 +472,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         // single Device node and therefore cannot reveal the collision by
         // counting declarations (for example Venture's two "pia" devices).
         const tag = hostTag && !rawTag.includes(':') ? `${hostTag}:${rawTag}` : rawTag;
-        devices.push(tag === rawTag ? node : {
-          ...node,
-          props: { ...node.props, tag },
+        const resolved = resolveClassConstants(node, classConstants);
+        devices.push(tag === rawTag ? resolved : {
+          ...resolved,
+          props: { ...resolved.props, tag },
         });
         hostedConfigs.push(...g.out(node.id, 'CALLS').map(called => ({
           id: called.node.id,
@@ -549,7 +558,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177' };
   // ROM windows installed by a CPU's own internal address map. They do not
   // appear in the driver's set_addrmap graph, but still map DEVICE_SELF ROM.
   const CPU_INTERNAL_ROM: Record<string, { start: number; end: number; romOffset: number }> = {
@@ -2458,3 +2467,34 @@ function writeCartShelfIndex(setDir: string, outDir: string, set: string): numbe
   return carts.length;
 }
 
+/**
+ * A device node with its state-class-parameterized values resolved.
+ *
+ * The graph keeps the source expression whenever a clock or raster parameter
+ * names a driver member rather than a literal, because the machine config that
+ * spells it is shared by games whose classes fix that member differently. The
+ * game's own constants arrive here, so this is where the expression becomes a
+ * number. A device with nothing left to resolve is returned untouched.
+ */
+function resolveClassConstants(
+  node: KGNode,
+  constants: Record<string, number>,
+): KGNode {
+  if (!Object.keys(constants).length) return node;
+  const props: Record<string, number | number[]> = {};
+  const clockExpr = node.props.clockExpr;
+  if (node.props.clock === null && typeof clockExpr === 'string') {
+    const clock = evalExpr(clockExpr, constants);
+    if (clock !== null) props.clock = clock;
+  }
+  const rawExpr = node.props.screenRawExpr;
+  if (Array.isArray(rawExpr) && rawExpr.length >= 7) {
+    const values = rawExpr.map(value => evalExpr(String(value), constants));
+    if (values.every(value => value !== null)) {
+      props.screenRaw = values.slice(0, 7) as number[];
+    }
+  }
+  return Object.keys(props).length
+    ? { ...node, props: { ...node.props, ...props } }
+    : node;
+}

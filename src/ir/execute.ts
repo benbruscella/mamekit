@@ -1389,6 +1389,21 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     const index = toNumber(evaluate(expression.index, context));
     return indexValue(object, index);
   }
+  if (expression.kind === 'lambda') {
+    // The lambda body runs in the enclosing scope's own context -- a MAME
+    // lambda captures `this`, so every member and call it names is already
+    // resolvable there -- with its parameters bound over the top. An unnamed
+    // parameter keeps its position and binds nothing.
+    const { parameters, body } = expression;
+    return (...args: unknown[]): unknown => {
+      const locals = { ...context.locals };
+      for (const [index, name] of parameters.entries()) {
+        if (name) locals[name] = args[index] ?? 0;
+      }
+      const result = executeOperations(body, { ...context, locals });
+      return result.control === 'return' ? result.value : undefined;
+    };
+  }
   return evaluateCall(expression, context);
 }
 
@@ -1593,6 +1608,13 @@ function applyIdentifierCall(
   const macro = applyGeneratedMacro(name, args);
   if (macro !== undefined) return macro;
   if (name === 'sizeof') {
+    // `sizeof buffer` is the whole object's size, so an operand that evaluated
+    // to real storage answers with its own byte length. A type name evaluates
+    // to nothing and falls back to that type's declared width.
+    const operand = args[0];
+    if (isIndexableMemory(operand)) {
+      return (operand as { byteLength?: number }).byteLength ?? operand.length;
+    }
     return typeByteWidth(generatedExpressionName(expression.args[0]!));
   }
   if (name === 'ioport') return reference(`ioport:${String(args[0] ?? '')}`);

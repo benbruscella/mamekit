@@ -59,6 +59,12 @@ import {
 } from './coleco/definition.ts';
 import { extractColeco } from './coleco/extract.ts';
 import {
+  A2600_ID,
+  A2600_MAME_TYPES,
+  A2600_PORTS,
+} from './a2600/definition.ts';
+import { extractA2600 } from './a2600/extract.ts';
+import {
   SN76489_ID,
   SN76489_MAME_TYPES,
   SN76489_MASTER_GAIN,
@@ -160,6 +166,12 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: COLECO_MAME_TYPES,
     ports: COLECO_PORTS,
     extract: extractColeco,
+  },
+  {
+    id: A2600_ID,
+    mameTypes: A2600_MAME_TYPES,
+    ports: A2600_PORTS,
+    extract: extractA2600,
   },
   // Audio
   {

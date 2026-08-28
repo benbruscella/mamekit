@@ -267,7 +267,22 @@ export type GeneratedExpression =
   | { kind: 'conditional'; condition: GeneratedExpression; whenTrue: GeneratedExpression; whenFalse: GeneratedExpression }
   | { kind: 'member'; object: GeneratedExpression; property: string }
   | { kind: 'index'; object: GeneratedExpression; index: GeneratedExpression }
-  | { kind: 'call'; callee: GeneratedExpression; args: GeneratedExpression[] };
+  | { kind: 'call'; callee: GeneratedExpression; args: GeneratedExpression[] }
+  /**
+   * A C++ lambda, as a value.
+   *
+   * MAME installs address-space taps with one -- every Atari 2600 bank-switch
+   * cartridge switches its bank from a `install_read_tap(..., [this](offs_t
+   * address, u8 &, u8) { ... })`. The capture list carries no value the IR
+   * needs: everything a MAME lambda captures is `this`, which the surrounding
+   * program already resolves. A parameter the source left unnamed keeps its
+   * position with an empty name.
+   */
+  | {
+      kind: 'lambda';
+      parameters: string[];
+      body: GeneratedHandlerOperation[];
+    };
 
 export type GeneratedHandlerOperation =
   | { op: 'declare'; name: string; valueType?: string; value?: GeneratedExpression }

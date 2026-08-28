@@ -18,6 +18,10 @@ export const REQUIRED_TARGETS: readonly string[] = [
   // BIOS is a romset of its own, so it can hold a real contract as soon as
   // that dump is available. Until then it sits with the NES.
   'coleco',
+  // The Atari 2600 has no BIOS at all -- the cartridge is the whole machine --
+  // so like the NES it is covered by the browser suite rather than a romset
+  // contract.
+  'a2600',
 ];
 
 /**

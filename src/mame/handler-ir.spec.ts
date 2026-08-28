@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { compileMameHandler } from './handler-ir.ts';
+import type { GeneratedExpression } from '../ir/board.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import {
   executeGeneratedHandler,
@@ -444,4 +445,93 @@ assert.equal(
   '`a < b > c` is still two comparisons',
 );
 
-console.log('handler-ir.spec: 55 passed');
+// A C++ aggregate initializer may end on a comma. MAME's hand-aligned tables
+// use one (TIA's per-register write-delay table), and rejecting the trailing
+// comma rejected the whole declaration.
+const trailingComma = compileMameHandler(
+  'static const int delay[4] = { 0, 1, 2, 3, }; return delay[offset];',
+);
+assert.deepEqual(trailingComma.diagnostics, []);
+assert.deepEqual(trailingComma.operations.map(operation => operation.op), ['declare', 'return']);
+assert.equal(
+  executeGeneratedProgram(trailingComma, {}, { offset: 2 }).value,
+  2,
+  'the table keeps its declared elements, not the trailing hole',
+);
+
+// Recovery must always consume a token. A statement that fails on the block's
+// own closing brace once left the parser where it started, and it re-reported
+// the same statement until the diagnostics array outgrew its maximum length.
+const strayBrace = compileMameHandler('m_value = 1; } m_other = 2;');
+assert.ok(strayBrace.diagnostics.length > 0, 'the stray brace is reported');
+assert.ok(strayBrace.diagnostics.length < 10, 'and reported once, not unboundedly');
+
+// MAME installs address-space taps with a lambda, and every Atari 2600
+// bank-switch cartridge switches its bank from one. The capture list carries
+// nothing the IR needs, and a parameter the source left unnamed keeps its
+// position so the arguments still line up.
+const tap = compileMameHandler(
+  'space->install_read_tap(0x1ff8, 0x1ff9, "bank", ' +
+  '[this] (offs_t address, u8 &, u8) { switch_bank(address - 0x1ff8, 0); });',
+);
+assert.deepEqual(tap.diagnostics, []);
+{
+  const call = (tap.operations[0] as { expression: { args: GeneratedExpression[] } }).expression;
+  const lambda = call.args[3]!;
+  assert.equal(lambda.kind, 'lambda');
+  assert.deepEqual(
+    (lambda as Extract<GeneratedExpression, { kind: 'lambda' }>).parameters,
+    ['address', '', ''],
+  );
+}
+{
+  // The lambda is a value: calling it runs the body with the bank switch bound.
+  const banks: number[] = [];
+  executeGeneratedProgram(tap, {
+    calls: {
+      'space.install_read_tap': (...args: unknown[]) => {
+        (args[3] as (address: number, data: number, mask: number) => void)(0x1ff9, 0, 0xff);
+        return 0;
+      },
+      switch_bank: (bank: unknown) => { banks.push(Number(bank)); return 0; },
+    },
+  });
+  assert.deepEqual(banks, [1], 'the tap ran its body with the tapped address bound');
+}
+
+// A lambda with a trailing return type and a named-only parameter list.
+const returning = compileMameHandler('auto fn = [this] (int value) -> u8 { return value + 1; };');
+assert.deepEqual(returning.diagnostics, []);
+assert.equal(returning.operations[0]?.op, 'declare');
+
+// The iteration clause is optional: a loop that advances from inside its own
+// body leaves it empty, as TIA's sample loop does.
+const openLoop = compileMameHandler(
+  'int total = 0; for (int i = 0; i < limit; ) { total += i; i += step; } return total;',
+);
+assert.deepEqual(openLoop.diagnostics, []);
+assert.equal(
+  executeGeneratedProgram(openLoop, {}, { limit: 6, step: 2 }).value,
+  0 + 2 + 4,
+);
+
+// MAME's C-style sound modules recover their own state from a void pointer
+// with a cast to a class type. A pointer to a class narrows nothing, so the
+// cast is an identity -- and only the pointer form is a cast at all, or every
+// parenthesized name would become one.
+const chipCast = compileMameHandler('tia *chip = (tia *)_chip; return chip->AUDV[0];');
+assert.deepEqual(chipCast.diagnostics, []);
+assert.equal(
+  executeGeneratedProgram(chipCast, {}, { _chip: { AUDV: [0x0c, 0] } }).value,
+  0x0c,
+  'the cast passes the object through rather than narrowing it to a number',
+);
+const notACast = compileMameHandler('return (a) * (b);');
+assert.deepEqual(notACast.diagnostics, []);
+assert.equal(
+  executeGeneratedProgram(notACast, { members: { a: 6, b: 7 } }).value,
+  42,
+  '`(a) * (b)` is still a multiplication',
+);
+
+console.log('handler-ir.spec: 64 passed');

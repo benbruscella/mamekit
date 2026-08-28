@@ -1,6 +1,7 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
 import { isFloatingExpression } from '../ir/execute.ts';
 import { HOST_SERVICE_CALLS } from '../ir/board.ts';
+import { TYPE_WORDS } from './handler-ir.ts';
 import type {
   GeneratedDeviceCallback,
   GeneratedDeviceDefinition,
@@ -689,6 +690,33 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       ? `runtime.readIndex(${object}, ${index})`
       : `${object}[${index}]`;
   }
+  if (expression.kind === 'lambda') {
+    // A MAME lambda captures `this`, and the emitted method body is already
+    // `this`-scoped, so an arrow function captures exactly the same names.
+    // An unnamed parameter still holds its position in the signature.
+    //
+    // The body emits in a scope of its own: the lambda's parameters are locals
+    // inside it and members outside it, and a body that assigns to one -- MAME
+    // taps take `u8 &data` by reference and write through it -- would otherwise
+    // resolve the name against the enclosing method and fail to emit at all.
+    const annotation = context.typescript ? ': any' : '';
+    const names = expression.parameters
+      .map((name, index) => `${name || `unused${index}`}${annotation}`);
+    const inner: EmitContext = {
+      ...context,
+      locals: new Map([
+        ...context.locals,
+        ...expression.parameters
+          .filter(Boolean)
+          .map(name => [name, undefined] as [string, string | undefined]),
+      ]),
+    };
+    // The method's locals were collected before emitting, and that walk visits
+    // operations, not the expressions inside them -- so nothing the lambda body
+    // declares is known yet. Collect them here, over the body's own scope.
+    collectLocals(expression.body, inner);
+    return `((${names.join(', ')}) => {\n${emitOperations(expression.body, inner, 6)}\n    })`;
+  }
   return emitCall(expression, context);
 }
 
@@ -778,13 +806,19 @@ function emitCall(
       );
     }
     if (name === 'sizeof') {
-      const valueType = expression.args[0]
-        ? expressionValueType(expression.args[0], context)
-        : undefined;
+      const operand = expression.args[0];
+      const valueType = operand ? expressionValueType(operand, context) : undefined;
       const bytes = /(?:u?int64_t|[us]64|double)/.test(valueType ?? '') ? 8
         : /(?:u?int32_t|[us]32|float|offs_t|pen_t)/.test(valueType ?? '') ? 4
         : /(?:u?int16_t|[us]16)/.test(valueType ?? '') ? 2
         : 1;
+      // `sizeof(uint8_t)` names a type and is that type's width. `sizeof line`
+      // names a value, and C++ answers with the whole object -- for the line
+      // buffers TIA composites into, the array's length, not one element.
+      // The declared width stays the fallback for a scalar operand.
+      if (operand && !namesType(operand)) {
+        return `((${args[0]})?.byteLength ?? ${bytes})`;
+      }
       return String(bytes);
     }
     if (name === 'memset') {
@@ -1374,4 +1408,9 @@ function safeName(name: string): string {
 
 function localName(name: string): string {
   return JAVASCRIPT_RESERVED_WORDS.has(name) ? `$${name}` : name;
+}
+
+/** Whether an expression names a C++ type rather than a value. */
+function namesType(expression: GeneratedExpression): boolean {
+  return expression.kind === 'identifier' && TYPE_WORDS.has(expression.name);
 }

@@ -14,6 +14,7 @@ import { deviceConfiguredScreen } from '../mame/screen-config.ts';
 import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
+  parseStateClassConstants,
   parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
   parseInitPatches, parseInitRomTransforms, parseInstalledHandlers, parseTextMacros, parseMemoryBanks, evalExpr,
   parseEnumConstants, normalizeTemplatedMethod,
@@ -160,6 +161,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   const ioportMembers = parseIoportMembers(combined, textMacros.strings);
   emitSourceTimerCallbacks(g, ast, consts, definedIn);
   const memberTags = parseMemberTags(combined);
+  const stateClassConstants = parseStateClassConstants(combined);
   const deviceTypes = parseDeviceTypeDecls(combined);
 
   // --- games ---
@@ -194,6 +196,12 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       // compat (CONS/SYST/COMP arg 4) is a software-compatibility group, NOT
       // a clone relationship — famicom is compat with nes but its own machine
       ...(gm.compat !== '0' ? { compat: gm.compat } : {}),
+      // Numeric members this game's state class fixes in its constructor. A
+      // machine config shared with a sibling game reads them as unevaluated
+      // expressions, and only the game knows their values.
+      ...(stateClassConstants[gm.cls]
+        ? { classConstants: JSON.stringify(stateClassConstants[gm.cls]) }
+        : {}),
     });
     definedIn(id, source);
     if (gm.parent !== '0') g.edge(id, `game:${gm.parent}`, 'CLONE_OF');
@@ -700,6 +708,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
           dev.screenRaw.vtotal, dev.screenRaw.vbend, dev.screenRaw.vbstart,
         ];
       }
+      if (dev.screenRawExpr) props.screenRawExpr = dev.screenRawExpr;
       if (dev.screenRefreshHz !== undefined) props.screenRefreshHz = dev.screenRefreshHz;
       if (dev.screenSize) props.screenSize = [dev.screenSize.w, dev.screenSize.h];
       if (dev.screenVisarea) {
