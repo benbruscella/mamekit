@@ -1,4 +1,5 @@
-import { Bus, type HandlerRegistry } from './bus.ts';
+import { Bus, type HandlerRegistry, type ReadHandler, type WriteHandler } from './bus.ts';
+import { installedOffset, RecordingAddressSpace } from './address-space-install.ts';
 import { createCpu, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
 import {
   createDevice,
@@ -224,6 +225,8 @@ class IrBoard implements Board {
   private readonly cpuReportedSuspended = new Map<string, boolean>();
   private readonly devices = new Map<string, Device>();
   private readonly generatedBanks: Record<string, GeneratedMemoryBank> = {};
+  /** MAME address-space taps a mounted cartridge installed over the CPU space. */
+  private cartridgeTaps: ((address: number) => void)[] = [];
   /** MAME `memory_bank::set_entry` per board bank tag. */
   private readonly bankEntry = new Map<string, (entry: number) => number>();
   /**
@@ -360,6 +363,11 @@ class IrBoard implements Board {
             return Math.floor(this.beamPosition()) % vtotal;
           },
           hpos: () => 0,
+          // MAME's screen dimensions are the whole raster, not the visible
+          // window: a device that allocates a bitmap from them addresses it in
+          // raster coordinates.
+          width: () => Math.max(1, machine.execution.screen.htotal ??
+            (machine.execution.screen.xOffset ?? 0) + machine.execution.screen.width),
           height: () => Math.max(1, machine.execution.screen.vtotal),
           frame_number: () => this.frameRunner?.frameCount ?? 0,
         };
@@ -783,6 +791,7 @@ class IrBoard implements Board {
       calls['m_dvg.reset_w'] = () => 0;
     }
     this.installGeneratedDeviceBuses(machine, registry);
+    this.cartridgeTaps = this.installCartridgeMemoryHandlers(machine, registry);
     this.soundRuntime = this.installGeneratedSoundHandlers(machine, regions, sinks, registry);
     this.installMemoryBanks(machine, regions, registry);
     this.installDeclarativeHandlers(machine, config, inputs, registry);
@@ -897,6 +906,12 @@ class IrBoard implements Board {
         regions,
       );
       this.cpuBuses.set(specification.tag, bus);
+      // A cartridge's read taps observe the CPU's own space. They answer
+      // nothing, so they layer over whatever already decodes the address --
+      // which for an Atari 2600 bank switch is the ROM window it just read.
+      if (specification.tag === machine.execution.cpus[0]?.tag) {
+        for (const tap of this.cartridgeTaps) bus.installAccessTap(tap);
+      }
       for (const viewTag of new Set(
         (specification.ranges ?? []).flatMap(range => range.viewTag ? [range.viewTag] : []),
       )) {
@@ -2761,6 +2776,90 @@ class IrBoard implements Board {
       return reset;
     }
     return undefined;
+  }
+
+  /**
+   * Run a mounted cartridge's own `install_memory_handlers` and keep what it
+   * asked for.
+   *
+   * Some cartridge buses are not describable by an address map: an Atari 2600
+   * cartridge installs itself into the 6507's space when it is mounted, and its
+   * bank switching is a read tap on a ROM address rather than anything the
+   * driver's map could name. MAME's installer is the authority on what a PCB
+   * decodes, so the host runs it rather than restating it -- which is what lets
+   * one capability cover every banking scheme MAME declares.
+   *
+   * Base installs become ordinary ranges appended after the driver's, so a
+   * later install wins exactly as it does in MAME. Taps answer nothing, so they
+   * are returned for the bus to layer over whatever does.
+   */
+  private installCartridgeMemoryHandlers(
+    machine: BoardIr,
+    registry: HandlerRegistry,
+  ): ((address: number) => void)[] {
+    const taps: ((address: number) => void)[] = [];
+    for (const [tag, device] of this.devices) {
+      if (device.role() !== 'cartridge') continue;
+      const space = new RecordingAddressSpace();
+      let installed = false;
+      try {
+        device.invokeSlot('install_memory_handlers', space as unknown as number);
+        installed = true;
+      } catch {
+        // A PCB with no installer of its own is not an error: the slot simply
+        // decodes nothing extra, which is what an empty slot does.
+      }
+      if (!installed || !space.entries.length) continue;
+      const cpu = machine.execution.cpus[0];
+      if (!cpu) continue;
+      const ranges = cpu.ranges ??= [];
+      for (const [index, entry] of space.entries.entries()) {
+        if (entry.kind === 'tap') {
+          const { start, end, read, write } = entry;
+          const observe = read ?? write;
+          if (!observe) continue;
+          taps.push(address => {
+            if (address >= start && address <= end) observe(address, 0, 0xff);
+          });
+          continue;
+        }
+        const key = `cartridge:${tag}:${index}`;
+        const { start, end, mirror } = entry;
+        let read: ReadHandler | undefined;
+        let write: WriteHandler | undefined;
+        if (entry.kind === 'rom') {
+          const { bytes } = entry;
+          read = address => Number(bytes[installedOffset(address, start, mirror) % bytes.length] ?? 0xff) & 0xff;
+        } else if (entry.kind === 'bank') {
+          const { bank } = entry;
+          if (entry.read) read = address => bank.read(installedOffset(address, start, mirror)) & 0xff;
+          if (entry.write) {
+            write = (address, _offset, data) =>
+              bank.write(installedOffset(address, start, mirror), data & 0xff);
+          }
+        } else {
+          const handler = entry;
+          if (handler.read) {
+            read = address => Number(handler.read!(installedOffset(address, start, mirror))) & 0xff;
+          }
+          if (handler.write) {
+            write = (address, _offset, data) =>
+              void handler.write!(installedOffset(address, start, mirror), data & 0xff);
+          }
+        }
+        if (read) registry.read[key] = read;
+        if (write) registry.write[key] = write;
+        ranges.push({
+          start,
+          end: Math.max(end, start),
+          kind: 'handler',
+          ...(mirror ? { mirror } : {}),
+          ...(read ? { read: key } : {}),
+          ...(write ? { write: key } : {}),
+        });
+      }
+    }
+    return taps;
   }
 
   /**

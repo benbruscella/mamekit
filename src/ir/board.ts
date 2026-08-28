@@ -226,6 +226,7 @@ export interface GeneratedHandler {
 export const HOST_SERVICE_CALLS: readonly string[] = [
   'screen().vpos',
   'screen().hpos',
+  'screen().width',
   'screen().height',
   'screen().frame_number',
   'screen().time_until_pos',
@@ -378,6 +379,8 @@ export interface GeneratedScreen {
   xOffset?: number;
   yOffset?: number;
   refresh: number;
+  /** The whole raster's width, which is what MAME's `screen().width()` is. */
+  htotal?: number;
   vtotal: number;
   vbstart: number;
   vbend?: number;

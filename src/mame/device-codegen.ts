@@ -333,6 +333,10 @@ function supportsMethod(
           (
             expression.operand.kind === 'call' &&
             expression.operand.callee.kind === 'member'
+          ) ||
+          (
+            expression.operand.kind === 'identifier' &&
+            structMemberNames(definition).has(expression.operand.name)
           );
       } else if (expression.kind === 'binary') {
         supported = SAFE_BINARY_OPERATORS.has(expression.operator);
@@ -834,6 +838,17 @@ function emitCall(
       return `(runtime.palette[${args[0] ?? '0'}] ?? 0xff000000)`;
     }
     if (name === 'set_pen_color') {
+      // MAME has both `set_pen_color(pen, rgb_t)` and
+      // `set_pen_color(pen, r, g, b)`; only the argument count separates them.
+      // Emitting the four-argument form as the two-argument one stored the red
+      // channel alone as the whole colour, which left the TIA's pen 0 at zero
+      // and every Atari 2600 picture invisible. The packing matches the one
+      // `rgb_t(...)` builds: alpha, blue, green, red down to the low byte.
+      if (args.length >= 4) {
+        return `(runtime.palette[${args[0]}] = ((0xff000000 | ` +
+          `((${args[3]}) & 0xff) << 16 | ((${args[2]}) & 0xff) << 8 | ` +
+          `((${args[1]}) & 0xff)) >>> 0))`;
+      }
       return `(runtime.palette[${args[0] ?? '0'}] = ${args[1] ?? '0'})`;
     }
     if (['u8', 'uint8_t', 's8', 'int8_t', 'u16', 'uint16_t',
@@ -947,6 +962,16 @@ function emitValueMemberCall(
   // found no `read_byte`, took the `?? 0` fallback, and drew the TMS9928A's
   // whole active display as empty VRAM.
   const access = `(runtime.dereference(${object})).${property}`;
+  // A MAME `rgb_t` is a packed number, and its channel accessors read it back:
+  // the TIA builds its 16k blended palette from `pen_color(i).r()` and friends.
+  // A numeric receiver has no method to call, and the fallback below answered 0
+  // -- which made every blended pen black, and with it every moving object on
+  // the screen.
+  const channelShift = RGB_CHANNEL_SHIFTS[property];
+  if (channelShift !== undefined && !args.length) {
+    return `(typeof ${object} === 'number' ? ((${object}) >>> ${channelShift}) & 0xff : ` +
+      `(${access}?.() ?? 0))`;
+  }
   if (args.length || !memberChainName(expression.callee.object)) {
     // The value may not implement the accessor MAME spells here: the runtime
     // models a gfx_element without `mark_dirty`, and the interpreter answers
@@ -1089,6 +1114,13 @@ function emitAddressOf(
     const object = emitExpression(expression.callee.object, context);
     const args = expression.args.map(argument => emitExpression(argument, context));
     return `${object}[${JSON.stringify(`${expression.callee.property}&`)}](${args.join(', ')})`;
+  }
+  // `&p0gfx`, where the member holds a struct. A struct is an object at run
+  // time, so its address is the object -- the same identity the interpreter
+  // gives it. The TIA hands both its sprite states to one shared draw routine
+  // this way, and refusing it kept the whole scanline compositor interpreted.
+  if (expression.kind === 'identifier' && namesStructMember(expression.name, context)) {
+    return emitExpression(expression, context);
   }
   throw new Error(`device codegen has unsupported address-of operand "${expression.kind}"`);
 }
@@ -1413,4 +1445,37 @@ function localName(name: string): string {
 /** Whether an expression names a C++ type rather than a value. */
 function namesType(expression: GeneratedExpression): boolean {
   return expression.kind === 'identifier' && TYPE_WORDS.has(expression.name);
+}
+
+/**
+ * `rgb_t` channel accessors, by the shift that reads each one out of the
+ * packing `rgb_t(...)` builds: alpha, blue, green, red down to bit zero.
+ */
+const RGB_CHANNEL_SHIFTS: Record<string, number | undefined> = { r: 0, g: 8, b: 16, a: 24 };
+
+/**
+ * Members whose C++ type is a struct or union rather than a number.
+ *
+ * A struct member is an object at run time, so `&member` is the member itself.
+ * A scalar member is not: its address needs a get/set wrapper, and taking one
+ * stays interpreted.
+ */
+function structMemberNames(definition: CodegenScope): Set<string> {
+  return new Set(
+    definition.members
+      .filter(member => !integerBitsForType(member.valueType) &&
+        !member.memory && !member.finder && !member.values &&
+        /^[A-Za-z_]\w*$/.test(member.valueType))
+      .map(member => member.name),
+  );
+}
+
+function namesStructMember(name: string, context: EmitContext): boolean {
+  return structMemberNames(context.definition).has(name);
+}
+
+/** Whether a declared type is one of MAME's fixed-width integer spellings. */
+function integerBitsForType(valueType: string): boolean {
+  return /^(?:const\s+)?(?:u|s|uint|int)(?:8|16|32|64)(?:_t)?$|^(?:bool|char|int|unsigned|float|double|offs_t|pen_t)$/
+    .test(valueType.trim());
 }

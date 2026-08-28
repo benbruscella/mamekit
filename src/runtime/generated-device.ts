@@ -30,6 +30,8 @@ interface DeviceMember {
     kind: 'input' | 'device';
     tag: string;
   };
+  /** Declared array bound for an object-typed member (`bitmap_ind16 h[2]`). */
+  arrayLength?: number;
 }
 
 interface DeviceCallback {
@@ -430,8 +432,19 @@ class IrDevice implements Device {
           ? { read: () => options.inputs?.read(inputTag) ?? 0xff }
           : member.finder?.kind === 'device'
             ? options.finder?.(member.finder.tag, member.name) ?? 0
-          : member.valueType === 'bitmap_rgb32'
-            ? new GeneratedBitmapRgb32()
+          : /^bitmap_(?:rgb32|ind16|ind8)$/.test(member.valueType)
+            ? (member.arrayLength
+                ? Array.from({ length: member.arrayLength },
+                    () => new GeneratedBitmap(member.valueType))
+                : new GeneratedBitmap(member.valueType))
+          // MAME's `memory_bank_creator m_bank{*this, "bank"}`: a device that
+          // banks its own window declares the bank as a member and installs it
+          // into the owner's space. Resolving it to a number left every Atari
+          // 2600 bank-switch cartridge with no window at all.
+          : /^memory_bank(?:_array)?_creator/.test(member.valueType)
+            ? (member.arrayLength
+                ? Array.from({ length: member.arrayLength }, () => new IrMemoryBank())
+                : new IrMemoryBank())
         : member.memory
         ? memoryMember(member, options)
         : member.values ? [...member.values]
@@ -511,8 +524,16 @@ class IrDevice implements Device {
           frequency > 0 ? 1 / frequency : Infinity,
         'attotime::from_ticks': (ticks, frequency) =>
           frequency > 0 ? ticks / frequency : Infinity,
-        set_pen_color: (entry, color) => {
-          palette[entry] = color >>> 0;
+        // MAME's device_palette_interface has both overloads:
+        // `set_pen_color(pen, rgb_t)` and `set_pen_color(pen, r, g, b)`. Only
+        // the argument count separates them, and reading the four-argument form
+        // as the two-argument one stored the red channel alone as the whole
+        // colour -- which made the TIA's pen 0 black-with-no-alpha and every
+        // Atari 2600 picture invisible.
+        set_pen_color: (entry, ...channels) => {
+          palette[entry] = channels.length >= 3
+            ? rgbPixel(channels[0]!, channels[1]!, channels[2]!)
+            : channels[0]! >>> 0;
           return 0;
         },
         pen_color: entry => palette[entry] ?? 0xff000000,
@@ -520,7 +541,22 @@ class IrDevice implements Device {
         // points m_pens straight at the adjusted entry colours, so the pen a
         // device writes into a bitmap_rgb32 is the colour itself.
         pen: entry => palette[entry] ?? 0xff000000,
+        // The C math functions MAME's palette and DSP arithmetic reaches for.
+        // `pow` is not optional decoration: the TIA gamma-corrects every one of
+        // its 128 base pens with `pow(R, 0.9)`, and an unbound call answered
+        // zero -- which made the whole palette black and every Atari 2600
+        // picture with it.
         floor: value => Math.floor(value),
+        ceil: value => Math.ceil(value),
+        pow: (value, exponent) => Math.pow(value, exponent),
+        sqrt: value => Math.sqrt(value),
+        exp: value => Math.exp(value),
+        log: value => Math.log(value),
+        log10: value => Math.log10(value),
+        fabs: value => Math.abs(value),
+        tan: value => Math.tan(value),
+        atan: value => Math.atan(value),
+        atan2: (y, x) => Math.atan2(y, x),
         cos: value => Math.cos(value),
         sin: value => Math.sin(value),
         DEGREE_TO_RADIAN: value => value * Math.PI / 180,
@@ -904,16 +940,34 @@ function resolveDeviceResource(
   return result;
 }
 
-/** Minimal MAME bitmap_rgb32 value used by generated device methods. */
-class GeneratedBitmapRgb32 {
-  pixels = new Uint32Array(0);
+/**
+ * A MAME bitmap value used by generated device methods.
+ *
+ * MAME names the pixel format in the type -- `bitmap_rgb32`, `bitmap_ind16`,
+ * `bitmap_ind8` -- and a device that composes its picture in an indexed format
+ * before resolving pens needs the narrower store, not a 32-bit one. The TIA
+ * composites two `bitmap_ind16` scanline buffers and diffs them into a
+ * `bitmap_rgb32`, so both widths have to be real.
+ */
+class GeneratedBitmap {
+  pixels: Uint32Array | Uint16Array | Uint8Array;
   private bitmapWidth = 0;
   private bitmapHeight = 0;
+  private readonly storage: Uint32ArrayConstructor | Uint16ArrayConstructor | Uint8ArrayConstructor;
+
+  constructor(valueType: string) {
+    this.storage = /_ind8$/.test(valueType)
+      ? Uint8Array
+      : /_ind16$/.test(valueType)
+        ? Uint16Array
+        : Uint32Array;
+    this.pixels = new this.storage(0);
+  }
 
   allocate(width: number, height: number): void {
     this.bitmapWidth = Math.max(0, width | 0);
     this.bitmapHeight = Math.max(0, height | 0);
-    this.pixels = new Uint32Array(this.bitmapWidth * this.bitmapHeight);
+    this.pixels = new this.storage(this.bitmapWidth * this.bitmapHeight);
   }
 
   width(): number {
@@ -935,7 +989,7 @@ class GeneratedBitmapRgb32 {
 
   'pix&'(y: number, x = 0): {
     generatedPointer: true;
-    source: Uint32Array;
+    source: Uint32Array | Uint16Array | Uint8Array;
     offset: number;
   } {
     return {
@@ -1120,4 +1174,12 @@ function generatedDeviceSpace(addressBits: number): GeneratedDeviceSpace {
       return 0;
     },
   };
+}
+
+/**
+ * The packing the generated runtime uses for a MAME `rgb_t`: alpha, then blue,
+ * green and red down to the low byte. `rgb_t::r()` and friends read it back.
+ */
+function rgbPixel(red: number, green: number, blue: number): number {
+  return ((0xff << 24) | ((blue & 0xff) << 16) | ((green & 0xff) << 8) | (red & 0xff)) >>> 0;
 }

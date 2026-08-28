@@ -1468,6 +1468,17 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   }
   if (name === 'ARRAY') return args;
   if (name === 'floor') return Math.floor(toNumber(args[0]));
+  // The C math functions MAME's palette and DSP arithmetic reaches for.
+  if (name === 'ceil') return Math.ceil(toNumber(args[0]));
+  if (name === 'pow') return Math.pow(toNumber(args[0]), toNumber(args[1]));
+  if (name === 'sqrt') return Math.sqrt(toNumber(args[0]));
+  if (name === 'exp') return Math.exp(toNumber(args[0]));
+  if (name === 'log') return Math.log(toNumber(args[0]));
+  if (name === 'log10') return Math.log10(toNumber(args[0]));
+  if (name === 'fabs') return Math.abs(toNumber(args[0]));
+  if (name === 'tan') return Math.tan(toNumber(args[0]));
+  if (name === 'atan') return Math.atan(toNumber(args[0]));
+  if (name === 'atan2') return Math.atan2(toNumber(args[0]), toNumber(args[1]));
   if (name === 'cos') return Math.cos(toNumber(args[0]));
   if (name === 'sin') return Math.sin(toNumber(args[0]));
   if (name === 'DEGREE_TO_RADIAN') return toNumber(args[0]) * Math.PI / 180;
@@ -1703,6 +1714,12 @@ function evaluateCall(
     if (typeof object === 'number' && method === 'as_ticks') {
       const clock = Math.max(1, toNumber(evaluate(expression.args[0]!, context)));
       return Math.floor(object * clock);
+    }
+    // A MAME `rgb_t` is a packed number, and its channel accessors read it
+    // back: the TIA builds its 16k blended palette by averaging every pair of
+    // base pens through `pen_color(i).r()`.
+    if (typeof object === 'number' && !expression.args.length && RGB_CHANNELS[method]) {
+      return (object >>> RGB_CHANNELS[method]!) & 0xff;
     }
     if (isReference(object)) {
       const key = `${object.reference}.${method}`;
@@ -2430,3 +2447,9 @@ function timerDelegateName(expression: GeneratedExpression | undefined): string 
   if (target?.kind !== 'identifier') return undefined;
   return target.name.split('::').at(-1);
 }
+
+/**
+ * `rgb_t` channel accessors, by the shift that reads each one out of the
+ * packing `rgb_t(...)` builds above: alpha, blue, green, red down to bit zero.
+ */
+const RGB_CHANNELS: Record<string, number | undefined> = { r: 0, g: 8, b: 16, a: 24 };

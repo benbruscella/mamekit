@@ -573,6 +573,13 @@ export interface AddressRangeDef {
   /** Entry-qualified memory_view mapping, e.g. m_rom_view[0](...). */
   viewTag?: string;
   viewEntry?: number;
+  /**
+   * `map(...).m("riot", FUNC(mos6532_device::io_map))`: the window is filled by
+   * a whole address map the device declares for itself, not by one handler.
+   * The map lives in the device's own source, so build.ts expands this into
+   * ordinary ranges once it can read that file.
+   */
+  deviceMap?: { ref: string; className: string; method: string };
   raw: string;
 }
 
@@ -651,6 +658,19 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
             range.region = unquote(args[0]);
             range.regionOffset = evalExpr(args[1] ?? '0') ?? 0;
             break;
+          // A device's own address map installed into this window.
+          case 'm': {
+            const func = /FUNC\(\s*(\w+)::(\w+)\s*\)/.exec(args.join(','));
+            const ref = args.find(argument => !argument.includes('FUNC('));
+            if (func && ref) {
+              range.deviceMap = {
+                ref: unquote(ref.trim()),
+                className: func[1]!,
+                method: func[2]!,
+              };
+            }
+            break;
+          }
           case 'r': range.read = parseHandlerArgs(args); break;
           case 'w': range.write = parseHandlerArgs(args); break;
           case 'lr8': range.read = parseInlineHandler(args, name, range, 'lr8'); break;

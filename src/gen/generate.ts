@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 import { parseSoftwareList, buildCatalog } from '../kg/softlist.ts';
-import { evalExpr } from '../kg/parse.ts';
+import { gameClassConstants, resolveClassConstants } from './class-constants.ts';
 import {
   buildRuntimeReport, runtimeReportMarkdown, type RuntimeConfigShape,
 } from './runtime-report.ts';
@@ -279,6 +279,12 @@ const CART_SLOT_SUPPORT: Record<string, string[]> = {
     'activision', 'activision_256b', 'activision_32k',
     'sgc_1mbit', 'sgc_2mbit', 'sgc_4mbit',
   ],
+  // Atari 2600 PCBs whose installer the host address space can replay. All 25
+  // lower from MAME's `a2600_cart`; these are the ones whose install_* calls
+  // the runtime answers, which is what makes a cartridge playable rather than
+  // merely identified. Between them they cover the great majority of the
+  // software list: plain 2K/4K carts alone are 1067 of its 1591 entries.
+  a2600: ['a26_2k_4k', 'a26_f8', 'a26_f8sw', 'a26_f6', 'a26_f4', 'a26_fa'],
 };
 
 const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
@@ -291,8 +297,15 @@ const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
 // resolves its board from the iNES mapper instead and needs neither.
 // src/hardware/coleco/coleco.spec.ts asserts both against MAME source, so
 // this table cannot drift away from the device it describes.
-const CART_DEFAULT_SLOT: Record<string, string> = { coleco: 'standard' };
-const CART_ROM_REGION: Record<string, string> = { coleco: 'coleco_cart:rom' };
+const CART_DEFAULT_SLOT: Record<string, string> = {
+  coleco: 'standard',
+  // MAME's own fallback, from `vcs_get_slot`'s final return.
+  a2600: 'a26_2k_4k',
+};
+const CART_ROM_REGION: Record<string, string> = {
+  coleco: 'coleco_cart:rom',
+  a2600: 'cartslot:cart:rom',
+};
 
 // Explicitly supported cartridge titles (softlist parent short-names; clones
 // of a listed parent count too). Playability is gated on THIS list, not just
@@ -325,6 +338,14 @@ const CART_GAME_SUPPORT: Record<string, string[]> = {
     // MMC3 (TxROM)
     'smb2', 'smb3', 'megaman3', 'megaman4', 'megaman5', 'megaman6', 'kirby',
     'batman', 'ddragon2', 'advisln3', 'bublbob2',
+  ],
+  // Booted on the generated board and their framebuffers read back: each
+  // reaches its playfield and keeps drawing, at or above the machine's own
+  // 59.92 Hz. `adventure` is the plain 4K case, `asteroid` the F8 bank-switch
+  // one, and the rest span the 2K/4K majority of the software list.
+  a2600: [
+    'adventure', 'pacman', 'pitfall', 'combat', 'spaceinv',
+    'breakout', 'frogger', 'defender', 'asteroid',
   ],
 };
 
@@ -446,9 +467,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // machine config shared with a sibling game -- a2600 and a2600p share
   // everything but their crystal -- leaves those clocks as source expressions
   // for exactly this step.
-  const classConstants: Record<string, number> = game.props.classConstants
-    ? JSON.parse(String(game.props.classConstants))
-    : {};
+  const classConstants = gameClassConstants(game);
   {
     // Devices follow MAME's own composition order. A derived machine
     // configuration calls its base before adding to it, so the base's devices
@@ -899,6 +918,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     xOffset: hbend / xscale,
     yOffset: vbend,
     refresh: pixclock / (htotal * vtotal),
+    // The whole raster, not the visible part. MAME's `screen().width()` is
+    // this, and a device that allocates its own bitmap from it addresses that
+    // bitmap in raster coordinates -- the TIA composites its scanlines from
+    // column 34, which is inside the horizontal blank.
+    htotal: htotal / xscale,
     vtotal,
     vbstart,
     vbend,
@@ -2467,34 +2491,3 @@ function writeCartShelfIndex(setDir: string, outDir: string, set: string): numbe
   return carts.length;
 }
 
-/**
- * A device node with its state-class-parameterized values resolved.
- *
- * The graph keeps the source expression whenever a clock or raster parameter
- * names a driver member rather than a literal, because the machine config that
- * spells it is shared by games whose classes fix that member differently. The
- * game's own constants arrive here, so this is where the expression becomes a
- * number. A device with nothing left to resolve is returned untouched.
- */
-function resolveClassConstants(
-  node: KGNode,
-  constants: Record<string, number>,
-): KGNode {
-  if (!Object.keys(constants).length) return node;
-  const props: Record<string, number | number[]> = {};
-  const clockExpr = node.props.clockExpr;
-  if (node.props.clock === null && typeof clockExpr === 'string') {
-    const clock = evalExpr(clockExpr, constants);
-    if (clock !== null) props.clock = clock;
-  }
-  const rawExpr = node.props.screenRawExpr;
-  if (Array.isArray(rawExpr) && rawExpr.length >= 7) {
-    const values = rawExpr.map(value => evalExpr(String(value), constants));
-    if (values.every(value => value !== null)) {
-      props.screenRaw = values.slice(0, 7) as number[];
-    }
-  }
-  return Object.keys(props).length
-    ? { ...node, props: { ...node.props, ...props } }
-    : node;
-}

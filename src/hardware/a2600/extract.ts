@@ -16,6 +16,7 @@ import type {
   LoweredMethod,
 } from '../contract.ts';
 import {
+  A2600_CART_SLOT_TAG,
   A2600_MAME_TYPES,
   a2600DeviceIrArtifact,
   a2600DeviceModuleArtifact,
@@ -84,12 +85,7 @@ export function extractA2600(input: CapabilityInput): CapabilityExtraction | und
         // The console room resolves which PCB a cartridge is from the software
         // list's own `slot` feature, the same way the ColecoVision room does.
         selector: 'cart.slot',
-        options: slotOptions(
-          input.mameSource,
-          definitions,
-          join(input.mameSource, 'src/mame/atari/a2600.cpp'),
-          'a2600_cart',
-        ),
+        options: cartridgeOptions(input.mameSource, definitions),
       };
       device.role = 'cartridge';
     } else if (entry.type === 'VCS_CONTROL_PORT') {
@@ -188,6 +184,53 @@ function slotOptions(
     throw new Error(`no card lowered for ${functionName}`);
   }
   return options;
+}
+
+/**
+ * The cartridge PCBs, each bound to the region the mounted cartridge occupies.
+ *
+ * `device_vcs_cart_interface::rom_alloc` gives every PCB the same two members
+ * over one region it allocates from the slot's own tag. Reading the suffix from
+ * MAME rather than restating it means a rename upstream fails loudly instead of
+ * silently unbinding every cartridge.
+ */
+function cartridgeOptions(
+  mameSource: string,
+  definitions: Map<string, MameHardwareDefinition>,
+): Record<string, GeneratedDeviceDefinition> {
+  const romRegion = cartRomRegion(mameSource);
+  const options = slotOptions(
+    mameSource,
+    definitions,
+    join(mameSource, 'src/mame/atari/a2600.cpp'),
+    'a2600_cart',
+  );
+  for (const card of Object.values(options)) {
+    card.resources = {
+      ...card.resources,
+      members: {
+        ...card.resources?.members,
+        m_rom: { kind: 'region', name: romRegion },
+        m_rom_size: { kind: 'region-length', name: romRegion },
+      },
+    };
+  }
+  return options;
+}
+
+/**
+ * The region a cartridge PCB allocates for its ROM, spelled the way MAME does
+ * in `device_vcs_cart_interface::rom_alloc`: the slot's tag with a fixed suffix.
+ */
+export function cartRomRegion(mameSource: string): string {
+  const source = readFileSync(
+    join(mameSource, 'src/devices/bus/vcs/vcs_slot.cpp'),
+    'utf8',
+  );
+  const suffix = /region_alloc\s*\(\s*std::string\s*\(\s*tag\s*(?:\(\s*\))?\s*\)\s*\.append\s*\(\s*"([^"]+)"/
+    .exec(source)?.[1];
+  if (!suffix) throw new Error('MAME no longer names a VCS cartridge ROM region');
+  return `${A2600_CART_SLOT_TAG}${suffix}`;
 }
 
 /**

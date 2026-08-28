@@ -18,12 +18,13 @@ export const A2600_MAME_TYPES = [
 ] as const;
 
 /**
- * MAME's own name for the region a cartridge PCB allocates for its ROM.
+ * The tag the a2600 driver gives its cartridge slot.
  *
- * `device_vcs_cart_interface::rom_alloc` appends this to the slot's tag, so the
- * mounted cartridge's bytes arrive under it.
+ * `device_vcs_cart_interface::rom_alloc` builds the cartridge's ROM region name
+ * from the slot's own tag, so the two together name the region the mounted
+ * cartridge's bytes arrive in.
  */
-export const A2600_CART_ROM_SUFFIX = ':cart:rom';
+export const A2600_CART_SLOT_TAG = 'cartslot';
 
 export const A2600_PORTS: readonly PortDeclaration[] = [
   { name: 'slot', kind: 'bus', note: 'source-selected generated cartridge PCB' },

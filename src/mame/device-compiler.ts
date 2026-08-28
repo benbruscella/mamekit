@@ -35,6 +35,12 @@ export interface GeneratedDeviceMember {
     kind: 'input' | 'device';
     tag: string;
   };
+  /**
+   * Declared array bound, for a member whose C++ type is an object rather than
+   * a number -- `bitmap_ind16 helper[2]`. Scalar arrays already arrive through
+   * `values`/`memory`; this is what tells the host to make two of something.
+   */
+  arrayLength?: number;
 }
 
 export interface GeneratedDeviceCallback {
@@ -355,6 +361,7 @@ export function compileMameDevice(
         ...(allocated ? { values: allocated } : {}),
         ...(memory ? { memory } : {}),
         ...(finder ? { finder } : {}),
+        ...(member.arrayLength ? { arrayLength: member.arrayLength } : {}),
       }];
     });
   });
@@ -761,8 +768,8 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
 
 function memberDeclarations(
   declaration: MameClass,
-): { name: string; valueType: string }[] {
-  const members: { name: string; valueType: string }[] = [];
+): { name: string; valueType: string; arrayLength?: number }[] {
+  const members: { name: string; valueType: string; arrayLength?: number }[] = [];
   // C++ commonly groups scalar members (`int m_base, m_mask;`). Treat every
   // declarator as its own field before the single-declarator patterns below.
   for (const match of declaration.body.matchAll(
@@ -775,10 +782,21 @@ function memberDeclarations(
       }
     }
   }
+  // MAME's convention is `m_name`, but it is a convention, not a rule: the TIA
+  // declares its whole register file and both scanline bitmaps unprefixed
+  // (`uint8_t VSYNC;`, `bitmap_ind16 helper[2];`), and requiring the prefix left
+  // that device with two members and no state at all. The shape is what makes a
+  // data member -- a type, a name, an optional array bound, a semicolon -- so
+  // the name pattern is a name.
   const patterns = [
-    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(m_\w+)\s*(?:\[[^\]]+\])?\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(m_\w+)\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(m_\w+)\s*(?:\[[^\]]+\])?\s*;/gm,
+    // `struct player_gfx p0gfx;` -- an elaborated type specifier is still a
+    // data member, and the TIA declares both its sprite state that way. Without
+    // this they were not members at all, which left the whole scanline
+    // compositor unemittable and every 2600 frame in the interpreter.
+    /^\s*(?:struct|union|enum)\s+([\w:]+)\s+(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(\w+)\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
   ];
   for (const pattern of patterns) {
     for (const match of declaration.body.matchAll(pattern)) {
@@ -789,12 +807,18 @@ function memberDeclarations(
       // `Number(<128 KB Uint8Array>)` stringifies the whole CHR ROM before
       // answering NaN. MMC3 asks that question on every CHR bank switch, and
       // Super Mario Bros. 3 ran at 9 fps because of it.
-      const star = match.length > 3 ? match[2] : undefined;
-      const name = match.length > 3 ? match[3]! : match[2]!;
+      // The pointer pattern captures the `*` in group 2, so its name and array
+      // bound each sit one group further along.
+      const pointer = match[2] === '*';
+      const star = pointer ? match[2] : undefined;
+      const name = (pointer ? match[3] : match[2])!;
+      const bound = pointer ? match[4] : match[3];
       if (members.some(member => member.name === name)) continue;
+      const arrayLength = bound ? Number(bound.trim()) : undefined;
       members.push({
         valueType: `${match[1]!.replace(/\s+/g, ' ').trim()}${star ?? ''}`,
         name,
+        ...(Number.isInteger(arrayLength) && arrayLength! > 0 ? { arrayLength } : {}),
       });
     }
   }
