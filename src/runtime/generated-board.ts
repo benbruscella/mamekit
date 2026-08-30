@@ -463,6 +463,15 @@ class IrBoard implements Board {
                   return () => this.totalCycles(cpuSpec.tag);
                 }
                 if (method === 'reset') return () => this.cpus.get(cpuSpec.tag)?.reset();
+                // Hardware that takes the bus away from the processor removes
+                // the cycles it will not get. Without this the call fell through
+                // to the device fallback below, which finds no device for a CPU
+                // tag and answers 0 -- so the Atari 2600's WSYNC never parked
+                // the 6507, every scanline came up short, and the frame ran 244
+                // lines instead of 262.
+                if (method === 'adjust_icount') {
+                  return (delta: number) => this.adjustGeneratedIcount(cpuSpec.tag, delta);
+                }
                 if (method === 'set_input_line') {
                   return (line: number, state: number) => {
                     const cpu = this.cpus.get(cpuSpec.tag);
@@ -1981,12 +1990,29 @@ class IrBoard implements Board {
     return (this.cpuCycles.get(cpuTag) ?? 0) + (this.cpuSliceCycles.get(cpuTag) ?? 0);
   }
 
+  /**
+   * MAME `device_execute_interface::adjust_icount`.
+   *
+   * A negative delta is hardware taking the bus away: the processor loses those
+   * cycles now, where it stands. The Atari 2600's WSYNC parks the 6507 until
+   * the beam reaches the next scanline, and deferring that to the following
+   * slice short-changed every line -- River Raid ran 244 scanlines to the frame
+   * instead of 262, by a different amount each time, which is what made the
+   * picture flicker. The running core is told to end its slice; anything it
+   * cannot absorb there carries to the next one.
+   */
   private adjustGeneratedIcount(cpuTag: string, delta: number): number {
     if (!cpuTag || !delta) return 0;
-    this.cpuStalls.set(
-      cpuTag,
-      Math.max(0, (this.cpuStalls.get(cpuTag) ?? 0) - delta),
-    );
+    const stall = Math.max(0, -delta);
+    const cpu = this.cpus.get(cpuTag) as { stallCycles?: number } | undefined;
+    // Charged against the slice the processor is inside, so the cycles come off
+    // where the hardware took them. Charges accumulate: System 1 bills one per
+    // slow access and can do so several times inside a slice.
+    if (stall && cpu && this.runningCpu === cpuTag && typeof cpu.stallCycles === 'number') {
+      cpu.stallCycles += stall;
+      return 0;
+    }
+    this.cpuStalls.set(cpuTag, Math.max(0, (this.cpuStalls.get(cpuTag) ?? 0) + stall));
     return 0;
   }
 

@@ -194,14 +194,37 @@ ${emitProgram(definition.reset, contextFor(definition, [], 'void'), 4)}
 ${step}
   }
 
+  /**
+   * Cycles hardware has taken from this processor, charged against the slice it
+   * is inside.
+   *
+   * MAME device_execute_interface::adjust_icount reduces the remaining
+   * instruction budget; the time still elapses. It is NOT a request to park --
+   * System 1 charges one cycle per slow access and Zaxxon five per sprite entry
+   * copied, and stopping the slice on either starves the processor. The Atari
+   * 2600's WSYNC uses the same call with a whole line's remainder, which parks
+   * the 6507 only because the charge happens to consume what is left.
+   *
+   * Charging the slice the processor is inside, rather than the one after it,
+   * is what matters: deferred, the 2600 lost cycles off every scanline and ran
+   * 244 lines to the frame instead of 262.
+   */
+  stallCycles = 0;
+
   run(target: number): number {
-    let total = 0;
-    while (total < target) {
-      this.bus.timing?.(total, target);
-      total += this.step();
+    let executed = 0;
+    let stalled = 0;
+    this.stallCycles = 0;
+    while (executed + stalled < target) {
+      this.bus.timing?.(executed + stalled, target);
+      executed += this.step();
+      if (this.stallCycles !== 0) {
+        stalled += this.stallCycles;
+        this.stallCycles = 0;
+      }
     }
     this.bus.timing?.(target, target);
-    return total;
+    return executed + stalled;
   }
 
   setIrqLine(active: boolean, dataBus: number | (() => number) = 0xff, hold = false): void {

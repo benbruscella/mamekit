@@ -1154,6 +1154,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
 
   let rows = libraryRows();
   let filterTouched = false;
+  /** filter+term the shelf currently shows, so growing it can append. */
+  let renderedSignature = '\u0000__none__';
 
   function renderCatalog(reset = false): void {
     if (reset) catalogLimit = 48;
@@ -1165,9 +1167,21 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       if (!['all', 'playable', 'verified'].includes(filter) && row.slot !== filter) return false;
       return !term || row.haystack.includes(term);
     });
-    libraryRow.textContent = '';
-    catalogTiles.splice(0);
-    for (const row of matches.slice(0, catalogLimit)) {
+    // Growing the shelf must EXTEND it, not rebuild it. Clearing the row tears
+    // out the tiles the visitor is looking at, the page collapses under the
+    // scroll position, and the browser snaps back to the top -- which is what
+    // "show more" did on a 1,459-cartridge shelf. Only a changed filter or
+    // search term rebuilds; a longer limit appends the tiles that follow.
+    const signature = `${filter}\u0000${term}`;
+    const extend = signature === renderedSignature &&
+      catalogTiles.length > 0 && catalogTiles.length <= catalogLimit;
+    const from = extend ? catalogTiles.length : 0;
+    if (!extend) {
+      libraryRow.textContent = '';
+      catalogTiles.splice(0);
+    }
+    renderedSignature = signature;
+    for (const row of matches.slice(from, catalogLimit)) {
       const tile = buildCatalogTile(row);
       catalogTiles.push(tile);
       libraryRow.appendChild(tile.item);
