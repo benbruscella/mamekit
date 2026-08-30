@@ -73,8 +73,13 @@ are built once after the target workers finish.
 
 `npm run dev` compiles the browser application, serves it at
 `http://localhost:8280/app/`, and recompiles when files under `src/` or `bin/`
-change. Use `npm run dev -- 9000` to select a different port. `npm run serve`
-remains available when file watching is not needed.
+change. Use `npm run dev -- 9000` to select a different port.
+
+`npm run serve` is the no-compile option: it serves whatever `dist` already
+holds and starts immediately, warning if the app shell is older than the files
+under `src/runtime`, `src/ir` or `src/hardware`. `npm run serve:build`
+recompiles the app shell from the working tree first, which is what you want
+after editing runtime source without a full `gen:all`.
 
 ## REPOSITORY MAP
 

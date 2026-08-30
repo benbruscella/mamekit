@@ -7,15 +7,24 @@ export const A2600_ID = 'a2600';
  *
  * Cartridge PCBs and controller cards are compiled as source-declared children
  * of their slots by extract.ts, exactly as the NES and ColecoVision packages do
- * for their own cards. The TIA appears twice because MAME gives the NTSC and
- * PAL rasters their own device types over one `tia_video_device`.
+ * for their own cards. The TIA appears three times because MAME splits the
+ * chip across three device types: the NTSC and PAL rasters over one
+ * `tia_video_device`, and `TIA` itself for its sound half, which the video
+ * device reaches through a finder and hands its audio register writes to.
  */
 export const A2600_MAME_TYPES = [
   'TIA_NTSC_VIDEO',
   'TIA_PAL_VIDEO',
+  'TIA',
   'VCS_CART_SLOT',
   'VCS_CONTROL_PORT',
 ] as const;
+
+/** The tag the a2600 driver gives the TIA's sound half. */
+export const A2600_TIA_AUDIO_TAG = 'tia';
+
+/** The worklet that plays what the generated sound device renders. */
+export const A2600_AUDIO_WORKLET_ARTIFACT = 'audio/tia-worklet.ts';
 
 /**
  * The tag the a2600 driver gives its cartridge slot.

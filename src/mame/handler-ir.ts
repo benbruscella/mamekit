@@ -63,9 +63,14 @@ export function compileMameHandler(body: string): GeneratedHandlerProgram {
       '$1(',
     )
     // Named C++ casts carry the same numeric/view semantics as an ordinary
-    // cast in handler IR. This common form appears in byte-backed sprite RAM.
+    // cast in handler IR: reinterpret_cast appears in byte-backed sprite RAM,
+    // and every slot device recovers its card with
+    // `dynamic_cast<interface *>(get_card_device())`. Left unrecognised the
+    // whole cast lowered as a call to an unknown function, whose placeholder
+    // return then OVERWROTE the card the slot had just resolved -- so every
+    // Atari 2600 joystick read came back as an empty port.
     .replace(
-      /\breinterpret_cast\s*<([^>]+)>\s*\(([^;]+)\)/g,
+      /\b(?:reinterpret|dynamic|static|const)_cast\s*<([^>]+)>\s*\(([^;]+)\)/g,
       '($1)($2)',
     )
     // MAME's frequency literal macros are preprocessing tokens whose leading

@@ -515,7 +515,13 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   // other cartridge is a flat image. The software list says which this is, so
   // nothing below is written per console.
   const inesCarts = (cfg.cart?.interface ?? 'nes_cart') === 'nes_cart';
-  const cartExtensions = inesCarts ? ['.nes'] : ['.rom', '.col', '.bin'];
+  // What this slot takes is MAME's own `file_extensions()`, generated into the
+  // config. Hardcoding it here meant every non-NES console offered the
+  // ColecoVision list, so an Atari `.a26` -- the usual name for a 2600 dump --
+  // was greyed out in the file picker on the one machine that uses it.
+  const cartExtensions = cfg.cart?.extensions?.length
+    ? cfg.cart.extensions
+    : inesCarts ? ['.nes'] : ['.rom', '.col', '.bin'];
   const cartExtensionList = cartExtensions.join(' / ');
   /** The MAME hash file this console's catalogue came from. */
   const softlistFile = `${cfg.cart?.list ?? 'nes'}.xml`;

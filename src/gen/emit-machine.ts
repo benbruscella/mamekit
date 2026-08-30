@@ -477,6 +477,7 @@ export function lowerGeneratedMachine(
   const berzerkSound = devices.find(device =>
     device.type === 'EXIDY' || device.type === 'EXIDY_VENTURE');
   const discreteDevice = devices.find(device => device.type === 'DISCRETE');
+  const tiaDevice = devices.find(device => device.type === 'TIA');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
     .filter((key): key is string => Boolean(key));
@@ -641,6 +642,21 @@ export function lowerGeneratedMachine(
             controlOffset: -1,
             ...(discretePlan?.inputNodes ? { writeOffsets: discretePlan.inputNodes } : {}),
           }
+        : tiaDevice
+          ? {
+              kind: 'tia',
+              deviceTag: tiaDevice.tag,
+              deviceType: tiaDevice.type,
+              // The chip is in no address map: tia_video_device calls
+              // `tia_sound_w` on it through a device finder, so there is no
+              // bus write for the board to route.
+              writeMethods: [],
+              enableMethods: [],
+              controlOffset: -1,
+              ...(lowerAudioRoutes(graph, [tiaDevice]).length
+                ? { routes: lowerAudioRoutes(graph, [tiaDevice]) }
+                : {}),
+            }
         : undefined;
   // set_screen_update selects the renderer entry point; it is consumed by
   // GeneratedVideoRenderer and is not a devcb signal dispatched at runtime.

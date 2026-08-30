@@ -69,7 +69,13 @@ export function wireDeviceCallbacks(
               ...args,
             );
           },
-      callback.slot ?? 0,
+      // Left undefined when the source named no bit. One signal can name two
+      // devcbs -- MAME's `pa_rd_callback()` is the whole port and
+      // `pa_rd_callback<n>()` is bit n -- and collapsing that to slot 0 bound
+      // the 6532's whole-port read onto its per-bit array instead, so the port
+      // reported itself unset and every Atari 2600 joystick read fell back to
+      // the input latch.
+      callback.slot,
     );
     bound.push(callback.id);
   }

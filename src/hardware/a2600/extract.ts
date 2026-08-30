@@ -5,6 +5,12 @@ import {
   type GeneratedDeviceDefinition,
 } from '../../mame/device-compiler.ts';
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
+import type { GeneratedTiaAudio } from '../../mame/tia-audio-compiler.ts';
+import {
+  compileTiaAudio,
+  generatedTiaWorkletSource,
+  TIA_AUDIO_TYPE,
+} from '../../mame/tia-audio-compiler.ts';
 import {
   indexMameHardware,
   type MameHardwareDefinition,
@@ -16,6 +22,7 @@ import type {
   LoweredMethod,
 } from '../contract.ts';
 import {
+  A2600_AUDIO_WORKLET_ARTIFACT,
   A2600_CART_SLOT_TAG,
   A2600_MAME_TYPES,
   a2600DeviceIrArtifact,
@@ -70,6 +77,14 @@ export function extractA2600(input: CapabilityInput): CapabilityExtraction | und
   const definitions = indexMameHardware(input.mameSource);
   const compiled = new Map<string, GeneratedDeviceDefinition>();
   for (const entry of present) {
+    if (entry.type === TIA_AUDIO_TYPE) {
+      // The sound half is the one device here the generic compiler cannot
+      // reach -- `class tia` sits in an anonymous namespace with every method
+      // inline, which parseMameAst reads as no class at all -- so it has its
+      // own extractor. What comes back is an ordinary device definition.
+      compiled.set(entry.type, compileTiaAudio(input.mameSource));
+      continue;
+    }
     const definition = entry.definition as MameHardwareDefinition | undefined;
     if (!definition) continue;
     const device = compileMameDevice(input.mameSource, definition, entry.type);
@@ -119,6 +134,13 @@ export function extractA2600(input: CapabilityInput): CapabilityExtraction | und
         path: a2600DeviceModuleArtifact(type),
         contents: generatedDeviceExecutableSource(device, ir.replace('devices/', '')),
       },
+      // The chip renders beside the CPU; this is only what plays the result.
+      ...(type === TIA_AUDIO_TYPE
+        ? [{
+            path: A2600_AUDIO_WORKLET_ARTIFACT,
+            contents: generatedTiaWorkletSource(device as GeneratedTiaAudio),
+          }]
+        : []),
     );
     executable[type] = { kind: 'device', artifact: ir };
     entrySourceFiles[type] = device.sourceFiles;

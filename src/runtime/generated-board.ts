@@ -1662,7 +1662,9 @@ class IrBoard implements Board {
             ),
           );
         },
-        callback.slot ?? 0,
+        // Left undefined when the source named no bit: that is what tells the
+        // device this binds the whole-port devcb rather than bit zero.
+        callback.slot,
       );
     }
     host.bindCall('m_cpu.set_input_line', (line, state) => {
@@ -3402,6 +3404,7 @@ class IrBoard implements Board {
         const device = this.devices.get(tag);
         return device?.methodNames().includes(method) ? device.call(method, ...args) : undefined;
       },
+      deviceStream: tag => this.devices.get(tag)?.takeStreamSamples?.() ?? [],
       runCallbackHandler: callbackId =>
         executeGeneratedCallbackHandler(machine, callbackId, this.bindings),
       dispatch: (ownerTag, signal, value) =>

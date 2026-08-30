@@ -61,7 +61,8 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run test:blast-radius` | run every old and new real-ROM game canary |
 | `npm run blast-radius` | which machines a change can reach, and the e2e command for exactly those |
 | `npm run test:games:record` | record candidate game baselines for review |
-| `npm run serve` | rebuild app shell and serve `dist` on localhost |
+| `npm run serve` | serve `dist` exactly as it is on localhost -- no compile |
+| `npm run serve:build` | recompile the app shell from `src`, then serve `dist` |
 | `npm run deploy` | clean-generate and publish the static site |
 
 The broad `test:generation` command is destructive to `dist` and expensive. It

@@ -256,6 +256,12 @@ export interface ShellConfig {
     defaultSlot?: string;
     /** ROM region a cartridge PCB loads into, as MAME's rom_alloc names it. */
     romRegion?: string;
+    /**
+     * What the cartridge slot accepts, from its own
+     * `device_image_interface::file_extensions()`: ".bin"/".a26" for the VCS,
+     * ".rom"/".col"/".bin" for the ColecoVision, ".nes"/".unf"/".unif" here.
+     */
+    extensions?: string[];
     /** generated cartridge availability index, when a local dump audit existed */
     cartsUrl?: string;
     /**

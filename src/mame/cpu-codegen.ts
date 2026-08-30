@@ -214,17 +214,19 @@ ${step}
   run(target: number): number {
     let executed = 0;
     let stalled = 0;
+    let total = 0;
     this.stallCycles = 0;
-    while (executed + stalled < target) {
-      this.bus.timing?.(executed + stalled, target);
+    while (total < target) {
+      this.bus.timing?.(total, target);
       executed += this.step();
       if (this.stallCycles !== 0) {
         stalled += this.stallCycles;
         this.stallCycles = 0;
       }
+      total = executed + stalled;
     }
     this.bus.timing?.(target, target);
-    return executed + stalled;
+    return total;
   }
 
   setIrqLine(active: boolean, dataBus: number | (() => number) = 0xff, hold = false): void {

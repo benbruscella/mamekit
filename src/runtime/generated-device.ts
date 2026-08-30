@@ -175,6 +175,15 @@ export interface Device {
   /** Resolve a numeric constant declared by this generated device family. */
   constant(name: string): number | undefined;
   methodNames(): readonly string[];
+  /**
+   * PCM the device published through `sound_stream::put_int`, and clear it.
+   *
+   * A sound device rendered on the main thread has to hand its samples to the
+   * board's sink somehow; MAME hands them to a `sound_stream`, so this is that
+   * stream, drained by whoever is pumping the device. Absent on the devices
+   * that have no sound interface at all.
+   */
+  takeStreamSamples?(): readonly number[];
   arity(name: string): number;
   parameters(name: string): readonly string[];
   signalNames(): readonly string[];
@@ -395,13 +404,15 @@ class IrDevice implements Device {
   private readonly methodParams = new Map<DeviceMethod, string[]>();
   /** C++ default argument values, applied when a caller omits a parameter. */
   private readonly methodDefaults = new Map<DeviceMethod, (number | undefined)[]>();
-  private readonly listeners = new Map<string, DeviceCallbackListener[][]>();
+  private readonly listeners = new Map<string, DeviceCallbackListener[][][]>();
   private readonly bindings: GeneratedHandlerBindings;
   private readonly executionContext: GeneratedDeviceExecutionContext;
   private readonly timers = new Map<string, { timer: IrTimer; callback: string }>();
   /** Backing store for each address space the device declares, by MAME index. */
   private readonly spaces = new Map<number, GeneratedDeviceSpace>();
   private readonly clock: number;
+  /** Samples published through `sound_stream::put_int` since the last collection. */
+  private streamSamples: number[] = [];
   private slotChild?: IrDevice;
 
   constructor(
@@ -410,6 +421,11 @@ class IrDevice implements Device {
     options: GeneratedDeviceOptions = {},
   ) {
     this.definition = definition;
+    // `device_t::m_clock` is a u32, so MAME's own `clock()` never has a
+    // fraction: a device configured at m_xtal/114 is asked for 31399, not
+    // 31399.78. Handing the fraction back made the TIA's sample counter land
+    // one short of its divisor and take the oversampling branch MAME does not.
+    clock = Math.trunc(clock);
     this.clock = clock;
     for (const config of definition.spaces ?? []) {
       this.spaces.set(config.index, generatedDeviceSpace(config.addressBits));
@@ -469,7 +485,15 @@ class IrDevice implements Device {
     Object.assign(this.members, options.members);
     for (const callback of definition.callbacks) {
       const slots = Array.from({ length: callback.slots }, () => [] as DeviceCallbackListener[]);
-      this.listeners.set(callback.signal, slots);
+      // One signal can name two different devcbs, told apart in MAME by how
+      // they are called: `pa_rd_callback()` is the whole-port read, and
+      // `pa_rd_callback<n>()` is bit n. Keying only by signal let the second
+      // definition replace the first, so the 6532's whole-port read kept an
+      // orphaned listener list, reported itself unset, and every Atari 2600
+      // joystick read fell back to the port latch.
+      const group = this.listeners.get(callback.signal) ?? [];
+      group.push(slots);
+      this.listeners.set(callback.signal, group);
       const emitters = slots.map(listeners => {
         const emitter = (...args: number[]) => {
           // A MAME devcb is one .set() plus any number of .append()s, and the
@@ -528,6 +552,14 @@ class IrDevice implements Device {
         logerror: () => 0,
         clock: () => clock,
         clocks_to_attotime: ticks => clock > 0 ? ticks / clock : Infinity,
+        // MAME `sound_stream::put_int(channel, index, value, max)`, with the
+        // channel dropped by the caller: a sound device publishes one rendered
+        // sample per call, scaled to full-range, and the host collects them
+        // through takeStreamSamples() rather than the device pushing anywhere.
+        stream_put_int: (index, value, max) => {
+          this.streamSamples[index] = max ? value / max : 0;
+          return 0;
+        },
         'attotime::from_hz': frequency =>
           frequency > 0 ? 1 / frequency : Infinity,
         'attotime::from_ticks': (ticks, frequency) =>
@@ -743,6 +775,12 @@ class IrDevice implements Device {
     return [...this.methods.keys()];
   }
 
+  takeStreamSamples(): readonly number[] {
+    const samples = this.streamSamples;
+    this.streamSamples = [];
+    return samples;
+  }
+
   arity(name: string): number {
     const overloads = this.methods.get(name) ?? [];
     return overloads.length
@@ -759,10 +797,18 @@ class IrDevice implements Device {
     return [...this.listeners.keys()];
   }
 
-  on(signal: string, listener: DeviceCallbackListener, slot = 0): Device {
-    const channels = this.listeners.get(signal);
-    if (!channels) throw new Error(`${this.definition.type} has no callback signal "${signal}"`);
-    const listeners = channels[slot];
+  on(signal: string, listener: DeviceCallbackListener, slot?: number): Device {
+    const group = this.listeners.get(signal);
+    if (!group?.length) {
+      throw new Error(`${this.definition.type} has no callback signal "${signal}"`);
+    }
+    // An unindexed binding is the whole-port devcb; an indexed one addresses a
+    // bit. Where a signal names both, that is what separates them.
+    const channels = slot === undefined
+      ? group.find(candidate => candidate.length === 1) ?? group[0]!
+      : group.find(candidate => candidate.length > 1 && slot < candidate.length)
+        ?? group[0]!;
+    const listeners = channels[slot ?? 0];
     if (!listeners) {
       throw new Error(`${this.definition.type} callback "${signal}" has no slot ${slot}`);
     }

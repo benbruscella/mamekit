@@ -47,6 +47,7 @@ import {
   compilePoleposDiscrete,
 } from '../mame/audio-compiler.ts';
 import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
@@ -338,6 +339,32 @@ const CART_DEFAULT_SLOT: Record<string, string> = {
   // MAME's own fallback, from `vcs_get_slot`'s final return.
   a2600: 'a26_2k_4k',
 };
+/**
+ * The file extensions a console's cartridge slot accepts, as MAME declares them.
+ *
+ * `device_image_interface::file_extensions()` is a one-line override in the
+ * slot's own header -- "bin,a26" for the VCS, "rom,col,bin" for the
+ * ColecoVision, "nes,unf,unif" for the NES. The room used to hardcode the
+ * ColecoVision set for every console, which left an Atari `.a26` greyed out in
+ * the file picker on the one machine whose dumps are usually named that.
+ */
+function cartFileExtensions(
+  mameSrc: string,
+  deviceTypes: readonly string[],
+): string[] | undefined {
+  const definitions = indexMameHardware(mameSrc);
+  for (const type of deviceTypes) {
+    const sourceFile = definitions.get(type)?.sourceFile;
+    if (!sourceFile) continue;
+    const header = join(mameSrc, sourceFile.replace(/\.cpp$/, '.h'));
+    if (!existsSync(header)) continue;
+    const listed = /file_extensions\(\)[^{]*\{\s*return\s*"([^"]+)"/
+      .exec(readFileSync(header, 'utf8'))?.[1];
+    if (listed) return listed.split(',').map(extension => `.${extension.trim()}`);
+  }
+  return undefined;
+}
+
 const CART_ROM_REGION: Record<string, string> = {
   coleco: 'coleco_cart:rom',
   a2600: 'cartslot:cart:rom',
@@ -1027,6 +1054,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const sampleChips = devices.filter(d => d.props.type === 'SAMPLES');
   const berzerkSound = devices.find(d =>
     d.props.type === 'EXIDY' || d.props.type === 'EXIDY_VENTURE');
+  // The Atari TIA's sound half. It is the only chip on the board, so it owns
+  // the worklet; the DSP runs beside the CPU as a generated device because the
+  // video half reaches it through a device finder (see the a2600 capability).
+  const tiaChip = devices.find(device => device.props.type === 'TIA');
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
         const type = String(device.props.type);
@@ -1175,6 +1206,22 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               clock: cpus[0].clock,
               worklet: String(discreteDevice.props.type).toLowerCase().replace(/_/g, '-'),
             }
+        : tiaChip
+          ? (() => {
+              const routes = lowerAudioRoutes(
+                graph,
+                [{ id: tiaChip.id, tag: String(tiaChip.props.tag) }],
+              );
+              return {
+                kind: 'tia',
+                // `TIA(config, "tia", m_xtal/114)`: the chip renders one sample
+                // per clock, so this is both its clock and its stream rate,
+                // exactly as tia_device::device_start allocates it.
+                clock: Number(tiaChip.props.clock),
+                deviceTag: String(tiaChip.props.tag),
+                ...(routes[0]?.gain !== undefined ? { masterGain: routes[0].gain } : {}),
+              };
+            })()
     : { kind: 'none' };
   const nesApu = sound.kind === 'nes' ? compileNesApu(opts.mameSrc) : undefined;
   // The post-mix level belongs to the sound family's capability package, so
@@ -1737,6 +1784,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // the 4,500+ cart entries stay out of graph.json (they'd swamp the viewer).
   let cart: Record<string, unknown> | undefined;
   let cartEntries = 0;
+  // Whichever board device is the cartridge image declares what it accepts.
+  const slotExtensions = kind === 'console'
+    ? cartFileExtensions(opts.mameSrc, devices.map(device => String(device.props.type)))
+    : undefined;
   if (kind === 'console') {
     mkdirSync(opts.outDir, { recursive: true });
     for (const listNode of softlistNodes) {
@@ -1772,6 +1823,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         games: CART_GAME_SUPPORT[family] ?? [],
         ...(CART_DEFAULT_SLOT[family] ? { defaultSlot: CART_DEFAULT_SLOT[family] } : {}),
         ...(CART_ROM_REGION[family] ? { romRegion: CART_ROM_REGION[family] } : {}),
+        ...(slotExtensions ? { extensions: slotExtensions } : {}),
       };
       if (shelved) console.log(`cart shelf index: ${shelved} dumps available for ${set}`);
       if (artCount) console.log(`cart artwork: ${artCount} cartridge(s) with local photography`);
@@ -1791,6 +1843,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           games: CART_GAME_SUPPORT[family] ?? [],
           ...(CART_DEFAULT_SLOT[family] ? { defaultSlot: CART_DEFAULT_SLOT[family] } : {}),
           ...(CART_ROM_REGION[family] ? { romRegion: CART_ROM_REGION[family] } : {}),
+          ...(slotExtensions ? { extensions: slotExtensions } : {}),
         };
       }
     }
