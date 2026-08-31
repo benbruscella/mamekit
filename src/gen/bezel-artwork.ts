@@ -31,21 +31,16 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { parseArtworkLayout, type BezelSidecar } from '../runtime/artwork.ts';
+import {
+  parseArtworkLayout,
+  SHIPPED_BEZEL_WIDTH,
+  type BezelSidecar,
+} from '../runtime/artwork.ts';
 import { applyAlphaMask, decodePng, encodeRgbaPng } from './png.ts';
 import { readZip } from '../runtime/zip.ts';
 
-/**
- * Long-edge cap for a shipped bezel, in pixels.
- *
- * Packs scan at ~4000px square. The bezel is a full-screen backdrop, so it
- * wants more than a cover's 600px — but not 4000: setBezel() copies it into a
- * canvas at its decoded size, and a 4000x3800 backing store is 60 MB of RAM
- * held for the whole session behind a game that is redrawing 60 times a
- * second. 1600 covers a full-height bezel on a 1440p display with room to
- * spare, and it is the difference between a ~2 MB PNG and a ~150 KB WebP.
- */
-const BEZEL_WIDTH = 1600;
+/** Long-edge cap for a shipped bezel; see SHIPPED_BEZEL_WIDTH for why. */
+const BEZEL_WIDTH = SHIPPED_BEZEL_WIDTH;
 
 /** WebP quality, matching IMG_QUALITY in .data/Makefile so the trees agree. */
 const BEZEL_QUALITY = 82;
@@ -79,6 +74,11 @@ export async function deriveBezelArtwork(dataRoot: string): Promise<BezelShipRes
   const zips = readdirSync(dataRoot).filter(name => name.endsWith('.zip')).sort();
   if (!zips.length) return null;
 
+  // A derived bezel depends on the pack *and* on which view the resolver picks
+  // out of it. Keyed on the zip alone, a change to parseArtworkLayout silently
+  // kept the old choice: Green Beret went on shipping its instruction card as
+  // the cabinet through a full rebuild after the chooser was fixed.
+  const resolverMtime = resolverTimestamp();
   const result: BezelShipResult = { shipped: 0, unresolved: 0, bytes: 0, sourceBytes: 0 };
   for (const zipName of zips) {
     const game = zipName.slice(0, -'.zip'.length);
@@ -86,7 +86,7 @@ export async function deriveBezelArtwork(dataRoot: string): Promise<BezelShipRes
     const webp = join(outDir, `${game}.webp`);
     const sidecar = join(outDir, `${game}.json`);
 
-    if (isFresh(webp, zipPath) && isFresh(sidecar, zipPath)) {
+    if (isFresh(webp, zipPath, resolverMtime) && isFresh(sidecar, zipPath, resolverMtime)) {
       result.shipped++;
       result.bytes += statSync(webp).size;
       continue;
@@ -108,10 +108,29 @@ export async function deriveBezelArtwork(dataRoot: string): Promise<BezelShipRes
   return result;
 }
 
-/** True when `derived` exists and is no older than the pack it came from. */
-function isFresh(derived: string, zipPath: string): boolean {
+/**
+ * True when `derived` exists and is no older than either input it came from:
+ * the pack, and the module that decides which view inside it to ship.
+ */
+function isFresh(derived: string, zipPath: string, resolverMtime: number): boolean {
   if (!existsSync(derived)) return false;
-  return statSync(derived).mtimeMs >= statSync(zipPath).mtimeMs;
+  const derivedAt = statSync(derived).mtimeMs;
+  return derivedAt >= statSync(zipPath).mtimeMs && derivedAt >= resolverMtime;
+}
+
+/**
+ * When the view chooser last changed.
+ *
+ * Zero when it cannot be read — a distribution built from somewhere without
+ * the source tree keeps the old zip-only rule rather than re-encoding every
+ * pack on every build.
+ */
+function resolverTimestamp(): number {
+  try {
+    return statSync(join(import.meta.dirname, '../runtime/artwork.ts')).mtimeMs;
+  } catch {
+    return 0;
+  }
 }
 
 /**

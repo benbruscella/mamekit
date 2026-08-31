@@ -138,6 +138,50 @@ assert.equal(
   'an instruction-card placement must not replace the cabinet bezel',
 );
 
+// Green Beret's pack, reduced: the instruction-card views come first and no
+// view is named for a bezel, so ranking by name alone shipped a strip of rules
+// text as the cabinet. A bezel is the art the screen sits inside.
+const unnamedBezelLayout = `
+<mamelayout version="2">
+  <element name="inst_1"><image file="gberet_inst.png" /></element>
+  <element name="xbla"><image file="konami_xbla_ws.png" /></element>
+  <element name="ws_km"><image file="rush_n_attack_ws_krakerman.png" /></element>
+  <view name="Inst_Card_UK">
+    <screen index="0"><bounds x="0" y="0" width="4000" height="3000" /></screen>
+    <bezel element="inst_1"><bounds x="1000" y="3050" width="2000" height="546" /></bezel>
+  </view>
+  <view name="XBLA_Artwork">
+    <bezel element="xbla"><bounds x="0" y="0" width="852" height="480" /></bezel>
+    <screen index="0"><bounds x="162" y="42" width="528" height="396" /></screen>
+  </view>
+  <view name="Krakerman_Artwork">
+    <bezel element="ws_km"><bounds x="0" y="0" width="3840" height="2160" /></bezel>
+    <screen index="0"><bounds x="920" y="355" width="2000" height="1500" /></screen>
+  </view>
+</mamelayout>`;
+assert.equal(
+  parseArtworkLayout(unnamedBezelLayout)?.file,
+  'rush_n_attack_ws_krakerman.png',
+  'a view whose art encloses the screen beats one whose art sits beside it, ' +
+    'and between two such views the one that need not be upscaled wins',
+);
+
+// Gunsmoke ships only a marquee that sits above the screen. Nothing encloses,
+// so the ranking must still return the view it always had rather than nothing.
+const marqueeOnlyLayout = `
+<mamelayout version="2">
+  <element name="marquee"><image file="gunsmoke_marquee.png" /></element>
+  <view name="Upright_Artwork">
+    <bezel element="marquee"><bounds x="0" y="0" width="4000" height="1090" /></bezel>
+    <screen index="0"><bounds x="500" y="1190" width="3000" height="4000" /></screen>
+  </view>
+</mamelayout>`;
+assert.equal(
+  parseArtworkLayout(marqueeOnlyLayout)?.file,
+  'gunsmoke_marquee.png',
+  'a pack with no enclosing view keeps the one it has',
+);
+
 if (originalDocument === undefined) {
   delete (globalThis as { document?: Document }).document;
 } else {
