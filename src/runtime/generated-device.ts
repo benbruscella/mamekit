@@ -1281,14 +1281,35 @@ function rgbPixel(red: number, green: number, blue: number): number {
 }
 
 /** A plain-old-data struct member, with each declared field present. */
+/**
+ * A C struct instance whose scalar fields keep their declared width.
+ *
+ * The width is enforced by the property itself rather than at each assignment,
+ * so every path -- interpreted, emitted, or a host poke -- wraps identically.
+ * Without it a `uint8_t` field decremented past zero became -1 instead of
+ * 0xff, and MAME code that carries on `if (field == 0xff)` silently never
+ * carried: the DPC's display-data pointer walked off its 2K window.
+ */
 function structMember(
-  fields: readonly { name: string; length?: number }[],
+  fields: readonly { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[],
 ): Record<string, number | number[]> {
   const value: Record<string, number | number[]> = {};
   for (const field of fields) {
-    value[field.name] = field.length
-      ? Array.from({ length: field.length }, () => 0)
-      : 0;
+    if (field.length) {
+      value[field.name] = Array.from({ length: field.length }, () => 0);
+      continue;
+    }
+    if (!field.bits || field.bits >= 32) {
+      value[field.name] = 0;
+      continue;
+    }
+    let stored = 0;
+    Object.defineProperty(value, field.name, {
+      enumerable: true,
+      configurable: true,
+      get: () => stored,
+      set: next => { stored = wrap(Number(next) || 0, field.bits!, field.signed); },
+    });
   }
   return value;
 }

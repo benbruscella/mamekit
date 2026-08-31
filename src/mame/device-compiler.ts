@@ -54,7 +54,7 @@ export interface GeneratedDeviceMember {
    * routine as `&p0gfx`, and a numeric stand-in drew no players or missiles at
    * all.
    */
-  fields?: { name: string; length?: number }[];
+  fields?: { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[];
 }
 
 export interface GeneratedDeviceCallback {
@@ -1300,24 +1300,37 @@ function deviceAddressSpaces(
 function structDeclarations(
   sources: readonly { file: string; source: string }[],
   constants: Record<string, number>,
-): Map<string, { name: string; length?: number }[]> {
-  const structs = new Map<string, { name: string; length?: number }[]>();
+): Map<string, { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[]> {
+  const structs = new Map<string,
+    { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[]>();
   for (const { source } of sources) {
     for (const match of source.matchAll(
       /\bstruct\s+(\w+)\s*\{([^{}]*)\}\s*;/g,
     )) {
       const [, name, body] = match;
       if (!name || structs.has(name)) continue;
-      const fields: { name: string; length?: number }[] = [];
+      const fields: { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[] = [];
       for (const field of body!.matchAll(
-        /^\s*(?:const\s+)?[\w:]+\s+(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/gm,
+        /^\s*(?:const\s+)?([\w:]+)\s+(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/gm,
       )) {
-        const bound = field[2] === undefined
+        const bound = field[3] === undefined
           ? undefined
-          : evalExpr(field[2], constants) ?? undefined;
+          : evalExpr(field[3], constants) ?? undefined;
+        // A struct field is as wide as its type, exactly like a plain member.
+        // Dropping the width let a `uint8_t` counter reach -1 instead of
+        // wrapping to 0xff, and the DPC's `if (low == 0xff)` carry never fired.
+        const valueType = field[1]!;
+        const bits: 8 | 16 | 32 = /64/.test(valueType) ? 32
+          : /(?:^|[^\d])32/.test(valueType) || valueType === 'int' ? 32
+            : /16/.test(valueType) ? 16
+              : /8|bool|char/.test(valueType) ? 8
+                : 32;
+        const signed = /^(?:int|s)/.test(valueType) && !/^uint/.test(valueType);
         fields.push({
-          name: field[1]!,
+          name: field[2]!,
           ...(bound !== undefined && bound > 0 ? { length: bound } : {}),
+          bits,
+          ...(signed ? { signed } : {}),
         });
       }
       if (fields.length) structs.set(name, fields);

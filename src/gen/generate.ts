@@ -323,10 +323,10 @@ const CART_SLOT_SUPPORT: Record<string, string[]> = {
   // software list: plain 2K/4K carts alone are 1067 of its 1591 entries.
   a2600: ['a26_2k_4k', 'a26_f8', 'a26_f8sw', 'a26_f6', 'a26_f4', 'a26_fa',
     // Verified by booting a real dump of each: the picture animates and
-    // keeps animating. a26_dc and a26_dpc are deliberately absent -- the
-    // DPC coprocessor now runs but its screen is still 30% off MAME, and
-    // claiming a board works when it does not is worse than saying so.
-    'a26_3f', 'a26_ua', 'a26_fv', 'a26_8in1'],
+    // keeps animating. a26_dpc is checked harder still -- Pitfall II is
+    // pixel-exact against MAME across its attract.
+    // a26_dc is still a black screen and stays out until it is not.
+    'a26_3f', 'a26_ua', 'a26_fv', 'a26_8in1', 'a26_dpc'],
 };
 
 const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
