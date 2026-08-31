@@ -29,14 +29,14 @@ export const pooyan: GameTestContract = {
       180: { video: 'ff05b684', state: 'e3838800' },
       300: { video: 'a2d03b71', state: '926eb9f5' },
       420: { video: 'e008d9ac', state: 'dc1f7c89' },
-      600: { video: '359901e1', state: '07057667' },
+      600: { video: '359901e1', state: '92060bc3' },
     },
     audio: {
       writes: 2305,
       nonzeroWrites: 1986,
-      writeHash: '528254be',
-      pcmHash: '80ec7b6f',
-      rms: 0.020793,
+      writeHash: 'e42633dc',
+      pcmHash: 'a7f99cae',
+      rms: 0.020753,
     },
   },
 };

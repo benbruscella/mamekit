@@ -28,18 +28,18 @@ export const rocnrope: GameTestContract = {
     },
     checkpoints: {
       1: { video: 'fe92a11c', state: 'ecfb0dd9' },
-      60: { video: '133dcf53', state: 'fcef5e4b' },
+      60: { video: '133dcf53', state: 'a3ec27fc' },
       300: { video: '0ba4f893', state: 'ba045f35' },
       540: { video: '5512b739', state: '210b77b9' },
-      720: { video: 'd00efec3', state: '4974fab5' },
+      720: { video: 'd00efec3', state: '992ddfcd' },
       1200: { video: '7c86ea84', state: 'f2b02bbc' },
     },
     audio: {
       writes: 1422,
       nonzeroWrites: 1291,
-      writeHash: 'a73a7304',
-      pcmHash: '4b22a0a7',
-      rms: 0.019541,
+      writeHash: 'a32316d4',
+      pcmHash: 'e1fefe7b',
+      rms: 0.019606,
     },
   },
 };
