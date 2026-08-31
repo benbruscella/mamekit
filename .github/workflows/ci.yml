@@ -46,6 +46,7 @@ jobs:
           sparse-checkout: |
             src
             hash/nes.xml
+            hash/gameboy.xml
             3rdparty/ymfm/src
           sparse-checkout-cone-mode: false
 

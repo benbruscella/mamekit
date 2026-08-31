@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   compileMameDevice,
@@ -357,7 +357,19 @@ function slotPlumbing(mameSource: string): Set<string> {
  * the list rather than chosen here.
  */
 function softwareListBoards(mameSource: string, fallback: string): Set<string> {
-  const list = readFileSync(join(mameSource, SOFTWARE_LIST_FILE), 'utf8');
+  const path = join(mameSource, SOFTWARE_LIST_FILE);
+  // A sparse MAME checkout can omit `hash/` entirely. Say which file and why,
+  // rather than letting a raw ENOENT out of a capability: the alternative --
+  // quietly registering all 35 boards the slot declares -- triples the emitted
+  // artifact and is exactly the kind of silent widening this compiler is meant
+  // not to do.
+  if (!existsSync(path)) {
+    throw new Error(
+      `${SOFTWARE_LIST_FILE} is missing from the MAME checkout; the Game Boy ` +
+      'cartridge set is narrowed to the boards its own software list names',
+    );
+  }
+  const list = readFileSync(path, 'utf8');
   const boards = new Set<string>([fallback]);
   for (const match of list.matchAll(
     /<feature\s+name="slot"\s+value="([^"]+)"\s*\/?>/g,
