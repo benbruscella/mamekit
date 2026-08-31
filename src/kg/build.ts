@@ -621,7 +621,13 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       definedIn(bankId, source);
     }
     for (const list of cfg.softwareLists) {
-      const listId = `softlist:${list.name}`;
+      // Scoped to the machine config that declares it, because a list's tag
+      // and original/compatible status are that config's facts, not the
+      // list's. gb.cpp declares "gameboy" as cart_list/original from the Game
+      // Boy and as gb_list/compatible from the Game Boy Color; keyed on the
+      // name alone the second declaration overwrote the first, and the Game
+      // Boy silently catalogued the Color's 1,718 cartridges as its own.
+      const listId = `softlist:${cfg.cls}.${cfg.name}/${list.name}`;
       g.node('SoftwareList', listId, {
         name: list.name, tag: list.tag, status: list.status,
         ...(list.filter ? { filter: list.filter } : {}),

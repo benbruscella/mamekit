@@ -22,6 +22,10 @@ export const REQUIRED_TARGETS: readonly string[] = [
   // so like the NES it is covered by the browser suite rather than a romset
   // contract.
   'a2600',
+  // The Game Boy is the ColecoVision case again: its 256-byte DMG boot ROM is
+  // a romset of its own, so it can hold a real contract once that dump is
+  // available. Until then the browser suite covers it.
+  'gameboy',
 ];
 
 /**

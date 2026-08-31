@@ -844,8 +844,14 @@ class HandlerParser {
       // A free function can be a template too: MAME's bit helpers are written
       // `bitswap<8>(value, 7, 6, ...)`. Fold a numeric argument into the name
       // the same way a templated member call does.
+      //
+      // A template name in front of `::` is the other form: a class used as a
+      // qualifier to call up to a base, which is how MAME's newer bus devices
+      // are written -- `mbc_ram_device_base<mbc_dual_device_base>::
+      // set_bank_rom_fine(entry)`. Its arguments name no value, so the name
+      // carries on to the `::` branch below unchanged.
       if (expression.kind === 'identifier' && this.atText('<')) {
-        const templateArgs = this.consumeTemplateArguments();
+        const templateArgs = this.consumeTemplateArguments(['(', ')', '::']);
         if (!templateArgs) break;
         if (templateArgs.every(argument => /^\d+$/.test(argument))) {
           expression = {
@@ -907,10 +913,17 @@ class HandlerParser {
 
   /**
    * Consume a template argument list on a qualified name when it is
-   * unambiguously one: only type-shaped tokens inside, and a call or a closing
-   * parenthesis after. Anything else stays a less-than comparison.
+   * unambiguously one: only type-shaped tokens inside, and one of `followers`
+   * after. Anything else stays a less-than comparison.
+   *
+   * The default followers are a call or a closing parenthesis. `::` is the
+   * other unambiguous one -- a template class used as a name qualifier, which
+   * is how MAME's newer bus devices call up to a base
+   * (`mbc_ram_device_base<mbc_dual_device_base>::set_bank_rom_fine(...)`).
    */
-  private consumeTemplateArguments(): string[] | undefined {
+  private consumeTemplateArguments(
+    followers: readonly string[] = ['(', ')'],
+  ): string[] | undefined {
     if (!this.atText('<')) return undefined;
     let cursor = this.index + 1;
     let depth = 1;
@@ -936,7 +949,7 @@ class HandlerParser {
       else current += token.text;
       cursor++;
     }
-    if (!['(', ')'].includes(this.tokens[cursor]?.text ?? '')) return undefined;
+    if (!followers.includes(this.tokens[cursor]?.text ?? '')) return undefined;
     args.push(current);
     this.index = cursor;
     return args;

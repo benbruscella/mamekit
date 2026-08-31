@@ -9,6 +9,7 @@ import {
   type Z80OpcodeDsl,
 } from './opcode-dsl.ts';
 import { parseM6809Dsl } from './m6809-dsl.ts';
+import { collectFunctionMacros, expandFunctionMacros } from './preprocessor.ts';
 
 export interface GeneratedCpuAlias {
   member: string;
@@ -3102,9 +3103,22 @@ function extractNumericArray(source: string, name: string): number[] {
   return values;
 }
 
-function extractStateAliases(source: string): Record<string, GeneratedCpuAlias> {
+/**
+ * The debugger register names a core publishes, from its own `state_add` calls.
+ *
+ * `memberBits` lets a caller say how wide each member really is. A whole-member
+ * alias is as wide as the member -- the LR35902 exposes "PC" as the bare
+ * 16-bit `m_PC`, where a PAIR16 core exposes it as `m_PC.w.l` -- and without
+ * that a register checkpoint would read back a truncated byte.
+ */
+function extractStateAliases(
+  source: string,
+  memberBits: Record<string, 1 | 8 | 16 | 32> = {},
+): Record<string, GeneratedCpuAlias> {
   const aliases: Record<string, GeneratedCpuAlias> = {};
-  for (const match of source.matchAll(/state_add\([^,]+,\s*"([A-Z]+)",\s*(m_\w+)(?:(\.w\.l|\.d)|\.b\.(h|l))?\)/g)) {
+  for (const match of source.matchAll(
+    /state_add\(\s*[^,]+,\s*"([A-Z]+)"\s*,\s*(m_\w+)(?:(\.w\.l|\.d)|\.b\.(h|l))?\s*\)/g,
+  )) {
     const part = match[4] === 'h'
       ? 'high'
       : match[4] === 'l'
@@ -3115,7 +3129,7 @@ function extractStateAliases(source: string): Record<string, GeneratedCpuAlias> 
     aliases[match[1]!] = {
       member: match[2]!,
       part,
-      bits: part === 'word' ? 16 : 8,
+      bits: part === 'word' ? 16 : part === 'scalar' ? memberBits[match[2]!] ?? 8 : 8,
     };
   }
   return aliases;
@@ -3297,6 +3311,10 @@ function stripMameFrameworkSetup(body: string): string {
       const text = line.trim();
       return !text.startsWith('save_item(') &&
         !text.startsWith('space(') &&
+        // Caching the address space in a member is the same framework setup
+        // written the other common way (`m_program = &space(AS_PROGRAM);`);
+        // the host supplies the bus, so there is nothing to assign.
+        !/^m_\w+\s*=\s*&?\s*space\s*\(/.test(text) &&
         !text.startsWith('state_add(') &&
         !text.startsWith('set_icountptr(');
     })
@@ -3393,7 +3411,16 @@ function extractEnumConstants(
   for (const match of source.matchAll(/\benum(?:\s+\w+)?\s*\{([\s\S]*?)\};/g)) {
     let next = 0;
     for (const rawEntry of match[1]!.split(',')) {
-      const entry = rawEntry.replace(/\/\/.*$/gm, '').trim();
+      // Block comments as well as line comments: MAME annotates enum members
+      // in both styles, and an entry carrying a /* ... */ used to fail the
+      // parse below -- which drops that constant AND leaves `next` unadvanced,
+      // so every member after it is silently numbered one too low. The
+      // LR35902's interrupt vectors and its IE/IF state indices are both
+      // written that way.
+      const entry = rawEntry
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/\/\/.*$/gm, '')
+        .trim();
       if (!entry) continue;
       const parsed = /^(\w+)(?:\s*=\s*([\s\S]+))?$/.exec(entry);
       if (!parsed) continue;
@@ -3574,4 +3601,209 @@ function lineAt(source: string, offset: number): number {
 
 function sourceRef(file: string, line: number): BoardSourceRef {
   return { file, line };
+}
+
+/**
+ * Compile MAME's Sharp LR35902 — the Game Boy's processor.
+ *
+ * Like the 8080/8085 core this chip has no opcode DSL. `execute_run` is a
+ * single do-while whose body is either a fetch or an execute half-step, and
+ * the 256 execute cases live in two `.hxx` files `#include`d straight into
+ * the switch. Those files are written against C preprocessor *statement*
+ * macros — `INC_8BIT(x)`, `ADD_A_X(x)`, `PUSH(x,y)`, `RES_8BIT(n,x)` — so the
+ * includes are resolved and the macros expanded before the resulting ordinary
+ * C++ is lowered. Nothing about the instruction set is restated here.
+ */
+export function compileMameLr35902(mameSrc: string): GeneratedCpuDefinition {
+  const cppFile = 'src/devices/cpu/lr35902/lr35902.cpp';
+  const headerFile = 'src/devices/cpu/lr35902/lr35902.h';
+  const mainOpcodeFile = 'src/devices/cpu/lr35902/opc_main.hxx';
+  const cbOpcodeFile = 'src/devices/cpu/lr35902/opc_cb.hxx';
+  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
+  const header = readFileSync(join(mameSrc, headerFile), 'utf8');
+  const mainOpcodes = readFileSync(join(mameSrc, mainOpcodeFile), 'utf8');
+  const cbOpcodes = readFileSync(join(mameSrc, cbOpcodeFile), 'utf8');
+
+  const unit = parseMameSource(cppFile, cpp);
+  const sourceMethods = unit.functions.filter(fn => fn.className === 'lr35902_cpu_device');
+  const find = (name: string) => sourceMethods.find(fn => fn.name === name);
+  const startMethod = find('device_start');
+  const resetMethod = find('device_reset');
+  const inputMethod = find('execute_set_input');
+  const runMethod = find('execute_run');
+  if (!startMethod || !resetMethod || !inputMethod || !runMethod) {
+    throw new Error('MAME LR35902 source is missing start/reset/input/execute definitions');
+  }
+
+  // A devcb is configured through the accessor MAME names it by and called
+  // through the member it is stored in: `timer_cb()` binds `m_timer_func`.
+  // The knowledge graph records the machine-config side, so the call site is
+  // renamed to the accessor rather than the other way round -- a rename
+  // upstream then shows up as an unbound signal instead of a silent no-op.
+  const devcbAliases = lr35902DevcbAliases(header);
+  const normalize = (source: string): string => {
+    let normalized = normalizeMameExecutionSource(source);
+    for (const [member, accessor] of Object.entries(devcbAliases)) {
+      normalized = normalized.replace(new RegExp(`\\b${member}\\b`, 'g'), accessor);
+    }
+    return normalized;
+  };
+
+  const excluded = new Set([
+    'memory_space_config',
+    'device_start',
+    'device_reset',
+    'state_string_export',
+    'create_disassembler',
+    'execute_run',
+    'execute_min_cycles',
+    'execute_max_cycles',
+  ]);
+  const methods = sourceMethods
+    .filter(fn => !excluded.has(fn.name))
+    .map(fn => ({
+      name: fn.name,
+      parameters: fn.parameters,
+      program: compileMameHandler(normalize(fn.body)),
+      source: sourceRef(cppFile, fn.span.line),
+    }));
+  // The driver reaches the interrupt-enable and interrupt-flag registers, and
+  // the OAM DMA cycle debt, through one-line accessors defined in the header
+  // rather than the .cpp; they are as much part of the core as check_interrupts.
+  const accessors = new Set(Object.values(devcbAliases).map(name => name.slice(2)));
+  for (const inline of extractInlineMethods(header)) {
+    // A devcb accessor is machine configuration, not behaviour: it hands the
+    // binding back to the config pass. Emitting it as a method would put a
+    // second, do-nothing `timer_cb` beside the signal the call site raises.
+    if (accessors.has(inline.name) || excluded.has(inline.name)) continue;
+    if (methods.some(method => method.name === inline.name)) continue;
+    const program = compileMameHandler(normalize(inline.body));
+    if (program.diagnostics.length) continue;
+    methods.push({
+      name: inline.name,
+      parameters: inline.parameters,
+      program,
+      source: sourceRef(headerFile, lineAt(header, inline.start)),
+    });
+  }
+
+  const step = compileMameHandler(normalize(singleIterationSource(
+    lr35902ExecuteSource(runMethod.body, mainOpcodes, cbOpcodes),
+  )));
+  const start = compileMameHandler(normalize(stripMameFrameworkSetup(startMethod.body)));
+  const reset = compileMameHandler(normalize(resetMethod.body));
+  const input = compileMameHandler(
+    normalize(inputMethod.body).replace(/\binptnum\b/g, 'inputnum'),
+  );
+
+  const constants = {
+    ...extractDefineConstants(cpp),
+    ...extractEnumConstants(cpp, {}),
+    ...extractEnumConstants(header, {}),
+    CLEAR_LINE: 0,
+    ASSERT_LINE: 1,
+  };
+  const service = compileMameHandler('');
+  const fetch = compileMameHandler('');
+  const members = lr35902Members(header);
+  const programs = [start, reset, input, step, ...methods.map(method => method.program)];
+  return {
+    schemaVersion: 1,
+    type: 'LR35902',
+    dialect: 'mame-cpp-switch',
+    sourceFiles: [cppFile, headerFile, mainOpcodeFile, cbOpcodeFile],
+    constants,
+    aliases: extractStateAliases(
+      startMethod.body,
+      Object.fromEntries(members.map(member => [member.name, member.bits ?? 32])),
+    ),
+    members,
+    methods,
+    start,
+    reset,
+    input,
+    step,
+    service,
+    fetch,
+    opcodes: [],
+    summary: {
+      opcodes: 256,
+      compiledOpcodes: step.diagnostics.length ? 0 : 256,
+      methods: methods.length,
+      compiledMethods: methods.filter(method => !method.program.diagnostics.length).length,
+      diagnostics: programs.reduce((count, program) => count + program.diagnostics.length, 0),
+    },
+  };
+}
+
+/**
+ * `execute_run` with both opcode includes resolved and their statement macros
+ * expanded.
+ *
+ * The `.hxx` files are not headers in any useful sense: each is a bare list of
+ * `case` labels that only compiles inside the `switch` it is included into, so
+ * textual substitution is exactly what MAME's own build does.
+ */
+function lr35902ExecuteSource(
+  runBody: string,
+  mainOpcodes: string,
+  cbOpcodes: string,
+): string {
+  const include = (source: string): string => {
+    const macros = collectFunctionMacros(source);
+    const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');
+    const cases = joined.replace(/^[ \t]*#define[^\n]*$/gm, '');
+    return expandFunctionMacros(cases, macros);
+  };
+  const main = include(mainOpcodes)
+    .replace(/^[ \t]*#include\s+"opc_cb\.hxx"[^\n]*$/m, () => include(cbOpcodes));
+  if (main.includes('#include')) {
+    throw new Error('MAME LR35902 opcode source has an unresolved include');
+  }
+  const resolved = runBody.replace(/^[ \t]*#include\s+"opc_main\.hxx"[^\n]*$/m, () => main);
+  if (resolved === runBody) {
+    throw new Error('MAME LR35902 execute_run no longer includes opc_main.hxx');
+  }
+  return resolved;
+}
+
+/**
+ * Members declared by the LR35902 header, with the widths MAME gives them.
+ *
+ * `extractMembers` reads the short MAME spellings (`u8`, `u16`); this core is
+ * written in the long ones, and its cycle budget is a signed `int` that is
+ * meant to go negative, so that one is declared without a width.
+ */
+function lr35902Members(header: string): GeneratedCpuMember[] {
+  const widths: Record<string, 1 | 8 | 16 | 32> = {
+    bool: 1, uint8_t: 8, u8: 8, uint16_t: 16, u16: 16, uint32_t: 32, u32: 32, int: 32,
+  };
+  const members: GeneratedCpuMember[] = [];
+  for (const match of header.matchAll(
+    /^\s*(bool|u8|u16|u32|int|uint8_t|uint16_t|uint32_t)\s+(m_\w+)\s*;/gm,
+  )) {
+    const name = match[2]!;
+    members.push(name === 'm_icount' ? { name } : { name, bits: widths[match[1]!]! });
+  }
+  if (!members.some(member => member.name === 'm_icount')) {
+    throw new Error('MAME LR35902 header no longer declares m_icount');
+  }
+  return members.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+/**
+ * Each devcb member of the LR35902, keyed to the configuration accessor that
+ * binds it — `auto timer_cb() { return m_timer_func.bind(); }`.
+ */
+function lr35902DevcbAliases(header: string): Record<string, string> {
+  const aliases: Record<string, string> = {};
+  for (const match of header.matchAll(
+    /\bauto\s+(\w+)\s*\(\s*\)\s*\{\s*return\s+(m_\w+)\.bind\s*\(\s*\)\s*;\s*\}/g,
+  )) {
+    aliases[match[2]!] = `m_${match[1]!}`;
+  }
+  if (!Object.keys(aliases).length) {
+    throw new Error('MAME LR35902 header declares no devcb accessors');
+  }
+  return aliases;
 }
