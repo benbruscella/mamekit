@@ -10,6 +10,11 @@ import {
 } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
+import {
+  collectFunctionMacros,
+  expandFunctionMacros,
+  type FunctionMacro,
+} from './preprocessor.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
 
 export interface GeneratedDeviceMember {
@@ -255,6 +260,10 @@ export function compileMameDevice(
     {},
     ...sources.map(({ source }) => constantTables(source)),
   );
+  // Statement macros the device's own sources define. These have to be
+  // substituted textually: their bodies read and assign the caller's locals,
+  // which no call can do.
+  const functionMacros = sources.flatMap(({ source }) => collectFunctionMacros(source));
   const interruptCallbacks = sources.flatMap(({ source }) => [...source.matchAll(
     /\b(m_\w+)->set_input_line\s*\(\s*(INPUT_LINE_\w+)/g,
   )].map(match => ({
@@ -293,7 +302,8 @@ export function compileMameDevice(
     const signature = methodSignature(specialized.name, specialized.parameters);
     const existing = methods.findIndex(candidate =>
       methodSignature(candidate.name, candidate.parameters) === signature);
-    const compiled = compileMethod(specialized, interruptCallbacks, sourceTables);
+    const compiled = compileMethod(
+      specialized, interruptCallbacks, sourceTables, functionMacros);
     // hierarchy is base-first: a derived virtual with the same signature
     // replaces its base implementation, while genuine overloads remain.
     // Keep a qualified alias for an overridden base because derived MAME
@@ -681,8 +691,9 @@ function compileMethod(
   method: MameFunction,
   interruptCallbacks: { member: string; line: string; signal: string }[] = [],
   sourceTables: Record<string, ConstantTable> = {},
+  functionMacros: readonly FunctionMacro[] = [],
 ): GeneratedDeviceMethod {
-  let body = method.body.replace(
+  let body = expandFunctionMacros(method.body, functionMacros).replace(
     /\bm_\w+\s*=\s*std::make_unique\s*<[^;]+;\s*/g,
     '',
   );

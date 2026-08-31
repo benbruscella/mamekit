@@ -115,6 +115,11 @@ export interface Cpu {
   reset(): void;
   step(): number;
   run(cycles: number): number;
+  /**
+   * Cycles the instruction currently executing has consumed, for a core that
+   * charges them per bus access. MAME's `total_cycles()` includes these.
+   */
+  elapsedCycles?(): number;
   setIrqLine(active: boolean, dataBus?: number | (() => number), hold?: boolean): void;
   /** Drive a generated CPU's numbered input line (RP2A03 keeps APU IRQ separate). */
   setInputLine(inputnum: number, state: number): void;

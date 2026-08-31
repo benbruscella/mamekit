@@ -1989,7 +1989,13 @@ class IrBoard implements Board {
    * it is inside. Banked cycles alone advance only at slice boundaries.
    */
   private totalCycles(cpuTag: string): number {
-    return (this.cpuCycles.get(cpuTag) ?? 0) + (this.cpuSliceCycles.get(cpuTag) ?? 0);
+    return (this.cpuCycles.get(cpuTag) ?? 0)
+      + (this.cpuSliceCycles.get(cpuTag) ?? 0)
+      // The slice total only moves between instructions. A device read or
+      // write happens *inside* one, and MAME counts the cycles the current
+      // instruction has already paid for -- so a cycle-accurate core is asked
+      // for them here.
+      + (this.cpus.get(cpuTag)?.elapsedCycles?.() ?? 0);
   }
 
   /**

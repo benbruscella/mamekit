@@ -33,6 +33,10 @@ export function generatedCpuExecutableSource(definition: GeneratedCpuDefinition)
     );
   }
 
+  // Only a core that charges a cycle per bus access can answer how far into
+  // the current instruction it is; I8080/I8085A keep no such counter.
+  const countsBusCycles = definition.members.some(member => member.name === 'cycles')
+    && definition.fixedInstructionCycles !== true;
   const fields = definition.members.map(member => emitMember(member)).join('\n');
   const aliases = Object.entries(definition.aliases)
     .map(([name, alias]) => emitAlias(name, alias))
@@ -217,7 +221,12 @@ ${step}
     let total = 0;
     this.stallCycles = 0;
     while (total < target) {
-      this.bus.timing?.(total, target);
+${countsBusCycles ? `      // Cleared before the callback, not after: timing() is where device
+      // timers run, and they read total_cycles(). Leaving the finished
+      // instruction's count here while the slice total already includes it
+      // would report those cycles twice.
+      this.cycles = 0;
+` : ''}      this.bus.timing?.(total, target);
       executed += this.step();
       if (this.stallCycles !== 0) {
         stalled += this.stallCycles;
@@ -225,9 +234,23 @@ ${step}
       }
       total = executed + stalled;
     }
-    this.bus.timing?.(target, target);
+${countsBusCycles ? '    this.cycles = 0;\n' : ''}    this.bus.timing?.(target, target);
     return total;
   }
+${countsBusCycles ? `
+  /**
+   * Cycles consumed so far by the instruction being executed.
+   *
+   * This core charges each cycle before the bus access it pays for, exactly as
+   * MAME's does, so during a read or write this is what MAME's total_cycles()
+   * already includes. Without it the count only moves between instructions,
+   * and hardware that positions itself by *when* the CPU wrote -- the Atari
+   * 2600 puts every sprite on screen this way -- lands whole cycles out.
+   */
+  elapsedCycles(): number {
+    return this.cycles;
+  }
+` : ''}
 
   setIrqLine(active: boolean, dataBus: number | (() => number) = 0xff, hold = false): void {
     if (active) this.irqData = dataBus;
