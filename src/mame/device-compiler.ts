@@ -55,7 +55,22 @@ export interface GeneratedDeviceMember {
    * routine as `&p0gfx`, and a numeric stand-in drew no players or missiles at
    * all.
    */
-  fields?: { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[];
+  fields?: GeneratedStructField[];
+}
+
+/**
+ * One field of a struct-shaped member.
+ *
+ * `fields` makes it recursive, because MAME nests: the Game Boy's PPU keeps
+ * its per-line state in an anonymous struct that itself holds an array of
+ * anonymous sprite structs.
+ */
+export interface GeneratedStructField {
+  name: string;
+  length?: number;
+  bits?: 8 | 16 | 32;
+  signed?: boolean;
+  fields?: GeneratedStructField[];
 }
 
 export interface GeneratedDeviceCallback {
@@ -1028,6 +1043,16 @@ function memberDeclarations(
   declaration: MameClass,
 ): { name: string; valueType: string; arrayLength?: number }[] {
   const members: { name: string; valueType: string; arrayLength?: number }[] = [];
+  // A member declared by an anonymous struct: `struct { bool on; ... }
+  // m_snd_control;`. The block has no type name, so the member's own name is
+  // the shape's key -- structDeclarations records it under the same one.
+  for (const block of structBlocks(declaration.body)) {
+    // Only an anonymous struct declares a member here; a named one is a type,
+    // and its members are picked up by the ordinary patterns below.
+    const name = block.declarator;
+    if (!name || block.name !== name || members.some(member => member.name === name)) continue;
+    members.push({ valueType: name, name });
+  }
   // C++ commonly groups scalar members (`int m_base, m_mask;`). Treat every
   // declarator as its own field before the single-declarator patterns below.
   for (const match of declaration.body.matchAll(
@@ -1504,41 +1529,104 @@ function deviceAddressSpaces(
 function structDeclarations(
   sources: readonly { file: string; source: string }[],
   constants: Record<string, number>,
-): Map<string, { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[]> {
-  const structs = new Map<string,
-    { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[]>();
+): Map<string, GeneratedStructField[]> {
+  const structs = new Map<string, GeneratedStructField[]>();
   for (const { source } of sources) {
-    for (const match of source.matchAll(
-      /\bstruct\s+(\w+)\s*\{([^{}]*)\}\s*;/g,
-    )) {
-      const [, name, body] = match;
-      if (!name || structs.has(name)) continue;
-      const fields: { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[] = [];
-      for (const field of body!.matchAll(
-        /^\s*(?:const\s+)?([\w:]+)\s+(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/gm,
-      )) {
-        const bound = field[3] === undefined
-          ? undefined
-          : evalExpr(field[3], constants) ?? undefined;
-        // A struct field is as wide as its type, exactly like a plain member.
-        // Dropping the width let a `uint8_t` counter reach -1 instead of
-        // wrapping to 0xff, and the DPC's `if (low == 0xff)` carry never fired.
-        const valueType = field[1]!;
-        const bits: 8 | 16 | 32 = /64/.test(valueType) ? 32
-          : /(?:^|[^\d])32/.test(valueType) || valueType === 'int' ? 32
-            : /16/.test(valueType) ? 16
-              : /8|bool|char/.test(valueType) ? 8
-                : 32;
-        const signed = /^(?:int|s)/.test(valueType) && !/^uint/.test(valueType);
-        fields.push({
-          name: field[2]!,
-          ...(bound !== undefined && bound > 0 ? { length: bound } : {}),
-          bits,
-          ...(signed ? { signed } : {}),
-        });
-      }
-      if (fields.length) structs.set(name, fields);
+    // Named (`struct SOUND { ... };`) and anonymous (`struct { ... }
+    // m_snd_control;`) alike. MAME uses the second form for a one-off block of
+    // device state, and without a shape every field assignment into it failed:
+    // the Game Boy's sound chip could not even start.
+    for (const declaration of structBlocks(source)) {
+      if (!declaration.name || structs.has(declaration.name)) continue;
+      const fields = structFieldList(declaration.body, constants);
+      if (fields.length) structs.set(declaration.name, fields);
     }
   }
   return structs;
+}
+
+/**
+ * Every `struct [name] { ... } [name];` in a source file, brace-balanced.
+ *
+ * A regex over `[^{}]*` cannot see a struct that contains another one, and
+ * MAME nests freely -- the Game Boy PPU's per-line state holds an array of
+ * anonymous sprite structs -- so the block is matched by counting braces.
+ */
+function structBlocks(
+  source: string,
+): { name: string; body: string; declarator?: string }[] {
+  const blocks: { name: string; body: string; declarator?: string }[] = [];
+  const opener = /\bstruct\s+(\w+)?\s*\{/g;
+  let match: RegExpExecArray | null;
+  while ((match = opener.exec(source)) !== null) {
+    const open = source.indexOf('{', match.index);
+    const close = matchingBrace(source, open);
+    if (close < 0) continue;
+    // The name after the closing brace declares a member of this struct type;
+    // `struct SOUND { ... };` declares none.
+    const declarator = /^\s*(\w+)\s*(?:\[[^\]]*\])?\s*;/.exec(source.slice(close + 1))?.[1];
+    blocks.push({
+      name: match[1] ?? declarator ?? '',
+      body: source.slice(open + 1, close),
+      ...(declarator ? { declarator } : {}),
+    });
+    opener.lastIndex = close + 1;
+  }
+  return blocks;
+}
+
+/** The fields of one struct body, recursing into nested anonymous structs. */
+function structFieldList(
+  body: string,
+  constants: Record<string, number>,
+): GeneratedStructField[] {
+  const fields: GeneratedStructField[] = [];
+  const bound = (text: string | undefined): number | undefined => {
+    if (text === undefined) return undefined;
+    const value = evalExpr(text, constants) ?? undefined;
+    return value !== undefined && value > 0 ? value : undefined;
+  };
+  let cursor = 0;
+  while (cursor < body.length) {
+    const nested = /\bstruct\s*\{/g;
+    nested.lastIndex = cursor;
+    const start = nested.exec(body);
+    const scalars = start ? body.slice(cursor, start.index) : body.slice(cursor);
+    for (const field of scalars.matchAll(
+      /^\s*(?:const\s+)?([\w:]+)\s+(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/gm,
+    )) {
+      // A struct field is as wide as its type, exactly like a plain member.
+      // Dropping the width let a `uint8_t` counter reach -1 instead of
+      // wrapping to 0xff, and the DPC's `if (low == 0xff)` carry never fired.
+      const valueType = field[1]!;
+      const bits: 8 | 16 | 32 = /64/.test(valueType) ? 32
+        : /(?:^|[^\d])32/.test(valueType) || valueType === 'int' ? 32
+          : /16/.test(valueType) ? 16
+            : /8|bool|char/.test(valueType) ? 8
+              : 32;
+      const signed = /^(?:int|s)/.test(valueType) && !/^uint/.test(valueType);
+      const length = bound(field[3]);
+      fields.push({
+        name: field[2]!,
+        ...(length !== undefined ? { length } : {}),
+        bits,
+        ...(signed ? { signed } : {}),
+      });
+    }
+    if (!start) break;
+    const open = body.indexOf('{', start.index);
+    const close = matchingBrace(body, open);
+    if (close < 0) break;
+    const declarator = /^\s*(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/.exec(body.slice(close + 1));
+    if (declarator) {
+      const length = bound(declarator[2]);
+      fields.push({
+        name: declarator[1]!,
+        ...(length !== undefined ? { length } : {}),
+        fields: structFieldList(body.slice(open + 1, close), constants),
+      });
+    }
+    cursor = close + 1 + (declarator?.[0].length ?? 0);
+  }
+  return fields;
 }

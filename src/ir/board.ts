@@ -89,6 +89,10 @@ export interface GeneratedCallback {
   /** TIMER.configure_scanline start and cadence, expanded against screen vtotal. */
   scanlineStart?: number;
   scanlineIncrement?: number;
+  /** Palette size, from `palette_device`'s own constructor argument. */
+  entries?: number;
+  /** A screen update that writes palette indices rather than colours. */
+  indexed?: boolean;
   /**
    * The generated device whose method the callback names, when a device
    * installed the callback on itself instead of the driver declaring it.
@@ -504,6 +508,25 @@ export interface GeneratedExecutionPlan {
      * all and the picture is the device's to draw.
      */
     deviceTag?: string;
+    /**
+     * The update writes palette indices, not colours.
+     *
+     * MAME says so in the update's own signature -- `bitmap_ind16 &` -- and the
+     * host has to resolve every pixel through the palette afterwards. A driver
+     * handler carries its parameters in the board IR; a device's does not, so
+     * the answer travels here instead of being looked up at run time.
+     */
+    indexed?: boolean;
+    source?: BoardSourceRef;
+  };
+  /**
+   * The routine that fills the palette, for a machine whose colours come from
+   * code rather than from a colour PROM. MAME passes it to `palette_device`'s
+   * constructor; the host runs it once and keeps the pens it sets.
+   */
+  paletteInit?: {
+    handler: string;
+    entries?: number;
     source?: BoardSourceRef;
   };
 }

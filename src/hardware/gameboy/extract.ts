@@ -32,6 +32,9 @@ const CARTRIDGE_OPTIONS_FILE = 'src/devices/bus/gameboy/carts.cpp';
 /** The slot-interface function the gameboy driver hands GB_CART_SLOT. */
 const CARTRIDGE_OPTIONS_FUNCTION = 'gameboy_cartridges';
 
+/** The console's own software list, which says which boards its carts use. */
+const SOFTWARE_LIST_FILE = 'hash/gameboy.xml';
+
 /**
  * Slot methods that identify an image rather than run the bus.
  *
@@ -222,6 +225,7 @@ function cartridgeOptions(
   const source = readFileSync(join(mameSource, CARTRIDGE_OPTIONS_FILE), 'utf8');
   const names = slotOptionNames(source);
   const helpers = genericCartHelpers(mameSource);
+  const used = softwareListBoards(mameSource, plainCartridgeOption(mameSource));
   const body = new RegExp(
     `void\\s+${CARTRIDGE_OPTIONS_FUNCTION}\\s*\\([^)]*\\)\\s*\\{([\\s\\S]*?)\\n\\}`,
   ).exec(source)?.[1];
@@ -232,7 +236,7 @@ function cartridgeOptions(
   )) {
     const option = names[match[1]!];
     const definition = definitions.get(match[2]!);
-    if (!option || !definition) continue;
+    if (!option || !definition || !used.has(option)) continue;
     const card = compileMameDevice(mameSource, definition, match[2]!);
     // A card asks its slot for everything outside its own silicon. Those
     // accessors are the host's to answer -- the console room owns the image --
@@ -340,6 +344,28 @@ function slotPlumbing(mameSource: string): Set<string> {
     throw new Error('MAME no longer routes Game Boy cartridge services through the slot');
   }
   return names;
+}
+
+/**
+ * The cartridge boards this console's own software list actually names.
+ *
+ * `gameboy_cartridges` is shared with the Game Boy Color and the Mega Duck, so
+ * a third of what it declares is for cartridges that cannot appear in this
+ * machine's list at all. Registering them costs the visitor a download and the
+ * build a type-check of hardware nothing can select, so the set is narrowed to
+ * MAME's own answer to "what boards do Game Boy cartridges use" -- read from
+ * the list rather than chosen here.
+ */
+function softwareListBoards(mameSource: string, fallback: string): Set<string> {
+  const list = readFileSync(join(mameSource, SOFTWARE_LIST_FILE), 'utf8');
+  const boards = new Set<string>([fallback]);
+  for (const match of list.matchAll(
+    /<feature\s+name="slot"\s+value="([^"]+)"\s*\/?>/g,
+  )) boards.add(match[1]!);
+  if (boards.size < 2) {
+    throw new Error(`${SOFTWARE_LIST_FILE} no longer names any cartridge board`);
+  }
+  return boards;
 }
 
 /** `char const *const GB_MBC1 = "rom_mbc1";`, as a constant-to-option map. */

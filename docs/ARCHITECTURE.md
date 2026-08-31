@@ -467,7 +467,18 @@ or renderer is an architectural regression.
 6. Console targets open their cartridge room instead: the generated softlist
    catalog identifies a dropped or fetched dump by chip CRC, and the shell is
    handed the identified PRG/CHR regions with the cart's mapper, mirroring and
-   battery injected into a clone of the board config.
+   battery injected into a clone of the board config. Which cartridge board a
+   dump runs on comes from the software list's own `slot` feature, never from
+   sniffing the bytes, and the room draws that console's own cartridge shell --
+   the profile is chosen from MAME's cartridge interface name (`nes_cart`,
+   `a2600_cart`, `gameboy_cart`), so the drawing follows the slot rather than a
+   hand-kept console list.
+   A cartridge bus that installs itself rather than being described by an
+   address map is run, not restated: the host hands the mounted board a
+   recording address space and keeps the windows MAME's own installer asks for.
+   Which method mounts a board, and whether it is handed that space or reaches
+   for it, is read from the bus's own interface -- the Atari 2600 takes the
+   space as an argument, the Game Boy's `load()` calls `cart_space()`.
 7. The shell creates the generated board, starts frame scheduling, presents the
    framebuffer, and activates generated audio worklets after a user gesture.
 

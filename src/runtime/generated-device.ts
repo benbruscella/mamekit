@@ -33,7 +33,16 @@ interface DeviceMember {
   /** Declared array bound for an object-typed member (`bitmap_ind16 h[2]`). */
   arrayLength?: number;
   /** Fields of a member whose type is a struct the device declares. */
-  fields?: { name: string; length?: number }[];
+  fields?: StructField[];
+}
+
+/** One field of a struct-shaped member; `fields` makes it nest. */
+interface StructField {
+  name: string;
+  length?: number;
+  bits?: 8 | 16 | 32;
+  signed?: boolean;
+  fields?: StructField[];
 }
 
 interface DeviceCallback {
@@ -1404,10 +1413,19 @@ function rgbPixel(red: number, green: number, blue: number): number {
  * carried: the DPC's display-data pointer walked off its 2K window.
  */
 function structMember(
-  fields: readonly { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[],
-): Record<string, number | number[]> {
-  const value: Record<string, number | number[]> = {};
+  fields: readonly StructField[],
+): Record<string, unknown> {
+  const value: Record<string, unknown> = {};
   for (const field of fields) {
+    // A field that is itself a struct, and commonly an array of them: the
+    // Game Boy PPU keeps ten sprite slots inside its per-line state. Built as
+    // a number, the first assignment into one had nothing to assign to.
+    if (field.fields) {
+      value[field.name] = field.length
+        ? Array.from({ length: field.length }, () => structMember(field.fields!))
+        : structMember(field.fields);
+      continue;
+    }
     if (field.length) {
       value[field.name] = Array.from({ length: field.length }, () => 0);
       continue;

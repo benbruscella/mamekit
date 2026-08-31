@@ -11,6 +11,7 @@ import {
   type GeneratedHandlerBindings,
 } from '../ir/execute.ts';
 import { deviceConfiguredScreen } from '../mame/screen-config.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
@@ -865,6 +866,8 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   }
 
   recordDeviceConfiguredScreen(g, mameSrc);
+  recordPaletteInit(g, ast, consts, driverRel);
+  annotateIndexedScreenUpdate(g, mameSrc);
 
   return g.toGraph({
     tool: 'mamekit',
@@ -1552,13 +1555,31 @@ function handlerProps(
   if (body && fn) {
     const source = ast.ast.units.map(unit => unit.source).join('\n');
     for (const table of source.matchAll(
-      /\bstatic\s+(?:(?:const|constexpr)\s+)+[\w:]+\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
+      /\bstatic\s+(?:(?:const|constexpr)\s+)+([\w:]+)\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{((?:[^{}]|\{[^{}]*\})*?)\}\s*;/g,
     )) {
-      if (!new RegExp(`\\b${table[1]}\\s*\\[`).test(body)) continue;
-      const values = splitMameArgs(table[2]!).map(value => value.trim());
+      const [, valueType, name, declared] = table;
+      if (!new RegExp(`\\b${name}\\s*\\[`).test(body)) continue;
+      // MAME annotates its tables, and comments out alternatives it kept:
+      // `palette_gb` carries a whole disused black-and-white palette inside
+      // `/* ... */`. Read as data those numbers become the table.
+      const entries = declared!.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+      // A table of colours is written as braced triples: `static constexpr
+      // rgb_t palette_gb[] = { { 0xff,0xfb,0x87 }, ... }`. Read as a flat
+      // list it matched nothing at all, so a machine that sets its palette
+      // from one got four zero pens -- a picture drawn entirely in
+      // transparent black.
+      const values = valueType === 'rgb_t' && /^\s*\{/.test(entries)
+        ? [...entries.matchAll(/\{([^{}]*)\}/g)].map(entry => {
+            const [red, green, blue] = splitMameArgs(entry[1]!)
+              .map(component => Number(evalExpr(component.trim(), constants) ?? 0));
+            return String(
+              ((0xff << 24) | ((blue ?? 0) << 16) | ((green ?? 0) << 8) | (red ?? 0)) >>> 0,
+            );
+          })
+        : splitMameArgs(entries).map(value => value.trim());
       if (body.includes(table[0])) body = body.replace(table[0], '');
       body = body.replace(
-        new RegExp(`\\b${table[1]}\\s*\\[([^\\]]+)\\]`, 'g'),
+        new RegExp(`\\b${name}\\s*\\[([^\\]]+)\\]`, 'g'),
         (_entry, index: string) => `TABLE(${index}, ${values.join(', ')})`,
       );
     }
@@ -2039,6 +2060,83 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
       !shadowedCallbacks.has(node.id) && !removedDeviceIds.has(node.id)),
     edges: edges.filter(edge => reachable.has(edge.from) && reachable.has(edge.to)),
   };
+}
+
+/**
+ * Say whether a screen update writes palette indices rather than colours.
+ *
+ * MAME declares it in the update's own signature -- `bitmap_ind16 &` against
+ * `bitmap_rgb32 &` -- and the driver's Handler node carries that when the
+ * driver draws. When a device draws, the method belongs to the device's source
+ * rather than the driver's, so the signature is read from there. Reading it
+ * wrong is silent: the Game Boy's four pen numbers went into the framebuffer
+ * as colours, which are all transparent black, so the machine ran and drew
+ * nothing anyone could see.
+ */
+function annotateIndexedScreenUpdate(g: GraphBuilder, mameSrc: string): void {
+  const definitions = indexMameHardware(mameSrc);
+  const byClass = new Map<string, string>();
+  for (const definition of definitions.values()) {
+    byClass.set(definition.className, definition.sourceFile);
+  }
+  for (const callback of g.nodes.values()) {
+    if (callback.label !== 'Callback' || callback.props.signal !== 'set_screen_update') continue;
+    const className = String(callback.props.targetClass ?? '');
+    const method = String(callback.props.targetMethod ?? '');
+    const sourceFile = byClass.get(className);
+    if (!className || !method || !sourceFile) continue;
+    const declaration = new RegExp(
+      `\\b${method}\\s*\\(([^;{}]*)\\)`,
+    ).exec(readFileSync(join(mameSrc, sourceFile.replace(/\.cpp$/, '.h')), 'utf8'));
+    if (declaration && /\bbitmap_ind16\b/.test(declaration[1]!)) {
+      callback.props.indexed = 1;
+    }
+  }
+}
+
+/**
+ * Record the routine a palette device is constructed with.
+ *
+ * MAME's `palette_device` takes its init as a constructor argument rather than
+ * a chained setter -- `PALETTE(config, m_palette, FUNC(gb_state::gb_palette),
+ * 4)` -- so the devcb pass, which walks fluent chains, never saw it. A machine
+ * whose colours come from code rather than from a colour PROM therefore had no
+ * palette at all: every Game Boy pixel resolved to pen zero, which is
+ * transparent black, and the picture was invisible rather than wrong.
+ */
+function recordPaletteInit(
+  g: GraphBuilder,
+  ast: MameAstIndex,
+  constants: Record<string, number>,
+  driverFile: string,
+): void {
+  for (const device of [...g.nodes.values()]) {
+    if (device.label !== 'Device' || device.props.type !== 'PALETTE') continue;
+    const config = Array.isArray(device.props.config) ? device.props.config.map(String) : [];
+    const construction = config.find(line => /^\s*PALETTE\s*\(/.test(line));
+    const func = construction && /FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(construction);
+    if (!func) continue;
+    const entries = /,\s*([^,()]+)\s*\)\s*$/.exec(construction!)?.[1]?.trim();
+    const callbackId = `${device.id}/callback:palette_init`;
+    g.node('Callback', callbackId, {
+      signal: 'palette_init',
+      operation: 'palette_init',
+      raw: construction!,
+      ownerTag: String(device.props.tag ?? ''),
+      targetClass: func[1]!,
+      targetMethod: func[2]!,
+      ...(entries !== undefined && evalExpr(entries, constants) !== null
+        ? { entries: evalExpr(entries, constants)! }
+        : {}),
+      ...(device.props.sourceFile ? { sourceFile: device.props.sourceFile } : {}),
+      ...(device.props.sourceLine ? { sourceLine: device.props.sourceLine } : {}),
+    });
+    g.edge(device.id, callbackId, 'HAS_CALLBACK');
+    const handlerId = emitSourceHandlerClosure(
+      g, ast, func[1]!, func[2]!, constants, { file: driverFile, start: 0, end: 0, line: 0, column: 0, endLine: 0, endColumn: 0 },
+    );
+    g.edge(callbackId, handlerId, 'CALLS_HANDLER');
+  }
 }
 
 /**

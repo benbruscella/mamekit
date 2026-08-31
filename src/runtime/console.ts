@@ -114,6 +114,20 @@ function vcsGrip(): string {
   return ribs;
 }
 
+/**
+ * The Game Boy's grip: fine vertical ribs across the base, below the label,
+ * moulded into the plastic where a thumb pushes the cartridge home.
+ */
+function dmgGrip(): string {
+  let ribs = '';
+  for (let index = 0; index < 22; index++) {
+    const x = 26 + index * 6.6;
+    ribs += `<rect x="${x}" y="206" width="3.4" height="30" rx="1.4" fill="rgba(0,0,0,.26)"/>`
+      + `<rect x="${x + 3.4}" y="206" width="1.6" height="30" rx=".8" fill="rgba(255,255,255,.24)"/>`;
+  }
+  return ribs;
+}
+
 const CART_SHELLS: Record<string, CartShell> = {
   nes: {
     label: { x: 53.5, y: 15.5, w: 133, h: 151 },
@@ -154,18 +168,42 @@ const CART_SHELLS: Record<string, CartShell> = {
     <rect x="6" y="207" width="188" height="1.4" fill="rgba(0,0,0,.38)"/>
     <rect x="6" y="209" width="188" height="1" fill="rgba(255,255,255,.09)"/>`,
   },
+  // The Game Boy cartridge: grey plastic, a chamfered top-right corner so it
+  // can only go in one way round, a label over most of the face, and a ribbed
+  // grip along the base. The chamfer is the feature that makes the shape
+  // recognisable at 200px, and it is a moulding, not a mark.
+  dmg: {
+    label: { x: 26, y: 30, w: 148, h: 148 },
+    artHeight: 160,
+    art: { x: 26, y: 42, w: 148, h: 66 },
+    title: { x: 33, y: 132, wrap: 17 },
+    bodyTop: '#b6b4ab',
+    bodyBottom: '#8e8c84',
+    moulding: 'rgba(24,24,24,.40)',
+    chrome: () => `
+    <path d="M14 12 a8 8 0 0 1 8-8 h124 l32 32 v198 a8 8 0 0 1-8 8 h-148 a8 8 0 0 1-8-8 z"
+      fill="url(#cb)"/>
+    <path d="M146 4 l32 32 h-32 z" fill="rgba(0,0,0,.13)"/>
+    <path d="M18 8 h126 l30 30" fill="none" stroke="rgba(255,255,255,.40)" stroke-width="2.4"/>
+    <rect x="14" y="198" width="172" height="1.8" fill="rgba(0,0,0,.24)"/>
+    <rect x="14" y="199.8" width="172" height="1.2" fill="rgba(255,255,255,.22)"/>
+    ${dmgGrip()}`,
+  },
 };
 
 /**
  * The shell this room draws, chosen once from the software list's own cartridge
- * interface -- `a2600_cart`, `nes_cart`, `coleco_cart` -- so the drawing follows
- * MAME's own name for the slot rather than a hand-kept console list.
+ * interface -- `a2600_cart`, `nes_cart`, `coleco_cart`, `gameboy_cart` -- so the
+ * drawing follows MAME's own name for the slot rather than a hand-kept console
+ * list.
  */
 export let activeShell: CartShell = CART_SHELLS.nes!;
 /** Test seam: the room sets this from the software list's cartridge interface. */
 export const useCartShell = (name: string | undefined): void => { activeShell = shellForInterface(name); };
 export const shellForInterface = (name: string | undefined): CartShell =>
-  name === 'a2600_cart' ? CART_SHELLS.vcs! : CART_SHELLS.nes!;
+  name === 'a2600_cart' ? CART_SHELLS.vcs!
+    : name === 'gameboy_cart' ? CART_SHELLS.dmg!
+    : CART_SHELLS.nes!;
 
 /** viewBox units as a percentage, for overlaying HTML on the drawn cartridge */
 const pct = (v: number, total: number) => `${(v / total * 100).toFixed(3)}%`;

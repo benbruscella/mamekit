@@ -2362,7 +2362,35 @@ function fillGeneratedMemory(destination: unknown, value: number, count: number)
   const target = generatedMemoryView(destination);
   if (!target) return;
   const writable = target.bytes as unknown as { [index: number]: unknown };
-  for (let index = 0; index < count; index++) writable[target.offset + index] = value;
+  for (let index = 0; index < count; index++) {
+    // `memset(&m_snd[0], 0, sizeof(m_snd[0]))` clears one struct, not the slot
+    // holding it: MAME's sound chips reset a channel this way. Overwriting the
+    // element with a number left the Game Boy's APU with a number where its
+    // channel state had been, and the next field assignment had nothing to
+    // assign into.
+    const element = writable[target.offset + index];
+    if (element && typeof element === 'object' && !ArrayBuffer.isView(element)) {
+      clearGeneratedStruct(element as Record<string, unknown>, value);
+      continue;
+    }
+    writable[target.offset + index] = value;
+  }
+}
+
+/** Set every field of a struct-shaped object, recursing into nested ones. */
+function clearGeneratedStruct(target: Record<string, unknown>, value: number): void {
+  for (const key of Object.keys(target)) {
+    const field = target[key];
+    if (ArrayBuffer.isView(field)) {
+      (field as unknown as { fill(value: number): void }).fill(value);
+    } else if (Array.isArray(field)) {
+      field.fill(value);
+    } else if (field && typeof field === 'object') {
+      clearGeneratedStruct(field as Record<string, unknown>, value);
+    } else {
+      target[key] = value;
+    }
+  }
 }
 
 /** std::vector::resize over a member bound to a growable byte container. */

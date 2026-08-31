@@ -61,10 +61,13 @@ assert.equal(slot.slot.default, 'rom');
 // src/gen/generate.ts names the subset the console room offers; keeping this
 // assertion here is what stops the two drifting apart.
 const options = Object.keys(slot.slot.options).sort();
-assert.equal(options.length, 35, 'every declared cartridge board must lower');
+// Every board this machine's own software list names, and MAME's fallback --
+// not the whole `gameboy_cartridges` list, a third of which belongs to the
+// Game Boy Color and the Mega Duck.
+assert.equal(options.length, 17, 'every board the software list names must lower');
+assert.ok(!options.includes('rom_mbc6'), 'a board no Game Boy cartridge uses stays out');
 for (const supported of [
-  'rom', 'rom_mbc1', 'rom_mbc2', 'rom_mbc3', 'rom_mbc30', 'rom_mbc5',
-  'rom_huc1', 'rom_mmm01',
+  'rom', 'rom_mbc1', 'rom_mbc2', 'rom_mbc3', 'rom_mbc5', 'rom_huc1', 'rom_mmm01',
 ]) {
   assert.ok(options.includes(supported), `${supported} must be a declared board`);
 }
@@ -175,5 +178,5 @@ const window = (
 
 clearGeneratedDevices();
 console.log(
-  'gameboy.spec: PPU, APU, cartridge slot, 35 source-declared boards and MBC banking passed',
+  'gameboy.spec: PPU, APU, cartridge slot, 17 source-declared boards and MBC banking passed',
 );

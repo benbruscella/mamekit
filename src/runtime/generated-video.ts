@@ -51,6 +51,11 @@ export interface GeneratedVideoPrimitives extends VideoRenderer {
  * bitmap_rgb32 screens write final colors.
  */
 export function isIndexedScreen(machine: BoardIr): boolean {
+  // A device's update has no driver handler to read the signature from, so
+  // the compiler records the answer instead. Without it the Game Boy's PPU
+  // wrote pen numbers 0..3 straight into the framebuffer as colours, and every
+  // pixel came out transparent black.
+  if (machine.execution.screenUpdate?.indexed) return true;
   const target = machine.execution.screenUpdate?.handler;
   if (!target) return false;
   const handler = machine.handlers?.find(candidate =>
@@ -2497,6 +2502,36 @@ export function polePositionVerticalModifiers(proms: Uint8Array): Uint16Array {
 }
 
 /**
+ * A palette whose colours a source-derived routine writes, one pen at a time.
+ *
+ * MAME's `palette_device` takes that routine as a constructor argument, and it
+ * calls `set_pen_color(index, rgb)` -- which is exactly what this collects.
+ * Nothing here knows what the colours are: the Game Boy's four greens come
+ * from `gb_state::gb_palette`, and another machine's from its own routine.
+ */
+class GeneratedInitialisedPalette implements GeneratedPaletteDevice {
+  readonly colors: Uint32Array;
+
+  constructor(entries: number) {
+    this.colors = new Uint32Array(Math.max(1, entries)).fill(0xff000000);
+  }
+
+  set_pen_color(pen: number, colorOrRed: number, green?: number, blue?: number): void {
+    // MAME has both overloads: a packed rgb_t, and three channels.
+    const color = green === undefined
+      ? colorOrRed >>> 0
+      : (0xff000000 | ((colorOrRed & 0xff) << 16) | ((green & 0xff) << 8) | ((blue ?? 0) & 0xff)) >>> 0;
+    if (pen >= 0 && pen < this.colors.length) this.colors[pen] = color;
+  }
+
+  transpen_mask(): number { return 0; }
+
+  black_pen(): number { return 0; }
+
+  pens(): Uint32Array { return this.colors; }
+}
+
+/**
  * Hardware-neutral MAME video services. All layouts, palette wiring,
  * tile callbacks, sprite loops and initial state come from generated IR.
  */
@@ -2618,6 +2653,13 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       this.palettes.set(palette.member, new GeneratedPalette(palette.plan, regions));
     }
     this.palette = this.palettes.get('m_palette') ?? this.palettes.values().next().value;
+    // A machine whose colours are written by code rather than decoded from a
+    // colour PROM: MAME hands `palette_device` an init routine, and the pens
+    // it sets are the whole palette. Run once here, as MAME runs it once at
+    // device_start, so the screen has colours before the first frame.
+    if (!this.palette && machine.execution.paletteInit) {
+      this.palette = new GeneratedInitialisedPalette(machine.execution.paletteInit.entries ?? 0);
+    }
     const indexed = isIndexedScreen(machine);
     this.gfx = (machine.video?.gfx ?? []).map(entry => {
       const stateRegion = state[`m_${entry.region.replace(/[^A-Za-z0-9_]/g, '_')}`];
@@ -3207,6 +3249,21 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         : new GeneratedIndexedBitmap(bitmapWidth, bitmapHeight);
     }
     this.directScreenShape = generatedDirectScreenShape(machine);
+    // The machine's own palette routine, run once with the palette it is
+    // handed -- which is what MAME does at device_start. Every colour the
+    // screen resolves comes out of this call.
+    if (this.palette instanceof GeneratedInitialisedPalette) {
+      const callback = machine.callbacks.find(candidate =>
+        candidate.signal === 'palette_init');
+      if (callback) {
+        executeGeneratedCallbackHandler(
+          machine,
+          callback,
+          this.bindings,
+          { palette: this.palette },
+        );
+      }
+    }
   }
 
   /** MAME allocates one priority bitmap per screen; so does this. */

@@ -199,6 +199,8 @@ export function lowerGeneratedMachine(
       if (props.quantumSeconds !== undefined) {
         callback.quantumSeconds = Number(props.quantumSeconds);
       }
+      if (props.entries !== undefined) callback.entries = Number(props.entries);
+      if (props.indexed !== undefined) callback.indexed = Boolean(props.indexed);
       if (props.periodHz !== undefined) callback.periodHz = Number(props.periodHz);
       if (props.periodExpr) callback.periodExpr = String(props.periodExpr);
       if (Array.isArray(props.scanlines)) callback.scanlines = props.scanlines.map(Number);
@@ -339,6 +341,12 @@ export function lowerGeneratedMachine(
         handler.ownerClass === screenCallback.targetClass &&
         handler.method === screenCallback.targetMethod)
     : undefined;
+  const paletteCallback = callbacks.find(callback => callback.signal === 'palette_init');
+  const paletteHandler = paletteCallback?.targetClass && paletteCallback.targetMethod
+    ? handlers.find(handler =>
+        handler.ownerClass === paletteCallback.targetClass &&
+        handler.method === paletteCallback.targetMethod)
+    : undefined;
   const inputMembers = new Map<string, string[]>();
   for (const node of graph.nodes.filter(candidate => candidate.label === 'Handler')) {
     for (const encoded of Array.isArray(node.props.inputMembers)
@@ -451,9 +459,28 @@ export function lowerGeneratedMachine(
         // Set when the update belongs to a generated device rather than the
         // driver's own state class.
         ...(screenUpdateDeviceTag ? { deviceTag: screenUpdateDeviceTag } : {}),
+        // MAME's `bitmap_ind16 &` says the update writes palette indices. A
+        // driver handler carries its own parameters; a device's update is
+        // declared in the device's source, so the graph records the answer.
+        ...(screenCallback.indexed ||
+          /\bbitmap_ind16\b/.test(screenHandler?.parameters ?? '')
+          ? { indexed: true }
+          : {}),
         ...((screenHandler?.source ?? screenCallback.source)
           ? { source: screenHandler?.source ?? screenCallback.source }
           : {}),
+      },
+    } : {}),
+    // Only when the machine has no colour PROM to decode: a board that does
+    // keeps the palette plan it already had, so this adds a palette where
+    // there was none rather than replacing one that works.
+    ...(paletteHandler && !compiledVideo?.plan.palette ? {
+      paletteInit: {
+        handler: `${paletteCallback!.targetClass}.${paletteCallback!.targetMethod}`,
+        ...(paletteCallback!.entries !== undefined
+          ? { entries: Number(paletteCallback!.entries) }
+          : {}),
+        ...(paletteHandler.source ? { source: paletteHandler.source } : {}),
       },
     } : {}),
   };
@@ -662,8 +689,13 @@ export function lowerGeneratedMachine(
   // GeneratedVideoRenderer and is not a devcb signal dispatched at runtime.
   // A device_delegate setter is configuration too: the owning device invokes
   // the delegate itself, so there is no board connection to dispatch.
+  // A palette init is the same kind of thing: MAME runs it once when the
+  // palette device starts, so the renderer runs it once too. It is not a
+  // signal anything raises.
   const effectCallbacks = callbacks.filter(callback =>
-    callback.signal !== 'set_screen_update' && !callback.delegate);
+    callback.signal !== 'set_screen_update' &&
+    callback.signal !== 'palette_init' &&
+    !callback.delegate);
   const lowered = lowerConnections(effectCallbacks, {
     cpuTags: new Set(execution.cpus.map(cpu => cpu.tag)),
     deviceTags: new Set(devices.map(device => device.tag)),
