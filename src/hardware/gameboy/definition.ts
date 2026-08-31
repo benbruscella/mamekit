@@ -23,14 +23,14 @@ export const GAMEBOY_APU_TAG = 'apu';
 /**
  * The tag the gameboy driver gives its cartridge slot.
  *
- * `gb_cart_slot_device_base` builds the mounted cartridge's ROM region name
- * from the slot's own tag, so the two together name the region the cartridge
- * bytes arrive in.
+ * `device_gb_cart_interface` looks the mounted cartridge's sub-regions up
+ * through the slot (`memregion("rom")`), so the slot's tag and those names
+ * together say where the cartridge bytes arrive.
  */
 export const GAMEBOY_CART_SLOT_TAG = 'cartslot';
 
 export const GAMEBOY_PORTS: readonly PortDeclaration[] = [
-  { name: 'slot', kind: 'bus', note: 'source-selected generated cartridge PCB' },
+  { name: 'slot', kind: 'bus', note: 'source-selected generated cartridge board' },
   { name: 'registers', kind: 'registers', note: 'PPU and APU registers in the LR35902 program map' },
   { name: 'vram', kind: 'bus', note: 'PPU-owned video RAM and OAM windows' },
   { name: 'signals', kind: 'interrupt-out', note: 'V-blank, LCD STAT and OAM DMA cycle debt' },
