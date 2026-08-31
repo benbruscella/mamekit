@@ -3,15 +3,19 @@
 // Parked by issue #53 on play-test evidence; re-examined for issue #108,
 // which is where the measurements below come from.
 //
-// The V30 runs but the game never reaches its video setup.
+// The V30 runs but never reaches its video setup; the screen is black for
+// the whole run.
 //
-// Measured 2026-08-31: the main CPU spins at CS:IP 3F00:0837 from frame 9
-// onward with IF clear, videoram[0], videoram[1] and both palette RAMs
-// stay entirely zero for 1200 frames, and the screen is black throughout.
-// The sound Z80 stops at PC 0 after ~557k cycles even though the main CPU
-// did upload its program (soundram is 65280/65536 nonzero), which points at
-// the port 02 sound-CPU reset line or the upd71059c PIC handshake rather
-// than at the video path.
+// Measured after both I8088/V30 core fixes on this branch -- the sign flag,
+// and the missing 0xd2/0xd3 shift-by-CL opcodes. Neither moved it, so the
+// fault is elsewhere:
+// - The main CPU spins at CS:IP 3F00:0837 from frame 9 with IF clear.
+// - videoram[0], videoram[1] and both palette RAMs stay entirely zero for
+//   1200 frames.
+// - The sound Z80 stops at PC 0 after ~557k cycles even though the main CPU
+//   did upload its program (soundram is 65280/65536 nonzero).
+// That points at the port-02 sound-CPU reset line or the upd71059c PIC
+// handshake rather than at the video path.
 //
 // Move this module and its spec back up to src/games/ to re-enable the
 // target once the fault is fixed.

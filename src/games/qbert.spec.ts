@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { compileMameVideo } from '../../mame/video-compiler.ts';
+import { compileMameVideo } from '../mame/video-compiler.ts';
 import { qbert } from './qbert.ts';
-import { gameSourceGraph, mameSourceRoot } from '../test-support.ts';
+import { gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
 const graph = gameSourceGraph(qbert);
 const machine = graph.nodes.find(node =>

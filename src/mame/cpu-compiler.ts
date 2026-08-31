@@ -2422,10 +2422,37 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
   });
   const resetFn = sourceFunction('device_reset');
   const inputFn = sourceFunction('execute_set_input');
-  if (!resetFn || !inputFn) throw new Error('MAME I8088 reset/input source is missing');
+  const runFn = sourceFunction('execute_run');
+  if (!resetFn || !inputFn || !runFn) {
+    throw new Error('MAME I8088 reset/input/run source is missing');
+  }
   const reset = compileMameHandler(normalize(`${resetFn.body}\ncycles = 0;`));
   const input = compileMameHandler(normalize(inputFn.body)
     .replace(/\binptnum\b/g, 'inputnum'));
+  // `execute_run` keeps a small switch of its own ahead of `common_op`, and
+  // the shift-and-rotate-by-CL pair lives there rather than in the big table.
+  // Restating the step by hand is what let them go missing: with no case for
+  // 0xd2/0xd3 the opcode byte was consumed and its ModRM byte was not, so
+  // `SHL BX,CL` ran one byte short and every instruction after it decoded from
+  // the wrong offset. Take the two bodies from MAME instead of writing them
+  // out, so the step cannot drift from the source switch again.
+  const runBody = runFn.body;
+  const rotateByCl = (opcode: string): string => {
+    const at = runBody.indexOf(`case ${opcode}:`);
+    if (at < 0) throw new Error(`MAME I8088 execute_run has no ${opcode} case`);
+    const open = runBody.indexOf('{', at);
+    let depth = 0;
+    for (let index = open; index < runBody.length; index += 1) {
+      if (runBody[index] === '{') depth += 1;
+      else if (runBody[index] === '}' && (depth -= 1) === 0) {
+        return runBody.slice(open + 1, index);
+      }
+    }
+    throw new Error(`MAME I8088 ${opcode} case is unterminated`);
+  };
+  add('rotshft_bcl', '', rotateByCl('0xd2'), cppFile, lineAt(cpp, cpp.indexOf('case 0xd2:')));
+  add('rotshft_wcl', '', rotateByCl('0xd3'), cppFile, lineAt(cpp, cpp.indexOf('case 0xd3:')));
+
   const step = compileMameHandler(normalize(`
     cycles = 0;
     m_icount = 1;
@@ -2446,6 +2473,10 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
     if (op == 0x0f) {
       m_sregs[CS] = POP();
       CLK(POP_SEG);
+    } else if (op == 0xd2) {
+      rotshft_bcl();
+    } else if (op == 0xd3) {
+      rotshft_wcl();
     } else if (op >= 0xd8 && op <= 0xdf) {
       m_modrm = fetch();
       if (m_modrm < 0xc0) get_ea(1, I8086_READ);
