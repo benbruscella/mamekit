@@ -572,6 +572,11 @@ class HandlerParser {
     // its angle brackets as `<` and `>` yields an assignment to a comparison.
     let cursor = this.skipTemplateArguments(this.skipQualifiedName(this.index));
     while (this.tokens[cursor]?.text === '*' || this.tokens[cursor]?.text === '&') cursor++;
+    // `Type *const name(...)`: cv-qualifiers belong to the pointer, not to the
+    // declared name. Stopping at `const` read the whole statement as an
+    // expression, and MAME's cartridge bases open almost every method with
+    // `memory_region *const romregion(cart_rom_region());`.
+    while (['const', 'volatile'].includes(this.tokens[cursor]?.text ?? '')) cursor++;
     return this.tokens[cursor]?.kind === 'identifier' &&
       ['=', '(', '[', ',', ';'].includes(this.tokens[cursor + 1]?.text ?? '');
   }
@@ -690,11 +695,20 @@ class HandlerParser {
           this.unsupportedStatement(`invalid constructor declaration of "${name.text}"`);
           return declarations;
         }
-        value = {
-          kind: 'call',
-          callee: { kind: 'identifier', name: valueType ?? typeWords[0] ?? '' },
-          args,
-        };
+        // C++ direct-initialization with one argument is a conversion, not a
+        // constructor call: `offs_t const chunk(offs_t(1) << msb)` and
+        // `memory_region *const romregion(cart_rom_region())` both mean "this
+        // value, read as this type". Lowered as a call of the type name it
+        // resolved to nothing, so a MAME cartridge base computed a zero-sized
+        // decode chunk and looped forever. Multiple arguments really are a
+        // constructor and stay call-shaped.
+        value = args.length === 1
+          ? { kind: 'cast', valueType: declarationType ?? valueType ?? '', operand: args[0]! }
+          : {
+              kind: 'call',
+              callee: { kind: 'identifier', name: valueType ?? typeWords[0] ?? '' },
+              args,
+            };
       } else if (valueType === 'rectangle') {
         value = {
           kind: 'call',
@@ -1025,19 +1039,37 @@ class HandlerParser {
   /**
    * `[capture] (params) [mutable] [-> type] { body }`.
    *
-   * The capture list is skipped: everything a MAME lambda captures is `this`,
-   * which the enclosing program already resolves. A parameter the source left
-   * unnamed -- `[this] (offs_t address, u8 &, u8)` names only the first --
-   * keeps its position with an empty name so the arguments still line up.
+   * A plain capture is skipped: what a MAME lambda captures by name is `this`
+   * or an enclosing local, and the body already runs in that scope. An
+   * *init-capture* is not -- `[this, base = &romregion->as_u8()]` introduces a
+   * name that exists nowhere else, and dropping it left every Game Boy
+   * cartridge installing its ROM from a pointer that resolved to nothing.
+   *
+   * A parameter the source left unnamed -- `[this] (offs_t address, u8 &, u8)`
+   * names only the first -- keeps its position with an empty name so the
+   * arguments still line up.
    */
   private parseLambda(): GeneratedExpression | undefined {
     if (!this.consume('[')) return undefined;
-    let depth = 1;
-    while (depth > 0 && !this.at('eof')) {
-      const text = this.take().text;
-      if (text === '[') depth++;
-      else if (text === ']') depth--;
+    const captures: { name: string; value: GeneratedExpression }[] = [];
+    while (!this.at('eof') && !this.atText(']')) {
+      const name = this.peek();
+      if (
+        name.kind === 'identifier' &&
+        this.tokens[this.index + 1]?.text === '=' &&
+        this.tokens[this.index + 2]?.text !== '='
+      ) {
+        this.take();
+        this.take();
+        const value = this.parseExpression();
+        if (!value) return undefined;
+        captures.push({ name: name.text, value });
+      } else {
+        this.take();
+      }
+      if (!this.consume(',')) break;
     }
+    if (!this.consume(']')) return undefined;
     if (!this.consume('(')) return undefined;
     const parameters: string[] = [];
     if (!this.consume(')')) {
@@ -1066,7 +1098,12 @@ class HandlerParser {
       while (!this.at('eof') && !this.atText('{')) this.take();
     }
     if (!this.consume('{')) return undefined;
-    return { kind: 'lambda', parameters, body: this.parseOperations('}') };
+    return {
+      kind: 'lambda',
+      parameters,
+      ...(captures.length ? { captures } : {}),
+      body: this.parseOperations('}'),
+    };
   }
 
   /**

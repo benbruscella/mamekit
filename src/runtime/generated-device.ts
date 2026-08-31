@@ -57,6 +57,7 @@ interface DeviceMethod {
 type DeviceResource =
   | { kind: 'number'; value: number }
   | { kind: 'region'; name: string }
+  | { kind: 'region-object'; name: string }
   | { kind: 'region-pointer'; name: string; offset: number }
   | { kind: 'region-length'; name: string }
   | { kind: 'region-pages'; name: string; bytes: number }
@@ -132,10 +133,12 @@ export interface GeneratedDeviceDefinition {
     member: string;
     default?: string;
     selector?: string;
+    install?: { method: string; space?: string };
     options: Record<string, GeneratedDeviceDefinition>;
   };
   resources?: {
     members?: Record<string, DeviceResource>;
+    calls?: Record<string, DeviceResource>;
     initialize?: { method: string; args?: DeviceResource[] }[];
   };
   bus?: {
@@ -206,6 +209,8 @@ export interface Device {
   role(): string | undefined;
   links(): readonly GeneratedDeviceLink[];
   invokeSlot(name: string, ...args: GeneratedCallArgument[]): unknown;
+  /** Run the mounted card's own installer against a recording address space. */
+  installSlotCard(space: unknown): void;
 }
 
 export interface GeneratedDeviceBusRange {
@@ -273,7 +278,11 @@ export interface GeneratedDeviceOptions {
 
 export interface GeneratedMemoryBank {
   configure_entries(start: number, count: number, source: unknown, stride: number): void;
+  /** MAME's per-entry form, for a bank whose pages are not evenly strided. */
+  configure_entry?(entry: number, base: unknown): void;
   set_entry(entry: number): void;
+  /** MAME `memory_bank::base()`: where the selected entry starts. */
+  base?(): unknown;
   read(offset: number): number;
   write(offset: number, value: number): void;
 }
@@ -420,6 +429,8 @@ class IrDevice implements Device {
   /** Samples published through `sound_stream::put_int` since the last collection. */
   private streamSamples: number[] = [];
   private slotChild?: IrDevice;
+  /** Set for the duration of a mounted card's installer; see installSlotCard. */
+  private installSpace?: unknown;
   /** Devices instantiated from this one's device_add_mconfig. */
   private readonly children: IrDevice[] = [];
 
@@ -630,6 +641,14 @@ class IrDevice implements Device {
         // device_memory_interface hands it out. Every declared space is flat
         // RAM (the extractor records no other shape), so the map is the buffer.
         space: index => this.spaces.get(Number(index)) ?? 0,
+        // Storage a device reaches through an accessor rather than a member:
+        // a Game Boy cartridge PCB asks its slot for `cart_rom_region()`.
+        ...Object.fromEntries(
+          Object.entries(definition.resources?.calls ?? {}).map(([name, resource]) => {
+            const value = resolveDeviceResource(resource, resourceOptions);
+            return [name, () => value];
+          }),
+        ),
         ...options.calls,
       },
       referenceCalls,
@@ -707,11 +726,24 @@ class IrDevice implements Device {
       const option = String(selected ?? definition.slot.default ?? '');
       const childDefinition = definition.slot.options[option];
       if (childDefinition) {
+        const cartSpace = definition.slot.install?.space;
         const child = this.slotChild = new IrDevice(childDefinition, clock, {
           ...resourceOptions,
           // A child card may itself be a slot in a future bus; do not pass
           // the parent's selected option through accidentally.
           slot: undefined,
+          // The address space the card installs itself into, as MAME's own
+          // interface hands it out. The slot fills it in for the duration of
+          // installSlotCard and clears it after, so a card that asks outside
+          // that window sees the null pointer MAME's `cart_space()` returns.
+          ...(cartSpace
+            ? {
+                calls: {
+                  ...resourceOptions.calls,
+                  [cartSpace]: () => this.slotChild?.installSpace ?? 0,
+                },
+              }
+            : {}),
         });
         const proxy = Object.fromEntries(child.methodNames().map(name => [
           name,
@@ -887,6 +919,39 @@ class IrDevice implements Device {
     return this.slotChild.invoke(name, ...args);
   }
 
+  /**
+   * Run the mounted card's own installer against `space`.
+   *
+   * MAME's two cartridge buses ask for this differently, and the slot's IR
+   * says which: the Atari 2600's interface takes the space as an argument,
+   * while a Game Boy PCB's `load(message)` reaches for it through
+   * `cart_space()`. Binding the accessor for the duration covers both without
+   * the host needing to know which bus it is holding.
+   */
+  installSlotCard(space: unknown): void {
+    const install = this.definition.slot?.install ??
+      { method: 'install_memory_handlers' as const, space: undefined };
+    if (!this.slotChild) throw new Error(`${this.definition.type} has no selected slot card`);
+    if (!install.space) {
+      this.slotChild.invoke(install.method, space as GeneratedCallArgument);
+      return;
+    }
+    this.slotChild.installSpace = space;
+    try {
+      this.slotChild.invoke(install.method, 0);
+    } finally {
+      this.slotChild.installSpace = undefined;
+    }
+    // MAME resets after mounting an image -- a cartridge slot's
+    // `is_reset_on_load()` is true -- and a PCB's power-on bank positions are
+    // set by its own device_reset. Run at construction, before the card had
+    // configured any banks, that reset selected entries on banks that did not
+    // exist yet: an MBC1 came up with both ROM windows on page 0 instead of
+    // pages 0 and 1, so every cartridge larger than 32 KiB read its first page
+    // twice.
+    this.slotChild.reset();
+  }
+
   private executeMethod(
     method: DeviceMethod,
     parameterNames: string[],
@@ -962,27 +1027,62 @@ class IrMemoryBank implements GeneratedMemoryBank {
   private source: ArrayLike<number> = new Uint8Array(0);
   private stride = 1;
   private entry = 0;
+  /** Per-entry bases, for a bank configured one entry at a time. */
+  private readonly bases = new Map<number, number>();
 
   configure_entries(_start: number, _count: number, source: unknown, stride: number): void {
-    if (ArrayBuffer.isView(source) || Array.isArray(source)) {
-      this.source = source as ArrayLike<number>;
-    }
+    const bytes = asBankBytes(source);
+    if (bytes) this.source = bytes.source;
     this.stride = Math.max(1, stride | 0);
+    this.bases.clear();
+  }
+
+  /**
+   * MAME `memory_bank::configure_entry(entry, base)`: one entry pointed at one
+   * place, rather than a whole run at a fixed stride. The Game Boy's MBCs use
+   * this form exclusively -- a ROM smaller than its bank count is mapped by
+   * folding pages onto entries, which no single stride describes.
+   */
+  configure_entry(entry: number, base: unknown): void {
+    const bytes = asBankBytes(base);
+    if (!bytes) return;
+    this.source = bytes.source;
+    this.bases.set(Math.max(0, entry | 0), bytes.offset);
   }
 
   set_entry(entry: number): void {
     this.entry = Math.max(0, entry | 0);
   }
 
+  /** MAME `memory_bank::base()`: the bytes the selected entry starts at. */
+  base(): GeneratedPointer {
+    return { generatedPointer: true, source: this.source as GeneratedPointer['source'], offset: this.offset() };
+  }
+
   read(offset: number): number {
-    return this.source[this.entry * this.stride + offset] ?? 0xff;
+    return this.source[this.offset() + offset] ?? 0xff;
   }
 
   write(offset: number, value: number): void {
     const target = this.source as { [index: number]: number };
-    const index = this.entry * this.stride + offset;
+    const index = this.offset() + offset;
     if (index >= 0 && index < this.source.length) target[index] = value & 0xff;
   }
+
+  private offset(): number {
+    return this.bases.get(this.entry) ?? this.entry * this.stride;
+  }
+}
+
+/** A bank base, whether it arrived as bytes or as a pointer part-way in. */
+function asBankBytes(
+  value: unknown,
+): { source: ArrayLike<number>; offset: number } | undefined {
+  if (ArrayBuffer.isView(value) || Array.isArray(value)) {
+    return { source: value as ArrayLike<number>, offset: 0 };
+  }
+  if (isGeneratedPointer(value)) return { source: value.source, offset: value.offset };
+  return undefined;
 }
 
 function resolveDeviceResource(
@@ -992,6 +1092,19 @@ function resolveDeviceResource(
   if (resource.kind === 'number') return resource.value;
   const regions = options.regions ?? {};
   if (resource.kind === 'region') return regions[resource.name] ?? new Uint8Array(0);
+  // MAME's `memory_region *`. A device that is handed one asks it three
+  // questions -- how big, where does it start, give me the bytes -- and a
+  // missing region answers as a null pointer does, which is what lets a
+  // cartridge with no save RAM take MAME's own "no NVRAM" branch.
+  if (resource.kind === 'region-object') {
+    const bytes = regions[resource.name];
+    if (!bytes?.length) return 0;
+    return {
+      bytes: () => bytes.length,
+      base: () => bytes,
+      as_u8: () => bytes,
+    };
+  }
   if (resource.kind === 'region-pointer') {
     // MAME's `get_rom_base() + N`: the same bytes, addressed from an offset.
     return {

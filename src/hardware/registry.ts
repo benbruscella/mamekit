@@ -65,6 +65,12 @@ import {
 } from './a2600/definition.ts';
 import { extractA2600 } from './a2600/extract.ts';
 import {
+  GAMEBOY_ID,
+  GAMEBOY_MAME_TYPES,
+  GAMEBOY_PORTS,
+} from './gameboy/definition.ts';
+import { extractGameboy } from './gameboy/extract.ts';
+import {
   SN76489_ID,
   SN76489_MAME_TYPES,
   SN76489_MASTER_GAIN,
@@ -172,6 +178,12 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: A2600_MAME_TYPES,
     ports: A2600_PORTS,
     extract: extractA2600,
+  },
+  {
+    id: GAMEBOY_ID,
+    mameTypes: GAMEBOY_MAME_TYPES,
+    ports: GAMEBOY_PORTS,
+    extract: extractGameboy,
   },
   // Audio
   {

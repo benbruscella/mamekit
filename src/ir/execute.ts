@@ -1025,6 +1025,15 @@ function compileFastExpression(
     const args = expression.args.map(arg => compileFastExpression(arg, bindings, locals));
     const generatedArguments = compileGeneratedCallArguments(name, expression.args, args);
     return context => {
+      // A lambda held by a local or a parameter; see evaluateCall.
+      const local = Object.hasOwn(context.locals, name) ? context.locals[name] : undefined;
+      if (typeof local === 'function') {
+        const values = new Array<unknown>(args.length);
+        for (let index = 0; index < args.length; index++) {
+          values[index] = callArgument(args[index]!(context));
+        }
+        return (local as (...call: unknown[]) => unknown)(...values);
+      }
       const generated = context.bindings.referenceCalls?.[name];
       if (generated) return generated(...generatedArguments(context));
       const values = new Array<unknown>(args.length);
@@ -1142,7 +1151,10 @@ function compileValueNarrowing(declared: string | undefined): (value: unknown) =
   if (declared === 'int16_t' || declared === 's16') {
     return value => toNumber(value) << 16 >> 16;
   }
-  if (declared === 'uint32_t' || declared === 'u32') return value => toNumber(value) >>> 0;
+  // `offs_t` is MAME's own name for a u32 address offset.
+  if (declared === 'uint32_t' || declared === 'u32' || declared === 'offs_t') {
+    return value => toNumber(value) >>> 0;
+  }
   if (declared === 'int32_t' || declared === 's32') return value => toNumber(value) | 0;
   if (declared === 'uint64_t' || declared === 'u64' ||
       declared === 'int64_t' || declared === 's64') {
@@ -1395,8 +1407,15 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     // resolvable there -- with its parameters bound over the top. An unnamed
     // parameter keeps its position and binds nothing.
     const { parameters, body } = expression;
+    // Init-captures are evaluated here, where the lambda is written, exactly
+    // once -- which is what C++ does and what MAME relies on: the captured
+    // pointer is taken before the loop that calls the lambda begins.
+    const captured: Record<string, unknown> = {};
+    for (const capture of expression.captures ?? []) {
+      captured[capture.name] = evaluate(capture.value, context);
+    }
     return (...args: unknown[]): unknown => {
-      const locals = { ...context.locals };
+      const locals = { ...context.locals, ...captured };
       for (const [index, name] of parameters.entries()) {
         if (name) locals[name] = args[index] ?? 0;
       }
@@ -1463,6 +1482,51 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'std::clamp') {
     return Math.min(toNumber(args[2]), Math.max(toNumber(args[1]), toNumber(args[0])));
   }
+  // <bit>. MAME's cartridge buses work out how a non-power-of-two ROM decodes
+  // with these, one power-of-two chunk at a time; unbound they answered zero,
+  // which turns the decode loop into one that never terminates.
+  if (name === 'std::bit_width') return 32 - Math.clz32(toNumber(args[0]) >>> 0);
+  if (name === 'std::bit_ceil') {
+    const value = toNumber(args[0]) >>> 0;
+    return value <= 1 ? 1 : 2 ** (32 - Math.clz32(value - 1));
+  }
+  if (name === 'std::bit_floor') {
+    const value = toNumber(args[0]) >>> 0;
+    return value === 0 ? 0 : 2 ** (31 - Math.clz32(value));
+  }
+  if (name === 'std::has_single_bit') {
+    const value = toNumber(args[0]) >>> 0;
+    return value !== 0 && (value & (value - 1)) === 0 ? 1 : 0;
+  }
+  if (name === 'std::countl_zero') return Math.clz32(toNumber(args[0]) >>> 0);
+  if (name === 'std::countr_zero') {
+    const value = toNumber(args[0]) >>> 0;
+    return value === 0 ? 32 : 31 - Math.clz32(value & -value);
+  }
+  if (name === 'std::popcount') {
+    let value = toNumber(args[0]) >>> 0;
+    let count = 0;
+    while (value) { value &= value - 1; count++; }
+    return count;
+  }
+  // <type_traits> signedness casts, written as functional casts. The IR drops
+  // the template argument, so the only thing left to preserve is which way the
+  // value is read -- and MAME uses these precisely to stop a shift or a
+  // comparison going negative.
+  // Perfect forwarding is a compile-time notion: at run time it is the value.
+  // MAME's decode helpers pass their callback on with `std::forward<T>`, and
+  // an unbound call answered zero -- so the inner overload had nothing to call.
+  if (name === 'std::forward' || name === 'std::move') return args[0];
+  // MAME's own right-aligned mask helper (util::make_bitmask<T>(n)). The IR
+  // drops the width, so the mask is as wide as the requested bits -- which is
+  // what every caller asks for. Unbound it answered zero, and an MBC1 masked
+  // its own bank number down to nothing.
+  if (/(?:^|::)make_bitmask$/.test(name)) {
+    const bits = Math.max(0, Math.min(32, toNumber(args[0])));
+    return bits >= 32 ? 0xffffffff : (2 ** bits) - 1;
+  }
+  if (name === 'std::make_unsigned_t') return toNumber(args[0]) >>> 0;
+  if (name === 'std::make_signed_t') return toNumber(args[0]) | 0;
   if (name === 'ALLOC' || name === 'make_unique_clear') {
     return new Uint8Array(Math.max(0, toNumber(args[0])));
   }
@@ -1616,7 +1680,10 @@ function applyIdentifierCall(
   // wants something callable. Without this the delegate evaluated to a number,
   // the install recorded a handler with nothing behind it, and the range was
   // dropped: Pitfall II's DPC coprocessor was never once addressed.
-  if (/^(?:read|write)\d*\w*_delegate$/.test(name)) {
+  // MAME's older per-width spellings (read8sm_delegate) and the newer generic
+  // one its recent bus devices use -- `emu::rw_delegate(*this, FUNC(...))`,
+  // which is how every Game Boy MBC installs its bank-switch writes.
+  if (/^(?:read|write)\d*\w*_delegate$/.test(name) || /(?:^|::)rw_delegate$/.test(name)) {
     const handler = memoryDelegate(expression, args, context);
     if (handler) return handler;
   }
@@ -1679,6 +1746,17 @@ function evaluateCall(
 ): unknown {
   if (expression.callee.kind === 'identifier') {
     const name = expression.callee.name;
+    // A callable held by a local or a parameter, which in MAME means a lambda
+    // that was passed in. `install_non_power_of_two(length, ..., install)`
+    // calls its own last parameter once per decoded chunk, and every Game Boy
+    // cartridge installs its ROM that way; resolved as a global name instead,
+    // the call found nothing and the cartridge decoded nothing.
+    const local = Object.hasOwn(context.locals, name) ? context.locals[name] : undefined;
+    if (typeof local === 'function') {
+      return (local as (...args: unknown[]) => unknown)(
+        ...expression.args.map(arg => callArgument(evaluate(arg, context))),
+      );
+    }
     const generated = context.bindings.referenceCalls?.[name];
     if (generated) {
       return generated(...generatedCallArguments(name, expression.args, context));
@@ -2139,6 +2217,12 @@ function addressOf(expression: GeneratedExpression, context: ExecutionContext): 
       const pointer = reference.apply(object, args);
       if (isGeneratedPointer(pointer)) return pointer;
     }
+    // `&region->as_u8()` is MAME's way of saying "the first byte of this
+    // storage", not "a slot holding one value". When the call answers with
+    // memory, its address is that memory -- boxed as a single-value slot
+    // instead, every Game Boy cartridge installed a ROM window over one byte.
+    const memory = evaluate(expression, context);
+    if (isIndexableMemory(memory) || isGeneratedPointer(memory)) return memory;
   }
   return {
     generatedPointer: true,
@@ -2356,9 +2440,25 @@ function generatedCallArguments(
 ): GeneratedCallArgument[] {
   const parameters = context.bindings.callParameters?.[name] ?? [];
   return expressions.map((expression, index) =>
-    parameters[index]?.includes('&')
+    isReferenceParameter(parameters[index], expression)
       ? lValue(expression, context)
       : evaluate(expression, context));
+}
+
+/**
+ * Is this argument passed by C++ reference, so the callee can write back?
+ *
+ * The parameter's `&` says it might be, but a lambda literal has no storage to
+ * write back to: MAME's cartridge decode helpers take their callback as
+ * `T &&install`, and boxing that as an assignable slot handed the helper an
+ * object where it expected something to call -- so every Game Boy cartridge
+ * decoded its ROM and then installed none of it.
+ */
+function isReferenceParameter(
+  parameter: string | undefined,
+  expression: GeneratedExpression,
+): boolean {
+  return Boolean(parameter?.includes('&')) && expression.kind !== 'lambda';
 }
 
 /**
@@ -2377,7 +2477,7 @@ function compileGeneratedCallArguments(
     const parameters = context.bindings.callParameters?.[name];
     const values = new Array<GeneratedCallArgument>(compiled.length);
     for (let index = 0; index < compiled.length; index++) {
-      values[index] = parameters?.[index]?.includes('&')
+      values[index] = isReferenceParameter(parameters?.[index], expressions[index]!)
         ? lValue(expressions[index]!, context)
         : compiled[index]!(context);
     }
@@ -2460,17 +2560,25 @@ function memoryDelegate(
   const method = qualified.name.split('::').at(-1);
   if (!method) return undefined;
   const target = args.find((_value, position) => position !== index);
+  // MAME picks the delegate flavour from the bound method's own signature:
+  // `void bank_switch_fine(u8 data)` installs as a data-only handler, where
+  // `void write(offs_t offset, u8 data)` also takes the address. The host
+  // always offers both, so a one-parameter handler drops the leading offset --
+  // otherwise every Game Boy MBC read an address where it wanted a bank number.
+  const declared = context.bindings.callParameters?.[method];
+  const dataOnly = declared?.length === 1;
+  const apply = (
+    callee: (...values: number[]) => unknown,
+  ): ((...values: number[]) => number) =>
+    (...values: number[]) =>
+      Number(callee(...(dataOnly && values.length > 1 ? values.slice(1) : values))) || 0;
   const bound = target && typeof target === 'object'
     ? (target as Record<string, unknown>)[method]
     : undefined;
-  if (typeof bound === 'function') {
-    return (...values: number[]) => Number(bound(...values)) || 0;
-  }
+  if (typeof bound === 'function') return apply(bound as (...values: number[]) => unknown);
   // No separate target: the device is installing one of its own handlers.
   const own = context.bindings.referenceCalls?.[method] ?? context.bindings.calls?.[method];
-  if (typeof own === 'function') {
-    return (...values: number[]) => Number((own as (...a: number[]) => unknown)(...values)) || 0;
-  }
+  if (typeof own === 'function') return apply(own as (...values: number[]) => unknown);
   return undefined;
 }
 

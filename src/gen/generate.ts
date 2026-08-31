@@ -327,11 +327,20 @@ const CART_SLOT_SUPPORT: Record<string, string[]> = {
     // pixel-exact against MAME across its attract.
     // a26_dc is still a black screen and stays out until it is not.
     'a26_3f', 'a26_ua', 'a26_fv', 'a26_8in1', 'a26_dpc'],
+  // Game Boy cartridge boards whose installer the host address space can
+  // replay. All 35 of MAME's `gameboy_cartridges` lower; these are the memory
+  // controllers the software list actually uses, and between them they cover
+  // 1,608 of its 1,743 entries -- MBC1 alone is 1,469 of them.
+  // src/hardware/gameboy/gameboy.spec.ts asserts this set against MAME's own
+  // option list, so the two cannot drift apart silently.
+  gameboy: ['rom', 'rom_mbc1', 'rom_mbc2', 'rom_mbc3', 'rom_mbc30', 'rom_mbc5',
+    'rom_huc1', 'rom_mmm01'],
 };
 
 const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
   nes: 'nes_cart',
   coleco: 'coleco_cart',
+  gameboy: 'gameboy_cart',
 };
 
 // What a cartridge slot does when a software-list entry names no PCB, and
@@ -343,6 +352,10 @@ const CART_DEFAULT_SLOT: Record<string, string> = {
   coleco: 'standard',
   // MAME's own fallback, from `vcs_get_slot`'s final return.
   a2600: 'a26_2k_4k',
+  // MAME's own answer for a header that declares no memory controller, from
+  // `guess_cart_type`; src/hardware/gameboy/extract.ts reads the same value
+  // out of source for the slot IR.
+  gameboy: 'rom',
 };
 /**
  * The file extensions a console's cartridge slot accepts, as MAME declares them.
@@ -373,6 +386,9 @@ function cartFileExtensions(
 const CART_ROM_REGION: Record<string, string> = {
   coleco: 'coleco_cart:rom',
   a2600: 'cartslot:cart:rom',
+  // `device_gb_cart_interface::cart_rom_region()` is the slot's own "rom"
+  // sub-region; the capability binds the mounted PCB to this same name.
+  gameboy: 'cartslot:rom',
 };
 
 // Explicitly supported cartridge titles (softlist parent short-names; clones
@@ -504,7 +520,13 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // file stem, but a single driver file can host several distinct boards
   // (galaga.cpp defines both galaga and digdug, with different maps/video/I/O).
   // A machine whose board differs from its file's default is remapped by name.
-  const FAMILY_BY_MACHINE: Record<string, string> = { digdug: 'digdug' };
+  const FAMILY_BY_MACHINE: Record<string, string> = {
+    digdug: 'digdug',
+    // MAME files the Game Boy under gb.cpp beside the Color, the Super Game
+    // Boy and the Mega Duck. The console's own name is what the cartridge
+    // tables and the hardware package are keyed on.
+    gameboy: 'gameboy',
+  };
   const family = FAMILY_BY_MACHINE[String(machine.props.name)]
     ?? basename(String(graph.meta.driverFile)).replace(/\.cpp$/, '');
 

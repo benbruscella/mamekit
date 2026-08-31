@@ -282,7 +282,12 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     // out-of-class definitions, so retain them in the same function AST.
     const bodyStart = braceStart + 1;
     const bodyMasked = masked.slice(bodyStart, braceEnd);
-    const inlineRe = /(?:^|[;:]\s*|\n\s*)(?:virtual\s+|inline\s+|static\s+|constexpr\s+)*(?:[\w:<>,~*&]+\s+)+(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
+    // Trailing specifiers, in any order and any number: MAME writes
+    // `override ATTR_COLD`, `const noexcept override`, `final` and plain
+    // `const`. Accepting only `const` made every method spelled the other ways
+    // invisible -- which is how a Game Boy MBC lost `load()`, the one method
+    // that installs the cartridge into the CPU's space.
+    const inlineRe = /(?:^|[;:]\s*|\n\s*)(?:virtual\s+|inline\s+|static\s+|constexpr\s+)*(?:[\w:<>,~*&]+\s+)+(\w+)\s*\(([^;{}]*)\)\s*(?:(?:const|noexcept|override|final|ATTR_\w+)\s*)*\{/g;
     let im: RegExpExecArray | null;
     while ((im = inlineRe.exec(bodyMasked)) !== null) {
       const localBrace = bodyMasked.indexOf('{', im.index + im[0].length - 1);
@@ -292,10 +297,22 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
       const absoluteBrace = bodyStart + localBrace;
       const absoluteEnd = bodyStart + localEnd;
       const inlineStart = bodyStart + im.index + (im[0].startsWith('\n') ? 1 : 0);
+      // A member template declared inside the class body. MAME's shared bus
+      // interfaces put their address-decode helpers here
+      // (`template <unsigned Shift, typename T> static void
+      // install_non_power_of_two(...)`), and without the parameter names the
+      // specializer cannot tell a compile-time constant from a type.
+      // The template header is inside the match, not before it: the type-word
+      // run that leads a member declaration happily absorbs
+      // `template <unsigned Shift, typename T>` on its way to the name.
+      const templateParameters = im[0].includes('template')
+        ? templateParameterNames(/template\s*<([^<>]*)>/.exec(im[0])?.[1] ?? '')
+        : classTemplateParameters(bodyMasked, im.index);
       functions.push({
         kind: 'function',
         className: declaration.name,
         name: im[1]!,
+        ...(templateParameters.length ? { templateParameters } : {}),
         parameters: source.slice(
           masked.indexOf('(', bodyStart + im.index),
           matchPair(masked, masked.indexOf('(', bodyStart + im.index), '(', ')') + 1,
@@ -355,7 +372,12 @@ function classTemplateParameters(masked: string, classIndex: number): string[] {
   const preceding = masked.slice(Math.max(0, classIndex - 200), classIndex);
   const match = /template\s*<([^<>]*)>\s*$/.exec(preceding);
   if (!match) return [];
-  return splitMameArgs(match[1]!)
+  return templateParameterNames(match[1]!);
+}
+
+/** The declared names in a `template <...>` parameter list. */
+function templateParameterNames(list: string): string[] {
+  return splitMameArgs(list)
     .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1] ?? '')
     .filter(Boolean);
 }

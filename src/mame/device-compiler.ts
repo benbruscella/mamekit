@@ -10,6 +10,7 @@ import {
 } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
+import { walkExpressions } from '../ir/walk.ts';
 import {
   collectFunctionMacros,
   expandFunctionMacros,
@@ -102,11 +103,27 @@ export interface GeneratedDeviceDefinition {
     default?: string;
     /** Runtime selector supplied by the machine host, e.g. "cart.mapper". */
     selector?: string;
+    /**
+     * How a mounted card installs itself into the CPU's address space.
+     *
+     * Two cartridge buses ask for this differently and MAME is the authority
+     * on which: the Atari 2600's interface takes the space as an argument
+     * (`install_memory_handlers(address_space *)`), while the Game Boy's
+     * `load(message)` reaches for it through `cart_space()`. `space` names the
+     * card's own accessor when it is not a parameter.
+     */
+    install?: { method: string; space?: string };
     options: Record<string, GeneratedDeviceDefinition>;
   };
   /** Runtime resources and power-on calls derived by a capability compiler. */
   resources?: {
     members?: Record<string, GeneratedDeviceResource>;
+    /**
+     * Host calls answering a resource, for hardware that reaches its own
+     * storage through an accessor rather than a member. Every Game Boy
+     * cartridge PCB asks its slot for `cart_rom_region()`.
+     */
+    calls?: Record<string, GeneratedDeviceResource>;
     initialize?: {
       method: string;
       args?: GeneratedDeviceResource[];
@@ -192,6 +209,8 @@ export interface GeneratedDeviceDefinition {
 export type GeneratedDeviceResource =
   | { kind: 'number'; value: number }
   | { kind: 'region'; name: string }
+  // MAME's `memory_region *`: the bytes plus the size questions asked of them.
+  | { kind: 'region-object'; name: string }
   // A pointer part-way into a region, as MAME writes `get_rom_base() + N`.
   | { kind: 'region-pointer'; name: string; offset: number }
   | { kind: 'region-length'; name: string }
@@ -269,6 +288,14 @@ export function compileMameDevice(
     coreLineStates(mameSrc),
     coreAddressSpaces(mameSrc),
     ...sources.map(({ source }) => numericConstants(source)),
+    // A class-scoped constant belongs to its class, not to the file. MAME
+    // declares `PAGE_ROM_SIZE` five times in one cartridge header -- 0x4000
+    // for the paged MBCs, 0x2000 and 0x8000 for others -- and flattening them
+    // left every board using whichever came last: an MBC1 banked in 32 KiB
+    // steps and read the wrong half of its own ROM. Layered base-first, so a
+    // derived class still overrides what it inherits.
+    ...hierarchy.map(className =>
+      numericConstants(classes.get(className)?.body ?? '')),
   );
   // Struct shapes for members whose type is one the device declares.
   const structFields = structDeclarations(sources, constants);
@@ -305,6 +332,19 @@ export function compileMameDevice(
   ]);
   const methods: GeneratedDeviceMethod[] = [];
   const methodOwners = new Map<string, string>();
+  /**
+   * `base_class::method(...)` as it appears inside a method *body*.
+   *
+   * Not in the source text at large, because that is also how MAME spells an
+   * out-of-class definition -- counting those would give every device a
+   * duplicate of half its methods.
+   */
+  const explicitBaseCalls = new Set(
+    ast.units
+      .flatMap(unit => unit.functions)
+      .flatMap(fn => [...fn.body.matchAll(/\b(\w+::\w+)\s*(?:<[^<>()]*>)?\s*\(/g)])
+      .map(match => match[1]!),
+  );
   // Raw C++ bodies, kept beside the compiled programs for the few facts that
   // are read from the source text rather than from IR -- the address-space
   // declarations below are one.
@@ -336,6 +376,20 @@ export function compileMameDevice(
       methods[existing] = compiled;
     } else {
       methods.push(compiled);
+      // A base method the source calls explicitly by name, where no derived
+      // override made an alias for it above. An *overload* is the case that
+      // needs this: `mbc5_device_base::install_memory(message)` forwards to
+      // `rom_mbc_device_base::install_memory(message, 4, 9)`, and the two
+      // differ in arity, so neither replaces the other and the qualified name
+      // was never registered -- the forward reached nothing, and every MBC5
+      // cartridge installed its bank-switch writes over no ROM at all.
+      const qualified = `${specialized.className}::${specialized.name}`;
+      if (
+        explicitBaseCalls.has(qualified) &&
+        !methods.some(candidate => candidate.name === qualified)
+      ) {
+        methods.push({ ...compiled, name: qualified });
+      }
     }
     methodOwners.set(signature, specialized.className);
   };
@@ -480,6 +534,7 @@ export function compileMameDevice(
         callbackMethods.has(method.name)
       ))
     .map(method => method.name);
+  resolveInheritedBaseCalls(methods, hierarchy);
   const delegates: Record<string, string> = {};
   for (const className of hierarchy) {
     for (const setter of (classes.get(className)?.body ?? '').matchAll(
@@ -598,16 +653,39 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
     // registers. Following those would compile an entire bus when only one
     // class was requested. Base-class dependencies are expressed by headers,
     // so only headers extend the family closure.
-    if (extname(absolute) !== '.h') return;
+    //
+    // The one exception is `.ipp`, which in MAME means exactly "the inline
+    // bodies of a base class". A device declared entirely inside a .cpp -- the
+    // shape every Game Boy cartridge PCB uses -- reaches its bases only that
+    // way, and without it an MBC compiled with none of the bank-switching it
+    // inherits: a PCB that registers and does nothing.
+    const family = ['.h', '.ipp'].includes(extname(absolute));
     for (const match of source.matchAll(/^\s*#include\s+"([^"]+)"/gm)) {
+      if (!family && extname(match[1]!) !== '.ipp') continue;
       // Follow headers that are part of the same device family. Includes
       // resolved through MAME's global include paths (screen.h, emu.h, etc.)
       // describe host services, not another source-defined base class.
-      const included = join(dirname(absolute), match[1]!);
-      if (!existsSync(included)) continue;
+      //
+      // `src/devices` is the one global root worth resolving, because MAME's
+      // shared bus interfaces live there and a device really does inherit from
+      // them: every Game Boy cartridge decodes its own ROM through
+      // `device_generic_cart_interface::install_non_power_of_two`, included as
+      // "bus/generic/slot.h" and reachable no other way.
+      const included = [
+        join(dirname(absolute), match[1]!),
+        join(mameSrc, 'src/devices', match[1]!),
+      ].find(candidate => existsSync(candidate));
+      if (!included) continue;
       visit(included);
-      if (extname(included) === '.h') {
-        visit(join(dirname(included), `${basename(included, '.h')}.cpp`));
+      // An .ipp carries the templates; the plain header beside it carries the
+      // class declarations they belong to, and the .cpp the non-template
+      // bodies. MAME splits a base class across all three.
+      const stem = extname(included) === '.ipp'
+        ? join(dirname(included), `${basename(included, '.ipp')}.h`)
+        : included;
+      if (extname(included) === '.ipp') visit(stem);
+      if (extname(stem) === '.h') {
+        visit(join(dirname(stem), `${basename(stem, '.h')}.cpp`));
       }
     }
   };
@@ -685,6 +763,25 @@ function specializeFunctionTemplate(
       instances.set(args.join('_'), args);
     }
   }
+  // A template with no fully numeric instantiation is still executable code,
+  // and dropping it silently loses the method. What its type parameters mean
+  // is nothing the untyped IR carries, so they become `auto`: `T(mask)` is a
+  // conversion, and left as a call of an undeclared name it answered a
+  // reference -- which is how every Game Boy MBC ended up with a bank mask
+  // that was not a number, and never banked at all.
+  if (!instances.size) {
+    const typeParameters = numericTemplateArguments(method, sources);
+    let body = method.body;
+    let methodParameters = method.parameters;
+    for (const parameter of parameters) {
+      const supplied = typeParameters.get(parameter);
+      const replacement = supplied ?? 'auto';
+      const pattern = new RegExp(`\\b${parameter}\\b`, 'g');
+      body = body.replace(pattern, replacement);
+      methodParameters = methodParameters.replace(pattern, replacement);
+    }
+    return [{ ...method, parameters: methodParameters, body, templateParameters: undefined }];
+  }
   return [...instances].map(([suffix, args]) => {
     let body = method.body;
     let methodParameters = method.parameters;
@@ -704,10 +801,93 @@ function specializeFunctionTemplate(
   });
 }
 
+/**
+ * Numeric template arguments MAME's own call sites supply, by parameter name.
+ *
+ * A partial instantiation is the usual case for a helper written
+ * `template <unsigned Shift, typename T>`: every caller writes `<0>` and lets
+ * `T` be deduced. The constant is real behaviour -- it is the bus width the
+ * decode shifts by -- while the type is not, so only the constant is bound.
+ * A parameter more than one call site disagrees about is left unbound rather
+ * than guessed at.
+ */
+function numericTemplateArguments(
+  method: MameFunction,
+  sources: readonly { file: string; source: string }[],
+): Map<string, string> {
+  const parameters = method.templateParameters ?? [];
+  const methodName = method.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`\\b${methodName}\\s*<([^<>]+)>\\s*\\(`, 'g');
+  const supplied = new Map<string, string>();
+  const conflicting = new Set<string>();
+  for (const { source } of sources) {
+    for (const match of source.matchAll(pattern)) {
+      const args = splitMameArgs(match[1]!).map(argument => argument.trim());
+      args.forEach((argument, index) => {
+        const parameter = parameters[index];
+        if (!parameter || !/^\d+$/.test(argument)) return;
+        const previous = supplied.get(parameter);
+        if (previous !== undefined && previous !== argument) conflicting.add(parameter);
+        supplied.set(parameter, argument);
+      });
+    }
+  }
+  for (const parameter of conflicting) supplied.delete(parameter);
+  return supplied;
+}
+
+/**
+ * Point an explicit base call at the class that actually defines the method.
+ *
+ * C++ resolves `mbc_ram_device_base<Base>::set_bank_rom_fine(x)` by looking
+ * up the hierarchy from that class: `mbc_ram_device_base` declares no such
+ * method, so the call lands on the base it inherits it from. Left unresolved
+ * the call named a method that does not exist and answered nothing -- which
+ * is how an MBC1 came out of reset with its high ROM window on page 0 and
+ * every cartridge over 32 KiB read its first page twice.
+ *
+ * Only calls that resolve to nothing are rewritten, and only ever downwards
+ * through the hierarchy, so an override is never bypassed.
+ */
+function resolveInheritedBaseCalls(
+  methods: GeneratedDeviceMethod[],
+  hierarchy: readonly string[],
+): void {
+  const defined = new Set(methods.map(method => method.name));
+  const rewrites = new Map<string, string>();
+  for (const method of methods) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call' || expression.callee.kind !== 'identifier') return;
+      const name = expression.callee.name;
+      if (defined.has(name) || rewrites.has(name)) return;
+      const [owner, called] = name.split('::');
+      if (!owner || !called || name.split('::').length !== 2) return;
+      const index = hierarchy.indexOf(owner);
+      if (index < 0) return;
+      for (let base = index - 1; base >= 0; base--) {
+        const inherited = `${hierarchy[base]}::${called}`;
+        if (defined.has(inherited)) {
+          rewrites.set(name, inherited);
+          return;
+        }
+      }
+    });
+  }
+  if (!rewrites.size) return;
+  for (const method of methods) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call' || expression.callee.kind !== 'identifier') return;
+      const target = rewrites.get(expression.callee.name);
+      if (target) expression.callee = { kind: 'identifier', name: target };
+    });
+  }
+}
+
 function classHierarchy(
   className: string,
   classes: Map<string, MameClass>,
 ): string[] {
+  const templateArguments = resolveTemplateArguments(className, classes);
   const result: string[] = [];
   const visited = new Set<string>();
   const visit = (name: string): void => {
@@ -715,7 +895,13 @@ function classHierarchy(
     visited.add(name);
     const declaration = classes.get(name);
     for (const base of declaration?.bases ?? []) {
-      const unqualified = base.split('::').at(-1)!;
+      // `class mbc_ram_device_base : public Base` inherits from whatever its
+      // subclass instantiated it with. Stopping at the parameter name loses
+      // the whole other half of the family: every Game Boy MBC gets its RAM
+      // banking from the template and its ROM banking from the argument, and
+      // one without the other is a cartridge that cannot reach its own code.
+      const argument = templateArguments.get(name)?.[base];
+      const unqualified = (argument ?? base).split('::').at(-1)!;
       if (classes.has(unqualified)) visit(unqualified);
     }
     if (declaration) result.push(name);
@@ -794,10 +980,20 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
     const bodyEnd = declaration.bodySpan.start + braceEnd;
     const line = declaration.bodySpan.line + source.slice(0, match.index).split('\n').length - 1;
     const bodyLine = declaration.bodySpan.line + source.slice(0, braceStart + 1).split('\n').length - 1;
+    // The template header this method declares for itself. Without it the
+    // specializer cannot tell a compile-time constant from a type, and the
+    // same method arrives twice -- once substituted through the AST's own
+    // inline pass and once raw through this one -- with the raw copy last and
+    // therefore selected.
+    const templateParameters = (/template\s*<([^<>]*)>/.exec(match[0])?.[1] ?? '')
+      .split(',')
+      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1] ?? '')
+      .filter(Boolean);
     methods.push({
       kind: 'function',
       className: declaration.name,
       name: match[1]!,
+      ...(templateParameters.length ? { templateParameters } : {}),
       parameters: source.slice(
         masked.indexOf('(', match.index) + 1,
         matchingPair(masked, masked.indexOf('(', match.index), '(', ')'),
@@ -876,9 +1072,17 @@ function memberDeclarations(
       const name = (pointer ? match[3] : match[2])!;
       const bound = pointer ? match[4] : match[3];
       if (members.some(member => member.name === name)) continue;
-      const arrayLength = bound ? Number(bound.trim()) : undefined;
+      const valueType = `${match[1]!.replace(/\s+/g, ' ').trim()}${star ?? ''}`;
+      // MAME's array creators carry their count as a template argument rather
+      // than a declarator bound: `memory_bank_array_creator<2> m_bank_rom`.
+      // Read as one object, `m_bank_rom[0]` indexed nothing -- and both of an
+      // MBC's ROM windows lost the bank behind them.
+      const templateCount = /_array_creator\s*<\s*(\d+)\s*>/.exec(valueType)?.[1];
+      const arrayLength = bound
+        ? Number(bound.trim())
+        : templateCount ? Number(templateCount) : undefined;
       members.push({
-        valueType: `${match[1]!.replace(/\s+/g, ' ').trim()}${star ?? ''}`,
+        valueType,
         name,
         ...(Number.isInteger(arrayLength) && arrayLength! > 0 ? { arrayLength } : {}),
       });

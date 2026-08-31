@@ -282,6 +282,12 @@ export type GeneratedExpression =
   | {
       kind: 'lambda';
       parameters: string[];
+      /**
+       * C++ init-captures: `[this, base = &region->as_u8()]` introduces a new
+       * name, evaluated once where the lambda is written. Plain captures need
+       * nothing recorded -- the body already runs in the enclosing scope.
+       */
+      captures?: { name: string; value: GeneratedExpression }[];
       body: GeneratedHandlerOperation[];
     };
 

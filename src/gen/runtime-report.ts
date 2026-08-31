@@ -286,8 +286,15 @@ export function buildRuntimeReport(
   // its generated methods and never appears among the driver's handlers. It is
   // compiled exactly when that device is executable -- which is what the
   // device requirement below already says.
-  const screenUpdateDevice = screenCallback?.props.deviceTag
-    ? deviceRequirementByTag.get(String(screenCallback.props.deviceTag))
+  //
+  // The tag arrives under either name depending on which side declared the
+  // screen: `deviceTag` when the display processor configured its own screen
+  // (the TMS9928A), `targetTag` when the driver pointed a screen at a device
+  // it owns -- `screen.set_screen_update(m_ppu, FUNC(dmg_ppu_device::
+  // screen_update))`, which is how the Game Boy is written.
+  const screenUpdateTag = screenCallback?.props.deviceTag ?? screenCallback?.props.targetTag;
+  const screenUpdateDevice = screenUpdateTag
+    ? deviceRequirementByTag.get(String(screenUpdateTag))
     : undefined;
   const frameCallbacks = graph.nodes.filter(node =>
     node.label === 'Callback' &&

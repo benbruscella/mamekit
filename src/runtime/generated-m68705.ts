@@ -231,6 +231,10 @@ export class GeneratedM68705P5Device implements Device {
     return this.invoke(name, ...args);
   }
 
+  installSlotCard(_space: unknown): void {
+    throw new Error('M68705P5 has no slot card');
+  }
+
   private run(): number {
     const target = Math.max(0, this.icount | 0);
     if (this.resetHeld) {

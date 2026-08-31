@@ -2861,7 +2861,9 @@ class IrBoard implements Board {
       const space = new RecordingAddressSpace();
       let installed = false;
       try {
-        device.invokeSlot('install_memory_handlers', space as unknown as number);
+        // Which method mounts a card, and whether it is handed the space or
+        // reaches for it, is the bus's own fact and travels in the slot IR.
+        device.installSlotCard(space);
         installed = true;
       } catch {
         // A PCB with no installer of its own is not an error: the slot simply

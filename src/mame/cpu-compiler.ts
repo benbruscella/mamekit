@@ -3191,7 +3191,7 @@ export function normalizeMameExecutionSource(source: string): string {
     // palette\n const uint8_t *char_pal = ..."), splicing the declaration into
     // the comment and silently deleting it (Moon Patrol's init_palette).
     .replace(
-      /\b(?:[\w:<>]+[ \t]+)+\*[ \t]*(\w+)[ \t]*=/g,
+      /\b(?:[\w:<>]+[ \t]+)+\*[ \t]*(?:const[ \t]+)?(\w+)[ \t]*=/g,
       'auto $1 =',
     )
     // Driver lifecycle handlers use the standard spelling when ownership is
