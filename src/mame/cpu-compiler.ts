@@ -20,6 +20,14 @@ export interface GeneratedCpuAlias {
 export interface GeneratedCpuMember {
   name: string;
   bits?: 1 | 8 | 16 | 32;
+  /**
+   * The member holds a signed value, so a store wraps to two's complement
+   * rather than to an unsigned range. MAME declares most flag scratch as
+   * `uint32_t` and tests it for zero, but a value a flag reads the *sign* of
+   * is `int32_t` -- i86's `m_SignVal` is the one that matters, since `SF` is
+   * `m_SignVal < 0` and an unsigned wrap makes every negative byte positive.
+   */
+  signed?: boolean;
   pair?: boolean;
   values?: number[];
   fields?: Record<string, 1 | 8 | 16 | 32>;
@@ -2463,9 +2471,20 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
       'm_fire_trap', 'm_test_state', 'm_io_stall', 'm_seg_prefix',
       'm_seg_prefix_next', 'm_modrm', 'm_halt', 'm_lock',
     ].map(name => ({ name, bits: 8 as const })),
+    // i86.h declares `int32_t m_SignVal;` on its own line and the rest of the
+    // flag scratch as `uint32_t ... /* 0 or non-0 valued flags */`. The
+    // distinction is load bearing: `SF` is `m_SignVal < 0`, and
+    // `set_SZPF_Byte` assigns `(int8_t)x`, so wrapping the store unsigned
+    // turns every negative byte result positive and clears SF. Q*bert's coin
+    // routine is `CMP BYTE PTR [0083],0` then `JG`/`JL` -- a signed test --
+    // so with SF stuck at 0 it took the wrong arm and never credited a coin.
+    { name: 'm_SignVal', bits: 32 as const, signed: true },
+    // m_icount is `int` in device_execute_interface and goes negative when an
+    // instruction overruns its slice.
+    { name: 'm_icount', bits: 32 as const, signed: true },
     ...[
-      'm_SignVal', 'm_AuxVal', 'm_OverVal', 'm_ZeroVal', 'm_CarryVal',
-      'm_ParityVal', 'm_int_vector', 'm_pending_irq', 'm_nmi_state', 'm_icount',
+      'm_AuxVal', 'm_OverVal', 'm_ZeroVal', 'm_CarryVal',
+      'm_ParityVal', 'm_int_vector', 'm_pending_irq', 'm_nmi_state',
       'm_prefix_seg', 'm_ea', 'm_easeg', 'm_dst', 'm_src', 'm_pc', 'cycles',
     ].map(name => ({ name, bits: 32 as const })),
   ];

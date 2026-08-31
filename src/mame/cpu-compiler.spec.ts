@@ -165,6 +165,29 @@ for (const [name, cycles] of [
 // which a single-program-bus core does not model; every caller of it is
 // already lowered as a direct bus access.
 assert.ok(!i8088Definition.methods.some(method => method.name === 'sreg_to_space'));
+
+// i86.h declares `int32_t m_SignVal;` apart from the `uint32_t` flag scratch
+// beside it, and SF is `m_SignVal < 0`. Wrapping that store unsigned makes
+// every negative byte result read positive, so SF is stuck at 0 and every
+// signed byte comparison takes the wrong arm -- Q*bert's coin routine is
+// `CMP BYTE PTR [0083],0` followed by JG/JL, which is exactly such a test.
+const i8088SignVal = i8088Definition.members.find(member => member.name === 'm_SignVal');
+assert.equal(i8088SignVal?.signed, true, 'I8088 m_SignVal must wrap signed');
+assert.equal(
+  i8088Definition.members.find(member => member.name === 'm_ZeroVal')?.signed,
+  undefined,
+  'the zero/parity scratch beside it is uint32_t and only ever tested against 0',
+);
+const i8088Source = generatedCpuExecutableSource(i8088Definition);
+assert.match(
+  i8088Source,
+  /this\.m_SignVal = \(\([^;]*\) \| 0\)/,
+  'a signed member stores through the two\'s-complement wrap, not `>>> 0`',
+);
+assert.ok(
+  !/this\.m_SignVal = \(\([^;]*\) >>> 0\)/.test(i8088Source),
+  'no store to m_SignVal may coerce it unsigned',
+);
 clearGeneratedCpus();
 registerGeneratedCpu(i8088Definition);
 const i8088 = createCpu('I8088', {

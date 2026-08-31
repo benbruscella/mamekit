@@ -506,7 +506,7 @@ function emitMember(member: GeneratedCpuMember): string {
   if (member.pair) {
     return `  private ${member.name} = new Pair16(${member.initial ?? 0});`;
   }
-  return `  private ${member.name} = ${wrapNumber(String(member.initial ?? 0), member.bits)};`;
+  return `  private ${member.name} = ${wrapNumber(String(member.initial ?? 0), member.bits, member.signed)};`;
 }
 
 function emitAlias(name: string, alias: GeneratedCpuAlias): string {
@@ -657,7 +657,7 @@ function emitPublicSetCases(definition: GeneratedCpuDefinition): string {
     } else {
       lines.push(
         `      case ${JSON.stringify(member.name)}: ` +
-        `this.${member.name} = ${wrapNumber('value', member.bits)}; return;`,
+        `this.${member.name} = ${wrapNumber('value', member.bits, member.signed)}; return;`,
       );
     }
   }
@@ -1129,7 +1129,7 @@ function emitAssignment(
 function targetInfo(
   expression: GeneratedExpression,
   context: EmitContext,
-): { code: string; bits?: 1 | 8 | 16 | 32; valueType?: string } {
+): { code: string; bits?: 1 | 8 | 16 | 32; valueType?: string; signed?: boolean } {
   if (expression.kind === 'index') {
     const object = expressionPath(expression.object);
     if (!object) {
@@ -1141,6 +1141,7 @@ function targetInfo(
     return {
       code: `${emitExpression(expression.object, context)}[${emitExpression(expression.index, context)}]`,
       bits: member?.bits,
+      signed: member?.signed,
     };
   }
   const path = expressionPath(expression);
@@ -1171,7 +1172,7 @@ function targetInfo(
     if (member.fields) {
       return { code: `this.${path}`, bits: member.fields[suffix] };
     }
-    return { code: `this.${path}`, bits: member.bits };
+    return { code: `this.${path}`, bits: member.bits, signed: member.signed };
   }
   throw new Error(`generated CPU assignment has unresolved target "${path}"`);
 }
@@ -1279,16 +1280,20 @@ function expressionPath(expression: GeneratedExpression): string | undefined {
 
 function wrapTarget(
   value: string,
-  target: { bits?: 1 | 8 | 16 | 32; valueType?: string },
+  target: { bits?: 1 | 8 | 16 | 32; valueType?: string; signed?: boolean },
 ): string {
-  return target.bits ? wrapNumber(value, target.bits) : wrapType(value, target.valueType);
+  return target.bits
+    ? wrapNumber(value, target.bits, target.signed)
+    : wrapType(value, target.valueType);
 }
 
-function wrapNumber(value: string, bits?: 1 | 8 | 16 | 32): string {
+function wrapNumber(value: string, bits?: 1 | 8 | 16 | 32, signed?: boolean): string {
   if (bits === 1) return `((${value}) ? 1 : 0)`;
-  if (bits === 8) return `((${value}) & 0xff)`;
-  if (bits === 16) return `((${value}) & 0xffff)`;
-  if (bits === 32) return `((${value}) >>> 0)`;
+  if (bits === 8) return signed ? `(((${value}) << 24) >> 24)` : `((${value}) & 0xff)`;
+  if (bits === 16) return signed ? `(((${value}) << 16) >> 16)` : `((${value}) & 0xffff)`;
+  // `| 0` is the two's-complement wrap; `>>> 0` is the unsigned one. A member
+  // whose value is read for its sign has to keep the former.
+  if (bits === 32) return signed ? `((${value}) | 0)` : `((${value}) >>> 0)`;
   return value;
 }
 
