@@ -207,6 +207,15 @@ function generatedDeviceAssignments(
       `${target}.slot!.options[${JSON.stringify(option)}]!`,
     ));
   }
+  // A device's embedded children need compiled methods as much as it does.
+  // Pitfall II's DPC answers ~94,000 reads a second; left interpreted it cost
+  // the machine a third of its frame rate.
+  for (const [index, child] of (definition.children ?? []).entries()) {
+    assignments.push(...generatedDeviceAssignments(
+      child.definition,
+      `${target}.children![${index}]!.definition`,
+    ));
+  }
   return assignments;
 }
 
