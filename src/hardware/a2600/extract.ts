@@ -227,7 +227,8 @@ function cartridgeOptions(
     join(mameSource, 'src/mame/atari/a2600.cpp'),
     'a2600_cart',
   );
-  for (const card of Object.values(options)) {
+  const addon = cartAddonPointer(mameSource);
+  for (const [option, card] of Object.entries(options)) {
     card.resources = {
       ...card.resources,
       members: {
@@ -235,7 +236,20 @@ function cartridgeOptions(
         m_rom: { kind: 'region', name: romRegion },
         m_rom_size: { kind: 'region-length', name: romRegion },
       },
+      // The slot hands a PCB with an add-on chip a pointer into its own ROM
+      // before installing its handlers. Only the DPC cartridge overrides the
+      // interface's empty default, so calling it on every card is what MAME
+      // does; the base implementation is a no-op.
+      ...(addon !== undefined && card.methods.some(method => method.name === 'setup_addon_ptr')
+        ? {
+            initialize: [{
+              method: 'setup_addon_ptr',
+              args: [{ kind: 'region-pointer' as const, name: romRegion, offset: addon }],
+            }],
+          }
+        : {}),
     };
+    void option;
   }
   return options;
 }
@@ -244,6 +258,24 @@ function cartridgeOptions(
  * The region a cartridge PCB allocates for its ROM, spelled the way MAME does
  * in `device_vcs_cart_interface::rom_alloc`: the slot's tag with a fixed suffix.
  */
+/**
+ * Where a cartridge's add-on chip finds its own data, as MAME's slot says.
+ *
+ * `vcs_slot.cpp` passes `get_rom_base() + 0x2000` to the mounted PCB: for
+ * Pitfall II that is the 2K of display data sitting after the 8K program.
+ * Read rather than restated, so the DPC's graphics do not silently become
+ * whatever happened to be at offset zero.
+ */
+function cartAddonPointer(mameSource: string): number | undefined {
+  const source = readFileSync(
+    join(mameSource, 'src/devices/bus/vcs/vcs_slot.cpp'),
+    'utf8',
+  );
+  const offset = /setup_addon_ptr\s*\([^;]*get_rom_base\s*\(\s*\)\s*\+\s*(0x[0-9a-fA-F]+|\d+)/
+    .exec(source)?.[1];
+  return offset ? Number(offset) : undefined;
+}
+
 export function cartRomRegion(mameSource: string): string {
   const source = readFileSync(
     join(mameSource, 'src/devices/bus/vcs/vcs_slot.cpp'),

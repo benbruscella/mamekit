@@ -321,7 +321,12 @@ const CART_SLOT_SUPPORT: Record<string, string[]> = {
   // the runtime answers, which is what makes a cartridge playable rather than
   // merely identified. Between them they cover the great majority of the
   // software list: plain 2K/4K carts alone are 1067 of its 1591 entries.
-  a2600: ['a26_2k_4k', 'a26_f8', 'a26_f8sw', 'a26_f6', 'a26_f4', 'a26_fa'],
+  a2600: ['a26_2k_4k', 'a26_f8', 'a26_f8sw', 'a26_f6', 'a26_f4', 'a26_fa',
+    // Verified by booting a real dump of each: the picture animates and
+    // keeps animating. a26_dc and a26_dpc are deliberately absent -- the
+    // DPC coprocessor now runs but its screen is still 30% off MAME, and
+    // claiming a board works when it does not is worse than saying so.
+    'a26_3f', 'a26_ua', 'a26_fv', 'a26_8in1'],
 };
 
 const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
@@ -1575,7 +1580,34 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       if (kind === 'dip') {
         const value = Number(f.props.defaultValue ?? mask); // unused dips default to off (active low)
         init = (init & ~mask) | (value & mask);
-        dipDefaults.push({ port: tag, mask, value, name: String(f.props.name ?? '') });
+        const named = f.props.name ? String(f.props.name) : undefined;
+        dipDefaults.push({ port: tag, mask, value, name: named ?? '' });
+        // A configuration switch MAME gives a key to is one a player is meant
+        // to operate, not a cabinet setting: the Atari 2600's TV Type, and its
+        // two difficulty switches, are physical switches on the console front.
+        // Without this they were reachable only by editing the config, which
+        // is how a machine ends up stuck in black and white with nothing on
+        // screen to say so.
+        const mods = (f.props.modifiers as string[] | undefined) ?? [];
+        if (named && mods.includes('PORT_TOGGLE')) {
+          const coded = portCodeKeys(mods)?.filter(key => !boundKeys.has(key));
+          if (coded?.length) {
+            for (const key of coded) boundKeys.add(key);
+            bindings.push({
+              port: tag,
+              mask,
+              keys: coded,
+              label: named,
+              activeLow,
+              // The switch's other position, as MAME's own PORT_CONFSETTINGs
+              // define it -- the default flipped within its mask. TV Type is
+              // Color by default and B&W when thrown; the difficulty switches
+              // default the other way round.
+              activeValue: (value ^ mask) & mask,
+              toggle: true,
+            });
+          }
+        }
       } else if (kind === 'service') {
         const value = Number(f.props.defaultValue ?? (activeLow ? mask : 0));
         init = (init & ~mask) | (value & mask);

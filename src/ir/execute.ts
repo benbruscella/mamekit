@@ -1610,6 +1610,16 @@ function applyIdentifierCall(
   expression: Extract<GeneratedExpression, { kind: 'call' }>,
   context: ExecutionContext,
 ): unknown {
+  // A memory handler installed with a delegate. MAME binds the delegate to a
+  // target and a method -- `read8sm_delegate(m_dpc, FUNC(dpc_device::read))`
+  // points at a *different* device -- and address_space::install_read_handler
+  // wants something callable. Without this the delegate evaluated to a number,
+  // the install recorded a handler with nothing behind it, and the range was
+  // dropped: Pitfall II's DPC coprocessor was never once addressed.
+  if (/^(?:read|write)\d*\w*_delegate$/.test(name)) {
+    const handler = memoryDelegate(expression, args, context);
+    if (handler) return handler;
+  }
   if (name === 'COMBINE_DATA') {
     const memMask = Object.hasOwn(context.locals, 'mem_mask')
       ? context.locals.mem_mask
@@ -2425,6 +2435,43 @@ function isAttotimeExpression(
     return expression.callee.name.startsWith('attotime::');
   }
   return false;
+}
+
+/**
+ * The callable behind `readNsm_delegate(target, FUNC(class::method))`.
+ *
+ * The target is whichever argument is not the FUNC: `*this` for a device's own
+ * handler, or a finder member when one device installs another's -- which is
+ * how a cartridge exposes its add-on chip to the CPU bus.
+ */
+function memoryDelegate(
+  expression: Extract<GeneratedExpression, { kind: 'call' }>,
+  args: unknown[],
+  context: ExecutionContext,
+): ((...values: number[]) => number) | undefined {
+  const index = expression.args.findIndex(argument =>
+    argument.kind === 'call' &&
+    argument.callee.kind === 'identifier' &&
+    argument.callee.name === 'FUNC');
+  if (index < 0) return undefined;
+  const named = expression.args[index] as Extract<GeneratedExpression, { kind: 'call' }>;
+  const qualified = named.args[0];
+  if (qualified?.kind !== 'identifier') return undefined;
+  const method = qualified.name.split('::').at(-1);
+  if (!method) return undefined;
+  const target = args.find((_value, position) => position !== index);
+  const bound = target && typeof target === 'object'
+    ? (target as Record<string, unknown>)[method]
+    : undefined;
+  if (typeof bound === 'function') {
+    return (...values: number[]) => Number(bound(...values)) || 0;
+  }
+  // No separate target: the device is installing one of its own handlers.
+  const own = context.bindings.referenceCalls?.[method] ?? context.bindings.calls?.[method];
+  if (typeof own === 'function') {
+    return (...values: number[]) => Number((own as (...a: number[]) => unknown)(...values)) || 0;
+  }
+  return undefined;
 }
 
 function timerDelegateName(expression: GeneratedExpression | undefined): string | undefined {

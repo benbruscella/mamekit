@@ -15,7 +15,7 @@ import {
   expandFunctionMacros,
   type FunctionMacro,
 } from './preprocessor.ts';
-import type { MameHardwareDefinition } from './hardware.ts';
+import { indexMameHardware, type MameHardwareDefinition } from './hardware.ts';
 
 export interface GeneratedDeviceMember {
   name: string;
@@ -170,6 +170,18 @@ export interface GeneratedDeviceDefinition {
   }[];
   start?: string;
   reset?: string;
+  /**
+   * Devices this one instantiates in `device_add_mconfig`, by the member that
+   * finds them. MAME builds a device out of other devices as readily as a
+   * board does -- Pitfall II's cartridge is an F8 board plus an ATARI_DPC
+   * coprocessor -- and a `required_device` member that resolves to nothing
+   * makes every call through it silently answer zero.
+   */
+  children?: {
+    member: string;
+    type: string;
+    definition: GeneratedDeviceDefinition;
+  }[];
   summary: {
     methods: number;
     compiledMethods: number;
@@ -180,6 +192,8 @@ export interface GeneratedDeviceDefinition {
 export type GeneratedDeviceResource =
   | { kind: 'number'; value: number }
   | { kind: 'region'; name: string }
+  // A pointer part-way into a region, as MAME writes `get_rom_base() + N`.
+  | { kind: 'region-pointer'; name: string; offset: number }
   | { kind: 'region-length'; name: string }
   | { kind: 'region-pages'; name: string; bytes: number }
   | { kind: 'region-page-mask'; name: string; bytes: number }
@@ -196,6 +210,8 @@ export function compileMameDevice(
   mameSrc: string,
   definition: MameHardwareDefinition,
   type = definition.type,
+  /** Types already being compiled, so a device cycle cannot recurse forever. */
+  compiling: ReadonlySet<string> = new Set(),
 ): GeneratedDeviceDefinition {
   const sourceFiles = localSourceFiles(mameSrc, definition.sourceFile);
   const sources = sourceFiles.map(file => ({
@@ -428,6 +444,26 @@ export function compileMameDevice(
   const clockDivider = executionClockDivider(source);
   const dataAddressBits = executionDataAddressBits(definition.className, source, constants);
   const spaces = deviceAddressSpaces(definition.className, hierarchy, source, constants, methodBodies);
+
+  // Devices this one builds out of other devices. MAME writes them as
+  // `TYPE(config, m_member)` inside device_add_mconfig -- a method that is not
+  // executable behaviour, which is why it is ignored for lowering, but it is
+  // where the device says what it is made of.
+  const children: NonNullable<GeneratedDeviceDefinition['children']> = [];
+  const mconfig = methodBodies.get('device_add_mconfig');
+  if (mconfig) {
+    const nested = new Set([...compiling, type]);
+    const known = indexMameHardware(mameSrc);
+    for (const match of mconfig.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*(m_\w+)/g)) {
+      const [, childType, member] = match;
+      if (!childType || !member || nested.has(childType)) continue;
+      const childDefinition = known.get(childType);
+      if (!childDefinition) continue;
+      const child = compileMameDevice(mameSrc, childDefinition, childType, nested);
+      if (child.summary.diagnostics) continue;
+      children.push({ member, type: childType, definition: child });
+    }
+  }
   // Bitmap entry points are necessarily frame/scanline hot paths. Methods
   // installed through FUNC(...) are hardware callbacks too: a child MCU can
   // invoke a tiny parent-port handler hundreds of thousands of times per
@@ -470,6 +506,7 @@ export function compileMameDevice(
     ...(spaces.length ? { spaces } : {}),
     ...(methods.some(method => method.name === 'device_start') ? { start: 'device_start' } : {}),
     ...(methods.some(method => method.name === 'device_reset') ? { reset: 'device_reset' } : {}),
+    ...(children.length ? { children } : {}),
     summary: {
       methods: methods.length,
       compiledMethods: methods.filter(method => !method.program.diagnostics.length).length,

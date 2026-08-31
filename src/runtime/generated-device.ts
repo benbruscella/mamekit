@@ -57,6 +57,7 @@ interface DeviceMethod {
 type DeviceResource =
   | { kind: 'number'; value: number }
   | { kind: 'region'; name: string }
+  | { kind: 'region-pointer'; name: string; offset: number }
   | { kind: 'region-length'; name: string }
   | { kind: 'region-pages'; name: string; bytes: number }
   | { kind: 'region-page-mask'; name: string; bytes: number }
@@ -122,6 +123,11 @@ export interface GeneratedDeviceDefinition {
   methods: DeviceMethod[];
   /** Source-derived runtime entry points selected for direct generated code. */
   hotMethods?: string[];
+  /**
+   * Devices this one instantiates in MAME's device_add_mconfig, keyed by the
+   * finder member that reaches them.
+   */
+  children?: { member: string; type: string; definition: GeneratedDeviceDefinition }[];
   slot?: {
     member: string;
     default?: string;
@@ -414,6 +420,8 @@ class IrDevice implements Device {
   /** Samples published through `sound_stream::put_int` since the last collection. */
   private streamSamples: number[] = [];
   private slotChild?: IrDevice;
+  /** Devices instantiated from this one's device_add_mconfig. */
+  private readonly children: IrDevice[] = [];
 
   constructor(
     definition: GeneratedDeviceDefinition,
@@ -717,6 +725,24 @@ class IrDevice implements Device {
       }
     }
 
+    // Devices this one is built out of, as its device_add_mconfig declares.
+    // Constructed before device_start, because that is when MAME's own
+    // finders are already resolved -- the DPC cartridge hands its display
+    // data straight to its coprocessor.
+    for (const child of definition.children ?? []) {
+      const instance = new IrDevice(child.definition, clock, {
+        ...resourceOptions,
+        slot: undefined,
+      });
+      this.children.push(instance);
+      this.members[child.member] = Object.fromEntries(
+        instance.methodNames().map(name => [
+          name,
+          (...args: GeneratedCallArgument[]) => instance.invoke(name, ...args),
+        ]),
+      );
+    }
+
     if (definition.start) this.call(definition.start);
     for (const initialize of definition.resources?.initialize ?? []) {
       if (!this.methodNames().includes(initialize.method)) continue;
@@ -730,6 +756,7 @@ class IrDevice implements Device {
   }
 
   reset(): void {
+    for (const child of this.children) child.reset();
     if (this.definition.reset) this.call(this.definition.reset);
   }
 
@@ -737,6 +764,13 @@ class IrDevice implements Device {
     for (const { timer, callback } of this.timers.values()) {
       timer.tick(seconds, parameter => this.call(callback, parameter));
     }
+    // A device built out of other devices has to advance them too: the board
+    // only knows the devices its own machine config names. Pitfall II's DPC
+    // coprocessor sits two levels down -- cartridge slot, then mounted PCB --
+    // and its 18400 Hz oscillator drives the chip's random-number and music
+    // counters, so without this it is frozen while everything else runs.
+    for (const child of this.children) child.tick(seconds);
+    this.slotChild?.tick(seconds);
   }
 
   call(name: string, ...args: number[]): number {
@@ -958,6 +992,14 @@ function resolveDeviceResource(
   if (resource.kind === 'number') return resource.value;
   const regions = options.regions ?? {};
   if (resource.kind === 'region') return regions[resource.name] ?? new Uint8Array(0);
+  if (resource.kind === 'region-pointer') {
+    // MAME's `get_rom_base() + N`: the same bytes, addressed from an offset.
+    return {
+      generatedPointer: true,
+      source: regions[resource.name] ?? new Uint8Array(0),
+      offset: resource.offset,
+    };
+  }
   if (resource.kind === 'region-length') return regions[resource.name]?.length ?? 0;
   if (resource.kind === 'region-pages') {
     return Math.floor((regions[resource.name]?.length ?? 0) / Math.max(1, resource.bytes));
