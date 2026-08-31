@@ -14,10 +14,13 @@ import { deviceConfiguredScreen } from '../mame/screen-config.ts';
 import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
+  parseStateClassConstants,
   parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
   parseInitPatches, parseInitRomTransforms, parseInstalledHandlers, parseTextMacros, parseMemoryBanks, evalExpr,
   parseEnumConstants, normalizeTemplatedMethod,
   type InputPortsDef,
+  type AddressMapDef,
+  type HandlerRef,
 } from './parse.ts';
 
 const VERSION = '0.1.0';
@@ -160,6 +163,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   const ioportMembers = parseIoportMembers(combined, textMacros.strings);
   emitSourceTimerCallbacks(g, ast, consts, definedIn);
   const memberTags = parseMemberTags(combined);
+  const stateClassConstants = parseStateClassConstants(combined);
   const deviceTypes = parseDeviceTypeDecls(combined);
 
   // --- games ---
@@ -194,6 +198,12 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       // compat (CONS/SYST/COMP arg 4) is a software-compatibility group, NOT
       // a clone relationship — famicom is compat with nes but its own machine
       ...(gm.compat !== '0' ? { compat: gm.compat } : {}),
+      // Numeric members this game's state class fixes in its constructor. A
+      // machine config shared with a sibling game reads them as unevaluated
+      // expressions, and only the game knows their values.
+      ...(stateClassConstants[gm.cls]
+        ? { classConstants: JSON.stringify(stateClassConstants[gm.cls]) }
+        : {}),
     });
     definedIn(id, source);
     if (gm.parent !== '0') g.edge(id, `game:${gm.parent}`, 'CLONE_OF');
@@ -260,6 +270,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
 
   // --- address maps ---
   const maps = parseAddressMaps(combined);
+  expandDeviceSubmaps(maps, mameSrc, seenExternalIncludes);
   const mapByName = new Map(maps.map(m => [m.name, m]));
   // same-class match first: different state classes in one driver file can
   // reuse map names (m52_state::main_map vs alpha1v_state::main_map)
@@ -700,6 +711,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
           dev.screenRaw.vtotal, dev.screenRaw.vbend, dev.screenRaw.vbstart,
         ];
       }
+      if (dev.screenRawExpr) props.screenRawExpr = dev.screenRawExpr;
       if (dev.screenRefreshHz !== undefined) props.screenRefreshHz = dev.screenRefreshHz;
       if (dev.screenSize) props.screenSize = [dev.screenSize.w, dev.screenSize.h];
       if (dev.screenVisarea) {
@@ -2079,5 +2091,74 @@ function recordDeviceConfiguredScreen(g: GraphBuilder, mameSrc: string): void {
     });
     g.edge(screen.id, id, 'HAS_CALLBACK');
     return;
+  }
+}
+
+/**
+ * Replace every `map(...).m(tag, FUNC(device::map))` window with the ranges the
+ * device's own address map declares inside it.
+ *
+ * MAME installs a device's map into a window of the owner's space, so the two
+ * compose: an inner range sits at the window's start, and the window's mirror
+ * applies on top of the inner one. Without this the window decoded to nothing
+ * at all -- the Atari 2600's RIOT registers, its timer included, lowered as a
+ * silent `nop`, and so did Defender's blitter and Double Dragon's bank device.
+ *
+ * The device's map lives in its own implementation file, which the driver
+ * reaches only through a header. MAME pairs the two by name, so the `.cpp`
+ * beside each included `.h` is where to look.
+ */
+function expandDeviceSubmaps(
+  maps: AddressMapDef[],
+  mameSrc: string,
+  includes: ReadonlySet<string>,
+): void {
+  if (!maps.some(map => map.ranges.some(range => range.deviceMap))) return;
+  const implementations: string[] = [];
+  for (const include of includes) {
+    if (!include.endsWith('.h')) continue;
+    const implementation = include.replace(/\.h$/, '.cpp');
+    for (const candidate of [
+      join(mameSrc, 'src/devices', implementation),
+      join(mameSrc, 'src', implementation),
+      join(mameSrc, 'src/mame', implementation),
+    ]) {
+      if (!existsSync(candidate)) continue;
+      implementations.push(stripComments(readFileSync(candidate, 'utf8')));
+      break;
+    }
+  }
+  const deviceMaps = parseAddressMaps(implementations.join('\n'));
+  for (const map of maps) {
+    map.ranges = map.ranges.flatMap(range => {
+      const submap = range.deviceMap;
+      if (!submap) return [range];
+      const declared = deviceMaps.find(candidate =>
+        candidate.cls === submap.className && candidate.name === submap.method);
+      // Left as-is rather than dropped: an unresolved submap keeps its window
+      // and stays visible in the graph as a range that decodes nothing, which
+      // is what it is.
+      if (!declared) return [range];
+      const reference = submap.ref.replace(/^m_/, '');
+      return declared.ranges.map(inner => {
+        // `address_map_bank_device::amap8` maps the whole 32-bit space; the
+        // window is what MAME actually installs, so the inner end clamps to it.
+        const start = range.start + inner.start;
+        const end = Math.min(range.start + inner.end, range.end);
+        const withDevice = (handler?: HandlerRef): HandlerRef | undefined =>
+          handler && { ...handler, deviceRef: handler.deviceRef ?? reference };
+        return {
+          ...inner,
+          start,
+          end,
+          ...((range.mirror ?? 0) | (inner.mirror ?? 0)
+            ? { mirror: (range.mirror ?? 0) | (inner.mirror ?? 0) }
+            : {}),
+          read: withDevice(inner.read),
+          write: withDevice(inner.write),
+          raw: `${range.raw} -> ${inner.raw}`,
+        };
+      }).filter(inner => inner.end >= inner.start);
+    });
   }
 }

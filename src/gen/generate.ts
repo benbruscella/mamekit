@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 import { parseSoftwareList, buildCatalog } from '../kg/softlist.ts';
+import { gameClassConstants, resolveClassConstants } from './class-constants.ts';
 import {
   buildRuntimeReport, runtimeReportMarkdown, type RuntimeConfigShape,
 } from './runtime-report.ts';
@@ -46,6 +47,7 @@ import {
   compilePoleposDiscrete,
 } from '../mame/audio-compiler.ts';
 import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
@@ -235,6 +237,42 @@ export function keypadKeys(name: string | undefined): string[] | undefined {
 }
 
 /**
+ * The browser key MAME itself names on a field, via `PORT_CODE(KEYCODE_x)`.
+ *
+ * Most controls are identified by their IPT type, which is why KEYMAP is keyed
+ * that way. A console's front-panel switches are not: the Atari 2600's Select
+ * and Reset are plain `IPT_OTHER`, and the only thing that says which key they
+ * belong on is the PORT_CODE MAME writes beside them. Reading it binds those
+ * controls from the source rather than from a guess about what IPT_OTHER means
+ * on this particular machine.
+ *
+ * Used only as a fallback, so a curated KEYMAP choice always wins: this can add
+ * a binding where there was none, never move one.
+ */
+export function portCodeKeys(modifiers: readonly string[]): string[] | undefined {
+  const code = modifiers
+    .map(modifier => /^PORT_CODE\s*\(\s*KEYCODE_(\w+)\s*\)$/.exec(modifier.trim())?.[1])
+    .find((value): value is string => value !== undefined);
+  if (!code) return undefined;
+  if (/^[A-Z]$/.test(code)) return [`Key${code}`];
+  if (/^[0-9]$/.test(code)) return [`Digit${code}`, `Numpad${code}`];
+  if (/^F([1-9]|1[0-2])$/.test(code)) return [code];
+  // Escape and Tab belong to the shell (menu, focus); a machine control must
+  // not take them away from the page, so neither is listed here.
+  const named: Record<string, string> = {
+    SPACE: 'Space', ENTER: 'Enter', BACKSPACE: 'Backspace',
+    LEFT: 'ArrowLeft', RIGHT: 'ArrowRight', UP: 'ArrowUp', DOWN: 'ArrowDown',
+    LSHIFT: 'ShiftLeft', RSHIFT: 'ShiftRight', LALT: 'AltLeft', RALT: 'AltRight',
+    MINUS: 'Minus', EQUALS: 'Equal', COMMA: 'Comma', STOP: 'Period',
+    SLASH: 'Slash', BACKSLASH: 'Backslash', COLON: 'Semicolon', QUOTE: 'Quote',
+    OPENBRACE: 'BracketLeft', CLOSEBRACE: 'BracketRight', TILDE: 'Backquote',
+    HOME: 'Home', END: 'End', INSERT: 'Insert', DEL: 'Delete',
+    PGUP: 'PageUp', PGDN: 'PageDown',
+  };
+  return named[code] ? [named[code]] : undefined;
+}
+
+/**
  * Does a field's PORT_CONDITION hold for the machine as configured?
  *
  * MAME hangs alternate controllers off the same ports and marks each field
@@ -278,6 +316,17 @@ const CART_SLOT_SUPPORT: Record<string, string[]> = {
     'activision', 'activision_256b', 'activision_32k',
     'sgc_1mbit', 'sgc_2mbit', 'sgc_4mbit',
   ],
+  // Atari 2600 PCBs whose installer the host address space can replay. All 25
+  // lower from MAME's `a2600_cart`; these are the ones whose install_* calls
+  // the runtime answers, which is what makes a cartridge playable rather than
+  // merely identified. Between them they cover the great majority of the
+  // software list: plain 2K/4K carts alone are 1067 of its 1591 entries.
+  a2600: ['a26_2k_4k', 'a26_f8', 'a26_f8sw', 'a26_f6', 'a26_f4', 'a26_fa',
+    // Verified by booting a real dump of each: the picture animates and
+    // keeps animating. a26_dpc is checked harder still -- Pitfall II is
+    // pixel-exact against MAME across its attract.
+    // a26_dc is still a black screen and stays out until it is not.
+    'a26_3f', 'a26_ua', 'a26_fv', 'a26_8in1', 'a26_dpc'],
 };
 
 const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
@@ -290,8 +339,41 @@ const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
 // resolves its board from the iNES mapper instead and needs neither.
 // src/hardware/coleco/coleco.spec.ts asserts both against MAME source, so
 // this table cannot drift away from the device it describes.
-const CART_DEFAULT_SLOT: Record<string, string> = { coleco: 'standard' };
-const CART_ROM_REGION: Record<string, string> = { coleco: 'coleco_cart:rom' };
+const CART_DEFAULT_SLOT: Record<string, string> = {
+  coleco: 'standard',
+  // MAME's own fallback, from `vcs_get_slot`'s final return.
+  a2600: 'a26_2k_4k',
+};
+/**
+ * The file extensions a console's cartridge slot accepts, as MAME declares them.
+ *
+ * `device_image_interface::file_extensions()` is a one-line override in the
+ * slot's own header -- "bin,a26" for the VCS, "rom,col,bin" for the
+ * ColecoVision, "nes,unf,unif" for the NES. The room used to hardcode the
+ * ColecoVision set for every console, which left an Atari `.a26` greyed out in
+ * the file picker on the one machine whose dumps are usually named that.
+ */
+function cartFileExtensions(
+  mameSrc: string,
+  deviceTypes: readonly string[],
+): string[] | undefined {
+  const definitions = indexMameHardware(mameSrc);
+  for (const type of deviceTypes) {
+    const sourceFile = definitions.get(type)?.sourceFile;
+    if (!sourceFile) continue;
+    const header = join(mameSrc, sourceFile.replace(/\.cpp$/, '.h'));
+    if (!existsSync(header)) continue;
+    const listed = /file_extensions\(\)[^{]*\{\s*return\s*"([^"]+)"/
+      .exec(readFileSync(header, 'utf8'))?.[1];
+    if (listed) return listed.split(',').map(extension => `.${extension.trim()}`);
+  }
+  return undefined;
+}
+
+const CART_ROM_REGION: Record<string, string> = {
+  coleco: 'coleco_cart:rom',
+  a2600: 'cartslot:cart:rom',
+};
 
 // Explicitly supported cartridge titles (softlist parent short-names; clones
 // of a listed parent count too). Playability is gated on THIS list, not just
@@ -324,6 +406,14 @@ const CART_GAME_SUPPORT: Record<string, string[]> = {
     // MMC3 (TxROM)
     'smb2', 'smb3', 'megaman3', 'megaman4', 'megaman5', 'megaman6', 'kirby',
     'batman', 'ddragon2', 'advisln3', 'bublbob2',
+  ],
+  // Booted on the generated board and their framebuffers read back: each
+  // reaches its playfield and keeps drawing, at or above the machine's own
+  // 59.92 Hz. `adventure` is the plain 4K case, `asteroid` the F8 bank-switch
+  // one, and the rest span the 2K/4K majority of the software list.
+  a2600: [
+    'adventure', 'pacman', 'pitfall', 'combat', 'spaceinv',
+    'breakout', 'frogger', 'defender', 'asteroid',
   ],
 };
 
@@ -441,6 +531,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     className: string;
     method: string;
   }> = [];
+  // Numeric members the game's state class fixes in its own constructor. A
+  // machine config shared with a sibling game -- a2600 and a2600p share
+  // everything but their crystal -- leaves those clocks as source expressions
+  // for exactly this step.
+  const classConstants = gameClassConstants(game);
   {
     // Devices follow MAME's own composition order. A derived machine
     // configuration calls its base before adding to it, so the base's devices
@@ -464,9 +559,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         // single Device node and therefore cannot reveal the collision by
         // counting declarations (for example Venture's two "pia" devices).
         const tag = hostTag && !rawTag.includes(':') ? `${hostTag}:${rawTag}` : rawTag;
-        devices.push(tag === rawTag ? node : {
-          ...node,
-          props: { ...node.props, tag },
+        const resolved = resolveClassConstants(node, classConstants);
+        devices.push(tag === rawTag ? resolved : {
+          ...resolved,
+          props: { ...resolved.props, tag },
         });
         hostedConfigs.push(...g.out(node.id, 'CALLS').map(called => ({
           id: called.node.id,
@@ -549,7 +645,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177' };
   // ROM windows installed by a CPU's own internal address map. They do not
   // appear in the driver's set_addrmap graph, but still map DEVICE_SELF ROM.
   const CPU_INTERNAL_ROM: Record<string, { start: number; end: number; romOffset: number }> = {
@@ -890,6 +986,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     xOffset: hbend / xscale,
     yOffset: vbend,
     refresh: pixclock / (htotal * vtotal),
+    // The whole raster, not the visible part. MAME's `screen().width()` is
+    // this, and a device that allocates its own bitmap from it addresses that
+    // bitmap in raster coordinates -- the TIA composites its scanlines from
+    // column 34, which is inside the horizontal blank.
+    htotal: htotal / xscale,
     vtotal,
     vbstart,
     vbend,
@@ -958,6 +1059,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const sampleChips = devices.filter(d => d.props.type === 'SAMPLES');
   const berzerkSound = devices.find(d =>
     d.props.type === 'EXIDY' || d.props.type === 'EXIDY_VENTURE');
+  // The Atari TIA's sound half. It is the only chip on the board, so it owns
+  // the worklet; the DSP runs beside the CPU as a generated device because the
+  // video half reaches it through a device finder (see the a2600 capability).
+  const tiaChip = devices.find(device => device.props.type === 'TIA');
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
         const type = String(device.props.type);
@@ -1106,6 +1211,22 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               clock: cpus[0].clock,
               worklet: String(discreteDevice.props.type).toLowerCase().replace(/_/g, '-'),
             }
+        : tiaChip
+          ? (() => {
+              const routes = lowerAudioRoutes(
+                graph,
+                [{ id: tiaChip.id, tag: String(tiaChip.props.tag) }],
+              );
+              return {
+                kind: 'tia',
+                // `TIA(config, "tia", m_xtal/114)`: the chip renders one sample
+                // per clock, so this is both its clock and its stream rate,
+                // exactly as tia_device::device_start allocates it.
+                clock: Number(tiaChip.props.clock),
+                deviceTag: String(tiaChip.props.tag),
+                ...(routes[0]?.gain !== undefined ? { masterGain: routes[0].gain } : {}),
+              };
+            })()
     : { kind: 'none' };
   const nesApu = sound.kind === 'nes' ? compileNesApu(opts.mameSrc) : undefined;
   // The post-mix level belongs to the sound family's capability package, so
@@ -1403,6 +1524,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const dipDefaults: unknown[] = [];
   /** The one keypad given keyboard keys; see the keypad binding below. */
   let boundKeypad: string | undefined;
+  // Keys already spoken for on this machine. A PORT_CODE fallback must not take
+  // a key a curated binding already uses.
+  const boundKeys = new Set<string>();
   /**
    * Configuration-switch defaults, which PORT_CONDITION reads by port tag.
    *
@@ -1456,7 +1580,34 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       if (kind === 'dip') {
         const value = Number(f.props.defaultValue ?? mask); // unused dips default to off (active low)
         init = (init & ~mask) | (value & mask);
-        dipDefaults.push({ port: tag, mask, value, name: String(f.props.name ?? '') });
+        const named = f.props.name ? String(f.props.name) : undefined;
+        dipDefaults.push({ port: tag, mask, value, name: named ?? '' });
+        // A configuration switch MAME gives a key to is one a player is meant
+        // to operate, not a cabinet setting: the Atari 2600's TV Type, and its
+        // two difficulty switches, are physical switches on the console front.
+        // Without this they were reachable only by editing the config, which
+        // is how a machine ends up stuck in black and white with nothing on
+        // screen to say so.
+        const mods = (f.props.modifiers as string[] | undefined) ?? [];
+        if (named && mods.includes('PORT_TOGGLE')) {
+          const coded = portCodeKeys(mods)?.filter(key => !boundKeys.has(key));
+          if (coded?.length) {
+            for (const key of coded) boundKeys.add(key);
+            bindings.push({
+              port: tag,
+              mask,
+              keys: coded,
+              label: named,
+              activeLow,
+              // The switch's other position, as MAME's own PORT_CONFSETTINGs
+              // define it -- the default flipped within its mask. TV Type is
+              // Color by default and B&W when thrown; the difficulty switches
+              // default the other way round.
+              activeValue: (value ^ mask) & mask,
+              toggle: true,
+            });
+          }
+        }
       } else if (kind === 'service') {
         const value = Number(f.props.defaultValue ?? (activeLow ? mask : 0));
         init = (init & ~mask) | (value & mask);
@@ -1585,6 +1736,21 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           if (boundKeypad && boundKeypad !== tag) keys = undefined;
           else boundKeypad = tag;
         }
+        // Nothing in the shared map covers this control, but MAME may have
+        // named its key on the field. A console's Select and Reset switches
+        // arrive that way, and without this they were unreachable: the Atari
+        // 2600 shipped with a legend offering only move and fire.
+        //
+        // Only a field MAME also NAMES: a name is MAME saying a player operates
+        // this control. Donkey Kong Jr's `TST` port carries PORT_CODEs with no
+        // names and sits behind a preprocessor guard the input parser does not
+        // honour, so binding on the code alone put a compiled-out debug switch
+        // on the keyboard.
+        if (!keys && named) {
+          const coded = portCodeKeys(mods)?.filter(key => !boundKeys.has(key));
+          if (coded?.length) keys = coded;
+        }
+        for (const key of keys ?? []) boundKeys.add(key);
         if (keys) bindings.push({
           port: tag,
           mask,
@@ -1650,6 +1816,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // the 4,500+ cart entries stay out of graph.json (they'd swamp the viewer).
   let cart: Record<string, unknown> | undefined;
   let cartEntries = 0;
+  // Whichever board device is the cartridge image declares what it accepts.
+  const slotExtensions = kind === 'console'
+    ? cartFileExtensions(opts.mameSrc, devices.map(device => String(device.props.type)))
+    : undefined;
   if (kind === 'console') {
     mkdirSync(opts.outDir, { recursive: true });
     for (const listNode of softlistNodes) {
@@ -1685,6 +1855,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         games: CART_GAME_SUPPORT[family] ?? [],
         ...(CART_DEFAULT_SLOT[family] ? { defaultSlot: CART_DEFAULT_SLOT[family] } : {}),
         ...(CART_ROM_REGION[family] ? { romRegion: CART_ROM_REGION[family] } : {}),
+        ...(slotExtensions ? { extensions: slotExtensions } : {}),
       };
       if (shelved) console.log(`cart shelf index: ${shelved} dumps available for ${set}`);
       if (artCount) console.log(`cart artwork: ${artCount} cartridge(s) with local photography`);
@@ -1704,6 +1875,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           games: CART_GAME_SUPPORT[family] ?? [],
           ...(CART_DEFAULT_SLOT[family] ? { defaultSlot: CART_DEFAULT_SLOT[family] } : {}),
           ...(CART_ROM_REGION[family] ? { romRegion: CART_ROM_REGION[family] } : {}),
+          ...(slotExtensions ? { extensions: slotExtensions } : {}),
         };
       }
     }

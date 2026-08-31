@@ -282,6 +282,30 @@ export function compileMameM6502(mameSrc: string): GeneratedCpuDefinition {
   return compileMameM6502Variant(mameSrc, 'M6502');
 }
 
+/**
+ * The 6507: an NMOS 6502 in a 28-pin package with a narrowed address bus.
+ *
+ * MAME models it as exactly that -- `m6507_device` adds no operations and no
+ * state, only a constructor that narrows `m_program_config.m_addr_width`. That
+ * narrowing is the whole part, and it is load bearing on the Atari 2600, whose
+ * entire memory map is read through the mirrors the missing pins create. The
+ * width is read out of m6507.cpp rather than restated so the mask cannot drift
+ * from the device it describes.
+ */
+export function compileMameM6507(mameSrc: string): GeneratedCpuDefinition {
+  const variantFile = 'src/devices/cpu/m6502/m6507.cpp';
+  const source = readFileSync(join(mameSrc, variantFile), 'utf8');
+  const width = /m_program_config\.m_addr_width\s*=\s*(\d+)\s*;/.exec(source)?.[1];
+  if (!width) throw new Error('MAME no longer narrows the 6507 program address width');
+  const definition = compileMameM6502Variant(mameSrc, 'M6502');
+  return {
+    ...definition,
+    type: 'M6507',
+    addressMask: (1 << Number(width)) - 1,
+    sourceFiles: [...definition.sourceFiles, variantFile],
+  };
+}
+
 function compileMameM6502Variant(
   mameSrc: string,
   variant: 'M6502' | 'RP2A03',
@@ -3194,7 +3218,15 @@ export function normalizeMameExecutionSource(source: string): string {
     /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]+)\}\s*;/g,
   )) {
     const name = match[1]!;
-    const values = match[2]!.split(',').map(value => value.trim()).filter(Boolean);
+    // Comments go before the split, as the two-dimensional folder above already
+    // does. MAME annotates hand-aligned tables per entry -- TIA's write-delay
+    // table names the register on every line -- and folding the comment into
+    // the value made the rest of the emitted TABLE(...) call one comment.
+    const values = match[2]!
+      .replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '')
+      .split(',')
+      .map(value => value.trim())
+      .filter(Boolean);
     normalized = normalized
       .replace(match[0], '')
       .replace(

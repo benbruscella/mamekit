@@ -1389,6 +1389,21 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     const index = toNumber(evaluate(expression.index, context));
     return indexValue(object, index);
   }
+  if (expression.kind === 'lambda') {
+    // The lambda body runs in the enclosing scope's own context -- a MAME
+    // lambda captures `this`, so every member and call it names is already
+    // resolvable there -- with its parameters bound over the top. An unnamed
+    // parameter keeps its position and binds nothing.
+    const { parameters, body } = expression;
+    return (...args: unknown[]): unknown => {
+      const locals = { ...context.locals };
+      for (const [index, name] of parameters.entries()) {
+        if (name) locals[name] = args[index] ?? 0;
+      }
+      const result = executeOperations(body, { ...context, locals });
+      return result.control === 'return' ? result.value : undefined;
+    };
+  }
   return evaluateCall(expression, context);
 }
 
@@ -1453,6 +1468,17 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   }
   if (name === 'ARRAY') return args;
   if (name === 'floor') return Math.floor(toNumber(args[0]));
+  // The C math functions MAME's palette and DSP arithmetic reaches for.
+  if (name === 'ceil') return Math.ceil(toNumber(args[0]));
+  if (name === 'pow') return Math.pow(toNumber(args[0]), toNumber(args[1]));
+  if (name === 'sqrt') return Math.sqrt(toNumber(args[0]));
+  if (name === 'exp') return Math.exp(toNumber(args[0]));
+  if (name === 'log') return Math.log(toNumber(args[0]));
+  if (name === 'log10') return Math.log10(toNumber(args[0]));
+  if (name === 'fabs') return Math.abs(toNumber(args[0]));
+  if (name === 'tan') return Math.tan(toNumber(args[0]));
+  if (name === 'atan') return Math.atan(toNumber(args[0]));
+  if (name === 'atan2') return Math.atan2(toNumber(args[0]), toNumber(args[1]));
   if (name === 'cos') return Math.cos(toNumber(args[0]));
   if (name === 'sin') return Math.sin(toNumber(args[0]));
   if (name === 'DEGREE_TO_RADIAN') return toNumber(args[0]) * Math.PI / 180;
@@ -1584,6 +1610,16 @@ function applyIdentifierCall(
   expression: Extract<GeneratedExpression, { kind: 'call' }>,
   context: ExecutionContext,
 ): unknown {
+  // A memory handler installed with a delegate. MAME binds the delegate to a
+  // target and a method -- `read8sm_delegate(m_dpc, FUNC(dpc_device::read))`
+  // points at a *different* device -- and address_space::install_read_handler
+  // wants something callable. Without this the delegate evaluated to a number,
+  // the install recorded a handler with nothing behind it, and the range was
+  // dropped: Pitfall II's DPC coprocessor was never once addressed.
+  if (/^(?:read|write)\d*\w*_delegate$/.test(name)) {
+    const handler = memoryDelegate(expression, args, context);
+    if (handler) return handler;
+  }
   if (name === 'COMBINE_DATA') {
     const memMask = Object.hasOwn(context.locals, 'mem_mask')
       ? context.locals.mem_mask
@@ -1593,6 +1629,13 @@ function applyIdentifierCall(
   const macro = applyGeneratedMacro(name, args);
   if (macro !== undefined) return macro;
   if (name === 'sizeof') {
+    // `sizeof buffer` is the whole object's size, so an operand that evaluated
+    // to real storage answers with its own byte length. A type name evaluates
+    // to nothing and falls back to that type's declared width.
+    const operand = args[0];
+    if (isIndexableMemory(operand)) {
+      return (operand as { byteLength?: number }).byteLength ?? operand.length;
+    }
     return typeByteWidth(generatedExpressionName(expression.args[0]!));
   }
   if (name === 'ioport') return reference(`ioport:${String(args[0] ?? '')}`);
@@ -1681,6 +1724,12 @@ function evaluateCall(
     if (typeof object === 'number' && method === 'as_ticks') {
       const clock = Math.max(1, toNumber(evaluate(expression.args[0]!, context)));
       return Math.floor(object * clock);
+    }
+    // A MAME `rgb_t` is a packed number, and its channel accessors read it
+    // back: the TIA builds its 16k blended palette by averaging every pair of
+    // base pens through `pen_color(i).r()`.
+    if (typeof object === 'number' && !expression.args.length && RGB_CHANNELS[method]) {
+      return (object >>> RGB_CHANNELS[method]!) & 0xff;
     }
     if (isReference(object)) {
       const key = `${object.reference}.${method}`;
@@ -2388,6 +2437,43 @@ function isAttotimeExpression(
   return false;
 }
 
+/**
+ * The callable behind `readNsm_delegate(target, FUNC(class::method))`.
+ *
+ * The target is whichever argument is not the FUNC: `*this` for a device's own
+ * handler, or a finder member when one device installs another's -- which is
+ * how a cartridge exposes its add-on chip to the CPU bus.
+ */
+function memoryDelegate(
+  expression: Extract<GeneratedExpression, { kind: 'call' }>,
+  args: unknown[],
+  context: ExecutionContext,
+): ((...values: number[]) => number) | undefined {
+  const index = expression.args.findIndex(argument =>
+    argument.kind === 'call' &&
+    argument.callee.kind === 'identifier' &&
+    argument.callee.name === 'FUNC');
+  if (index < 0) return undefined;
+  const named = expression.args[index] as Extract<GeneratedExpression, { kind: 'call' }>;
+  const qualified = named.args[0];
+  if (qualified?.kind !== 'identifier') return undefined;
+  const method = qualified.name.split('::').at(-1);
+  if (!method) return undefined;
+  const target = args.find((_value, position) => position !== index);
+  const bound = target && typeof target === 'object'
+    ? (target as Record<string, unknown>)[method]
+    : undefined;
+  if (typeof bound === 'function') {
+    return (...values: number[]) => Number(bound(...values)) || 0;
+  }
+  // No separate target: the device is installing one of its own handlers.
+  const own = context.bindings.referenceCalls?.[method] ?? context.bindings.calls?.[method];
+  if (typeof own === 'function') {
+    return (...values: number[]) => Number((own as (...a: number[]) => unknown)(...values)) || 0;
+  }
+  return undefined;
+}
+
 function timerDelegateName(expression: GeneratedExpression | undefined): string | undefined {
   if (
     expression?.kind !== 'call' ||
@@ -2408,3 +2494,9 @@ function timerDelegateName(expression: GeneratedExpression | undefined): string 
   if (target?.kind !== 'identifier') return undefined;
   return target.name.split('::').at(-1);
 }
+
+/**
+ * `rgb_t` channel accessors, by the shift that reads each one out of the
+ * packing `rgb_t(...)` builds above: alpha, blue, green, red down to bit zero.
+ */
+const RGB_CHANNELS: Record<string, number | undefined> = { r: 0, g: 8, b: 16, a: 24 };

@@ -36,7 +36,7 @@ const context: SoundRuntimeContext = {
   calls: {}, state: {},
   soundWrite: (offset, data, _frac, method) => writes.push([offset, data, method]),
   soundData: () => {}, fraction: () => 0,
-  callDevice: () => undefined, runCallbackHandler: () => undefined,
+  callDevice: () => undefined, deviceStream: () => [], runCallbackHandler: () => undefined,
   dispatch: (_tag, signal, value) => {
     if (signal === 'irq_handler') interrupts.push(value);
   },

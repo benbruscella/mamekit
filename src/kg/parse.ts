@@ -69,6 +69,29 @@ export function splitArgs(s: string): string[] {
 }
 
 /** Find the matching close paren for the open paren at src[open]. */
+/**
+ * The `PORT_*` modifiers trailing a field macro, with balanced arguments.
+ *
+ * A modifier's argument can nest -- Defender's turn-around button is
+ * `PORT_NAME(DEF_STR( Reverse ))` -- and a naive `\([^)]*\)` stops at the inner
+ * close, so every later modifier match fails and the input falls back to its
+ * raw IPT_ constant. Balance instead, and skip hits swallowed by an earlier
+ * modifier's arguments.
+ */
+function trailingModifiers(trailing: string): string[] {
+  const mods: string[] = [];
+  let consumed = 0;
+  for (const hit of trailing.matchAll(/PORT_\w+/g)) {
+    const start = hit.index ?? 0;
+    if (start < consumed) continue;
+    const after = start + hit[0].length;
+    const end = trailing[after] === '(' ? matchParen(trailing, after) : -1;
+    mods.push(end < 0 ? hit[0] : trailing.slice(start, end + 1));
+    consumed = end < 0 ? after : end + 1;
+  }
+  return mods;
+}
+
 function matchParen(src: string, open: number): number {
   let depth = 0;
   for (let i = open; i < src.length; i++) {
@@ -573,6 +596,13 @@ export interface AddressRangeDef {
   /** Entry-qualified memory_view mapping, e.g. m_rom_view[0](...). */
   viewTag?: string;
   viewEntry?: number;
+  /**
+   * `map(...).m("riot", FUNC(mos6532_device::io_map))`: the window is filled by
+   * a whole address map the device declares for itself, not by one handler.
+   * The map lives in the device's own source, so build.ts expands this into
+   * ordinary ranges once it can read that file.
+   */
+  deviceMap?: { ref: string; className: string; method: string };
   raw: string;
 }
 
@@ -651,6 +681,19 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
             range.region = unquote(args[0]);
             range.regionOffset = evalExpr(args[1] ?? '0') ?? 0;
             break;
+          // A device's own address map installed into this window.
+          case 'm': {
+            const func = /FUNC\(\s*(\w+)::(\w+)\s*\)/.exec(args.join(','));
+            const ref = args.find(argument => !argument.includes('FUNC('));
+            if (func && ref) {
+              range.deviceMap = {
+                ref: unquote(ref.trim()),
+                className: func[1]!,
+                method: func[2]!,
+              };
+            }
+            break;
+          }
           case 'r': range.read = parseHandlerArgs(args); break;
           case 'w': range.write = parseHandlerArgs(args); break;
           case 'lr8': range.read = parseInlineHandler(args, name, range, 'lr8'); break;
@@ -780,6 +823,16 @@ export interface DeviceDef {
   addrMaps: Record<string, string>;
   /** screen raw params if this is a screen with set_raw */
   screenRaw?: { pixclock: number; htotal: number; hbend: number; hbstart: number; vtotal: number; vbend: number; vbstart: number };
+  /**
+   * The unevaluated `set_raw` arguments.
+   *
+   * A machine config shared by several games can clock its screen from a state
+   * member the game's own class fixes (a2600.cpp drives the raster from
+   * `m_xtal`), and that member has no one value at this layer. Keeping the
+   * source expressions lets the per-game generator resolve them; without them
+   * the pixel clock silently became zero.
+   */
+  screenRawExpr?: string[];
   /** screen params from the set_refresh_hz/set_size/set_visarea style (consoles: nes.cpp) */
   screenRefreshHz?: number;
   screenSize?: { w: number; h: number };
@@ -1468,9 +1521,11 @@ export function parseMachineConfigs(
           } else if (method === 'set_raw') {
             const open = s.indexOf('(', s.indexOf(method));
             const close = matchParen(s, open);
-            const a = splitArgs(s.slice(open + 1, close)).map(x => evalExpr(x, consts) ?? 0);
+            const raw = splitArgs(s.slice(open + 1, close));
+            const a = raw.map(x => evalExpr(x, consts) ?? 0);
             if (a.length >= 7) {
               dev.screenRaw = { pixclock: a[0], htotal: a[1], hbend: a[2], hbstart: a[3], vtotal: a[4], vbend: a[5], vbstart: a[6] };
+              dev.screenRawExpr = raw.map(value => value.trim());
             }
           } else if (method === 'set_video_attributes') {
             const open = s.indexOf('(', s.indexOf(method));
@@ -1615,16 +1670,7 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
           // IPT_ constant, so the button reads "IPT_BUTTON5" and, worse, is
           // indistinguishable from one MAME never named. Balance instead, and
           // skip hits swallowed by an earlier modifier's arguments.
-          const mods: string[] = [];
-          let consumed = 0;
-          for (const hit of trailing.matchAll(/PORT_\w+/g)) {
-            const start = hit.index ?? 0;
-            if (start < consumed) continue;
-            const after = start + hit[0].length;
-            const end = trailing[after] === '(' ? matchParen(trailing, after) : -1;
-            mods.push(end < 0 ? hit[0] : trailing.slice(start, end + 1));
-            consumed = end < 0 ? after : end + 1;
-          }
+          const mods = trailingModifiers(trailing);
           port.fields.push({
             kind: 'bit',
             mask: evalExpr(args[0]) ?? 0,
@@ -1662,12 +1708,19 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
         case 'PORT_CONFNAME': // configuration switches are dip-identical in semantics
         case 'PORT_DIPNAME': {
           if (!port) break;
+          // Modifiers matter here too, not just on PORT_BIT: MAME puts
+          // PORT_CODE and PORT_TOGGLE on the switches a player actually
+          // throws, which is how the Atari 2600's TV Type and difficulty
+          // switches say they belong on the keyboard rather than in a
+          // settings menu.
+          const confMods = trailingModifiers(trailing);
           dip = {
             kind: 'dip',
             mask: evalExpr(args[0]) ?? 0,
             defaultValue: evalExpr(args[1]) ?? 0,
             name: defStr(args[2]),
             settings: [],
+            ...(confMods.length ? { modifiers: confMods } : {}),
           };
           port.fields.push(dip);
           break;
@@ -2034,6 +2087,86 @@ export function parseInitRomTransforms(
       }
     }
     if (transforms.length) out[name] = transforms;
+  }
+  return out;
+}
+
+/**
+ * Numeric members a driver state class fixes in its own constructor.
+ *
+ * MAME parameterizes a shared machine_config by passing a constant down the
+ * state-class constructor chain: `a2600_state` hands `3.579575_MHz_XTAL` to
+ * `a2600_cons_state`, which hands it to `a2600_base_state`, which stores it in
+ * `m_xtal` -- and `a2600_base_ntsc` then clocks the 6507, the TIA, the RIOT and
+ * the screen from it. The machine config is shared with `a2600p` and `tvboy`,
+ * which pass different crystals, so the value belongs to the game's class, not
+ * to the config function. It is resolved here per class and applied per game.
+ *
+ * Returns class name -> member -> value, following base-class constructor
+ * calls with each caller's arguments bound to the base's parameter names.
+ */
+export function parseStateClassConstants(src: string): Record<string, Record<string, number>> {
+  const constructors = new Map<string, { params: string[]; initializers: string }>();
+  // `Name(<params>) : <init list> {` -- a constructor is the only member whose
+  // name repeats its class and which carries an initializer list.
+  for (const match of src.matchAll(
+    /\b(\w+_state|\w+_base_state|\w+_cons_state)\s*\(([^)]*)\)\s*:\s*/g,
+  )) {
+    const cls = match[1]!;
+    if (constructors.has(cls)) continue;
+    const brace = src.indexOf('{', match.index + match[0].length);
+    if (brace < 0) continue;
+    const params = splitArgs(match[2]!)
+      .map(param => /(\w+)\s*$/.exec(param.trim())?.[1] ?? '')
+      .filter(Boolean);
+    constructors.set(cls, {
+      params,
+      initializers: src.slice(match.index + match[0].length, brace),
+    });
+  }
+
+  const resolve = (
+    cls: string,
+    bindings: Record<string, number>,
+    seen: Set<string>,
+  ): Record<string, number> => {
+    const constructor = constructors.get(cls);
+    if (!constructor || seen.has(cls)) return {};
+    seen.add(cls);
+    const values: Record<string, number> = {};
+    // Split the initializer list on top-level commas, so a nested call's own
+    // arguments stay with it.
+    for (const entry of splitArgs(constructor.initializers)) {
+      const call = /^\s*(\w+)\s*\(/.exec(entry);
+      if (!call) continue;
+      const open = entry.indexOf('(');
+      const close = matchParen(entry, open);
+      if (close < 0) continue;
+      const name = call[1]!;
+      const args = splitArgs(entry.slice(open + 1, close));
+      if (constructors.has(name)) {
+        const constructorParams = constructors.get(name)!.params;
+        const inherited: Record<string, number> = {};
+        for (const [index, argument] of args.entries()) {
+          const parameter = constructorParams[index];
+          if (!parameter) continue;
+          const value = evalExpr(argument, bindings);
+          if (value !== null) inherited[parameter] = value;
+        }
+        Object.assign(values, resolve(name, inherited, seen));
+        continue;
+      }
+      if (args.length !== 1) continue;
+      const value = evalExpr(args[0]!, bindings);
+      if (value !== null) values[name] = value;
+    }
+    return values;
+  };
+
+  const out: Record<string, Record<string, number>> = {};
+  for (const cls of constructors.keys()) {
+    const values = resolve(cls, {}, new Set());
+    if (Object.keys(values).length) out[cls] = values;
   }
   return out;
 }

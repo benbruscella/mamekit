@@ -43,8 +43,10 @@ const MIME: Record<string, string> = {
  *  from the server — the visitor's browser store is the only source.
  *
  * `supported` requires both a compiled generated board and its generated
- * runtime report to mark the board playable. The report can distinguish a
- * source-complete board from one verified through runtime device bridges. */
+ * runtime report to mark the board runnable. The report can distinguish a
+ * source-complete board from one verified through runtime device bridges, and
+ * a board whose only remaining gap silences it from one that cannot run at
+ * all -- the former is `supported` and `silent`. */
 export async function gamesManifest(outRoot: string, artDir: string): Promise<string> {
   const games: unknown[] = [];
   // Fail CLOSED on a mixed build too. Scanning dist for game directories will
@@ -106,6 +108,8 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
         const report = await readFile(join(dir, 'runtime-report.json'), 'utf8')
           .then(text => JSON.parse(text) as {
             playable?: boolean;
+            playableWithoutSound?: boolean;
+            silentGaps?: string[];
             generationGaps?: string[];
           }, () => null);
         const generationGaps = hardware === null
@@ -115,7 +119,15 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
             : report.generationGaps ?? [];
         const boardCompiled = await stat(join(dir, 'generated/board.js'))
           .then(() => true, () => false);
-        meta.supported = hardware !== null && boardCompiled && report?.playable === true;
+        // A board runs when its execution path is complete. A gap that only
+        // silences it -- a sound device with nothing but an audio route -- is
+        // reported, not refused: the machine draws and takes input either way,
+        // and calling that "cannot be played" left every Atari 2600 cartridge
+        // unplayable in the room over a chip nothing reads back.
+        meta.supported = hardware !== null && boardCompiled &&
+          (report?.playable === true || report?.playableWithoutSound === true);
+        meta.silent = report?.playable !== true && report?.playableWithoutSound === true;
+        if (report?.silentGaps?.length) meta.silentGaps = report.silentGaps;
         meta.generationGaps = generationGaps;
         games.push(meta);
       } catch { /* not a generated game dir */ }

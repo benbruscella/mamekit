@@ -30,6 +30,10 @@ interface DeviceMember {
     kind: 'input' | 'device';
     tag: string;
   };
+  /** Declared array bound for an object-typed member (`bitmap_ind16 h[2]`). */
+  arrayLength?: number;
+  /** Fields of a member whose type is a struct the device declares. */
+  fields?: { name: string; length?: number }[];
 }
 
 interface DeviceCallback {
@@ -53,6 +57,7 @@ interface DeviceMethod {
 type DeviceResource =
   | { kind: 'number'; value: number }
   | { kind: 'region'; name: string }
+  | { kind: 'region-pointer'; name: string; offset: number }
   | { kind: 'region-length'; name: string }
   | { kind: 'region-pages'; name: string; bytes: number }
   | { kind: 'region-page-mask'; name: string; bytes: number }
@@ -118,6 +123,11 @@ export interface GeneratedDeviceDefinition {
   methods: DeviceMethod[];
   /** Source-derived runtime entry points selected for direct generated code. */
   hotMethods?: string[];
+  /**
+   * Devices this one instantiates in MAME's device_add_mconfig, keyed by the
+   * finder member that reaches them.
+   */
+  children?: { member: string; type: string; definition: GeneratedDeviceDefinition }[];
   slot?: {
     member: string;
     default?: string;
@@ -171,6 +181,15 @@ export interface Device {
   /** Resolve a numeric constant declared by this generated device family. */
   constant(name: string): number | undefined;
   methodNames(): readonly string[];
+  /**
+   * PCM the device published through `sound_stream::put_int`, and clear it.
+   *
+   * A sound device rendered on the main thread has to hand its samples to the
+   * board's sink somehow; MAME hands them to a `sound_stream`, so this is that
+   * stream, drained by whoever is pumping the device. Absent on the devices
+   * that have no sound interface at all.
+   */
+  takeStreamSamples?(): readonly number[];
   arity(name: string): number;
   parameters(name: string): readonly string[];
   signalNames(): readonly string[];
@@ -391,14 +410,18 @@ class IrDevice implements Device {
   private readonly methodParams = new Map<DeviceMethod, string[]>();
   /** C++ default argument values, applied when a caller omits a parameter. */
   private readonly methodDefaults = new Map<DeviceMethod, (number | undefined)[]>();
-  private readonly listeners = new Map<string, DeviceCallbackListener[][]>();
+  private readonly listeners = new Map<string, DeviceCallbackListener[][][]>();
   private readonly bindings: GeneratedHandlerBindings;
   private readonly executionContext: GeneratedDeviceExecutionContext;
   private readonly timers = new Map<string, { timer: IrTimer; callback: string }>();
   /** Backing store for each address space the device declares, by MAME index. */
   private readonly spaces = new Map<number, GeneratedDeviceSpace>();
   private readonly clock: number;
+  /** Samples published through `sound_stream::put_int` since the last collection. */
+  private streamSamples: number[] = [];
   private slotChild?: IrDevice;
+  /** Devices instantiated from this one's device_add_mconfig. */
+  private readonly children: IrDevice[] = [];
 
   constructor(
     definition: GeneratedDeviceDefinition,
@@ -406,6 +429,11 @@ class IrDevice implements Device {
     options: GeneratedDeviceOptions = {},
   ) {
     this.definition = definition;
+    // `device_t::m_clock` is a u32, so MAME's own `clock()` never has a
+    // fraction: a device configured at m_xtal/114 is asked for 31399, not
+    // 31399.78. Handing the fraction back made the TIA's sample counter land
+    // one short of its divisor and take the oversampling branch MAME does not.
+    clock = Math.trunc(clock);
     this.clock = clock;
     for (const config of definition.spaces ?? []) {
       this.spaces.set(config.index, generatedDeviceSpace(config.addressBits));
@@ -430,8 +458,25 @@ class IrDevice implements Device {
           ? { read: () => options.inputs?.read(inputTag) ?? 0xff }
           : member.finder?.kind === 'device'
             ? options.finder?.(member.finder.tag, member.name) ?? 0
-          : member.valueType === 'bitmap_rgb32'
-            ? new GeneratedBitmapRgb32()
+          : /^bitmap_(?:rgb32|ind16|ind8)$/.test(member.valueType)
+            ? (member.arrayLength
+                ? Array.from({ length: member.arrayLength },
+                    () => new GeneratedBitmap(member.valueType))
+                : new GeneratedBitmap(member.valueType))
+          // MAME's `memory_bank_creator m_bank{*this, "bank"}`: a device that
+          // banks its own window declares the bank as a member and installs it
+          // into the owner's space. Resolving it to a number left every Atari
+          // 2600 bank-switch cartridge with no window at all.
+          : /^memory_bank(?:_array)?_creator/.test(member.valueType)
+            ? (member.arrayLength
+                ? Array.from({ length: member.arrayLength }, () => new IrMemoryBank())
+                : new IrMemoryBank())
+          // A struct the device declares: build the shape its source gives it,
+          // so the fields a method writes exist to be written.
+          : member.fields
+            ? (member.arrayLength
+                ? Array.from({ length: member.arrayLength }, () => structMember(member.fields!))
+                : structMember(member.fields))
         : member.memory
         ? memoryMember(member, options)
         : member.values ? [...member.values]
@@ -448,7 +493,15 @@ class IrDevice implements Device {
     Object.assign(this.members, options.members);
     for (const callback of definition.callbacks) {
       const slots = Array.from({ length: callback.slots }, () => [] as DeviceCallbackListener[]);
-      this.listeners.set(callback.signal, slots);
+      // One signal can name two different devcbs, told apart in MAME by how
+      // they are called: `pa_rd_callback()` is the whole-port read, and
+      // `pa_rd_callback<n>()` is bit n. Keying only by signal let the second
+      // definition replace the first, so the 6532's whole-port read kept an
+      // orphaned listener list, reported itself unset, and every Atari 2600
+      // joystick read fell back to the port latch.
+      const group = this.listeners.get(callback.signal) ?? [];
+      group.push(slots);
+      this.listeners.set(callback.signal, group);
       const emitters = slots.map(listeners => {
         const emitter = (...args: number[]) => {
           // A MAME devcb is one .set() plus any number of .append()s, and the
@@ -507,12 +560,28 @@ class IrDevice implements Device {
         logerror: () => 0,
         clock: () => clock,
         clocks_to_attotime: ticks => clock > 0 ? ticks / clock : Infinity,
+        // MAME `sound_stream::put_int(channel, index, value, max)`, with the
+        // channel dropped by the caller: a sound device publishes one rendered
+        // sample per call, scaled to full-range, and the host collects them
+        // through takeStreamSamples() rather than the device pushing anywhere.
+        stream_put_int: (index, value, max) => {
+          this.streamSamples[index] = max ? value / max : 0;
+          return 0;
+        },
         'attotime::from_hz': frequency =>
           frequency > 0 ? 1 / frequency : Infinity,
         'attotime::from_ticks': (ticks, frequency) =>
           frequency > 0 ? ticks / frequency : Infinity,
-        set_pen_color: (entry, color) => {
-          palette[entry] = color >>> 0;
+        // MAME's device_palette_interface has both overloads:
+        // `set_pen_color(pen, rgb_t)` and `set_pen_color(pen, r, g, b)`. Only
+        // the argument count separates them, and reading the four-argument form
+        // as the two-argument one stored the red channel alone as the whole
+        // colour -- which made the TIA's pen 0 black-with-no-alpha and every
+        // Atari 2600 picture invisible.
+        set_pen_color: (entry, ...channels) => {
+          palette[entry] = channels.length >= 3
+            ? rgbPixel(channels[0]!, channels[1]!, channels[2]!)
+            : channels[0]! >>> 0;
           return 0;
         },
         pen_color: entry => palette[entry] ?? 0xff000000,
@@ -520,7 +589,22 @@ class IrDevice implements Device {
         // points m_pens straight at the adjusted entry colours, so the pen a
         // device writes into a bitmap_rgb32 is the colour itself.
         pen: entry => palette[entry] ?? 0xff000000,
+        // The C math functions MAME's palette and DSP arithmetic reaches for.
+        // `pow` is not optional decoration: the TIA gamma-corrects every one of
+        // its 128 base pens with `pow(R, 0.9)`, and an unbound call answered
+        // zero -- which made the whole palette black and every Atari 2600
+        // picture with it.
         floor: value => Math.floor(value),
+        ceil: value => Math.ceil(value),
+        pow: (value, exponent) => Math.pow(value, exponent),
+        sqrt: value => Math.sqrt(value),
+        exp: value => Math.exp(value),
+        log: value => Math.log(value),
+        log10: value => Math.log10(value),
+        fabs: value => Math.abs(value),
+        tan: value => Math.tan(value),
+        atan: value => Math.atan(value),
+        atan2: (y, x) => Math.atan2(y, x),
         cos: value => Math.cos(value),
         sin: value => Math.sin(value),
         DEGREE_TO_RADIAN: value => value * Math.PI / 180,
@@ -641,6 +725,24 @@ class IrDevice implements Device {
       }
     }
 
+    // Devices this one is built out of, as its device_add_mconfig declares.
+    // Constructed before device_start, because that is when MAME's own
+    // finders are already resolved -- the DPC cartridge hands its display
+    // data straight to its coprocessor.
+    for (const child of definition.children ?? []) {
+      const instance = new IrDevice(child.definition, clock, {
+        ...resourceOptions,
+        slot: undefined,
+      });
+      this.children.push(instance);
+      this.members[child.member] = Object.fromEntries(
+        instance.methodNames().map(name => [
+          name,
+          (...args: GeneratedCallArgument[]) => instance.invoke(name, ...args),
+        ]),
+      );
+    }
+
     if (definition.start) this.call(definition.start);
     for (const initialize of definition.resources?.initialize ?? []) {
       if (!this.methodNames().includes(initialize.method)) continue;
@@ -654,6 +756,7 @@ class IrDevice implements Device {
   }
 
   reset(): void {
+    for (const child of this.children) child.reset();
     if (this.definition.reset) this.call(this.definition.reset);
   }
 
@@ -661,6 +764,13 @@ class IrDevice implements Device {
     for (const { timer, callback } of this.timers.values()) {
       timer.tick(seconds, parameter => this.call(callback, parameter));
     }
+    // A device built out of other devices has to advance them too: the board
+    // only knows the devices its own machine config names. Pitfall II's DPC
+    // coprocessor sits two levels down -- cartridge slot, then mounted PCB --
+    // and its 18400 Hz oscillator drives the chip's random-number and music
+    // counters, so without this it is frozen while everything else runs.
+    for (const child of this.children) child.tick(seconds);
+    this.slotChild?.tick(seconds);
   }
 
   call(name: string, ...args: number[]): number {
@@ -699,6 +809,12 @@ class IrDevice implements Device {
     return [...this.methods.keys()];
   }
 
+  takeStreamSamples(): readonly number[] {
+    const samples = this.streamSamples;
+    this.streamSamples = [];
+    return samples;
+  }
+
   arity(name: string): number {
     const overloads = this.methods.get(name) ?? [];
     return overloads.length
@@ -715,10 +831,18 @@ class IrDevice implements Device {
     return [...this.listeners.keys()];
   }
 
-  on(signal: string, listener: DeviceCallbackListener, slot = 0): Device {
-    const channels = this.listeners.get(signal);
-    if (!channels) throw new Error(`${this.definition.type} has no callback signal "${signal}"`);
-    const listeners = channels[slot];
+  on(signal: string, listener: DeviceCallbackListener, slot?: number): Device {
+    const group = this.listeners.get(signal);
+    if (!group?.length) {
+      throw new Error(`${this.definition.type} has no callback signal "${signal}"`);
+    }
+    // An unindexed binding is the whole-port devcb; an indexed one addresses a
+    // bit. Where a signal names both, that is what separates them.
+    const channels = slot === undefined
+      ? group.find(candidate => candidate.length === 1) ?? group[0]!
+      : group.find(candidate => candidate.length > 1 && slot < candidate.length)
+        ?? group[0]!;
+    const listeners = channels[slot ?? 0];
     if (!listeners) {
       throw new Error(`${this.definition.type} callback "${signal}" has no slot ${slot}`);
     }
@@ -868,6 +992,14 @@ function resolveDeviceResource(
   if (resource.kind === 'number') return resource.value;
   const regions = options.regions ?? {};
   if (resource.kind === 'region') return regions[resource.name] ?? new Uint8Array(0);
+  if (resource.kind === 'region-pointer') {
+    // MAME's `get_rom_base() + N`: the same bytes, addressed from an offset.
+    return {
+      generatedPointer: true,
+      source: regions[resource.name] ?? new Uint8Array(0),
+      offset: resource.offset,
+    };
+  }
   if (resource.kind === 'region-length') return regions[resource.name]?.length ?? 0;
   if (resource.kind === 'region-pages') {
     return Math.floor((regions[resource.name]?.length ?? 0) / Math.max(1, resource.bytes));
@@ -904,16 +1036,34 @@ function resolveDeviceResource(
   return result;
 }
 
-/** Minimal MAME bitmap_rgb32 value used by generated device methods. */
-class GeneratedBitmapRgb32 {
-  pixels = new Uint32Array(0);
+/**
+ * A MAME bitmap value used by generated device methods.
+ *
+ * MAME names the pixel format in the type -- `bitmap_rgb32`, `bitmap_ind16`,
+ * `bitmap_ind8` -- and a device that composes its picture in an indexed format
+ * before resolving pens needs the narrower store, not a 32-bit one. The TIA
+ * composites two `bitmap_ind16` scanline buffers and diffs them into a
+ * `bitmap_rgb32`, so both widths have to be real.
+ */
+class GeneratedBitmap {
+  pixels: Uint32Array | Uint16Array | Uint8Array;
   private bitmapWidth = 0;
   private bitmapHeight = 0;
+  private readonly storage: Uint32ArrayConstructor | Uint16ArrayConstructor | Uint8ArrayConstructor;
+
+  constructor(valueType: string) {
+    this.storage = /_ind8$/.test(valueType)
+      ? Uint8Array
+      : /_ind16$/.test(valueType)
+        ? Uint16Array
+        : Uint32Array;
+    this.pixels = new this.storage(0);
+  }
 
   allocate(width: number, height: number): void {
     this.bitmapWidth = Math.max(0, width | 0);
     this.bitmapHeight = Math.max(0, height | 0);
-    this.pixels = new Uint32Array(this.bitmapWidth * this.bitmapHeight);
+    this.pixels = new this.storage(this.bitmapWidth * this.bitmapHeight);
   }
 
   width(): number {
@@ -935,7 +1085,7 @@ class GeneratedBitmapRgb32 {
 
   'pix&'(y: number, x = 0): {
     generatedPointer: true;
-    source: Uint32Array;
+    source: Uint32Array | Uint16Array | Uint8Array;
     offset: number;
   } {
     return {
@@ -1120,4 +1270,46 @@ function generatedDeviceSpace(addressBits: number): GeneratedDeviceSpace {
       return 0;
     },
   };
+}
+
+/**
+ * The packing the generated runtime uses for a MAME `rgb_t`: alpha, then blue,
+ * green and red down to the low byte. `rgb_t::r()` and friends read it back.
+ */
+function rgbPixel(red: number, green: number, blue: number): number {
+  return ((0xff << 24) | ((blue & 0xff) << 16) | ((green & 0xff) << 8) | (red & 0xff)) >>> 0;
+}
+
+/** A plain-old-data struct member, with each declared field present. */
+/**
+ * A C struct instance whose scalar fields keep their declared width.
+ *
+ * The width is enforced by the property itself rather than at each assignment,
+ * so every path -- interpreted, emitted, or a host poke -- wraps identically.
+ * Without it a `uint8_t` field decremented past zero became -1 instead of
+ * 0xff, and MAME code that carries on `if (field == 0xff)` silently never
+ * carried: the DPC's display-data pointer walked off its 2K window.
+ */
+function structMember(
+  fields: readonly { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[],
+): Record<string, number | number[]> {
+  const value: Record<string, number | number[]> = {};
+  for (const field of fields) {
+    if (field.length) {
+      value[field.name] = Array.from({ length: field.length }, () => 0);
+      continue;
+    }
+    if (!field.bits || field.bits >= 32) {
+      value[field.name] = 0;
+      continue;
+    }
+    let stored = 0;
+    Object.defineProperty(value, field.name, {
+      enumerable: true,
+      configurable: true,
+      get: () => stored,
+      set: next => { stored = wrap(Number(next) || 0, field.bits!, field.signed); },
+    });
+  }
+  return value;
 }

@@ -358,6 +358,13 @@ export class GeneratedVideoRenderer implements VideoRenderer {
         yOffset * yScale,
         (yOffset + this.height) * yScale - 1,
       ),
+      // MAME's screen dimensions are the whole raster, not the visible window.
+      // A device that composes its picture in raster coordinates reads them
+      // back here: the TIA takes `screen.height()` as the modulus for its own
+      // scanline buffers, and a zero left every pixel it wrote unaddressable.
+      width: () => Math.max(1, this.machine.execution.screen.htotal ??
+        (this.machine.execution.screen.xOffset ?? 0) + this.machine.execution.screen.width),
+      height: () => Math.max(1, this.machine.execution.screen.vtotal),
       priority: () => this.primitives.screenPriority?.(),
     };
     const handlerKey =

@@ -213,6 +213,8 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
         schemaVersion?: number;
         boardMode?: string;
         playable?: boolean;
+        playableWithoutSound?: boolean;
+        silentGaps?: string[];
         generationGaps?: string[];
         requirements?: {
           composition?: { status: string }[];
@@ -224,7 +226,16 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
       if (report.requirements?.composition?.some(item => item.status !== 'generated')) {
         failures.push(`${target}: generation report retains non-generated board composition`);
       }
-      if (report.playable !== true) {
+      // A board runs when its execution path is complete. A gap that only
+      // silences it -- a sound device with nothing but an audio route -- is
+      // reported, not failed: the machine draws and takes input either way.
+      // The distinction is the report's own (`silentGaps`), so this cannot be
+      // widened by accident into tolerating a board that will not run.
+      if (report.playable !== true && report.playableWithoutSound === true) {
+        console.warn(
+          `note: ${target} runs without sound (${(report.silentGaps ?? []).join(', ')})`,
+        );
+      } else if (report.playable !== true) {
         failures.push(
           `${target}: generation report is not playable` +
           (report.generationGaps?.length

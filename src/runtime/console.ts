@@ -58,15 +58,114 @@ const CART_LABEL_FRAME = '#141414'; // black-bordered NES label frame
 // about 0.70 wide-to-tall while the moulded label is 0.88, so the standard rect
 // crops roughly a fifth of the image away. The shell has room down to the base
 // step at y=195, which is what LABEL_H_ART spends.
-const LABEL_X = 53.5;
-const LABEL_Y = 15.5;
-const LABEL_W = 133;
-const LABEL_H = 151;
-const LABEL_H_ART = 168;
-/** the drawn label's centre line, which the photo label keeps as it narrows */
-const LABEL_CX = LABEL_X + LABEL_W / 2;
+/**
+ * A console's cartridge, as a shell profile.
+ *
+ * Two consoles' cartridges do not look alike, and the shelf is the one place a
+ * visitor recognises the machine before reading a word: an Atari 2600 cart is a
+ * black shell whose label covers nearly the whole face under a ribbed top grip,
+ * where the NES cart is grey plastic with the grip down its left flank and a
+ * narrower label beside it. Everything the label carries -- generated art, the
+ * photo overlay, the title -- is placed from the profile's own rect, so a new
+ * shell is a new entry here rather than an edit to five coordinate sets.
+ *
+ * Neither drawing carries a wordmark, a logo or a likeness of any product: they
+ * are the industrial features that make a cartridge readable at 200px.
+ */
+interface CartShell {
+  /** the drawn label, in viewBox units */
+  label: { x: number; y: number; w: number; h: number };
+  /** the label's height when a box scan is composited into it */
+  artHeight: number;
+  /** generated label art fills this sub-rect of the label */
+  art: { x: number; y: number; w: number; h: number };
+  /** where the drawn title starts, and how many characters fit a line */
+  title: { x: number; y: number; wrap: number };
+  bodyTop: string;
+  bodyBottom: string;
+  /** engraved text on the shell reads against the plastic, not the label */
+  moulding: string;
+  /** the plastic around the label: grip, shoulders, base step */
+  chrome(): string;
+}
+
 /** the black frame sits this far outside the label on every side */
 const LABEL_FRAME_PAD = 3.5;
+
+/** ~20 fine horizontal grooves down the NES shell's left flank. */
+function nesGrip(): string {
+  let ridges = '';
+  for (let index = 0; index < 20; index++) {
+    const y = 32 + index * 6.6;
+    ridges += `<rect x="16" y="${y}" width="30" height="3" fill="rgba(0,0,0,.24)"/>`
+      + `<rect x="16" y="${y + 3}" width="30" height="1.6" fill="rgba(255,255,255,.28)"/>`;
+  }
+  return ridges;
+}
+
+/** The 2600's grip: vertical ribs across the top band, above the label. */
+function vcsGrip(): string {
+  let ribs = '';
+  for (let index = 0; index < 26; index++) {
+    const x = 16 + index * 6.8;
+    ribs += `<rect x="${x}" y="12" width="3.2" height="20" rx="1.2" fill="rgba(0,0,0,.34)"/>`
+      + `<rect x="${x + 3.2}" y="12" width="1.5" height="20" rx=".7" fill="rgba(255,255,255,.13)"/>`;
+  }
+  return ribs;
+}
+
+const CART_SHELLS: Record<string, CartShell> = {
+  nes: {
+    label: { x: 53.5, y: 15.5, w: 133, h: 151 },
+    artHeight: 168,
+    art: { x: 53.5, y: 25.5, w: 133, h: 64 },
+    title: { x: 60, y: 112, wrap: 15 },
+    bodyTop: CART_BODY_TOP,
+    bodyBottom: CART_BODY_BOT,
+    moulding: 'rgba(20,20,20,.42)',
+    chrome: () => `
+    <rect x="6" y="4" width="188" height="242" rx="9" fill="url(#cb)"/>
+    <rect x="6" y="4" width="26" height="13" rx="4" fill="rgba(0,0,0,.16)"/>
+    <rect x="168" y="4" width="26" height="13" rx="4" fill="rgba(0,0,0,.16)"/>
+    <rect x="10" y="6" width="180" height="2.5" rx="1.2" fill="rgba(255,255,255,.42)"/>
+    <rect x="6" y="196" width="188" height="50" fill="rgba(0,0,0,.07)"/>
+    <rect x="6" y="195" width="188" height="1.6" fill="rgba(0,0,0,.22)"/>
+    <rect x="6" y="197" width="188" height="1.2" fill="rgba(255,255,255,.18)"/>
+    ${nesGrip()}`,
+  },
+  // The Atari 2600 cartridge: a black shell whose label covers nearly the whole
+  // face, under a ribbed grip strip along the top edge, with a shallow lip at
+  // the base where it seats in the slot.
+  vcs: {
+    label: { x: 20, y: 42, w: 160, h: 150 },
+    artHeight: 162,
+    art: { x: 20, y: 54, w: 160, h: 70 },
+    title: { x: 27, y: 142, wrap: 18 },
+    bodyTop: '#3a3a3d',
+    bodyBottom: '#232326',
+    moulding: 'rgba(228,228,232,.34)',
+    chrome: () => `
+    <rect x="6" y="4" width="188" height="242" rx="7" fill="url(#cb)"/>
+    <rect x="10" y="6" width="180" height="2" rx="1" fill="rgba(255,255,255,.22)"/>
+    ${vcsGrip()}
+    <rect x="6" y="34" width="188" height="1.6" fill="rgba(0,0,0,.42)"/>
+    <rect x="6" y="35.6" width="188" height="1" fill="rgba(255,255,255,.10)"/>
+    <rect x="6" y="208" width="188" height="38" rx="3" fill="rgba(0,0,0,.20)"/>
+    <rect x="6" y="207" width="188" height="1.4" fill="rgba(0,0,0,.38)"/>
+    <rect x="6" y="209" width="188" height="1" fill="rgba(255,255,255,.09)"/>`,
+  },
+};
+
+/**
+ * The shell this room draws, chosen once from the software list's own cartridge
+ * interface -- `a2600_cart`, `nes_cart`, `coleco_cart` -- so the drawing follows
+ * MAME's own name for the slot rather than a hand-kept console list.
+ */
+export let activeShell: CartShell = CART_SHELLS.nes!;
+/** Test seam: the room sets this from the software list's cartridge interface. */
+export const useCartShell = (name: string | undefined): void => { activeShell = shellForInterface(name); };
+export const shellForInterface = (name: string | undefined): CartShell =>
+  name === 'a2600_cart' ? CART_SHELLS.vcs! : CART_SHELLS.nes!;
 
 /** viewBox units as a percentage, for overlaying HTML on the drawn cartridge */
 const pct = (v: number, total: number) => `${(v / total * 100).toFixed(3)}%`;
@@ -94,6 +193,9 @@ interface MenuEntry {
   year: string;
   manufacturer: string;
   supported?: boolean;
+  /** Runs, but a gap that only silences it is still open (no sound yet). */
+  silent?: boolean;
+  silentGaps?: string[];
   hasHistory?: boolean;
   historyCredit?: string;
   driverFile?: string;
@@ -183,12 +285,10 @@ function clampSub(sub: string, max = 21): string {
 // shelf. Motif, palette and geometry all derive from the softlist id, so a cart
 // always looks like itself. No copyrighted box scans are involved; a real label
 // photo, when the visitor has one, is drawn on top of this (applyCartArt).
-const ART_X = 53.5;
-const ART_Y = 25.5;
-const ART_W = 133;
-const ART_H = 64;
+
 
 function labelArtFor(hash: number, hue: number): string {
+  const { x: ART_X, y: ART_Y, w: ART_W, h: ART_H } = activeShell.art;
   const pick = (shift: number, mod: number) => (hash >>> shift) % mod;
   const back = `<rect x="${ART_X}" y="${ART_Y}" width="${ART_W}" height="${ART_H}" fill="hsl(${hue} 38% 17%)"/>`;
   const ink = (deg: number, s: number, l: number) => `hsl(${(hue + deg) % 360} ${s}% ${l}%)`;
@@ -247,7 +347,7 @@ function clampCode(code: string, max = 26): string {
   return code.length <= max ? code : `…${code.slice(-(max - 1))}`;
 }
 
-function cartSvg(o: {
+export function cartSvg(o: {
   title: string; sub: string; state: CartState; artKey?: string;
   /** the zip this cartridge is, or would be: "mario1.zip" */
   code?: string;
@@ -275,34 +375,37 @@ function cartSvg(o: {
   const subColor = dim ? '#7a7a75' : '#6b6045';
   // The label is narrower than the cart, so titles wrap sooner than the
   // exported default: a real NES label is ~70% of the shell width.
-  const lines = wrapCartTitle(o.title, 15);
-  const labelH = o.sticker ? LABEL_H_ART : LABEL_H;
-
-  // Left fifth of the shell is the ribbed grip: ~20 fine horizontal grooves.
-  let ridges = '';
-  for (let i = 0; i < 20; i++) {
-    const y = 32 + i * 6.6;
-    ridges += `<rect x="16" y="${y}" width="30" height="3" fill="rgba(0,0,0,.24)"/>`
-      + `<rect x="16" y="${y + 3}" width="30" height="1.6" fill="rgba(255,255,255,.28)"/>`;
-  }
+  const shell = activeShell;
+  const { x: LABEL_X, y: LABEL_Y, w: LABEL_W } = shell.label;
+  const lines = wrapCartTitle(o.title, shell.title.wrap);
+  const labelH = o.sticker ? shell.artHeight : shell.label.h;
 
   const titleSvg = lines.map((l, i) =>
-    `<text x="60" y="${112 + i * 19}" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="800" fill="${titleColor}">${esc(l)}</text>`).join('');
+    `<text x="${shell.title.x}" y="${shell.title.y + i * 19}" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="800" fill="${titleColor}">${esc(l)}</text>`).join('');
 
-  // state marks (drawn on top of the label)
+  // State marks and the empty-slot chip ride on the label, so they are placed
+  // from its rect rather than from one shell's coordinates -- a 2600 label is
+  // wider, lower and differently proportioned to an NES one.
+  const labelRight = LABEL_X + LABEL_W;
+  const labelMidX = LABEL_X + LABEL_W / 2;
+  const labelBottom = LABEL_Y + labelH;
   let mark = '';
   if (o.state === 'lit') {
-    mark = `<circle cx="167" cy="42" r="14" fill="${SEAL_GREEN}" stroke="#fff" stroke-width="2"/>`
-      + `<text x="167" y="47.5" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="16" font-weight="900" fill="#fff">✓</text>`;
+    const cx = labelRight - 19;
+    const cy = LABEL_Y + 26;
+    mark = `<circle cx="${cx}" cy="${cy}" r="14" fill="${SEAL_GREEN}" stroke="#fff" stroke-width="2"/>`
+      + `<text x="${cx}" y="${cy + 5.5}" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="16" font-weight="900" fill="#fff">✓</text>`;
   } else if (o.state === 'experimental') {
-    mark = `<rect x="142" y="31" width="42" height="17" rx="3" fill="${STRIPE_EXPERIMENTAL}"/>`
-      + `<text x="163" y="43.5" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" font-weight="800" fill="#221a05" letter-spacing="1">EXP</text>`;
+    const x = labelRight - 44;
+    const y = LABEL_Y + 15;
+    mark = `<rect x="${x}" y="${y}" width="42" height="17" rx="3" fill="${STRIPE_EXPERIMENTAL}"/>`
+      + `<text x="${x + 21}" y="${y + 12.5}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" font-weight="800" fill="#221a05" letter-spacing="1">EXP</text>`;
   } else if (o.state === 'unsupported') {
-    mark = `<text x="120" y="70" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="30" font-weight="900" fill="#e0504d" opacity=".9">✕</text>`;
+    mark = `<text x="${labelMidX}" y="${LABEL_Y + 54}" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="30" font-weight="900" fill="#e0504d" opacity=".9">✕</text>`;
   }
   const chip = o.state === 'placeholder' && !o.artKey
-    ? `<rect x="62" y="136" width="116" height="24" rx="12" fill="rgba(6,8,20,.55)" stroke="${STRIPE_PLACEHOLDER}" stroke-width="1.5" stroke-dasharray="4 3"/>`
-      + `<text x="120" y="152" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" font-weight="800" fill="#c6cdec" letter-spacing=".5">◍ INSERT DUMP</text>`
+    ? `<rect x="${labelMidX - 58}" y="${labelBottom - 32}" width="116" height="24" rx="12" fill="rgba(6,8,20,.55)" stroke="${STRIPE_PLACEHOLDER}" stroke-width="1.5" stroke-dasharray="4 3"/>`
+      + `<text x="${labelMidX}" y="${labelBottom - 16}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" font-weight="800" fill="#c6cdec" letter-spacing=".5">◍ INSERT DUMP</text>`
     : '';
   // Every catalog entry gets deterministic label art from its metadata. This
   // keeps all 4,000+ carts visually distinct without bundling copyrighted box
@@ -312,29 +415,22 @@ function cartSvg(o: {
   return `<svg viewBox="0 0 ${CART_W} ${CART_H}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
     <defs>
       <linearGradient id="cb" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="${CART_BODY_TOP}"/><stop offset="1" stop-color="${CART_BODY_BOT}"/>
+        <stop offset="0" stop-color="${shell.bodyTop}"/><stop offset="1" stop-color="${shell.bodyBottom}"/>
       </linearGradient>
       <clipPath id="clabel">
-        <rect x="${ART_X}" y="${ART_Y}" width="${ART_W}" height="${ART_H}"/>
+        <rect x="${shell.art.x}" y="${shell.art.y}" width="${shell.art.w}" height="${shell.art.h}"/>
       </clipPath>
     </defs>
-    <!-- shell: rounded top, stepped-in base, notched top shoulders -->
-    <rect x="6" y="4" width="188" height="242" rx="9" fill="url(#cb)"/>
-    <rect x="6" y="4" width="26" height="13" rx="4" fill="rgba(0,0,0,.16)"/>
-    <rect x="168" y="4" width="26" height="13" rx="4" fill="rgba(0,0,0,.16)"/>
-    <rect x="10" y="6" width="180" height="2.5" rx="1.2" fill="rgba(255,255,255,.42)"/>
-    <rect x="6" y="196" width="188" height="50" fill="rgba(0,0,0,.07)"/>
-    <rect x="6" y="195" width="188" height="1.6" fill="rgba(0,0,0,.22)"/>
-    <rect x="6" y="197" width="188" height="1.2" fill="rgba(255,255,255,.18)"/>
-    ${ridges}
-    <!-- the label: right ~70% of the shell, black-framed, top-aligned -->
+    <!-- the plastic: grip, shoulders and base step, per console shell -->
+    ${shell.chrome()}
+    <!-- the label, black-framed, placed by the shell profile -->
     <rect data-label-frame x="${LABEL_X - LABEL_FRAME_PAD}" y="${LABEL_Y - LABEL_FRAME_PAD}" width="${LABEL_W + LABEL_FRAME_PAD * 2}" height="${labelH + LABEL_FRAME_PAD * 2}" rx="3" fill="none" stroke="${CART_LABEL_FRAME}" stroke-width="3"${dashed ? ' stroke-dasharray="7 5"' : ''}/>
     <rect data-label-bg x="${LABEL_X}" y="${LABEL_Y}" width="${LABEL_W}" height="${labelH}" rx="2" fill="${CART_LABEL_BG}"/>
     ${o.sticker ? '' : `<rect x="${LABEL_X}" y="${LABEL_Y}" width="${LABEL_W}" height="10" fill="${stripe}"/>
     <g clip-path="url(#clabel)">${labelArt}</g>
     ${titleSvg}
-    <text x="60" y="${112 + lines.length * 19 + 4}" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="${subColor}">${esc(clampSub(o.sub))}</text>
-    ${o.code ? `<text x="180" y="161.5" text-anchor="end" font-family="ui-monospace,monospace"
+    <text x="${shell.title.x}" y="${shell.title.y + lines.length * 19 + 4}" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="${subColor}">${esc(clampSub(o.sub))}</text>
+    ${o.code ? `<text x="${labelRight - 6}" y="${labelBottom - 5}" text-anchor="end" font-family="ui-monospace,monospace"
       font-size="8.5" font-weight="700" letter-spacing=".2" fill="${dim ? '#8b8b86' : '#8a8172'}"
       >${esc(clampCode(o.code))}</text>` : ''}`}
     <!-- moulded insertion arrow and the base recess -->
@@ -348,7 +444,7 @@ function cartSvg(o: {
          struck the same way — engraved, one shadowed and one green — so the
          pair reads as moulding rather than as a badge stuck to the plastic. -->
     ${o.board ? `<text x="18" y="240" font-family="ui-monospace,monospace" font-size="10" font-weight="800"
-      letter-spacing=".6" fill="rgba(20,20,20,.42)">${esc(o.board)}</text>` : ''}
+      letter-spacing=".6" fill="${shell.moulding}">${esc(o.board)}</text>` : ''}
     ${o.verified ? `<text x="182" y="240.5" text-anchor="end" font-family="ui-sans-serif,system-ui,sans-serif"
       font-size="13" font-weight="900" fill="${SEAL_GREEN}" opacity=".85">✓</text>` : ''}
     ${chip}${mark}
@@ -419,7 +515,13 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   // other cartridge is a flat image. The software list says which this is, so
   // nothing below is written per console.
   const inesCarts = (cfg.cart?.interface ?? 'nes_cart') === 'nes_cart';
-  const cartExtensions = inesCarts ? ['.nes'] : ['.rom', '.col', '.bin'];
+  // What this slot takes is MAME's own `file_extensions()`, generated into the
+  // config. Hardcoding it here meant every non-NES console offered the
+  // ColecoVision list, so an Atari `.a26` -- the usual name for a 2600 dump --
+  // was greyed out in the file picker on the one machine that uses it.
+  const cartExtensions = cfg.cart?.extensions?.length
+    ? cfg.cart.extensions
+    : inesCarts ? ['.nes'] : ['.rom', '.col', '.bin'];
   const cartExtensionList = cartExtensions.join(' / ');
   /** The MAME hash file this console's catalogue came from. */
   const softlistFile = `${cfg.cart?.list ?? 'nes'}.xml`;
@@ -455,6 +557,9 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   const availByName = new Map<string, CartAvailability>();
   /** dumps with no softlist identity of their own (hacks, pirates, VS boards) */
   const bucketExtras: CartAvailability[] = [];
+  // The cartridge this console's software list describes decides the shell the
+  // shelf draws, once, before the first tile is built.
+  useCartShell(cfg.cart?.interface);
   // stale-bundle guard: generated before the board compiled -> shelve-only
   const coreSupported = entry?.supported !== false;
   let inRoom = true; // gates every window-level listener once a cart boots
@@ -597,6 +702,19 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   };
   if (!store.persistent) banner('Private browsing — carts last only this session', 'data-banner-private', '#e8b64c');
   if (!coreSupported) banner('Console core still compiling — carts can be shelved but not played', 'data-banner-core', '#8b93c4');
+  // The machine runs; a sound device it has no executable core for is the only
+  // thing outstanding. Say which, rather than leaving a quiet console looking
+  // broken.
+  else if (entry?.silent) {
+    const chips = (entry.silentGaps ?? [])
+      .map(gap => gap.split(':')[1] ?? gap)
+      .join(', ');
+    banner(
+      `Cartridges play, but silently — ${chips || 'the sound hardware'} is not generated yet`,
+      'data-banner-silent',
+      '#e0a53a',
+    );
+  }
 
   // --- the cart slot (drop zone) -------------------------------------------------
   const slotWrap = el('div', 'max-width:1280px;margin:26px auto 0;padding:0 36px;box-sizing:border-box');
@@ -816,8 +934,9 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   function fitLabelToArt(cover: HTMLElement, img: HTMLImageElement): void {
     const { naturalWidth: w, naturalHeight: h } = img;
     if (!w || !h) return;
-    const width = Math.min(LABEL_W, LABEL_H_ART * (w / h));
-    const x = LABEL_CX - width / 2;
+    const { label, artHeight } = activeShell;
+    const width = Math.min(label.w, artHeight * (w / h));
+    const x = label.x + label.w / 2 - width / 2;
     const bg = cover.querySelector('[data-label-bg]');
     const frame = cover.querySelector('[data-label-frame]');
     bg?.setAttribute('x', String(x));
@@ -845,8 +964,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     // so fitting shows the whole scan. Any leftover is label bg at the sides,
     // which reads as the printed border rather than as a crop.
     img.style.cssText = sticker
-      ? `position:absolute;left:${pct(LABEL_X, CART_W)};top:${pct(LABEL_Y, CART_H)};
-         width:${pct(LABEL_W, CART_W)};height:${pct(LABEL_H_ART, CART_H)};
+      ? `position:absolute;left:${pct(activeShell.label.x, CART_W)};top:${pct(activeShell.label.y, CART_H)};
+         width:${pct(activeShell.label.w, CART_W)};height:${pct(activeShell.artHeight, CART_H)};
          object-fit:contain;opacity:0;transition:opacity .2s ease;pointer-events:none;border-radius:2px`
       // a photo of the whole cartridge stands in for the drawing entirely
       : `position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
@@ -1041,6 +1160,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
 
   let rows = libraryRows();
   let filterTouched = false;
+  /** filter+term the shelf currently shows, so growing it can append. */
+  let renderedSignature = '\u0000__none__';
 
   function renderCatalog(reset = false): void {
     if (reset) catalogLimit = 48;
@@ -1052,9 +1173,21 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       if (!['all', 'playable', 'verified'].includes(filter) && row.slot !== filter) return false;
       return !term || row.haystack.includes(term);
     });
-    libraryRow.textContent = '';
-    catalogTiles.splice(0);
-    for (const row of matches.slice(0, catalogLimit)) {
+    // Growing the shelf must EXTEND it, not rebuild it. Clearing the row tears
+    // out the tiles the visitor is looking at, the page collapses under the
+    // scroll position, and the browser snaps back to the top -- which is what
+    // "show more" did on a 1,459-cartridge shelf. Only a changed filter or
+    // search term rebuilds; a longer limit appends the tiles that follow.
+    const signature = `${filter}\u0000${term}`;
+    const extend = signature === renderedSignature &&
+      catalogTiles.length > 0 && catalogTiles.length <= catalogLimit;
+    const from = extend ? catalogTiles.length : 0;
+    if (!extend) {
+      libraryRow.textContent = '';
+      catalogTiles.splice(0);
+    }
+    renderedSignature = signature;
+    for (const row of matches.slice(from, catalogLimit)) {
       const tile = buildCatalogTile(row);
       catalogTiles.push(tile);
       libraryRow.appendChild(tile.item);

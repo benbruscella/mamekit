@@ -43,6 +43,7 @@ import type {
   GeneratedNesApuPlan,
 } from '../ir/audio-protocol.ts';
 import { BoardIrError } from '../ir/decode.ts';
+import { classConstantsForGame, resolveClassConstants } from './class-constants.ts';
 import { lowerConnections } from '../ir/lower-connections.ts';
 import { validateBoardIr } from '../ir/validate.ts';
 import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
@@ -70,6 +71,9 @@ export function lowerGeneratedMachine(
   const rootMachineId = graph.edges.find(edge =>
     edge.from === `game:${game}` && edge.rel === 'USES_MACHINE')?.to;
   if (!rootMachineId) throw new Error(`${game}: selected machine config is missing`);
+  // Clocks and raster parameters a shared machine config leaves as source
+  // expressions, resolved with this game's own constructor constants.
+  const classConstants = classConstantsForGame(graph, game);
   const reachableDevices: Array<{ node: KGNode; tag: string; hostTag?: string }> = [];
   const emittedTags = new Map<string, string>();
   const queue: Array<{ id: string; hostTag?: string }> = [{ id: rootMachineId }];
@@ -93,7 +97,11 @@ export function lowerGeneratedMachine(
       const deviceKey = `${node.id}\0${tag}`;
       if (!visitedDevices.has(deviceKey)) {
         visitedDevices.add(deviceKey);
-        reachableDevices.push({ node, tag, ...(hostTag ? { hostTag } : {}) });
+        reachableDevices.push({
+          node: resolveClassConstants(node, classConstants),
+          tag,
+          ...(hostTag ? { hostTag } : {}),
+        });
         emittedTags.set(node.id, tag);
       }
       for (const call of graph.edges.filter(candidate =>
@@ -316,6 +324,16 @@ export function lowerGeneratedMachine(
   const videoOutputDevice = devices.find(device => device.type === 'SCREEN')
     ?? devices.find(device => device.type === 'VECTOR');
   const screenCallback = callbacks.find(callback => callback.signal === 'set_screen_update');
+  // `m_screen->set_screen_update("tia_video", FUNC(tia_video_device::screen_update))`
+  // names the device that draws in its first argument. A device that binds its
+  // own screen (`screen().set_screen_update(*this, ...)`) already carries
+  // `deviceTag`; this is the other spelling, where only the target tag says
+  // that the update belongs to a device rather than to the driver's state.
+  const screenUpdateDeviceTag = screenCallback?.deviceTag ??
+    (screenCallback?.targetTag &&
+      devices.some(device => device.tag === screenCallback.targetTag)
+      ? screenCallback.targetTag
+      : undefined);
   const screenHandler = screenCallback?.targetClass && screenCallback.targetMethod
     ? handlers.find(handler =>
         handler.ownerClass === screenCallback.targetClass &&
@@ -432,7 +450,7 @@ export function lowerGeneratedMachine(
         handler: `${screenCallback.targetClass}.${screenCallback.targetMethod}`,
         // Set when the update belongs to a generated device rather than the
         // driver's own state class.
-        ...(screenCallback.deviceTag ? { deviceTag: screenCallback.deviceTag } : {}),
+        ...(screenUpdateDeviceTag ? { deviceTag: screenUpdateDeviceTag } : {}),
         ...((screenHandler?.source ?? screenCallback.source)
           ? { source: screenHandler?.source ?? screenCallback.source }
           : {}),
@@ -459,6 +477,7 @@ export function lowerGeneratedMachine(
   const berzerkSound = devices.find(device =>
     device.type === 'EXIDY' || device.type === 'EXIDY_VENTURE');
   const discreteDevice = devices.find(device => device.type === 'DISCRETE');
+  const tiaDevice = devices.find(device => device.type === 'TIA');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
     .filter((key): key is string => Boolean(key));
@@ -623,6 +642,21 @@ export function lowerGeneratedMachine(
             controlOffset: -1,
             ...(discretePlan?.inputNodes ? { writeOffsets: discretePlan.inputNodes } : {}),
           }
+        : tiaDevice
+          ? {
+              kind: 'tia',
+              deviceTag: tiaDevice.tag,
+              deviceType: tiaDevice.type,
+              // The chip is in no address map: tia_video_device calls
+              // `tia_sound_w` on it through a device finder, so there is no
+              // bus write for the board to route.
+              writeMethods: [],
+              enableMethods: [],
+              controlOffset: -1,
+              ...(lowerAudioRoutes(graph, [tiaDevice]).length
+                ? { routes: lowerAudioRoutes(graph, [tiaDevice]) }
+                : {}),
+            }
         : undefined;
   // set_screen_update selects the renderer entry point; it is consumed by
   // GeneratedVideoRenderer and is not a devcb signal dispatched at runtime.

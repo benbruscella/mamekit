@@ -42,6 +42,7 @@ function context(sound: Sound): SoundRuntimeContext & {
     soundData: () => {},
     fraction: () => 0,
     callDevice: () => undefined,
+    deviceStream: () => [],
     runCallbackHandler: () => undefined,
     dispatch: () => {},
     readSignal: () => undefined,

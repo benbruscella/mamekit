@@ -77,6 +77,18 @@ export interface RuntimeReport {
   playable: boolean;
   playabilityBasis: 'source-complete' | 'runtime-certified' | 'blocked';
   generationGaps: string[];
+  /**
+   * Gaps that silence the machine rather than stop it.
+   *
+   * A device whose only connection to the board is an audio route cannot keep
+   * the machine from running: without it the picture and the controls are
+   * unchanged and the speaker is quiet. Keeping that apart from a gap that
+   * really does block execution is what lets a console room offer a cartridge
+   * with an honest "no sound yet" instead of refusing to boot it.
+   */
+  silentGaps: string[];
+  /** Runs, but only because every remaining gap is one of `silentGaps`. */
+  playableWithoutSound: boolean;
   sourceCoverage: { covered: number; total: number; percent: number };
   requirements: {
     cpus: RuntimeRequirement[];
@@ -320,6 +332,24 @@ export function buildRuntimeReport(
     screenUpdateCompiled,
   );
   const playable = sourceComplete || runtimeCertified;
+  // A device is audio-only when the graph gives it an audio route and nothing
+  // else the board reads back: MAME's own `add_route` is the evidence, so this
+  // needs no list of sound-chip names to maintain.
+  const audioRouted = new Set(
+    graph.edges
+      .filter(edge => edge.rel === 'HAS_AUDIO_ROUTE')
+      .map(edge => String(deviceNodes.find(node => node.id === edge.from)?.props.tag ?? ''))
+      .filter(Boolean),
+  );
+  const silentGaps = generationGaps.filter(gap => audioRouted.has(gap.split(':')[0]!));
+  const blockingGaps = generationGaps.filter(gap => !silentGaps.includes(gap));
+  const playableWithoutSound = !playable &&
+    boardMode === 'generated' &&
+    blockingGaps.length === 0 &&
+    silentGaps.length > 0 &&
+    summary.missing === 0 &&
+    summary.blocked === silentGaps.length &&
+    screenUpdateCompiled;
 
   return {
     schemaVersion: 2,
@@ -331,6 +361,8 @@ export function buildRuntimeReport(
       ? 'source-complete'
       : runtimeCertified ? 'runtime-certified' : 'blocked',
     generationGaps,
+    silentGaps,
+    playableWithoutSound,
     sourceCoverage: {
       covered,
       total: sourceNodes.length,

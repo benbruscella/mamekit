@@ -49,6 +49,7 @@ function usage(): never {
   console.error('                  [--no-cache]   ignore .cache/ and re-derive everything from MAME source');
   console.error('       mamekit --build-runtime [--build-app] [--targets <game,...>]');
   console.error('       mamekit --serve            serve the unified app + all generated games');
+  console.error('                  [--no-build]   serve dist exactly as it is, without recompiling the app');
   process.exit(2);
 }
 
@@ -69,7 +70,7 @@ for (let i = 0; i < argv.length; i++) {
     opts[key] = next && next.endsWith('.json') ? argv[++i] : 'true';
   } else if (
     key === 'skip-app' || key === 'build-app' || key === 'build-runtime' ||
-    key === 'all' || key === 'no-cache'
+    key === 'all' || key === 'no-cache' || key === 'no-build'
   ) {
     opts[key] = 'true';
   } else {
@@ -362,6 +363,32 @@ function generateTargetProcess(target: string, attempt = 1): Promise<string> {
   });
 }
 
+/**
+ * Newest runtime-facing source file that postdates the compiled app shell, if
+ * any. `--no-build` trades freshness for start-up time, so it reports what it
+ * is serving stale rather than leaving that to be discovered in the browser.
+ */
+function staleAppSources(root: string): string {
+  const builtAt = statSync(join(root, 'app/main.js')).mtimeMs;
+  let newest = '';
+  let newestAt = builtAt;
+  const stack = ['src/runtime', 'src/ir', 'src/hardware'].map(dir => join(projectRoot, dir));
+  while (stack.length) {
+    const dir = stack.pop()!;
+    if (!existsSync(dir)) continue;
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      const info = statSync(full);
+      if (info.isDirectory()) stack.push(full);
+      else if (info.mtimeMs > newestAt) {
+        newestAt = info.mtimeMs;
+        newest = full.slice(projectRoot.length + 1);
+      }
+    }
+  }
+  return newest;
+}
+
 // ---------------------------------------------------------------------------
 
 if (generateAll) {
@@ -414,8 +441,28 @@ if (generateAll) {
       await gamesManifest(outRoot, artworkDir(projectRoot)));
   }
 } else if (serveOnly) {
-  const { buildApp } = await import('./gen/generate.ts');
-  await buildApp(outRoot);
+  if ('no-build' in opts) {
+    // Serve whatever is already in dist. The app shell is compiled from src at
+    // serve time by default, so skipping it means the browser can be running
+    // older JS than the working tree; say so rather than let it look emulated.
+    if (!existsSync(join(outRoot, 'app/main.js'))) {
+      console.error(
+        `error: no compiled app at ${join(outRoot, 'app')} — ` +
+        'run `npm run gen:all` (or `npm run serve:build`) first',
+      );
+      process.exit(1);
+    }
+    const drift = staleAppSources(outRoot);
+    console.log(
+      drift
+        ? `mamekit: serving ${outRoot} as-is — app is older than ${drift} ` +
+          '(run `npm run serve:build` to recompile)'
+        : `mamekit: serving ${outRoot} as-is (no app rebuild)`,
+    );
+  } else {
+    const { buildApp } = await import('./gen/generate.ts');
+    await buildApp(outRoot);
+  }
   const { serve } = await import('./serve.ts');
   const port = await serve(
     { '': outRoot }, // neither ROMs nor artwork are served from .data

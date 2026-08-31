@@ -34,6 +34,14 @@ export interface SoundRuntimeContext {
   fraction(): number;
   /** Call a method on an instantiated generated device, if it has one. */
   callDevice(tag: string, method: string, ...args: number[]): number | undefined;
+  /**
+   * Drain the PCM a main-thread sound device rendered into its MAME stream.
+   *
+   * The board collects `sound_stream::put_int` per device, so a family that
+   * pumps its chip beside the CPU can forward samples to the sink without the
+   * board knowing which chip it is.
+   */
+  deviceStream(tag: string): readonly number[];
   /** Run a callback's generated handler, for device ports read back. */
   runCallbackHandler(callbackId: string): number | undefined;
   /** Deliver a device signal through the board's typed effects. */

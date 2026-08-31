@@ -1,4 +1,5 @@
-import { Bus, type HandlerRegistry } from './bus.ts';
+import { Bus, type HandlerRegistry, type ReadHandler, type WriteHandler } from './bus.ts';
+import { installedOffset, RecordingAddressSpace } from './address-space-install.ts';
 import { createCpu, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
 import {
   createDevice,
@@ -224,6 +225,19 @@ class IrBoard implements Board {
   private readonly cpuReportedSuspended = new Map<string, boolean>();
   private readonly devices = new Map<string, Device>();
   private readonly generatedBanks: Record<string, GeneratedMemoryBank> = {};
+  /** MAME address-space taps a mounted cartridge installed over the CPU space. */
+  private cartridgeTaps: ((address: number) => void)[] = [];
+  /**
+   * Cycles a CPU has run inside the slice it is running now.
+   *
+   * `cpuCycles` is only banked when a slice ends, so on its own it makes
+   * `total_cycles()` a staircase: every access inside one slice reads the same
+   * number and the count then jumps a whole quantum. Hardware that derives a
+   * beam position from it therefore stood still and teleported -- the Atari
+   * 2600's TIA drew one scanline where three belonged, leaving two of every
+   * three lines black and the picture flickering.
+   */
+  private readonly cpuSliceCycles = new Map<string, number>();
   /** MAME `memory_bank::set_entry` per board bank tag. */
   private readonly bankEntry = new Map<string, (entry: number) => number>();
   /**
@@ -360,6 +374,11 @@ class IrBoard implements Board {
             return Math.floor(this.beamPosition()) % vtotal;
           },
           hpos: () => 0,
+          // MAME's screen dimensions are the whole raster, not the visible
+          // window: a device that allocates a bitmap from them addresses it in
+          // raster coordinates.
+          width: () => Math.max(1, machine.execution.screen.htotal ??
+            (machine.execution.screen.xOffset ?? 0) + machine.execution.screen.width),
           height: () => Math.max(1, machine.execution.screen.vtotal),
           frame_number: () => this.frameRunner?.frameCount ?? 0,
         };
@@ -441,9 +460,18 @@ class IrBoard implements Board {
                     cycles / Math.max(1, cpuSpec.cycleClock ?? cpuSpec.clock);
                 }
                 if (method === 'total_cycles') {
-                  return () => this.cpuCycles.get(cpuSpec.tag) ?? 0;
+                  return () => this.totalCycles(cpuSpec.tag);
                 }
                 if (method === 'reset') return () => this.cpus.get(cpuSpec.tag)?.reset();
+                // Hardware that takes the bus away from the processor removes
+                // the cycles it will not get. Without this the call fell through
+                // to the device fallback below, which finds no device for a CPU
+                // tag and answers 0 -- so the Atari 2600's WSYNC never parked
+                // the 6507, every scanline came up short, and the frame ran 244
+                // lines instead of 262.
+                if (method === 'adjust_icount') {
+                  return (delta: number) => this.adjustGeneratedIcount(cpuSpec.tag, delta);
+                }
                 if (method === 'set_input_line') {
                   return (line: number, state: number) => {
                     const cpu = this.cpus.get(cpuSpec.tag);
@@ -783,6 +811,7 @@ class IrBoard implements Board {
       calls['m_dvg.reset_w'] = () => 0;
     }
     this.installGeneratedDeviceBuses(machine, registry);
+    this.cartridgeTaps = this.installCartridgeMemoryHandlers(machine, registry);
     this.soundRuntime = this.installGeneratedSoundHandlers(machine, regions, sinks, registry);
     this.installMemoryBanks(machine, regions, registry);
     this.installDeclarativeHandlers(machine, config, inputs, registry);
@@ -897,6 +926,12 @@ class IrBoard implements Board {
         regions,
       );
       this.cpuBuses.set(specification.tag, bus);
+      // A cartridge's read taps observe the CPU's own space. They answer
+      // nothing, so they layer over whatever already decodes the address --
+      // which for an Atari 2600 bank switch is the ROM window it just read.
+      if (specification.tag === machine.execution.cpus[0]?.tag) {
+        for (const tap of this.cartridgeTaps) bus.installAccessTap(tap);
+      }
       for (const viewTag of new Set(
         (specification.ranges ?? []).flatMap(range => range.viewTag ? [range.viewTag] : []),
       )) {
@@ -971,6 +1006,10 @@ class IrBoard implements Board {
         } : {}),
         timing: (elapsed, target) => {
           this.currentLineFraction = target > 0 ? Math.min(1, elapsed / target) : 0;
+          this.cpuSliceCycles.set(
+            specification.tag,
+            Math.max(0, Math.min(target, elapsed)),
+          );
           if (specification.tag === timerClockCpu?.tag) {
             const current = Math.max(0, Math.min(target, elapsed));
             // run() calls timing(0,target) at the start of each slice and
@@ -1068,7 +1107,7 @@ class IrBoard implements Board {
         }
       };
       calls[`m_${specification.tag}.total_cycles`] = () =>
-        this.cpuCycles.get(specification.tag) ?? 0;
+        this.totalCycles(specification.tag);
       // MAME's device_state_interface, by the state index the CPU's own lowered
       // enum gives the driver (`m_maincpu->state_int(Z80_HL)`).
       calls[`m_${specification.tag}.state_int`] = state => cpu.stateInt(state);
@@ -1425,6 +1464,7 @@ class IrBoard implements Board {
               : 0);
             this.currentLineFraction = 0;
             this.soundRuntime?.tickCpu?.(specification.tag, executed);
+            this.cpuSliceCycles.set(specification.tag, 0);
             this.cpuCycles.set(
               specification.tag,
               (this.cpuCycles.get(specification.tag) ?? 0) + executed,
@@ -1622,7 +1662,9 @@ class IrBoard implements Board {
             ),
           );
         },
-        callback.slot ?? 0,
+        // Left undefined when the source named no bit: that is what tells the
+        // device this binds the whole-port devcb rather than bit zero.
+        callback.slot,
       );
     }
     host.bindCall('m_cpu.set_input_line', (line, state) => {
@@ -1942,12 +1984,43 @@ class IrBoard implements Board {
    * common one: hardware stole cycles from the CPU, so the board holds it back
    * for that many. A positive adjustment gives cycles back.
    */
+  /**
+   * MAME's `total_cycles()`: everything this CPU has run, including the slice
+   * it is inside. Banked cycles alone advance only at slice boundaries.
+   */
+  private totalCycles(cpuTag: string): number {
+    return (this.cpuCycles.get(cpuTag) ?? 0)
+      + (this.cpuSliceCycles.get(cpuTag) ?? 0)
+      // The slice total only moves between instructions. A device read or
+      // write happens *inside* one, and MAME counts the cycles the current
+      // instruction has already paid for -- so a cycle-accurate core is asked
+      // for them here.
+      + (this.cpus.get(cpuTag)?.elapsedCycles?.() ?? 0);
+  }
+
+  /**
+   * MAME `device_execute_interface::adjust_icount`.
+   *
+   * A negative delta is hardware taking the bus away: the processor loses those
+   * cycles now, where it stands. The Atari 2600's WSYNC parks the 6507 until
+   * the beam reaches the next scanline, and deferring that to the following
+   * slice short-changed every line -- River Raid ran 244 scanlines to the frame
+   * instead of 262, by a different amount each time, which is what made the
+   * picture flicker. The running core is told to end its slice; anything it
+   * cannot absorb there carries to the next one.
+   */
   private adjustGeneratedIcount(cpuTag: string, delta: number): number {
     if (!cpuTag || !delta) return 0;
-    this.cpuStalls.set(
-      cpuTag,
-      Math.max(0, (this.cpuStalls.get(cpuTag) ?? 0) - delta),
-    );
+    const stall = Math.max(0, -delta);
+    const cpu = this.cpus.get(cpuTag) as { stallCycles?: number } | undefined;
+    // Charged against the slice the processor is inside, so the cycles come off
+    // where the hardware took them. Charges accumulate: System 1 bills one per
+    // slow access and can do so several times inside a slice.
+    if (stall && cpu && this.runningCpu === cpuTag && typeof cpu.stallCycles === 'number') {
+      cpu.stallCycles += stall;
+      return 0;
+    }
+    this.cpuStalls.set(cpuTag, Math.max(0, (this.cpuStalls.get(cpuTag) ?? 0) + stall));
     return 0;
   }
 
@@ -2764,6 +2837,90 @@ class IrBoard implements Board {
   }
 
   /**
+   * Run a mounted cartridge's own `install_memory_handlers` and keep what it
+   * asked for.
+   *
+   * Some cartridge buses are not describable by an address map: an Atari 2600
+   * cartridge installs itself into the 6507's space when it is mounted, and its
+   * bank switching is a read tap on a ROM address rather than anything the
+   * driver's map could name. MAME's installer is the authority on what a PCB
+   * decodes, so the host runs it rather than restating it -- which is what lets
+   * one capability cover every banking scheme MAME declares.
+   *
+   * Base installs become ordinary ranges appended after the driver's, so a
+   * later install wins exactly as it does in MAME. Taps answer nothing, so they
+   * are returned for the bus to layer over whatever does.
+   */
+  private installCartridgeMemoryHandlers(
+    machine: BoardIr,
+    registry: HandlerRegistry,
+  ): ((address: number) => void)[] {
+    const taps: ((address: number) => void)[] = [];
+    for (const [tag, device] of this.devices) {
+      if (device.role() !== 'cartridge') continue;
+      const space = new RecordingAddressSpace();
+      let installed = false;
+      try {
+        device.invokeSlot('install_memory_handlers', space as unknown as number);
+        installed = true;
+      } catch {
+        // A PCB with no installer of its own is not an error: the slot simply
+        // decodes nothing extra, which is what an empty slot does.
+      }
+      if (!installed || !space.entries.length) continue;
+      const cpu = machine.execution.cpus[0];
+      if (!cpu) continue;
+      const ranges = cpu.ranges ??= [];
+      for (const [index, entry] of space.entries.entries()) {
+        if (entry.kind === 'tap') {
+          const { start, end, read, write } = entry;
+          const observe = read ?? write;
+          if (!observe) continue;
+          taps.push(address => {
+            if (address >= start && address <= end) observe(address, 0, 0xff);
+          });
+          continue;
+        }
+        const key = `cartridge:${tag}:${index}`;
+        const { start, end, mirror } = entry;
+        let read: ReadHandler | undefined;
+        let write: WriteHandler | undefined;
+        if (entry.kind === 'rom') {
+          const { bytes } = entry;
+          read = address => Number(bytes[installedOffset(address, start, mirror) % bytes.length] ?? 0xff) & 0xff;
+        } else if (entry.kind === 'bank') {
+          const { bank } = entry;
+          if (entry.read) read = address => bank.read(installedOffset(address, start, mirror)) & 0xff;
+          if (entry.write) {
+            write = (address, _offset, data) =>
+              bank.write(installedOffset(address, start, mirror), data & 0xff);
+          }
+        } else {
+          const handler = entry;
+          if (handler.read) {
+            read = address => Number(handler.read!(installedOffset(address, start, mirror))) & 0xff;
+          }
+          if (handler.write) {
+            write = (address, _offset, data) =>
+              void handler.write!(installedOffset(address, start, mirror), data & 0xff);
+          }
+        }
+        if (read) registry.read[key] = read;
+        if (write) registry.write[key] = write;
+        ranges.push({
+          start,
+          end: Math.max(end, start),
+          kind: 'handler',
+          ...(mirror ? { mirror } : {}),
+          ...(read ? { read: key } : {}),
+          ...(write ? { write: key } : {}),
+        });
+      }
+    }
+    return taps;
+  }
+
+  /**
    * Install ranges that MAME adds dynamically from machine_start (cartridge
    * slots are the canonical case). The capability emits the ranges beside the
    * generated device; the host only composes method and bank endpoints.
@@ -3253,6 +3410,7 @@ class IrBoard implements Board {
         const device = this.devices.get(tag);
         return device?.methodNames().includes(method) ? device.call(method, ...args) : undefined;
       },
+      deviceStream: tag => this.devices.get(tag)?.takeStreamSamples?.() ?? [],
       runCallbackHandler: callbackId =>
         executeGeneratedCallbackHandler(machine, callbackId, this.bindings),
       dispatch: (ownerTag, signal, value) =>

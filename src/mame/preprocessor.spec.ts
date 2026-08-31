@@ -1,0 +1,92 @@
+import assert from 'node:assert/strict';
+import { collectFunctionMacros, expandFunctionMacros } from './preprocessor.ts';
+
+let passed = 0;
+const check = (name: string, run: () => void): void => { run(); passed++; void name; };
+
+check('a multi-line statement macro is collected as one body', () => {
+  const macros = collectFunctionMacros(`
+#define RESXX_APPLY_ACTIVE_HMOVE(HORZ,MOTION,MOTCLK)   \\
+\tif ( curr_x < 7 ) {                                  \\
+\t\tHORZ += 8;                                         \\
+\t}
+`);
+  assert.equal(macros.length, 1);
+  assert.deepEqual(macros[0]!.parameters, ['HORZ', 'MOTION', 'MOTCLK']);
+  assert.match(macros[0]!.body, /HORZ \+= 8;/);
+  assert.doesNotMatch(macros[0]!.body, /\\/, 'continuations are joined, not kept');
+});
+
+check('a value macro is not a function macro', () => {
+  assert.deepEqual(collectFunctionMacros('#define HMOVE_INACTIVE -200\n'), []);
+});
+
+check('an expression macro is left for the runtime to route by name', () => {
+  // The discrete-sound node macros are the case that matters: their NAME is
+  // the worklet input the write is routed to, so expanding them loses it.
+  assert.deepEqual(
+    collectFunctionMacros('#define NAMCO_54XX_0_DATA(base)  (NODE_RELATIVE(base, 0))\n'),
+    [],
+  );
+});
+
+check('an invocation is substituted with its arguments in place', () => {
+  const macros = collectFunctionMacros('#define ADD(A,B) A += (B);\n');
+  assert.equal(
+    expandFunctionMacros('ADD(total, x + 1)', macros).trim(),
+    '(total) += ((x + 1));',
+  );
+});
+
+check('a braced body swallows the semicolon of its call statement', () => {
+  const macros = collectFunctionMacros('#define BUMP(H) if (H < 0) { H += 160; }\n');
+  const expanded = expandFunctionMacros('BUMP(horz); horz++;', macros);
+  assert.equal(expanded.trim(), 'if ((horz) < 0) { (horz) += 160; } horz++;');
+});
+
+check('arguments containing commas inside parens stay whole', () => {
+  const macros = collectFunctionMacros('#define ONE(A,B) A = B;\n');
+  assert.equal(
+    expandFunctionMacros('ONE(dst, std::min(a, b))', macros).trim(),
+    '(dst) = (std::min(a, b));',
+  );
+});
+
+check('an unknown macro-shaped call is left alone', () => {
+  const macros = collectFunctionMacros('#define KNOWN(A) A;\n');
+  const source = 'BIT(value, 3) + UNKNOWN(x)';
+  assert.equal(expandFunctionMacros(source, macros), source);
+});
+
+check('a call whose arity does not match is left alone', () => {
+  const macros = collectFunctionMacros('#define PAIR(A,B) A = B;\n');
+  assert.equal(expandFunctionMacros('PAIR(x)', macros), 'PAIR(x)');
+});
+
+check('intrinsics the IR answers itself are never expanded', () => {
+  // MAME's own headers define BIT; the runtime implements it. Substituting a
+  // redefinition here would shadow the implementation with dead text.
+  assert.deepEqual(collectFunctionMacros('#define BIT(x,n) (((x) >> (n)) & 1)\n'), []);
+});
+
+check('a macro invoked inside another macro call expands too', () => {
+  const macros = collectFunctionMacros('#define SET(A,B) A = B;\n#define ZERO(A) SET(A, 0);\n');
+  assert.equal(expandFunctionMacros('ZERO(horz)', macros).replace(/\s+/g, ' ').trim(),
+    '((horz)) = (0);;');
+});
+
+check('a self-referential macro terminates instead of spinning', () => {
+  const macros = collectFunctionMacros('#define LOOP(A) LOOP(A);\n');
+  assert.ok(expandFunctionMacros('LOOP(x)', macros).length < 10_000);
+});
+
+check('tracing macros are left for the normalizer to strip at the call site', () => {
+  // Expanding LOGMASKED would replace one throwaway call with a VERBOSE-guarded
+  // block the tracing stripper no longer recognises.
+  assert.deepEqual(
+    collectFunctionMacros('#define LOGTIMER(...) LOGMASKED(LOG_TIMER, __VA_ARGS__)\n'),
+    [],
+  );
+});
+
+console.log(`preprocessor.spec: ${passed} passed`);

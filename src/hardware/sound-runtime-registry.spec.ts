@@ -29,6 +29,7 @@ installSoundRuntime({
   soundData: () => {},
   fraction: () => 0.25,
   callDevice: () => undefined,
+  deviceStream: () => [],
   runCallbackHandler: () => undefined,
   dispatch: () => {},
   readSignal: () => undefined,
@@ -79,6 +80,7 @@ installSoundRuntime({
   soundWrite: () => {},
   soundData: () => {},
   fraction: () => 0,
+  deviceStream: () => [],
   callDevice: (...args) => {
     williamsDeviceCalls.push(args);
     return 0;

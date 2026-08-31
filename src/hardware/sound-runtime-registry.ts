@@ -12,6 +12,7 @@ import { installNamcoWsgRuntime } from './namco-wsg/runtime.ts';
 import { installSamplesRuntime } from './samples/runtime.ts';
 import { installYm2151Runtime } from './ym2151/runtime.ts';
 import { installBerzerkSoundRuntime } from './berzerk-sound/runtime.ts';
+import { installA2600Runtime } from './a2600/runtime.ts';
 import {
   deviceAliases,
   type SoundRuntimeContext,
@@ -34,6 +35,7 @@ const INSTALLERS: Readonly<Record<string, SoundRuntimeInstaller>> = {
   ym2151: installYm2151Runtime,
   berzerk: installBerzerkSoundRuntime,
   exidy: installBerzerkSoundRuntime,
+  tia: installA2600Runtime,
 };
 
 export function installSoundRuntime(context: SoundRuntimeContext): SoundRuntimeHooks | undefined {

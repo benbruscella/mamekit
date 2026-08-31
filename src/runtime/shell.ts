@@ -256,6 +256,12 @@ export interface ShellConfig {
     defaultSlot?: string;
     /** ROM region a cartridge PCB loads into, as MAME's rom_alloc names it. */
     romRegion?: string;
+    /**
+     * What the cartridge slot accepts, from its own
+     * `device_image_interface::file_extensions()`: ".bin"/".a26" for the VCS,
+     * ".rom"/".col"/".bin" for the ColecoVision, ".nes"/".unf"/".unif" here.
+     */
+    extensions?: string[];
     /** generated cartridge availability index, when a local dump audit existed */
     cartsUrl?: string;
     /**
@@ -896,7 +902,7 @@ function keyLabel(code: string): string {
     ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓',
     Space: 'Space', Enter: 'Enter', ShiftLeft: 'Shift', ShiftRight: 'Shift',
   };
-  return map[code] ?? code.replace(/^Key|^Digit/, '');
+  return map[code] ?? code.replace(/^Key|^Digit|^Numpad/, '');
 }
 
 /** Friendly function name from a binding's IPT type / graph label. */
@@ -931,7 +937,9 @@ function controlsHelp(cfg: ShellConfig): string {
   for (const b of cfg.bindings) {
     const fn = fnLabel(b.label);
     if (fn === 'move') { for (const k of b.keys) dirKeys.add(k); continue; }
-    const keys = b.keys.map(keyLabel).join(' or ');
+    // One visible key per alias: a control bound to both the number row and the
+    // keypad is one key to the player, and "2 or Numpad2" reads as two.
+    const keys = [...new Set(b.keys.map(keyLabel))].join(' or ');
     const line = `${keys}: ${fn}`;
     if (seen.has(line)) continue;
     seen.add(line);
