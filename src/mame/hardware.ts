@@ -162,7 +162,17 @@ function unquote(value: string | undefined): string | undefined {
   return match?.[1];
 }
 
+/**
+ * One index per checkout, because building it reads every source file under
+ * `src/devices` and `src/mame`. A device that instantiates other devices asks
+ * for this while it is itself being compiled, so an uncached call turned one
+ * full-tree scan into one per device and made the closure build crawl.
+ */
+const hardwareIndexes = new Map<string, Map<string, MameHardwareDefinition>>();
+
 export function indexMameHardware(mameSrc: string): Map<string, MameHardwareDefinition> {
+  const cached = hardwareIndexes.get(mameSrc);
+  if (cached) return cached;
   const roots = [join(mameSrc, 'src/devices'), join(mameSrc, 'src/mame')]
     .filter(existsSync);
   const definitions = new Map<string, MameHardwareDefinition>();
@@ -174,6 +184,7 @@ export function indexMameHardware(mameSrc: string): Map<string, MameHardwareDefi
       }
     }
   }
+  hardwareIndexes.set(mameSrc, definitions);
   return definitions;
 }
 
