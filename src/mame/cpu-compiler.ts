@@ -3,6 +3,7 @@ import { join, relative } from 'node:path';
 import type { BoardSourceRef, GeneratedHandlerProgram } from '../ir/board.ts';
 import { parseMameAst, parseMameSource, splitMameArgs } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
+import { stripCppComments } from './initializer.ts';
 import {
   parseZ80OpcodeDsl,
   type OpcodeDslOperation,
@@ -2352,6 +2353,12 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
     'read_byte', 'read_word', 'write_byte', 'write_word', 'read_port_byte',
     'read_port_word', 'write_port_byte', 'write_port_byte_al', 'write_port_word',
     'fetch', 'execute_set_input',
+    // Address-space plumbing, not semantics: sreg_to_space picks between the
+    // AS_CODE/AS_STACK/AS_EXTRA spaces a driver may install, and MAME aliases
+    // all three onto m_program when it does not. Every caller of it is already
+    // skipped above, so lowering it only reaches m_program, which the
+    // generated core -- a single program bus -- has no member for.
+    'sreg_to_space',
   ]);
   const seenMethods = new Set<string>();
   for (const fn of ast) {
@@ -2595,6 +2602,10 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
     if ([
       'device_start', 'device_reset', 'execute_run', 'execute_set_input',
       'memory_space_config', 'create_disassembler', 'register_debug_state',
+      // device_state_interface, like the other lifecycle entries here: it
+      // formats m_fcw for the debugger against STATE_GENFLAGS, a distate.h
+      // enumerator that is not part of any CPU definition.
+      'state_import', 'state_export', 'state_string_export',
       'register_save_state', 'init_spaces', 'init_tables', 'clear_internal_state',
       'RDMEM_B', 'RDMEM_W', 'RDMEM_L', 'WRMEM_B', 'WRMEM_W', 'WRMEM_L',
       'RDPORT_B', 'RDPORT_W', 'WRPORT_B', 'WRPORT_W', 'RDOP', 'get_operand',
@@ -3385,15 +3396,28 @@ function extractConstexprConstants(source: string): Record<string, number> {
   return resolveConstants(expressions);
 }
 
+/**
+ * Enumerator values declared in a CPU header.
+ *
+ * Comments are removed by the scanner, not by a pattern, and that is load
+ * bearing twice over. A block comment holding a comma splits one enumerator
+ * into two entries and silently shifts every value after it: i86.h annotates
+ * its BASE_CYCLES table that way, so `NOP` came out 14 instead of 21 and every
+ * `CLK`/`CLKM` charge indexed the wrong m_timing slot. Taking the block
+ * comments out with a regex instead is worse -- MAME's section banners are
+ * lines of slash-slash-stars, whose second character pair reads as an opener
+ * that then swallows the rest of the header, which is exactly how m6809.h
+ * loses all six of its enums.
+ */
 function extractEnumConstants(
   source: string,
   seed: Record<string, number>,
 ): Record<string, number> {
   const resolved = { ...seed };
-  for (const match of source.matchAll(/\benum(?:\s+\w+)?\s*\{([\s\S]*?)\};/g)) {
+  for (const match of stripCppComments(source).matchAll(/\benum(?:\s+\w+)?\s*\{([\s\S]*?)\};/g)) {
     let next = 0;
     for (const rawEntry of match[1]!.split(',')) {
-      const entry = rawEntry.replace(/\/\/.*$/gm, '').trim();
+      const entry = rawEntry.trim();
       if (!entry) continue;
       const parsed = /^(\w+)(?:\s*=\s*([\s\S]+))?$/.exec(entry);
       if (!parsed) continue;

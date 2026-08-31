@@ -92,6 +92,11 @@ assert.equal(
   true,
   'Z8002 opcode-table cycles must not be charged again for byte memory accesses',
 );
+// device_state_interface formatting is debugger presentation, not execution:
+// state_string_export reads STATE_GENFLAGS, a distate.h enumerator no CPU
+// definition declares, and nothing the core executes calls it.
+assert.ok(!z8002Definition.methods.some(method =>
+  ['state_import', 'state_export', 'state_string_export'].includes(method.name)));
 clearGeneratedCpus();
 registerGeneratedCpu(z8002Definition);
 const z8002Memory = new Uint8Array(0x10000);
@@ -128,6 +133,38 @@ assert.equal(i8088Definition.constants.ES, 0);
 assert.equal(i8088Definition.constants.CS, 1);
 assert.equal(i8088Definition.constants.SS, 2);
 assert.equal(i8088Definition.constants.DS, 3);
+
+// i86.h's BASE_CYCLES enumerators index m_i8086_timing, and the header
+// annotates the table with block comments that contain commas. Splitting the
+// enum body on commas without removing those first turns one annotated
+// enumerator into two entries and shifts every later value, so CLK/CLKM
+// charge the wrong timing slot. The values below are positions in the
+// declaration, counted with the comments gone.
+assert.equal(i8088Definition.constants.EXCEPTION, 0);
+assert.equal(i8088Definition.constants.INT3, 2);
+assert.equal(i8088Definition.constants.NOP, 21);
+assert.equal(i8088Definition.constants.POP_SEG, 84);
+assert.equal(i8088Definition.constants.ALU_RR8, 86);
+// The decisive check is that the enumerators still address the slot MAME
+// wrote: m_i8086_timing is positional, so a shifted enum reads a plausible
+// but wrong cycle count with no diagnostic anywhere.
+const i8086Timing = i8088Definition.members
+  .find(member => member.name === 'm_timing')!.values!;
+for (const [name, cycles] of [
+  ['EXCEPTION', 51], ['IRET', 32], ['NOP', 2], ['XLAT', 11],
+  ['POP_SEG', 12], ['ALU_RR8', 3], ['REP_MOVS16_COUNT', 17],
+] as const) {
+  assert.equal(
+    i8086Timing[i8088Definition.constants[name]!],
+    cycles,
+    `I8088 ${name} must index the m_i8086_timing slot MAME declares`,
+  );
+}
+
+// sreg_to_space picks between the AS_CODE/AS_STACK/AS_EXTRA address spaces,
+// which a single-program-bus core does not model; every caller of it is
+// already lowered as a direct bus access.
+assert.ok(!i8088Definition.methods.some(method => method.name === 'sreg_to_space'));
 clearGeneratedCpus();
 registerGeneratedCpu(i8088Definition);
 const i8088 = createCpu('I8088', {

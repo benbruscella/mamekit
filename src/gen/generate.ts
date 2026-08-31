@@ -1613,7 +1613,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         init = (init & ~mask) | (value & mask);
         dipDefaults.push({ port: tag, mask, value, name: 'Service Mode' });
       } else if (kind === 'bit') {
-        if (activeLow) init |= mask; // released = bit set; active-high released = bit clear
+        // MAME's own power-on value for the field. For a digital input this is
+        // the polarity restated -- released reads the mask when active low --
+        // but an analog field rests somewhere inside its travel, and starting
+        // it at zero pins the control to one end (see parse.ts).
+        init = (init & ~mask) | (Number(f.props.defaultValue ?? (activeLow ? mask : 0)) & mask);
         const type = String(f.props.type ?? '');
         const mods = (f.props.modifiers as string[] | undefined) ?? [];
         const changed = mods
@@ -1784,7 +1788,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           if (f.props.kind !== 'bit') continue;
           const mask = Number(f.props.mask);
           const activeLow = f.props.activeLow !== false;
-          if (activeLow) init |= mask;
+          init = (init & ~mask) |
+            (Number(f.props.defaultValue ?? (activeLow ? mask : 0)) & mask);
           if (boundController) continue;
           const type = String(f.props.type ?? '');
           const mods = (f.props.modifiers as string[] | undefined) ?? [];

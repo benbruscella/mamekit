@@ -1,6 +1,16 @@
 // DISABLED: this target is not discovered, generated or shipped.
 //
-// Play-test finding, issue #53: Doesn't pass boot.
+// Parked by issue #53 on play-test evidence; re-examined for issue #108,
+// which is where the measurements below come from.
+//
+// The framebuffer is uninitialised noise and stops changing at frame 71.
+// Williams bitmap hardware draws through WILLIAMS_BLITTER_SC1, which is
+// still a generation gap, so nothing ever writes the display; HC55516 CVSD
+// speech is missing for the same reason.
+//
+// Its recorded golden dates from that broken state -- the video hash is
+// identical at frames 180 through 1200 -- so acceptance passes while the
+// game does not run. Re-record it only once the blitter exists.
 //
 // Move this module and its spec back up to src/games/ to re-enable the
 // target once the fault is fixed.

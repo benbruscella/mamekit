@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { compileSegaZ80RomTransform } from '../../mame/sega-z80-compiler.ts';
+import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
 import { upndown } from './upndown.ts';
-import { gameSourceGraph, mameSourceRoot } from '../test-support.ts';
+import { gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
 // This is a source-extraction regression while the System 1 sound handshake
 // is still being completed; it intentionally does not claim an acceptance
