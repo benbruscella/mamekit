@@ -3917,32 +3917,66 @@ export function generatedDeviceCallbackArguments(
   return [state];
 }
 
+/**
+ * A signal handler's parameter list, parsed once.
+ *
+ * A MAME signature is a constant, so splitting it and picking each declarator
+ * out with a regex on every dispatch is pure waste -- and dispatch is a hot
+ * path: the LR35902 raises its timer devcb from `cycles_passed`, which runs on
+ * every memory access, so this was the largest single self-time in a Game Boy
+ * frame. Same reasoning as the machine-handler signature cache above.
+ */
+interface SignalParameter {
+  name: string;
+  offset: boolean;
+  memMask: boolean;
+  memMaskDefault: number;
+}
+
+const SIGNAL_PARAMETERS = new Map<string, SignalParameter[]>();
+
+function signalParameters(parameters: string): SignalParameter[] {
+  let parsed = SIGNAL_PARAMETERS.get(parameters);
+  if (parsed) return parsed;
+  parsed = [];
+  for (const declaration of parameters.split(',')) {
+    const trimmed = declaration.trim();
+    if (!trimmed) continue;
+    const name = /(\w+)\s*$/.exec(trimmed)?.[1];
+    if (!name) continue;
+    parsed.push({
+      name,
+      offset: name === 'offset',
+      memMask: name === 'mem_mask',
+      memMaskDefault: /\b(?:u?int)?32_t\b|\bu32\b/.test(trimmed)
+        ? 0xffffffff
+        : /\b(?:u?int)?16_t\b|\bu16\b/.test(trimmed)
+          ? 0xffff
+          : 0xff,
+    });
+  }
+  SIGNAL_PARAMETERS.set(parameters, parsed);
+  return parsed;
+}
+
 export function generatedSignalHandlerArguments(
   parameters: string | undefined,
   state: number,
   firstArgument?: unknown,
   sourceArgs: readonly number[] = [],
 ): Record<string, unknown> {
-  const declarations = (parameters ?? '')
-    .split(',')
-    .map(parameter => parameter.trim())
-    .filter(Boolean);
+  const declarations = signalParameters(parameters ?? '');
   const args: Record<string, unknown> = { state, data: state };
   for (const [index, declaration] of declarations.entries()) {
-    const name = /(\w+)\s*$/.exec(declaration)?.[1];
-    if (!name) continue;
+    const name = declaration.name;
     if (index === 0 && firstArgument !== undefined) {
       args[name] = firstArgument;
-    } else if (name === 'offset') {
+    } else if (declaration.offset) {
       args[name] = sourceArgs[0] ?? 0;
-    } else if (name === 'mem_mask') {
+    } else if (declaration.memMask) {
       args[name] = sourceArgs.length >= 3
         ? sourceArgs.at(-1)
-        : /\b(?:u?int)?32_t\b|\bu32\b/.test(declaration)
-          ? 0xffffffff
-          : /\b(?:u?int)?16_t\b|\bu16\b/.test(declaration)
-            ? 0xffff
-            : 0xff;
+        : declaration.memMaskDefault;
     } else {
       args[name] = state;
     }
