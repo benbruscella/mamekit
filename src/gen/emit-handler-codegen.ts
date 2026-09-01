@@ -56,6 +56,25 @@ function boardMemberNames(machine: BoardIr): Map<string, string> {
   for (const bank of machine.execution.banks ?? []) {
     if (bank.member) names.set(bank.member, '');
   }
+  // A driver's ioport finders are members like any other -- the board binds
+  // each one to its live port -- and MAME reads a control through the finder
+  // (`m_inputs->read()`). Leaving them out declined every handler that reads a
+  // control, which on the Game Boy is the joypad register itself.
+  for (const input of machine.execution.inputMembers ?? []) {
+    names.set(input.member, '');
+  }
+  // A region_ptr finder is a byte array the board binds from the ROM set, and
+  // MAME indexes it directly (`return m_region_boot[offset];`).
+  for (const member of Object.keys(machine.execution.regionBindings ?? {})) {
+    names.set(member, memory);
+  }
+  // A memory_view the board composes: `m_boot_view.disable()` is a call on a
+  // member the runtime binds, not an unknown name.
+  for (const cpu of machine.execution.cpus) {
+    for (const range of cpu.ranges ?? []) {
+      if (range.viewTag) names.set(range.viewTag, '');
+    }
+  }
   // Video-plan initial state (CPS-B configuration, scroll registers, size
   // constants) is written into the board's members before any handler runs,
   // so emitted code may read it exactly as the interpreter does.

@@ -381,6 +381,16 @@ class IrBoard implements Board {
             (machine.execution.screen.xOffset ?? 0) + machine.execution.screen.width),
           height: () => Math.max(1, machine.execution.screen.vtotal),
           frame_number: () => this.frameRunner?.frameCount ?? 0,
+          // MAME `screen_device::visible_area()`: the window inside the raster
+          // that reaches the display, in the same coordinates a device plots.
+          visible_area: () => ({
+            min_x: machine.execution.screen.xOffset ?? 0,
+            max_x: (machine.execution.screen.xOffset ?? 0) +
+              machine.execution.screen.width - 1,
+            min_y: machine.execution.screen.yOffset ?? 0,
+            max_y: (machine.execution.screen.yOffset ?? 0) +
+              machine.execution.screen.height - 1,
+          }),
           // MAME `screen_device::register_screen_bitmap`: the screen sizes the
           // device's own bitmap to the raster and keeps it that size. Without
           // it the Game Boy PPU plotted every pixel into a zero-by-zero bitmap
@@ -398,7 +408,10 @@ class IrBoard implements Board {
         // to the interpreter.
         const hostServiceHosts: Record<string, Record<string, unknown>> = {
           screen: screenHost as unknown as Record<string, unknown>,
-          machine: { side_effects_disabled: () => 0 },
+          machine: {
+            side_effects_disabled: () => 0,
+            time: () => generatedAttotime(this.machineSeconds()),
+          },
         };
         const screenServiceCalls: Record<string, (...args: number[]) => unknown> = {};
         for (const name of HOST_SERVICE_CALLS) {

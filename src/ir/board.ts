@@ -238,6 +238,16 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   // It sits at the top of the TMS9928A's `read` and `register_write`, and left
   // the whole port path -- every VRAM byte a game writes -- interpreted.
   'machine().side_effects_disabled',
+  // The scheduler's clock. Hardware that measures an interval differences two
+  // readings of it, and a chip that does so on every register access -- the
+  // Game Boy PPU brings its whole state machine up to date that way -- left
+  // its hottest method interpreted for the sake of one call.
+  'machine().time',
+  // The screen's visible rectangle. A device that clears a band of its own
+  // bitmap asks for it (`m_bitmap.fill(colour, screen().visible_area())`),
+  // which left the Game Boy PPU's scanline renderer -- and, through it, its
+  // whole state machine -- interpreted.
+  'screen().visible_area',
 ];
 
 export type GeneratedExpression =

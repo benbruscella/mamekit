@@ -323,9 +323,14 @@ function supportsMethod(
     visitOperationExpressions(operation, expression => {
       if (!supported) return;
       if (expression.kind === 'identifier') {
+        // A constant written with its declaring class (`lr35902_cpu_device::
+        // VBL_INT`) is recorded under its leaf name. The interpreter resolves
+        // both spellings; declining the qualified one left the Game Boy PPU's
+        // whole state machine interpreted for the sake of one enum.
         supported = locals.has(expression.name) ||
           members.has(expression.name) ||
           constants.has(expression.name) ||
+          constants.has(expression.name.split('::').at(-1)!) ||
           callees.has(expression.name) ||
           ['true', 'false', 'nullptr', 'g_profiler',
             'attotime::zero', 'attotime::never'].includes(expression.name) ||
@@ -608,8 +613,11 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     if (expression.name === 'ACCESSING_BITS_8_15') {
       return `(((${localName('mem_mask')}) & 0xff00) ? 1 : 0)`;
     }
+    const leaf = expression.name.split('::').at(-1)!;
     const constant = context.methodConstants?.[expression.name] ??
-      context.definition.constants[expression.name];
+      context.definition.constants[expression.name] ??
+      context.methodConstants?.[leaf] ??
+      context.definition.constants[leaf];
     if (constant !== undefined) return String(constant);
     return memberValue(expression.name);
   }
@@ -877,6 +885,10 @@ function emitCall(
       's16', 'int16_t', 'u32', 'uint32_t', 's32', 'int32_t'].includes(name)) {
       return wrapType(args[0] ?? '0', name);
     }
+    // What `stripTracingCalls` leaves where a MAME `LOG(...)` stood. Emitting
+    // the dispatch put 36 interpreter calls inside the Game Boy PPU's scanline
+    // renderer for a placeholder that does nothing.
+    if (name === 'TRACE_NOOP') return '0';
     if (context.definition.methods.some(method => method.name === name)) {
       return `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''})`;
     }

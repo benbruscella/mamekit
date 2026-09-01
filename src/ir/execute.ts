@@ -1485,6 +1485,10 @@ export function isFloatingExpression(expression: GeneratedExpression): boolean {
  * for a name it does not know, so callers keep their own fallbacks.
  */
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
+  // What `stripTracingCalls` leaves where a MAME `LOG(...)` stood. It is a
+  // placeholder, not hardware, and it is answered first because a renderer
+  // carries dozens of them through its hottest loop.
+  if (name === 'TRACE_NOOP') return 0;
   if (name === 'BIT') {
     // MAME BIT(x, n) extracts one bit; BIT(x, n, w) extracts a w-bit field.
     const width = args.length > 2 ? toNumber(args[2]) : 1;
@@ -2210,34 +2214,34 @@ export function generatedWideBinary(
   return wideBinary(operator, left, right);
 }
 
+const WIDE_OPERATORS: Record<string, (a: bigint, b: bigint) => bigint | boolean> = {
+  '|': (a, b) => a | b,
+  '^': (a, b) => a ^ b,
+  '&': (a, b) => a & b,
+  '<': (a, b) => a < b,
+  '<=': (a, b) => a <= b,
+  '>': (a, b) => a > b,
+  '>=': (a, b) => a >= b,
+  // Unsigned 64-bit: the operands are masked to their width so a shift or a
+  // multiply wraps the way the hardware model expects rather than growing.
+  '<<': (a, b) => BigInt.asUintN(64, a << b),
+  '>>': (a, b) => BigInt.asUintN(64, a) >> b,
+  '+': (a, b) => BigInt.asUintN(64, a + b),
+  '-': (a, b) => BigInt.asUintN(64, a - b),
+  '*': (a, b) => BigInt.asUintN(64, a * b),
+  '/': (a, b) => b === 0n ? 0n : a / b,
+  '%': (a, b) => b === 0n ? 0n : a % b,
+};
+
+const WIDE_MINIMUM = BigInt(Number.MIN_SAFE_INTEGER);
+const WIDE_MAXIMUM = BigInt(Number.MAX_SAFE_INTEGER);
+
 function wideBinary(operator: string, leftValue: unknown, rightValue: unknown): unknown {
-  const left = toBigInt(leftValue);
-  const right = toBigInt(rightValue);
-  const WIDE: Record<string, (a: bigint, b: bigint) => bigint | boolean> = {
-    '|': (a, b) => a | b,
-    '^': (a, b) => a ^ b,
-    '&': (a, b) => a & b,
-    '<': (a, b) => a < b,
-    '<=': (a, b) => a <= b,
-    '>': (a, b) => a > b,
-    '>=': (a, b) => a >= b,
-    // Unsigned 64-bit: the operands are masked to their width so a shift or a
-    // multiply wraps the way the hardware model expects rather than growing.
-    '<<': (a, b) => BigInt.asUintN(64, a << b),
-    '>>': (a, b) => BigInt.asUintN(64, a) >> b,
-    '+': (a, b) => BigInt.asUintN(64, a + b),
-    '-': (a, b) => BigInt.asUintN(64, a - b),
-    '*': (a, b) => BigInt.asUintN(64, a * b),
-    '/': (a, b) => b === 0n ? 0n : a / b,
-    '%': (a, b) => b === 0n ? 0n : a % b,
-  };
-  const apply = WIDE[operator];
-  if (!apply) return binary(operator, Number(left), Number(right));
-  const result = apply(left, right);
+  const apply = WIDE_OPERATORS[operator];
+  if (!apply) return binary(operator, toNumber(leftValue), toNumber(rightValue));
+  const result = apply(toBigInt(leftValue), toBigInt(rightValue));
   if (typeof result === 'boolean') return result ? 1 : 0;
-  return result >= BigInt(Number.MIN_SAFE_INTEGER) && result <= BigInt(Number.MAX_SAFE_INTEGER)
-    ? Number(result)
-    : result;
+  return result >= WIDE_MINIMUM && result <= WIDE_MAXIMUM ? Number(result) : result;
 }
 
 function toBigInt(value: unknown): bigint {
