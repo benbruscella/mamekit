@@ -355,6 +355,10 @@ function preparedHandlerRuntime(
   bindings: GeneratedHandlerBindings,
 ): GeneratedHandlerRuntime {
   if (prepared.runtime) return prepared.runtime;
+  // eslint-disable-next-line prefer-const -- `runtime` is referenced by its own
+  // `writableMember`, which resolves through `member` exactly as the
+  // interpreter does before deciding to allocate.
+  let runtime: GeneratedHandlerRuntime;
   // The interpreter resolves an identifier call through referenceCalls first
   // and the board's host calls second — `rectangle` is a video-package
   // reference call while `flip_screen` is a board call, and a renderer uses
@@ -372,7 +376,7 @@ function preparedHandlerRuntime(
   for (const name in prepared.referenceCalls) {
     calls[name] = prepared.referenceCalls[name]!;
   }
-  return prepared.runtime = {
+  return prepared.runtime = runtime = {
     get members() { return bindings.members ??= {}; },
     calls,
     get palette() { return []; },
@@ -414,6 +418,24 @@ function preparedHandlerRuntime(
     // answers as a resolved reference and is therefore truthy. Emitted code
     // reaches this only when `members.<name>` is absent, so the fast path
     // stays a plain property read.
+    // The container an indexed write stores into, materialised on first use
+    // exactly as `writableIndexObject` does for the interpreter. A board's
+    // state object only holds what a handler has already written, so without
+    // this an emitted `m_gb_io[0] = ...` stored into nothing.
+    //
+    // It resolves through the ordinary member read first: a member the board
+    // exposes through a getter, or one already holding memory, is returned as
+    // it stands. Only a name that resolves to nothing indexable is allocated,
+    // which is the one case the interpreter allocates for too.
+    writableMember: name => {
+      const current = bindings.members?.[name] ?? runtime.member(name);
+      if (isIndexableMemory(current) || isGeneratedPointer(current)) return current;
+      if (current && typeof current === 'object') return current;
+      const members = bindings.members ??= {};
+      const allocated: unknown[] = [];
+      members[name] = allocated;
+      return allocated;
+    },
     member: name => {
       const getter = bindings.getters?.[name];
       if (getter) return getter();

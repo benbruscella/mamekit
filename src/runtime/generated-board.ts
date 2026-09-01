@@ -831,11 +831,13 @@ class IrBoard implements Board {
         if (specification?.member) calls[`${specification.member}.${method}`] = invoke;
       }
     }
+    // The same clock the `machine()` object answers with -- the scheduler's,
+    // not the frame counter. A second binding here kept the old frame-granular
+    // answer alive for anything that reaches the chain by name, which is every
+    // emitted caller: the Game Boy PPU differences two readings of it to find
+    // how many cycles to run, and inside one frame the difference was zero.
     for (const device of this.devices.values()) {
-      device.bindCall('machine().time', () => generatedAttotime(
-        this.frameRunner?.frameCount /
-          Math.max(1, this.machine.execution.screen.refresh) || 0,
-      ));
+      device.bindCall('machine().time', () => generatedAttotime(this.machineSeconds()));
     }
     const sourceHandlers = generatedHandlerRegistry(machine, this.bindings);
     const registry: HandlerRegistry = {

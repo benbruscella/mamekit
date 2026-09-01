@@ -104,6 +104,8 @@ export interface GeneratedDeviceExecutionContext {
   dereference(value: unknown): unknown;
   /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
   container(value: unknown, method: string): unknown;
+  /** The container an indexed write stores into, addressed by member name. */
+  writableMember(name: string): unknown;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
   wide(operator: string, left: unknown, right: unknown): unknown;
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
@@ -700,6 +702,10 @@ class IrDevice implements Device {
         },
       dereference: dereferenceGeneratedValue,
       container: generatedContainerAccessor,
+      // A device declares every member up front, so the container is already
+      // there; the name-addressed form exists for the board, whose driver
+      // members are materialised on first write.
+      writableMember: name => this.members[name] ?? 0,
       wide: generatedWideBinary,
       invoke: (name, ...args) => {
         const method = this.selectMethod(name, args);

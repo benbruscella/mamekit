@@ -56,6 +56,9 @@ function boardMemberNames(machine: BoardIr): Map<string, string> {
   for (const bank of machine.execution.banks ?? []) {
     if (bank.member) names.set(bank.member, '');
   }
+  for (const input of machine.execution.inputMembers ?? []) {
+    names.set(input.member, '');
+  }
   // Deliberately NOT here: a driver's ioport finders, its memory views, and
   // its region pointers. Naming them would let codegen claim the handlers that
   // use them, and the emitter resolves a member call only through a property on

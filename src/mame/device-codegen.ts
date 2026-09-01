@@ -323,9 +323,14 @@ function supportsMethod(
     visitOperationExpressions(operation, expression => {
       if (!supported) return;
       if (expression.kind === 'identifier') {
+        // A constant written with its declaring class (`lr35902_cpu_device::
+        // VBL_INT`) is recorded under its leaf name, and `emitExpression`
+        // resolves both spellings. Declining the qualified one left the Game
+        // Boy PPU's whole state machine interpreted for the sake of one enum.
         supported = locals.has(expression.name) ||
           members.has(expression.name) ||
           constants.has(expression.name) ||
+          constants.has(expression.name.split('::').at(-1)!) ||
           callees.has(expression.name) ||
           ['true', 'false', 'nullptr', 'g_profiler',
             'attotime::zero', 'attotime::never'].includes(expression.name) ||
@@ -1087,7 +1092,17 @@ function emitAssignment(
     return `${localName(expression.name)}.set(${wrapType(next, valueType)})`;
   }
   if (expression.kind === 'index' && context.pointerSafeIndex) {
-    const object = emitExpression(expression.object, context);
+    // A board materialises a plain driver array the first time a handler
+    // writes one, so the container an indexed write stores into has to be
+    // asked for by NAME -- `runtime.writeIndex` only ever sees the value, and
+    // a member that does not exist yet reads as 0, which silently swallowed
+    // the write. That is how the Game Boy's `m_gb_io[0] = 0xCF | data` never
+    // reached the joypad register.
+    const object = expression.object.kind === 'identifier' &&
+        expression.object.name.startsWith('m_') &&
+        !context.locals.has(expression.object.name)
+      ? `runtime.writableMember(${JSON.stringify(expression.object.name)})`
+      : emitExpression(expression.object, context);
     const index = emitExpression(expression.index, context);
     const current = `runtime.readIndex(${object}, ${index})`;
     const next = operator === '='
