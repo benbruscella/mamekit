@@ -1068,6 +1068,10 @@ export interface GeneratedHandlerRuntime {
   };
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
+  /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
+  container(value: unknown, method: string): unknown;
+  /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
+  wide(operator: string, left: unknown, right: unknown): unknown;
   invoke(name: string, ...args: unknown[]): unknown;
   /** Context-free MAME framework macros, identical to the interpreter's. */
   macro(name: string, ...args: unknown[]): unknown;

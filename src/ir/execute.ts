@@ -399,6 +399,8 @@ function preparedHandlerRuntime(
         offset: index,
       },
     dereference: dereferenceGeneratedValue,
+    container: generatedContainerAccessor,
+    wide: wideBinary,
     invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
       bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
     macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
