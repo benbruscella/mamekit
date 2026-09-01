@@ -33,7 +33,9 @@ historical evidence and may describe deleted architectures.
 ## ENVIRONMENT AND GATES
 
 - MAME source is normally at `../mame`.
-- Node.js 23.6+ runs repository TypeScript directly.
+- Node.js 23.6+ runs repository TypeScript directly. `.nvmrc` pins the version
+  development and CI both use; `nvm use` / `fnm use` picks it up, and the CI
+  workflow reads the same file so the two cannot drift.
 - `npm run gen:all` generates every target with an acceptance contract. The set
   derives from `src/games/contracts.ts`; no target list is written by hand.
 - Run `npm run test:unit`, `npm run audit:generated`, and relevant real-ROM
