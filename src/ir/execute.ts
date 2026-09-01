@@ -404,6 +404,8 @@ function preparedHandlerRuntime(
       },
     dereference: dereferenceGeneratedValue,
     container: generatedContainerAccessor,
+    pointerStore: generatedPointerStore,
+    add: generatedAdd,
     wide: wideBinary,
     invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
       bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
@@ -547,8 +549,16 @@ function preparedMachineCalls(
   };
   for (const candidate of compiled) {
     const qualified = `${candidate.ownerClass}.${candidate.method}`;
+    // C++ spelling as well as the board's own. An explicit base call is
+    // recorded exactly as the source writes it -- `base_state::machine_reset`
+    // -- and it must reach that implementation rather than resolving by bare
+    // name into the override that called it.
+    const scoped = `${candidate.ownerClass}::${candidate.method}`;
     if (!referenceCalls[qualified]) {
       referenceCalls[qualified] = (...values) => invoke(candidate, values);
+    }
+    if (!referenceCalls[scoped]) {
+      referenceCalls[scoped] = (...values) => invoke(candidate, values);
     }
     if (!referenceCalls[candidate.method]) {
       referenceCalls[candidate.method] = (...values) => {
@@ -561,6 +571,7 @@ function preparedMachineCalls(
       .map(parameter => parameter.trim())
       .filter(Boolean);
     callParameters[qualified] = parameters;
+    callParameters[scoped] = parameters;
     callParameters[candidate.method] = parameters;
   }
   // A configured custom device can be a source-defined composite rather than
@@ -1627,6 +1638,18 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     return Math.round((toNumber(args[0]) & maximum) * 255 / maximum);
   }
   if (name === 'assert' || name === 'static_assert') return 0;
+  // C++17 `std::size`: the extent of an array. Unanswered it returned
+  // undefined, and MAME's Game Boy PPU indexes its window-start history with
+  // `(index + 4) % std::size(...)` -- which made every one of those subscripts
+  // NaN and the index with it.
+  if (name === 'std::size' || name === 'std::ssize') {
+    const container = args[0];
+    if (isIndexableMemory(container)) return container.length;
+    if (isGeneratedPointer(container)) {
+      return Math.max(0, (container.source as ArrayLike<unknown>).length - container.offset);
+    }
+    return 0;
+  }
   if (name === 'memcpy' || name === 'memmove') {
     copyGeneratedMemory(args[0], args[1], toNumber(args[2]));
     return args[0];
@@ -2542,6 +2565,54 @@ function isIndexableMemory(value: unknown): value is ArrayLike<unknown> {
  * not, and answered 0, so the Game Boy PPU fetched every background tile out
  * of address zero and drew a blank screen.
  */
+/**
+ * C++ `*pointer = value`, as emitted code performs it.
+ *
+ * A generated pointer stores at its own source and offset. Plain memory --
+ * which is what a `.share()`-bound member is, and qix stores its scanline
+ * latch through one -- stores at element zero. Anything else falls back to the
+ * indexed store so a materialised member still receives the write.
+ */
+/**
+ * C++ `a + b` where the compiler could not prove either side is a number.
+ *
+ * A call that answers memory -- `m_palette->pens()` -- has no declared type,
+ * and the interpreter decides pointer arithmetic from the value it actually
+ * gets. Emitted code that assumed a number turned the Neo Geo's pen base into
+ * an integer and drew every sprite from the wrong palette.
+ */
+export function generatedAdd(left: unknown, right: unknown): unknown {
+  if (isGeneratedPointer(left)) return offsetPointer(left, toNumber(right));
+  if (isIndexableMemory(left)) {
+    return { generatedPointer: true, source: left, offset: toNumber(right) };
+  }
+  if (isGeneratedPointer(right)) return offsetPointer(right, toNumber(left));
+  if (isIndexableMemory(right)) {
+    return { generatedPointer: true, source: right, offset: toNumber(left) };
+  }
+  if (typeof left === 'bigint' || typeof right === 'bigint') {
+    return wideBinary('+', left, right);
+  }
+  return toNumber(left) + toNumber(right);
+}
+
+export function generatedPointerStore(pointer: unknown, value: unknown): unknown {
+  if (isGeneratedPointer(pointer)) {
+    const source = pointer.source as Record<number, unknown> | undefined;
+    if (source) source[pointer.offset] = value;
+    return value;
+  }
+  if (isIndexableMemory(pointer)) {
+    if (ArrayBuffer.isView(pointer)) (pointer as unknown as Uint8Array)[0] = toNumber(value);
+    else (pointer as unknown[])[0] = value;
+    return value;
+  }
+  if (pointer && typeof pointer === 'object') {
+    (pointer as Record<number, unknown>)[0] = value;
+  }
+  return value;
+}
+
 export function generatedContainerAccessor(value: unknown, method: string): unknown {
   const held = isLValue(value) ? value.get() : value;
   const pointer = isGeneratedPointer(held);

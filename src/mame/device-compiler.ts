@@ -50,6 +50,8 @@ export interface GeneratedDeviceMember {
    * `values`/`memory`; this is what tells the host to make two of something.
    */
   arrayLength?: number;
+  /** Every declarator bound of a multi-dimensional C array member. */
+  arrayShape?: number[];
   /**
    * Fields of a member whose type is a struct the device declares.
    *
@@ -475,6 +477,7 @@ export function compileMameDevice(
         ...(memory ? { memory } : {}),
         ...(finder ? { finder } : {}),
         ...(member.arrayLength ? { arrayLength: member.arrayLength } : {}),
+        ...(member.arrayShape ? { arrayShape: member.arrayShape } : {}),
         ...(structFields.get(member.valueType.replace(/\*$/, '').trim())
           ? { fields: structFields.get(member.valueType.replace(/\*$/, '').trim()) }
           : {}),
@@ -1052,8 +1055,10 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
 
 function memberDeclarations(
   declaration: MameClass,
-): { name: string; valueType: string; arrayLength?: number }[] {
-  const members: { name: string; valueType: string; arrayLength?: number }[] = [];
+): { name: string; valueType: string; arrayLength?: number; arrayShape?: number[] }[] {
+  const members: {
+    name: string; valueType: string; arrayLength?: number; arrayShape?: number[];
+  }[] = [];
   // A member declared by an anonymous struct: `struct { bool on; ... }
   // m_snd_control;`. The block has no type name, so the member's own name is
   // the shape's key -- structDeclarations records it under the same one.
@@ -1087,10 +1092,10 @@ function memberDeclarations(
     // data member, and the TIA declares both its sprite state that way. Without
     // this they were not members at all, which left the whole scanline
     // compositor unemittable and every 2600 frame in the interpreter.
-    /^\s*(?:struct|union|enum)\s+([\w:]+)\s+(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
+    /^\s*(?:struct|union|enum)\s+([\w:]+)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*\s*;/gm,
     /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(\w+)\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*\s*;/gm,
   ];
   for (const pattern of patterns) {
     for (const match of declaration.body.matchAll(pattern)) {
@@ -1117,10 +1122,19 @@ function memberDeclarations(
       const arrayLength = bound
         ? Number(bound.trim())
         : templateCount ? Number(templateCount) : undefined;
+      // `uint8_t m_wave_ram[2][0x10];` -- a C array member may have more than
+      // one bound, and only the outermost is the declarator the runtime
+      // allocates from. The inner extents have to travel with it or the second
+      // subscript indexes a number: the Game Boy APU's wave channel read its
+      // whole waveform out of nothing.
+      const shape = [...match[0].matchAll(/\[([^\]]+)\]/g)]
+        .map(extent => Number(evalExpr(extent[1]!.trim(), {}) ?? Number.NaN))
+        .filter(extent => Number.isInteger(extent) && extent > 0);
       members.push({
         valueType,
         name,
         ...(Number.isInteger(arrayLength) && arrayLength! > 0 ? { arrayLength } : {}),
+        ...(shape.length > 1 ? { arrayShape: shape } : {}),
       });
     }
   }
@@ -1342,6 +1356,16 @@ function numericConstants(source: string): Record<string, number> {
   )) {
     expressions.set(match[1]!, match[2]!.trim());
   }
+  // A pre-C++17 in-class constant is spelled `static const`, not `constexpr`.
+  // MAME's Game Boy APU declares its frame-sequencer period that way, and
+  // unresolved it made every `cycles / FRAME_CYCLES` in the sequencer
+  // meaningless. `static` is required so a local `const int` inside a method
+  // body is never hoisted into the device's shared scope.
+  for (const match of source.matchAll(
+    /\bstatic\s+const\s+(?:\w+\s+)+(\w+)\s*=\s*([^;]+);/g,
+  )) {
+    expressions.set(match[1]!, match[2]!.trim());
+  }
   // Non-integral and pre-C++17 static class constants are commonly declared
   // in the header and defined in the implementation file. The unqualified
   // member name is what source-compiled methods reference.
@@ -1442,6 +1466,18 @@ function constantTables(source: string): Record<string, ConstantTable> {
     /\bstatic\s+const\s+\w+\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
   )) {
     tables[match[1]!] = {
+      values: splitMameArgs(match[2]!).map(value => value.trim()),
+    };
+  }
+  // A class's static table is declared in the header and defined out of line,
+  // qualified and without `static`: `const int gameboy_sound_device::
+  // wave_duty_table[4] = {...}`. Methods reference the unqualified name, and
+  // missing the definition left the Game Boy's square channels reading their
+  // duty waveform out of nothing at all.
+  for (const match of source.matchAll(
+    /\bconst\s+(?:\w+\s+)+\w+::(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
+  )) {
+    tables[match[1]!] ??= {
       values: splitMameArgs(match[2]!).map(value => value.trim()),
     };
   }

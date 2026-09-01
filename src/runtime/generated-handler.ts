@@ -29,6 +29,8 @@ export {
   executeGeneratedProgram,
   generatedContainerAccessor,
   generatedPeriodicLines,
+  generatedAdd,
+  generatedPointerStore,
   generatedWideBinary,
   generatedReferent,
   generatedValuesEqual,

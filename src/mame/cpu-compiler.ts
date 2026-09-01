@@ -3268,9 +3268,14 @@ export function normalizeMameExecutionSource(source: string): string {
     // reach back across a newline into a preceding // comment ("// character
     // palette\n const uint8_t *char_pal = ..."), splicing the declaration into
     // the comment and silently deleting it (Moon Patrol's init_palette).
+    // The declarator's `*` is kept. The interpreter can tell a pointer from a
+    // number by looking at the value, but emitted code has only the declared
+    // type: dropping it made the Neo Geo's `m_bg_pen = pen_base + 0xfff` a
+    // numeric add on a pointer object instead of pointer arithmetic, and the
+    // whole fixed layer drew from the wrong pens.
     .replace(
       /\b(?:[\w:<>]+[ \t]+)+\*[ \t]*(?:const[ \t]+)?(\w+)[ \t]*=/g,
-      'auto $1 =',
+      'auto *$1 =',
     )
     // Driver lifecycle handlers use the standard spelling when ownership is
     // retained by a unique_ptr (Phoenix's two banked video pages are the

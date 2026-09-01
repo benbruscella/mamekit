@@ -5,6 +5,8 @@ import {
   applyGeneratedMacro,
   dereferenceGeneratedValue,
   generatedContainerAccessor,
+  generatedAdd,
+  generatedPointerStore,
   generatedWideBinary,
   executeGeneratedProgram,
   generatedReferent,
@@ -34,6 +36,8 @@ interface DeviceMember {
   };
   /** Declared array bound for an object-typed member (`bitmap_ind16 h[2]`). */
   arrayLength?: number;
+  /** Every declarator bound of a multi-dimensional C array member. */
+  arrayShape?: number[];
   /** Fields of a member whose type is a struct the device declares. */
   fields?: StructField[];
 }
@@ -108,6 +112,10 @@ export interface GeneratedDeviceExecutionContext {
   writableMember(name: string): unknown;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
   wide(operator: string, left: unknown, right: unknown): unknown;
+  /** C++ `*pointer = value`, over a generated pointer or plain memory. */
+  pointerStore(pointer: unknown, value: unknown): unknown;
+  /** C++ `a + b` when neither side is known to be a number. */
+  add(left: unknown, right: unknown): unknown;
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
   /** Context-free MAME framework macros, identical to the interpreter's. */
   macro(name: string, ...args: unknown[]): unknown;
@@ -508,6 +516,10 @@ class IrDevice implements Device {
         : member.memory
         ? memoryMember(member, options)
         : member.values ? [...member.values]
+        // A multi-dimensional array needs its inner rows to exist before the
+        // second subscript can store into one: `m_wave_ram[bank][offset] = x`
+        // indexes a number otherwise, and the write goes nowhere.
+        : member.arrayShape ? nestedArrayMember(member.arrayShape)
         : isIndexableMemberType(member.valueType) ? []
         : member.initial ?? 0));
       if (member.bits) this.memberBits.set(member.name, member.bits);
@@ -702,6 +714,8 @@ class IrDevice implements Device {
         },
       dereference: dereferenceGeneratedValue,
       container: generatedContainerAccessor,
+      pointerStore: generatedPointerStore,
+      add: generatedAdd,
       // A device declares every member up front, so the container is already
       // there; the name-addressed form exists for the board, whose driver
       // members are materialised on first write.
@@ -1457,4 +1471,13 @@ function structMember(
     });
   }
   return value;
+}
+
+/** A C array member's storage, one level of nesting per declarator bound. */
+function nestedArrayMember(shape: readonly number[]): unknown[] {
+  const [extent, ...inner] = shape;
+  return Array.from(
+    { length: Math.max(0, extent ?? 0) },
+    () => inner.length ? nestedArrayMember(inner) : 0,
+  );
 }

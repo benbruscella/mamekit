@@ -59,13 +59,18 @@ function boardMemberNames(machine: BoardIr): Map<string, string> {
   for (const input of machine.execution.inputMembers ?? []) {
     names.set(input.member, '');
   }
-  // Deliberately NOT here: a driver's ioport finders, its memory views, and
-  // its region pointers. Naming them would let codegen claim the handlers that
-  // use them, and the emitter resolves a member call only through a property on
-  // the value -- an unresolved one answers 0 rather than failing. The board
-  // binds `m_inputs.read`, `m_boot_view.disable` and the rest by NAME, which
-  // only the interpreter consults, so claiming those handlers turned the Game
-  // Boy's joypad read and its boot-ROM handover into silent zeroes.
+  // A region_ptr finder is a byte array the board binds from the ROM set, and
+  // MAME indexes it directly (`return m_region_boot[offset];`).
+  for (const member of Object.keys(machine.execution.regionBindings ?? {})) {
+    names.set(member, memory);
+  }
+  // A memory_view the board composes. `m_boot_view.disable()` resolves through
+  // the board's own call table, which emitted code consults first.
+  for (const cpu of machine.execution.cpus) {
+    for (const range of cpu.ranges ?? []) {
+      if (range.viewTag) names.set(range.viewTag, '');
+    }
+  }
   // Video-plan initial state (CPS-B configuration, scroll registers, size
   // constants) is written into the board's members before any handler runs,
   // so emitted code may read it exactly as the interpreter does.
@@ -145,8 +150,17 @@ function writesUnboundMemory(
   let found = false;
   const visitOperations = (operations: readonly GeneratedHandlerOperation[]): void => {
     for (const operation of operations) {
-      if (operation.op === 'assign' && operation.target.kind === 'index') {
-        let base = operation.target.object;
+      // A store *through* an unbound pointer member (`*m_scanline_latch = ...`).
+      // Emitted code writes it as `member.source[member.offset] = ...`, which a
+      // member the board never materialised cannot satisfy -- qix's
+      // display_enable_changed threw on the CRTC's first line.
+      //
+      // An indexed store into an unbound member is NOT this case any more:
+      // `runtime.writableMember` allocates it by name on first write, exactly
+      // as the interpreter does.
+      if (operation.op === 'assign' && operation.target.kind === 'unary' &&
+          operation.target.operator === '*') {
+        let base = operation.target.operand;
         while (base.kind === 'index' || base.kind === 'member') base = base.object;
         if (base.kind === 'identifier' && base.name.startsWith('m_') && !bound.has(base.name)) {
           found = true;
@@ -228,6 +242,18 @@ function wiredHotMethods(machine: BoardIr, ownerClass: string): string[] {
     claim(tilemap.mapper);
   }
   claim(machine.execution.screenUpdate?.handler);
+  // A handler the board wires to a hardware callback is an entry point just
+  // like a map range, and often a far hotter one: the Game Boy's divider
+  // timer reaches `gb_timer_callback` once per machine cycle, 17,556 times a
+  // frame, and without this it was never even a candidate for codegen.
+  for (const connection of machine.connections ?? []) {
+    if (connection.effect.kind === 'handler') claim(connection.effect.handler);
+  }
+  for (const callback of machine.callbacks ?? []) {
+    if (callback.targetClass && callback.targetMethod) {
+      claim(`${callback.targetClass}.${callback.targetMethod}`);
+    }
+  }
   return [...names];
 }
 
@@ -375,10 +401,17 @@ export function generatedBoardHandlersSource(
     const byMethod = new Map(
       (machine.handlers ?? []).map(candidate => [candidate.method, candidate]),
     );
-    // A method the board must not dispatch compiled — it materialises unbound
-    // memory or reads a palette this scope cannot supply — taints every
-    // emitted method that reaches it through a direct in-closure call, because
-    // those calls bypass the interpreter fallback.
+    // A method the board must not dispatch compiled — it reads a palette this
+    // scope cannot supply — taints every emitted method that reaches it
+    // through a direct in-closure call, because those calls bypass the
+    // interpreter fallback.
+    //
+    // Writing a driver *array* the board has not bound is no longer one of
+    // those: `runtime.writableMember` materialises it by name on first write,
+    // exactly as the interpreter does. While it was, the Game Boy's divider
+    // timer stayed interpreted — and it runs once per machine cycle, 35,000
+    // interpreted handler executions a frame between two methods. Storing
+    // through an unbound pointer member is still excluded.
     const closureMethods = new Set(source.methods);
     const tainted = new Set(source.methods.filter(method => {
       const candidate = byMethod.get(method);

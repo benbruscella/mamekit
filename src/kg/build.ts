@@ -160,7 +160,12 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       extConsts = parseEnumConstants(source, extConsts);
     }
   }
-  const consts = parseDefines(combined, extConsts);
+  // A driver's own enums, not only those of the headers it includes. MAME
+  // spells a register's bit names that way -- `enum { SIO_ENABLED = 0x80, ... }`
+  // inside the state class -- and without them every such test was an
+  // unresolved reference: the Game Boy's serial control bits resolved to
+  // nothing, and the handler that reads them could not be compiled either.
+  const consts = parseEnumConstants(combined, parseDefines(combined, extConsts));
   const textMacros = parseTextMacros(combined);
   const ioportMembers = parseIoportMembers(combined, textMacros.strings);
   emitSourceTimerCallbacks(g, ast, consts, definedIn);
@@ -1689,6 +1694,27 @@ function emitSourceHandlerClosure(
       continue;
     }
     callNames.add(match[1]!);
+  }
+  // An explicit base call -- `base_state::machine_reset()` -- names the exact
+  // implementation to run, so virtual dispatch never reaches it and the scan
+  // above skips it (the `::` lands on the `before === ':'` guard). Left out,
+  // the base method is never lowered at all: the Game Boy's divider and serial
+  // power-on values were never assigned, so `m_shift` stayed undefined and
+  // `m_divcount` ran away from its first frame.
+  for (const match of fn.body.matchAll(/\b(\w+)::(\w+)\s*\(/g)) {
+    const [, baseClass, baseMethod] = match;
+    const base = ast.findFunction(baseClass!, baseMethod!);
+    if (!base || base === fn) continue;
+    const baseId = emitSourceHandlerClosure(
+      g,
+      ast,
+      base.className,
+      base.name,
+      constants,
+      base.span,
+      visited,
+    );
+    g.edge(handlerId, baseId, 'CALLS_HANDLER');
   }
   for (const callName of accessorNames) {
     if (callNames.has(callName)) continue;

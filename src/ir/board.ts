@@ -1070,6 +1070,10 @@ export interface GeneratedHandlerRuntime {
   container(value: unknown, method: string): unknown;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
   wide(operator: string, left: unknown, right: unknown): unknown;
+  /** C++ `*pointer = value`, over a generated pointer or plain memory. */
+  pointerStore(pointer: unknown, value: unknown): unknown;
+  /** C++ `a + b` when neither side is known to be a number. */
+  add(left: unknown, right: unknown): unknown;
   invoke(name: string, ...args: unknown[]): unknown;
   /** Context-free MAME framework macros, identical to the interpreter's. */
   macro(name: string, ...args: unknown[]): unknown;
