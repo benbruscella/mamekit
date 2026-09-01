@@ -65,6 +65,27 @@ eq('driver-init address-space installs lower as executable map overrides',
       className: 'board_state', method: 'protection_r' },
   ]);
 
+// A MAME memory_view is a switchable overlay over a window of a space. Its
+// entries are populated through `m_view[n]`, and the Game Boy's boot ROM lives
+// in one: without the view the cartridge owns 0x0000 from power-on and the DMG
+// never runs its own firmware.
+eq('a memory_view entry install carries its view and entry',
+  parseInstalledHandlers(`
+    m_maincpu->space(AS_PROGRAM).install_view(0x0000, 0x08ff, m_boot_view);
+    m_boot_view[0].install_read_handler(0x0000, 0x00ff,
+      read8sm_delegate(*this, NAME(&gb_state::boot_r)));
+  `, {}), [
+    { space: 'AS_PROGRAM', kind: 'read', start: 0x0000, end: 0x00ff,
+      viewTag: 'm_boot_view', viewEntry: 0,
+      className: 'gb_state', method: 'boot_r' },
+  ]);
+
+eq('an install through an unknown view is not guessed into the program space',
+  parseInstalledHandlers(`
+    m_other_view[1].install_read_handler(0x0000, 0x00ff,
+      read8sm_delegate(*this, NAME(&gb_state::boot_r)));
+  `, {}), []);
+
 // --- machine config: composition order --------------------------------------
 // MAME builds a machine in statement order, and the first CPU declared is the
 // driver's own. Rampage's mono_sg calls its base before adding a sound board;

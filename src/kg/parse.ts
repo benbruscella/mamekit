@@ -946,6 +946,10 @@ export interface InstalledHandlerDef {
   mirror?: number;
   className: string;
   method: string;
+  /** MAME `memory_view` member this install belongs to, if any. */
+  viewTag?: string;
+  /** The view entry the install was made through (`m_view[0]` is entry 0). */
+  viewEntry?: number;
 }
 
 /**
@@ -964,15 +968,31 @@ export function parseInstalledHandlers(
   for (const declaration of body.matchAll(
     /\baddress_space\s*&\s*(\w+)\s*\([^;]*?(?:->|\.)\s*space\s*\(\s*(AS_\w+)\s*\)\s*\)\s*;/g,
   )) spaces.set(declaration[1]!, declaration[2]!);
-  const pattern = /\b(space\s*\(\s*(AS_\w+)\s*\)|(\w+))\s*\.\s*install_(read|write)_handler\s*\(/g;
+  // `space.install_view(start, end, m_view)` declares a MAME memory_view over a
+  // window of the space. Its entries are then populated through `m_view[n]`,
+  // so the view's own space is what those installs decode into.
+  const views = new Map<string, string>();
+  for (const declaration of body.matchAll(
+    /\b(?:space\s*\(\s*(AS_\w+)\s*\)|(\w+))\s*\.\s*install_view\s*\([^;]*?,\s*(\w+)\s*\)\s*;/g,
+  )) {
+    const space = declaration[1] ?? spaces.get(declaration[2]!);
+    if (space) views.set(declaration[3]!, space);
+  }
+  const pattern =
+    /\b(?:space\s*\(\s*(AS_\w+)\s*\)|(\w+)\s*\[\s*(\d+)\s*\]|(\w+))\s*\.\s*install_(read|write)_handler\s*\(/g;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(body)) !== null) {
     const open = body.indexOf('(', match.index + match[0]!.lastIndexOf('install_'));
     const close = matchParen(body, open);
     if (close < 0) continue;
     const args = splitArgs(body.slice(open + 1, close));
-    const callback = /FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(body.slice(open + 1, close));
-    const space = match[2] ?? spaces.get(match[3]!);
+    const text = body.slice(open + 1, close);
+    // A delegate names its method either through FUNC() in an address map or
+    // through NAME(&class::method) in a hand-built read8sm_delegate.
+    const callback = /FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(text) ??
+      /NAME\s*\(\s*&\s*(\w+)::(\w+)\s*\)/.exec(text);
+    const viewTag = match[2];
+    const space = match[1] ?? (viewTag ? views.get(viewTag) : spaces.get(match[4]!));
     if (!space || !callback || args.length < 3) continue;
     const start = evalExpr(args[0]!, consts);
     const end = evalExpr(args[1]!, consts);
@@ -983,10 +1003,11 @@ export function parseInstalledHandlers(
     const mirror = args.length >= 6 ? evalExpr(args[3]!, consts) : null;
     installed.push({
       space,
-      kind: match[4]! as 'read' | 'write',
+      kind: match[5]! as 'read' | 'write',
       start,
       end,
       ...(mirror !== null && mirror !== 0 ? { mirror } : {}),
+      ...(viewTag ? { viewTag, viewEntry: Number(match[3]) } : {}),
       className: callback[1]!,
       method: callback[2]!,
     });

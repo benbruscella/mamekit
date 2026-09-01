@@ -27,7 +27,9 @@ export {
   executeGeneratedMachineHandler,
   executeGeneratedMachineProgram,
   executeGeneratedProgram,
+  generatedContainerAccessor,
   generatedPeriodicLines,
+  generatedWideBinary,
   generatedReferent,
   generatedValuesEqual,
 } from '../ir/execute.ts';

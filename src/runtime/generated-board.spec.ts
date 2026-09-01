@@ -89,6 +89,7 @@ const lineCpu = {
   stateInt() { return 0; },
   set() {},
   invoke() { return 0; },
+  hasMethod() { return false; },
 };
 applyGeneratedCpuInputLine(lineCpu, -2, 1, state => { held = state; });
 assert.equal(resets, 1, 'INPUT_LINE_RESET must reset, not trigger NMI');
@@ -296,6 +297,7 @@ registerGeneratedCpu({
       stateInt() { return 0; },
       set() {},
       invoke() { return 0; },
+      hasMethod() { return false; },
     };
   },
 });
@@ -450,6 +452,7 @@ registerGeneratedCpu({
       stateInt() { return 0; },
       set() {},
       invoke() { return 0; },
+      hasMethod() { return false; },
     };
   },
 });
@@ -560,6 +563,7 @@ registerGeneratedCpu({
       stateInt() { return 0; },
       set() {},
       invoke() { return 0; },
+      hasMethod() { return false; },
     };
   },
 });

@@ -552,6 +552,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     mirror?: number;
     className: string;
     method: string;
+    viewTag?: string;
+    viewEntry?: number;
   }> = [];
   // Numeric members the game's state class fixes in its own constructor. A
   // machine config shared with a sibling game -- a2600 and a2600p share
@@ -867,6 +869,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           mirror?: number;
           className: string;
           method: string;
+          viewTag?: string;
+          viewEntry?: number;
         })
       : [];
     installedHandlers.push(...machineInstalledHandlers);
@@ -891,6 +895,12 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             end: handler.end,
             kind: 'handler' as const,
             ...(handler.mirror !== undefined ? { mirror: handler.mirror } : {}),
+            // A view entry's install is an overlay, not a map entry: it decodes
+            // only while its entry is selected, and falls back to the map
+            // underneath once the board disables the view.
+            ...(handler.viewTag !== undefined
+              ? { viewTag: handler.viewTag, viewEntry: handler.viewEntry ?? 0 }
+              : {}),
             [handler.kind]: `${handler.className}.${handler.method}`,
           })),
         ],

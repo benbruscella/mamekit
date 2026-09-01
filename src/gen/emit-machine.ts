@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { KGNode, KnowledgeGraph } from '../kg/types.ts';
 import type {
@@ -15,6 +15,7 @@ import type {
   GeneratedVideoPlan,
 } from '../ir/board.ts';
 import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
+import { sourceRegionBindings } from '../mame/video-compiler.ts';
 
 /** MAME device input clocks converted to the instruction-cycle scheduler rate. */
 export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
@@ -381,7 +382,17 @@ export function lowerGeneratedMachine(
     ? lowerMemoryBanks(graph, sourceRef)
     : [];
   const accessTaps = lowerAccessTaps(graph, devices, memoryBanks, sourceRef);
+  // The driver's own region_ptr finders, read straight from its source. These
+  // reach the runtime whether or not the board compiles a video plan.
+  const driverPath = join(String(graph.meta.mameSrc ?? ''), String(graph.meta.driverFile ?? ''));
+  const driverRegionBindings = graph.meta.mameSrc && graph.meta.driverFile &&
+      existsSync(driverPath)
+    ? sourceRegionBindings(readFileSync(driverPath, 'utf8'))
+    : {};
   const execution: GeneratedExecutionPlan = {
+    ...(Object.keys(driverRegionBindings).length
+      ? { regionBindings: driverRegionBindings }
+      : {}),
     cpus: board.cpus.map(cpu => {
       const interruptVectorWriters = inferInterruptVectorWriters(
         cpu.tag,

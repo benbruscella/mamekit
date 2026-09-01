@@ -13,8 +13,11 @@ import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions } from '../ir/walk.ts';
 import {
   collectFunctionMacros,
+  collectMemberAliasMacros,
   expandFunctionMacros,
+  expandMemberAliasMacros,
   type FunctionMacro,
+  type MemberAliasMacro,
 } from './preprocessor.ts';
 import { indexMameHardware, type MameHardwareDefinition } from './hardware.ts';
 
@@ -322,6 +325,10 @@ export function compileMameDevice(
   // substituted textually: their bodies read and assign the caller's locals,
   // which no call can do.
   const functionMacros = sources.flatMap(({ source }) => collectFunctionMacros(source));
+  // Object-like `#define`s that name a register inside the device's own state
+  // (`#define CURLINE m_vid_regs[0x04]`). The name stands for nothing but the
+  // subscript, so it has to become the subscript before lowering.
+  const memberAliases = sources.flatMap(({ source }) => collectMemberAliasMacros(source));
   const interruptCallbacks = sources.flatMap(({ source }) => [...source.matchAll(
     /\b(m_\w+)->set_input_line\s*\(\s*(INPUT_LINE_\w+)/g,
   )].map(match => ({
@@ -374,7 +381,7 @@ export function compileMameDevice(
     const existing = methods.findIndex(candidate =>
       methodSignature(candidate.name, candidate.parameters) === signature);
     const compiled = compileMethod(
-      specialized, interruptCallbacks, sourceTables, functionMacros);
+      specialized, interruptCallbacks, sourceTables, functionMacros, memberAliases);
     // hierarchy is base-first: a derived virtual with the same signature
     // replaces its base implementation, while genuine overloads remain.
     // Keep a qualified alias for an overridden base because derived MAME
@@ -930,8 +937,12 @@ function compileMethod(
   interruptCallbacks: { member: string; line: string; signal: string }[] = [],
   sourceTables: Record<string, ConstantTable> = {},
   functionMacros: readonly FunctionMacro[] = [],
+  memberAliases: readonly MemberAliasMacro[] = [],
 ): GeneratedDeviceMethod {
-  let body = expandFunctionMacros(method.body, functionMacros).replace(
+  let body = expandMemberAliasMacros(
+    expandFunctionMacros(method.body, functionMacros),
+    memberAliases,
+  ).replace(
     /\bm_\w+\s*=\s*std::make_unique\s*<[^;]+;\s*/g,
     '',
   );

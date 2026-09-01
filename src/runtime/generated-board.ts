@@ -381,6 +381,15 @@ class IrBoard implements Board {
             (machine.execution.screen.xOffset ?? 0) + machine.execution.screen.width),
           height: () => Math.max(1, machine.execution.screen.vtotal),
           frame_number: () => this.frameRunner?.frameCount ?? 0,
+          // MAME `screen_device::register_screen_bitmap`: the screen sizes the
+          // device's own bitmap to the raster and keeps it that size. Without
+          // it the Game Boy PPU plotted every pixel into a zero-by-zero bitmap
+          // and copied a blank screen out of it.
+          register_screen_bitmap: (bitmap: unknown) => {
+            const target = bitmap as { allocate?: (width: number, height: number) => void };
+            target?.allocate?.(screenHost.width(), screenHost.height());
+            return 0;
+          },
         };
         // The same services under the chain names a generated device emits:
         // `screen().vpos()` resolves to one lookup rather than evaluating
@@ -462,6 +471,17 @@ class IrBoard implements Board {
                 if (method === 'total_cycles') {
                   return () => this.totalCycles(cpuSpec.tag);
                 }
+                // The inverse of cycles_to_attotime. Hardware that measures a
+                // span of machine time in its own processor's cycles needs it:
+                // the Game Boy PPU advances its line counter by
+                // `attotime_to_cycles(now - m_last_updated)`, and with the call
+                // unbound that difference read as zero every time, so LY never
+                // left 0 and the boot ROM waited for line 0x90 forever.
+                if (method === 'attotime_to_cycles') {
+                  return (seconds: number) => Math.floor(
+                    Number(seconds) * Math.max(1, cpuSpec.cycleClock ?? cpuSpec.clock),
+                  );
+                }
                 if (method === 'reset') return () => this.cpus.get(cpuSpec.tag)?.reset();
                 // Hardware that takes the bus away from the processor removes
                 // the cycles it will not get. Without this the call fell through
@@ -484,6 +504,13 @@ class IrBoard implements Board {
                       );
                     }
                   };
+                }
+                // Hardware reaches its processor the same way a driver does
+                // (`m_lr35902->set_halt_bug(...)`); serve it from the core's
+                // own lowered methods before falling back to a device.
+                const cpu = this.cpus.get(cpuSpec.tag);
+                if (cpu?.hasMethod(method)) {
+                  return (...args: number[]) => cpu.invoke(method, ...args);
                 }
                 return (...args: number[]) =>
                   this.devices.get(tag)?.invoke(method, ...args) ?? 0;
@@ -534,10 +561,7 @@ class IrBoard implements Board {
               // — so leaving it off this object threw before that assignment and
               // the RIOT could never raise its IRQ (venture, issue #63).
               side_effects_disabled: () => 0,
-              time: () => generatedAttotime(
-                this.frameRunner?.frameCount /
-                  Math.max(1, this.machine.execution.screen.refresh) || 0,
-              ),
+              time: () => generatedAttotime(this.machineSeconds()),
               root_device: () => ({
                 membank: (name: string) => this.generatedBanks[name],
               }),
@@ -772,7 +796,10 @@ class IrBoard implements Board {
         this.state,
         tag,
         bytes,
-        machine.video?.regionBindings,
+        // A video plan's bindings are the same driver finders, plus any
+        // pointer a video callback re-seats; both sides describe the one
+        // state class, so a board with a plan keeps its richer map on top.
+        { ...machine.execution.regionBindings, ...machine.video?.regionBindings },
         machine.video?.regionBindingOffsets,
       );
     }
@@ -936,8 +963,14 @@ class IrBoard implements Board {
         (specification.ranges ?? []).flatMap(range => range.viewTag ? [range.viewTag] : []),
       )) {
         const select = (entry: number) => bus.selectView(viewTag, entry);
+        // MAME's `memory_view::disable()` selects no entry at all, which leaves
+        // the map underneath decoding on its own -- how a Game Boy hands the
+        // first 256 bytes back to the cartridge once its boot ROM is done.
+        const disable = () => void bus.selectView(viewTag, -1);
         this.bindings.calls![`${viewTag}.select`] = select;
         this.bindings.calls![`${viewTag.replace(/^m_/, '')}.select`] = select;
+        this.bindings.calls![`${viewTag}.disable`] = disable;
+        this.bindings.calls![`${viewTag.replace(/^m_/, '')}.disable`] = disable;
       }
       if (specification.opcode) {
         const opcodeRom = regions[specification.opcode.region];
@@ -1076,6 +1109,16 @@ class IrBoard implements Board {
             ) ?? 0xff
           : 0xff;
       };
+      // A CPU is a MAME device like any other, and a driver reaches into it by
+      // name: the Game Boy's 0xffff register is `m_maincpu->set_ie(data)`, and
+      // its interrupt enable lives nowhere else. Every method the core lowered
+      // from its own source is offered under the driver's finder name, and the
+      // board's explicit bindings below take precedence where both exist.
+      for (const method of cpu.methodNames?.() ?? []) {
+        const invoke = (...args: number[]) => cpu.invoke(method, ...args);
+        calls[`${specification.tag}.${method}`] = invoke;
+        calls[`m_${specification.tag}.${method}`] = invoke;
+      }
       calls[`m_${specification.tag}.set_input_line`] = (line, state) => {
         applyGeneratedCpuInputLine(
           cpu,
@@ -1988,6 +2031,27 @@ class IrBoard implements Board {
    * MAME's `total_cycles()`: everything this CPU has run, including the slice
    * it is inside. Banked cycles alone advance only at slice boundaries.
    */
+  /**
+   * MAME `machine().time()`: the scheduler's own clock.
+   *
+   * MAME advances it as the executing processor consumes cycles, so hardware
+   * that measures an interval by differencing two readings sees real elapsed
+   * time. Answering with the frame counter made every such interval either
+   * zero or a whole frame. Inside a timer callback the scheduler stands at the
+   * expiry, not at the end of the lump that carried the clock past it, so the
+   * backlog comes back off.
+   */
+  private machineSeconds(): number {
+    // The scheduler stands where the processor it is running stands, so the
+    // clock comes from that core -- not from the first one declared, which on
+    // a multiprocessor board is often parked while another runs.
+    const tag = this.runningCpu ?? this.machine.execution.cpus[0]?.tag;
+    const cpu = this.machine.execution.cpus.find(candidate => candidate.tag === tag);
+    if (!cpu) return 0;
+    const clock = Math.max(1, cpu.cycleClock ?? cpu.clock);
+    return Math.max(0, this.totalCycles(cpu.tag) / clock - generatedTimerBacklog());
+  }
+
   private totalCycles(cpuTag: string): number {
     return (this.cpuCycles.get(cpuTag) ?? 0)
       + (this.cpuSliceCycles.get(cpuTag) ?? 0)

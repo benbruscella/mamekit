@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
-import { collectFunctionMacros, expandFunctionMacros } from './preprocessor.ts';
+import {
+  collectFunctionMacros,
+  collectMemberAliasMacros,
+  expandFunctionMacros,
+  expandMemberAliasMacros,
+} from './preprocessor.ts';
 
 let passed = 0;
 const check = (name: string, run: () => void): void => { run(); passed++; void name; };
@@ -87,6 +92,37 @@ check('tracing macros are left for the normalizer to strip at the call site', ()
     collectFunctionMacros('#define LOGTIMER(...) LOGMASKED(LOG_TIMER, __VA_ARGS__)\n'),
     [],
   );
+});
+
+check('an object-like macro naming a device register is a member alias', () => {
+  const aliases = collectMemberAliasMacros(
+    '#define LCDCONT     m_vid_regs[0x00]  /* LCD control register */\n' +
+    '#define CURLINE     m_vid_regs[0x04]  /* Current screen line   */\n',
+  );
+  assert.deepEqual(aliases, [
+    { name: 'LCDCONT', body: 'm_vid_regs[0x00]' },
+    { name: 'CURLINE', body: 'm_vid_regs[0x04]' },
+  ]);
+});
+
+check('an alias expands unparenthesised so it can stay an assignment target', () => {
+  const aliases = collectMemberAliasMacros('#define CURLINE m_vid_regs[0x04]\n');
+  assert.equal(
+    expandMemberAliasMacros('CURLINE = m_current_line;', aliases),
+    'm_vid_regs[0x04] = m_current_line;',
+  );
+});
+
+check('an expression macro is not a member alias', () => {
+  // The name is the interface for these; expanding one throws it away.
+  assert.deepEqual(collectMemberAliasMacros('#define SGB_XOFFSET 48\n'), []);
+  assert.deepEqual(collectMemberAliasMacros('#define SPAN (m_end - m_start)\n'), []);
+});
+
+check('a member alias reaches through a struct field chain', () => {
+  assert.deepEqual(collectMemberAliasMacros('#define ROW m_regs[BANK].row\n'), [
+    { name: 'ROW', body: 'm_regs[BANK].row' },
+  ]);
 });
 
 console.log(`preprocessor.spec: ${passed} passed`);

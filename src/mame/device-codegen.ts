@@ -305,6 +305,7 @@ function supportsMethod(
 ): boolean {
   const parameters = tryParseParameters(method.parameters);
   if (!parameters) return false;
+
   const locals = new Set(parameters.map(parameter => parameter.name));
   collectLocalNames(method.program.operations, locals);
   const members = new Set([
@@ -586,7 +587,9 @@ function emitCallObject(
 }
 
 function emitExpression(expression: GeneratedExpression, context: EmitContext): string {
-  if (expression.kind === 'number') return String(expression.value);
+  if (expression.kind === 'number') {
+    return expression.wide === undefined ? String(expression.value) : `${expression.wide}n`;
+  }
   if (expression.kind === 'string') return JSON.stringify(expression.value);
   if (expression.kind === 'identifier') {
     if (context.locals.has(expression.name)) {
@@ -628,6 +631,16 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     return expression.pointer ? operand : wrapType(operand, expression.valueType);
   }
   if (expression.kind === 'binary') {
+    // A 64-bit literal promotes the whole expression around it, exactly as in
+    // C. Emitted arithmetic is plain `number`, so the operation is handed to
+    // the same exact evaluator the interpreter uses -- only the operands stay
+    // compiled. MAME's Game Boy PPU interleaves two bit planes this way, and
+    // computing it in floating point drew a blank screen.
+    if (containsWideLiteral([expression])) {
+      return `runtime.wide(${JSON.stringify(expression.operator)}, ` +
+        `${emitExpression(expression.left, context)}, ` +
+        `${emitExpression(expression.right, context)})`;
+    }
     const left = emitExpression(expression.left, context);
     const right = emitExpression(expression.right, context);
     const leftType = expressionValueType(expression.left, context);
@@ -987,10 +1000,17 @@ function emitValueMemberCall(
     // such a call with 0 rather than failing. Emitting the bare call instead
     // made junglek and elevator throw a TypeError out of `characterram_w`.
     // The optional call costs nothing when the method is there.
-    return `(${access}?.(${args.join(', ')}) ?? 0)`;
+    return args.length
+      ? `(${access}?.(${args.join(', ')}) ?? 0)`
+      : `(${access}?.() ?? runtime.container(${object}, ${JSON.stringify(property)}))`;
   }
+  // A MAME memory container answers its own accessors from the container: a
+  // `std::unique_ptr<u8[]>` is a plain array at run time, so `m_vram.get()` has
+  // no method to call and the pointer it would return *is* the array. Falling
+  // through to 0 made the Game Boy PPU fetch every tile from address zero.
   return `(typeof ${access} === 'function' ? ${access}() : ` +
-    `typeof ${access} === 'number' || typeof ${access} === 'boolean' ? ${access} : 0)`;
+    `typeof ${access} === 'number' || typeof ${access} === 'boolean' ? ${access} : ` +
+    `runtime.container(${object}, ${JSON.stringify(property)}))`;
 }
 
 /**
@@ -1487,4 +1507,9 @@ function namesStructMember(name: string, context: EmitContext): boolean {
 function integerBitsForType(valueType: string): boolean {
   return /^(?:const\s+)?(?:u|s|uint|int)(?:8|16|32|64)(?:_t)?$|^(?:bool|char|int|unsigned|float|double|offs_t|pen_t)$/
     .test(valueType.trim());
+}
+
+/** Whether any expression in these operations carries a 64-bit literal. */
+function containsWideLiteral(operations: unknown): boolean {
+  return JSON.stringify(operations).includes('"wide":');
 }

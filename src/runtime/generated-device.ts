@@ -4,6 +4,8 @@ import {
   applyGeneratedDivision,
   applyGeneratedMacro,
   dereferenceGeneratedValue,
+  generatedContainerAccessor,
+  generatedWideBinary,
   executeGeneratedProgram,
   generatedReferent,
   generatedValuesEqual,
@@ -100,6 +102,10 @@ export interface GeneratedDeviceExecutionContext {
   addressOf(value: unknown, index: number): GeneratedPointer;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
+  /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
+  container(value: unknown, method: string): unknown;
+  /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
+  wide(operator: string, left: unknown, right: unknown): unknown;
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
   /** Context-free MAME framework macros, identical to the interpreter's. */
   macro(name: string, ...args: unknown[]): unknown;
@@ -693,6 +699,8 @@ class IrDevice implements Device {
           offset: index,
         },
       dereference: dereferenceGeneratedValue,
+      container: generatedContainerAccessor,
+      wide: generatedWideBinary,
       invoke: (name, ...args) => {
         const method = this.selectMethod(name, args);
         if (method) return this.executeMethod(method, this.methodParams.get(method)!, args);

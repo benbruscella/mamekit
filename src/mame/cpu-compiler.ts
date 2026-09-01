@@ -2575,11 +2575,23 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
   const cpuHeaderFile = 'src/devices/cpu/z8000/z8000cpu.h';
   const opsFile = 'src/devices/cpu/z8000/z8000ops.hxx';
   const tableFile = 'src/devices/cpu/z8000/z8000tbl.hxx';
+  // MAME's decimal-adjust result table. z8000.cpp includes it as a plain
+  // static array and DAB indexes it directly, so the core is incomplete
+  // without it -- the emitter has no identifier to resolve.
+  const dabFile = 'src/devices/cpu/z8000/z8000dab.h';
   const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
   const header = readFileSync(join(mameSrc, headerFile), 'utf8');
   const cpuHeader = readFileSync(join(mameSrc, cpuHeaderFile), 'utf8');
   const ops = readFileSync(join(mameSrc, opsFile), 'utf8');
   const tableSource = readFileSync(join(mameSrc, tableFile), 'utf8');
+  const dabSource = stripCppComments(readFileSync(join(mameSrc, dabFile), 'utf8'));
+  const dabTable = /\bstatic\s+const\s+uint16_t\s+Z8000_dab\s*\[[^\]]*\]\s*=\s*\{([\s\S]*?)\}\s*;/
+    .exec(dabSource);
+  if (!dabTable) throw new Error(`${dabFile} no longer declares Z8000_dab`);
+  const dabValues = dabTable[1]!.split(',')
+    .map(value => value.trim())
+    .filter(Boolean)
+    .map(value => Number(value));
   const ast = parseMameAst([
     { file: cppFile, source: cpp },
     { file: opsFile, source: ops },
@@ -2719,6 +2731,7 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
     { name: 'm_regs', z8000Registers: true },
     { name: 'm_op', bits: 32, values: [0, 0, 0, 0] },
     { name: 'm_state', bits: 16, values: states },
+    { name: 'Z8000_dab', bits: 16, values: dabValues },
     { name: 'm_irq_state', bits: 32, values: [0, 0, 0] },
     { name: 'z8000_zsp', bits: 8, values: Array.from({ length: 256 }, (_, value) =>
       (value === 0 ? 0x40 : 0) | (value & 0x80 ? 0x20 : 0) |

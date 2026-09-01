@@ -129,6 +129,10 @@ export interface Cpu {
   stateInt(index: number): number;
   set(name: string, value: number): void;
   invoke(name: string, ...args: number[]): number;
+  /** Whether the core lowered a method of this name from its MAME source. */
+  hasMethod(name: string): boolean;
+  /** Every method the core lowered from its MAME source. */
+  methodNames?(): string[];
 }
 
 type GeneratedCpuRegistration = GeneratedCpuDefinition | GeneratedCpuExecutable;
@@ -354,6 +358,14 @@ class IrCpu implements Cpu {
     const alias = this.definition.aliases[name];
     if (alias) this.writeAlias(alias, value);
     else this.writePath(name, value, this.memberBits.get(name));
+  }
+
+  hasMethod(name: string): boolean {
+    return this.methods.has(name);
+  }
+
+  methodNames(): string[] {
+    return [...this.methods.keys()];
   }
 
   invoke(name: string, ...args: number[]): number {

@@ -1007,10 +1007,12 @@ class HandlerParser {
   private parsePrimary(): GeneratedExpression | undefined {
     const token = this.take();
     if (token.kind === 'number') {
+      const wide = wideNumberLiteral(token.text);
       return {
         kind: 'number',
         value: parseNumber(token.text),
         ...(isFloatingNumberLiteral(token.text) ? { floating: true } : {}),
+        ...(wide ? { wide } : {}),
       };
     }
     if (token.kind === 'string') return { kind: 'string', value: unquote(token.text) };
@@ -1222,6 +1224,28 @@ function parseNumber(text: string): number {
   // C octal literal: leading zero followed by octal digits only.
   if (/^0[0-7]+$/.test(normalized)) return Number.parseInt(normalized, 8);
   return Number(normalized);
+}
+
+/**
+ * The exact value of an integer literal a double cannot hold, or undefined.
+ *
+ * C gives such a literal a 64-bit type and promotes the whole expression with
+ * it. MAME's Game Boy PPU builds its pixel shift register that way -- three
+ * chained multiplies by 64-bit magic constants -- so the digits have to survive
+ * lowering for the executor to compute it at all.
+ */
+function wideNumberLiteral(text: string): string | undefined {
+  if (isFloatingNumberLiteral(text)) return undefined;
+  const digits = text.replace(/[uUlL]+$/, '');
+  let exact: bigint;
+  try {
+    exact = /^0[0-7]+$/.test(digits) ? BigInt(Number.parseInt(digits, 8)) : BigInt(digits);
+  } catch {
+    return undefined;
+  }
+  return exact > BigInt(Number.MAX_SAFE_INTEGER) || exact < BigInt(Number.MIN_SAFE_INTEGER)
+    ? exact.toString()
+    : undefined;
 }
 
 function isFloatingNumberLiteral(text: string): boolean {

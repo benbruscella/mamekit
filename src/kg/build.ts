@@ -6,6 +6,7 @@ import {
   type MameFunction, type SourceSpan,
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
+import { collectMemberAliasMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
 import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
@@ -1554,6 +1555,12 @@ function handlerProps(
   let body = inline?.inlineBody ?? fn?.body;
   if (body && fn) {
     const source = ast.ast.units.map(unit => unit.source).join('\n');
+    // A driver names its board's registers the way the schematic does:
+    // `#define JOYPAD m_gb_io[0x00]`, and thereafter `JOYPAD = 0xCF | data;`.
+    // The name stands for nothing but the subscript, so it has to become the
+    // subscript before lowering -- unexpanded, the Game Boy's joypad register
+    // was never written and every button read as held down.
+    body = expandMemberAliasMacros(body, collectMemberAliasMacros(source));
     for (const table of source.matchAll(
       /\bstatic\s+(?:(?:const|constexpr)\s+)+([\w:]+)\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{((?:[^{}]|\{[^{}]*\})*?)\}\s*;/g,
     )) {

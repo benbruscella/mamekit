@@ -880,7 +880,14 @@ function compileFastExpression(
   bindings: GeneratedHandlerBindings,
   locals: ReadonlySet<string>,
 ): FastExpression {
-  if (expression.kind === 'number' || expression.kind === 'string') {
+  if (expression.kind === 'number') {
+    if (expression.wide !== undefined) {
+      const wide = BigInt(expression.wide);
+      return () => wide;
+    }
+    return () => expression.value;
+  }
+  if (expression.kind === 'string') {
     return () => expression.value;
   }
   if (expression.kind === 'identifier') {
@@ -976,6 +983,9 @@ function compileFastExpression(
           return { generatedPointer: true, source: leftValue, offset: toNumber(rightValue) };
         }
         if (isGeneratedPointer(rightValue)) return offsetPointer(rightValue, toNumber(leftValue));
+        if (typeof leftValue === 'bigint' || typeof rightValue === 'bigint') {
+          return wideBinary('+', leftValue, rightValue);
+        }
         return toNumber(leftValue) + toNumber(rightValue);
       };
     }
@@ -983,12 +993,21 @@ function compileFastExpression(
       return context => {
         const leftValue = left(context);
         const rightValue = right(context);
-        return isGeneratedPointer(leftValue)
-          ? offsetPointer(leftValue, -toNumber(rightValue))
-          : toNumber(leftValue) - toNumber(rightValue);
+        if (isGeneratedPointer(leftValue)) return offsetPointer(leftValue, -toNumber(rightValue));
+        if (typeof leftValue === 'bigint' || typeof rightValue === 'bigint') {
+          return wideBinary('-', leftValue, rightValue);
+        }
+        return toNumber(leftValue) - toNumber(rightValue);
       };
     }
-    return context => apply(toNumber(left(context)), toNumber(right(context)));
+    return context => {
+      const leftValue = left(context);
+      const rightValue = right(context);
+      // A 64-bit operand promotes the operation, exactly as in C.
+      return typeof leftValue === 'bigint' || typeof rightValue === 'bigint'
+        ? wideBinary(operator, leftValue, rightValue)
+        : apply(toNumber(leftValue), toNumber(rightValue));
+    };
   }
   if (expression.kind === 'conditional') {
     const condition = compileFastExpression(expression.condition, bindings, locals);
@@ -1266,7 +1285,10 @@ function executeOperations(
 }
 
 function evaluate(expression: GeneratedExpression, context: ExecutionContext): unknown {
-  if (expression.kind === 'number' || expression.kind === 'string') return expression.value;
+  if (expression.kind === 'number') {
+    return expression.wide === undefined ? expression.value : BigInt(expression.wide);
+  }
+  if (expression.kind === 'string') return expression.value;
   if (expression.kind === 'identifier') {
     if (Object.hasOwn(context.locals, expression.name)) {
       const local = context.locals[expression.name];
@@ -1363,6 +1385,9 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     if (expression.operator === '==' || expression.operator === '!=') {
       const equal = generatedValuesEqual(leftValue, rightValue);
       return expression.operator === '==' ? Number(equal) : Number(!equal);
+    }
+    if (typeof leftValue === 'bigint' || typeof rightValue === 'bigint') {
+      return wideBinary(expression.operator, leftValue, rightValue);
     }
     const left = toNumber(leftValue);
     const right = toNumber(rightValue);
@@ -1876,18 +1901,16 @@ function evaluateCall(
       // MAME memory containers (required_shared_ptr, std::vector) expose their
       // extent and, for vectors, in-place resizing.
       if (isIndexableMemory(object)) {
-        if (method === 'bytes' || method === 'size' || method === 'length') {
-          return object.length;
-        }
-        if (method === 'empty') return object.length === 0 ? 1 : 0;
         if (method === 'resize') {
           resizeGeneratedMemory(expression.callee.object, toNumber(args[0]), context);
           return 0;
         }
-        if (
-          method === 'target' || method === 'base' || method === 'get' ||
-          method === 'begin'
-        ) return object;
+      }
+      // A `std::unique_ptr<u8[]>` member is a generated pointer, and MAME
+      // indexes it through `.get()`. The accessor answers the pointer itself,
+      // exactly as it answers a bare array.
+      if (!args.length && (isIndexableMemory(object) || isGeneratedPointer(object))) {
+        return generatedContainerAccessor(object, method);
       }
     }
   }
@@ -2171,6 +2194,58 @@ function binary(operator: string, left: number, right: number): number {
   return (BINARY_OPERATORS[operator] ?? UNKNOWN_BINARY)(left, right);
 }
 
+/**
+ * C++ arithmetic on a 64-bit operand, evaluated exactly.
+ *
+ * A literal too wide for a double promotes its whole expression to 64 bits in
+ * C, and the result usually narrows straight back -- MAME's Game Boy pixel
+ * interleave ends `& 0x5555`. So the answer returns to a plain number as soon
+ * as one can hold it, and the rest of the executor never sees a bigint.
+ */
+export function generatedWideBinary(
+  operator: string,
+  left: unknown,
+  right: unknown,
+): unknown {
+  return wideBinary(operator, left, right);
+}
+
+function wideBinary(operator: string, leftValue: unknown, rightValue: unknown): unknown {
+  const left = toBigInt(leftValue);
+  const right = toBigInt(rightValue);
+  const WIDE: Record<string, (a: bigint, b: bigint) => bigint | boolean> = {
+    '|': (a, b) => a | b,
+    '^': (a, b) => a ^ b,
+    '&': (a, b) => a & b,
+    '<': (a, b) => a < b,
+    '<=': (a, b) => a <= b,
+    '>': (a, b) => a > b,
+    '>=': (a, b) => a >= b,
+    // Unsigned 64-bit: the operands are masked to their width so a shift or a
+    // multiply wraps the way the hardware model expects rather than growing.
+    '<<': (a, b) => BigInt.asUintN(64, a << b),
+    '>>': (a, b) => BigInt.asUintN(64, a) >> b,
+    '+': (a, b) => BigInt.asUintN(64, a + b),
+    '-': (a, b) => BigInt.asUintN(64, a - b),
+    '*': (a, b) => BigInt.asUintN(64, a * b),
+    '/': (a, b) => b === 0n ? 0n : a / b,
+    '%': (a, b) => b === 0n ? 0n : a % b,
+  };
+  const apply = WIDE[operator];
+  if (!apply) return binary(operator, Number(left), Number(right));
+  const result = apply(left, right);
+  if (typeof result === 'boolean') return result ? 1 : 0;
+  return result >= BigInt(Number.MIN_SAFE_INTEGER) && result <= BigInt(Number.MAX_SAFE_INTEGER)
+    ? Number(result)
+    : result;
+}
+
+function toBigInt(value: unknown): bigint {
+  if (typeof value === 'bigint') return value;
+  const numeric = toNumber(value);
+  return Number.isFinite(numeric) ? BigInt(Math.trunc(numeric)) : 0n;
+}
+
 function modulo(value: number, divisor: number): number {
   return ((value % divisor) + divisor) % divisor;
 }
@@ -2428,6 +2503,30 @@ export function dereferenceGeneratedValue(value: unknown): unknown {
 
 function isIndexableMemory(value: unknown): value is ArrayLike<unknown> {
   return ArrayBuffer.isView(value) || Array.isArray(value);
+}
+
+/**
+ * A MAME memory container's own accessor, answered from the container.
+ *
+ * `std::unique_ptr<u8[]>` and the shared-pointer finders are plain arrays at
+ * run time, so `m_vram.get()` has no method to call -- the pointer it returns
+ * *is* the array. The interpreter has always resolved this; emitted code did
+ * not, and answered 0, so the Game Boy PPU fetched every background tile out
+ * of address zero and drew a blank screen.
+ */
+export function generatedContainerAccessor(value: unknown, method: string): unknown {
+  const held = isLValue(value) ? value.get() : value;
+  const pointer = isGeneratedPointer(held);
+  if (!pointer && !isIndexableMemory(held)) return 0;
+  const length = pointer
+    ? Math.max(0, (held.source as ArrayLike<unknown>).length - held.offset)
+    : (held as ArrayLike<unknown>).length;
+  if (method === 'bytes' || method === 'size' || method === 'length') return length;
+  if (method === 'empty') return length === 0 ? 1 : 0;
+  if (method === 'target' || method === 'base' || method === 'get' || method === 'begin') {
+    return held;
+  }
+  return 0;
 }
 
 /**

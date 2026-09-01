@@ -495,4 +495,36 @@ check('a local array is allocated at its declared element width', () => {
   assert.equal(executeGeneratedProgram(program, {}).value, 0xff804020);
 });
 
+// MAME's Game Boy PPU interleaves two 8-bit tile planes into a 16-bit shift
+// register with three chained 64-bit multiplies. Every constant in it is wider
+// than a double can hold, so computing it in floating point produced zero for
+// every pixel and drew a blank screen.
+check('a 64-bit literal promotes its expression to exact arithmetic', () => {
+  const program = compileMameHandler(`
+    uint8_t plane0 = 0xf0;
+    uint8_t plane1 = 0x3c;
+    return (((((plane0 * 0x0101010101010101U) & 0x8040201008040201U)
+        * 0x0102040810204081U) >> 49) & 0x5555)
+      | (((((plane1 * 0x0101010101010101U) & 0x8040201008040201U)
+        * 0x0102040810204081U) >> 48) & 0xAAAA);
+  `);
+  assert.deepEqual(program.diagnostics, []);
+  // The reference answer, computed the way C does it.
+  const interleave = (plane0: bigint, plane1: bigint): number => Number(
+    ((((plane0 * 0x0101010101010101n) & 0x8040201008040201n)
+      * 0x0102040810204081n) >> 49n) & 0x5555n |
+    ((((plane1 * 0x0101010101010101n) & 0x8040201008040201n)
+      * 0x0102040810204081n) >> 48n) & 0xAAAAn,
+  );
+  assert.equal(executeGeneratedProgram(program, {}).value, interleave(0xf0n, 0x3cn));
+});
+
+check('a wide literal narrows back to a number once the result fits', () => {
+  const program = compileMameHandler('return (0x0101010101010101U & 0xff) + 1;');
+  assert.deepEqual(program.diagnostics, []);
+  const value = executeGeneratedProgram(program, {}).value;
+  assert.equal(typeof value, 'number');
+  assert.equal(value, 2);
+});
+
 console.log(`execute.spec: ${passed} passed, 0 failed`);

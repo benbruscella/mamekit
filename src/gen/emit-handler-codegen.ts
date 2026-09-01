@@ -266,9 +266,19 @@ function writesThroughPointerParameter(handler: GeneratedHandler): boolean {
   return found;
 }
 
+/**
+ * A 64-bit literal promotes its expression past what a JavaScript number holds.
+ * The interpreter evaluates those exactly; emitted arithmetic is plain
+ * `number`, so a handler carrying one stays interpreted.
+ */
+function containsWideLiteral(handler: GeneratedHandler): boolean {
+  return JSON.stringify(handler.program?.operations ?? []).includes('"wide":');
+}
+
 export function boardCodegenScope(machine: BoardIr, ownerClass: string): CodegenScope {
   const handlers = (machine.handlers ?? []).filter(handler =>
-    handler.program && handler.program.diagnostics.length === 0);
+    handler.program && handler.program.diagnostics.length === 0 &&
+    !containsWideLiteral(handler));
   const byMethod = new Map<string, GeneratedHandler>();
   for (const handler of handlers) {
     if (handler.ownerClass === ownerClass || !byMethod.has(handler.method)) {
@@ -334,6 +344,7 @@ export function generatedBoardHandlersSource(
       .filter(handler =>
         handler.program &&
         handler.program.diagnostics.length === 0 &&
+        !containsWideLiteral(handler) &&
         !handler.ownerClass.endsWith('_device'))
       .map(handler => handler.ownerClass),
   )];

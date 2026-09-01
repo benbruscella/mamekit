@@ -241,7 +241,13 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
 ];
 
 export type GeneratedExpression =
-  | { kind: 'number'; value: number; floating?: boolean }
+  /**
+   * `wide` carries the exact decimal digits of an integer literal too large for
+   * a double, so the executor can promote the expression around it to 64-bit.
+   * MAME's Game Boy PPU interleaves two bit planes with
+   * `plane * 0x0101010101010101U`, which is meaningless in floating point.
+   */
+  | { kind: 'number'; value: number; floating?: boolean; wide?: string }
   | { kind: 'string'; value: string }
   /**
    * `floating` marks an identifier the source declared `float`/`double`. C++
@@ -413,6 +419,14 @@ export interface GeneratedFrameEvent {
 
 export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
+  /**
+   * MAME required/optional_region_ptr member -> ROM region tag, declared by the
+   * driver's own state class. The video plan carries the same map for boards
+   * that have one; a console whose picture comes from a device still needs it,
+   * because driver handlers index those pointers directly (the Game Boy's
+   * boot_r answers out of m_region_boot).
+   */
+  regionBindings?: Record<string, string>;
   /** Source-defined power-on contents for battery-backed/shared RAM. */
   initialShares?: { share: string; bytes?: number[]; fill?: number }[];
   /** Source member names that alias an address-map memory share. */
