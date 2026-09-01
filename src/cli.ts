@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import {
   defaultGeneratorJobs,
   retryableGeneratorSignal,
+  retryableRuntimeCrash,
 } from './gen/generator-workers.ts';
 import {
   cacheIdentity,
@@ -348,9 +349,11 @@ function generateTargetProcess(target: string, attempt = 1): Promise<string> {
         resolveProcess(stdout);
         return;
       }
-      if (attempt === 1 && retryableGeneratorSignal(signal)) {
+      const crashed = retryableGeneratorSignal(signal) || retryableRuntimeCrash(stderr);
+      if (attempt === 1 && crashed) {
         console.warn(
-          `mamekit: ${target} worker crashed with ${signal}; retrying once`,
+          `mamekit: ${target} worker crashed with ` +
+          `${signal ?? 'a Node internal assertion'}; retrying once`,
         );
         generateTargetProcess(target, attempt + 1).then(resolveProcess, rejectProcess);
         return;
