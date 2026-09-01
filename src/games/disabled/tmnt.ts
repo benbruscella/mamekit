@@ -1,6 +1,11 @@
 // DISABLED: this target is not discovered, generated or shipped.
 //
-// Play-test finding, issue #53: Doesn't boot.
+// Parked by issue #53 on play-test evidence; re-examined for issue #108,
+// which is where the measurements below come from.
+//
+// Black for all 1200 frames. Like simpsons, the Konami video chips are
+// runtime bridges rather than generated devices: K052109, K051960, K007232
+// and UPD7759 are all still generation gaps.
 //
 // Move this module and its spec back up to src/games/ to re-enable the
 // target once the fault is fixed.

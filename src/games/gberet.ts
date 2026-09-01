@@ -1,11 +1,10 @@
-// DISABLED: this target is not discovered, generated or shipped.
+// Re-enabled for issue #108, after issue #53 parked it as "messed up".
 //
-// Play-test finding, issue #53: Messed up.
-//
-// Move this module and its spec back up to src/games/ to re-enable the
-// target once the fault is fixed.
+// Verified against MAME 0.289 in attract mode with no input at all: our
+// frame 200 and frame 600 are both 0 differing pixels out of 53760 against
+// the same frames of MAME's own snapshot.
 
-import type { GameTestContract } from '../types.ts';
+import type { GameTestContract } from './types.ts';
 
 export const gberet: GameTestContract = {
   game: 'gberet',
@@ -36,16 +35,16 @@ export const gberet: GameTestContract = {
       60: { video: '97f1d581', state: 'e1bb955a' },
       180: { video: 'e1aa1a2a', state: '8330a706' },
       300: { video: '7902484b', state: '0e64542a' },
-      600: { video: 'e57374fe', state: 'e2935f64' },
-      900: { video: '7b53ad1c', state: '97e5a163' },
-      1200: { video: '6cca50f6', state: '0fe2686f' },
+      600: { video: 'e57374fe', state: 'a55aae12' },
+      900: { video: '7b53ad1c', state: '0957d118' },
+      1200: { video: '6cca50f6', state: 'e314bd85' },
     },
     audio: {
-      writes: 1449,
-      nonzeroWrites: 1321,
-      writeHash: '19f7e8e5',
-      pcmHash: 'b2f02741',
-      rms: 0.021546,
+      writes: 1450,
+      nonzeroWrites: 1322,
+      writeHash: '794058db',
+      pcmHash: '3ccdc6a5',
+      rms: 0.021515,
     },
   },
 };

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
-import { compileMameVideo } from '../../mame/video-compiler.ts';
-import { compilePoleposDiscrete } from '../../mame/audio-compiler.ts';
+import { compileMameVideo } from '../mame/video-compiler.ts';
+import { compilePoleposDiscrete } from '../mame/audio-compiler.ts';
 import { polepos } from './polepos.ts';
-import { sourceNvramInitializers } from '../../gen/generate.ts';
+import { sourceNvramInitializers } from '../gen/generate.ts';
 import {
   gameSourceGraph,
   mameSourceRoot,
-} from '../test-support.ts';
+} from './test-support.ts';
 
 const graph = gameSourceGraph(polepos);
 assert.deepEqual(sourceNvramInitializers(graph.nodes, mameSourceRoot()), [

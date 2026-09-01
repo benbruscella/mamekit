@@ -1,6 +1,12 @@
 // DISABLED: this target is not discovered, generated or shipped.
 //
-// Play-test finding, issue #53: Doesn't boot.
+// Parked by issue #53 on play-test evidence; re-examined for issue #108,
+// which is where the measurements below come from.
+//
+// Black for all 1200 frames; the picture never changes after frame 1.
+// The Konami video chips it needs are runtime bridges rather than
+// generated devices -- K052109 (tilemaps), K053246 (sprites) and K053260
+// (sound) are all still generation gaps -- so there is nothing to draw.
 //
 // Move this module and its spec back up to src/games/ to re-enable the
 // target once the fault is fixed.

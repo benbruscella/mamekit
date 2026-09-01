@@ -1,7 +1,14 @@
 // DISABLED: this target is not discovered, generated or shipped.
 //
-// Play-test finding, issue #53: Boots and takes coins, but the video is
-// messed up, so it can't be played.
+// Parked by issue #53 on play-test evidence; re-examined for issue #108,
+// which is where the measurements below come from.
+//
+// Blocked on Sega 16-bit video and PCM hardware, not on the driver.
+// Composition fails to construct at all: fourteen 315-5218 PCM handlers
+// (pcm.voice_*) are unresolved, and the report also lists i8255,
+// SEGA_315_5195_MEM_MAPPER, SEGAIC16_ROAD, SEGAIC16VID and
+// SEGA_OUTRUN_SPRITES as generation gaps. Re-check when those five device
+// families exist; the driver itself already lowers cleanly.
 //
 // Move this module and its spec back up to src/games/ to re-enable the
 // target once the fault is fixed.

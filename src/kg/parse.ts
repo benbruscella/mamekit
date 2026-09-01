@@ -131,6 +131,14 @@ function extractFunctionBody(src: string, headerRe: RegExp): { cls: string; name
 }
 
 /**
+ * ioport.h's polarity words, which are ordinary ioport_value constants: an
+ * all-ones default and an all-zeroes one. PORT_DIPUNUSED_DIPLOC's second
+ * argument is a switch value, and namco/galaga.cpp writes IP_ACTIVE_LOW there
+ * where konami writes the mask.
+ */
+const IP_ACTIVE = { IP_ACTIVE_HIGH: 0x00000000, IP_ACTIVE_LOW: 0xffffffff };
+
+/**
  * Evaluate a MAME clock/size arithmetic expression to a number.
  * Handles: hex/dec literals, digit separators (18'432'000), XTAL(n),
  * named constants supplied by the caller, arithmetic and bitwise operators,
@@ -1574,7 +1582,8 @@ export interface PortFieldDef {
   type?: string;             // IPT_JOYSTICK_LEFT, ...
   modifiers?: string[];      // PORT_2WAY, PORT_COCKTAIL, ...
   name?: string;             // dip switch name
-  defaultValue?: number;     // dip default
+  /** field_alloc's defval: the power-on value of the bits this field covers. */
+  defaultValue?: number;
   location?: string;
   settings?: { value: number; name: string; condition?: string }[];
 }
@@ -1647,7 +1656,7 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
     const body = expandPortMacros(m[2], macros);
     let port: PortDef | null = null;
     let dip: PortFieldDef | null = null;
-    const tokRe = /(PORT_START|PORT_MODIFY|PORT_INCLUDE|PORT_BIT|PORT_DIPNAME|PORT_DIPSETTING|PORT_SERVICE_NO_TOGGLE|PORT_SERVICE_DIPLOC|PORT_SERVICE|PORT_DIPLOCATION|PORT_DIPUNUSED_DIPLOC|PORT_CONDITION|PORT_CONFNAME|PORT_CONFSETTING)\s*\(/g;
+    const tokRe = /(PORT_START|PORT_MODIFY|PORT_INCLUDE|PORT_BIT|PORT_DIPNAME|PORT_DIPSETTING|PORT_SERVICE_NO_TOGGLE|PORT_SERVICE_DIPLOC|PORT_SERVICE|PORT_DIPLOCATION|PORT_DIPUNUSED_DIPLOC|PORT_DIPUNUSED|PORT_DIPUNKNOWN_DIPLOC|PORT_DIPUNKNOWN|PORT_CONDITION|PORT_CONFNAME|PORT_CONFSETTING)\s*\(/g;
     let tm: RegExpExecArray | null;
     while ((tm = tokRe.exec(body)) !== null) {
       const open = body.indexOf('(', tm.index + tm[1].length - 1);
@@ -1671,11 +1680,21 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
           // indistinguishable from one MAME never named. Balance instead, and
           // skip hits swallowed by an earlier modifier's arguments.
           const mods = trailingModifiers(trailing);
+          // PORT_BIT's second argument is field_alloc's defval, and for a
+          // digital input the polarity words say the same thing: IP_ACTIVE_LOW
+          // is all-ones, so the released state is the mask. An analog field
+          // spells out a real resting position instead -- Spy Hunter's wheel
+          // powers on at 0x74 inside a 0x34..0xb4 travel, Sinistar's 49-way
+          // stick at 0x38 -- and dropping it leaves the control jammed at one
+          // end of its range from the first frame.
+          const bitMask = evalExpr(args[0]) ?? 0;
+          const bitDefault = evalExpr(args[1] ?? '', IP_ACTIVE);
           port.fields.push({
             kind: 'bit',
-            mask: evalExpr(args[0]) ?? 0,
+            mask: bitMask,
             activeLow: args[1].includes('LOW'),
             type: args[2].trim(),
+            ...(bitDefault === null ? {} : { defaultValue: (bitDefault & bitMask) >>> 0 }),
             modifiers: mods.length ? mods : undefined,
           });
           dip = null;
@@ -1725,9 +1744,27 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
           port.fields.push(dip);
           break;
         }
+        case 'PORT_DIPUNUSED':
+        case 'PORT_DIPUNKNOWN':
+        case 'PORT_DIPUNKNOWN_DIPLOC':
         case 'PORT_DIPUNUSED_DIPLOC': {
           if (!port) break;
-          port.fields.push({ kind: 'dip', mask: evalExpr(args[0]) ?? 0, name: 'Unused', settings: [] });
+          // The whole family lowers to ioport_configurer::onoff_alloc, whose
+          // second argument is the switch's power-on value -- not a constant
+          // the reader may assume. Konami writes PORT_DIPUNUSED_DIPLOC(0x20,
+          // 0x20) and Gottlieb writes (0x20, 0x00) in the same MAME tree, so
+          // taking the mask as the default puts Q*bert's three unused DSW
+          // lines high when the board holds them low. Namco spells the same
+          // argument IP_ACTIVE_LOW, which is 0xffffffff, not a polarity flag.
+          const mask = evalExpr(args[0]) ?? 0;
+          const declared = evalExpr(args[1] ?? '', IP_ACTIVE);
+          port.fields.push({
+            kind: 'dip',
+            mask,
+            defaultValue: ((declared ?? 0) & mask) >>> 0,
+            name: tm[1].includes('UNKNOWN') ? 'Unknown' : 'Unused',
+            settings: [],
+          });
           dip = null;
           break;
         }
