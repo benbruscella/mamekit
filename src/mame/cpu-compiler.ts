@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import type { BoardSourceRef, GeneratedHandlerProgram } from '../ir/board.ts';
 import { parseMameAst, parseMameSource, splitMameArgs } from './ast.ts';
@@ -2584,14 +2584,18 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
   const cpuHeader = readFileSync(join(mameSrc, cpuHeaderFile), 'utf8');
   const ops = readFileSync(join(mameSrc, opsFile), 'utf8');
   const tableSource = readFileSync(join(mameSrc, tableFile), 'utf8');
-  const dabSource = stripCppComments(readFileSync(join(mameSrc, dabFile), 'utf8'));
-  const dabTable = /\bstatic\s+const\s+uint16_t\s+Z8000_dab\s*\[[^\]]*\]\s*=\s*\{([\s\S]*?)\}\s*;/
-    .exec(dabSource);
-  if (!dabTable) throw new Error(`${dabFile} no longer declares Z8000_dab`);
-  const dabValues = dabTable[1]!.split(',')
-    .map(value => value.trim())
-    .filter(Boolean)
-    .map(value => Number(value));
+  // MAME grew this header partway through the checkouts this compiler
+  // supports; older revisions spell DAB without it. Take the table when the
+  // source has one and leave the member out when it does not, so neither
+  // revision loses anything it declares.
+  const dabPath = join(mameSrc, dabFile);
+  const dabTable = existsSync(dabPath)
+    ? /\bstatic\s+const\s+uint16_t\s+Z8000_dab\s*\[[^\]]*\]\s*=\s*\{([\s\S]*?)\}\s*;/
+      .exec(stripCppComments(readFileSync(dabPath, 'utf8')))
+    : null;
+  const dabValues = dabTable
+    ? dabTable[1]!.split(',').map(value => value.trim()).filter(Boolean).map(Number)
+    : [];
   const ast = parseMameAst([
     { file: cppFile, source: cpp },
     { file: opsFile, source: ops },
@@ -2731,7 +2735,7 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
     { name: 'm_regs', z8000Registers: true },
     { name: 'm_op', bits: 32, values: [0, 0, 0, 0] },
     { name: 'm_state', bits: 16, values: states },
-    { name: 'Z8000_dab', bits: 16, values: dabValues },
+    ...(dabValues.length ? [{ name: 'Z8000_dab', bits: 16 as const, values: dabValues }] : []),
     { name: 'm_irq_state', bits: 32, values: [0, 0, 0] },
     { name: 'z8000_zsp', bits: 8, values: Array.from({ length: 256 }, (_, value) =>
       (value === 0 ? 0x40 : 0) | (value & 0x80 ? 0x20 : 0) |
