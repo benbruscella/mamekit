@@ -2074,13 +2074,35 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
  * nothing anyone could see.
  */
 function annotateIndexedScreenUpdate(g: GraphBuilder, mameSrc: string): void {
+  // Only a device-drawn screen needs asking. When the driver draws, its own
+  // Handler node already carries the signature, and the generator reads it
+  // from there.
+  //
+  // The gate is not a micro-optimisation. indexMameHardware parses every file
+  // under src/devices and src/mame to build its index, and a target's graph is
+  // built in its own process -- so calling it unconditionally here added that
+  // whole-tree parse to all 65 targets and took one target's generation from
+  // 1s to 22s. The only other caller reaches it behind an early return, which
+  // is why nothing had paid this before.
+  const deviceTags = new Set(
+    [...g.nodes.values()]
+      .filter(node => node.label === 'Device')
+      .map(node => String(node.props.tag ?? '')),
+  );
+  const drawnByDevice = [...g.nodes.values()].filter(node =>
+    node.label === 'Callback' &&
+    node.props.signal === 'set_screen_update' &&
+    node.props.targetClass &&
+    node.props.targetMethod &&
+    deviceTags.has(String(node.props.deviceTag ?? node.props.targetTag ?? '')));
+  if (!drawnByDevice.length) return;
+
   const definitions = indexMameHardware(mameSrc);
   const byClass = new Map<string, string>();
   for (const definition of definitions.values()) {
     byClass.set(definition.className, definition.sourceFile);
   }
-  for (const callback of g.nodes.values()) {
-    if (callback.label !== 'Callback' || callback.props.signal !== 'set_screen_update') continue;
+  for (const callback of drawnByDevice) {
     const className = String(callback.props.targetClass ?? '');
     const method = String(callback.props.targetMethod ?? '');
     const sourceFile = byClass.get(className);
