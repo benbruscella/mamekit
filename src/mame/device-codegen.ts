@@ -323,14 +323,9 @@ function supportsMethod(
     visitOperationExpressions(operation, expression => {
       if (!supported) return;
       if (expression.kind === 'identifier') {
-        // A constant written with its declaring class (`lr35902_cpu_device::
-        // VBL_INT`) is recorded under its leaf name. The interpreter resolves
-        // both spellings; declining the qualified one left the Game Boy PPU's
-        // whole state machine interpreted for the sake of one enum.
         supported = locals.has(expression.name) ||
           members.has(expression.name) ||
           constants.has(expression.name) ||
-          constants.has(expression.name.split('::').at(-1)!) ||
           callees.has(expression.name) ||
           ['true', 'false', 'nullptr', 'g_profiler',
             'attotime::zero', 'attotime::never'].includes(expression.name) ||

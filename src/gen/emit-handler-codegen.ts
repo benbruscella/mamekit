@@ -56,25 +56,13 @@ function boardMemberNames(machine: BoardIr): Map<string, string> {
   for (const bank of machine.execution.banks ?? []) {
     if (bank.member) names.set(bank.member, '');
   }
-  // A driver's ioport finders are members like any other -- the board binds
-  // each one to its live port -- and MAME reads a control through the finder
-  // (`m_inputs->read()`). Leaving them out declined every handler that reads a
-  // control, which on the Game Boy is the joypad register itself.
-  for (const input of machine.execution.inputMembers ?? []) {
-    names.set(input.member, '');
-  }
-  // A region_ptr finder is a byte array the board binds from the ROM set, and
-  // MAME indexes it directly (`return m_region_boot[offset];`).
-  for (const member of Object.keys(machine.execution.regionBindings ?? {})) {
-    names.set(member, memory);
-  }
-  // A memory_view the board composes: `m_boot_view.disable()` is a call on a
-  // member the runtime binds, not an unknown name.
-  for (const cpu of machine.execution.cpus) {
-    for (const range of cpu.ranges ?? []) {
-      if (range.viewTag) names.set(range.viewTag, '');
-    }
-  }
+  // Deliberately NOT here: a driver's ioport finders, its memory views, and
+  // its region pointers. Naming them would let codegen claim the handlers that
+  // use them, and the emitter resolves a member call only through a property on
+  // the value -- an unresolved one answers 0 rather than failing. The board
+  // binds `m_inputs.read`, `m_boot_view.disable` and the rest by NAME, which
+  // only the interpreter consults, so claiming those handlers turned the Game
+  // Boy's joypad read and its boot-ROM handover into silent zeroes.
   // Video-plan initial state (CPS-B configuration, scroll registers, size
   // constants) is written into the board's members before any handler runs,
   // so emitted code may read it exactly as the interpreter does.
