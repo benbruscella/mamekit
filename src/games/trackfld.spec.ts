@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { compileMameVideo } from '../../mame/video-compiler.ts';
+import { compileMameVideo } from '../mame/video-compiler.ts';
 import { trackfld } from './trackfld.ts';
-import { assertGameContract, gameSourceGraph, mameSourceRoot } from '../test-support.ts';
+import { assertGameContract, gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
 assertGameContract(trackfld);
 const graph = gameSourceGraph(trackfld);

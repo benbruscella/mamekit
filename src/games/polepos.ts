@@ -1,12 +1,16 @@
-// DISABLED: this target is not discovered, generated or shipped.
+// Re-enabled for issue #108, after issue #53 parked it as "controls are
+// janky". The steering is MAME's own IPT_DIAL with its declared
+// PORT_KEYDELTA(4), and the board now boots, drives and sounds.
 //
-// Play-test finding, issue #53: Boots and looks OK, but the controls are
-// janky.
-//
-// Move this module and its spec back up to src/games/ to re-enable the
-// target once the fault is fixed.
+// Verified against MAME 0.289 in attract mode with no input at all: our
+// frame 600 differs from MAME's by 390 pixels out of 57344 (0.68%), all of
+// them inside x 242..254, y 193..222. That box is one zoomed sprite drawn
+// beside the CREDIT counter which we do not draw at all; the rest of the
+// attract screen -- text layer, road, track map and palette -- is exact.
+// Worth chasing in polepos_v.cpp zoom_sprite before calling this target
+// finished.
 
-import { sourceTarget } from '../source-contract.ts';
+import { sourceTarget } from './source-contract.ts';
 
 export const polepos = sourceTarget({
   game: 'polepos',
@@ -62,16 +66,16 @@ export const polepos = sourceTarget({
       60: { video: '89dde23a', state: 'f0b035d3' },
       180: { video: '81ca9e9a', state: '74a3087d' },
       300: { video: '9bbefd2e', state: '5340b328' },
-      600: { video: '5cb9143a', state: '0b77194f' },
-      900: { video: '0a0e8dc4', state: '4cdb2c15' },
-      1200: { video: '211e04ca', state: '975994ed' },
+      600: { video: 'b8a3cea9', state: '11b7ec78' },
+      900: { video: '5fb07a52', state: '4da5fa3e' },
+      1200: { video: 'ba36bab2', state: '1e4d0cc6' },
     },
     audio: {
-      writes: 376752,
-      nonzeroWrites: 147636,
-      writeHash: '3e35df41',
-      pcmHash: '3da27b3f',
-      rms: 0.190258,
+      writes: 387220,
+      nonzeroWrites: 151194,
+      writeHash: '129a395d',
+      pcmHash: '4102b5b7',
+      rms: 0.186474,
     },
   },
 });

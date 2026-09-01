@@ -200,6 +200,100 @@ INPUT_PORTS_END
   activeLow: true,
 });
 
+// PORT_BIT's second argument is field_alloc's defval. For a digital input the
+// polarity words restate the polarity, but an analog field names a resting
+// position inside its travel.
+eq('a digital PORT_BIT keeps its polarity as its default', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("IP0")
+  PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_COIN1 )
+  PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM )
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields.map(field => [field.mask, field.defaultValue]), [
+  [0x01, 0x01],
+  [0x60, 0x00],
+]);
+
+eq('an analog PORT_BIT keeps its resting position', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("IP2")
+  PORT_BIT( 0xff, 0x74, IPT_PADDLE ) PORT_MINMAX(0x34,0xb4) PORT_SENSITIVITY(40)
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields[0]?.defaultValue, 0x74);
+
+// A macro parameter is not evaluable here (taitosj passes `coinstate` down
+// into its shared port block); leaving the value off keeps the polarity rule.
+eq('a PORT_BIT default that is not a constant is left unresolved', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("IN")
+  PORT_BIT( 0x10, coinstate, IPT_COIN2 )
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields[0]?.defaultValue, undefined);
+
+// The PORT_DIPUNUSED/PORT_DIPUNKNOWN family lowers to onoff_alloc, whose
+// second argument is the switch's power-on value. Drivers spell it three ways
+// and they do not agree: konami writes the mask, gottlieb writes 0x00, namco
+// writes IP_ACTIVE_LOW (0xffffffff) and tecmo writes IP_ACTIVE_HIGH (0).
+// Assuming any one of them silently mis-powers the other boards.
+eq('an unused DIP declared with the mask powers on set', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("DSW")
+  PORT_DIPUNUSED_DIPLOC( 0x20, 0x20, "SW3:6" )
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields[0], {
+  kind: 'dip', mask: 0x20, defaultValue: 0x20, name: 'Unused', settings: [],
+});
+
+eq('an unused DIP declared zero powers on clear', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("DSW")
+  PORT_DIPUNUSED_DIPLOC( 0x20, 0x00, "DSW:!5" )
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields[0], {
+  kind: 'dip', mask: 0x20, defaultValue: 0, name: 'Unused', settings: [],
+});
+
+eq('IP_ACTIVE_LOW is an all-ones default, not a polarity flag', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("DSWA")
+  PORT_DIPUNUSED_DIPLOC( 0x04, IP_ACTIVE_LOW, "SWB:3" )
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields[0], {
+  kind: 'dip', mask: 0x04, defaultValue: 0x04, name: 'Unused', settings: [],
+});
+
+eq('IP_ACTIVE_HIGH is an all-zeroes default', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("DSWA")
+  PORT_DIPUNUSED_DIPLOC( 0x01, IP_ACTIVE_HIGH, "SW1:!1" )
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields[0], {
+  kind: 'dip', mask: 0x01, defaultValue: 0, name: 'Unused', settings: [],
+});
+
+// PORT_DIPUNKNOWN and the two non-DIPLOC spellings are the same macro. Left
+// unparsed, the bits they cover are claimed by no field at all and power on
+// clear -- which is how taitosj's SWA and SWC read back inverted.
+eq('PORT_DIPUNKNOWN_DIPLOC is parsed like PORT_DIPUNUSED_DIPLOC', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("SWA")
+  PORT_DIPUNKNOWN_DIPLOC( 0x01, 0x01, "SWA:1" )
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields[0], {
+  kind: 'dip', mask: 0x01, defaultValue: 0x01, name: 'Unknown', settings: [],
+});
+
+eq('the non-DIPLOC spellings are parsed too', parseInputPorts(`
+INPUT_PORTS_START( board )
+  PORT_START("DSW")
+  PORT_DIPUNUSED( 0x04, IP_ACTIVE_LOW )
+  PORT_DIPUNKNOWN( 0x08, 0x00 )
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields, [
+  { kind: 'dip', mask: 0x04, defaultValue: 0x04, name: 'Unused', settings: [] },
+  { kind: 'dip', mask: 0x08, defaultValue: 0, name: 'Unknown', settings: [] },
+]);
+
 eq('all PORT_INCLUDE declarations are preserved in source order', parseInputPorts(`
 INPUT_PORTS_START( board )
   PORT_INCLUDE( controls )

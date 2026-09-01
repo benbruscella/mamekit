@@ -762,8 +762,19 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     // those source-declared submaps as executable device handlers instead of
     // collapsing them to NOP ranges. Composite-device tags inherit their
     // owning CPU's namespace (soundbd:audiocpu -> soundbd:riot).
-    const riotSubmap = /\.m\s*\(\s*(m_)?([\w:]+)\s*,\s*FUNC\s*\(\s*mos6532_device::(ram_map|io_map)\s*\)\s*\)/
-      .exec(raw);
+    //
+    // Only when the submap did not resolve. Where it did, the range has already
+    // been split into the device's own entries -- `map(0x1c,0x1f).w(timer_on_w)`
+    // and the rest -- and each carries the handler and the offset origin MAME
+    // gives it. Rewriting those back to the whole-window io_read/io_write left
+    // every one of them dispatching on an offset measured from its own start,
+    // so a write to 0x081c arrived as offset 0 and set port A instead of
+    // arming the timer: Venture's sound CPU then never took its timer
+    // interrupt and the board hung on PLAYER 1 GET READY.
+    const riotSubmap = !spec.read && !spec.write
+      ? /\.m\s*\(\s*(m_)?([\w:]+)\s*,\s*FUNC\s*\(\s*mos6532_device::(ram_map|io_map)\s*\)\s*\)/
+        .exec(raw)
+      : null;
     if (riotSubmap) {
       const localTag = riotSubmap[2]!;
       const namespace = ownerTag?.includes(':')
@@ -1635,7 +1646,11 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
         init = (init & ~mask) | (value & mask);
         dipDefaults.push({ port: tag, mask, value, name: 'Service Mode' });
       } else if (kind === 'bit') {
-        if (activeLow) init |= mask; // released = bit set; active-high released = bit clear
+        // MAME's own power-on value for the field. For a digital input this is
+        // the polarity restated -- released reads the mask when active low --
+        // but an analog field rests somewhere inside its travel, and starting
+        // it at zero pins the control to one end (see parse.ts).
+        init = (init & ~mask) | (Number(f.props.defaultValue ?? (activeLow ? mask : 0)) & mask);
         const type = String(f.props.type ?? '');
         const mods = (f.props.modifiers as string[] | undefined) ?? [];
         const changed = mods
@@ -1806,7 +1821,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           if (f.props.kind !== 'bit') continue;
           const mask = Number(f.props.mask);
           const activeLow = f.props.activeLow !== false;
-          if (activeLow) init |= mask;
+          init = (init & ~mask) |
+            (Number(f.props.defaultValue ?? (activeLow ? mask : 0)) & mask);
           if (boundController) continue;
           const type = String(f.props.type ?? '');
           const mods = (f.props.modifiers as string[] | undefined) ?? [];

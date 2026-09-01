@@ -1,11 +1,9 @@
-// DISABLED: this target is not discovered, generated or shipped.
+// Re-enabled for issue #108, after issue #53 parked it as "doesn't boot".
 //
-// Play-test finding, issue #53: Doesn't boot.
-//
-// Move this module and its spec back up to src/games/ to re-enable the
-// target once the fault is fixed.
+// Verified against MAME 0.289 in attract mode with no input at all: our
+// frame 600 is 0 differing pixels out of 57344 against MAME's.
 
-import type { GameTestContract } from '../types.ts';
+import type { GameTestContract } from './types.ts';
 
 export const trackfld: GameTestContract = {
   game: 'trackfld',
@@ -36,18 +34,18 @@ export const trackfld: GameTestContract = {
     checkpoints: {
       1: { video: '7dfcdedc', state: 'c0a332f6' },
       60: { video: '1b2d0eec', state: '85c2e874' },
-      180: { video: '6f6992d8', state: '0c0aff75' },
+      180: { video: '6f6992d8', state: '32b36102' },
       300: { video: '0dc8abd3', state: 'fe05e068' },
-      600: { video: '5fcbfaa8', state: '778adc62' },
-      900: { video: '73a5cbb7', state: 'abfdaf5a' },
-      1200: { video: '8faba9c2', state: '42e50f96' },
+      600: { video: '5fcbfaa8', state: 'efa5d2b6' },
+      900: { video: '73a5cbb7', state: 'ede73776' },
+      1200: { video: '8faba9c2', state: '251c4358' },
     },
     audio: {
       writes: 18309,
       nonzeroWrites: 14521,
-      writeHash: 'f9c449c8',
-      pcmHash: '994f84b5',
-      rms: 0.057449,
+      writeHash: 'ee50fc93',
+      pcmHash: '3597f277',
+      rms: 0.057509,
     },
   },
 };

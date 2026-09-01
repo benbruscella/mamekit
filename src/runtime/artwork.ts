@@ -19,6 +19,17 @@
 
 import { webArtworkUrl } from './artwork-source.ts';
 
+/**
+ * Long-edge cap the build re-encodes a shipped bezel to, in pixels.
+ *
+ * It lives here rather than in the emitter because the view chooser needs it
+ * too: a scan narrower than this is upscaled to fill the frame, so given two
+ * otherwise equal cabinet views it is the one to avoid. src/gen/bezel-artwork.ts
+ * imports it, so the number the build encodes at and the number the chooser
+ * ranks by cannot drift apart.
+ */
+export const SHIPPED_BEZEL_WIDTH = 1600;
+
 export interface ArtWindow { x: number; y: number; w: number; h: number }
 export interface ArtTint {
   x: number;
@@ -264,9 +275,35 @@ export function parseArtworkLayout(source: string): LayoutView | null {
       tints,
     });
   }
-  const viewScore = (view: LayoutView): number =>
+  // A cabinet bezel is the art the screen sits *inside*. That is geometry, not
+  // naming: a pack's views are named for whoever scanned them, so Green Beret's
+  // two real bezels are "XBLA_Artwork" and "Krakerman_Artwork" while the view
+  // that wins on document order is "Inst_Card_UK" -- an instruction card that
+  // sits below the screen. Shipping that as the bezel put a wide strip of
+  // rules text where the cabinet should be. Arkanoid shipped its instruction
+  // card for the same reason.
+  const frames = (view: LayoutView): boolean =>
+    view.art.x <= view.screen.x &&
+    view.art.y <= view.screen.y &&
+    view.art.x + view.art.w >= view.screen.x + view.screen.w &&
+    view.art.y + view.art.h >= view.screen.y + view.screen.h;
+  // Not every pack has one -- Gunsmoke ships only a marquee that sits above the
+  // screen -- so this ranks rather than filters, and such a pack keeps the view
+  // it always had.
+  const nameScore = (view: LayoutView): number =>
     /bezel/i.test(view.name) ? 2 : /upright/i.test(view.name) ? 1 : 0;
-  views.sort((a, b) => viewScore(b) - viewScore(a));
+  // Last resort only, and deliberately a threshold rather than "prefer the
+  // bigger scan": several packs carry the same cabinet scanned twice at
+  // different regions, and ranking those by area swaps one good bezel for
+  // another to no purpose. What does matter is a scan too small to ship --
+  // Green Beret's two bezels are 852x480 and 3840x2160, and the build caps at
+  // SHIPPED_BEZEL_WIDTH, so the first is upscaled and soft where the second is
+  // not. Anything at or above the cap ranks alike and document order decides.
+  const sharp = (view: LayoutView): boolean => view.art.w >= SHIPPED_BEZEL_WIDTH;
+  views.sort((a, b) =>
+    Number(frames(b)) - Number(frames(a)) ||
+    nameScore(b) - nameScore(a) ||
+    Number(sharp(b)) - Number(sharp(a)));
   return views[0] ?? null;
 }
 

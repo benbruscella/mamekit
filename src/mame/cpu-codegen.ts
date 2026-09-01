@@ -86,29 +86,41 @@ function popcount32(value: number): number {
   return (((value + (value >>> 4)) & 0x0f0f0f0f) * 0x01010101) >>> 24;
 }
 
+/**
+ * The byte halves of a Pair16, as a class rather than a per-instance object.
+ *
+ * These accessors are the hottest path in the whole emulator: the Z80's TDAT
+ * aliases resolve to m_shared_data.b.l, and on Bubble Bobble the four of them
+ * were 23% of total run time. Building the byte view with
+ * Object.defineProperties and a closure per instance gave every pair its own
+ * hidden class and its own accessor functions, so each site went megamorphic
+ * and V8 could not inline through it. One class means one hidden class and one
+ * pair of prototype accessors for every register on every core.
+ */
+class Pair16Bytes {
+  private readonly pair: Pair16;
+
+  constructor(pair: Pair16) { this.pair = pair; }
+
+  get h(): number { return (this.pair.value >>> 8) & 0xff; }
+  set h(next: number) {
+    this.pair.value = ((this.pair.value & 0x00ff) | ((next & 0xff) << 8)) & 0xffff;
+  }
+
+  get l(): number { return this.pair.value & 0xff; }
+  set l(next: number) {
+    this.pair.value = ((this.pair.value & 0xff00) | (next & 0xff)) & 0xffff;
+  }
+}
+
 class Pair16 {
-  private value = 0;
-  readonly b: { h: number; l: number };
+  /** Read by Pair16Bytes; not part of the emitted core's own vocabulary. */
+  value = 0;
+  readonly b: Pair16Bytes;
 
   constructor(value = 0) {
     this.value = value & 0xffff;
-    const pair = this;
-    this.b = Object.defineProperties({}, {
-      h: {
-        enumerable: true,
-        get: () => (pair.value >>> 8) & 0xff,
-        set: (next: number) => {
-          pair.value = ((pair.value & 0x00ff) | ((next & 0xff) << 8)) & 0xffff;
-        },
-      },
-      l: {
-        enumerable: true,
-        get: () => pair.value & 0xff,
-        set: (next: number) => {
-          pair.value = ((pair.value & 0xff00) | (next & 0xff)) & 0xffff;
-        },
-      },
-    }) as { h: number; l: number };
+    this.b = new Pair16Bytes(this);
   }
 
   get w(): number { return this.value; }
@@ -506,7 +518,7 @@ function emitMember(member: GeneratedCpuMember): string {
   if (member.pair) {
     return `  private ${member.name} = new Pair16(${member.initial ?? 0});`;
   }
-  return `  private ${member.name} = ${wrapNumber(String(member.initial ?? 0), member.bits)};`;
+  return `  private ${member.name} = ${wrapNumber(String(member.initial ?? 0), member.bits, member.signed)};`;
 }
 
 function emitAlias(name: string, alias: GeneratedCpuAlias): string {
@@ -657,7 +669,7 @@ function emitPublicSetCases(definition: GeneratedCpuDefinition): string {
     } else {
       lines.push(
         `      case ${JSON.stringify(member.name)}: ` +
-        `this.${member.name} = ${wrapNumber('value', member.bits)}; return;`,
+        `this.${member.name} = ${wrapNumber('value', member.bits, member.signed)}; return;`,
       );
     }
   }
@@ -1129,7 +1141,7 @@ function emitAssignment(
 function targetInfo(
   expression: GeneratedExpression,
   context: EmitContext,
-): { code: string; bits?: 1 | 8 | 16 | 32; valueType?: string } {
+): { code: string; bits?: 1 | 8 | 16 | 32; valueType?: string; signed?: boolean } {
   if (expression.kind === 'index') {
     const object = expressionPath(expression.object);
     if (!object) {
@@ -1141,6 +1153,7 @@ function targetInfo(
     return {
       code: `${emitExpression(expression.object, context)}[${emitExpression(expression.index, context)}]`,
       bits: member?.bits,
+      signed: member?.signed,
     };
   }
   const path = expressionPath(expression);
@@ -1171,7 +1184,7 @@ function targetInfo(
     if (member.fields) {
       return { code: `this.${path}`, bits: member.fields[suffix] };
     }
-    return { code: `this.${path}`, bits: member.bits };
+    return { code: `this.${path}`, bits: member.bits, signed: member.signed };
   }
   throw new Error(`generated CPU assignment has unresolved target "${path}"`);
 }
@@ -1279,16 +1292,20 @@ function expressionPath(expression: GeneratedExpression): string | undefined {
 
 function wrapTarget(
   value: string,
-  target: { bits?: 1 | 8 | 16 | 32; valueType?: string },
+  target: { bits?: 1 | 8 | 16 | 32; valueType?: string; signed?: boolean },
 ): string {
-  return target.bits ? wrapNumber(value, target.bits) : wrapType(value, target.valueType);
+  return target.bits
+    ? wrapNumber(value, target.bits, target.signed)
+    : wrapType(value, target.valueType);
 }
 
-function wrapNumber(value: string, bits?: 1 | 8 | 16 | 32): string {
+function wrapNumber(value: string, bits?: 1 | 8 | 16 | 32, signed?: boolean): string {
   if (bits === 1) return `((${value}) ? 1 : 0)`;
-  if (bits === 8) return `((${value}) & 0xff)`;
-  if (bits === 16) return `((${value}) & 0xffff)`;
-  if (bits === 32) return `((${value}) >>> 0)`;
+  if (bits === 8) return signed ? `(((${value}) << 24) >> 24)` : `((${value}) & 0xff)`;
+  if (bits === 16) return signed ? `(((${value}) << 16) >> 16)` : `((${value}) & 0xffff)`;
+  // `| 0` is the two's-complement wrap; `>>> 0` is the unsigned one. A member
+  // whose value is read for its sign has to keep the former.
+  if (bits === 32) return signed ? `((${value}) | 0)` : `((${value}) >>> 0)`;
   return value;
 }
 

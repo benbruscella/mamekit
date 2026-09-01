@@ -3,6 +3,7 @@ import { join, relative } from 'node:path';
 import type { BoardSourceRef, GeneratedHandlerProgram } from '../ir/board.ts';
 import { parseMameAst, parseMameSource, splitMameArgs } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
+import { stripCppComments } from './initializer.ts';
 import {
   parseZ80OpcodeDsl,
   type OpcodeDslOperation,
@@ -20,6 +21,14 @@ export interface GeneratedCpuAlias {
 export interface GeneratedCpuMember {
   name: string;
   bits?: 1 | 8 | 16 | 32;
+  /**
+   * The member holds a signed value, so a store wraps to two's complement
+   * rather than to an unsigned range. MAME declares most flag scratch as
+   * `uint32_t` and tests it for zero, but a value a flag reads the *sign* of
+   * is `int32_t` -- i86's `m_SignVal` is the one that matters, since `SF` is
+   * `m_SignVal < 0` and an unsigned wrap makes every negative byte positive.
+   */
+  signed?: boolean;
   pair?: boolean;
   values?: number[];
   fields?: Record<string, 1 | 8 | 16 | 32>;
@@ -2353,6 +2362,12 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
     'read_byte', 'read_word', 'write_byte', 'write_word', 'read_port_byte',
     'read_port_word', 'write_port_byte', 'write_port_byte_al', 'write_port_word',
     'fetch', 'execute_set_input',
+    // Address-space plumbing, not semantics: sreg_to_space picks between the
+    // AS_CODE/AS_STACK/AS_EXTRA spaces a driver may install, and MAME aliases
+    // all three onto m_program when it does not. Every caller of it is already
+    // skipped above, so lowering it only reaches m_program, which the
+    // generated core -- a single program bus -- has no member for.
+    'sreg_to_space',
   ]);
   const seenMethods = new Set<string>();
   for (const fn of ast) {
@@ -2408,10 +2423,37 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
   });
   const resetFn = sourceFunction('device_reset');
   const inputFn = sourceFunction('execute_set_input');
-  if (!resetFn || !inputFn) throw new Error('MAME I8088 reset/input source is missing');
+  const runFn = sourceFunction('execute_run');
+  if (!resetFn || !inputFn || !runFn) {
+    throw new Error('MAME I8088 reset/input/run source is missing');
+  }
   const reset = compileMameHandler(normalize(`${resetFn.body}\ncycles = 0;`));
   const input = compileMameHandler(normalize(inputFn.body)
     .replace(/\binptnum\b/g, 'inputnum'));
+  // `execute_run` keeps a small switch of its own ahead of `common_op`, and
+  // the shift-and-rotate-by-CL pair lives there rather than in the big table.
+  // Restating the step by hand is what let them go missing: with no case for
+  // 0xd2/0xd3 the opcode byte was consumed and its ModRM byte was not, so
+  // `SHL BX,CL` ran one byte short and every instruction after it decoded from
+  // the wrong offset. Take the two bodies from MAME instead of writing them
+  // out, so the step cannot drift from the source switch again.
+  const runBody = runFn.body;
+  const rotateByCl = (opcode: string): string => {
+    const at = runBody.indexOf(`case ${opcode}:`);
+    if (at < 0) throw new Error(`MAME I8088 execute_run has no ${opcode} case`);
+    const open = runBody.indexOf('{', at);
+    let depth = 0;
+    for (let index = open; index < runBody.length; index += 1) {
+      if (runBody[index] === '{') depth += 1;
+      else if (runBody[index] === '}' && (depth -= 1) === 0) {
+        return runBody.slice(open + 1, index);
+      }
+    }
+    throw new Error(`MAME I8088 ${opcode} case is unterminated`);
+  };
+  add('rotshft_bcl', '', rotateByCl('0xd2'), cppFile, lineAt(cpp, cpp.indexOf('case 0xd2:')));
+  add('rotshft_wcl', '', rotateByCl('0xd3'), cppFile, lineAt(cpp, cpp.indexOf('case 0xd3:')));
+
   const step = compileMameHandler(normalize(`
     cycles = 0;
     m_icount = 1;
@@ -2432,6 +2474,10 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
     if (op == 0x0f) {
       m_sregs[CS] = POP();
       CLK(POP_SEG);
+    } else if (op == 0xd2) {
+      rotshft_bcl();
+    } else if (op == 0xd3) {
+      rotshft_wcl();
     } else if (op >= 0xd8 && op <= 0xdf) {
       m_modrm = fetch();
       if (m_modrm < 0xc0) get_ea(1, I8086_READ);
@@ -2457,9 +2503,20 @@ export function compileMameI8088(mameSrc: string): GeneratedCpuDefinition {
       'm_fire_trap', 'm_test_state', 'm_io_stall', 'm_seg_prefix',
       'm_seg_prefix_next', 'm_modrm', 'm_halt', 'm_lock',
     ].map(name => ({ name, bits: 8 as const })),
+    // i86.h declares `int32_t m_SignVal;` on its own line and the rest of the
+    // flag scratch as `uint32_t ... /* 0 or non-0 valued flags */`. The
+    // distinction is load bearing: `SF` is `m_SignVal < 0`, and
+    // `set_SZPF_Byte` assigns `(int8_t)x`, so wrapping the store unsigned
+    // turns every negative byte result positive and clears SF. Q*bert's coin
+    // routine is `CMP BYTE PTR [0083],0` then `JG`/`JL` -- a signed test --
+    // so with SF stuck at 0 it took the wrong arm and never credited a coin.
+    { name: 'm_SignVal', bits: 32 as const, signed: true },
+    // m_icount is `int` in device_execute_interface and goes negative when an
+    // instruction overruns its slice.
+    { name: 'm_icount', bits: 32 as const, signed: true },
     ...[
-      'm_SignVal', 'm_AuxVal', 'm_OverVal', 'm_ZeroVal', 'm_CarryVal',
-      'm_ParityVal', 'm_int_vector', 'm_pending_irq', 'm_nmi_state', 'm_icount',
+      'm_AuxVal', 'm_OverVal', 'm_ZeroVal', 'm_CarryVal',
+      'm_ParityVal', 'm_int_vector', 'm_pending_irq', 'm_nmi_state',
       'm_prefix_seg', 'm_ea', 'm_easeg', 'm_dst', 'm_src', 'm_pc', 'cycles',
     ].map(name => ({ name, bits: 32 as const })),
   ];
@@ -2596,6 +2653,10 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
     if ([
       'device_start', 'device_reset', 'execute_run', 'execute_set_input',
       'memory_space_config', 'create_disassembler', 'register_debug_state',
+      // device_state_interface, like the other lifecycle entries here: it
+      // formats m_fcw for the debugger against STATE_GENFLAGS, a distate.h
+      // enumerator that is not part of any CPU definition.
+      'state_import', 'state_export', 'state_string_export',
       'register_save_state', 'init_spaces', 'init_tables', 'clear_internal_state',
       'RDMEM_B', 'RDMEM_W', 'RDMEM_L', 'WRMEM_B', 'WRMEM_W', 'WRMEM_L',
       'RDPORT_B', 'RDPORT_W', 'WRPORT_B', 'WRPORT_W', 'RDOP', 'get_operand',
@@ -3403,24 +3464,28 @@ function extractConstexprConstants(source: string): Record<string, number> {
   return resolveConstants(expressions);
 }
 
+/**
+ * Enumerator values declared in a CPU header.
+ *
+ * Comments are removed by the scanner, not by a pattern, and that is load
+ * bearing twice over. A block comment holding a comma splits one enumerator
+ * into two entries and silently shifts every value after it: i86.h annotates
+ * its BASE_CYCLES table that way, so `NOP` came out 14 instead of 21 and every
+ * `CLK`/`CLKM` charge indexed the wrong m_timing slot. Taking the block
+ * comments out with a regex instead is worse -- MAME's section banners are
+ * lines of slash-slash-stars, whose second character pair reads as an opener
+ * that then swallows the rest of the header, which is exactly how m6809.h
+ * loses all six of its enums.
+ */
 function extractEnumConstants(
   source: string,
   seed: Record<string, number>,
 ): Record<string, number> {
   const resolved = { ...seed };
-  for (const match of source.matchAll(/\benum(?:\s+\w+)?\s*\{([\s\S]*?)\};/g)) {
+  for (const match of stripCppComments(source).matchAll(/\benum(?:\s+\w+)?\s*\{([\s\S]*?)\};/g)) {
     let next = 0;
     for (const rawEntry of match[1]!.split(',')) {
-      // Block comments as well as line comments: MAME annotates enum members
-      // in both styles, and an entry carrying a /* ... */ used to fail the
-      // parse below -- which drops that constant AND leaves `next` unadvanced,
-      // so every member after it is silently numbered one too low. The
-      // LR35902's interrupt vectors and its IE/IF state indices are both
-      // written that way.
-      const entry = rawEntry
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-        .replace(/\/\/.*$/gm, '')
-        .trim();
+      const entry = rawEntry.trim();
       if (!entry) continue;
       const parsed = /^(\w+)(?:\s*=\s*([\s\S]+))?$/.exec(entry);
       if (!parsed) continue;
