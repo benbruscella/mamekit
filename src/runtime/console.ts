@@ -570,6 +570,28 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     ines: inesCarts,
     ...(cfg.cart?.defaultSlot ? { defaultSlot: cfg.cart.defaultSlot } : {}),
   };
+  /**
+   * The board a catalogue entry runs on, and whether this build can run it.
+   *
+   * A software list need not name a board: MAME falls back to the cartridge
+   * slot's own default option, which is exactly what resolveFlatCart does when
+   * a cartridge is actually mounted. The shelf has to agree with it. Judging an
+   * unnamed slot "unknown" instead marked every Game Boy cartridge whose entry
+   * carries no `slot` feature as an unplayable display-only tile -- Tetris
+   * among them, on the plain ROM board the machine has supported all along --
+   * and the same rule would reject every ColecoVision cartridge ever made,
+   * since coleco.xml names no slot anywhere.
+   */
+  const boardOf = (slot: string | undefined): string => slot || support.defaultSlot || '';
+  const playsOnBoard = (slot: string | undefined): boolean => {
+    const board = boardOf(slot);
+    return board !== '' && support.slots.includes(board);
+  };
+  const boardLabel = (slot: string | undefined): string => {
+    const board = boardOf(slot);
+    return board === '' ? 'UNKNOWN BOARD' : SLOT_PCB[board] ?? board.toUpperCase();
+  };
+
   // The bucket key for this console's set mirrors .data/roms: games/consoles/nes
   // -> consoles/nes. Availability is best-effort: with no manifest reachable the
   // room behaves exactly as before and asks for a drop.
@@ -1098,13 +1120,13 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     // A dump the bucket can supply is offered for fetch; whether it then PLAYS
     // still depends on the mapper, which only the fetched header can settle for
     // an unidentified dump.
-    const playableBoard = row.slot !== '' && support.slots.includes(row.slot);
+    const playableBoard = playsOnBoard(row.slot);
     const item = el('div', 'display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0');
     item.setAttribute('data-catalog-cart', row.key);
     item.dataset.slot = row.slot;
     if (row.avail) item.dataset.bucket = row.tier;
     const artName = row.entry?.name ?? row.avail?.name ?? '';
-    const pcb = row.slot === '' ? 'UNKNOWN BOARD' : (SLOT_PCB[row.slot] ?? row.slot.toUpperCase());
+    const pcb = boardLabel(row.slot);
     const cover = coverEl(cartSvg({
       title: row.title,
       sub: row.sub,
@@ -1207,7 +1229,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     const filter = boardFilter.value;
     const matches = rows.filter(row => {
       if (filter === 'verified' && row.tier !== 'verified') return false;
-      if (filter === 'playable' && !(row.slot !== '' && support.slots.includes(row.slot))) return false;
+      if (filter === 'playable' && !playsOnBoard(row.slot)) return false;
       if (!['all', 'playable', 'verified'].includes(filter) && row.slot !== filter) return false;
       return !term || row.haystack.includes(term);
     });
@@ -1535,7 +1557,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   function openTargetModal(catEntry: SoftEntry | undefined, name: string, zipName?: string): void {
     const verified = support.games.includes(name) ||
       (catEntry?.cloneof !== undefined && support.games.includes(catEntry.cloneof));
-    const playableBoard = catEntry !== undefined && support.slots.includes(catEntry.slot);
+    const playableBoard = catEntry !== undefined && playsOnBoard(catEntry.slot);
     openModal((scroller, footer, close) => {
       const inner = el('div', 'padding:22px 30px 20px');
       scroller.appendChild(inner);
@@ -1545,8 +1567,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       subh.textContent = verified
         ? '◍ VERIFIED SLOT — DROP THIS DUMP TO PLAY'
         : playableBoard
-          ? `◍ ${SLOT_PCB[catEntry.slot] ?? catEntry.slot.toUpperCase()} — PLAYABLE, NOT YET VERIFIED`
-          : `◍ ${catEntry ? SLOT_PCB[catEntry.slot] ?? catEntry.slot.toUpperCase() : 'UNKNOWN BOARD'} — DISPLAY ONLY`;
+          ? `◍ ${boardLabel(catEntry.slot)} — PLAYABLE, NOT YET VERIFIED`
+          : `◍ ${catEntry ? boardLabel(catEntry.slot) : 'UNKNOWN BOARD'} — DISPLAY ONLY`;
       inner.append(h, subh);
 
       if (catEntry) {
