@@ -33,6 +33,7 @@ export {
   generatedPointerStore,
   generatedWideBinary,
   generatedReferent,
+  prepareGeneratedMachineHandler,
   generatedValuesEqual,
 } from '../ir/execute.ts';
 

@@ -21,6 +21,7 @@ import {
   dispatchGeneratedCallbacks,
   executeGeneratedCallbackHandler,
   executeGeneratedMachineHandler,
+  prepareGeneratedMachineHandler,
   generatedHandlerRegistry,
   wireGeneratedDevice,
   type GeneratedHandlerBindings,
@@ -3732,20 +3733,21 @@ class IrBoard implements Board {
     const compiled = /_r(?:_\d+)?$/.test(handler.method)
       ? compileGeneratedMachineHandler(this.machine, handler, bindings)
       : undefined;
+    // Resolved once, not per call. A signal wired to a processor's own
+    // per-instruction callback delivers seventeen thousand times a frame.
+    const dispatch = compiled ??
+      prepareGeneratedMachineHandler(this.machine, handler, bindings);
     return (state, ...sourceArgs) => {
       const debugCounts = (globalThis as {
         __mamekitHandlerCounts?: Map<string, number>;
       }).__mamekitHandlerCounts;
       if (debugCounts) debugCounts.set(key, (debugCounts.get(key) ?? 0) + 1);
-      const args = generatedSignalHandlerArguments(
+      return dispatch(generatedSignalHandlerArguments(
         handler.parameters,
         state,
         firstArgument,
         sourceArgs,
-      );
-      return compiled
-        ? compiled(args)
-        : executeGeneratedMachineHandler(this.machine, handler, bindings, args);
+      ));
     };
   }
 

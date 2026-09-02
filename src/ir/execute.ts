@@ -617,6 +617,63 @@ function preparedMachineCalls(
   return prepared;
 }
 
+/**
+ * Resolve one machine handler's dispatch once, ahead of the calls.
+ *
+ * A handler on a per-instruction signal runs seventeen thousand times a frame
+ * — the LR35902 calls the Game Boy's `gb_timer_callback` after every
+ * instruction — and re-resolving its compiled function, its prepared call
+ * table, its runtime and its parameter list on each of those cost more than
+ * the handler body did. All four are stable for the life of a board: the
+ * compiled table is attached when the generated module loads, and the prepared
+ * table is keyed on binding identity, which never changes.
+ *
+ * Built on first call rather than eagerly, so a handler nothing signals costs
+ * nothing.
+ */
+export function prepareGeneratedMachineHandler(
+  machine: BoardIr,
+  handler: GeneratedHandler,
+  bindings: GeneratedHandlerBindings,
+): (args: Record<string, unknown>) => number | undefined {
+  let dispatch: ((args: Record<string, unknown>) => number | undefined) | undefined;
+  return args => (dispatch ??= buildGeneratedMachineDispatch(machine, handler, bindings))(args);
+}
+
+function buildGeneratedMachineDispatch(
+  machine: BoardIr,
+  handler: GeneratedHandler,
+  bindings: GeneratedHandlerBindings,
+): (args: Record<string, unknown>) => number | undefined {
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (!compiled) {
+    const handlerBindings = machineHandlerBindings(machine, handler, bindings);
+    const program = handler.program!;
+    return args => {
+      const result = executeGeneratedProgram(program, handlerBindings, args);
+      return result.returned && result.value !== undefined ? toNumber(result.value) : undefined;
+    };
+  }
+  const runtime = preparedHandlerRuntime(
+    preparedMachineCalls(machine, bindings, handler.ownerClass),
+    bindings,
+  );
+  const names = parameterNames(handler.parameters);
+  const values = new Array<unknown>(names.length);
+  return args => {
+    // See executeGeneratedMachineProgram for why a reference parameter is
+    // handed to emitted code as its referent.
+    for (let index = 0; index < names.length; index++) {
+      const argument = args[names[index]!];
+      values[index] = argument === undefined
+        ? 0
+        : isLValue(argument) ? argument.get() : argument;
+    }
+    const value = compiled(runtime, ...values);
+    return value === undefined ? undefined : toNumber(value);
+  };
+}
+
 export function executeGeneratedMachineHandler(
   machine: BoardIr,
   handler: GeneratedHandler,
