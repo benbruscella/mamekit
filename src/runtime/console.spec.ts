@@ -10,12 +10,14 @@ assert.equal(typeof runConsole, 'function');
 // The shelf draws the console's own cartridge, chosen from the software list's
 // cartridge interface rather than from a hand-kept console list.
 assert.notEqual(shellForInterface('a2600_cart'), shellForInterface('nes_cart'));
+assert.notEqual(shellForInterface('gameboy_cart'), shellForInterface('nes_cart'));
+assert.notEqual(shellForInterface('gameboy_cart'), shellForInterface('a2600_cart'));
 assert.equal(shellForInterface('coleco_cart'), shellForInterface('nes_cart'));
 assert.equal(shellForInterface(undefined), shellForInterface('nes_cart'));
 
 // Whichever shell is active, a tile keeps the parts the room drives by
 // selector: the label rect the photo overlay resizes, and its frame.
-for (const cartInterface of ['nes_cart', 'a2600_cart']) {
+for (const cartInterface of ['nes_cart', 'a2600_cart', 'gameboy_cart']) {
   useCartShell(cartInterface);
   const svg = cartSvg({ title: 'River Raid', sub: 'Activision · 1982', state: 'experimental', artKey: 'riveraid', code: 'riveraid.zip' });
   assert.ok(svg.includes('data-label-bg'), `${cartInterface}: the label is addressable`);
@@ -32,6 +34,14 @@ const vcsShell = cartSvg({ title: 'X', sub: '', state: 'lit' });
 assert.notEqual(nesShell, vcsShell);
 assert.ok(nesShell.includes('#9a9a94'), 'the NES cart is grey plastic');
 assert.ok(vcsShell.includes('#3a3a3d'), 'the 2600 cart is black plastic');
+useCartShell('gameboy_cart');
+const dmgShell = cartSvg({ title: 'X', sub: '', state: 'lit' });
+assert.notEqual(dmgShell, nesShell);
+assert.notEqual(dmgShell, vcsShell);
+assert.ok(dmgShell.includes('#b6b4ab'), 'the Game Boy cart is grey plastic');
+// The chamfered top-right corner is what makes the shape readable at a glance,
+// and it is the one part of the shell no other console shares.
+assert.ok(dmgShell.includes('l32 32'), 'the Game Boy cart keeps its corner chamfer');
 useCartShell(undefined);
 
 console.log('console.spec: cartridge title layout and shell contract passed');

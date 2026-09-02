@@ -16,6 +16,7 @@ export const CPU_MAME_TYPES = [
   'KONAMI', 'KONAMI1', 'MC6809', 'MC6809E', 'HD6309E', 'HD63701Y0', 'M6808',
   'M68000', 'M68010',
   'RP2A03', 'RP2A03G',
+  'LR35902',
 ] as const;
 
 export const CPU_PORTS: readonly PortDeclaration[] = [

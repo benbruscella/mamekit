@@ -60,8 +60,8 @@ export const galaga: GameTestContract = {
     checkpoints: {
       1: { video: '2fd768d3', state: 'a74b01ec' },
       300: { video: '8fa90953', state: 'abac4fb5' },
-      720: { video: '972b5194', state: 'dd7ba1f7' },
-      760: { video: '21864713', state: '4f12b96b' },
+      720: { video: '972b5194', state: '9214eadb' },
+      760: { video: '21864713', state: '4c859c84' },
       900: { video: 'd4ed5a0c', state: '0bccffcd' },
       1050: { video: 'b12321a8', state: '2d80a055' },
       1300: { video: '7796e201', state: 'bdda9e21' },
@@ -72,8 +72,8 @@ export const galaga: GameTestContract = {
     audio: {
       writes: 552025,
       nonzeroWrites: 32373,
-      writeHash: 'e6e1d5f5',
-      pcmHash: '7dfac96b',
+      writeHash: 'fbb6d6ff',
+      pcmHash: '35b2ee7a',
       rms: 0.078376,
     },
   },

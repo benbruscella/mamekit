@@ -46,13 +46,14 @@ jobs:
           sparse-checkout: |
             src
             hash/nes.xml
+            hash/gameboy.xml
             3rdparty/ymfm/src
           sparse-checkout-cone-mode: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies

@@ -68,6 +68,10 @@ import {
 } from './dossier.ts';
 import { emitArchiveRoutes } from './archive.ts';
 
+import {
+  GAMEBOY_APU_TYPE,
+  GAMEBOY_OUTPUT_RATE,
+} from '../hardware/gameboy/definition.ts';
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '../..');
 
@@ -327,11 +331,20 @@ const CART_SLOT_SUPPORT: Record<string, string[]> = {
     // pixel-exact against MAME across its attract.
     // a26_dc is still a black screen and stays out until it is not.
     'a26_3f', 'a26_ua', 'a26_fv', 'a26_8in1', 'a26_dpc'],
+  // Game Boy cartridge boards whose installer the host address space can
+  // replay. All 17 the console's own software list names lower; these are the
+  // memory controllers that list actually leans on, and between them they
+  // cover 1,594 of its 1,743 entries -- MBC1 alone is 1,469 of them.
+  // src/hardware/gameboy/gameboy.spec.ts asserts this set against MAME's own
+  // option list, so the two cannot drift apart silently.
+  gameboy: ['rom', 'rom_mbc1', 'rom_mbc2', 'rom_mbc3', 'rom_mbc5',
+    'rom_huc1', 'rom_mmm01'],
 };
 
 const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
   nes: 'nes_cart',
   coleco: 'coleco_cart',
+  gameboy: 'gameboy_cart',
 };
 
 // What a cartridge slot does when a software-list entry names no PCB, and
@@ -343,6 +356,10 @@ const CART_DEFAULT_SLOT: Record<string, string> = {
   coleco: 'standard',
   // MAME's own fallback, from `vcs_get_slot`'s final return.
   a2600: 'a26_2k_4k',
+  // MAME's own answer for a header that declares no memory controller, from
+  // `guess_cart_type`; src/hardware/gameboy/extract.ts reads the same value
+  // out of source for the slot IR.
+  gameboy: 'rom',
 };
 /**
  * The file extensions a console's cartridge slot accepts, as MAME declares them.
@@ -373,6 +390,9 @@ function cartFileExtensions(
 const CART_ROM_REGION: Record<string, string> = {
   coleco: 'coleco_cart:rom',
   a2600: 'cartslot:cart:rom',
+  // `device_gb_cart_interface::cart_rom_region()` is the slot's own "rom"
+  // sub-region; the capability binds the mounted PCB to this same name.
+  gameboy: 'cartslot:rom',
 };
 
 // Explicitly supported cartridge titles (softlist parent short-names; clones
@@ -504,7 +524,13 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // file stem, but a single driver file can host several distinct boards
   // (galaga.cpp defines both galaga and digdug, with different maps/video/I/O).
   // A machine whose board differs from its file's default is remapped by name.
-  const FAMILY_BY_MACHINE: Record<string, string> = { digdug: 'digdug' };
+  const FAMILY_BY_MACHINE: Record<string, string> = {
+    digdug: 'digdug',
+    // MAME files the Game Boy under gb.cpp beside the Color, the Super Game
+    // Boy and the Mega Duck. The console's own name is what the cartridge
+    // tables and the hardware package are keyed on.
+    gameboy: 'gameboy',
+  };
   const family = FAMILY_BY_MACHINE[String(machine.props.name)]
     ?? basename(String(graph.meta.driverFile)).replace(/\.cpp$/, '');
 
@@ -530,6 +556,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     mirror?: number;
     className: string;
     method: string;
+    viewTag?: string;
+    viewEntry?: number;
   }> = [];
   // Numeric members the game's state class fixes in its own constructor. A
   // machine config shared with a sibling game -- a2600 and a2600p share
@@ -645,7 +673,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902' };
   // ROM windows installed by a CPU's own internal address map. They do not
   // appear in the driver's set_addrmap graph, but still map DEVICE_SELF ROM.
   const CPU_INTERNAL_ROM: Record<string, { start: number; end: number; romOffset: number }> = {
@@ -845,6 +873,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           mirror?: number;
           className: string;
           method: string;
+          viewTag?: string;
+          viewEntry?: number;
         })
       : [];
     installedHandlers.push(...machineInstalledHandlers);
@@ -869,6 +899,12 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             end: handler.end,
             kind: 'handler' as const,
             ...(handler.mirror !== undefined ? { mirror: handler.mirror } : {}),
+            // A view entry's install is an overlay, not a map entry: it decodes
+            // only while its entry is selected, and falls back to the map
+            // underneath once the board disables the view.
+            ...(handler.viewTag !== undefined
+              ? { viewTag: handler.viewTag, viewEntry: handler.viewEntry ?? 0 }
+              : {}),
             [handler.kind]: `${handler.className}.${handler.method}`,
           })),
         ],
@@ -1074,6 +1110,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // the worklet; the DSP runs beside the CPU as a generated device because the
   // video half reaches it through a device finder (see the a2600 capability).
   const tiaChip = devices.find(device => device.props.type === 'TIA');
+  const gameboyApu = devices.find(device => device.props.type === GAMEBOY_APU_TYPE);
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
         const type = String(device.props.type);
@@ -1221,6 +1258,18 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               kind: 'discrete',
               clock: cpus[0].clock,
               worklet: String(discreteDevice.props.type).toLowerCase().replace(/_/g, '-'),
+            }
+        : gameboyApu
+          ? {
+              kind: 'gameboy',
+              // MAME allocates the APU's stream `SAMPLE_RATE_OUTPUT_ADAPTIVE`,
+              // so the rate is the host's to choose. One constant chooses it
+              // for the renderer and for the audio context alike.
+              clock: GAMEBOY_OUTPUT_RATE,
+              deviceTag: String(gameboyApu.props.tag),
+              // No master gain: `add_route(n, "speaker", 0.50, n)` is applied
+              // where the two outputs are mixed to one channel, so what
+              // arrives here is already what MAME's speaker hears.
             }
         : tiaChip
           ? (() => {

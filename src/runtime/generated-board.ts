@@ -8,6 +8,7 @@ import {
   type Device,
   type GeneratedMemoryBank,
 } from './generated-device.ts';
+import type { GeneratedCallArgument } from '../ir/execute.ts';
 import { GeneratedFrameRunner } from './generated-frame.ts';
 import {
   GeneratedMameVideoPrimitives,
@@ -20,11 +21,16 @@ import {
   dispatchGeneratedCallbacks,
   executeGeneratedCallbackHandler,
   executeGeneratedMachineHandler,
+  prepareGeneratedMachineHandler,
   generatedHandlerRegistry,
   wireGeneratedDevice,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
-import { HOST_SERVICE_CALLS, type BoardIr } from '../ir/board.ts';
+import {
+  HOST_SERVICE_CALLS,
+  type BoardIr,
+  type GeneratedStateMember,
+} from '../ir/board.ts';
 import {
   applyBoardTransforms,
   bindBoardEffects,
@@ -381,6 +387,25 @@ class IrBoard implements Board {
             (machine.execution.screen.xOffset ?? 0) + machine.execution.screen.width),
           height: () => Math.max(1, machine.execution.screen.vtotal),
           frame_number: () => this.frameRunner?.frameCount ?? 0,
+          // MAME `screen_device::visible_area()`: the window inside the raster
+          // that reaches the display, in the same coordinates a device plots.
+          visible_area: () => ({
+            min_x: machine.execution.screen.xOffset ?? 0,
+            max_x: (machine.execution.screen.xOffset ?? 0) +
+              machine.execution.screen.width - 1,
+            min_y: machine.execution.screen.yOffset ?? 0,
+            max_y: (machine.execution.screen.yOffset ?? 0) +
+              machine.execution.screen.height - 1,
+          }),
+          // MAME `screen_device::register_screen_bitmap`: the screen sizes the
+          // device's own bitmap to the raster and keeps it that size. Without
+          // it the Game Boy PPU plotted every pixel into a zero-by-zero bitmap
+          // and copied a blank screen out of it.
+          register_screen_bitmap: (bitmap: unknown) => {
+            const target = bitmap as { allocate?: (width: number, height: number) => void };
+            target?.allocate?.(screenHost.width(), screenHost.height());
+            return 0;
+          },
         };
         // The same services under the chain names a generated device emits:
         // `screen().vpos()` resolves to one lookup rather than evaluating
@@ -389,7 +414,10 @@ class IrBoard implements Board {
         // to the interpreter.
         const hostServiceHosts: Record<string, Record<string, unknown>> = {
           screen: screenHost as unknown as Record<string, unknown>,
-          machine: { side_effects_disabled: () => 0 },
+          machine: {
+            side_effects_disabled: () => 0,
+            time: () => generatedAttotime(this.machineSeconds()),
+          },
         };
         const screenServiceCalls: Record<string, (...args: number[]) => unknown> = {};
         for (const name of HOST_SERVICE_CALLS) {
@@ -455,12 +483,38 @@ class IrBoard implements Board {
             return new Proxy({}, {
               get: (_target, property) => {
                 const method = String(property);
+                // MAME `device_memory_interface::space(AS_PROGRAM)`. A device
+                // that reaches its host processor's bus takes this by
+                // reference and keeps it: the Game Boy PPU copies OAM through
+                // `m_program_space->read_byte(...)`, and with the call
+                // unresolved every DMA wrote zeroes -- no game had any sprites.
+                if (method === 'space') {
+                  return () => ({
+                    read_byte: (address: number) =>
+                      this.cpuBuses.get(cpuSpec.tag)?.read(address) ?? 0xff,
+                    write_byte: (address: number, value: number) => {
+                      this.cpuBuses.get(cpuSpec.tag)?.write(address, value);
+                      return 0;
+                    },
+                  });
+                }
                 if (method === 'cycles_to_attotime') {
                   return (cycles: number) =>
                     cycles / Math.max(1, cpuSpec.cycleClock ?? cpuSpec.clock);
                 }
                 if (method === 'total_cycles') {
                   return () => this.totalCycles(cpuSpec.tag);
+                }
+                // The inverse of cycles_to_attotime. Hardware that measures a
+                // span of machine time in its own processor's cycles needs it:
+                // the Game Boy PPU advances its line counter by
+                // `attotime_to_cycles(now - m_last_updated)`, and with the call
+                // unbound that difference read as zero every time, so LY never
+                // left 0 and the boot ROM waited for line 0x90 forever.
+                if (method === 'attotime_to_cycles') {
+                  return (seconds: number) => Math.floor(
+                    Number(seconds) * Math.max(1, cpuSpec.cycleClock ?? cpuSpec.clock),
+                  );
                 }
                 if (method === 'reset') return () => this.cpus.get(cpuSpec.tag)?.reset();
                 // Hardware that takes the bus away from the processor removes
@@ -484,6 +538,13 @@ class IrBoard implements Board {
                       );
                     }
                   };
+                }
+                // Hardware reaches its processor the same way a driver does
+                // (`m_lr35902->set_halt_bug(...)`); serve it from the core's
+                // own lowered methods before falling back to a device.
+                const cpu = this.cpus.get(cpuSpec.tag);
+                if (cpu?.hasMethod(method)) {
+                  return (...args: number[]) => cpu.invoke(method, ...args);
                 }
                 return (...args: number[]) =>
                   this.devices.get(tag)?.invoke(method, ...args) ?? 0;
@@ -534,10 +595,7 @@ class IrBoard implements Board {
               // — so leaving it off this object threw before that assignment and
               // the RIOT could never raise its IRQ (venture, issue #63).
               side_effects_disabled: () => 0,
-              time: () => generatedAttotime(
-                this.frameRunner?.frameCount /
-                  Math.max(1, this.machine.execution.screen.refresh) || 0,
-              ),
+              time: () => generatedAttotime(this.machineSeconds()),
               root_device: () => ({
                 membank: (name: string) => this.generatedBanks[name],
               }),
@@ -736,6 +794,13 @@ class IrBoard implements Board {
     // replace them, or those holders keep serving stale bindings.
     this.bindings = {
       members: this.state,
+      // Declared widths travel with the bindings so a first indexed write
+      // allocates the array MAME declared rather than an untyped one, and an
+      // interpreted scalar store narrows the way the C++ declaration does.
+      ...(machine.stateMembers?.length ? {
+        stateMembers: machine.stateMembers,
+        setters: generatedStateSetters(this.state, machine.stateMembers),
+      } : {}),
       inputs: generatedInputs,
       calls,
       referenceCalls: {
@@ -772,7 +837,10 @@ class IrBoard implements Board {
         this.state,
         tag,
         bytes,
-        machine.video?.regionBindings,
+        // A video plan's bindings are the same driver finders, plus any
+        // pointer a video callback re-seats; both sides describe the one
+        // state class, so a board with a plan keeps its richer map on top.
+        { ...machine.execution.regionBindings, ...machine.video?.regionBindings },
         machine.video?.regionBindingOffsets,
       );
     }
@@ -791,11 +859,13 @@ class IrBoard implements Board {
         if (specification?.member) calls[`${specification.member}.${method}`] = invoke;
       }
     }
+    // The same clock the `machine()` object answers with -- the scheduler's,
+    // not the frame counter. A second binding here kept the old frame-granular
+    // answer alive for anything that reaches the chain by name, which is every
+    // emitted caller: the Game Boy PPU differences two readings of it to find
+    // how many cycles to run, and inside one frame the difference was zero.
     for (const device of this.devices.values()) {
-      device.bindCall('machine().time', () => generatedAttotime(
-        this.frameRunner?.frameCount /
-          Math.max(1, this.machine.execution.screen.refresh) || 0,
-      ));
+      device.bindCall('machine().time', () => generatedAttotime(this.machineSeconds()));
     }
     const sourceHandlers = generatedHandlerRegistry(machine, this.bindings);
     const registry: HandlerRegistry = {
@@ -936,8 +1006,14 @@ class IrBoard implements Board {
         (specification.ranges ?? []).flatMap(range => range.viewTag ? [range.viewTag] : []),
       )) {
         const select = (entry: number) => bus.selectView(viewTag, entry);
+        // MAME's `memory_view::disable()` selects no entry at all, which leaves
+        // the map underneath decoding on its own -- how a Game Boy hands the
+        // first 256 bytes back to the cartridge once its boot ROM is done.
+        const disable = () => void bus.selectView(viewTag, -1);
         this.bindings.calls![`${viewTag}.select`] = select;
         this.bindings.calls![`${viewTag.replace(/^m_/, '')}.select`] = select;
+        this.bindings.calls![`${viewTag}.disable`] = disable;
+        this.bindings.calls![`${viewTag.replace(/^m_/, '')}.disable`] = disable;
       }
       if (specification.opcode) {
         const opcodeRom = regions[specification.opcode.region];
@@ -1076,6 +1152,16 @@ class IrBoard implements Board {
             ) ?? 0xff
           : 0xff;
       };
+      // A CPU is a MAME device like any other, and a driver reaches into it by
+      // name: the Game Boy's 0xffff register is `m_maincpu->set_ie(data)`, and
+      // its interrupt enable lives nowhere else. Every method the core lowered
+      // from its own source is offered under the driver's finder name, and the
+      // board's explicit bindings below take precedence where both exist.
+      for (const method of cpu.methodNames?.() ?? []) {
+        const invoke = (...args: number[]) => cpu.invoke(method, ...args);
+        calls[`${specification.tag}.${method}`] = invoke;
+        calls[`m_${specification.tag}.${method}`] = invoke;
+      }
       calls[`m_${specification.tag}.set_input_line`] = (line, state) => {
         applyGeneratedCpuInputLine(
           cpu,
@@ -1988,6 +2074,27 @@ class IrBoard implements Board {
    * MAME's `total_cycles()`: everything this CPU has run, including the slice
    * it is inside. Banked cycles alone advance only at slice boundaries.
    */
+  /**
+   * MAME `machine().time()`: the scheduler's own clock.
+   *
+   * MAME advances it as the executing processor consumes cycles, so hardware
+   * that measures an interval by differencing two readings sees real elapsed
+   * time. Answering with the frame counter made every such interval either
+   * zero or a whole frame. Inside a timer callback the scheduler stands at the
+   * expiry, not at the end of the lump that carried the clock past it, so the
+   * backlog comes back off.
+   */
+  private machineSeconds(): number {
+    // The scheduler stands where the processor it is running stands, so the
+    // clock comes from that core -- not from the first one declared, which on
+    // a multiprocessor board is often parked while another runs.
+    const tag = this.runningCpu ?? this.machine.execution.cpus[0]?.tag;
+    const cpu = this.machine.execution.cpus.find(candidate => candidate.tag === tag);
+    if (!cpu) return 0;
+    const clock = Math.max(1, cpu.cycleClock ?? cpu.clock);
+    return Math.max(0, this.totalCycles(cpu.tag) / clock - generatedTimerBacklog());
+  }
+
   private totalCycles(cpuTag: string): number {
     return (this.cpuCycles.get(cpuTag) ?? 0)
       + (this.cpuSliceCycles.get(cpuTag) ?? 0)
@@ -2861,7 +2968,9 @@ class IrBoard implements Board {
       const space = new RecordingAddressSpace();
       let installed = false;
       try {
-        device.invokeSlot('install_memory_handlers', space as unknown as number);
+        // Which method mounts a card, and whether it is handed the space or
+        // reaches for it, is the bus's own fact and travels in the slot IR.
+        device.installSlotCard(space);
         installed = true;
       } catch {
         // A PCB with no installer of its own is not an error: the slot simply
@@ -3408,7 +3517,10 @@ class IrBoard implements Board {
       fraction: () => this.soundFraction(),
       callDevice: (tag, method, ...args) => {
         const device = this.devices.get(tag);
-        return device?.methodNames().includes(method) ? device.call(method, ...args) : undefined;
+        if (!device?.methodNames().includes(method)) return undefined;
+        // `invoke` rather than `call`: a stream-rendering chip is handed
+        // MAME's `sound_stream` surface, which is an object, not a number.
+        return Number(device.invoke(method, ...args as GeneratedCallArgument[])) || 0;
       },
       deviceStream: tag => this.devices.get(tag)?.takeStreamSamples?.() ?? [],
       runCallbackHandler: callbackId =>
@@ -3616,20 +3728,21 @@ class IrBoard implements Board {
     const compiled = /_r(?:_\d+)?$/.test(handler.method)
       ? compileGeneratedMachineHandler(this.machine, handler, bindings)
       : undefined;
+    // Resolved once, not per call. A signal wired to a processor's own
+    // per-instruction callback delivers seventeen thousand times a frame.
+    const dispatch = compiled ??
+      prepareGeneratedMachineHandler(this.machine, handler, bindings);
     return (state, ...sourceArgs) => {
       const debugCounts = (globalThis as {
         __mamekitHandlerCounts?: Map<string, number>;
       }).__mamekitHandlerCounts;
       if (debugCounts) debugCounts.set(key, (debugCounts.get(key) ?? 0) + 1);
-      const args = generatedSignalHandlerArguments(
+      return dispatch(generatedSignalHandlerArguments(
         handler.parameters,
         state,
         firstArgument,
         sourceArgs,
-      );
-      return compiled
-        ? compiled(args)
-        : executeGeneratedMachineHandler(this.machine, handler, bindings, args);
+      ));
     };
   }
 
@@ -3915,37 +4028,125 @@ export function generatedDeviceCallbackArguments(
   return [state];
 }
 
+/**
+ * A signal handler's parameter list, parsed once.
+ *
+ * A MAME signature is a constant, so splitting it and picking each declarator
+ * out with a regex on every dispatch is pure waste -- and dispatch is a hot
+ * path: the LR35902 raises its timer devcb from `cycles_passed`, which runs on
+ * every memory access, so this was the largest single self-time in a Game Boy
+ * frame. Same reasoning as the machine-handler signature cache above.
+ */
+interface SignalParameter {
+  name: string;
+  offset: boolean;
+  memMask: boolean;
+  memMaskDefault: number;
+}
+
+const SIGNAL_PARAMETERS = new Map<string, SignalParameter[]>();
+
+function signalParameters(parameters: string): SignalParameter[] {
+  let parsed = SIGNAL_PARAMETERS.get(parameters);
+  if (parsed) return parsed;
+  parsed = [];
+  for (const declaration of parameters.split(',')) {
+    const trimmed = declaration.trim();
+    if (!trimmed) continue;
+    const name = /(\w+)\s*$/.exec(trimmed)?.[1];
+    if (!name) continue;
+    parsed.push({
+      name,
+      offset: name === 'offset',
+      memMask: name === 'mem_mask',
+      memMaskDefault: /\b(?:u?int)?32_t\b|\bu32\b/.test(trimmed)
+        ? 0xffffffff
+        : /\b(?:u?int)?16_t\b|\bu16\b/.test(trimmed)
+          ? 0xffff
+          : 0xff,
+    });
+  }
+  SIGNAL_PARAMETERS.set(parameters, parsed);
+  return parsed;
+}
+
 export function generatedSignalHandlerArguments(
   parameters: string | undefined,
   state: number,
   firstArgument?: unknown,
   sourceArgs: readonly number[] = [],
 ): Record<string, unknown> {
-  const declarations = (parameters ?? '')
-    .split(',')
-    .map(parameter => parameter.trim())
-    .filter(Boolean);
+  const declarations = signalParameters(parameters ?? '');
   const args: Record<string, unknown> = { state, data: state };
   for (const [index, declaration] of declarations.entries()) {
-    const name = /(\w+)\s*$/.exec(declaration)?.[1];
-    if (!name) continue;
+    const name = declaration.name;
     if (index === 0 && firstArgument !== undefined) {
       args[name] = firstArgument;
-    } else if (name === 'offset') {
+    } else if (declaration.offset) {
       args[name] = sourceArgs[0] ?? 0;
-    } else if (name === 'mem_mask') {
+    } else if (declaration.memMask) {
       args[name] = sourceArgs.length >= 3
         ? sourceArgs.at(-1)
-        : /\b(?:u?int)?32_t\b|\bu32\b/.test(declaration)
-          ? 0xffffffff
-          : /\b(?:u?int)?16_t\b|\bu16\b/.test(declaration)
-            ? 0xffff
-            : 0xff;
+        : declaration.memMaskDefault;
     } else {
       args[name] = state;
     }
   }
   return args;
+}
+
+/**
+ * MAME's declared width for each of the driver state class's own scalar
+ * members, as the setters the interpreter already narrows through.
+ *
+ * The state object otherwise holds only what a handler has written, at
+ * whatever a JavaScript `+` produced, so nothing ever wraps: the Game Boy's
+ * `uint16_t m_divcount` ran unbounded, the divider compared a masked old value
+ * against an unmasked new one, and the timer interrupt a Game Boy music driver
+ * runs on never fired. Emitted code narrows inline from the same declaration
+ * (see `targetInfo` in device-codegen), so this is the interpreter's half.
+ *
+ * Setters rather than a write trap on the state object: a Proxy intercepts
+ * every *read* as well, and member reads are the hot path of every handler on
+ * every board -- it cost a quarter of the Game Boy's frame.
+ */
+export function generatedStateSetters(
+  state: Record<string, unknown>,
+  members: readonly GeneratedStateMember[],
+): Record<string, (value: number) => void> {
+  const setters: Record<string, (value: number) => void> = {};
+  for (const member of members) {
+    // An array member gets its width from the typed storage the runtime
+    // allocates for it on first write, not from a scalar store.
+    if (member.arrayLength) continue;
+    setters[member.name] = value => {
+      state[member.name] = generatedStateWidth(value, member.bits, member.signed);
+    };
+  }
+  return setters;
+}
+
+/**
+ * Storage for a driver-state member MAME declared as a fixed C array, typed
+ * and sized the way the declaration is, so an indexed write wraps on its own.
+ */
+export function generatedStateArray(
+  member: GeneratedStateMember,
+): Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | undefined {
+  const length = member.arrayLength;
+  if (!length) return undefined;
+  if (member.bits === 8) return member.signed ? new Int8Array(length) : new Uint8Array(length);
+  if (member.bits === 16) return member.signed ? new Int16Array(length) : new Uint16Array(length);
+  if (member.bits === 32) return member.signed ? new Int32Array(length) : new Uint32Array(length);
+  return new Uint8Array(length);
+}
+
+/** MAME's C integer conversion for one stored driver-state member. */
+function generatedStateWidth(value: number, bits: 1 | 8 | 16 | 32, signed?: boolean): number {
+  if (bits === 1) return value ? 1 : 0;
+  if (bits === 8) return signed ? value << 24 >> 24 : value & 0xff;
+  if (bits === 16) return signed ? value << 16 >> 16 : value & 0xffff;
+  return signed ? value | 0 : value >>> 0;
 }
 
 export function bindGeneratedDriverState(

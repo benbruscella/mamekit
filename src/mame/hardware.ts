@@ -134,7 +134,12 @@ function definitionFromMacro(macro: MameMacro): MameHardwareDefinition[] {
   }
   const privateType = macro.name.includes('PRIVATE');
   const type = cleanToken(macro.args[0]);
-  const className = cleanToken(macro.args[privateType ? 2 : 1]);
+  // DEFINE_DEVICE_TYPE_PRIVATE names the implementation class the only way it
+  // can from file scope: fully qualified. The AST records bare class names, so
+  // an unstripped `bus::gameboy::mbc1_device` matched nothing and every Game
+  // Boy cartridge PCB compiled to zero methods -- a device that registers and
+  // does nothing, which is worse than one that fails to build.
+  const className = unqualify(cleanToken(macro.args[privateType ? 2 : 1]));
   if (!type || !className) return [];
   const shortNameIndex = privateType ? 3 : 2;
   const descriptionIndex = privateType ? 4 : 3;
@@ -154,6 +159,11 @@ function definitionFromMacro(macro: MameMacro): MameHardwareDefinition[] {
 
 function cleanToken(value: string | undefined): string {
   return (value ?? '').trim().replace(/^&/, '');
+}
+
+/** The bare class name, as the MAME AST records it. */
+function unqualify(name: string): string {
+  return name.split('::').at(-1) ?? name;
 }
 
 function unquote(value: string | undefined): string | undefined {

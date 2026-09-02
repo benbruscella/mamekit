@@ -86,7 +86,12 @@ export function compileMameVideo(
   const screen = ast.findFunctionInHierarchy(screenClass, screenMethod)
     ?? ast.ast.units.flatMap(unit => unit.functions)
       .find(candidate => candidate.name === screenMethod);
-  if (screenClass === 'vector_device' && screenMethod === 'video_output_update') {
+  // MAME renamed vector_device's update from video_output_update to
+  // screen_update (57cf10f09f7). Matching only the old spelling silently
+  // dropped the whole vector plan the day the checkout moved past it, and
+  // asteroid came up with no video at all.
+  if (screenClass === 'vector_device' &&
+      (screenMethod === 'video_output_update' || screenMethod === 'screen_update')) {
     const dvg = /\bDVG\s*\(\s*config\s*,\s*(m_\w+)[^)]*\)[\s\S]*?\1\s*->\s*set_memory\s*\([^,]+,[^,]+,\s*(0x[\da-f]+|\d+)\s*\)/i
       .exec(source);
     if (dvg) {

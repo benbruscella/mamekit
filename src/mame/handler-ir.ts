@@ -572,6 +572,11 @@ class HandlerParser {
     // its angle brackets as `<` and `>` yields an assignment to a comparison.
     let cursor = this.skipTemplateArguments(this.skipQualifiedName(this.index));
     while (this.tokens[cursor]?.text === '*' || this.tokens[cursor]?.text === '&') cursor++;
+    // `Type *const name(...)`: cv-qualifiers belong to the pointer, not to the
+    // declared name. Stopping at `const` read the whole statement as an
+    // expression, and MAME's cartridge bases open almost every method with
+    // `memory_region *const romregion(cart_rom_region());`.
+    while (['const', 'volatile'].includes(this.tokens[cursor]?.text ?? '')) cursor++;
     return this.tokens[cursor]?.kind === 'identifier' &&
       ['=', '(', '[', ',', ';'].includes(this.tokens[cursor + 1]?.text ?? '');
   }
@@ -690,11 +695,20 @@ class HandlerParser {
           this.unsupportedStatement(`invalid constructor declaration of "${name.text}"`);
           return declarations;
         }
-        value = {
-          kind: 'call',
-          callee: { kind: 'identifier', name: valueType ?? typeWords[0] ?? '' },
-          args,
-        };
+        // C++ direct-initialization with one argument is a conversion, not a
+        // constructor call: `offs_t const chunk(offs_t(1) << msb)` and
+        // `memory_region *const romregion(cart_rom_region())` both mean "this
+        // value, read as this type". Lowered as a call of the type name it
+        // resolved to nothing, so a MAME cartridge base computed a zero-sized
+        // decode chunk and looped forever. Multiple arguments really are a
+        // constructor and stay call-shaped.
+        value = args.length === 1
+          ? { kind: 'cast', valueType: declarationType ?? valueType ?? '', operand: args[0]! }
+          : {
+              kind: 'call',
+              callee: { kind: 'identifier', name: valueType ?? typeWords[0] ?? '' },
+              args,
+            };
       } else if (valueType === 'rectangle') {
         value = {
           kind: 'call',
@@ -844,8 +858,14 @@ class HandlerParser {
       // A free function can be a template too: MAME's bit helpers are written
       // `bitswap<8>(value, 7, 6, ...)`. Fold a numeric argument into the name
       // the same way a templated member call does.
+      //
+      // A template name in front of `::` is the other form: a class used as a
+      // qualifier to call up to a base, which is how MAME's newer bus devices
+      // are written -- `mbc_ram_device_base<mbc_dual_device_base>::
+      // set_bank_rom_fine(entry)`. Its arguments name no value, so the name
+      // carries on to the `::` branch below unchanged.
       if (expression.kind === 'identifier' && this.atText('<')) {
-        const templateArgs = this.consumeTemplateArguments();
+        const templateArgs = this.consumeTemplateArguments(['(', ')', '::']);
         if (!templateArgs) break;
         if (templateArgs.every(argument => /^\d+$/.test(argument))) {
           expression = {
@@ -907,10 +927,17 @@ class HandlerParser {
 
   /**
    * Consume a template argument list on a qualified name when it is
-   * unambiguously one: only type-shaped tokens inside, and a call or a closing
-   * parenthesis after. Anything else stays a less-than comparison.
+   * unambiguously one: only type-shaped tokens inside, and one of `followers`
+   * after. Anything else stays a less-than comparison.
+   *
+   * The default followers are a call or a closing parenthesis. `::` is the
+   * other unambiguous one -- a template class used as a name qualifier, which
+   * is how MAME's newer bus devices call up to a base
+   * (`mbc_ram_device_base<mbc_dual_device_base>::set_bank_rom_fine(...)`).
    */
-  private consumeTemplateArguments(): string[] | undefined {
+  private consumeTemplateArguments(
+    followers: readonly string[] = ['(', ')'],
+  ): string[] | undefined {
     if (!this.atText('<')) return undefined;
     let cursor = this.index + 1;
     let depth = 1;
@@ -936,7 +963,7 @@ class HandlerParser {
       else current += token.text;
       cursor++;
     }
-    if (!['(', ')'].includes(this.tokens[cursor]?.text ?? '')) return undefined;
+    if (!followers.includes(this.tokens[cursor]?.text ?? '')) return undefined;
     args.push(current);
     this.index = cursor;
     return args;
@@ -980,10 +1007,12 @@ class HandlerParser {
   private parsePrimary(): GeneratedExpression | undefined {
     const token = this.take();
     if (token.kind === 'number') {
+      const wide = wideNumberLiteral(token.text);
       return {
         kind: 'number',
         value: parseNumber(token.text),
         ...(isFloatingNumberLiteral(token.text) ? { floating: true } : {}),
+        ...(wide ? { wide } : {}),
       };
     }
     if (token.kind === 'string') return { kind: 'string', value: unquote(token.text) };
@@ -1012,19 +1041,37 @@ class HandlerParser {
   /**
    * `[capture] (params) [mutable] [-> type] { body }`.
    *
-   * The capture list is skipped: everything a MAME lambda captures is `this`,
-   * which the enclosing program already resolves. A parameter the source left
-   * unnamed -- `[this] (offs_t address, u8 &, u8)` names only the first --
-   * keeps its position with an empty name so the arguments still line up.
+   * A plain capture is skipped: what a MAME lambda captures by name is `this`
+   * or an enclosing local, and the body already runs in that scope. An
+   * *init-capture* is not -- `[this, base = &romregion->as_u8()]` introduces a
+   * name that exists nowhere else, and dropping it left every Game Boy
+   * cartridge installing its ROM from a pointer that resolved to nothing.
+   *
+   * A parameter the source left unnamed -- `[this] (offs_t address, u8 &, u8)`
+   * names only the first -- keeps its position with an empty name so the
+   * arguments still line up.
    */
   private parseLambda(): GeneratedExpression | undefined {
     if (!this.consume('[')) return undefined;
-    let depth = 1;
-    while (depth > 0 && !this.at('eof')) {
-      const text = this.take().text;
-      if (text === '[') depth++;
-      else if (text === ']') depth--;
+    const captures: { name: string; value: GeneratedExpression }[] = [];
+    while (!this.at('eof') && !this.atText(']')) {
+      const name = this.peek();
+      if (
+        name.kind === 'identifier' &&
+        this.tokens[this.index + 1]?.text === '=' &&
+        this.tokens[this.index + 2]?.text !== '='
+      ) {
+        this.take();
+        this.take();
+        const value = this.parseExpression();
+        if (!value) return undefined;
+        captures.push({ name: name.text, value });
+      } else {
+        this.take();
+      }
+      if (!this.consume(',')) break;
     }
+    if (!this.consume(']')) return undefined;
     if (!this.consume('(')) return undefined;
     const parameters: string[] = [];
     if (!this.consume(')')) {
@@ -1053,7 +1100,12 @@ class HandlerParser {
       while (!this.at('eof') && !this.atText('{')) this.take();
     }
     if (!this.consume('{')) return undefined;
-    return { kind: 'lambda', parameters, body: this.parseOperations('}') };
+    return {
+      kind: 'lambda',
+      parameters,
+      ...(captures.length ? { captures } : {}),
+      body: this.parseOperations('}'),
+    };
   }
 
   /**
@@ -1172,6 +1224,28 @@ function parseNumber(text: string): number {
   // C octal literal: leading zero followed by octal digits only.
   if (/^0[0-7]+$/.test(normalized)) return Number.parseInt(normalized, 8);
   return Number(normalized);
+}
+
+/**
+ * The exact value of an integer literal a double cannot hold, or undefined.
+ *
+ * C gives such a literal a 64-bit type and promotes the whole expression with
+ * it. MAME's Game Boy PPU builds its pixel shift register that way -- three
+ * chained multiplies by 64-bit magic constants -- so the digits have to survive
+ * lowering for the executor to compute it at all.
+ */
+function wideNumberLiteral(text: string): string | undefined {
+  if (isFloatingNumberLiteral(text)) return undefined;
+  const digits = text.replace(/[uUlL]+$/, '');
+  let exact: bigint;
+  try {
+    exact = /^0[0-7]+$/.test(digits) ? BigInt(Number.parseInt(digits, 8)) : BigInt(digits);
+  } catch {
+    return undefined;
+  }
+  return exact > BigInt(Number.MAX_SAFE_INTEGER) || exact < BigInt(Number.MIN_SAFE_INTEGER)
+    ? exact.toString()
+    : undefined;
 }
 
 function isFloatingNumberLiteral(text: string): boolean {

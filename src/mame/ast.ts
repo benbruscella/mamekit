@@ -118,6 +118,14 @@ export function maskComments(source: string): string {
   return chars.join('');
 }
 
+/**
+ * Statement heads that look exactly like a function definition once the
+ * leading type run is allowed to be anything: `else if (x) {`, `do { ... }`.
+ */
+const CONTROL_KEYWORDS = new Set([
+  'if', 'else', 'for', 'while', 'switch', 'do', 'catch', 'return', 'sizeof', 'namespace',
+]);
+
 export function parseMameSource(file: string, source: string): MameTranslationUnit {
   const masked = maskComments(source);
   const lineStarts = buildLineStarts(source);
@@ -282,7 +290,12 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     // out-of-class definitions, so retain them in the same function AST.
     const bodyStart = braceStart + 1;
     const bodyMasked = masked.slice(bodyStart, braceEnd);
-    const inlineRe = /(?:^|[;:]\s*|\n\s*)(?:virtual\s+|inline\s+|static\s+|constexpr\s+)*(?:[\w:<>,~*&]+\s+)+(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
+    // Trailing specifiers, in any order and any number: MAME writes
+    // `override ATTR_COLD`, `const noexcept override`, `final` and plain
+    // `const`. Accepting only `const` made every method spelled the other ways
+    // invisible -- which is how a Game Boy MBC lost `load()`, the one method
+    // that installs the cartridge into the CPU's space.
+    const inlineRe = /(?:^|[;:]\s*|\n\s*)(?:virtual\s+|inline\s+|static\s+|constexpr\s+)*(?:[\w:<>,~*&]+\s+)+(\w+)\s*\(([^;{}]*)\)\s*(?:(?:const|noexcept|override|final|ATTR_\w+)\s*)*\{/g;
     let im: RegExpExecArray | null;
     while ((im = inlineRe.exec(bodyMasked)) !== null) {
       const localBrace = bodyMasked.indexOf('{', im.index + im[0].length - 1);
@@ -292,10 +305,22 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
       const absoluteBrace = bodyStart + localBrace;
       const absoluteEnd = bodyStart + localEnd;
       const inlineStart = bodyStart + im.index + (im[0].startsWith('\n') ? 1 : 0);
+      // A member template declared inside the class body. MAME's shared bus
+      // interfaces put their address-decode helpers here
+      // (`template <unsigned Shift, typename T> static void
+      // install_non_power_of_two(...)`), and without the parameter names the
+      // specializer cannot tell a compile-time constant from a type.
+      // The template header is inside the match, not before it: the type-word
+      // run that leads a member declaration happily absorbs
+      // `template <unsigned Shift, typename T>` on its way to the name.
+      const templateParameters = im[0].includes('template')
+        ? templateParameterNames(/template\s*<([^<>]*)>/.exec(im[0])?.[1] ?? '')
+        : classTemplateParameters(bodyMasked, im.index);
       functions.push({
         kind: 'function',
         className: declaration.name,
         name: im[1]!,
+        ...(templateParameters.length ? { templateParameters } : {}),
         parameters: source.slice(
           masked.indexOf('(', bodyStart + im.index),
           matchPair(masked, masked.indexOf('(', bodyStart + im.index), '(', ')') + 1,
@@ -316,6 +341,57 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
       inlineRe.lastIndex = localEnd + 1;
     }
     classRe.lastIndex = braceEnd + 1;
+  }
+
+  // File-scope helper functions. A MAME device source factors small pieces of
+  // behaviour out of its class -- gb.cpp writes
+  // `constexpr s32 convert_output(s32 sample)` and every Game Boy channel
+  // renders its level through it. These belong to no class, so the member
+  // passes above never see them, and a call to an unknown function answers
+  // zero: the Game Boy mixed four channels of silence however loud the game
+  // set the envelopes.
+  //
+  // Recognized conservatively: a definition starting in column 0, outside
+  // every class body and every function already parsed. Anything indented is
+  // a member, a nested declaration or a control-flow brace.
+  // The type run stays on the name's own line and the parameter list admits no
+  // nested parentheses: both keep the match from spanning unrelated source.
+  // Greedy across newlines it read `ROM_END` as the return type of the
+  // `DEFINE_DEVICE_TYPE(...)` below it and ran the parameter list on through
+  // the following constructor's initialiser list -- which buried both macros,
+  // and with them the whole Namco 54xx device type.
+  const freeFunctionRe =
+    /(?:^|\n)((?:[\w:<>,~*&]+[^\S\n]+)+(?:[*&]+[^\S\n]*)?)(\w+)[^\S\n]*\(([^;{}()]*)\)\s*(?:(?:const|noexcept)\s*)*\{/g;
+  const classBodies = classes.map(declaration =>
+    [declaration.bodySpan.start, declaration.bodySpan.end] as [number, number]);
+  let ff: RegExpExecArray | null;
+  while ((ff = freeFunctionRe.exec(masked)) !== null) {
+    const start = ff.index + (ff[0].startsWith('\n') ? 1 : 0);
+    if (occupied.some(([from, to]) => start >= from && start < to)) continue;
+    if (classBodies.some(([from, to]) => start >= from && start < to)) continue;
+    // A leading type run that itself ends in `::` is an out-of-class member
+    // definition whose class match failed, not a free function.
+    if (/::\s*$/.test(ff[1]!)) continue;
+    if (CONTROL_KEYWORDS.has(ff[2]!)) continue;
+    const braceStart = masked.indexOf('{', ff.index + ff[0].length - 1);
+    const braceEnd = matchPair(masked, braceStart, '{', '}');
+    if (braceEnd < 0) continue;
+    const bodyStart = braceStart + 1;
+    functions.push({
+      kind: 'function',
+      className: '',
+      name: ff[2]!,
+      parameters: source.slice(
+        masked.indexOf('(', ff.index),
+        matchPair(masked, masked.indexOf('(', ff.index), '(', ')') + 1,
+      ).slice(1, -1),
+      body: source.slice(bodyStart, braceEnd),
+      statements: parseStatements(file, source, masked, bodyStart, braceEnd, lineStarts),
+      span: span(start, braceEnd + 1),
+      bodySpan: span(bodyStart, braceEnd),
+    });
+    occupied.push([start, braceEnd + 1]);
+    freeFunctionRe.lastIndex = braceEnd + 1;
   }
 
   const macros: MameMacro[] = [];
@@ -355,7 +431,12 @@ function classTemplateParameters(masked: string, classIndex: number): string[] {
   const preceding = masked.slice(Math.max(0, classIndex - 200), classIndex);
   const match = /template\s*<([^<>]*)>\s*$/.exec(preceding);
   if (!match) return [];
-  return splitMameArgs(match[1]!)
+  return templateParameterNames(match[1]!);
+}
+
+/** The declared names in a `template <...>` parameter list. */
+function templateParameterNames(list: string): string[] {
+  return splitMameArgs(list)
     .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1] ?? '')
     .filter(Boolean);
 }

@@ -187,6 +187,11 @@ class Z8000RegisterFile {
   }
 }
 
+/** Every method this core lowered from its MAME source. */
+const GENERATED_METHOD_NAMES = new Set<string>(${JSON.stringify(
+  [...new Set(definition.methods.map(method => method.name))],
+)});
+
 class Generated${safeName(definition.type)} implements Cpu {
   private readonly bus: CpuBus;
   private irqData: number | (() => number) = 0xff;
@@ -312,6 +317,14 @@ ${emitStateIntCases(definition)}
     switch (name) {
 ${emitPublicSetCases(definition)}
     }
+  }
+
+  hasMethod(name: string): boolean {
+    return GENERATED_METHOD_NAMES.has(name);
+  }
+
+  methodNames(): string[] {
+    return [...GENERATED_METHOD_NAMES];
   }
 
   invoke(name: string, ...args: number[]): number {

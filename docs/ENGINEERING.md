@@ -67,14 +67,22 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 
 The broad `test:generation` command is destructive to `dist` and expensive. It
 generates every target in `REQUIRED_TARGETS`, which is the accepted set plus
-any console that has no acceptance contract yet. `nes` and `coleco` are the
-consoles. NES software arrives entirely on cartridges the visitor supplies, so
-there is no romset a contract module could name; it is covered by the browser
-suite instead (`e2e/specs/console.spec.ts`), which is the gate issue #53 lacked
-when it dropped the target and nothing went red. `coleco` is listed for the
-same reason today, but unlike the NES it has a romset of its own -- the
-ColecoVision BIOS -- so it can carry a real-ROM contract once that dump is on
-the shelf.
+any console that has no acceptance contract yet. `nes`, `coleco`, `a2600` and
+`gameboy` are the consoles. NES software arrives entirely on cartridges the
+visitor supplies, so there is no romset a contract module could name; it is
+covered by the browser suite instead (`e2e/specs/console.spec.ts`), which is
+the gate issue #53 lacked when it dropped the target and nothing went red. The
+Atari 2600 is the same case -- the cartridge is the whole machine. `coleco` and
+`gameboy` are listed for that reason today, but unlike the NES each has a
+romset of its own -- the ColecoVision BIOS, and the Game Boy's 256-byte DMG
+boot ROM -- so each can carry a real-ROM contract once that dump is on the
+shelf.
+
+A console's own cartridge bus is covered by a colocated spec under
+`src/hardware/<console>/`, which is where a bus that installs itself has to be
+tested: a Game Boy PCB is not describable by an address map, so
+`gameboy.spec.ts` mounts a synthetic cartridge, runs the board's own installer
+against a recording address space, and reads back the windows it decoded.
 
 Neither command holds a target list of its own. `gen:all` is
 `node bin/mamekit.js --all`, and the set is derived from the acceptance

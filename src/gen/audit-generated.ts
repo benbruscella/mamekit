@@ -207,6 +207,42 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
       failures.push(`${target}: generated board embeds serialized machine data`);
     }
 
+    // A board that declares a sound plan must also reach the speaker. The two
+    // ends are generated separately -- the board IR names the chip, the app
+    // config names the kind the shell starts audio for and the worklet it
+    // loads -- and nothing tied them together: the Game Boy shipped with a
+    // complete APU in its board IR, `"kind": "none"` in its config, and no
+    // worklet, so the shell never opened an audio context at all.
+    const configPath = join(dir, 'config.json');
+    const boardJsonPath = join(dir, 'generated/board.json');
+    if (existsSync(configPath) && existsSync(boardJsonPath)) {
+      const boardSound = (JSON.parse(readFileSync(boardJsonPath, 'utf8')) as {
+        sound?: { kind?: string };
+      }).sound;
+      const appSound = (JSON.parse(readFileSync(configPath, 'utf8')) as {
+        sound?: { kind?: string; worklet?: string };
+      }).sound;
+      if (boardSound?.kind && boardSound.kind !== 'none') {
+        if (!appSound?.kind || appSound.kind === 'none') {
+          failures.push(
+            `${target}: board IR declares ${boardSound.kind} sound but the app config plays none`,
+          );
+        } else {
+          const worklet = join(
+            outRoot,
+            'runtime/generated/audio',
+            `${appSound.worklet ?? appSound.kind}-worklet.js`,
+          );
+          if (!existsSync(worklet)) {
+            failures.push(
+              `${target}: app config plays ${appSound.kind} sound with no ` +
+              `${appSound.worklet ?? appSound.kind}-worklet.js for the shell to load`,
+            );
+          }
+        }
+      }
+    }
+
     const reportPath = join(dir, 'runtime-report.json');
     if (existsSync(reportPath)) {
       const report = JSON.parse(readFileSync(reportPath, 'utf8')) as {

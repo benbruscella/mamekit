@@ -10,10 +10,14 @@ import {
 } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
+import { walkExpressions } from '../ir/walk.ts';
 import {
   collectFunctionMacros,
+  collectMemberAliasMacros,
   expandFunctionMacros,
+  expandMemberAliasMacros,
   type FunctionMacro,
+  type MemberAliasMacro,
 } from './preprocessor.ts';
 import { indexMameHardware, type MameHardwareDefinition } from './hardware.ts';
 
@@ -46,6 +50,8 @@ export interface GeneratedDeviceMember {
    * `values`/`memory`; this is what tells the host to make two of something.
    */
   arrayLength?: number;
+  /** Every declarator bound of a multi-dimensional C array member. */
+  arrayShape?: number[];
   /**
    * Fields of a member whose type is a struct the device declares.
    *
@@ -54,7 +60,22 @@ export interface GeneratedDeviceMember {
    * routine as `&p0gfx`, and a numeric stand-in drew no players or missiles at
    * all.
    */
-  fields?: { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[];
+  fields?: GeneratedStructField[];
+}
+
+/**
+ * One field of a struct-shaped member.
+ *
+ * `fields` makes it recursive, because MAME nests: the Game Boy's PPU keeps
+ * its per-line state in an anonymous struct that itself holds an array of
+ * anonymous sprite structs.
+ */
+export interface GeneratedStructField {
+  name: string;
+  length?: number;
+  bits?: 8 | 16 | 32;
+  signed?: boolean;
+  fields?: GeneratedStructField[];
 }
 
 export interface GeneratedDeviceCallback {
@@ -94,6 +115,14 @@ export interface GeneratedDeviceDefinition {
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
   methods: GeneratedDeviceMethod[];
+  /**
+   * Every struct type the device declares, keyed by type name.
+   *
+   * A `SOUND &` parameter names its type and nothing else, so this is what
+   * lets an emitted `snd.frequency_counter = ...` narrow to the eleven-bit
+   * field MAME declared rather than leaving that to a runtime accessor.
+   */
+  structs?: Record<string, GeneratedStructField[]>;
   /** Source-derived runtime entry points that must use direct generated code. */
   hotMethods?: string[];
   /** A source-declared card slot with generated child-device definitions. */
@@ -102,11 +131,27 @@ export interface GeneratedDeviceDefinition {
     default?: string;
     /** Runtime selector supplied by the machine host, e.g. "cart.mapper". */
     selector?: string;
+    /**
+     * How a mounted card installs itself into the CPU's address space.
+     *
+     * Two cartridge buses ask for this differently and MAME is the authority
+     * on which: the Atari 2600's interface takes the space as an argument
+     * (`install_memory_handlers(address_space *)`), while the Game Boy's
+     * `load(message)` reaches for it through `cart_space()`. `space` names the
+     * card's own accessor when it is not a parameter.
+     */
+    install?: { method: string; space?: string };
     options: Record<string, GeneratedDeviceDefinition>;
   };
   /** Runtime resources and power-on calls derived by a capability compiler. */
   resources?: {
     members?: Record<string, GeneratedDeviceResource>;
+    /**
+     * Host calls answering a resource, for hardware that reaches its own
+     * storage through an accessor rather than a member. Every Game Boy
+     * cartridge PCB asks its slot for `cart_rom_region()`.
+     */
+    calls?: Record<string, GeneratedDeviceResource>;
     initialize?: {
       method: string;
       args?: GeneratedDeviceResource[];
@@ -192,6 +237,8 @@ export interface GeneratedDeviceDefinition {
 export type GeneratedDeviceResource =
   | { kind: 'number'; value: number }
   | { kind: 'region'; name: string }
+  // MAME's `memory_region *`: the bytes plus the size questions asked of them.
+  | { kind: 'region-object'; name: string }
   // A pointer part-way into a region, as MAME writes `get_rom_base() + N`.
   | { kind: 'region-pointer'; name: string; offset: number }
   | { kind: 'region-length'; name: string }
@@ -269,6 +316,14 @@ export function compileMameDevice(
     coreLineStates(mameSrc),
     coreAddressSpaces(mameSrc),
     ...sources.map(({ source }) => numericConstants(source)),
+    // A class-scoped constant belongs to its class, not to the file. MAME
+    // declares `PAGE_ROM_SIZE` five times in one cartridge header -- 0x4000
+    // for the paged MBCs, 0x2000 and 0x8000 for others -- and flattening them
+    // left every board using whichever came last: an MBC1 banked in 32 KiB
+    // steps and read the wrong half of its own ROM. Layered base-first, so a
+    // derived class still overrides what it inherits.
+    ...hierarchy.map(className =>
+      numericConstants(classes.get(className)?.body ?? '')),
   );
   // Struct shapes for members whose type is one the device declares.
   const structFields = structDeclarations(sources, constants);
@@ -280,6 +335,10 @@ export function compileMameDevice(
   // substituted textually: their bodies read and assign the caller's locals,
   // which no call can do.
   const functionMacros = sources.flatMap(({ source }) => collectFunctionMacros(source));
+  // Object-like `#define`s that name a register inside the device's own state
+  // (`#define CURLINE m_vid_regs[0x04]`). The name stands for nothing but the
+  // subscript, so it has to become the subscript before lowering.
+  const memberAliases = sources.flatMap(({ source }) => collectMemberAliasMacros(source));
   const interruptCallbacks = sources.flatMap(({ source }) => [...source.matchAll(
     /\b(m_\w+)->set_input_line\s*\(\s*(INPUT_LINE_\w+)/g,
   )].map(match => ({
@@ -305,6 +364,19 @@ export function compileMameDevice(
   ]);
   const methods: GeneratedDeviceMethod[] = [];
   const methodOwners = new Map<string, string>();
+  /**
+   * `base_class::method(...)` as it appears inside a method *body*.
+   *
+   * Not in the source text at large, because that is also how MAME spells an
+   * out-of-class definition -- counting those would give every device a
+   * duplicate of half its methods.
+   */
+  const explicitBaseCalls = new Set(
+    ast.units
+      .flatMap(unit => unit.functions)
+      .flatMap(fn => [...fn.body.matchAll(/\b(\w+::\w+)\s*(?:<[^<>()]*>)?\s*\(/g)])
+      .map(match => match[1]!),
+  );
   // Raw C++ bodies, kept beside the compiled programs for the few facts that
   // are read from the source text rather than from IR -- the address-space
   // declarations below are one.
@@ -319,7 +391,7 @@ export function compileMameDevice(
     const existing = methods.findIndex(candidate =>
       methodSignature(candidate.name, candidate.parameters) === signature);
     const compiled = compileMethod(
-      specialized, interruptCallbacks, sourceTables, functionMacros);
+      specialized, interruptCallbacks, sourceTables, functionMacros, memberAliases);
     // hierarchy is base-first: a derived virtual with the same signature
     // replaces its base implementation, while genuine overloads remain.
     // Keep a qualified alias for an overridden base because derived MAME
@@ -336,6 +408,20 @@ export function compileMameDevice(
       methods[existing] = compiled;
     } else {
       methods.push(compiled);
+      // A base method the source calls explicitly by name, where no derived
+      // override made an alias for it above. An *overload* is the case that
+      // needs this: `mbc5_device_base::install_memory(message)` forwards to
+      // `rom_mbc_device_base::install_memory(message, 4, 9)`, and the two
+      // differ in arity, so neither replaces the other and the qualified name
+      // was never registered -- the forward reached nothing, and every MBC5
+      // cartridge installed its bank-switch writes over no ROM at all.
+      const qualified = `${specialized.className}::${specialized.name}`;
+      if (
+        explicitBaseCalls.has(qualified) &&
+        !methods.some(candidate => candidate.name === qualified)
+      ) {
+        methods.push({ ...compiled, name: qualified });
+      }
     }
     methodOwners.set(signature, specialized.className);
   };
@@ -354,6 +440,21 @@ export function compileMameDevice(
         replaceOrAppend(specialized);
       }
     }
+  }
+
+  // File-scope helpers the device's own methods call. They belong to no class,
+  // so the hierarchy walk above never reaches them, and an unresolved call
+  // answers zero rather than failing: `convert_output` in gb.cpp turns a
+  // channel's signal into its output level, and without it the Game Boy
+  // mixed four channels of silence however loud the game set the envelopes.
+  // Only helpers something already collected actually calls -- a device source
+  // shares a translation unit with its neighbours, and the rest are theirs.
+  const collectedBodies = [...methodBodies.values()].join('\n');
+  for (const helper of sourceMethods) {
+    if (helper.className !== '') continue;
+    if (methods.some(candidate => candidate.name === helper.name)) continue;
+    if (!new RegExp(`\\b${helper.name}\\s*\\(`).test(collectedBodies)) continue;
+    replaceOrAppend(helper);
   }
 
   const callbacks: GeneratedDeviceCallback[] = [];
@@ -399,6 +500,7 @@ export function compileMameDevice(
         ...(memory ? { memory } : {}),
         ...(finder ? { finder } : {}),
         ...(member.arrayLength ? { arrayLength: member.arrayLength } : {}),
+        ...(member.arrayShape ? { arrayShape: member.arrayShape } : {}),
         ...(structFields.get(member.valueType.replace(/\*$/, '').trim())
           ? { fields: structFields.get(member.valueType.replace(/\*$/, '').trim()) }
           : {}),
@@ -480,6 +582,7 @@ export function compileMameDevice(
         callbackMethods.has(method.name)
       ))
     .map(method => method.name);
+  resolveInheritedBaseCalls(methods, hierarchy);
   const delegates: Record<string, string> = {};
   for (const className of hierarchy) {
     for (const setter of (classes.get(className)?.body ?? '').matchAll(
@@ -499,6 +602,13 @@ export function compileMameDevice(
     callbacks,
     timers,
     methods,
+    // Every struct type the device declares, so an emitted field store can
+    // narrow to the width the C++ declaration has. A `SOUND &` parameter names
+    // its type and nothing else; without the table the emitter cannot tell
+    // `snd.frequency_counter` from any other property.
+    ...(structFields.size
+      ? { structs: Object.fromEntries([...structFields].map(([name, fields]) => [name, fields])) }
+      : {}),
     ...(Object.keys(delegates).length ? { delegates } : {}),
     ...(hotMethods.length ? { hotMethods } : {}),
     ...(clockDivider ? { clockDivider } : {}),
@@ -598,16 +708,39 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
     // registers. Following those would compile an entire bus when only one
     // class was requested. Base-class dependencies are expressed by headers,
     // so only headers extend the family closure.
-    if (extname(absolute) !== '.h') return;
+    //
+    // The one exception is `.ipp`, which in MAME means exactly "the inline
+    // bodies of a base class". A device declared entirely inside a .cpp -- the
+    // shape every Game Boy cartridge PCB uses -- reaches its bases only that
+    // way, and without it an MBC compiled with none of the bank-switching it
+    // inherits: a PCB that registers and does nothing.
+    const family = ['.h', '.ipp'].includes(extname(absolute));
     for (const match of source.matchAll(/^\s*#include\s+"([^"]+)"/gm)) {
+      if (!family && extname(match[1]!) !== '.ipp') continue;
       // Follow headers that are part of the same device family. Includes
       // resolved through MAME's global include paths (screen.h, emu.h, etc.)
       // describe host services, not another source-defined base class.
-      const included = join(dirname(absolute), match[1]!);
-      if (!existsSync(included)) continue;
+      //
+      // `src/devices` is the one global root worth resolving, because MAME's
+      // shared bus interfaces live there and a device really does inherit from
+      // them: every Game Boy cartridge decodes its own ROM through
+      // `device_generic_cart_interface::install_non_power_of_two`, included as
+      // "bus/generic/slot.h" and reachable no other way.
+      const included = [
+        join(dirname(absolute), match[1]!),
+        join(mameSrc, 'src/devices', match[1]!),
+      ].find(candidate => existsSync(candidate));
+      if (!included) continue;
       visit(included);
-      if (extname(included) === '.h') {
-        visit(join(dirname(included), `${basename(included, '.h')}.cpp`));
+      // An .ipp carries the templates; the plain header beside it carries the
+      // class declarations they belong to, and the .cpp the non-template
+      // bodies. MAME splits a base class across all three.
+      const stem = extname(included) === '.ipp'
+        ? join(dirname(included), `${basename(included, '.ipp')}.h`)
+        : included;
+      if (extname(included) === '.ipp') visit(stem);
+      if (extname(stem) === '.h') {
+        visit(join(dirname(stem), `${basename(stem, '.h')}.cpp`));
       }
     }
   };
@@ -685,6 +818,25 @@ function specializeFunctionTemplate(
       instances.set(args.join('_'), args);
     }
   }
+  // A template with no fully numeric instantiation is still executable code,
+  // and dropping it silently loses the method. What its type parameters mean
+  // is nothing the untyped IR carries, so they become `auto`: `T(mask)` is a
+  // conversion, and left as a call of an undeclared name it answered a
+  // reference -- which is how every Game Boy MBC ended up with a bank mask
+  // that was not a number, and never banked at all.
+  if (!instances.size) {
+    const typeParameters = numericTemplateArguments(method, sources);
+    let body = method.body;
+    let methodParameters = method.parameters;
+    for (const parameter of parameters) {
+      const supplied = typeParameters.get(parameter);
+      const replacement = supplied ?? 'auto';
+      const pattern = new RegExp(`\\b${parameter}\\b`, 'g');
+      body = body.replace(pattern, replacement);
+      methodParameters = methodParameters.replace(pattern, replacement);
+    }
+    return [{ ...method, parameters: methodParameters, body, templateParameters: undefined }];
+  }
   return [...instances].map(([suffix, args]) => {
     let body = method.body;
     let methodParameters = method.parameters;
@@ -704,10 +856,93 @@ function specializeFunctionTemplate(
   });
 }
 
+/**
+ * Numeric template arguments MAME's own call sites supply, by parameter name.
+ *
+ * A partial instantiation is the usual case for a helper written
+ * `template <unsigned Shift, typename T>`: every caller writes `<0>` and lets
+ * `T` be deduced. The constant is real behaviour -- it is the bus width the
+ * decode shifts by -- while the type is not, so only the constant is bound.
+ * A parameter more than one call site disagrees about is left unbound rather
+ * than guessed at.
+ */
+function numericTemplateArguments(
+  method: MameFunction,
+  sources: readonly { file: string; source: string }[],
+): Map<string, string> {
+  const parameters = method.templateParameters ?? [];
+  const methodName = method.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`\\b${methodName}\\s*<([^<>]+)>\\s*\\(`, 'g');
+  const supplied = new Map<string, string>();
+  const conflicting = new Set<string>();
+  for (const { source } of sources) {
+    for (const match of source.matchAll(pattern)) {
+      const args = splitMameArgs(match[1]!).map(argument => argument.trim());
+      args.forEach((argument, index) => {
+        const parameter = parameters[index];
+        if (!parameter || !/^\d+$/.test(argument)) return;
+        const previous = supplied.get(parameter);
+        if (previous !== undefined && previous !== argument) conflicting.add(parameter);
+        supplied.set(parameter, argument);
+      });
+    }
+  }
+  for (const parameter of conflicting) supplied.delete(parameter);
+  return supplied;
+}
+
+/**
+ * Point an explicit base call at the class that actually defines the method.
+ *
+ * C++ resolves `mbc_ram_device_base<Base>::set_bank_rom_fine(x)` by looking
+ * up the hierarchy from that class: `mbc_ram_device_base` declares no such
+ * method, so the call lands on the base it inherits it from. Left unresolved
+ * the call named a method that does not exist and answered nothing -- which
+ * is how an MBC1 came out of reset with its high ROM window on page 0 and
+ * every cartridge over 32 KiB read its first page twice.
+ *
+ * Only calls that resolve to nothing are rewritten, and only ever downwards
+ * through the hierarchy, so an override is never bypassed.
+ */
+function resolveInheritedBaseCalls(
+  methods: GeneratedDeviceMethod[],
+  hierarchy: readonly string[],
+): void {
+  const defined = new Set(methods.map(method => method.name));
+  const rewrites = new Map<string, string>();
+  for (const method of methods) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call' || expression.callee.kind !== 'identifier') return;
+      const name = expression.callee.name;
+      if (defined.has(name) || rewrites.has(name)) return;
+      const [owner, called] = name.split('::');
+      if (!owner || !called || name.split('::').length !== 2) return;
+      const index = hierarchy.indexOf(owner);
+      if (index < 0) return;
+      for (let base = index - 1; base >= 0; base--) {
+        const inherited = `${hierarchy[base]}::${called}`;
+        if (defined.has(inherited)) {
+          rewrites.set(name, inherited);
+          return;
+        }
+      }
+    });
+  }
+  if (!rewrites.size) return;
+  for (const method of methods) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call' || expression.callee.kind !== 'identifier') return;
+      const target = rewrites.get(expression.callee.name);
+      if (target) expression.callee = { kind: 'identifier', name: target };
+    });
+  }
+}
+
 function classHierarchy(
   className: string,
   classes: Map<string, MameClass>,
 ): string[] {
+  const templateArguments = resolveTemplateArguments(className, classes);
   const result: string[] = [];
   const visited = new Set<string>();
   const visit = (name: string): void => {
@@ -715,7 +950,13 @@ function classHierarchy(
     visited.add(name);
     const declaration = classes.get(name);
     for (const base of declaration?.bases ?? []) {
-      const unqualified = base.split('::').at(-1)!;
+      // `class mbc_ram_device_base : public Base` inherits from whatever its
+      // subclass instantiated it with. Stopping at the parameter name loses
+      // the whole other half of the family: every Game Boy MBC gets its RAM
+      // banking from the template and its ROM banking from the argument, and
+      // one without the other is a cartridge that cannot reach its own code.
+      const argument = templateArguments.get(name)?.[base];
+      const unqualified = (argument ?? base).split('::').at(-1)!;
       if (classes.has(unqualified)) visit(unqualified);
     }
     if (declaration) result.push(name);
@@ -729,8 +970,12 @@ function compileMethod(
   interruptCallbacks: { member: string; line: string; signal: string }[] = [],
   sourceTables: Record<string, ConstantTable> = {},
   functionMacros: readonly FunctionMacro[] = [],
+  memberAliases: readonly MemberAliasMacro[] = [],
 ): GeneratedDeviceMethod {
-  let body = expandFunctionMacros(method.body, functionMacros).replace(
+  let body = expandMemberAliasMacros(
+    expandFunctionMacros(method.body, functionMacros),
+    memberAliases,
+  ).replace(
     /\bm_\w+\s*=\s*std::make_unique\s*<[^;]+;\s*/g,
     '',
   );
@@ -794,10 +1039,20 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
     const bodyEnd = declaration.bodySpan.start + braceEnd;
     const line = declaration.bodySpan.line + source.slice(0, match.index).split('\n').length - 1;
     const bodyLine = declaration.bodySpan.line + source.slice(0, braceStart + 1).split('\n').length - 1;
+    // The template header this method declares for itself. Without it the
+    // specializer cannot tell a compile-time constant from a type, and the
+    // same method arrives twice -- once substituted through the AST's own
+    // inline pass and once raw through this one -- with the raw copy last and
+    // therefore selected.
+    const templateParameters = (/template\s*<([^<>]*)>/.exec(match[0])?.[1] ?? '')
+      .split(',')
+      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1] ?? '')
+      .filter(Boolean);
     methods.push({
       kind: 'function',
       className: declaration.name,
       name: match[1]!,
+      ...(templateParameters.length ? { templateParameters } : {}),
       parameters: source.slice(
         masked.indexOf('(', match.index) + 1,
         matchingPair(masked, masked.indexOf('(', match.index), '(', ')'),
@@ -828,10 +1083,22 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
   return methods;
 }
 
-function memberDeclarations(
+export function memberDeclarations(
   declaration: MameClass,
-): { name: string; valueType: string; arrayLength?: number }[] {
-  const members: { name: string; valueType: string; arrayLength?: number }[] = [];
+): { name: string; valueType: string; arrayLength?: number; arrayShape?: number[] }[] {
+  const members: {
+    name: string; valueType: string; arrayLength?: number; arrayShape?: number[];
+  }[] = [];
+  // A member declared by an anonymous struct: `struct { bool on; ... }
+  // m_snd_control;`. The block has no type name, so the member's own name is
+  // the shape's key -- structDeclarations records it under the same one.
+  for (const block of structBlocks(declaration.body)) {
+    // Only an anonymous struct declares a member here; a named one is a type,
+    // and its members are picked up by the ordinary patterns below.
+    const name = block.declarator;
+    if (!name || block.name !== name || members.some(member => member.name === name)) continue;
+    members.push({ valueType: name, name });
+  }
   // C++ commonly groups scalar members (`int m_base, m_mask;`). Treat every
   // declarator as its own field before the single-declarator patterns below.
   for (const match of declaration.body.matchAll(
@@ -850,15 +1117,22 @@ function memberDeclarations(
   // that device with two members and no state at all. The shape is what makes a
   // data member -- a type, a name, an optional array bound, a semicolon -- so
   // the name pattern is a name.
+  // Every pattern admits an in-class initializer before the semicolon.
+  // Modern MAME declares members `uint8_t m_gb_io[0x10]{};` and
+  // `uint16_t m_divcount = 0;`, and requiring the semicolon to follow the
+  // declarator directly meant the whole Game Boy driver state read as *no
+  // members at all* -- so nothing recorded that TIMECNT is eight bits wide,
+  // it counted past 255 forever, and the timer interrupt that drives the
+  // console's music never fired.
   const patterns = [
     // `struct player_gfx p0gfx;` -- an elaborated type specifier is still a
     // data member, and the TIA declares both its sprite state that way. Without
     // this they were not members at all, which left the whole scanline
     // compositor unemittable and every 2600 frame in the interpreter.
-    /^\s*(?:struct|union|enum)\s+([\w:]+)\s+(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(\w+)\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
+    /^\s*(?:struct|union|enum)\s+([\w:]+)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(\w+)(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
   ];
   for (const pattern of patterns) {
     for (const match of declaration.body.matchAll(pattern)) {
@@ -876,11 +1150,28 @@ function memberDeclarations(
       const name = (pointer ? match[3] : match[2])!;
       const bound = pointer ? match[4] : match[3];
       if (members.some(member => member.name === name)) continue;
-      const arrayLength = bound ? Number(bound.trim()) : undefined;
+      const valueType = `${match[1]!.replace(/\s+/g, ' ').trim()}${star ?? ''}`;
+      // MAME's array creators carry their count as a template argument rather
+      // than a declarator bound: `memory_bank_array_creator<2> m_bank_rom`.
+      // Read as one object, `m_bank_rom[0]` indexed nothing -- and both of an
+      // MBC's ROM windows lost the bank behind them.
+      const templateCount = /_array_creator\s*<\s*(\d+)\s*>/.exec(valueType)?.[1];
+      const arrayLength = bound
+        ? Number(bound.trim())
+        : templateCount ? Number(templateCount) : undefined;
+      // `uint8_t m_wave_ram[2][0x10];` -- a C array member may have more than
+      // one bound, and only the outermost is the declarator the runtime
+      // allocates from. The inner extents have to travel with it or the second
+      // subscript indexes a number: the Game Boy APU's wave channel read its
+      // whole waveform out of nothing.
+      const shape = [...match[0].matchAll(/\[([^\]]+)\]/g)]
+        .map(extent => Number(evalExpr(extent[1]!.trim(), {}) ?? Number.NaN))
+        .filter(extent => Number.isInteger(extent) && extent > 0);
       members.push({
-        valueType: `${match[1]!.replace(/\s+/g, ' ').trim()}${star ?? ''}`,
+        valueType,
         name,
         ...(Number.isInteger(arrayLength) && arrayLength! > 0 ? { arrayLength } : {}),
+        ...(shape.length > 1 ? { arrayShape: shape } : {}),
       });
     }
   }
@@ -944,7 +1235,7 @@ function callbackSlots(valueType: string): number {
   return Number(/::array<(\d+)>/.exec(valueType)?.[1] ?? 1);
 }
 
-function integerBits(valueType: string): 1 | 8 | 16 | 32 | undefined {
+export function integerBits(valueType: string): 1 | 8 | 16 | 32 | undefined {
   const normalized = valueType.replace(/\bconst\b/g, '').trim();
   if (normalized === 'bool') return 1;
   if (['u8', 's8', 'uint8_t', 'int8_t', 'char'].includes(normalized)) return 8;
@@ -953,7 +1244,7 @@ function integerBits(valueType: string): 1 | 8 | 16 | 32 | undefined {
   return undefined;
 }
 
-function integerSigned(valueType: string): boolean {
+export function integerSigned(valueType: string): boolean {
   const normalized = valueType.replace(/\bconst\b/g, '').trim();
   return ['s8', 'int8_t', 'char', 's16', 'int16_t', 's32', 'int32_t', 'int'].includes(normalized);
 }
@@ -1102,6 +1393,16 @@ function numericConstants(source: string): Record<string, number> {
   )) {
     expressions.set(match[1]!, match[2]!.trim());
   }
+  // A pre-C++17 in-class constant is spelled `static const`, not `constexpr`.
+  // MAME's Game Boy APU declares its frame-sequencer period that way, and
+  // unresolved it made every `cycles / FRAME_CYCLES` in the sequencer
+  // meaningless. `static` is required so a local `const int` inside a method
+  // body is never hoisted into the device's shared scope.
+  for (const match of source.matchAll(
+    /\bstatic\s+const\s+(?:\w+\s+)+(\w+)\s*=\s*([^;]+);/g,
+  )) {
+    expressions.set(match[1]!, match[2]!.trim());
+  }
   // Non-integral and pre-C++17 static class constants are commonly declared
   // in the header and defined in the implementation file. The unqualified
   // member name is what source-compiled methods reference.
@@ -1205,6 +1506,18 @@ function constantTables(source: string): Record<string, ConstantTable> {
       values: splitMameArgs(match[2]!).map(value => value.trim()),
     };
   }
+  // A class's static table is declared in the header and defined out of line,
+  // qualified and without `static`: `const int gameboy_sound_device::
+  // wave_duty_table[4] = {...}`. Methods reference the unqualified name, and
+  // missing the definition left the Game Boy's square channels reading their
+  // duty waveform out of nothing at all.
+  for (const match of source.matchAll(
+    /\bconst\s+(?:\w+\s+)+\w+::(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
+  )) {
+    tables[match[1]!] ??= {
+      values: splitMameArgs(match[2]!).map(value => value.trim()),
+    };
+  }
   return tables;
 }
 
@@ -1300,41 +1613,104 @@ function deviceAddressSpaces(
 function structDeclarations(
   sources: readonly { file: string; source: string }[],
   constants: Record<string, number>,
-): Map<string, { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[]> {
-  const structs = new Map<string,
-    { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[]>();
+): Map<string, GeneratedStructField[]> {
+  const structs = new Map<string, GeneratedStructField[]>();
   for (const { source } of sources) {
-    for (const match of source.matchAll(
-      /\bstruct\s+(\w+)\s*\{([^{}]*)\}\s*;/g,
-    )) {
-      const [, name, body] = match;
-      if (!name || structs.has(name)) continue;
-      const fields: { name: string; length?: number; bits?: 8 | 16 | 32; signed?: boolean }[] = [];
-      for (const field of body!.matchAll(
-        /^\s*(?:const\s+)?([\w:]+)\s+(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/gm,
-      )) {
-        const bound = field[3] === undefined
-          ? undefined
-          : evalExpr(field[3], constants) ?? undefined;
-        // A struct field is as wide as its type, exactly like a plain member.
-        // Dropping the width let a `uint8_t` counter reach -1 instead of
-        // wrapping to 0xff, and the DPC's `if (low == 0xff)` carry never fired.
-        const valueType = field[1]!;
-        const bits: 8 | 16 | 32 = /64/.test(valueType) ? 32
-          : /(?:^|[^\d])32/.test(valueType) || valueType === 'int' ? 32
-            : /16/.test(valueType) ? 16
-              : /8|bool|char/.test(valueType) ? 8
-                : 32;
-        const signed = /^(?:int|s)/.test(valueType) && !/^uint/.test(valueType);
-        fields.push({
-          name: field[2]!,
-          ...(bound !== undefined && bound > 0 ? { length: bound } : {}),
-          bits,
-          ...(signed ? { signed } : {}),
-        });
-      }
-      if (fields.length) structs.set(name, fields);
+    // Named (`struct SOUND { ... };`) and anonymous (`struct { ... }
+    // m_snd_control;`) alike. MAME uses the second form for a one-off block of
+    // device state, and without a shape every field assignment into it failed:
+    // the Game Boy's sound chip could not even start.
+    for (const declaration of structBlocks(source)) {
+      if (!declaration.name || structs.has(declaration.name)) continue;
+      const fields = structFieldList(declaration.body, constants);
+      if (fields.length) structs.set(declaration.name, fields);
     }
   }
   return structs;
+}
+
+/**
+ * Every `struct [name] { ... } [name];` in a source file, brace-balanced.
+ *
+ * A regex over `[^{}]*` cannot see a struct that contains another one, and
+ * MAME nests freely -- the Game Boy PPU's per-line state holds an array of
+ * anonymous sprite structs -- so the block is matched by counting braces.
+ */
+function structBlocks(
+  source: string,
+): { name: string; body: string; declarator?: string }[] {
+  const blocks: { name: string; body: string; declarator?: string }[] = [];
+  const opener = /\bstruct\s+(\w+)?\s*\{/g;
+  let match: RegExpExecArray | null;
+  while ((match = opener.exec(source)) !== null) {
+    const open = source.indexOf('{', match.index);
+    const close = matchingBrace(source, open);
+    if (close < 0) continue;
+    // The name after the closing brace declares a member of this struct type;
+    // `struct SOUND { ... };` declares none.
+    const declarator = /^\s*(\w+)\s*(?:\[[^\]]*\])?\s*;/.exec(source.slice(close + 1))?.[1];
+    blocks.push({
+      name: match[1] ?? declarator ?? '',
+      body: source.slice(open + 1, close),
+      ...(declarator ? { declarator } : {}),
+    });
+    opener.lastIndex = close + 1;
+  }
+  return blocks;
+}
+
+/** The fields of one struct body, recursing into nested anonymous structs. */
+function structFieldList(
+  body: string,
+  constants: Record<string, number>,
+): GeneratedStructField[] {
+  const fields: GeneratedStructField[] = [];
+  const bound = (text: string | undefined): number | undefined => {
+    if (text === undefined) return undefined;
+    const value = evalExpr(text, constants) ?? undefined;
+    return value !== undefined && value > 0 ? value : undefined;
+  };
+  let cursor = 0;
+  while (cursor < body.length) {
+    const nested = /\bstruct\s*\{/g;
+    nested.lastIndex = cursor;
+    const start = nested.exec(body);
+    const scalars = start ? body.slice(cursor, start.index) : body.slice(cursor);
+    for (const field of scalars.matchAll(
+      /^\s*(?:const\s+)?([\w:]+)\s+(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/gm,
+    )) {
+      // A struct field is as wide as its type, exactly like a plain member.
+      // Dropping the width let a `uint8_t` counter reach -1 instead of
+      // wrapping to 0xff, and the DPC's `if (low == 0xff)` carry never fired.
+      const valueType = field[1]!;
+      const bits: 8 | 16 | 32 = /64/.test(valueType) ? 32
+        : /(?:^|[^\d])32/.test(valueType) || valueType === 'int' ? 32
+          : /16/.test(valueType) ? 16
+            : /8|bool|char/.test(valueType) ? 8
+              : 32;
+      const signed = /^(?:int|s)/.test(valueType) && !/^uint/.test(valueType);
+      const length = bound(field[3]);
+      fields.push({
+        name: field[2]!,
+        ...(length !== undefined ? { length } : {}),
+        bits,
+        ...(signed ? { signed } : {}),
+      });
+    }
+    if (!start) break;
+    const open = body.indexOf('{', start.index);
+    const close = matchingBrace(body, open);
+    if (close < 0) break;
+    const declarator = /^\s*(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/.exec(body.slice(close + 1));
+    if (declarator) {
+      const length = bound(declarator[2]);
+      fields.push({
+        name: declarator[1]!,
+        ...(length !== undefined ? { length } : {}),
+        fields: structFieldList(body.slice(open + 1, close), constants),
+      });
+    }
+    cursor = close + 1 + (declarator?.[0].length ?? 0);
+  }
+  return fields;
 }

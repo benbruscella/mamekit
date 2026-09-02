@@ -131,3 +131,59 @@ export function expandFunctionMacros(body: string, macros: readonly FunctionMacr
   }
   return expanded;
 }
+
+/** A `#define NAME m_member[0x04]` -- an object-like alias for device state. */
+export interface MemberAliasMacro {
+  name: string;
+  body: string;
+}
+
+/**
+ * A member alias is a postfix chain rooted at a member and nothing more:
+ * `m_vid_regs[0x04]`, `m_regs[BANK].value`. Anything with an operator in it is
+ * an expression macro, which belongs to `parseDefines` or to the runtime by
+ * name -- the distinction [[statement-macro-expansion]] was learnt the hard way.
+ */
+const MEMBER_ALIAS = /^m_\w+(?:\s*\[[^\]]*\]|\s*\.\s*\w+)*$/;
+
+/**
+ * Object-like `#define`s that name a device register.
+ *
+ * MAME writes a chip's register file once and then refers to it by the names on
+ * the data sheet: `#define CURLINE m_vid_regs[0x04]`, and thereafter `CURLINE =
+ * m_current_line;`. The name is not an interface the way a discrete-sound node
+ * macro's is -- there is nothing behind it but the subscript -- so leaving it
+ * unexpanded lowers an assignment to an identifier that names no member at all.
+ * The Game Boy PPU counted scanlines correctly and published none of them: LY
+ * read 0 forever and the boot ROM waited for line 0x90 that never came.
+ */
+export function collectMemberAliasMacros(source: string): MemberAliasMacro[] {
+  const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');
+  const aliases: MemberAliasMacro[] = [];
+  for (const match of joined.matchAll(/^[ \t]*#define[ \t]+([A-Z_][A-Z0-9_]*)[ \t]+(.+)$/gm)) {
+    const [, name, rest] = match;
+    const body = rest!.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/, '').trim();
+    if (!name || INTRINSICS.has(name) || TRACING.test(name)) continue;
+    if (!MEMBER_ALIAS.test(body)) continue;
+    aliases.push({ name, body });
+  }
+  return aliases;
+}
+
+/**
+ * Substitute member-alias macros in `body`.
+ *
+ * No parentheses: the body is already a postfix chain, and wrapping one turns
+ * an assignment target into a parenthesised lvalue the handler parser has no
+ * reason to accept.
+ */
+export function expandMemberAliasMacros(
+  body: string,
+  aliases: readonly MemberAliasMacro[],
+): string {
+  let expanded = body;
+  for (const alias of aliases) {
+    expanded = expanded.replace(new RegExp(`\\b${alias.name}\\b`, 'g'), alias.body);
+  }
+  return expanded;
+}

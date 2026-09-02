@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { KGNode, KnowledgeGraph } from '../kg/types.ts';
 import type {
@@ -12,9 +12,11 @@ import type {
   GeneratedExpression,
   GeneratedHandler,
   GeneratedHandlerOperation,
+  GeneratedStateMember,
   GeneratedVideoPlan,
 } from '../ir/board.ts';
 import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
+import { sourceRegionBindings } from '../mame/video-compiler.ts';
 
 /** MAME device input clocks converted to the instruction-cycle scheduler rate. */
 export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
@@ -199,6 +201,8 @@ export function lowerGeneratedMachine(
       if (props.quantumSeconds !== undefined) {
         callback.quantumSeconds = Number(props.quantumSeconds);
       }
+      if (props.entries !== undefined) callback.entries = Number(props.entries);
+      if (props.indexed !== undefined) callback.indexed = Boolean(props.indexed);
       if (props.periodHz !== undefined) callback.periodHz = Number(props.periodHz);
       if (props.periodExpr) callback.periodExpr = String(props.periodExpr);
       if (Array.isArray(props.scanlines)) callback.scanlines = props.scanlines.map(Number);
@@ -339,6 +343,12 @@ export function lowerGeneratedMachine(
         handler.ownerClass === screenCallback.targetClass &&
         handler.method === screenCallback.targetMethod)
     : undefined;
+  const paletteCallback = callbacks.find(callback => callback.signal === 'palette_init');
+  const paletteHandler = paletteCallback?.targetClass && paletteCallback.targetMethod
+    ? handlers.find(handler =>
+        handler.ownerClass === paletteCallback.targetClass &&
+        handler.method === paletteCallback.targetMethod)
+    : undefined;
   const inputMembers = new Map<string, string[]>();
   for (const node of graph.nodes.filter(candidate => candidate.label === 'Handler')) {
     for (const encoded of Array.isArray(node.props.inputMembers)
@@ -369,11 +379,32 @@ export function lowerGeneratedMachine(
   // the request to the whole machine however deep it is set.
   const perfectQuantumBoard = graph.nodes.some(node =>
     node.label === 'MachineConfig' && node.props.perfectQuantum === true);
+  // Widths for the driver state class's own integer members, so the board can
+  // give them storage that wraps the way MAME's C++ declaration does.
+  //
+  // The selected config's node only: its list already walks that state class's
+  // whole base chain, while a device's own device_add_mconfig is a
+  // MachineConfig node too and its members belong to that device's state, not
+  // the board's.
+  const rootStateMembers = byId.get(rootMachineId)?.props.stateMembers;
+  const stateMembers: GeneratedStateMember[] = (
+    Array.isArray(rootStateMembers) ? rootStateMembers : []
+  ).map(raw => JSON.parse(String(raw)) as GeneratedStateMember);
   const memoryBanks = graph.nodes.some(node => node.label === 'MemoryBank')
     ? lowerMemoryBanks(graph, sourceRef)
     : [];
   const accessTaps = lowerAccessTaps(graph, devices, memoryBanks, sourceRef);
+  // The driver's own region_ptr finders, read straight from its source. These
+  // reach the runtime whether or not the board compiles a video plan.
+  const driverPath = join(String(graph.meta.mameSrc ?? ''), String(graph.meta.driverFile ?? ''));
+  const driverRegionBindings = graph.meta.mameSrc && graph.meta.driverFile &&
+      existsSync(driverPath)
+    ? sourceRegionBindings(readFileSync(driverPath, 'utf8'))
+    : {};
   const execution: GeneratedExecutionPlan = {
+    ...(Object.keys(driverRegionBindings).length
+      ? { regionBindings: driverRegionBindings }
+      : {}),
     cpus: board.cpus.map(cpu => {
       const interruptVectorWriters = inferInterruptVectorWriters(
         cpu.tag,
@@ -451,9 +482,28 @@ export function lowerGeneratedMachine(
         // Set when the update belongs to a generated device rather than the
         // driver's own state class.
         ...(screenUpdateDeviceTag ? { deviceTag: screenUpdateDeviceTag } : {}),
+        // MAME's `bitmap_ind16 &` says the update writes palette indices. A
+        // driver handler carries its own parameters; a device's update is
+        // declared in the device's source, so the graph records the answer.
+        ...(screenCallback.indexed ||
+          /\bbitmap_ind16\b/.test(screenHandler?.parameters ?? '')
+          ? { indexed: true }
+          : {}),
         ...((screenHandler?.source ?? screenCallback.source)
           ? { source: screenHandler?.source ?? screenCallback.source }
           : {}),
+      },
+    } : {}),
+    // Only when the machine has no colour PROM to decode: a board that does
+    // keeps the palette plan it already had, so this adds a palette where
+    // there was none rather than replacing one that works.
+    ...(paletteHandler && !compiledVideo?.plan.palette ? {
+      paletteInit: {
+        handler: `${paletteCallback!.targetClass}.${paletteCallback!.targetMethod}`,
+        ...(paletteCallback!.entries !== undefined
+          ? { entries: Number(paletteCallback!.entries) }
+          : {}),
+        ...(paletteHandler.source ? { source: paletteHandler.source } : {}),
       },
     } : {}),
   };
@@ -478,6 +528,10 @@ export function lowerGeneratedMachine(
     device.type === 'EXIDY' || device.type === 'EXIDY_VENTURE');
   const discreteDevice = devices.find(device => device.type === 'DISCRETE');
   const tiaDevice = devices.find(device => device.type === 'TIA');
+  // MAME's gameboy_sound_device renders through `sound_stream` like the TIA
+  // does, but its registers ARE in the processor's map, so the writes already
+  // reach the chip and only the sample pull needs wiring.
+  const gameboyApu = devices.find(device => device.type === 'DMG_APU');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
     .filter((key): key is string => Boolean(key));
@@ -642,6 +696,25 @@ export function lowerGeneratedMachine(
             controlOffset: -1,
             ...(discretePlan?.inputNodes ? { writeOffsets: discretePlan.inputNodes } : {}),
           }
+        : gameboyApu
+          ? {
+              kind: 'gameboy',
+              deviceTag: gameboyApu.tag,
+              deviceType: gameboyApu.type,
+              // Its registers are in the LR35902's own address map, so the
+              // board routes every write to the device already; the sound
+              // binding exists purely to pump the renderer.
+              writeMethods: [],
+              enableMethods: [],
+              controlOffset: -1,
+              // `m_apu->add_route(0, "speaker", 0.50, 0)` and its right-hand
+              // twin. The renderer's own full scale is the whole four-channel
+              // mix, so without the routed gain the console came out at
+              // exactly twice MAME's level.
+              ...(lowerAudioRoutes(graph, [gameboyApu]).length
+                ? { routes: lowerAudioRoutes(graph, [gameboyApu]) }
+                : {}),
+            }
         : tiaDevice
           ? {
               kind: 'tia',
@@ -662,8 +735,13 @@ export function lowerGeneratedMachine(
   // GeneratedVideoRenderer and is not a devcb signal dispatched at runtime.
   // A device_delegate setter is configuration too: the owning device invokes
   // the delegate itself, so there is no board connection to dispatch.
+  // A palette init is the same kind of thing: MAME runs it once when the
+  // palette device starts, so the renderer runs it once too. It is not a
+  // signal anything raises.
   const effectCallbacks = callbacks.filter(callback =>
-    callback.signal !== 'set_screen_update' && !callback.delegate);
+    callback.signal !== 'set_screen_update' &&
+    callback.signal !== 'palette_init' &&
+    !callback.delegate);
   const lowered = lowerConnections(effectCallbacks, {
     cpuTags: new Set(execution.cpus.map(cpu => cpu.tag)),
     deviceTags: new Set(devices.map(device => device.tag)),
@@ -703,6 +781,7 @@ export function lowerGeneratedMachine(
     devices,
     handlers,
     maps,
+    ...(stateMembers.length ? { stateMembers } : {}),
     ...(compiledVideo ? { video: compiledVideo.plan } : {}),
     ...(sound ? { sound } : {}),
   };

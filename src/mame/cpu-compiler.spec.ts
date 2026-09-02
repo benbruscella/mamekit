@@ -3,6 +3,7 @@ import {
   compileMameI8080,
   compileMameI8088,
   compileMameKonami1,
+  compileMameLr35902,
   compileMameM6802,
   compileMameMc6809,
   compileMameM6801U4,
@@ -743,4 +744,71 @@ assert.equal(mc6809.get('m_d.b.h'), 0x42);
 mc6809.step();
 assert.equal(mc6809Memory[0x1000], 0x42, 'MC6809 extended store must reach the bus');
 
-console.log('cpu-compiler.spec: 60 passed');
+
+// --- LR35902 (Game Boy) -----------------------------------------------------
+// MAME's Sharp core has no opcode DSL: 256 `case` labels live in two .hxx
+// files included into `execute_run`'s switch, written against C preprocessor
+// statement macros. These assertions cover the whole chain -- include
+// resolution, macro expansion, lowering, emission -- by running real code.
+const lr35902Definition = compileMameLr35902(process.env.MAME_SRC ?? '../mame');
+assert.equal(lr35902Definition.type, 'LR35902');
+assert.equal(lr35902Definition.summary.diagnostics, 0);
+assert.ok(
+  lr35902Definition.sourceFiles.includes('src/devices/cpu/lr35902/opc_main.hxx') &&
+  lr35902Definition.sourceFiles.includes('src/devices/cpu/lr35902/opc_cb.hxx'),
+  'the opcode includes are provenance, not an implementation detail',
+);
+// The interrupt vectors and the IE/IF state indices are enum members carrying
+// /* ... */ comments; a parser that drops them also renumbers everything after.
+assert.equal(lr35902Definition.constants.VBL_INT, 0);
+assert.equal(lr35902Definition.constants.EXT_INT, 4);
+assert.equal(lr35902Definition.constants.LR35902_IE, 12);
+assert.equal(lr35902Definition.constants.LR35902_IF, 13);
+// "PC" is the bare 16-bit m_PC, not a PAIR16 half: an 8-bit alias would
+// silently truncate every register checkpoint read back through it.
+assert.equal(lr35902Definition.aliases.PC?.member, 'm_PC');
+assert.equal(lr35902Definition.aliases.PC?.bits, 16);
+// A devcb is called through its member and configured through its accessor;
+// the generated call must raise the signal the machine config binds.
+assert.ok(
+  generatedCpuExecutableSource(lr35902Definition).includes('"timer_cb"'),
+  'the LR35902 must raise timer_cb, the name gb.cpp binds',
+);
+
+clearGeneratedCpus();
+registerGeneratedCpu(lr35902Definition);
+const lrMemory = new Uint8Array(0x10000);
+lrMemory.set([
+  0x3e, 0x42,             // LD A,$42
+  0xea, 0x00, 0x10,       // LD ($1000),A
+  0x06, 0x0f,             // LD B,$0f
+  0x04,                   // INC B          -> B=0x10, half-carry set
+  0xcb, 0x30,             // SWAP B         -> B=0x01
+  0xaf,                   // XOR A          -> A=0, Z set
+], 0x0000);
+const lr35902 = createCpu('LR35902', {
+  read: address => lrMemory[address]!,
+  write: (address, data) => { lrMemory[address] = data; },
+  in: () => 0xff,
+  out: () => {},
+});
+lr35902.reset();
+assert.equal(lr35902.get('m_PC'), 0x0000, 'the LR35902 starts execution at zero');
+// The core splits every instruction into a fetch half-step and an execute
+// half-step, so one MAME instruction is two calls to step().
+const instruction = (): void => { lr35902.step(); lr35902.step(); };
+instruction();
+assert.equal(lr35902.get('m_A'), 0x42, 'LD A,n8 must load its immediate');
+instruction();
+assert.equal(lrMemory[0x1000], 0x42, 'LD (n16),A must reach the bus');
+instruction();
+instruction();
+assert.equal(lr35902.get('m_B'), 0x10, 'INC B must carry into the high nybble');
+assert.equal(lr35902.get('m_F') & 0x20, 0x20, 'INC_8BIT sets H when the low nybble wraps');
+instruction();
+assert.equal(lr35902.get('m_B'), 0x01, 'CB-prefixed SWAP B must exchange nybbles');
+instruction();
+assert.equal(lr35902.get('m_A'), 0x00);
+assert.equal(lr35902.get('m_F'), 0x80, 'XOR A leaves only Z set');
+
+console.log('cpu-compiler.spec: 78 passed');

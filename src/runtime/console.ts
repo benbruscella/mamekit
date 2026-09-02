@@ -114,6 +114,20 @@ function vcsGrip(): string {
   return ribs;
 }
 
+/**
+ * The Game Boy's grip: fine vertical ribs across the base, below the label,
+ * moulded into the plastic where a thumb pushes the cartridge home.
+ */
+function dmgGrip(): string {
+  let ribs = '';
+  for (let index = 0; index < 22; index++) {
+    const x = 26 + index * 6.6;
+    ribs += `<rect x="${x}" y="206" width="3.4" height="30" rx="1.4" fill="rgba(0,0,0,.26)"/>`
+      + `<rect x="${x + 3.4}" y="206" width="1.6" height="30" rx=".8" fill="rgba(255,255,255,.24)"/>`;
+  }
+  return ribs;
+}
+
 const CART_SHELLS: Record<string, CartShell> = {
   nes: {
     label: { x: 53.5, y: 15.5, w: 133, h: 151 },
@@ -154,18 +168,42 @@ const CART_SHELLS: Record<string, CartShell> = {
     <rect x="6" y="207" width="188" height="1.4" fill="rgba(0,0,0,.38)"/>
     <rect x="6" y="209" width="188" height="1" fill="rgba(255,255,255,.09)"/>`,
   },
+  // The Game Boy cartridge: grey plastic, a chamfered top-right corner so it
+  // can only go in one way round, a label over most of the face, and a ribbed
+  // grip along the base. The chamfer is the feature that makes the shape
+  // recognisable at 200px, and it is a moulding, not a mark.
+  dmg: {
+    label: { x: 26, y: 30, w: 148, h: 148 },
+    artHeight: 160,
+    art: { x: 26, y: 42, w: 148, h: 66 },
+    title: { x: 33, y: 132, wrap: 17 },
+    bodyTop: '#b6b4ab',
+    bodyBottom: '#8e8c84',
+    moulding: 'rgba(24,24,24,.40)',
+    chrome: () => `
+    <path d="M14 12 a8 8 0 0 1 8-8 h124 l32 32 v198 a8 8 0 0 1-8 8 h-148 a8 8 0 0 1-8-8 z"
+      fill="url(#cb)"/>
+    <path d="M146 4 l32 32 h-32 z" fill="rgba(0,0,0,.13)"/>
+    <path d="M18 8 h126 l30 30" fill="none" stroke="rgba(255,255,255,.40)" stroke-width="2.4"/>
+    <rect x="14" y="198" width="172" height="1.8" fill="rgba(0,0,0,.24)"/>
+    <rect x="14" y="199.8" width="172" height="1.2" fill="rgba(255,255,255,.22)"/>
+    ${dmgGrip()}`,
+  },
 };
 
 /**
  * The shell this room draws, chosen once from the software list's own cartridge
- * interface -- `a2600_cart`, `nes_cart`, `coleco_cart` -- so the drawing follows
- * MAME's own name for the slot rather than a hand-kept console list.
+ * interface -- `a2600_cart`, `nes_cart`, `coleco_cart`, `gameboy_cart` -- so the
+ * drawing follows MAME's own name for the slot rather than a hand-kept console
+ * list.
  */
 export let activeShell: CartShell = CART_SHELLS.nes!;
 /** Test seam: the room sets this from the software list's cartridge interface. */
 export const useCartShell = (name: string | undefined): void => { activeShell = shellForInterface(name); };
 export const shellForInterface = (name: string | undefined): CartShell =>
-  name === 'a2600_cart' ? CART_SHELLS.vcs! : CART_SHELLS.nes!;
+  name === 'a2600_cart' ? CART_SHELLS.vcs!
+    : name === 'gameboy_cart' ? CART_SHELLS.dmg!
+    : CART_SHELLS.nes!;
 
 /** viewBox units as a percentage, for overlaying HTML on the drawn cartridge */
 const pct = (v: number, total: number) => `${(v / total * 100).toFixed(3)}%`;
@@ -532,6 +570,28 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     ines: inesCarts,
     ...(cfg.cart?.defaultSlot ? { defaultSlot: cfg.cart.defaultSlot } : {}),
   };
+  /**
+   * The board a catalogue entry runs on, and whether this build can run it.
+   *
+   * A software list need not name a board: MAME falls back to the cartridge
+   * slot's own default option, which is exactly what resolveFlatCart does when
+   * a cartridge is actually mounted. The shelf has to agree with it. Judging an
+   * unnamed slot "unknown" instead marked every Game Boy cartridge whose entry
+   * carries no `slot` feature as an unplayable display-only tile -- Tetris
+   * among them, on the plain ROM board the machine has supported all along --
+   * and the same rule would reject every ColecoVision cartridge ever made,
+   * since coleco.xml names no slot anywhere.
+   */
+  const boardOf = (slot: string | undefined): string => slot || support.defaultSlot || '';
+  const playsOnBoard = (slot: string | undefined): boolean => {
+    const board = boardOf(slot);
+    return board !== '' && support.slots.includes(board);
+  };
+  const boardLabel = (slot: string | undefined): string => {
+    const board = boardOf(slot);
+    return board === '' ? 'UNKNOWN BOARD' : SLOT_PCB[board] ?? board.toUpperCase();
+  };
+
   // The bucket key for this console's set mirrors .data/roms: games/consoles/nes
   // -> consoles/nes. Availability is best-effort: with no manifest reachable the
   // room behaves exactly as before and asks for a drop.
@@ -1060,13 +1120,13 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     // A dump the bucket can supply is offered for fetch; whether it then PLAYS
     // still depends on the mapper, which only the fetched header can settle for
     // an unidentified dump.
-    const playableBoard = row.slot !== '' && support.slots.includes(row.slot);
+    const playableBoard = playsOnBoard(row.slot);
     const item = el('div', 'display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0');
     item.setAttribute('data-catalog-cart', row.key);
     item.dataset.slot = row.slot;
     if (row.avail) item.dataset.bucket = row.tier;
     const artName = row.entry?.name ?? row.avail?.name ?? '';
-    const pcb = row.slot === '' ? 'UNKNOWN BOARD' : (SLOT_PCB[row.slot] ?? row.slot.toUpperCase());
+    const pcb = boardLabel(row.slot);
     const cover = coverEl(cartSvg({
       title: row.title,
       sub: row.sub,
@@ -1169,7 +1229,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     const filter = boardFilter.value;
     const matches = rows.filter(row => {
       if (filter === 'verified' && row.tier !== 'verified') return false;
-      if (filter === 'playable' && !(row.slot !== '' && support.slots.includes(row.slot))) return false;
+      if (filter === 'playable' && !playsOnBoard(row.slot)) return false;
       if (!['all', 'playable', 'verified'].includes(filter) && row.slot !== filter) return false;
       return !term || row.haystack.includes(term);
     });
@@ -1497,7 +1557,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   function openTargetModal(catEntry: SoftEntry | undefined, name: string, zipName?: string): void {
     const verified = support.games.includes(name) ||
       (catEntry?.cloneof !== undefined && support.games.includes(catEntry.cloneof));
-    const playableBoard = catEntry !== undefined && support.slots.includes(catEntry.slot);
+    const playableBoard = catEntry !== undefined && playsOnBoard(catEntry.slot);
     openModal((scroller, footer, close) => {
       const inner = el('div', 'padding:22px 30px 20px');
       scroller.appendChild(inner);
@@ -1507,8 +1567,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       subh.textContent = verified
         ? '◍ VERIFIED SLOT — DROP THIS DUMP TO PLAY'
         : playableBoard
-          ? `◍ ${SLOT_PCB[catEntry.slot] ?? catEntry.slot.toUpperCase()} — PLAYABLE, NOT YET VERIFIED`
-          : `◍ ${catEntry ? SLOT_PCB[catEntry.slot] ?? catEntry.slot.toUpperCase() : 'UNKNOWN BOARD'} — DISPLAY ONLY`;
+          ? `◍ ${boardLabel(catEntry.slot)} — PLAYABLE, NOT YET VERIFIED`
+          : `◍ ${catEntry ? boardLabel(catEntry.slot) : 'UNKNOWN BOARD'} — DISPLAY ONLY`;
       inner.append(h, subh);
 
       if (catEntry) {

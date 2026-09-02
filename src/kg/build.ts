@@ -6,11 +6,18 @@ import {
   type MameFunction, type SourceSpan,
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
+import { collectMemberAliasMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
 import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
 } from '../ir/execute.ts';
 import { deviceConfiguredScreen } from '../mame/screen-config.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
+import {
+  integerBits,
+  integerSigned,
+  memberDeclarations,
+} from '../mame/device-compiler.ts';
 import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
@@ -158,7 +165,12 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       extConsts = parseEnumConstants(source, extConsts);
     }
   }
-  const consts = parseDefines(combined, extConsts);
+  // A driver's own enums, not only those of the headers it includes. MAME
+  // spells a register's bit names that way -- `enum { SIO_ENABLED = 0x80, ... }`
+  // inside the state class -- and without them every such test was an
+  // unresolved reference: the Game Boy's serial control bits resolved to
+  // nothing, and the handler that reads them could not be compiled either.
+  const consts = parseEnumConstants(combined, parseDefines(combined, extConsts));
   const textMacros = parseTextMacros(combined);
   const ioportMembers = parseIoportMembers(combined, textMacros.strings);
   emitSourceTimerCallbacks(g, ast, consts, definedIn);
@@ -465,6 +477,9 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       cls: cfg.cls,
       name: cfg.name,
       calls: cfg.calls,
+      ...(driverStateMembers(ast, cfg.cls).length
+        ? { stateMembers: driverStateMembers(ast, cfg.cls).map(member => JSON.stringify(member)) }
+        : {}),
       ...(perfectQuantum ? { perfectQuantum: true } : {}),
       ...(resetHandlers.length ? { resetHandlers } : {}),
       ...(startHandlers.length ? { startHandlers } : {}),
@@ -621,7 +636,13 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       definedIn(bankId, source);
     }
     for (const list of cfg.softwareLists) {
-      const listId = `softlist:${list.name}`;
+      // Scoped to the machine config that declares it, because a list's tag
+      // and original/compatible status are that config's facts, not the
+      // list's. gb.cpp declares "gameboy" as cart_list/original from the Game
+      // Boy and as gb_list/compatible from the Game Boy Color; keyed on the
+      // name alone the second declaration overwrote the first, and the Game
+      // Boy silently catalogued the Color's 1,718 cartridges as its own.
+      const listId = `softlist:${cfg.cls}.${cfg.name}/${list.name}`;
       g.node('SoftwareList', listId, {
         name: list.name, tag: list.tag, status: list.status,
         ...(list.filter ? { filter: list.filter } : {}),
@@ -859,6 +880,8 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   }
 
   recordDeviceConfiguredScreen(g, mameSrc);
+  recordPaletteInit(g, ast, consts, driverRel);
+  annotateIndexedScreenUpdate(g, mameSrc);
 
   return g.toGraph({
     tool: 'mamekit',
@@ -1326,6 +1349,74 @@ export function attotimeSeconds(
 }
 
 /**
+ * The driver state class's own integer data members, with the widths MAME
+ * declared them at.
+ *
+ * A board's state object is built from what its handlers write, so nothing
+ * else records that `uint8_t m_gb_io[0x10]` is eight bits wide or that
+ * `uint16_t m_divcount` wraps at 0x10000. Unbounded, the Game Boy's TIMECNT
+ * counted past 255 and never came back to zero -- the single event that raises
+ * its timer interrupt -- so every game whose music driver runs off that
+ * interrupt played silence while its graphics ran perfectly.
+ *
+ * Integer members only. Anything the runtime binds to an object -- a device
+ * finder, an ioport, a shared pointer -- is not a width and must keep whatever
+ * the board put there.
+ */
+function driverStateMembers(
+  ast: MameAstIndex,
+  className: string,
+): { name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number }[] {
+  const classes = new Map(
+    ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]),
+  );
+  const members: {
+    name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number;
+  }[] = [];
+  // A member the driver uses to carry an input line. MAME's own
+  // `INPUT_LINE_NMI` is 64 and sits in a `uint8_t` happily -- Double Dragon
+  // keeps `uint8_t m_sprite_irq = INPUT_LINE_NMI` and raises its sprite
+  // processor through it -- but this compiler lowers the input-line constants
+  // to negative tokens of its own, and narrowing one to eight bits turns the
+  // NMI into ordinary line 255. Such a member carries no width until those
+  // constants carry MAME's values.
+  const lineCarriers = new Set(
+    ast.ast.units.flatMap(unit => [
+      ...unit.functions.flatMap(fn =>
+        [...fn.body.matchAll(/\b(\w+)\s*=\s*INPUT_LINE_\w+/g)].map(match => match[1]!)),
+      ...unit.classes.flatMap(entry =>
+        [...entry.body.matchAll(/\b(\w+)\s*=\s*INPUT_LINE_\w+/g)].map(match => match[1]!)),
+    ]),
+  );
+  // Base-first, so a derived class's redeclaration is the one that stands.
+  for (const name of sourceClassHierarchy(ast, className).reverse()) {
+    const declaration = classes.get(name);
+    if (!declaration) continue;
+    for (const member of memberDeclarations(declaration)) {
+      // A multi-dimensional member is left alone: its rows are objects, and
+      // the width belongs to the innermost one.
+      if (member.arrayShape) continue;
+      // A `const` member is a compile-time constant resolved by name, not
+      // board state, and giving it a zeroed slot would shadow that.
+      if (/\bconst\b/.test(member.valueType)) continue;
+      if (lineCarriers.has(member.name)) continue;
+      const bits = integerBits(member.valueType);
+      if (!bits) continue;
+      const entry = {
+        name: member.name,
+        bits,
+        ...(integerSigned(member.valueType) ? { signed: true } : {}),
+        ...(member.arrayLength ? { arrayLength: member.arrayLength } : {}),
+      };
+      const existing = members.findIndex(candidate => candidate.name === member.name);
+      if (existing >= 0) members[existing] = entry;
+      else members.push(entry);
+    }
+  }
+  return members;
+}
+
+/**
  * A device class and its MAME-declared base classes, most derived first.
  *
  * Only classes the parsed sources actually declare are listed; MAME's own
@@ -1545,14 +1636,38 @@ function handlerProps(
   let body = inline?.inlineBody ?? fn?.body;
   if (body && fn) {
     const source = ast.ast.units.map(unit => unit.source).join('\n');
+    // A driver names its board's registers the way the schematic does:
+    // `#define JOYPAD m_gb_io[0x00]`, and thereafter `JOYPAD = 0xCF | data;`.
+    // The name stands for nothing but the subscript, so it has to become the
+    // subscript before lowering -- unexpanded, the Game Boy's joypad register
+    // was never written and every button read as held down.
+    body = expandMemberAliasMacros(body, collectMemberAliasMacros(source));
     for (const table of source.matchAll(
-      /\bstatic\s+(?:(?:const|constexpr)\s+)+[\w:]+\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
+      /\bstatic\s+(?:(?:const|constexpr)\s+)+([\w:]+)\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{((?:[^{}]|\{[^{}]*\})*?)\}\s*;/g,
     )) {
-      if (!new RegExp(`\\b${table[1]}\\s*\\[`).test(body)) continue;
-      const values = splitMameArgs(table[2]!).map(value => value.trim());
+      const [, valueType, name, declared] = table;
+      if (!new RegExp(`\\b${name}\\s*\\[`).test(body)) continue;
+      // MAME annotates its tables, and comments out alternatives it kept:
+      // `palette_gb` carries a whole disused black-and-white palette inside
+      // `/* ... */`. Read as data those numbers become the table.
+      const entries = declared!.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+      // A table of colours is written as braced triples: `static constexpr
+      // rgb_t palette_gb[] = { { 0xff,0xfb,0x87 }, ... }`. Read as a flat
+      // list it matched nothing at all, so a machine that sets its palette
+      // from one got four zero pens -- a picture drawn entirely in
+      // transparent black.
+      const values = valueType === 'rgb_t' && /^\s*\{/.test(entries)
+        ? [...entries.matchAll(/\{([^{}]*)\}/g)].map(entry => {
+            const [red, green, blue] = splitMameArgs(entry[1]!)
+              .map(component => Number(evalExpr(component.trim(), constants) ?? 0));
+            return String(
+              ((0xff << 24) | ((blue ?? 0) << 16) | ((green ?? 0) << 8) | (red ?? 0)) >>> 0,
+            );
+          })
+        : splitMameArgs(entries).map(value => value.trim());
       if (body.includes(table[0])) body = body.replace(table[0], '');
       body = body.replace(
-        new RegExp(`\\b${table[1]}\\s*\\[([^\\]]+)\\]`, 'g'),
+        new RegExp(`\\b${name}\\s*\\[([^\\]]+)\\]`, 'g'),
         (_entry, index: string) => `TABLE(${index}, ${values.join(', ')})`,
       );
     }
@@ -1655,6 +1770,27 @@ function emitSourceHandlerClosure(
       continue;
     }
     callNames.add(match[1]!);
+  }
+  // An explicit base call -- `base_state::machine_reset()` -- names the exact
+  // implementation to run, so virtual dispatch never reaches it and the scan
+  // above skips it (the `::` lands on the `before === ':'` guard). Left out,
+  // the base method is never lowered at all: the Game Boy's divider and serial
+  // power-on values were never assigned, so `m_shift` stayed undefined and
+  // `m_divcount` ran away from its first frame.
+  for (const match of fn.body.matchAll(/\b(\w+)::(\w+)\s*\(/g)) {
+    const [, baseClass, baseMethod] = match;
+    const base = ast.findFunction(baseClass!, baseMethod!);
+    if (!base || base === fn) continue;
+    const baseId = emitSourceHandlerClosure(
+      g,
+      ast,
+      base.className,
+      base.name,
+      constants,
+      base.span,
+      visited,
+    );
+    g.edge(handlerId, baseId, 'CALLS_HANDLER');
   }
   for (const callName of accessorNames) {
     if (callNames.has(callName)) continue;
@@ -2033,6 +2169,105 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
       !shadowedCallbacks.has(node.id) && !removedDeviceIds.has(node.id)),
     edges: edges.filter(edge => reachable.has(edge.from) && reachable.has(edge.to)),
   };
+}
+
+/**
+ * Say whether a screen update writes palette indices rather than colours.
+ *
+ * MAME declares it in the update's own signature -- `bitmap_ind16 &` against
+ * `bitmap_rgb32 &` -- and the driver's Handler node carries that when the
+ * driver draws. When a device draws, the method belongs to the device's source
+ * rather than the driver's, so the signature is read from there. Reading it
+ * wrong is silent: the Game Boy's four pen numbers went into the framebuffer
+ * as colours, which are all transparent black, so the machine ran and drew
+ * nothing anyone could see.
+ */
+function annotateIndexedScreenUpdate(g: GraphBuilder, mameSrc: string): void {
+  // Only a device-drawn screen needs asking. When the driver draws, its own
+  // Handler node already carries the signature, and the generator reads it
+  // from there.
+  //
+  // The gate is not a micro-optimisation. indexMameHardware parses every file
+  // under src/devices and src/mame to build its index, and a target's graph is
+  // built in its own process -- so calling it unconditionally here added that
+  // whole-tree parse to all 65 targets and took one target's generation from
+  // 1s to 22s. The only other caller reaches it behind an early return, which
+  // is why nothing had paid this before.
+  const deviceTags = new Set(
+    [...g.nodes.values()]
+      .filter(node => node.label === 'Device')
+      .map(node => String(node.props.tag ?? '')),
+  );
+  const drawnByDevice = [...g.nodes.values()].filter(node =>
+    node.label === 'Callback' &&
+    node.props.signal === 'set_screen_update' &&
+    node.props.targetClass &&
+    node.props.targetMethod &&
+    deviceTags.has(String(node.props.deviceTag ?? node.props.targetTag ?? '')));
+  if (!drawnByDevice.length) return;
+
+  const definitions = indexMameHardware(mameSrc);
+  const byClass = new Map<string, string>();
+  for (const definition of definitions.values()) {
+    byClass.set(definition.className, definition.sourceFile);
+  }
+  for (const callback of drawnByDevice) {
+    const className = String(callback.props.targetClass ?? '');
+    const method = String(callback.props.targetMethod ?? '');
+    const sourceFile = byClass.get(className);
+    if (!className || !method || !sourceFile) continue;
+    const declaration = new RegExp(
+      `\\b${method}\\s*\\(([^;{}]*)\\)`,
+    ).exec(readFileSync(join(mameSrc, sourceFile.replace(/\.cpp$/, '.h')), 'utf8'));
+    if (declaration && /\bbitmap_ind16\b/.test(declaration[1]!)) {
+      callback.props.indexed = 1;
+    }
+  }
+}
+
+/**
+ * Record the routine a palette device is constructed with.
+ *
+ * MAME's `palette_device` takes its init as a constructor argument rather than
+ * a chained setter -- `PALETTE(config, m_palette, FUNC(gb_state::gb_palette),
+ * 4)` -- so the devcb pass, which walks fluent chains, never saw it. A machine
+ * whose colours come from code rather than from a colour PROM therefore had no
+ * palette at all: every Game Boy pixel resolved to pen zero, which is
+ * transparent black, and the picture was invisible rather than wrong.
+ */
+function recordPaletteInit(
+  g: GraphBuilder,
+  ast: MameAstIndex,
+  constants: Record<string, number>,
+  driverFile: string,
+): void {
+  for (const device of [...g.nodes.values()]) {
+    if (device.label !== 'Device' || device.props.type !== 'PALETTE') continue;
+    const config = Array.isArray(device.props.config) ? device.props.config.map(String) : [];
+    const construction = config.find(line => /^\s*PALETTE\s*\(/.test(line));
+    const func = construction && /FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(construction);
+    if (!func) continue;
+    const entries = /,\s*([^,()]+)\s*\)\s*$/.exec(construction!)?.[1]?.trim();
+    const callbackId = `${device.id}/callback:palette_init`;
+    g.node('Callback', callbackId, {
+      signal: 'palette_init',
+      operation: 'palette_init',
+      raw: construction!,
+      ownerTag: String(device.props.tag ?? ''),
+      targetClass: func[1]!,
+      targetMethod: func[2]!,
+      ...(entries !== undefined && evalExpr(entries, constants) !== null
+        ? { entries: evalExpr(entries, constants)! }
+        : {}),
+      ...(device.props.sourceFile ? { sourceFile: device.props.sourceFile } : {}),
+      ...(device.props.sourceLine ? { sourceLine: device.props.sourceLine } : {}),
+    });
+    g.edge(device.id, callbackId, 'HAS_CALLBACK');
+    const handlerId = emitSourceHandlerClosure(
+      g, ast, func[1]!, func[2]!, constants, { file: driverFile, start: 0, end: 0, line: 0, column: 0, endLine: 0, endColumn: 0 },
+    );
+    g.edge(callbackId, handlerId, 'CALLS_HANDLER');
+  }
 }
 
 /**

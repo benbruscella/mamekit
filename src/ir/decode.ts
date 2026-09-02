@@ -128,6 +128,7 @@ export function decodeBoardIr(value: unknown, subject = 'board'): BoardIr {
   decodeDevices(reader, root.devices);
   decodeHandlers(reader, root.handlers);
   decodeMaps(reader, root.maps);
+  decodeStateMembers(reader, root.stateMembers);
   decodeVideo(reader, root.video);
   decodeSound(reader, root.sound);
 
@@ -135,6 +136,20 @@ export function decodeBoardIr(value: unknown, subject = 'board'): BoardIr {
     throw new BoardIrError(game || subject, reader.diagnostics);
   }
   return value as BoardIr;
+}
+
+function decodeStateMembers(reader: Reader, value: unknown): void {
+  if (value === undefined) return;
+  for (const [index, entry] of reader.array(value, 'stateMembers').entries()) {
+    const path = `stateMembers[${index}]`;
+    const member = reader.object(entry, path);
+    reader.string(member.name, `${path}.name`);
+    const bits = reader.number(member.bits, `${path}.bits`);
+    if (![1, 8, 16, 32].includes(bits)) {
+      reader.fail(`${path}.bits`, `declares ${bits}, which is not a C integer width`);
+    }
+    reader.optionalNumber(member.arrayLength, `${path}.arrayLength`);
+  }
 }
 
 function decodeCallbacks(reader: Reader, value: unknown): void {

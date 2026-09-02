@@ -33,7 +33,9 @@ export interface SoundRuntimeContext {
   /** Position within the current video frame, so writes keep their timing. */
   fraction(): number;
   /** Call a method on an instantiated generated device, if it has one. */
-  callDevice(tag: string, method: string, ...args: number[]): number | undefined;
+  // A stream-rendering chip is handed MAME's own `sound_stream` surface, so
+  // the argument is not always a number.
+  callDevice(tag: string, method: string, ...args: unknown[]): number | undefined;
   /**
    * Drain the PCM a main-thread sound device rendered into its MAME stream.
    *

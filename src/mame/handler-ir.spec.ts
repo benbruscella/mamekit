@@ -534,4 +534,28 @@ assert.equal(
   '`(a) * (b)` is still a multiplication',
 );
 
-console.log('handler-ir.spec: 64 passed');
+// MAME's newer bus devices call up to a base through a template class used as
+// a name qualifier. Read as a comparison, the whole statement failed to
+// parse -- and every Game Boy MBC bank switch went through one.
+const templatedBase = compileMameHandler(
+  'mbc_ram_device_base<mbc_dual_device_base>::set_bank_rom_fine(entry & 3);',
+);
+assert.deepEqual(templatedBase.diagnostics, []);
+assert.equal(
+  (templatedBase.operations[0] as { expression: { callee: { name: string } } })
+    .expression.callee.name,
+  'mbc_ram_device_base::set_bank_rom_fine',
+  'the qualifier keeps the base name the device compiler records methods under',
+);
+// The disambiguation must not swallow ordinary comparisons.
+const lessThan = compileMameHandler('return a < b;');
+assert.deepEqual(lessThan.diagnostics, []);
+assert.equal(executeGeneratedProgram(lessThan, { members: { a: 1, b: 2 } }).value, 1);
+const chained = compileMameHandler('return (a < b) > c;');
+assert.deepEqual(chained.diagnostics, []);
+assert.equal(
+  executeGeneratedProgram(chained, { members: { a: 1, b: 2, c: 0 } }).value,
+  1,
+);
+
+console.log('handler-ir.spec: 68 passed');

@@ -28,7 +28,11 @@ export function isSchedulerCallback(callback: GeneratedCallback): boolean {
 export function isDeclarativeCallback(callback: GeneratedCallback): boolean {
   // A device_delegate setter belongs to the same class: the owning device
   // holds the delegate and calls it, so there is no board effect to dispatch.
-  return callback.signal === 'set_screen_update' || callback.delegate === true;
+  // A palette init is configuration in the same sense -- MAME runs it once
+  // when the palette device starts, and the renderer does the same.
+  return callback.signal === 'set_screen_update' ||
+    callback.signal === 'palette_init' ||
+    callback.delegate === true;
 }
 
 /**

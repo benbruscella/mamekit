@@ -249,11 +249,34 @@ const optimized = Function(`return ${unsafeEmitted.source}`)() as Record<
     invoke(name: string, ...args: unknown[]): unknown;
   }) => unknown
 >;
+// `readIndex`/`writeIndex` carry the host's pointer semantics, which is how
+// emitted code stores through a dereference: a generated pointer writes at
+// source[offset + index], and plain memory writes at the index itself.
+const indexed = {
+  pointerStore(pointer: unknown, value: unknown): unknown {
+    const p = pointer as { generatedPointer?: true; source?: unknown[]; offset?: number };
+    if (p?.generatedPointer) p.source![p.offset!] = value;
+    else if (pointer && typeof pointer === 'object') (pointer as Record<number, unknown>)[0] = value;
+    return value;
+  },
+  readIndex(value: unknown, index: number): unknown {
+    const pointer = value as { generatedPointer?: true; source?: unknown[]; offset?: number };
+    if (pointer?.generatedPointer) return pointer.source![pointer.offset! + index];
+    return (value as Record<number, unknown>)?.[index];
+  },
+  writeIndex(value: unknown, index: number, next: unknown): unknown {
+    const pointer = value as { generatedPointer?: true; source?: unknown[]; offset?: number };
+    if (pointer?.generatedPointer) pointer.source![pointer.offset! + index] = next;
+    else if (value && typeof value === 'object') (value as Record<number, unknown>)[index] = next;
+    return next;
+  },
+};
 const optimizedRuntime = {
   members: { m_total: 0, m_budget: 0, m_latch: 0, m_pixels: [0, 0, 0, 0] },
   calls: {
     'm_latch.isnull': () => 1,
   },
+  ...indexed,
   invoke(name: string): unknown {
     throw new Error(`unexpected optimized runtime call ${name}`);
   },

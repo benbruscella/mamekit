@@ -8,6 +8,7 @@ import type {
   GeneratedDeviceMember,
   GeneratedDeviceMethod,
   GeneratedDeviceTimer,
+  GeneratedStructField,
 } from './device-compiler.ts';
 
 /**
@@ -21,6 +22,8 @@ import type {
 export interface CodegenScope {
   constants: Record<string, number>;
   members: GeneratedDeviceMember[];
+  /** Struct types the scope declares, so a field store can narrow inline. */
+  structs?: Record<string, GeneratedStructField[]>;
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
   methods: GeneratedDeviceMethod[];
@@ -50,6 +53,14 @@ interface EmitContext {
   typescript: boolean;
   /** The emitted method's own constants, resolved before the scope's. */
   methodConstants?: Record<string, number>;
+  /**
+   * Members whose binding no method in this scope ever replaces, so the read
+   * can be hoisted to one per call instead of one per mention. MAME's Game Boy
+   * PPU names `m_line` over a hundred times in its per-dot renderer.
+   */
+  stableMembers?: ReadonlySet<string>;
+  /** Stable members this method actually mentions, in emission order. */
+  hoisted?: Set<string>;
 }
 
 interface Target {
@@ -104,6 +115,7 @@ export function generatedDeviceMethodsSource(
       // shape rules below to notice, so the ColecoVision's Z80 drove every VDP
       // port write through the interpreter -- 41% of a frame at 33 fps.
       isBusEntryPoint(method) ||
+      isStreamRenderer(method) ||
       maximumLoopDepth(method.program.operations) >= 2 ||
       (
         maximumLoopDepth(method.program.operations) >= 1 &&
@@ -286,6 +298,23 @@ function maximumLoopDepth(
  * in whatever such a method calls, which is how the whole register/VRAM path
  * ends up compiled with it.
  */
+/**
+ * MAME `device_sound_interface::sound_stream_update`.
+ *
+ * A chip's stream renderer loops once per output sample and runs for every
+ * sample the machine plays -- forty-eight thousand a second, four channels
+ * deep on the Game Boy. Its shape hides that: one loop and no switch, which
+ * is under the bar the rules below draw, so it stayed on the interpreter
+ * along with the small helper it calls to convert each level.
+ *
+ * The name is MAME's, declared by the sound interface every such device
+ * implements, so it identifies the entry point the way `offs_t offset`
+ * identifies a bus handler.
+ */
+function isStreamRenderer(method: GeneratedDeviceMethod): boolean {
+  return method.name === 'sound_stream_update';
+}
+
 function isBusEntryPoint(method: GeneratedDeviceMethod): boolean {
   const first = method.parameters.split(',')[0]?.trim() ?? '';
   // MAME's handlers take the address first and call it `offset`, always. The
@@ -305,6 +334,7 @@ function supportsMethod(
 ): boolean {
   const parameters = tryParseParameters(method.parameters);
   if (!parameters) return false;
+
   const locals = new Set(parameters.map(parameter => parameter.name));
   collectLocalNames(method.program.operations, locals);
   const members = new Set([
@@ -322,9 +352,14 @@ function supportsMethod(
     visitOperationExpressions(operation, expression => {
       if (!supported) return;
       if (expression.kind === 'identifier') {
+        // A constant written with its declaring class (`lr35902_cpu_device::
+        // VBL_INT`) is recorded under its leaf name, and `emitExpression`
+        // resolves both spellings. Declining the qualified one left the Game
+        // Boy PPU's whole state machine interpreted for the sake of one enum.
         supported = locals.has(expression.name) ||
           members.has(expression.name) ||
           constants.has(expression.name) ||
+          constants.has(expression.name.split('::').at(-1)!) ||
           callees.has(expression.name) ||
           ['true', 'false', 'nullptr', 'g_profiler',
             'attotime::zero', 'attotime::never'].includes(expression.name) ||
@@ -416,6 +451,8 @@ function emitMethod(
     // rather than the memory behind it.
     pointerSafeIndex: Boolean(definition.hotMethods?.length) ||
       Boolean(definition.boardScope),
+    stableMembers: stableMemberNames(definition),
+    hoisted: new Set<string>(),
     boardScope: Boolean(definition.boardScope),
     typescript,
     methodConstants: method.constants,
@@ -424,9 +461,16 @@ function emitMethod(
   const annotation = typescript ? ': any' : '';
   const args = parameters.map(parameter => `${localName(parameter.name)}${annotation}`).join(', ');
   const returned = returnedReference ? `\n    return ${localName(returnedReference)};` : '';
+  // Emitted first, read once: the body below refers to these by their local.
+  const body = emitOperations(method.program.operations, context, 4);
+  const hoisted = [...(context.hoisted ?? [])]
+    .map(name =>
+      `    const ${hoistedName(name)} = members.${name} ?? ` +
+      `runtime.member(${JSON.stringify(name)});`)
+    .join('\n');
   return `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''}) {
     const members = runtime.members;
-${emitOperations(method.program.operations, context, 4)}${returned}
+${hoisted}${hoisted ? '\n' : ''}${body}${returned}
   }`;
 }
 
@@ -561,8 +605,47 @@ function emitOperation(
  * A call target uses `members.<name>` directly instead — see emitCallObject,
  * where any fallback would make an unmaterialised device look present.
  */
-function memberValue(name: string): string {
+function memberValue(name: string, context?: EmitContext): string {
+  if (context?.stableMembers?.has(name)) {
+    context.hoisted?.add(name);
+    return hoistedName(name);
+  }
   return `(members.${name} ?? runtime.member(${JSON.stringify(name)}))`;
+}
+
+/** The per-call local a stable member read is hoisted into. */
+function hoistedName(name: string): string {
+  return `h_${safeName(name)}`;
+}
+
+/**
+ * Members no method in this scope rebinds.
+ *
+ * An emitted method reads `members.x ?? runtime.member("x")` at every mention,
+ * and MAME's per-dot renderers mention the same struct dozens of times. The
+ * read is only safe to hoist when nothing can replace the binding underneath
+ * it: an assignment to the bare name, or an indexed write, which
+ * `runtime.writableMember` may materialise into a fresh array. Mutating the
+ * object a member already points at is not a rebind and does not disqualify it.
+ */
+function stableMemberNames(definition: CodegenScope): Set<string> {
+  const rebound = new Set<string>();
+  for (const method of definition.methods) {
+    visitOperations(method.program.operations, operation => {
+      if (operation.op !== 'assign') return;
+      // Assigning the name itself replaces the binding. So can an indexed
+      // write, because `runtime.writableMember` materialises a fresh array for
+      // a member that holds nothing yet. Writing a FIELD of the object a
+      // member points at leaves the binding alone -- which is what the Game
+      // Boy PPU does to `m_line` on every dot.
+      let target = operation.target;
+      while (target.kind === 'index') target = target.object;
+      if (target.kind === 'identifier') rebound.add(target.name);
+    });
+  }
+  return new Set(
+    definition.members.map(member => member.name).filter(name => !rebound.has(name)),
+  );
 }
 
 /**
@@ -586,7 +669,9 @@ function emitCallObject(
 }
 
 function emitExpression(expression: GeneratedExpression, context: EmitContext): string {
-  if (expression.kind === 'number') return String(expression.value);
+  if (expression.kind === 'number') {
+    return expression.wide === undefined ? String(expression.value) : `${expression.wide}n`;
+  }
   if (expression.kind === 'string') return JSON.stringify(expression.value);
   if (expression.kind === 'identifier') {
     if (context.locals.has(expression.name)) {
@@ -605,10 +690,13 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     if (expression.name === 'ACCESSING_BITS_8_15') {
       return `(((${localName('mem_mask')}) & 0xff00) ? 1 : 0)`;
     }
+    const leaf = expression.name.split('::').at(-1)!;
     const constant = context.methodConstants?.[expression.name] ??
-      context.definition.constants[expression.name];
+      context.definition.constants[expression.name] ??
+      context.methodConstants?.[leaf] ??
+      context.definition.constants[leaf];
     if (constant !== undefined) return String(constant);
-    return memberValue(expression.name);
+    return memberValue(expression.name, context);
   }
   if (expression.kind === 'unary') {
     if (expression.operator === '&') return emitAddressOf(expression.operand, context);
@@ -628,6 +716,16 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     return expression.pointer ? operand : wrapType(operand, expression.valueType);
   }
   if (expression.kind === 'binary') {
+    // A 64-bit literal promotes the whole expression around it, exactly as in
+    // C. Emitted arithmetic is plain `number`, so the operation is handed to
+    // the same exact evaluator the interpreter uses -- only the operands stay
+    // compiled. MAME's Game Boy PPU interleaves two bit planes this way, and
+    // computing it in floating point drew a blank screen.
+    if (containsWideLiteral([expression])) {
+      return `runtime.wide(${JSON.stringify(expression.operator)}, ` +
+        `${emitExpression(expression.left, context)}, ` +
+        `${emitExpression(expression.right, context)})`;
+    }
     const left = emitExpression(expression.left, context);
     const right = emitExpression(expression.right, context);
     const leftType = expressionValueType(expression.left, context);
@@ -637,6 +735,14 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     }
     if (expression.operator === '+' && rightType?.includes('*')) {
       return `runtime.addressOf(${right}, ${left})`;
+    }
+    // Neither side is known to be a number, so the value decides -- exactly as
+    // the interpreter does. A call that answers memory (`m_palette->pens()`)
+    // carries no declared type, and assuming a number silently turned pointer
+    // arithmetic into integer arithmetic.
+    if (expression.operator === '+' && !isKnownNumericType(leftType) &&
+        !isKnownNumericType(rightType)) {
+      return `runtime.add(${left}, ${right})`;
     }
     if (expression.operator === '-' && leftType?.includes('*')) {
       return `runtime.addressOf(${left}, -(${right}))`;
@@ -699,7 +805,12 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
   if (expression.kind === 'index') {
     const object = emitExpression(expression.object, context);
     const index = emitExpression(expression.index, context);
-    return context.pointerSafeIndex
+    // A declared array *inside a struct* is always the plain JavaScript array
+    // the host built for it -- nothing rebinds a struct field to a pointer
+    // wrapper or a typed view -- so it is read directly. The Game Boy PPU's
+    // per-dot window check reads three of these, twenty-four thousand times a
+    // frame, and `runtime.readIndex` has to rule out four other shapes first.
+    return context.pointerSafeIndex && !isStructFieldArray(expression.object, context)
       ? `runtime.readIndex(${object}, ${index})`
       : `${object}[${index}]`;
   }
@@ -742,6 +853,23 @@ function expressionValueType(
     return context.definition.members.find(member => member.name === expression.name)?.valueType;
   }
   if (expression.kind === 'cast') return expression.valueType;
+  // A struct field declares its width, so `m_line.window_start_y_index + 4` is
+  // known integer arithmetic and needs neither the runtime's `add` nor its
+  // pointer tests. The Game Boy PPU's per-dot window check does five of these.
+  if (expression.kind === 'member') {
+    const field = structFieldOf(expression, context);
+    if (field?.bits && !field.fields && !field.length) {
+      return field.signed ? `s${field.bits}` : `u${field.bits}`;
+    }
+  }
+  if (expression.kind === 'index') {
+    const field = expression.object.kind === 'member'
+      ? structFieldOf(expression.object, context)
+      : undefined;
+    if (field?.bits && field.length && !field.fields) {
+      return field.signed ? `s${field.bits}` : `u${field.bits}`;
+    }
+  }
   if (expression.kind === 'unary' && expression.operator === '&') {
     return `${expressionValueType(expression.operand, context) ?? ''}*`;
   }
@@ -864,6 +992,24 @@ function emitCall(
       's16', 'int16_t', 'u32', 'uint32_t', 's32', 'int32_t'].includes(name)) {
       return wrapType(args[0] ?? '0', name);
     }
+    // What `stripTracingCalls` leaves where a MAME `LOG(...)` stood. Emitting
+    // the dispatch put 36 interpreter calls inside the Game Boy PPU's scanline
+    // renderer for a placeholder that does nothing.
+    if (name === 'TRACE_NOOP') return '0';
+    // C++17 `std::size` is an array's extent, which the value already knows.
+    // MAME's Game Boy PPU asks for it five times per dot, and routing that
+    // through the interpreter's macro table cost 121,000 dispatches a frame.
+    if (name === 'std::size' || name === 'std::ssize') {
+      return `((${args[0] ?? '[]'})?.length ?? 0)`;
+    }
+    // A release build compiles `assert` out, and the interpreter already
+    // answers it with zero. Dropping the dispatch is only safe when evaluating
+    // the condition cannot itself do anything, so a condition that calls or
+    // assigns keeps the old path.
+    if (
+      (name === 'assert' || name === 'static_assert') &&
+      expression.args.every(isSideEffectFreeExpression)
+    ) return '0';
     if (context.definition.methods.some(method => method.name === name)) {
       return `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''})`;
     }
@@ -987,10 +1133,17 @@ function emitValueMemberCall(
     // such a call with 0 rather than failing. Emitting the bare call instead
     // made junglek and elevator throw a TypeError out of `characterram_w`.
     // The optional call costs nothing when the method is there.
-    return `(${access}?.(${args.join(', ')}) ?? 0)`;
+    return args.length
+      ? `(${access}?.(${args.join(', ')}) ?? 0)`
+      : `(${access}?.() ?? runtime.container(${object}, ${JSON.stringify(property)}))`;
   }
+  // A MAME memory container answers its own accessors from the container: a
+  // `std::unique_ptr<u8[]>` is a plain array at run time, so `m_vram.get()` has
+  // no method to call and the pointer it would return *is* the array. Falling
+  // through to 0 made the Game Boy PPU fetch every tile from address zero.
   return `(typeof ${access} === 'function' ? ${access}() : ` +
-    `typeof ${access} === 'number' || typeof ${access} === 'boolean' ? ${access} : 0)`;
+    `typeof ${access} === 'number' || typeof ${access} === 'boolean' ? ${access} : ` +
+    `runtime.container(${object}, ${JSON.stringify(property)}))`;
 }
 
 /**
@@ -1059,9 +1212,38 @@ function emitAssignment(
     const next = pointerAssignment(current, operator, right, valueType);
     return `${localName(expression.name)}.set(${wrapType(next, valueType)})`;
   }
+  // `*ptr = value`. The interpreter stores through a generated pointer AND
+  // through plain memory -- a `.share()`-bound member is a typed array, not a
+  // pointer wrapper -- so the emitted form has to do both. Assuming the wrapper
+  // made qix's display_enable_changed throw on the CRTC's first line.
+  if (expression.kind === 'unary' && expression.operator === '*') {
+    const pointer = emitExpression(expression.operand, context);
+    const current = `runtime.readIndex(${pointer}, 0)`;
+    const next = operator === '='
+      ? right
+      : `((${current}) ${operator === '>>=' ? '>>>' : operator.slice(0, -1)} (${right}))`;
+    return `runtime.pointerStore(${pointer}, ${next})`;
+  }
   if (expression.kind === 'index' && context.pointerSafeIndex) {
-    const object = emitExpression(expression.object, context);
+    // A board materialises a plain driver array the first time a handler
+    // writes one, so the container an indexed write stores into has to be
+    // asked for by NAME -- `runtime.writeIndex` only ever sees the value, and
+    // a member that does not exist yet reads as 0, which silently swallowed
+    // the write. That is how the Game Boy's `m_gb_io[0] = 0xCF | data` never
+    // reached the joypad register.
+    const object = expression.object.kind === 'identifier' &&
+        expression.object.name.startsWith('m_') &&
+        !context.locals.has(expression.object.name)
+      ? `runtime.writableMember(${JSON.stringify(expression.object.name)})`
+      : emitExpression(expression.object, context);
     const index = emitExpression(expression.index, context);
+    if (isStructFieldArray(expression.object, context)) {
+      const current = `${object}[${index}]`;
+      const next = operator === '='
+        ? right
+        : `((${current}) ${operator === '>>=' ? '>>>' : operator.slice(0, -1)} (${right}))`;
+      return `${object}[${index}] = ${next}`;
+    }
     const current = `runtime.readIndex(${object}, ${index})`;
     const next = operator === '='
       ? right
@@ -1246,6 +1428,63 @@ function assignsIdentifier(
   return assigned;
 }
 
+/**
+ * The declared field a `x.y` assignment target names, when the scope knows the
+ * struct it belongs to.
+ *
+ * The base is either a local whose declared type names a struct, or a member
+ * the definition gave a field shape to. Subscripts pass straight through: an
+ * array of structs has the element's fields, and `m_snd[0].signal` is the same
+ * field as `m_snd[3].signal`.
+ */
+/**
+ * Whether an expression names an array field of a struct.
+ *
+ * Such a field is always the plain JavaScript array the host built for it --
+ * `structMember` creates it and nothing rebinds it to a pointer wrapper, a
+ * typed view or a memory share -- so it can be indexed directly rather than
+ * through the runtime's shape tests.
+ */
+function isStructFieldArray(expression: GeneratedExpression, context: EmitContext): boolean {
+  if (expression.kind !== 'member') return false;
+  const field = structFieldOf(expression, context);
+  return Boolean(field?.length) && !field?.fields;
+}
+
+function structFieldOf(
+  expression: GeneratedExpression & { kind: 'member' },
+  context: EmitContext,
+): GeneratedStructField | undefined {
+  const fields = structFieldsOf(expression.object, context);
+  return fields?.find(candidate => candidate.name === expression.property);
+}
+
+function structFieldsOf(
+  expression: GeneratedExpression,
+  context: EmitContext,
+): GeneratedStructField[] | undefined {
+  if (expression.kind === 'index' || (expression.kind === 'unary' && expression.operator === '*')) {
+    return structFieldsOf(
+      expression.kind === 'index' ? expression.object : expression.operand,
+      context,
+    );
+  }
+  if (expression.kind === 'member') {
+    return structFieldOf(expression, context)?.fields;
+  }
+  if (expression.kind !== 'identifier') return undefined;
+  if (context.locals.has(expression.name)) {
+    const valueType = context.locals.get(expression.name)
+      ?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
+    return valueType ? context.definition.structs?.[valueType] : undefined;
+  }
+  const member = context.definition.members.find(
+    candidate => candidate.name === expression.name);
+  if (member?.fields) return member.fields;
+  const valueType = member?.valueType?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
+  return valueType ? context.definition.structs?.[valueType] : undefined;
+}
+
 function targetInfo(expression: GeneratedExpression, context: EmitContext): Target {
   if (expression.kind === 'identifier') {
     if (context.locals.has(expression.name)) {
@@ -1266,8 +1505,14 @@ function targetInfo(expression: GeneratedExpression, context: EmitContext): Targ
     };
   }
   if (expression.kind === 'member') {
+    // A struct field carries the width MAME declared it at, and the store
+    // narrows to it here rather than through a runtime accessor on every
+    // field of every struct. The Game Boy's wave channel walks its counters
+    // in a loop that runs forty thousand times a frame.
+    const field = structFieldOf(expression, context);
     return {
       code: `${emitExpression(expression.object, context)}.${expression.property}`,
+      ...(field?.bits ? { bits: field.bits, signed: field.signed } : {}),
     };
   }
   if (expression.kind === 'unary' && expression.operator === '*') {
@@ -1487,4 +1732,36 @@ function namesStructMember(name: string, context: EmitContext): boolean {
 function integerBitsForType(valueType: string): boolean {
   return /^(?:const\s+)?(?:u|s|uint|int)(?:8|16|32|64)(?:_t)?$|^(?:bool|char|int|unsigned|float|double|offs_t|pen_t)$/
     .test(valueType.trim());
+}
+
+/** Whether any expression in these operations carries a 64-bit literal. */
+function containsWideLiteral(operations: unknown): boolean {
+  return JSON.stringify(operations).includes('"wide":');
+}
+
+/**
+ * Whether evaluating this expression can only produce a value.
+ *
+ * A call may do anything and an assignment stores, so neither qualifies;
+ * everything else in the IR is arithmetic over reads.
+ */
+function isSideEffectFreeExpression(expression: GeneratedExpression): boolean {
+  let pure = true;
+  visitExpression(expression, inner => {
+    if (inner.kind === 'call' || inner.kind === 'assignment') pure = false;
+  });
+  return pure;
+}
+
+/**
+ * Whether a declared type proves the value is a number rather than memory.
+ *
+ * An absent type proves nothing, and `auto` is what the normalizer leaves for
+ * a declaration whose type it did not keep.
+ */
+function isKnownNumericType(valueType: string | undefined): boolean {
+  if (!valueType) return false;
+  const declared = valueType.trim();
+  if (declared === 'auto' || declared.includes('*') || declared.includes('&')) return false;
+  return true;
 }

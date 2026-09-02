@@ -227,6 +227,10 @@ export class GeneratedZ80PioDevice implements Device {
     throw new Error('Z80PIO has no slot card');
   }
 
+  installSlotCard(_space: unknown): void {
+    throw new Error('Z80PIO has no slot card');
+  }
+
   private newPort(): PioPortState {
     return {
       mode: MODE_OUTPUT,

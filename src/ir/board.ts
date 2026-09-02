@@ -89,6 +89,10 @@ export interface GeneratedCallback {
   /** TIMER.configure_scanline start and cadence, expanded against screen vtotal. */
   scanlineStart?: number;
   scanlineIncrement?: number;
+  /** Palette size, from `palette_device`'s own constructor argument. */
+  entries?: number;
+  /** A screen update that writes palette indices rather than colours. */
+  indexed?: boolean;
   /**
    * The generated device whose method the callback names, when a device
    * installed the callback on itself instead of the driver declaring it.
@@ -234,10 +238,24 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   // It sits at the top of the TMS9928A's `read` and `register_write`, and left
   // the whole port path -- every VRAM byte a game writes -- interpreted.
   'machine().side_effects_disabled',
+  // The scheduler's clock. Hardware that measures an interval differences two
+  // readings of it, and a chip that does so on every register access -- the
+  // Game Boy PPU brings its whole state machine up to date that way -- left
+  // its hottest method interpreted for the sake of one call.
+  'machine().time',
+  // The screen's visible rectangle, which a device asks for when it clears a
+  // band of its own bitmap (`m_bitmap.fill(colour, screen().visible_area())`).
+  'screen().visible_area',
 ];
 
 export type GeneratedExpression =
-  | { kind: 'number'; value: number; floating?: boolean }
+  /**
+   * `wide` carries the exact decimal digits of an integer literal too large for
+   * a double, so the executor can promote the expression around it to 64-bit.
+   * MAME's Game Boy PPU interleaves two bit planes with
+   * `plane * 0x0101010101010101U`, which is meaningless in floating point.
+   */
+  | { kind: 'number'; value: number; floating?: boolean; wide?: string }
   | { kind: 'string'; value: string }
   /**
    * `floating` marks an identifier the source declared `float`/`double`. C++
@@ -282,6 +300,12 @@ export type GeneratedExpression =
   | {
       kind: 'lambda';
       parameters: string[];
+      /**
+       * C++ init-captures: `[this, base = &region->as_u8()]` introduces a new
+       * name, evaluated once where the lambda is written. Plain captures need
+       * nothing recorded -- the body already runs in the enclosing scope.
+       */
+      captures?: { name: string; value: GeneratedExpression }[];
       body: GeneratedHandlerOperation[];
     };
 
@@ -403,6 +427,14 @@ export interface GeneratedFrameEvent {
 
 export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
+  /**
+   * MAME required/optional_region_ptr member -> ROM region tag, declared by the
+   * driver's own state class. The video plan carries the same map for boards
+   * that have one; a console whose picture comes from a device still needs it,
+   * because driver handlers index those pointers directly (the Game Boy's
+   * boot_r answers out of m_region_boot).
+   */
+  regionBindings?: Record<string, string>;
   /** Source-defined power-on contents for battery-backed/shared RAM. */
   initialShares?: { share: string; bytes?: number[]; fill?: number }[];
   /** Source member names that alias an address-map memory share. */
@@ -498,6 +530,25 @@ export interface GeneratedExecutionPlan {
      * all and the picture is the device's to draw.
      */
     deviceTag?: string;
+    /**
+     * The update writes palette indices, not colours.
+     *
+     * MAME says so in the update's own signature -- `bitmap_ind16 &` -- and the
+     * host has to resolve every pixel through the palette afterwards. A driver
+     * handler carries its parameters in the board IR; a device's does not, so
+     * the answer travels here instead of being looked up at run time.
+     */
+    indexed?: boolean;
+    source?: BoardSourceRef;
+  };
+  /**
+   * The routine that fills the palette, for a machine whose colours come from
+   * code rather than from a colour PROM. MAME passes it to `palette_device`'s
+   * constructor; the host runs it once and keeps the pens it sets.
+   */
+  paletteInit?: {
+    handler: string;
+    entries?: number;
     source?: BoardSourceRef;
   };
 }
@@ -970,6 +1021,25 @@ export interface GeneratedAudioRoute {
   filter?: { index: number; bank: number; channel: number };
 }
 
+/**
+ * One data member of the driver's own state class, with the width MAME
+ * declared it at.
+ *
+ * The board's state object is otherwise built from whatever a handler happens
+ * to write, so a member has no width at all: `m_gb_io[5] += 1` counted past
+ * 255 forever and the Game Boy's TIMECNT never wrapped to zero, which is the
+ * one event that raises its timer interrupt. Every Game Boy game whose music
+ * runs off that interrupt played silence.
+ */
+export interface GeneratedStateMember {
+  name: string;
+  /** 1 for `bool`; otherwise the declared integer width. */
+  bits: 1 | 8 | 16 | 32;
+  signed?: boolean;
+  /** Element count when the member is a fixed C array (`uint8_t m_io[0x10]`). */
+  arrayLength?: number;
+}
+
 export interface BoardIr {
   schemaVersion: typeof BOARD_IR_SCHEMA_VERSION;
   game: string;
@@ -982,6 +1052,8 @@ export interface BoardIr {
   execution: GeneratedExecutionPlan;
   devices?: GeneratedDevice[];
   handlers?: GeneratedHandler[];
+  /** Declared widths for the driver state class's own integer members. */
+  stateMembers?: GeneratedStateMember[];
   maps?: GeneratedAddressMap[];
   video?: GeneratedVideoPlan;
   sound?: GeneratedSoundBinding;
@@ -1015,6 +1087,14 @@ export interface GeneratedHandlerRuntime {
   };
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
+  /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
+  container(value: unknown, method: string): unknown;
+  /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
+  wide(operator: string, left: unknown, right: unknown): unknown;
+  /** C++ `*pointer = value`, over a generated pointer or plain memory. */
+  pointerStore(pointer: unknown, value: unknown): unknown;
+  /** C++ `a + b` when neither side is known to be a number. */
+  add(left: unknown, right: unknown): unknown;
   invoke(name: string, ...args: unknown[]): unknown;
   /** Context-free MAME framework macros, identical to the interpreter's. */
   macro(name: string, ...args: unknown[]): unknown;
@@ -1028,6 +1108,8 @@ export interface GeneratedHandlerRuntime {
   andAssign(current: unknown, value: unknown): unknown;
   /** A member read the state object has no entry for, as the interpreter resolves it. */
   member(name: string): unknown;
+  /** The container an indexed write stores into, materialised on first use. */
+  writableMember(name: string): unknown;
   /**
    * The board package's own reference-call overrides — the base dictionary the
    * interpreter consults before anything else (a video package's

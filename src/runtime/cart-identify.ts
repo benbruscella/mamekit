@@ -31,17 +31,38 @@ export interface CartImageMatch {
 const hex8 = (value: number): string => (value >>> 0).toString(16).padStart(8, '0');
 
 /**
+ * The image's CRC over one chip window, computed at most once per window.
+ *
+ * Every catalog entry names the same few windows -- a Game Boy cartridge is
+ * almost always one chip at offset 0 spanning the whole dump -- so checksumming
+ * per entry re-reads the same bytes thousands of times. Against a 1,743-entry
+ * list that is ~450 MB of CRC to identify one cartridge, which the console room
+ * pays on every drop and an import pays per file.
+ */
+type ChipCrcs = Map<string, string>;
+
+function chipCrc(image: Uint8Array, offset: number, size: number, memo: ChipCrcs): string {
+  const key = `${offset}:${size}`;
+  let crc = memo.get(key);
+  if (crc === undefined) {
+    crc = hex8(crc32(image.subarray(offset, offset + size)));
+    memo.set(key, crc);
+  }
+  return crc;
+}
+
+/**
  * Chips of `entry` whose CRC the image reproduces at the declared offset.
  *
  * A chip that runs past the end of the image counts as unmatched rather than
  * throwing, so a truncated dump degrades to a partial match.
  */
-function matchedChips(image: Uint8Array, entry: SoftEntry): number {
+function matchedChips(image: Uint8Array, entry: SoftEntry, memo: ChipCrcs): number {
   let matched = 0;
   for (const rom of entry.prg.roms) {
     const end = rom.offset + rom.size;
     if (end > image.length) continue;
-    if (hex8(crc32(image.subarray(rom.offset, end))) === rom.crc) matched++;
+    if (chipCrc(image, rom.offset, rom.size, memo) === rom.crc) matched++;
   }
   return matched;
 }
@@ -59,11 +80,12 @@ export function identifyCartImage(
   catalog: SoftCatalog | null,
 ): CartImageMatch | null {
   if (!catalog || !image.length) return null;
+  const memo: ChipCrcs = new Map();
   let best: CartImageMatch | null = null;
   for (const entry of catalog.entries) {
     const total = entry.prg.roms.length;
     if (!total) continue;
-    const matched = matchedChips(image, entry);
+    const matched = matchedChips(image, entry, memo);
     if (!matched) continue;
     if (matched === total) return { entry, matched, total, verified: true };
     // Prefer more matching chips; between equals prefer the entry that claims

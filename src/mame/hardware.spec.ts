@@ -10,7 +10,7 @@ import type { HardwareClosureEntry } from './hardware.ts';
 const definitions = deviceDefinitionsFromSource('src/devices/sound/test.cpp', `
 // DEFINE_DEVICE_TYPE(IGNORED, bad, "bad", "comment")
 DEFINE_DEVICE_TYPE(AY8910, ay8910_device, "ay8910", "AY-3-8910A PSG")
-DEFINE_DEVICE_TYPE_PRIVATE(TEST_CARD, device_card_interface, test_card_device,
+DEFINE_DEVICE_TYPE_PRIVATE(TEST_CARD, device_card_interface, bus::test::test_card_device,
   "test_card", "Test Card")
 DAC_GENERATOR(DAC_8BIT_R2R, dac_8bit_r2r_device, dac_base, mapper, 8, gain,
   "8-Bit R-2R DAC", "dac_8bit_r2r")
@@ -127,4 +127,13 @@ assert.ok(executable.has('SOUND_BOARD'));
 assert.ok(executable.has('CABINET'));
 assert.ok(!executable.has('INCOMPLETE_BOARD'));
 
-console.log('hardware.spec: 14 passed');
+// A namespace-qualified implementation class must be recorded the way the AST
+// records class names -- bare. MAME's newer bus devices are all declared this
+// way; an unstripped `bus::gameboy::mbc1_device` matched no class in the AST,
+// and every Game Boy cartridge PCB compiled to zero methods.
+assert.equal(
+  definitions.find(definition => definition.type === 'TEST_CARD')?.className,
+  'test_card_device',
+);
+
+console.log('hardware.spec: 15 passed');

@@ -5,6 +5,7 @@ import {
   compileMameHd6309E,
   compileMameHd63701Y0,
   compileMameKonami,
+  compileMameLr35902,
   compileMameKonami1,
   compileMameM6801U4,
   compileMameM6802,
@@ -61,6 +62,7 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   HD63701Y0: compileMameHd63701Y0,
   RP2A03: compileMameRp2a03,
   RP2A03G: compileMameRp2a03,
+  LR35902: compileMameLr35902,
 };
 
 export function compileCpuType(type: string, mameSource: string): unknown {

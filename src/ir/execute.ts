@@ -15,7 +15,31 @@ import type {
   GeneratedHandler,
   GeneratedHandlerOperation,
   GeneratedHandlerProgram,
+  GeneratedStateMember,
 } from './board.ts';
+
+/**
+ * Where a struct's declared field widths hang, for the interpreter to narrow
+ * an assignment through. A symbol so it never collides with a MAME field name
+ * and never shows up in a key walk over the struct.
+ */
+export const GENERATED_FIELD_WIDTHS = Symbol.for('mamekit.fieldWidths');
+
+/**
+ * One field's C conversion. The width is the declared bit count, negated when
+ * the declaration is signed, so the whole shape is a plain number map.
+ */
+export function generatedFieldWidth(value: number, width: number): number {
+  const bits = Math.abs(width);
+  if (width < 0) {
+    if (bits === 8) return value << 24 >> 24;
+    if (bits === 16) return value << 16 >> 16;
+    return value | 0;
+  }
+  if (bits === 8) return value & 0xff;
+  if (bits === 16) return value & 0xffff;
+  return value >>> 0;
+}
 
 /** Active-low raw input port state, read by generated programs. */
 export interface IrInputPorts {
@@ -50,6 +74,16 @@ export interface GeneratedHandlerBindings {
   addressSpace?: (cpuTag?: string) => unknown;
   /** Device-finder members whose calls must resolve only to concrete hardware. */
   concreteDeviceMembers?: ReadonlySet<string>;
+  /**
+   * Widths MAME declared for the driver state class's own members.
+   *
+   * A fixed C array is allocated as the matching typed array, so an indexed
+   * write wraps the way the declaration does: the Game Boy's
+   * `uint8_t m_gb_io[0x10]` counted TIMECNT past 255 in a plain JS array and
+   * never came back to zero, which is the one event that raises its timer
+   * interrupt.
+   */
+  stateMembers?: readonly GeneratedStateMember[];
 }
 
 export interface GeneratedLValue {
@@ -355,6 +389,10 @@ function preparedHandlerRuntime(
   bindings: GeneratedHandlerBindings,
 ): GeneratedHandlerRuntime {
   if (prepared.runtime) return prepared.runtime;
+  // eslint-disable-next-line prefer-const -- `runtime` is referenced by its own
+  // `writableMember`, which resolves through `member` exactly as the
+  // interpreter does before deciding to allocate.
+  let runtime: GeneratedHandlerRuntime;
   // The interpreter resolves an identifier call through referenceCalls first
   // and the board's host calls second — `rectangle` is a video-package
   // reference call while `flip_screen` is a board call, and a renderer uses
@@ -372,7 +410,7 @@ function preparedHandlerRuntime(
   for (const name in prepared.referenceCalls) {
     calls[name] = prepared.referenceCalls[name]!;
   }
-  return prepared.runtime = {
+  return prepared.runtime = runtime = {
     get members() { return bindings.members ??= {}; },
     calls,
     get palette() { return []; },
@@ -399,6 +437,10 @@ function preparedHandlerRuntime(
         offset: index,
       },
     dereference: dereferenceGeneratedValue,
+    container: generatedContainerAccessor,
+    pointerStore: generatedPointerStore,
+    add: generatedAdd,
+    wide: wideBinary,
     invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
       bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
     macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
@@ -412,6 +454,24 @@ function preparedHandlerRuntime(
     // answers as a resolved reference and is therefore truthy. Emitted code
     // reaches this only when `members.<name>` is absent, so the fast path
     // stays a plain property read.
+    // The container an indexed write stores into, materialised on first use
+    // exactly as `writableIndexObject` does for the interpreter. A board's
+    // state object only holds what a handler has already written, so without
+    // this an emitted `m_gb_io[0] = ...` stored into nothing.
+    //
+    // It resolves through the ordinary member read first: a member the board
+    // exposes through a getter, or one already holding memory, is returned as
+    // it stands. Only a name that resolves to nothing indexable is allocated,
+    // which is the one case the interpreter allocates for too.
+    writableMember: name => {
+      const current = bindings.members?.[name] ?? runtime.member(name);
+      if (isIndexableMemory(current) || isGeneratedPointer(current)) return current;
+      if (current && typeof current === 'object') return current;
+      const members = bindings.members ??= {};
+      const allocated = declaredStateArray(bindings, name) ?? [];
+      members[name] = allocated;
+      return allocated;
+    },
     member: name => {
       const getter = bindings.getters?.[name];
       if (getter) return getter();
@@ -523,8 +583,16 @@ function preparedMachineCalls(
   };
   for (const candidate of compiled) {
     const qualified = `${candidate.ownerClass}.${candidate.method}`;
+    // C++ spelling as well as the board's own. An explicit base call is
+    // recorded exactly as the source writes it -- `base_state::machine_reset`
+    // -- and it must reach that implementation rather than resolving by bare
+    // name into the override that called it.
+    const scoped = `${candidate.ownerClass}::${candidate.method}`;
     if (!referenceCalls[qualified]) {
       referenceCalls[qualified] = (...values) => invoke(candidate, values);
+    }
+    if (!referenceCalls[scoped]) {
+      referenceCalls[scoped] = (...values) => invoke(candidate, values);
     }
     if (!referenceCalls[candidate.method]) {
       referenceCalls[candidate.method] = (...values) => {
@@ -537,6 +605,7 @@ function preparedMachineCalls(
       .map(parameter => parameter.trim())
       .filter(Boolean);
     callParameters[qualified] = parameters;
+    callParameters[scoped] = parameters;
     callParameters[candidate.method] = parameters;
   }
   // A configured custom device can be a source-defined composite rather than
@@ -569,6 +638,63 @@ function preparedMachineCalls(
   } as PreparedMachineCalls;
   byOwner.set(ownerClass, prepared);
   return prepared;
+}
+
+/**
+ * Resolve one machine handler's dispatch once, ahead of the calls.
+ *
+ * A handler on a per-instruction signal runs seventeen thousand times a frame
+ * — the LR35902 calls the Game Boy's `gb_timer_callback` after every
+ * instruction — and re-resolving its compiled function, its prepared call
+ * table, its runtime and its parameter list on each of those cost more than
+ * the handler body did. All four are stable for the life of a board: the
+ * compiled table is attached when the generated module loads, and the prepared
+ * table is keyed on binding identity, which never changes.
+ *
+ * Built on first call rather than eagerly, so a handler nothing signals costs
+ * nothing.
+ */
+export function prepareGeneratedMachineHandler(
+  machine: BoardIr,
+  handler: GeneratedHandler,
+  bindings: GeneratedHandlerBindings,
+): (args: Record<string, unknown>) => number | undefined {
+  let dispatch: ((args: Record<string, unknown>) => number | undefined) | undefined;
+  return args => (dispatch ??= buildGeneratedMachineDispatch(machine, handler, bindings))(args);
+}
+
+function buildGeneratedMachineDispatch(
+  machine: BoardIr,
+  handler: GeneratedHandler,
+  bindings: GeneratedHandlerBindings,
+): (args: Record<string, unknown>) => number | undefined {
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (!compiled) {
+    const handlerBindings = machineHandlerBindings(machine, handler, bindings);
+    const program = handler.program!;
+    return args => {
+      const result = executeGeneratedProgram(program, handlerBindings, args);
+      return result.returned && result.value !== undefined ? toNumber(result.value) : undefined;
+    };
+  }
+  const runtime = preparedHandlerRuntime(
+    preparedMachineCalls(machine, bindings, handler.ownerClass),
+    bindings,
+  );
+  const names = parameterNames(handler.parameters);
+  const values = new Array<unknown>(names.length);
+  return args => {
+    // See executeGeneratedMachineProgram for why a reference parameter is
+    // handed to emitted code as its referent.
+    for (let index = 0; index < names.length; index++) {
+      const argument = args[names[index]!];
+      values[index] = argument === undefined
+        ? 0
+        : isLValue(argument) ? argument.get() : argument;
+    }
+    const value = compiled(runtime, ...values);
+    return value === undefined ? undefined : toNumber(value);
+  };
 }
 
 export function executeGeneratedMachineHandler(
@@ -880,7 +1006,14 @@ function compileFastExpression(
   bindings: GeneratedHandlerBindings,
   locals: ReadonlySet<string>,
 ): FastExpression {
-  if (expression.kind === 'number' || expression.kind === 'string') {
+  if (expression.kind === 'number') {
+    if (expression.wide !== undefined) {
+      const wide = BigInt(expression.wide);
+      return () => wide;
+    }
+    return () => expression.value;
+  }
+  if (expression.kind === 'string') {
     return () => expression.value;
   }
   if (expression.kind === 'identifier') {
@@ -976,6 +1109,9 @@ function compileFastExpression(
           return { generatedPointer: true, source: leftValue, offset: toNumber(rightValue) };
         }
         if (isGeneratedPointer(rightValue)) return offsetPointer(rightValue, toNumber(leftValue));
+        if (typeof leftValue === 'bigint' || typeof rightValue === 'bigint') {
+          return wideBinary('+', leftValue, rightValue);
+        }
         return toNumber(leftValue) + toNumber(rightValue);
       };
     }
@@ -983,12 +1119,21 @@ function compileFastExpression(
       return context => {
         const leftValue = left(context);
         const rightValue = right(context);
-        return isGeneratedPointer(leftValue)
-          ? offsetPointer(leftValue, -toNumber(rightValue))
-          : toNumber(leftValue) - toNumber(rightValue);
+        if (isGeneratedPointer(leftValue)) return offsetPointer(leftValue, -toNumber(rightValue));
+        if (typeof leftValue === 'bigint' || typeof rightValue === 'bigint') {
+          return wideBinary('-', leftValue, rightValue);
+        }
+        return toNumber(leftValue) - toNumber(rightValue);
       };
     }
-    return context => apply(toNumber(left(context)), toNumber(right(context)));
+    return context => {
+      const leftValue = left(context);
+      const rightValue = right(context);
+      // A 64-bit operand promotes the operation, exactly as in C.
+      return typeof leftValue === 'bigint' || typeof rightValue === 'bigint'
+        ? wideBinary(operator, leftValue, rightValue)
+        : apply(toNumber(leftValue), toNumber(rightValue));
+    };
   }
   if (expression.kind === 'conditional') {
     const condition = compileFastExpression(expression.condition, bindings, locals);
@@ -1025,6 +1170,15 @@ function compileFastExpression(
     const args = expression.args.map(arg => compileFastExpression(arg, bindings, locals));
     const generatedArguments = compileGeneratedCallArguments(name, expression.args, args);
     return context => {
+      // A lambda held by a local or a parameter; see evaluateCall.
+      const local = Object.hasOwn(context.locals, name) ? context.locals[name] : undefined;
+      if (typeof local === 'function') {
+        const values = new Array<unknown>(args.length);
+        for (let index = 0; index < args.length; index++) {
+          values[index] = callArgument(args[index]!(context));
+        }
+        return (local as (...call: unknown[]) => unknown)(...values);
+      }
       const generated = context.bindings.referenceCalls?.[name];
       if (generated) return generated(...generatedArguments(context));
       const values = new Array<unknown>(args.length);
@@ -1142,7 +1296,10 @@ function compileValueNarrowing(declared: string | undefined): (value: unknown) =
   if (declared === 'int16_t' || declared === 's16') {
     return value => toNumber(value) << 16 >> 16;
   }
-  if (declared === 'uint32_t' || declared === 'u32') return value => toNumber(value) >>> 0;
+  // `offs_t` is MAME's own name for a u32 address offset.
+  if (declared === 'uint32_t' || declared === 'u32' || declared === 'offs_t') {
+    return value => toNumber(value) >>> 0;
+  }
   if (declared === 'int32_t' || declared === 's32') return value => toNumber(value) | 0;
   if (declared === 'uint64_t' || declared === 'u64' ||
       declared === 'int64_t' || declared === 's64') {
@@ -1254,7 +1411,10 @@ function executeOperations(
 }
 
 function evaluate(expression: GeneratedExpression, context: ExecutionContext): unknown {
-  if (expression.kind === 'number' || expression.kind === 'string') return expression.value;
+  if (expression.kind === 'number') {
+    return expression.wide === undefined ? expression.value : BigInt(expression.wide);
+  }
+  if (expression.kind === 'string') return expression.value;
   if (expression.kind === 'identifier') {
     if (Object.hasOwn(context.locals, expression.name)) {
       const local = context.locals[expression.name];
@@ -1352,6 +1512,9 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
       const equal = generatedValuesEqual(leftValue, rightValue);
       return expression.operator === '==' ? Number(equal) : Number(!equal);
     }
+    if (typeof leftValue === 'bigint' || typeof rightValue === 'bigint') {
+      return wideBinary(expression.operator, leftValue, rightValue);
+    }
     const left = toNumber(leftValue);
     const right = toNumber(rightValue);
     if (expression.operator === '/' && isAttotimeExpression(expression.left, context)) {
@@ -1395,8 +1558,15 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     // resolvable there -- with its parameters bound over the top. An unnamed
     // parameter keeps its position and binds nothing.
     const { parameters, body } = expression;
+    // Init-captures are evaluated here, where the lambda is written, exactly
+    // once -- which is what C++ does and what MAME relies on: the captured
+    // pointer is taken before the loop that calls the lambda begins.
+    const captured: Record<string, unknown> = {};
+    for (const capture of expression.captures ?? []) {
+      captured[capture.name] = evaluate(capture.value, context);
+    }
     return (...args: unknown[]): unknown => {
-      const locals = { ...context.locals };
+      const locals = { ...context.locals, ...captured };
       for (const [index, name] of parameters.entries()) {
         if (name) locals[name] = args[index] ?? 0;
       }
@@ -1441,6 +1611,10 @@ export function isFloatingExpression(expression: GeneratedExpression): boolean {
  * for a name it does not know, so callers keep their own fallbacks.
  */
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
+  // What `stripTracingCalls` leaves where a MAME `LOG(...)` stood. It is a
+  // placeholder, not hardware, and it is answered first because a renderer
+  // carries dozens of them through its hottest loop.
+  if (name === 'TRACE_NOOP') return 0;
   if (name === 'BIT') {
     // MAME BIT(x, n) extracts one bit; BIT(x, n, w) extracts a w-bit field.
     const width = args.length > 2 ? toNumber(args[2]) : 1;
@@ -1463,6 +1637,51 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'std::clamp') {
     return Math.min(toNumber(args[2]), Math.max(toNumber(args[1]), toNumber(args[0])));
   }
+  // <bit>. MAME's cartridge buses work out how a non-power-of-two ROM decodes
+  // with these, one power-of-two chunk at a time; unbound they answered zero,
+  // which turns the decode loop into one that never terminates.
+  if (name === 'std::bit_width') return 32 - Math.clz32(toNumber(args[0]) >>> 0);
+  if (name === 'std::bit_ceil') {
+    const value = toNumber(args[0]) >>> 0;
+    return value <= 1 ? 1 : 2 ** (32 - Math.clz32(value - 1));
+  }
+  if (name === 'std::bit_floor') {
+    const value = toNumber(args[0]) >>> 0;
+    return value === 0 ? 0 : 2 ** (31 - Math.clz32(value));
+  }
+  if (name === 'std::has_single_bit') {
+    const value = toNumber(args[0]) >>> 0;
+    return value !== 0 && (value & (value - 1)) === 0 ? 1 : 0;
+  }
+  if (name === 'std::countl_zero') return Math.clz32(toNumber(args[0]) >>> 0);
+  if (name === 'std::countr_zero') {
+    const value = toNumber(args[0]) >>> 0;
+    return value === 0 ? 32 : 31 - Math.clz32(value & -value);
+  }
+  if (name === 'std::popcount') {
+    let value = toNumber(args[0]) >>> 0;
+    let count = 0;
+    while (value) { value &= value - 1; count++; }
+    return count;
+  }
+  // <type_traits> signedness casts, written as functional casts. The IR drops
+  // the template argument, so the only thing left to preserve is which way the
+  // value is read -- and MAME uses these precisely to stop a shift or a
+  // comparison going negative.
+  // Perfect forwarding is a compile-time notion: at run time it is the value.
+  // MAME's decode helpers pass their callback on with `std::forward<T>`, and
+  // an unbound call answered zero -- so the inner overload had nothing to call.
+  if (name === 'std::forward' || name === 'std::move') return args[0];
+  // MAME's own right-aligned mask helper (util::make_bitmask<T>(n)). The IR
+  // drops the width, so the mask is as wide as the requested bits -- which is
+  // what every caller asks for. Unbound it answered zero, and an MBC1 masked
+  // its own bank number down to nothing.
+  if (/(?:^|::)make_bitmask$/.test(name)) {
+    const bits = Math.max(0, Math.min(32, toNumber(args[0])));
+    return bits >= 32 ? 0xffffffff : (2 ** bits) - 1;
+  }
+  if (name === 'std::make_unsigned_t') return toNumber(args[0]) >>> 0;
+  if (name === 'std::make_signed_t') return toNumber(args[0]) | 0;
   if (name === 'ALLOC' || name === 'make_unique_clear') {
     return new Uint8Array(Math.max(0, toNumber(args[0])));
   }
@@ -1510,6 +1729,18 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     return Math.round((toNumber(args[0]) & maximum) * 255 / maximum);
   }
   if (name === 'assert' || name === 'static_assert') return 0;
+  // C++17 `std::size`: the extent of an array. Unanswered it returned
+  // undefined, and MAME's Game Boy PPU indexes its window-start history with
+  // `(index + 4) % std::size(...)` -- which made every one of those subscripts
+  // NaN and the index with it.
+  if (name === 'std::size' || name === 'std::ssize') {
+    const container = args[0];
+    if (isIndexableMemory(container)) return container.length;
+    if (isGeneratedPointer(container)) {
+      return Math.max(0, (container.source as ArrayLike<unknown>).length - container.offset);
+    }
+    return 0;
+  }
   if (name === 'memcpy' || name === 'memmove') {
     copyGeneratedMemory(args[0], args[1], toNumber(args[2]));
     return args[0];
@@ -1616,7 +1847,10 @@ function applyIdentifierCall(
   // wants something callable. Without this the delegate evaluated to a number,
   // the install recorded a handler with nothing behind it, and the range was
   // dropped: Pitfall II's DPC coprocessor was never once addressed.
-  if (/^(?:read|write)\d*\w*_delegate$/.test(name)) {
+  // MAME's older per-width spellings (read8sm_delegate) and the newer generic
+  // one its recent bus devices use -- `emu::rw_delegate(*this, FUNC(...))`,
+  // which is how every Game Boy MBC installs its bank-switch writes.
+  if (/^(?:read|write)\d*\w*_delegate$/.test(name) || /(?:^|::)rw_delegate$/.test(name)) {
     const handler = memoryDelegate(expression, args, context);
     if (handler) return handler;
   }
@@ -1679,6 +1913,17 @@ function evaluateCall(
 ): unknown {
   if (expression.callee.kind === 'identifier') {
     const name = expression.callee.name;
+    // A callable held by a local or a parameter, which in MAME means a lambda
+    // that was passed in. `install_non_power_of_two(length, ..., install)`
+    // calls its own last parameter once per decoded chunk, and every Game Boy
+    // cartridge installs its ROM that way; resolved as a global name instead,
+    // the call found nothing and the cartridge decoded nothing.
+    const local = Object.hasOwn(context.locals, name) ? context.locals[name] : undefined;
+    if (typeof local === 'function') {
+      return (local as (...args: unknown[]) => unknown)(
+        ...expression.args.map(arg => callArgument(evaluate(arg, context))),
+      );
+    }
     const generated = context.bindings.referenceCalls?.[name];
     if (generated) {
       return generated(...generatedCallArguments(name, expression.args, context));
@@ -1798,18 +2043,16 @@ function evaluateCall(
       // MAME memory containers (required_shared_ptr, std::vector) expose their
       // extent and, for vectors, in-place resizing.
       if (isIndexableMemory(object)) {
-        if (method === 'bytes' || method === 'size' || method === 'length') {
-          return object.length;
-        }
-        if (method === 'empty') return object.length === 0 ? 1 : 0;
         if (method === 'resize') {
           resizeGeneratedMemory(expression.callee.object, toNumber(args[0]), context);
           return 0;
         }
-        if (
-          method === 'target' || method === 'base' || method === 'get' ||
-          method === 'begin'
-        ) return object;
+      }
+      // A `std::unique_ptr<u8[]>` member is a generated pointer, and MAME
+      // indexes it through `.get()`. The accessor answers the pointer itself,
+      // exactly as it answers a bare array.
+      if (!args.length && (isIndexableMemory(object) || isGeneratedPointer(object))) {
+        return generatedContainerAccessor(object, method);
       }
     }
   }
@@ -1890,7 +2133,18 @@ function assign(
       throw new Error(`generated member assignment has no object for "${target.property}"`);
     }
     const record = object as Record<string, unknown>;
-    record[target.property] = assignmentValue(operator, record[target.property], value);
+    const next = assignmentValue(operator, record[target.property], value);
+    // A struct field carries the width MAME declared. Emitted code narrows to
+    // it inline; an interpreted store narrows through the shape the host
+    // stamped on the struct, which is a plain hidden property rather than an
+    // accessor per field -- accessors made every read of the Game Boy's
+    // channel counters a call.
+    const widths = (record as { [GENERATED_FIELD_WIDTHS]?: Record<string, number> })
+      [GENERATED_FIELD_WIDTHS];
+    const width = widths?.[target.property];
+    record[target.property] = width === undefined || typeof next !== 'number'
+      ? next
+      : generatedFieldWidth(next, width);
     return;
   }
   if (target.kind === 'call') {
@@ -1908,6 +2162,26 @@ function assign(
  * on its first indexed write, including nested arrays such as
  * `m_duty_cycle[2][3]`.
  */
+/**
+ * Storage for a driver-state member MAME declared as a fixed C array, typed
+ * and sized the way the declaration is, so an indexed write wraps on its own.
+ *
+ * Returns nothing for a member with no declared array bound -- a plain array
+ * remains the right thing for a member the board grows on demand.
+ */
+function declaredStateArray(
+  bindings: GeneratedHandlerBindings,
+  name: string,
+): ArrayBufferView | undefined {
+  const member = bindings.stateMembers?.find(candidate => candidate.name === name);
+  if (!member?.arrayLength) return undefined;
+  const { arrayLength, bits, signed } = member;
+  if (bits === 8) return signed ? new Int8Array(arrayLength) : new Uint8Array(arrayLength);
+  if (bits === 16) return signed ? new Int16Array(arrayLength) : new Uint16Array(arrayLength);
+  if (bits === 32) return signed ? new Int32Array(arrayLength) : new Uint32Array(arrayLength);
+  return new Uint8Array(arrayLength);
+}
+
 function writableIndexObject(
   expression: GeneratedExpression,
   context: ExecutionContext,
@@ -1916,7 +2190,7 @@ function writableIndexObject(
   if (isIndexableMemory(current) || isGeneratedPointer(current)) return current;
   if (expression.kind === 'identifier' && expression.name.startsWith('m_')) {
     const members = context.bindings.members ??= {};
-    const allocated: unknown[] = [];
+    const allocated = declaredStateArray(context.bindings, expression.name) ?? [];
     members[expression.name] = allocated;
     return allocated;
   }
@@ -2093,6 +2367,104 @@ function binary(operator: string, left: number, right: number): number {
   return (BINARY_OPERATORS[operator] ?? UNKNOWN_BINARY)(left, right);
 }
 
+/**
+ * C++ arithmetic on a 64-bit operand, evaluated exactly.
+ *
+ * A literal too wide for a double promotes its whole expression to 64 bits in
+ * C, and the result usually narrows straight back -- MAME's Game Boy pixel
+ * interleave ends `& 0x5555`. So the answer returns to a plain number as soon
+ * as one can hold it, and the rest of the executor never sees a bigint.
+ */
+export function generatedWideBinary(
+  operator: string,
+  left: unknown,
+  right: unknown,
+): unknown {
+  return wideBinary(operator, left, right);
+}
+
+const WIDE_OPERATORS: Record<string, (a: bigint, b: bigint) => bigint | boolean> = {
+  '|': (a, b) => a | b,
+  '^': (a, b) => a ^ b,
+  '&': (a, b) => a & b,
+  '<': (a, b) => a < b,
+  '<=': (a, b) => a <= b,
+  '>': (a, b) => a > b,
+  '>=': (a, b) => a >= b,
+  // Unsigned 64-bit: the operands are masked to their width so a shift or a
+  // multiply wraps the way the hardware model expects rather than growing.
+  '<<': (a, b) => BigInt.asUintN(64, a << b),
+  '>>': (a, b) => BigInt.asUintN(64, a) >> b,
+  '+': (a, b) => BigInt.asUintN(64, a + b),
+  '-': (a, b) => BigInt.asUintN(64, a - b),
+  '*': (a, b) => BigInt.asUintN(64, a * b),
+  '/': (a, b) => b === 0n ? 0n : a / b,
+  '%': (a, b) => b === 0n ? 0n : a % b,
+};
+
+const WIDE_MINIMUM = BigInt(Number.MIN_SAFE_INTEGER);
+const WIDE_MAXIMUM = BigInt(Number.MAX_SAFE_INTEGER);
+
+function wideBinary(operator: string, leftValue: unknown, rightValue: unknown): unknown {
+  if (typeof leftValue === 'number' && typeof rightValue === 'number') {
+    const narrow = narrowWideBinary(operator, leftValue, rightValue);
+    if (narrow !== undefined) return narrow;
+  }
+  const apply = WIDE_OPERATORS[operator];
+  if (!apply) return binary(operator, toNumber(leftValue), toNumber(rightValue));
+  const result = apply(toBigInt(leftValue), toBigInt(rightValue));
+  if (typeof result === 'boolean') return result ? 1 : 0;
+  return result >= WIDE_MINIMUM && result <= WIDE_MAXIMUM ? Number(result) : result;
+}
+
+/**
+ * The double-precision answer, when it is exactly the 64-bit one.
+ *
+ * A Game Boy tile row is expanded through a chain of six 64-bit operations per
+ * fetch, and both ends of that chain are ordinary small integers: a byte goes
+ * in and a sixteen-bit value comes out. Converting those to BigInt and back
+ * cost more than the arithmetic in the middle, which genuinely needs it.
+ *
+ * Undefined means "not exact here" — the caller then does it in BigInt. Only
+ * non-negative safe integers qualify, because the wide operators mask to
+ * unsigned 64 bits and a negative would wrap there and not here.
+ */
+function narrowWideBinary(operator: string, a: number, b: number): number | undefined {
+  if (a < 0 || b < 0 || !Number.isSafeInteger(a) || !Number.isSafeInteger(b)) return undefined;
+  switch (operator) {
+    case '<': return a < b ? 1 : 0;
+    case '<=': return a <= b ? 1 : 0;
+    case '>': return a > b ? 1 : 0;
+    case '>=': return a >= b ? 1 : 0;
+    // JavaScript's bitwise operators are exact only inside 32 bits.
+    case '&': return a > 0xffffffff || b > 0xffffffff ? undefined : (a & b) >>> 0;
+    case '|': return a > 0xffffffff || b > 0xffffffff ? undefined : (a | b) >>> 0;
+    case '^': return a > 0xffffffff || b > 0xffffffff ? undefined : (a ^ b) >>> 0;
+    case '>>': return Math.floor(a / 2 ** b);
+    case '/': return b === 0 ? 0 : Math.floor(a / b);
+    case '%': return b === 0 ? 0 : a % b;
+    // Exact when the result is still a safe integer; if it is not, the true
+    // value needed more than 53 bits and the double cannot be trusted.
+    case '<<': return safeInteger(a * 2 ** b);
+    case '+': return safeInteger(a + b);
+    // A negative difference is not the same answer: the wide operator masks
+    // it to unsigned 64 bits, where it becomes a very large positive.
+    case '-': return a >= b ? a - b : undefined;
+    case '*': return safeInteger(a * b);
+    default: return undefined;
+  }
+}
+
+function safeInteger(value: number): number | undefined {
+  return Number.isSafeInteger(value) ? value : undefined;
+}
+
+function toBigInt(value: unknown): bigint {
+  if (typeof value === 'bigint') return value;
+  const numeric = toNumber(value);
+  return Number.isFinite(numeric) ? BigInt(Math.trunc(numeric)) : 0n;
+}
+
 function modulo(value: number, divisor: number): number {
   return ((value % divisor) + divisor) % divisor;
 }
@@ -2139,6 +2511,12 @@ function addressOf(expression: GeneratedExpression, context: ExecutionContext): 
       const pointer = reference.apply(object, args);
       if (isGeneratedPointer(pointer)) return pointer;
     }
+    // `&region->as_u8()` is MAME's way of saying "the first byte of this
+    // storage", not "a slot holding one value". When the call answers with
+    // memory, its address is that memory -- boxed as a single-value slot
+    // instead, every Game Boy cartridge installed a ROM window over one byte.
+    const memory = evaluate(expression, context);
+    if (isIndexableMemory(memory) || isGeneratedPointer(memory)) return memory;
   }
   return {
     generatedPointer: true,
@@ -2278,7 +2656,35 @@ function fillGeneratedMemory(destination: unknown, value: number, count: number)
   const target = generatedMemoryView(destination);
   if (!target) return;
   const writable = target.bytes as unknown as { [index: number]: unknown };
-  for (let index = 0; index < count; index++) writable[target.offset + index] = value;
+  for (let index = 0; index < count; index++) {
+    // `memset(&m_snd[0], 0, sizeof(m_snd[0]))` clears one struct, not the slot
+    // holding it: MAME's sound chips reset a channel this way. Overwriting the
+    // element with a number left the Game Boy's APU with a number where its
+    // channel state had been, and the next field assignment had nothing to
+    // assign into.
+    const element = writable[target.offset + index];
+    if (element && typeof element === 'object' && !ArrayBuffer.isView(element)) {
+      clearGeneratedStruct(element as Record<string, unknown>, value);
+      continue;
+    }
+    writable[target.offset + index] = value;
+  }
+}
+
+/** Set every field of a struct-shaped object, recursing into nested ones. */
+function clearGeneratedStruct(target: Record<string, unknown>, value: number): void {
+  for (const key of Object.keys(target)) {
+    const field = target[key];
+    if (ArrayBuffer.isView(field)) {
+      (field as unknown as { fill(value: number): void }).fill(value);
+    } else if (Array.isArray(field)) {
+      field.fill(value);
+    } else if (field && typeof field === 'object') {
+      clearGeneratedStruct(field as Record<string, unknown>, value);
+    } else {
+      target[key] = value;
+    }
+  }
 }
 
 /** std::vector::resize over a member bound to a growable byte container. */
@@ -2319,6 +2725,83 @@ function isIndexableMemory(value: unknown): value is ArrayLike<unknown> {
 }
 
 /**
+ * A MAME memory container's own accessor, answered from the container.
+ *
+ * `std::unique_ptr<u8[]>` and the shared-pointer finders are plain arrays at
+ * run time, so `m_vram.get()` has no method to call -- the pointer it returns
+ * *is* the array. The interpreter has always resolved this; emitted code did
+ * not, and answered 0, so the Game Boy PPU fetched every background tile out
+ * of address zero and drew a blank screen.
+ */
+/**
+ * C++ `*pointer = value`, as emitted code performs it.
+ *
+ * A generated pointer stores at its own source and offset. Plain memory --
+ * which is what a `.share()`-bound member is, and qix stores its scanline
+ * latch through one -- stores at element zero. Anything else falls back to the
+ * indexed store so a materialised member still receives the write.
+ */
+/**
+ * C++ `a + b` where the compiler could not prove either side is a number.
+ *
+ * A call that answers memory -- `m_palette->pens()` -- has no declared type,
+ * and the interpreter decides pointer arithmetic from the value it actually
+ * gets. Emitted code that assumed a number turned the Neo Geo's pen base into
+ * an integer and drew every sprite from the wrong palette.
+ */
+export function generatedAdd(left: unknown, right: unknown): unknown {
+  // Two plain numbers is what this almost always is, and the pointer and wide
+  // cases below each cost a type test to rule out. Emitted code calls it on
+  // every `+` whose operands it could not prove numeric, which on the Game Boy
+  // is once per instruction in the timer callback alone.
+  if (typeof left === 'number' && typeof right === 'number') return left + right;
+  if (isGeneratedPointer(left)) return offsetPointer(left, toNumber(right));
+  if (isIndexableMemory(left)) {
+    return { generatedPointer: true, source: left, offset: toNumber(right) };
+  }
+  if (isGeneratedPointer(right)) return offsetPointer(right, toNumber(left));
+  if (isIndexableMemory(right)) {
+    return { generatedPointer: true, source: right, offset: toNumber(left) };
+  }
+  if (typeof left === 'bigint' || typeof right === 'bigint') {
+    return wideBinary('+', left, right);
+  }
+  return toNumber(left) + toNumber(right);
+}
+
+export function generatedPointerStore(pointer: unknown, value: unknown): unknown {
+  if (isGeneratedPointer(pointer)) {
+    const source = pointer.source as Record<number, unknown> | undefined;
+    if (source) source[pointer.offset] = value;
+    return value;
+  }
+  if (isIndexableMemory(pointer)) {
+    if (ArrayBuffer.isView(pointer)) (pointer as unknown as Uint8Array)[0] = toNumber(value);
+    else (pointer as unknown[])[0] = value;
+    return value;
+  }
+  if (pointer && typeof pointer === 'object') {
+    (pointer as Record<number, unknown>)[0] = value;
+  }
+  return value;
+}
+
+export function generatedContainerAccessor(value: unknown, method: string): unknown {
+  const held = isLValue(value) ? value.get() : value;
+  const pointer = isGeneratedPointer(held);
+  if (!pointer && !isIndexableMemory(held)) return 0;
+  const length = pointer
+    ? Math.max(0, (held.source as ArrayLike<unknown>).length - held.offset)
+    : (held as ArrayLike<unknown>).length;
+  if (method === 'bytes' || method === 'size' || method === 'length') return length;
+  if (method === 'empty') return length === 0 ? 1 : 0;
+  if (method === 'target' || method === 'base' || method === 'get' || method === 'begin') {
+    return held;
+  }
+  return 0;
+}
+
+/**
  * The referent behind a C++ reference argument, or the value itself.
  *
  * A caller cannot know whether the callee reassigns a `&` parameter, so every
@@ -2356,9 +2839,25 @@ function generatedCallArguments(
 ): GeneratedCallArgument[] {
   const parameters = context.bindings.callParameters?.[name] ?? [];
   return expressions.map((expression, index) =>
-    parameters[index]?.includes('&')
+    isReferenceParameter(parameters[index], expression)
       ? lValue(expression, context)
       : evaluate(expression, context));
+}
+
+/**
+ * Is this argument passed by C++ reference, so the callee can write back?
+ *
+ * The parameter's `&` says it might be, but a lambda literal has no storage to
+ * write back to: MAME's cartridge decode helpers take their callback as
+ * `T &&install`, and boxing that as an assignable slot handed the helper an
+ * object where it expected something to call -- so every Game Boy cartridge
+ * decoded its ROM and then installed none of it.
+ */
+function isReferenceParameter(
+  parameter: string | undefined,
+  expression: GeneratedExpression,
+): boolean {
+  return Boolean(parameter?.includes('&')) && expression.kind !== 'lambda';
 }
 
 /**
@@ -2377,7 +2876,7 @@ function compileGeneratedCallArguments(
     const parameters = context.bindings.callParameters?.[name];
     const values = new Array<GeneratedCallArgument>(compiled.length);
     for (let index = 0; index < compiled.length; index++) {
-      values[index] = parameters?.[index]?.includes('&')
+      values[index] = isReferenceParameter(parameters?.[index], expressions[index]!)
         ? lValue(expressions[index]!, context)
         : compiled[index]!(context);
     }
@@ -2460,17 +2959,25 @@ function memoryDelegate(
   const method = qualified.name.split('::').at(-1);
   if (!method) return undefined;
   const target = args.find((_value, position) => position !== index);
+  // MAME picks the delegate flavour from the bound method's own signature:
+  // `void bank_switch_fine(u8 data)` installs as a data-only handler, where
+  // `void write(offs_t offset, u8 data)` also takes the address. The host
+  // always offers both, so a one-parameter handler drops the leading offset --
+  // otherwise every Game Boy MBC read an address where it wanted a bank number.
+  const declared = context.bindings.callParameters?.[method];
+  const dataOnly = declared?.length === 1;
+  const apply = (
+    callee: (...values: number[]) => unknown,
+  ): ((...values: number[]) => number) =>
+    (...values: number[]) =>
+      Number(callee(...(dataOnly && values.length > 1 ? values.slice(1) : values))) || 0;
   const bound = target && typeof target === 'object'
     ? (target as Record<string, unknown>)[method]
     : undefined;
-  if (typeof bound === 'function') {
-    return (...values: number[]) => Number(bound(...values)) || 0;
-  }
+  if (typeof bound === 'function') return apply(bound as (...values: number[]) => unknown);
   // No separate target: the device is installing one of its own handlers.
   const own = context.bindings.referenceCalls?.[method] ?? context.bindings.calls?.[method];
-  if (typeof own === 'function') {
-    return (...values: number[]) => Number((own as (...a: number[]) => unknown)(...values)) || 0;
-  }
+  if (typeof own === 'function') return apply(own as (...values: number[]) => unknown);
   return undefined;
 }
 
