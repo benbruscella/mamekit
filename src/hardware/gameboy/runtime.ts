@@ -29,6 +29,18 @@ export function installGameboyRuntime(context: SoundRuntimeContext): SoundRuntim
   // is pumped from one processor only -- counting every CPU would run it at a
   // multiple of its rate.
   const driver = context.board.execution.cpus[0];
+  // MAME `m_apu->add_route(0, "speaker", 0.50, 0)` and its right-hand twin:
+  // two chip outputs into two separate speaker inputs, each at half gain.
+  const routes = context.sound.routes ?? [];
+  const gain = (channel: number): number =>
+    routes.find(route => route.channel === channel)?.gain ?? 1;
+  // How many speaker inputs those routes feed. The sink here is one mono
+  // channel, so the console's two are averaged into it -- summing them instead
+  // put every Game Boy out at exactly twice the level of MAME's own recording.
+  const speakerInputs = Math.max(
+    1,
+    new Set(routes.map(route => route.targetInput ?? 0)).size,
+  );
   let carry = 0;
 
   return {
@@ -60,9 +72,10 @@ export function installGameboyRuntime(context: SoundRuntimeContext): SoundRuntim
       if (context.callDevice(tag, 'sound_stream_update', stream) === undefined) return;
       const frac = context.fraction();
       for (let index = 0; index < due; index++) {
-        // One sink channel: the two outputs are summed the way a mono speaker
-        // hears the console's own left and right mix.
-        const sample = ((left[index] ?? 0) + (right[index] ?? 0)) / 2;
+        // One sink channel: each output at the gain its own route carries,
+        // averaged across the speaker inputs they feed.
+        const sample =
+          ((left[index] ?? 0) * gain(0) + (right[index] ?? 0) * gain(1)) / speakerInputs;
         context.soundWrite(0, sample, frac, `${tag}.pcm`);
       }
     },

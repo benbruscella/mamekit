@@ -255,7 +255,15 @@ class IrBoard implements Board {
    */
   private readonly pendingBankEntry = new Map<string, number>();
   private readonly generatedResources: Record<string, unknown> = {};
-  private readonly state: Record<string, unknown> = {};
+  /**
+   * The driver state class's own members.
+   *
+   * Behind a write trap when MAME declared integer widths for them, so a
+   * store wraps the way the C++ declaration does while a name nothing has
+   * written yet stays absent -- which is what lets a later binding pass claim
+   * it. See `generatedStateWithWidths`.
+   */
+  private readonly state: Record<string, unknown>;
   private readonly shares: Record<string, Uint8Array> = {};
   private videoPrimitives?: GeneratedMameVideoPrimitives;
   /** Typed effects bound per callback id; see generated-effects.ts. */
@@ -322,6 +330,7 @@ class IrBoard implements Board {
     sinks: BoardSinks,
   ) {
     this.machine = machine;
+    this.state = generatedStateWithWidths({}, machine.stateMembers ?? []);
     this.inputs = inputs;
     this.fbWidth = machine.execution.screen.width;
     this.fbHeight = machine.execution.screen.height;
@@ -793,6 +802,9 @@ class IrBoard implements Board {
     // replace them, or those holders keep serving stale bindings.
     this.bindings = {
       members: this.state,
+      // Declared widths travel with the bindings so a first indexed write
+      // allocates the array MAME declared rather than an untyped one.
+      ...(machine.stateMembers?.length ? { stateMembers: machine.stateMembers } : {}),
       inputs: generatedInputs,
       calls,
       referenceCalls: {
@@ -823,7 +835,6 @@ class IrBoard implements Board {
         };
       },
     };
-    bindGeneratedStateWidths(this.state, machine.stateMembers ?? []);
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
       bindGeneratedRegionState(
@@ -4095,56 +4106,48 @@ export function generatedSignalHandlerArguments(
  * `uint8_t m_gb_io[0x10]` counted TIMECNT past 255 and never returned to zero,
  * and reaching zero is the one event that raises its timer interrupt. Games
  * drew perfectly and played silence, because a Game Boy music driver runs off
- * that interrupt.
+ * that interrupt. `uint16_t m_divcount` beside it ran unbounded, so the
+ * divider compared a masked old value against an unmasked new one and fired
+ * the timer increment eleven million times where MAME fires it two hundred
+ * thousand.
  *
- * A fixed array becomes the matching typed array, which wraps on store on its
- * own. A scalar gets an accessor that wraps, so `members.m_divcount += n`
- * stays sixteen bits the way the C++ declaration does.
- *
- * Only what the state object does not already hold: region, input and device
- * binding run afterwards and legitimately put objects on some of these names.
+ * A write trap, not a seeded property. Driver members are deliberately
+ * materialised on first touch -- an identifier that is not yet an own property
+ * resolves as a symbolic reference, which is how a member a later pass will
+ * bind stays unresolved instead of freezing at zero. Defining all of them up
+ * front took that away, and Crush Roller's `video_start` stopped setting the
+ * one-pixel sprite offset its whole family needs.
  */
-export function bindGeneratedStateWidths(
+export function generatedStateWithWidths(
   state: Record<string, unknown>,
   members: readonly GeneratedStateMember[],
-): void {
-  for (const member of members) {
-    if (Object.hasOwn(state, member.name)) continue;
-    if (member.arrayLength) {
-      state[member.name] = member.bits === 1
-        ? new Uint8Array(member.arrayLength)
-        : member.signed
-          ? member.bits === 8
-            ? new Int8Array(member.arrayLength)
-            : member.bits === 16
-              ? new Int16Array(member.arrayLength)
-              : new Int32Array(member.arrayLength)
-          : member.bits === 8
-            ? new Uint8Array(member.arrayLength)
-            : member.bits === 16
-              ? new Uint16Array(member.arrayLength)
-              : new Uint32Array(member.arrayLength);
-      continue;
-    }
-    let stored = 0;
-    Object.defineProperty(state, member.name, {
-      configurable: true,
-      enumerable: true,
-      get: () => stored,
-      set: next => {
-        // A binding pass may still seat an object here (a shared pointer is
-        // declared `uint8_t *` in some drivers). Take it as it comes and stop
-        // wrapping this name rather than turning it into NaN.
-        if (typeof next !== 'number' && typeof next !== 'boolean') {
-          Object.defineProperty(state, member.name, {
-            configurable: true, enumerable: true, writable: true, value: next,
-          });
-          return;
-        }
-        stored = generatedStateWidth(Number(next), member.bits, member.signed);
-      },
-    });
-  }
+): Record<string, unknown> {
+  if (!members.length) return state;
+  const widths = new Map(members.map(member => [member.name, member]));
+  return new Proxy(state, {
+    set: (target, key, value) => {
+      const member = typeof key === 'string' ? widths.get(key) : undefined;
+      target[key as string] = member && typeof value === 'number'
+        ? generatedStateWidth(value, member.bits, member.signed)
+        : value;
+      return true;
+    },
+  });
+}
+
+/**
+ * Storage for a fixed C array member of the driver state, sized and typed the
+ * way MAME declared it, so an indexed write wraps on its own.
+ */
+export function generatedStateArray(
+  member: GeneratedStateMember,
+): Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | undefined {
+  const length = member.arrayLength;
+  if (!length) return undefined;
+  if (member.bits === 8) return member.signed ? new Int8Array(length) : new Uint8Array(length);
+  if (member.bits === 16) return member.signed ? new Int16Array(length) : new Uint16Array(length);
+  if (member.bits === 32) return member.signed ? new Int32Array(length) : new Uint32Array(length);
+  return new Uint8Array(length);
 }
 
 /** MAME's C integer conversion for one stored driver-state member. */

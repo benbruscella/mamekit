@@ -15,6 +15,7 @@ import type {
   GeneratedHandler,
   GeneratedHandlerOperation,
   GeneratedHandlerProgram,
+  GeneratedStateMember,
 } from './board.ts';
 
 /** Active-low raw input port state, read by generated programs. */
@@ -50,6 +51,16 @@ export interface GeneratedHandlerBindings {
   addressSpace?: (cpuTag?: string) => unknown;
   /** Device-finder members whose calls must resolve only to concrete hardware. */
   concreteDeviceMembers?: ReadonlySet<string>;
+  /**
+   * Widths MAME declared for the driver state class's own members.
+   *
+   * A fixed C array is allocated as the matching typed array, so an indexed
+   * write wraps the way the declaration does: the Game Boy's
+   * `uint8_t m_gb_io[0x10]` counted TIMECNT past 255 in a plain JS array and
+   * never came back to zero, which is the one event that raises its timer
+   * interrupt.
+   */
+  stateMembers?: readonly GeneratedStateMember[];
 }
 
 export interface GeneratedLValue {
@@ -434,7 +445,7 @@ function preparedHandlerRuntime(
       if (isIndexableMemory(current) || isGeneratedPointer(current)) return current;
       if (current && typeof current === 'object') return current;
       const members = bindings.members ??= {};
-      const allocated: unknown[] = [];
+      const allocated = declaredStateArray(bindings, name) ?? [];
       members[name] = allocated;
       return allocated;
     },
@@ -2060,6 +2071,26 @@ function assign(
  * on its first indexed write, including nested arrays such as
  * `m_duty_cycle[2][3]`.
  */
+/**
+ * Storage for a driver-state member MAME declared as a fixed C array, typed
+ * and sized the way the declaration is, so an indexed write wraps on its own.
+ *
+ * Returns nothing for a member with no declared array bound -- a plain array
+ * remains the right thing for a member the board grows on demand.
+ */
+function declaredStateArray(
+  bindings: GeneratedHandlerBindings,
+  name: string,
+): ArrayBufferView | undefined {
+  const member = bindings.stateMembers?.find(candidate => candidate.name === name);
+  if (!member?.arrayLength) return undefined;
+  const { arrayLength, bits, signed } = member;
+  if (bits === 8) return signed ? new Int8Array(arrayLength) : new Uint8Array(arrayLength);
+  if (bits === 16) return signed ? new Int16Array(arrayLength) : new Uint16Array(arrayLength);
+  if (bits === 32) return signed ? new Int32Array(arrayLength) : new Uint32Array(arrayLength);
+  return new Uint8Array(arrayLength);
+}
+
 function writableIndexObject(
   expression: GeneratedExpression,
   context: ExecutionContext,
@@ -2068,7 +2099,7 @@ function writableIndexObject(
   if (isIndexableMemory(current) || isGeneratedPointer(current)) return current;
   if (expression.kind === 'identifier' && expression.name.startsWith('m_')) {
     const members = context.bindings.members ??= {};
-    const allocated: unknown[] = [];
+    const allocated = declaredStateArray(context.bindings, expression.name) ?? [];
     members[expression.name] = allocated;
     return allocated;
   }

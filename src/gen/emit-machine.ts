@@ -707,6 +707,13 @@ export function lowerGeneratedMachine(
               writeMethods: [],
               enableMethods: [],
               controlOffset: -1,
+              // `m_apu->add_route(0, "speaker", 0.50, 0)` and its right-hand
+              // twin. The renderer's own full scale is the whole four-channel
+              // mix, so without the routed gain the console came out at
+              // exactly twice MAME's level.
+              ...(lowerAudioRoutes(graph, [gameboyApu]).length
+                ? { routes: lowerAudioRoutes(graph, [gameboyApu]) }
+                : {}),
             }
         : tiaDevice
           ? {
