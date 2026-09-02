@@ -4127,7 +4127,7 @@ export function generatedStateWithWidths(
   return new Proxy(state, {
     set: (target, key, value) => {
       const member = typeof key === 'string' ? widths.get(key) : undefined;
-      target[key as string] = member && typeof value === 'number'
+      target[key as string] = member && typeof value === 'number' && wrappable(member, value)
         ? generatedStateWidth(value, member.bits, member.signed)
         : value;
       return true;
@@ -4148,6 +4148,23 @@ export function generatedStateArray(
   if (member.bits === 16) return member.signed ? new Int16Array(length) : new Uint16Array(length);
   if (member.bits === 32) return member.signed ? new Int32Array(length) : new Uint32Array(length);
   return new Uint8Array(length);
+}
+
+/**
+ * Whether MAME's conversion for this member can be applied to this value.
+ *
+ * A negative stored into an unsigned member is held back. MAME's own
+ * `INPUT_LINE_NMI` is 64 and sits in a `uint8_t` happily -- Double Dragon
+ * keeps `uint8_t m_sprite_irq = INPUT_LINE_NMI` and raises the subprocessor
+ * through it -- but this compiler lowers the input-line constants to negative
+ * tokens of its own (NMI -1, RESET -2, HALT -3), and narrowing one to eight
+ * bits turns it into an ordinary IRQ number. The sprite interrupt then went to
+ * line 255 instead of NMI, and Double Dragon booted to an empty screen with no
+ * sound. The cost is that a driver spelling 0xff as -1 keeps reading -1, which
+ * is exactly what it did before any of this existed.
+ */
+function wrappable(member: GeneratedStateMember, value: number): boolean {
+  return member.signed === true || value >= 0;
 }
 
 /** MAME's C integer conversion for one stored driver-state member. */
