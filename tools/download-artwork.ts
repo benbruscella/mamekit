@@ -31,6 +31,13 @@ const mediaKinds = [
   { remote: 'marquees', local: 'media/marquees' },
 ] as const;
 
+// Clone sets commonly share the same cabinet and printed material as their
+// parent. Keep the installed package target-named while fetching the archive's
+// canonical short name.
+const artworkAliases: Record<string, string> = {
+  shinobi5: 'shinobi',
+};
+
 /**
  * Where a target's "cabinet" image belongs.
  *
@@ -184,14 +191,15 @@ const archiveNames = new Set(metadata.files.map(file => file.name));
 
 const bezelGames = games.filter(game => !isConsole(game));
 const bezelFailures = await pool(bezelGames, async game => {
-  const name = `${game}.zip`;
-  if (!archiveNames.has(name)) {
-    await buildFallbackBezel(game, join(artwork, name));
+  const targetName = `${game}.zip`;
+  const sourceName = `${artworkAliases[game] ?? game}.zip`;
+  if (!archiveNames.has(sourceName)) {
+    await buildFallbackBezel(game, join(artwork, targetName));
     return;
   }
   await download(
-    `https://archive.org/download/artwork_202505/${encodeURIComponent(name)}`,
-    join(artwork, name),
+    `https://archive.org/download/artwork_202505/${encodeURIComponent(sourceName)}`,
+    join(artwork, targetName),
   );
 }, 6);
 repairKnownLayoutTypos();
@@ -200,7 +208,7 @@ const mediaWanted = games.reduce((total, game) => total + kindsFor(game).length,
 const mediaFailures = await pool(
   games.flatMap(game => kindsFor(game).map(kind => ({ game, kind }))),
   async ({ game, kind }) => download(
-    `https://adb.arcadeitalia.net/media/mame.current/${kind.remote}/${game}.png`,
+    `https://adb.arcadeitalia.net/media/mame.current/${kind.remote}/${artworkAliases[game] ?? game}.png`,
     join(artwork, mediaDir(game, kind), `${game}.png`),
     validPng,
   ),

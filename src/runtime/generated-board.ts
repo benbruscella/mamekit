@@ -430,33 +430,39 @@ class IrBoard implements Board {
         }
         const tapBank = machine.execution.accessTaps
           ?.find(tap => tap.device === specification.tag)?.bank;
+        const configuredMembers: Record<string, unknown> = {
+          ...specification.memberValues,
+          ...Object.fromEntries(Object.entries(specification.memoryShares ?? {})
+            .flatMap(([member, share]) => this.shares[share]
+              ? [[member, this.shares[share]]]
+              : [])),
+          ...(specification.type === 'NEOGEO_SPRITE_OPTIMZIED' ? {
+            m_region_zoomy: regions['spritegen:zoomy'],
+            m_region_sprites: regions['cslot1:sprites'],
+            m_region_sprites_size: regions['cslot1:sprites']?.length ?? 0,
+            // neosprite's packed address space exposes two pixels per raw
+            // ROM byte. get_region_mask() rounds that expanded extent to a
+            // power-of-two mask; calculate the same value without relying
+            // on C++ unsigned-loop overflow semantics in the IR evaluator.
+            m_sprite_gfx_address_mask: regions['cslot1:sprites']?.length
+              ? (2 ** Math.ceil(Math.log2(regions['cslot1:sprites']!.length * 2)) - 1) >>> 0
+              : 0,
+            m_region_fixed: regions['cslot1:fixed'],
+            m_region_fixed_size: regions['cslot1:fixed']?.length ?? 0,
+            m_region_fixedbios: {
+              base: () => regions.fixedbios,
+              bytes: () => regions.fixedbios?.length ?? 0,
+            },
+            m_fixed_layer_source: 0,
+            m_fixed_layer_bank_type: 0,
+          } : {}),
+        };
         const device = createDevice(specification.type, {
           clock: specification.clock,
           tag: specification.tag,
           shares: this.shares,
           inputs,
-          ...(specification.type === 'NEOGEO_SPRITE_OPTIMZIED' ? {
-            members: {
-              m_region_zoomy: regions['spritegen:zoomy'],
-              m_region_sprites: regions['cslot1:sprites'],
-              m_region_sprites_size: regions['cslot1:sprites']?.length ?? 0,
-              // neosprite's packed address space exposes two pixels per raw
-              // ROM byte. get_region_mask() rounds that expanded extent to a
-              // power-of-two mask; calculate the same value without relying
-              // on C++ unsigned-loop overflow semantics in the IR evaluator.
-              m_sprite_gfx_address_mask: regions['cslot1:sprites']?.length
-                ? (2 ** Math.ceil(Math.log2(regions['cslot1:sprites']!.length * 2)) - 1) >>> 0
-                : 0,
-              m_region_fixed: regions['cslot1:fixed'],
-              m_region_fixed_size: regions['cslot1:fixed']?.length ?? 0,
-              m_region_fixedbios: {
-                base: () => regions.fixedbios,
-                bytes: () => regions.fixedbios?.length ?? 0,
-              },
-              m_fixed_layer_source: 0,
-              m_fixed_layer_bank_type: 0,
-            },
-          } : {}),
+          ...(Object.keys(configuredMembers).length ? { members: configuredMembers } : {}),
           ...(specification.slotDefault ? { slot: specification.slotDefault } : {}),
           selectors: cartSelectors(config.cart),
           finder: (rawTag, member) => {
@@ -1498,6 +1504,18 @@ class IrBoard implements Board {
         referenceCalls: this.bindings.referenceCalls,
         callParameters: this.bindings.callParameters,
       });
+      // Devices are constructed before the video host so CPUs and callbacks
+      // can bind in one pass. Their framework-owned finders become available
+      // here: bind the live decoded-gfx interface and source-created tilemaps
+      // into any device that declares the corresponding member.
+      for (const device of this.devices.values()) {
+        device.bindMember('m_gfxdecode', this.state.m_gfxdecode);
+        for (const plan of machine.video?.tilemaps ?? []) {
+          const indexed = /^(m_\w+)\[\s*\d+\s*\]$/.exec(plan.member);
+          const member = indexed?.[1] ?? plan.member;
+          device.bindMember(member, this.state[member]);
+        }
+      }
       // MAME's device_gfx_interface gives a device its own decoded graphics,
       // and its draw routines call the bare `gfx(n)` of that set rather than
       // the driver's m_gfxdecode. The decode member on each plan entry is what
@@ -1797,7 +1815,7 @@ class IrBoard implements Board {
     }
   }
 
-  /** Apply source-declared PORT_CHANGED_MEMBER rising-edge latch handlers. */
+  /** Apply source-declared PORT_CHANGED_MEMBER edge callbacks. */
   private pollInputLatches(): void {
     for (const latch of this.machine.execution.inputLatches ?? []) {
       const key = `${latch.port}:${latch.mask}:${latch.handler}`;
@@ -1806,10 +1824,21 @@ class IrBoard implements Board {
         ? (raw & latch.mask) === 0
         : (raw & latch.mask) !== 0;
       const previous = this.inputLatchPrevious.get(key) ?? false;
-      if (asserted && !previous) {
+      if (asserted && !previous && latch.stateMember !== undefined && latch.index !== undefined) {
         const state = this.state[latch.stateMember];
         if (Array.isArray(state) || ArrayBuffer.isView(state)) {
           (state as unknown as { [index: number]: number })[latch.index] = 1;
+        }
+      } else if (asserted !== previous && latch.stateMember === undefined) {
+        const handler = this.machine.handlers?.find(candidate =>
+          `${candidate.ownerClass}.${candidate.method}` === latch.handler);
+        if (handler?.program && !handler.program.diagnostics.length) {
+          executeGeneratedMachineHandler(this.machine, handler, this.bindings, {
+            field: 0,
+            param: Math.log2(latch.mask),
+            oldval: Number(previous),
+            newval: Number(asserted),
+          });
         }
       }
       this.inputLatchPrevious.set(key, asserted);
@@ -2023,6 +2052,39 @@ class IrBoard implements Board {
               } else {
                 device.call('edge_w', register, data);
               }
+            };
+            continue;
+          }
+          if (
+            specification?.type.startsWith('WILLIAMS_BLITTER_SC') &&
+            method === 'register_write' && kind === 'write'
+          ) {
+            registry.write[key] = (_address, offset, data) => {
+              const register = offset & 7;
+              if (register === 0) {
+                const cpuTag = machine.execution.cpus.find(candidateCpu =>
+                  [...(candidateCpu.ranges ?? []), ...(candidateCpu.io?.ranges ?? [])].some(
+                    candidate => candidate.start === range.start &&
+                      candidate.end === range.end && candidate.write === key,
+                  ))?.tag ?? machine.execution.cpus[0]?.tag;
+                const bus = cpuTag ? this.cpuBuses.get(cpuTag) : undefined;
+                device.invoke('control_w', {
+                  read_byte: (address: number) => bus?.read(address) ?? 0xff,
+                  write_byte: (address: number, value: number) => bus?.write(address, value),
+                }, offset, data);
+                return;
+              }
+              if (register === 1) device.set('m_solid_color', data);
+              else if (register === 2) {
+                device.set('m_sstart', (device.get('m_sstart') & 0x00ff) | (data << 8));
+              } else if (register === 3) {
+                device.set('m_sstart', (device.get('m_sstart') & 0xff00) | data);
+              } else if (register === 4) {
+                device.set('m_dstart', (device.get('m_dstart') & 0x00ff) | (data << 8));
+              } else if (register === 5) {
+                device.set('m_dstart', (device.get('m_dstart') & 0xff00) | data);
+              } else if (register === 6) device.set('m_width', data);
+              else device.set('m_height', data);
             };
             continue;
           }

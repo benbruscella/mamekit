@@ -2184,6 +2184,7 @@ type GeneratedDirectScreenShape =
   | 'galaxian-no-bullets'
   | 'm62-category-sprites'
   | 'outrun-sega16-layers'
+  | 'system16b-layers'
   | 'system1-prom-mixer'
   | 'technos-tilemap-sprites'
   | 'tnx1-banked-raster'
@@ -2219,6 +2220,14 @@ export function generatedDirectScreenShape(
     body.includes('m_sprites->iterate_dirty_rects(')
   ) {
     return 'outrun-sega16-layers';
+  }
+  if (
+    body.includes('m_sprites->draw_async(cliprect)') &&
+    body.includes('m_segaic16vid->tilemap_draw') &&
+    body.includes('m_sprites->iterate_dirty_rects(') &&
+    !body.includes('m_segaic16road->segaic16_road_draw')
+  ) {
+    return 'system16b-layers';
   }
   if (
     body.includes('m_bg_tilemap->set_scrollx(i, m_m62_background_hscroll)') &&
@@ -3408,7 +3417,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       }
       return true;
     }
-    if (this.directScreenShape === 'outrun-sega16-layers') {
+    if (
+      this.directScreenShape === 'outrun-sega16-layers' ||
+      this.directScreenShape === 'system16b-layers'
+    ) {
       return this.drawOutrunLayers(screen, bitmap, cliprect);
     }
     if (this.directScreenShape === 'm62-category-sprites') {

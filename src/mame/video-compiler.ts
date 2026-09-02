@@ -232,12 +232,22 @@ export function compileMameVideo(
   const startMatch = configFunctions
     .map(fn => /MCFG_VIDEO_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/.exec(fn.body))
     .find((match): match is RegExpExecArray => Boolean(match));
-  const start = startMatch
+  const driverStart = startMatch
     // MCFG may spell the selected derived driver class even when the
     // VIDEO_START_MEMBER implementation is inherited from its base class
     // (pengo_state selects pacman_state::video_start_pacman).
     ? ast.findFunctionInHierarchy(startMatch[1]!, `video_start_${startMatch[2]}`)
     : ast.findFunctionInHierarchy(String(machine.props.cls), 'video_start');
+  // A plain device_t can own the tilemap and decoded-gfx finder while the
+  // driver merely delegates its screen update to that device. Lady Bug is the
+  // canonical shape: LADYBUG_VIDEO(...).set_gfxdecode_tag("gfxdecode") points
+  // the device back at the driver's GFXDECODE, and its device_start creates
+  // the only tilemap on the board. Treat that lifecycle method as video_start
+  // so the tilemap, its callback and its gfx binding all enter the plan.
+  const deviceStart = !driverStart && screen
+    ? configuredGfxDeviceStart(configFunctions, screen, ast, source)
+    : undefined;
+  const start = driverStart ?? deviceStart;
   if (!start && !screen) {
     return fail(`missing video_start and screen update for ${String(machine.props.cls)}`);
   }
@@ -375,7 +385,8 @@ export function compileMameVideo(
         machineIds,
         ast,
         constants,
-      ) ?? compileDriverManagedPalette(
+      ) ?? compileSystem16RamPalette(graph, machineIds, source, constants)
+        ?? compileDriverManagedPalette(
         graph,
         machineIds,
         source,
@@ -434,6 +445,92 @@ export function compileMameVideo(
     },
     handlers,
   };
+}
+
+/**
+ * Sega's shared System 16 base owns its palette writer rather than attaching
+ * it directly to the PALETTE(config, ...) declaration.  Lower the documented
+ * sBGR-BBBB-GGGG-RRRR word layout so mapper-installed palette RAM remains a
+ * generated writable palette instead of blocking the whole video plan.
+ */
+function compileSystem16RamPalette(
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+  source: string,
+  constants: Record<string, number>,
+): GeneratedRamPalettePlan | undefined {
+  const deviceIds = new Set(graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
+    .map(edge => edge.to));
+  if (!graph.nodes.some(node =>
+    deviceIds.has(node.id) && node.label === 'Device' && node.props.type === 'SEGAIC16VID')) {
+    return undefined;
+  }
+  if (!source.includes('paletteram_w') || !source.includes('"paletteram"')) return undefined;
+  const palette = graph.nodes.find(node =>
+    deviceIds.has(node.id) && node.label === 'Device' && node.props.type === 'PALETTE');
+  const raw = ((palette?.props.config as string[] | undefined) ?? []).join('\n');
+  const entriesExpression = /\.set_entries\s*\(\s*([^)]*)\)/.exec(raw)?.[1];
+  const entries = entriesExpression
+    ? expressionNumber(entriesExpression, constants)
+    : undefined;
+  if (!entries) return undefined;
+  return {
+    tag: 'paletteram',
+    endianness: 'big',
+    entries,
+    bytesPerEntry: 2,
+    channels: [
+      { channel: 'r', bits: 4, shift: 0 },
+      { channel: 'g', bits: 4, shift: 4 },
+      { channel: 'b', bits: 4, shift: 8 },
+    ],
+    ...(palette?.props.sourceFile && palette.props.sourceLine ? {
+      source: {
+        file: String(palette.props.sourceFile),
+        line: Number(palette.props.sourceLine),
+        ...(palette.props.sourceColumn
+          ? { column: Number(palette.props.sourceColumn) }
+          : {}),
+      },
+    } : {}),
+  };
+}
+
+/**
+ * Find a source-defined video device selected through set_gfxdecode_tag.
+ *
+ * Unlike a device_gfx_interface device, this component does not own a decode
+ * table in its constructor. The machine config supplies a tag and the device
+ * creates its tilemap later in device_start, so that setter is the composition
+ * edge that proves which otherwise-unrelated lifecycle method belongs to the
+ * active screen path.
+ */
+function configuredGfxDeviceStart(
+  configFunctions: MameFunction[],
+  screen: MameFunction,
+  ast: MameAstIndex,
+  source: string,
+): MameFunction | undefined {
+  const deviceClasses = new Map<string, string>();
+  for (const match of source.matchAll(
+    /\bDEFINE_DEVICE_TYPE\s*\(\s*([A-Z][A-Z0-9_]*)\s*,\s*(\w+)/g,
+  )) {
+    deviceClasses.set(match[1]!, match[2]!);
+  }
+  for (const config of configFunctions) {
+    for (const match of config.body.matchAll(
+      /\b([A-Z][A-Z0-9_]*)\s*\(\s*config\s*,\s*(m_\w+)[^;\n]*?\)\s*\.\s*set_gfxdecode_tag\s*\(\s*"[^"]+"\s*\)/g,
+    )) {
+      const [, type, member] = match;
+      if (!screen.body.includes(`${member}->`)) continue;
+      const className = deviceClasses.get(type!);
+      if (!className) continue;
+      const start = ast.findFunction(className, 'device_start');
+      if (start) return start;
+    }
+  }
+  return undefined;
 }
 
 function compileCps1GameConfig(

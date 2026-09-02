@@ -184,6 +184,10 @@ export class GeneratedM68705P5Device implements Device {
     }
   }
 
+  hasMember(_name: string): boolean { return false; }
+
+  bindMember(_name: string, _value: unknown): void {}
+
   constant(name: string): number | undefined {
     const constants: Record<string, number> = {
       INPUT_LINE_IRQ0: 0,

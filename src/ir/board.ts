@@ -199,6 +199,10 @@ export interface GeneratedDevice {
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
   callbackHz?: number;
   configuration?: { method: string; args: number[] }[];
+  /** Constructor-configured scalar members that are not ordinary setter calls. */
+  memberValues?: Record<string, number>;
+  /** Constructor-configured shared-pointer member -> board share bindings. */
+  memoryShares?: Record<string, string>;
   /** Source-declared slot option table/default from the machine config. */
   slotOptions?: string;
   slotDefault?: string;
@@ -486,13 +490,13 @@ export interface GeneratedExecutionPlan {
     activeLow?: boolean;
   }[];
   inputMembers?: { member: string; tags: string[] }[];
-  /** Source PORT_CHANGED_MEMBER handlers that latch an asserted input bit. */
+  /** Source PORT_CHANGED_MEMBER callbacks, including optimized state latches. */
   inputLatches?: {
     port: string;
     mask: number;
     activeLow: boolean;
-    stateMember: string;
-    index: number;
+    stateMember?: string;
+    index?: number;
     handler: string;
   }[];
   frameEvents: GeneratedFrameEvent[];

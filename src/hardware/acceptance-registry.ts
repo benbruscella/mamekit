@@ -10,6 +10,7 @@ import { createDiscreteProbe } from './discrete-sn76477/acceptance.ts';
 import { createNamcoWsgProbe } from './namco-wsg/acceptance.ts';
 import { createYm2203Probe } from './ym2203/acceptance.ts';
 import { createSn76489Probe } from './sn76489/acceptance.ts';
+import { createPokeyProbe } from './pokey/acceptance.ts';
 import { createDacProbe } from './dac/acceptance.ts';
 import { createSamplesProbe } from './samples/acceptance.ts';
 import { createYm2151Probe } from './ym2151/acceptance.ts';
@@ -26,6 +27,7 @@ export const AUDIO_PROBES: Readonly<Record<string, AudioProbeFactory>> = {
   ym2203: createYm2203Probe,
   discrete: createDiscreteProbe,
   sn76489: createSn76489Probe,
+  pokey: createPokeyProbe,
   dac: createDacProbe,
   samples: createSamplesProbe,
   ym2151: createYm2151Probe,

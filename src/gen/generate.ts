@@ -36,6 +36,7 @@ import type {
   GeneratedDiscreteDacPlan,
   GeneratedDiscreteEffectsPlan,
 } from '../ir/audio-protocol.ts';
+import type { GeneratedHandler } from '../ir/board.ts';
 import { compileMameVideo, gfxRenderScale } from '../mame/video-compiler.ts';
 import {
   compileDiscreteDacAttenuator,
@@ -50,6 +51,8 @@ import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.t
 import { indexMameHardware } from '../mame/hardware.ts';
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
+import { compileMameHandler } from '../mame/handler-ir.ts';
+import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
 import { compileDriverRomTransforms } from '../mame/driver-rom-compiler.ts';
 import { compileDriverInitProgram } from '../mame/driver-init-compiler.ts';
@@ -794,6 +797,26 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       spec.read = `${scopedTag}.${method}_read`;
       spec.write = `${scopedTag}.${method}_write`;
     }
+    // Williams first-generation boards embed the blitter's eight-byte
+    // register decoder with `.m(m_blitter, FUNC(...::map))`.  Keep that
+    // source-declared submap attached to the generated device; otherwise the
+    // CPU sees CA00-CA07 as NOPs and every post-boot frame is blank because no
+    // game blit can ever start.
+    const williamsBlitterSubmap = !spec.read && !spec.write
+      ? /\.m\s*\(\s*(m_)?([\w:]+)\s*,\s*FUNC\s*\(\s*williams_blitter_device::map\s*\)\s*\)/
+        .exec(raw)
+      : null;
+    if (williamsBlitterSubmap) {
+      const localTag = williamsBlitterSubmap[2]!;
+      const namespace = ownerTag?.includes(':')
+        ? ownerTag.slice(0, ownerTag.lastIndexOf(':'))
+        : undefined;
+      const scopedTag = namespace && byTag.has(`${namespace}:${localTag}`)
+        ? `${namespace}:${localTag}`
+        : localTag;
+      spec.kind = 'handler';
+      spec.write = `${scopedTag}.register_write`;
+    }
     if (spec.kind === 'handler' && !spec.read && !spec.write) spec.kind = 'nop';
     return spec;
   };
@@ -1099,6 +1122,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const snChips = devices.filter(d =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(String(d.props.type)));
+  const pokeyChips = devices.filter(d => d.props.type === 'POKEY');
   const dacChips = devices.filter(d =>
     ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
       'NETLIST_INT_INPUT']
@@ -1201,6 +1225,18 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
                 ...(snRoutes.length ? { routes: snRoutes } : {}),
               };
             })()
+          : pokeyChips.length
+            ? {
+                kind: 'pokey',
+                clock: Number(pokeyChips[0]!.props.clock),
+                chips: pokeyChips.length,
+                deviceTags: pokeyChips.map(chip => String(chip.props.tag)),
+                clocks: pokeyChips.map(chip => Number(chip.props.clock)),
+                routes: lowerAudioRoutes(
+                  graph,
+                  pokeyChips.map(chip => ({ id: chip.id, tag: String(chip.props.tag) })),
+                ),
+              }
           : dacChips.length && !(sampleChips.length && dacChips.every(device =>
               device.props.type === 'DAC_1BIT'))
             ? {
@@ -1605,10 +1641,17 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   }
   const customs: NonNullable<BoardConfig['customs']> = [];
   const inputLatches: NonNullable<BoardConfig['inputLatches']> = [];
-  const changedLatchMembers = new Map<string, string | undefined>();
-  const changedLatchMember = (className: string, method: string): string | undefined => {
+  const inputChangedHandlers: GeneratedHandler[] = [];
+  const changedHandlers = new Map<string, {
+    handler: GeneratedHandler;
+    stateMember?: string;
+  } | undefined>();
+  const changedHandler = (className: string, method: string): {
+    handler: GeneratedHandler;
+    stateMember?: string;
+  } | undefined => {
     const key = `${className}.${method}`;
-    if (changedLatchMembers.has(key)) return changedLatchMembers.get(key);
+    if (changedHandlers.has(key)) return changedHandlers.get(key);
     for (const sourceNode of graph.nodes.filter(node => node.label === 'SourceFile')) {
       const path = join(opts.mameSrc, String(sourceNode.props.path));
       if (!existsSync(path)) continue;
@@ -1616,18 +1659,44 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       const marker = `INPUT_CHANGED_MEMBER(${className}::${method})`;
       const start = source.indexOf(marker);
       if (start < 0) continue;
+      const open = source.indexOf('{', start + marker.length);
+      if (open < 0) continue;
+      let depth = 0;
+      let close = -1;
+      for (let index = open; index < source.length; index++) {
+        if (source[index] === '{') depth++;
+        else if (source[index] === '}' && --depth === 0) {
+          close = index;
+          break;
+        }
+      }
+      if (close < 0) continue;
       // PORT_CHANGED_MEMBER supplies newval and param.  Preserve the common
       // hardware shape where a rising switch edge sets one indexed latch;
       // its separate output-latch callback remains source-compiled and owns
       // clearing that state.
-      const body = source.slice(start, start + 800);
+      const body = source.slice(open + 1, close);
       const match = /\bnewval\b[\s\S]{0,300}?\b(m_\w+)\s*\[\s*param\s*\]\s*=\s*(?:1|true)\s*;/.exec(body);
-      if (match) {
-        changedLatchMembers.set(key, match[1]);
-        return match[1];
-      }
+      const definition = {
+        handler: {
+          id: `input-changed:${key}`,
+          ownerClass: className,
+          method,
+          parameters: 'ioport_field &field, u32 param, ioport_value oldval, ioport_value newval',
+          body,
+          program: compileMameHandler(normalizeMameExecutionSource(body)),
+          source: {
+            file: String(sourceNode.props.path),
+            line: source.slice(0, start).split('\n').length,
+            column: 1,
+          },
+        },
+        ...(match ? { stateMember: match[1] } : {}),
+      };
+      changedHandlers.set(key, definition);
+      return definition;
     }
-    changedLatchMembers.set(key, undefined);
+    changedHandlers.set(key, undefined);
     return undefined;
   };
   for (const port of ports) {
@@ -1684,14 +1753,21 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           .map(modifier => /PORT_CHANGED_MEMBER\s*\([^,]+,\s*FUNC\s*\(\s*(\w+)::(\w+)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
         if (changed) {
-          const stateMember = changedLatchMember(changed[1]!, changed[2]!);
-          if (stateMember && mask > 0 && (mask & (mask - 1)) === 0) {
+          const definition = changedHandler(changed[1]!, changed[2]!);
+          if (definition && mask > 0 && (mask & (mask - 1)) === 0) {
+            if (!inputChangedHandlers.some(handler =>
+              handler.ownerClass === definition.handler.ownerClass &&
+              handler.method === definition.handler.method)) {
+              inputChangedHandlers.push(definition.handler);
+            }
             inputLatches.push({
               port: tag,
               mask,
               activeLow,
-              stateMember,
-              index: Math.log2(mask),
+              ...(definition.stateMember ? {
+                stateMember: definition.stateMember,
+                index: Math.log2(mask),
+              } : {}),
               handler: `${changed[1]}.${changed[2]}`,
             });
           }
@@ -1783,6 +1859,34 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           bindings.push({
             port: tag, mask, keys: ['ArrowRight'], label: named ? `${named} Right` : `${type}_RIGHT`,
             activeLow: false, relativeDelta: delta,
+          });
+          continue;
+        }
+        if (type === 'IPT_TRACKBALL_X' || type === 'IPT_TRACKBALL_Y') {
+          const delta = keyDelta ? sourceNumber(keyDelta[1]!) : 1;
+          const reversed = mods.includes('PORT_REVERSE');
+          const negative = reversed ? delta : -delta;
+          const positive = -negative;
+          const vertical = type === 'IPT_TRACKBALL_Y';
+          const negativeKey = vertical ? 'ArrowUp' : 'ArrowLeft';
+          const positiveKey = vertical ? 'ArrowDown' : 'ArrowRight';
+          const negativeName = vertical ? 'Up' : 'Left';
+          const positiveName = vertical ? 'Down' : 'Right';
+          bindings.push({
+            port: tag,
+            mask,
+            keys: [negativeKey],
+            label: named ? `${named} ${negativeName}` : `${type}_${negativeName.toUpperCase()}`,
+            activeLow: false,
+            relativeDelta: negative,
+          });
+          bindings.push({
+            port: tag,
+            mask,
+            keys: [positiveKey],
+            label: named ? `${named} ${positiveName}` : `${type}_${positiveName.toUpperCase()}`,
+            activeLow: false,
+            relativeDelta: positive,
           });
           continue;
         }
@@ -2139,7 +2243,8 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       ? sound.discreteDac as GeneratedDiscreteDacPlan
       : 'discreteEffects' in sound
         ? sound.discreteEffects as GeneratedDiscreteEffectsPlan
-      : undefined,
+        : undefined,
+    inputChangedHandlers,
   );
 
   // The canonical dossier data feeds both the portable Markdown download and
@@ -2694,4 +2799,3 @@ function writeCartShelfIndex(setDir: string, outDir: string, set: string): numbe
   writeFileSync(join(outDir, 'carts.json'), JSON.stringify({ set, carts }));
   return carts.length;
 }
-

@@ -185,6 +185,10 @@ export class GeneratedZ80PioDevice implements Device {
     }
   }
 
+  hasMember(_name: string): boolean { return false; }
+
+  bindMember(_name: string, _value: unknown): void {}
+
   constant(name: string): number | undefined {
     return this.definition.constants[name] ??
       this.definition.constants[name.split('::').at(-1)!];

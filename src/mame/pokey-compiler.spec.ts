@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
-import { compilePokey, generatedPokeyCoreSource } from './pokey-compiler.ts';
+import {
+  compilePokey,
+  generatedPokeyCoreSource,
+  generatedPokeyWorkletSource,
+} from './pokey-compiler.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
 
 const mameSrc = process.env.MAME_SRC ?? '../mame';
@@ -46,6 +50,9 @@ assert.deepEqual(plan.poly17, { size: 17, taps: [8, 13] });
 // The emitted engine carries its provenance and the plan it was built from.
 const source = generatedPokeyCoreSource(plan);
 assert.match(source, /GENERATED from src\/devices\/sound\/pokey\.cpp:\d+/);
+const worklet = generatedPokeyWorkletSource(plan);
+assert.match(worklet, /export class GeneratedPokeyFrameRenderer/);
+assert.match(worklet, /registerProcessor\('pokey', GeneratedPokeyProcessor\)/);
 assert.match(source, /export class GeneratedPokeyCore/);
 assert.ok(source.includes('"defaultGain": 744'));
 

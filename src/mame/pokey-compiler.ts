@@ -408,3 +408,108 @@ export class GeneratedPokeyCore {
 }
 `;
 }
+
+/** Emit a standalone POKEY AudioWorklet for boards where it is the primary sound chip. */
+export function generatedPokeyWorkletSource(plan: GeneratedPokeyPlan): string {
+  return `${generatedPokeyCoreSource(plan)}
+
+export interface GeneratedPokeyWrite {
+  offset: number;
+  data: number;
+  frac?: number;
+}
+
+export class GeneratedPokeyFrameRenderer {
+  private sampleCarry = 0;
+  private readonly core: GeneratedPokeyCore;
+  private readonly outputRate: number;
+  private readonly refresh: number;
+
+  constructor(core: GeneratedPokeyCore, outputRate: number, refresh: number) {
+    this.core = core;
+    this.outputRate = outputRate;
+    this.refresh = refresh;
+  }
+
+  render(writes: readonly GeneratedPokeyWrite[]): Float32Array {
+    this.sampleCarry += this.outputRate / this.refresh;
+    const count = Math.floor(this.sampleCarry);
+    this.sampleCarry -= count;
+    const output = new Float32Array(count);
+    let sampleIndex = 0;
+    for (const write of writes) {
+      const writeSample = Math.ceil(
+        Math.max(0, Math.min(1, write.frac ?? 0)) * count,
+      );
+      while (sampleIndex < writeSample) output[sampleIndex++] = this.core.sample();
+      this.core.write(write.offset, write.data);
+    }
+    while (sampleIndex < count) output[sampleIndex++] = this.core.sample();
+    return output;
+  }
+}
+
+declare const sampleRate: number;
+declare class AudioWorkletProcessor {
+  readonly port: MessagePort;
+  constructor();
+}
+declare function registerProcessor(
+  name: string,
+  processorCtor: new () => AudioWorkletProcessor,
+): void;
+
+class GeneratedPokeyProcessor extends AudioWorkletProcessor {
+  private renderer?: GeneratedPokeyFrameRenderer;
+  private readonly frames: Float32Array[] = [];
+  private current?: Float32Array;
+  private currentIndex = 0;
+  private lastSample = 0;
+
+  constructor() {
+    super();
+    this.port.onmessage = (event: MessageEvent) => {
+      const message = event.data as {
+        type: string;
+        clock?: number;
+        refresh?: number;
+        writes?: GeneratedPokeyWrite[];
+      };
+      if (message.type === 'init') {
+        const core = new GeneratedPokeyCore(message.clock ?? 1_500_000, sampleRate);
+        this.renderer = new GeneratedPokeyFrameRenderer(
+          core,
+          sampleRate,
+          message.refresh ?? 60,
+        );
+      } else if (message.type === 'batch' && this.renderer) {
+        this.frames.push(this.renderer.render(message.writes ?? []));
+        while (this.frames.length > 3) this.frames.shift();
+      }
+    };
+  }
+
+  private nextSample(): number {
+    while (!this.current || this.currentIndex >= this.current.length) {
+      this.current = this.frames.shift();
+      this.currentIndex = 0;
+      if (!this.current) return this.lastSample;
+    }
+    return (this.lastSample = this.current[this.currentIndex++]!);
+  }
+
+  process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
+    const channels = outputs[0];
+    const output = channels?.[0];
+    if (!output) return true;
+    for (let index = 0; index < output.length; index++) output[index] = this.nextSample();
+    for (let channel = 1; channel < (channels?.length ?? 0); channel++) {
+      channels![channel]!.set(output);
+    }
+    return true;
+  }
+}
+
+registerProcessor('pokey', GeneratedPokeyProcessor);
+`;
+}

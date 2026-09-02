@@ -12,6 +12,191 @@ interface OpmTimerState {
   remaining: [number, number];
 }
 
+const UPD_IDLE = 0;
+const UPD_DROP_DRQ = 1;
+const UPD_START = 2;
+const UPD_FIRST_REQ = 3;
+const UPD_LAST_SAMPLE = 4;
+const UPD_DUMMY1 = 5;
+const UPD_ADDR_MSB = 6;
+const UPD_ADDR_LSB = 7;
+const UPD_DUMMY2 = 8;
+const UPD_BLOCK_HEADER = 9;
+const UPD_NIBBLE_COUNT = 10;
+const UPD_NIBBLE_MSN = 11;
+const UPD_NIBBLE_LSN = 12;
+
+/** Timer/handshake half of MAME's uPD7759 slave-mode state machine. */
+class Upd7759Runtime {
+  readonly tag: string;
+  readonly clock: number;
+  readonly ownerCpu: string;
+  private readonly dispatch: (tag: string, signal: string, value: number) => void;
+  private state = UPD_IDLE;
+  private clocksLeft = 0;
+  private fifo = 0;
+  private resetLine = true;
+  private mdLine = true;
+  private drq = 0;
+  private postState = UPD_IDLE;
+  private postClocks = 0;
+  private requestedSample = 0;
+  private lastSample = 0;
+  private blockHeader = 0;
+  private sampleRate = 0;
+  private nibblesLeft = 0;
+  private repeatCount = 0;
+  private firstHeader = false;
+
+  constructor(
+    tag: string,
+    clock: number,
+    ownerCpu: string,
+    dispatch: (tag: string, signal: string, value: number) => void,
+  ) {
+    this.tag = tag;
+    this.clock = clock;
+    this.ownerCpu = ownerCpu;
+    this.dispatch = dispatch;
+  }
+
+  write(method: string, data: number): void {
+    if (method === 'port_w') this.fifo = data & 0xff;
+    else if (method === 'reset_w') {
+      const next = data !== 0;
+      if (this.resetLine && !next) this.reset();
+      this.resetLine = next;
+    } else if (method === 'md_w') {
+      const next = data !== 0;
+      if (this.state === UPD_IDLE && this.resetLine && this.mdLine && !next) {
+        this.state = UPD_START;
+        this.clocksLeft = 0;
+      }
+      this.mdLine = next;
+    }
+  }
+
+  busy(): number {
+    return this.state === UPD_IDLE ? 1 : 0;
+  }
+
+  tick(cpuTag: string, cycles: number, cpuClock: number): void {
+    if (cpuTag !== this.ownerCpu || this.state === UPD_IDLE) return;
+    this.clocksLeft -= cycles / Math.max(1, cpuClock) * this.clock;
+    let guard = 0;
+    while (this.clocksLeft <= 0 && this.state !== UPD_IDLE && guard++ < 4096) {
+      const overrun = this.clocksLeft;
+      this.advance();
+      this.clocksLeft += overrun;
+    }
+  }
+
+  reset(): void {
+    this.state = UPD_IDLE;
+    this.clocksLeft = 0;
+    this.nibblesLeft = 0;
+    this.repeatCount = 0;
+    this.postState = UPD_IDLE;
+    this.postClocks = 0;
+    this.requestedSample = 0;
+    this.lastSample = 0;
+    this.blockHeader = 0;
+    this.sampleRate = 0;
+    this.firstHeader = false;
+    this.setDrq(0);
+  }
+
+  private advance(): void {
+    if (this.state === UPD_DROP_DRQ) {
+      this.setDrq(0);
+      this.state = this.postState;
+      this.clocksLeft = this.postClocks;
+      return;
+    }
+    let request = false;
+    if (this.state === UPD_START) {
+      this.requestedSample = this.mdLine ? this.fifo : 0x10;
+      this.clocksLeft = 70;
+      this.state = UPD_FIRST_REQ;
+    } else if (this.state === UPD_FIRST_REQ) {
+      request = true;
+      this.clocksLeft = 44;
+      this.state = UPD_LAST_SAMPLE;
+    } else if (this.state === UPD_LAST_SAMPLE) {
+      this.lastSample = this.fifo;
+      request = true;
+      this.clocksLeft = 28;
+      this.state = this.requestedSample > this.lastSample ? UPD_IDLE : UPD_DUMMY1;
+    } else if (this.state === UPD_DUMMY1) {
+      request = true;
+      this.clocksLeft = 32;
+      this.state = UPD_ADDR_MSB;
+    } else if (this.state === UPD_ADDR_MSB) {
+      request = true;
+      this.clocksLeft = 44;
+      this.state = UPD_ADDR_LSB;
+    } else if (this.state === UPD_ADDR_LSB) {
+      request = true;
+      this.clocksLeft = 36;
+      this.state = UPD_DUMMY2;
+    } else if (this.state === UPD_DUMMY2) {
+      request = true;
+      this.firstHeader = false;
+      this.clocksLeft = 36;
+      this.state = UPD_BLOCK_HEADER;
+    } else if (this.state === UPD_BLOCK_HEADER) {
+      if (this.repeatCount) this.repeatCount--;
+      this.blockHeader = this.fifo;
+      request = true;
+      if ((this.blockHeader & 0xc0) === 0) {
+        this.clocksLeft = 1024 * ((this.blockHeader & 0x3f) + 1);
+        this.state = this.blockHeader === 0 && this.firstHeader
+          ? UPD_IDLE
+          : UPD_BLOCK_HEADER;
+      } else if ((this.blockHeader & 0xc0) === 0x40) {
+        this.sampleRate = (this.blockHeader & 0x3f) + 1;
+        this.nibblesLeft = 256;
+        this.clocksLeft = 36;
+        this.state = UPD_NIBBLE_MSN;
+      } else if ((this.blockHeader & 0xc0) === 0x80) {
+        this.sampleRate = (this.blockHeader & 0x3f) + 1;
+        this.clocksLeft = 36;
+        this.state = UPD_NIBBLE_COUNT;
+      } else {
+        this.repeatCount = (this.blockHeader & 7) + 1;
+        this.clocksLeft = 36;
+        this.state = UPD_BLOCK_HEADER;
+      }
+      if (this.blockHeader !== 0) this.firstHeader = true;
+    } else if (this.state === UPD_NIBBLE_COUNT) {
+      this.nibblesLeft = this.fifo + 1;
+      request = true;
+      this.clocksLeft = 36;
+      this.state = UPD_NIBBLE_MSN;
+    } else if (this.state === UPD_NIBBLE_MSN) {
+      request = true;
+      this.clocksLeft = this.sampleRate * 4;
+      this.state = --this.nibblesLeft === 0 ? UPD_BLOCK_HEADER : UPD_NIBBLE_LSN;
+    } else if (this.state === UPD_NIBBLE_LSN) {
+      this.clocksLeft = this.sampleRate * 4;
+      this.state = --this.nibblesLeft === 0 ? UPD_BLOCK_HEADER : UPD_NIBBLE_MSN;
+    }
+    if (request) {
+      this.postState = this.state;
+      this.postClocks = this.clocksLeft - 21;
+      this.state = UPD_DROP_DRQ;
+      this.clocksLeft = 21;
+      this.setDrq(1);
+    }
+  }
+
+  private setDrq(value: number): void {
+    if (this.drq === value) return;
+    this.drq = value;
+    this.dispatch(this.tag, 'drq', value);
+  }
+}
+
 export function installYm2151Runtime(context: SoundRuntimeContext): {
   reset(): void;
   tickCpu?(cpuTag: string, cycles: number): void;
@@ -85,6 +270,34 @@ export function installYm2151Runtime(context: SoundRuntimeContext): {
   const auxiliaries = (context.sound.auxiliaryDevices ?? [])
     .filter(device => device.type === 'OKIM6295')
     .map(device => installAuxiliaryOkim6295Runtime(context, device));
+  const upd = (context.sound.auxiliaryDevices ?? [])
+    .filter(device => device.type === 'UPD7759')
+    .map(device => new Upd7759Runtime(
+      device.deviceTag,
+      device.clock,
+      cpuFor(device.deviceTag),
+      context.dispatch,
+    ));
+  for (const chip of upd) {
+    const definition = context.sound.auxiliaryDevices?.find(device =>
+      device.deviceTag === chip.tag);
+    for (const method of definition?.writeMethods ?? []) {
+      const name = `${chip.tag}.${method}`;
+      const write = (value: number): number => {
+        chip.write(method, value);
+        context.soundWrite(0, value, context.fraction(), name);
+        return 0;
+      };
+      context.registry.write[name] = (_address, _offset, value) => void write(value);
+      for (const alias of deviceAliases(context.board, chip.tag)) {
+        context.calls[`${alias}.${method}`] = (...args: number[]) => write(args.at(-1) ?? 0);
+      }
+    }
+    for (const alias of deviceAliases(context.board, chip.tag)) {
+      context.calls[`${alias}.busy_r`] = () => chip.busy();
+    }
+    context.registry.read[`${chip.tag}.busy_r`] = () => chip.busy();
+  }
   // MSM5205 ADPCM chips mixed by the worklet: the board never instantiates
   // them, so driver calls (m_adpcm[0]->data_w from the vck feeder) and mapped
   // writes go straight to the sink, tagged by device and method name.
@@ -167,6 +380,7 @@ export function installYm2151Runtime(context: SoundRuntimeContext): {
         }
       }
       for (const auxiliary of auxiliaries) auxiliary.reset?.();
+      for (const chip of upd) chip.reset();
     },
     tickCpu: (cpuTag, cycles) => {
       const cpu = context.board.execution.cpus.find(candidate => candidate.tag === cpuTag);
@@ -210,6 +424,10 @@ export function installYm2151Runtime(context: SoundRuntimeContext): {
         }
       }
       for (const auxiliary of auxiliaries) auxiliary.tickCpu?.(cpuTag, cycles);
+      for (const chip of upd) {
+        const owner = context.board.execution.cpus.find(candidate => candidate.tag === cpuTag);
+        chip.tick(cpuTag, cycles, owner?.cycleClock ?? owner?.clock ?? 1);
+      }
     },
   };
 }

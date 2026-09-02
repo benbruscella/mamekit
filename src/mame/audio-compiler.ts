@@ -1025,6 +1025,52 @@ export interface GeneratedMsm5205Plan {
   source: { file: string; line: number };
 }
 
+export interface GeneratedUpd7759Plan {
+  schemaVersion: 1;
+  type: 'UPD7759';
+  className: string;
+  stepTable: number[][];
+  stateTable: number[];
+  sampleScale: number;
+  sourceFiles: string[];
+  source: { file: string; line: number };
+}
+
+/** Compile the uPD7759 ADPCM converter tables from MAME's device source. */
+export function compileUpd7759(
+  mameSrc: string,
+  definition: MameHardwareDefinition,
+): GeneratedUpd7759Plan {
+  const cppFile = definition.sourceFile;
+  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
+  const step = /upd775x_step\s*\[\s*16\s*\]\s*\[\s*16\s*\]\s*=\s*\{([\s\S]*?)\n\};/.exec(cpp);
+  const state = /upd775x_state_table\s*\[\s*16\s*\]\s*=\s*\{([^}]+)\}/.exec(cpp);
+  const scale = /sample_scale\s*=\s*([\d.]+)\s*\/\s*([\d.]+)/.exec(cpp);
+  if (!step || !state || !scale) {
+    throw new Error('UPD7759: MAME source shape is not executable by the audio compiler');
+  }
+  const stepTable = [...step[1]!.matchAll(/\{([^}]+)\}/g)]
+    .map(row => splitMameArgs(row[1]!).map(Number));
+  const stateTable = splitMameArgs(state[1]!).map(Number);
+  if (stepTable.length !== 16 || stepTable.some(row => row.length !== 16) ||
+      stateTable.length !== 16) {
+    throw new Error('UPD7759: invalid ADPCM table dimensions in MAME source');
+  }
+  return {
+    schemaVersion: 1,
+    type: 'UPD7759',
+    className: definition.className,
+    stepTable,
+    stateTable,
+    sampleScale: Number(scale[1]) / Number(scale[2]),
+    sourceFiles: [cppFile],
+    source: {
+      file: cppFile,
+      line: cpp.slice(0, step.index).split('\n').length,
+    },
+  };
+}
+
 /**
  * Compile the MSM5205 ADPCM tables and limits from MAME. The emitted worklet
  * consumes this data; no separately maintained decoder table lives in src.
