@@ -8,14 +8,7 @@
 // time is worth, and hand them to the sink.
 
 import type { SoundRuntimeContext, SoundRuntimeHooks } from '../sound-runtime.ts';
-
-/**
- * `stream_alloc(0, 2, SAMPLE_RATE_OUTPUT_ADAPTIVE)`: MAME lets the sound
- * system pick, so the rate is ours to choose. `sound_stream_update` only
- * reads the channel state -- it advances nothing -- so this sets output
- * resolution and nothing about the chip's timing.
- */
-const OUTPUT_RATE = 48000;
+import { GAMEBOY_OUTPUT_RATE } from './definition.ts';
 
 /**
  * A stall must not become an unbounded catch-up burst. Fast-forward and a
@@ -50,7 +43,7 @@ export function installGameboyRuntime(context: SoundRuntimeContext): SoundRuntim
     tickCpu: (cpuTag, cycles) => {
       if (!driver || cpuTag !== driver.tag) return;
       const elapsed = cycles / Math.max(1, driver.cycleClock ?? driver.clock);
-      carry += elapsed * OUTPUT_RATE;
+      carry += elapsed * GAMEBOY_OUTPUT_RATE;
       let due = Math.floor(carry);
       carry -= due;
       if (due <= 0) return;

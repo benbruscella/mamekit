@@ -68,6 +68,10 @@ import {
 } from './dossier.ts';
 import { emitArchiveRoutes } from './archive.ts';
 
+import {
+  GAMEBOY_APU_TYPE,
+  GAMEBOY_OUTPUT_RATE,
+} from '../hardware/gameboy/definition.ts';
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '../..');
 
@@ -1106,6 +1110,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // the worklet; the DSP runs beside the CPU as a generated device because the
   // video half reaches it through a device finder (see the a2600 capability).
   const tiaChip = devices.find(device => device.props.type === 'TIA');
+  const gameboyApu = devices.find(device => device.props.type === GAMEBOY_APU_TYPE);
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
         const type = String(device.props.type);
@@ -1253,6 +1258,18 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               kind: 'discrete',
               clock: cpus[0].clock,
               worklet: String(discreteDevice.props.type).toLowerCase().replace(/_/g, '-'),
+            }
+        : gameboyApu
+          ? {
+              kind: 'gameboy',
+              // MAME allocates the APU's stream `SAMPLE_RATE_OUTPUT_ADAPTIVE`,
+              // so the rate is the host's to choose. One constant chooses it
+              // for the renderer and for the audio context alike.
+              clock: GAMEBOY_OUTPUT_RATE,
+              deviceTag: String(gameboyApu.props.tag),
+              // No master gain: `add_route(n, "speaker", 0.50, n)` is applied
+              // where the two outputs are mixed to one channel, so what
+              // arrives here is already what MAME's speaker hears.
             }
         : tiaChip
           ? (() => {

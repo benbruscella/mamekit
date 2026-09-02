@@ -37,6 +37,28 @@ export const GAMEBOY_PORTS: readonly PortDeclaration[] = [
   { name: 'clock', kind: 'clock', note: 'the 4.194304 MHz master clock the CPU also runs at' },
 ];
 
+/** MAME's own type for the console's sound half. */
+export const GAMEBOY_APU_TYPE = 'DMG_APU';
+
+/**
+ * The worklet that plays what the generated APU renders.
+ *
+ * The chip runs beside the processor -- a game reads its status register back
+ * within the frame -- so it renders on the main thread and this only plays the
+ * result. See [[audio-engine-placement]] for which side a chip belongs on.
+ */
+export const GAMEBOY_AUDIO_WORKLET_ARTIFACT = 'audio/gameboy-worklet.ts';
+
+/**
+ * Output rate for the APU's stream.
+ *
+ * MAME allocates it `SAMPLE_RATE_OUTPUT_ADAPTIVE`, which means the sound
+ * system picks -- so this is ours to choose, and it is the one place that
+ * chooses it: the runtime renders at this rate and the shell opens its audio
+ * context at it.
+ */
+export const GAMEBOY_OUTPUT_RATE = 48000;
+
 export function gameboyDeviceIrArtifact(type: string): string {
   return `devices/${type.toLowerCase()}.device.ir.json`;
 }
