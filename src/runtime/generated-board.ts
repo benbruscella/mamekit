@@ -8,6 +8,7 @@ import {
   type Device,
   type GeneratedMemoryBank,
 } from './generated-device.ts';
+import type { GeneratedCallArgument } from '../ir/execute.ts';
 import { GeneratedFrameRunner } from './generated-frame.ts';
 import {
   GeneratedMameVideoPrimitives,
@@ -24,7 +25,11 @@ import {
   wireGeneratedDevice,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
-import { HOST_SERVICE_CALLS, type BoardIr } from '../ir/board.ts';
+import {
+  HOST_SERVICE_CALLS,
+  type BoardIr,
+  type GeneratedStateMember,
+} from '../ir/board.ts';
 import {
   applyBoardTransforms,
   bindBoardEffects,
@@ -818,6 +823,7 @@ class IrBoard implements Board {
         };
       },
     };
+    bindGeneratedStateWidths(this.state, machine.stateMembers ?? []);
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
       bindGeneratedRegionState(
@@ -3504,7 +3510,10 @@ class IrBoard implements Board {
       fraction: () => this.soundFraction(),
       callDevice: (tag, method, ...args) => {
         const device = this.devices.get(tag);
-        return device?.methodNames().includes(method) ? device.call(method, ...args) : undefined;
+        if (!device?.methodNames().includes(method)) return undefined;
+        // `invoke` rather than `call`: a stream-rendering chip is handed
+        // MAME's `sound_stream` surface, which is an object, not a number.
+        return Number(device.invoke(method, ...args as GeneratedCallArgument[])) || 0;
       },
       deviceStream: tag => this.devices.get(tag)?.takeStreamSamples?.() ?? [],
       runCallbackHandler: callbackId =>
@@ -4076,6 +4085,74 @@ export function generatedSignalHandlerArguments(
     }
   }
   return args;
+}
+
+/**
+ * Give the driver state's own integer members the width MAME declared.
+ *
+ * The state object otherwise holds only what a handler has written, at
+ * whatever a JavaScript `+` produced, so nothing ever wraps: the Game Boy's
+ * `uint8_t m_gb_io[0x10]` counted TIMECNT past 255 and never returned to zero,
+ * and reaching zero is the one event that raises its timer interrupt. Games
+ * drew perfectly and played silence, because a Game Boy music driver runs off
+ * that interrupt.
+ *
+ * A fixed array becomes the matching typed array, which wraps on store on its
+ * own. A scalar gets an accessor that wraps, so `members.m_divcount += n`
+ * stays sixteen bits the way the C++ declaration does.
+ *
+ * Only what the state object does not already hold: region, input and device
+ * binding run afterwards and legitimately put objects on some of these names.
+ */
+export function bindGeneratedStateWidths(
+  state: Record<string, unknown>,
+  members: readonly GeneratedStateMember[],
+): void {
+  for (const member of members) {
+    if (Object.hasOwn(state, member.name)) continue;
+    if (member.arrayLength) {
+      state[member.name] = member.bits === 1
+        ? new Uint8Array(member.arrayLength)
+        : member.signed
+          ? member.bits === 8
+            ? new Int8Array(member.arrayLength)
+            : member.bits === 16
+              ? new Int16Array(member.arrayLength)
+              : new Int32Array(member.arrayLength)
+          : member.bits === 8
+            ? new Uint8Array(member.arrayLength)
+            : member.bits === 16
+              ? new Uint16Array(member.arrayLength)
+              : new Uint32Array(member.arrayLength);
+      continue;
+    }
+    let stored = 0;
+    Object.defineProperty(state, member.name, {
+      configurable: true,
+      enumerable: true,
+      get: () => stored,
+      set: next => {
+        // A binding pass may still seat an object here (a shared pointer is
+        // declared `uint8_t *` in some drivers). Take it as it comes and stop
+        // wrapping this name rather than turning it into NaN.
+        if (typeof next !== 'number' && typeof next !== 'boolean') {
+          Object.defineProperty(state, member.name, {
+            configurable: true, enumerable: true, writable: true, value: next,
+          });
+          return;
+        }
+        stored = generatedStateWidth(Number(next), member.bits, member.signed);
+      },
+    });
+  }
+}
+
+/** MAME's C integer conversion for one stored driver-state member. */
+function generatedStateWidth(value: number, bits: 1 | 8 | 16 | 32, signed?: boolean): number {
+  if (bits === 1) return value ? 1 : 0;
+  if (bits === 8) return signed ? value << 24 >> 24 : value & 0xff;
+  if (bits === 16) return signed ? value << 16 >> 16 : value & 0xffff;
+  return signed ? value | 0 : value >>> 0;
 }
 
 export function bindGeneratedDriverState(

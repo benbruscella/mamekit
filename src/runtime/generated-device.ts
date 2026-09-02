@@ -600,6 +600,13 @@ class IrDevice implements Device {
         logerror: () => 0,
         clock: () => clock,
         clocks_to_attotime: ticks => clock > 0 ? ticks / clock : Infinity,
+        // MAME `device_t::attotime_to_clocks`, the inverse. A chip that
+        // measures an interval in its own clocks needs it: the Game Boy APU
+        // advances every channel by
+        // `attotime_to_clocks(now - m_last_updated)`, and unbound that was
+        // zero every time -- the square waves never toggled and the console
+        // rendered silence however loud the game set the envelope.
+        attotime_to_clocks: seconds => Math.floor(Number(seconds) * clock),
         // MAME `sound_stream::put_int(channel, index, value, max)`, with the
         // channel dropped by the caller: a sound device publishes one rendered
         // sample per call, scaled to full-range, and the host collects them

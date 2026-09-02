@@ -434,6 +434,21 @@ export function compileMameDevice(
     }
   }
 
+  // File-scope helpers the device's own methods call. They belong to no class,
+  // so the hierarchy walk above never reaches them, and an unresolved call
+  // answers zero rather than failing: `convert_output` in gb.cpp turns a
+  // channel's signal into its output level, and without it the Game Boy
+  // mixed four channels of silence however loud the game set the envelopes.
+  // Only helpers something already collected actually calls -- a device source
+  // shares a translation unit with its neighbours, and the rest are theirs.
+  const collectedBodies = [...methodBodies.values()].join('\n');
+  for (const helper of sourceMethods) {
+    if (helper.className !== '') continue;
+    if (methods.some(candidate => candidate.name === helper.name)) continue;
+    if (!new RegExp(`\\b${helper.name}\\s*\\(`).test(collectedBodies)) continue;
+    replaceOrAppend(helper);
+  }
+
   const callbacks: GeneratedDeviceCallback[] = [];
   const allocatedArrays = allocatedMemberArrays(
     sources.map(source => source.source).join('\n'),
@@ -1053,7 +1068,7 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
   return methods;
 }
 
-function memberDeclarations(
+export function memberDeclarations(
   declaration: MameClass,
 ): { name: string; valueType: string; arrayLength?: number; arrayShape?: number[] }[] {
   const members: {
@@ -1087,15 +1102,22 @@ function memberDeclarations(
   // that device with two members and no state at all. The shape is what makes a
   // data member -- a type, a name, an optional array bound, a semicolon -- so
   // the name pattern is a name.
+  // Every pattern admits an in-class initializer before the semicolon.
+  // Modern MAME declares members `uint8_t m_gb_io[0x10]{};` and
+  // `uint16_t m_divcount = 0;`, and requiring the semicolon to follow the
+  // declarator directly meant the whole Game Boy driver state read as *no
+  // members at all* -- so nothing recorded that TIMECNT is eight bits wide,
+  // it counted past 255 forever, and the timer interrupt that drives the
+  // console's music never fired.
   const patterns = [
     // `struct player_gfx p0gfx;` -- an elaborated type specifier is still a
     // data member, and the TIA declares both its sprite state that way. Without
     // this they were not members at all, which left the whole scanline
     // compositor unemittable and every 2600 frame in the interpreter.
-    /^\s*(?:struct|union|enum)\s+([\w:]+)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(\w+)\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*\s*;/gm,
+    /^\s*(?:struct|union|enum)\s+([\w:]+)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>)\s+(\w+)(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
   ];
   for (const pattern of patterns) {
     for (const match of declaration.body.matchAll(pattern)) {
@@ -1198,7 +1220,7 @@ function callbackSlots(valueType: string): number {
   return Number(/::array<(\d+)>/.exec(valueType)?.[1] ?? 1);
 }
 
-function integerBits(valueType: string): 1 | 8 | 16 | 32 | undefined {
+export function integerBits(valueType: string): 1 | 8 | 16 | 32 | undefined {
   const normalized = valueType.replace(/\bconst\b/g, '').trim();
   if (normalized === 'bool') return 1;
   if (['u8', 's8', 'uint8_t', 'int8_t', 'char'].includes(normalized)) return 8;
@@ -1207,7 +1229,7 @@ function integerBits(valueType: string): 1 | 8 | 16 | 32 | undefined {
   return undefined;
 }
 
-function integerSigned(valueType: string): boolean {
+export function integerSigned(valueType: string): boolean {
   const normalized = valueType.replace(/\bconst\b/g, '').trim();
   return ['s8', 'int8_t', 'char', 's16', 'int16_t', 's32', 'int32_t', 'int'].includes(normalized);
 }

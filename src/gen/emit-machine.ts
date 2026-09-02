@@ -12,6 +12,7 @@ import type {
   GeneratedExpression,
   GeneratedHandler,
   GeneratedHandlerOperation,
+  GeneratedStateMember,
   GeneratedVideoPlan,
 } from '../ir/board.ts';
 import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
@@ -378,6 +379,17 @@ export function lowerGeneratedMachine(
   // the request to the whole machine however deep it is set.
   const perfectQuantumBoard = graph.nodes.some(node =>
     node.label === 'MachineConfig' && node.props.perfectQuantum === true);
+  // Widths for the driver state class's own integer members, so the board can
+  // give them storage that wraps the way MAME's C++ declaration does.
+  //
+  // The selected config's node only: its list already walks that state class's
+  // whole base chain, while a device's own device_add_mconfig is a
+  // MachineConfig node too and its members belong to that device's state, not
+  // the board's.
+  const rootStateMembers = byId.get(rootMachineId)?.props.stateMembers;
+  const stateMembers: GeneratedStateMember[] = (
+    Array.isArray(rootStateMembers) ? rootStateMembers : []
+  ).map(raw => JSON.parse(String(raw)) as GeneratedStateMember);
   const memoryBanks = graph.nodes.some(node => node.label === 'MemoryBank')
     ? lowerMemoryBanks(graph, sourceRef)
     : [];
@@ -516,6 +528,10 @@ export function lowerGeneratedMachine(
     device.type === 'EXIDY' || device.type === 'EXIDY_VENTURE');
   const discreteDevice = devices.find(device => device.type === 'DISCRETE');
   const tiaDevice = devices.find(device => device.type === 'TIA');
+  // MAME's gameboy_sound_device renders through `sound_stream` like the TIA
+  // does, but its registers ARE in the processor's map, so the writes already
+  // reach the chip and only the sample pull needs wiring.
+  const gameboyApu = devices.find(device => device.type === 'DMG_APU');
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
     .filter((key): key is string => Boolean(key));
@@ -680,6 +696,18 @@ export function lowerGeneratedMachine(
             controlOffset: -1,
             ...(discretePlan?.inputNodes ? { writeOffsets: discretePlan.inputNodes } : {}),
           }
+        : gameboyApu
+          ? {
+              kind: 'gameboy',
+              deviceTag: gameboyApu.tag,
+              deviceType: gameboyApu.type,
+              // Its registers are in the LR35902's own address map, so the
+              // board routes every write to the device already; the sound
+              // binding exists purely to pump the renderer.
+              writeMethods: [],
+              enableMethods: [],
+              controlOffset: -1,
+            }
         : tiaDevice
           ? {
               kind: 'tia',
@@ -746,6 +774,7 @@ export function lowerGeneratedMachine(
     devices,
     handlers,
     maps,
+    ...(stateMembers.length ? { stateMembers } : {}),
     ...(compiledVideo ? { video: compiledVideo.plan } : {}),
     ...(sound ? { sound } : {}),
   };

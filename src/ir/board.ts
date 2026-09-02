@@ -1021,6 +1021,25 @@ export interface GeneratedAudioRoute {
   filter?: { index: number; bank: number; channel: number };
 }
 
+/**
+ * One data member of the driver's own state class, with the width MAME
+ * declared it at.
+ *
+ * The board's state object is otherwise built from whatever a handler happens
+ * to write, so a member has no width at all: `m_gb_io[5] += 1` counted past
+ * 255 forever and the Game Boy's TIMECNT never wrapped to zero, which is the
+ * one event that raises its timer interrupt. Every Game Boy game whose music
+ * runs off that interrupt played silence.
+ */
+export interface GeneratedStateMember {
+  name: string;
+  /** 1 for `bool`; otherwise the declared integer width. */
+  bits: 1 | 8 | 16 | 32;
+  signed?: boolean;
+  /** Element count when the member is a fixed C array (`uint8_t m_io[0x10]`). */
+  arrayLength?: number;
+}
+
 export interface BoardIr {
   schemaVersion: typeof BOARD_IR_SCHEMA_VERSION;
   game: string;
@@ -1033,6 +1052,8 @@ export interface BoardIr {
   execution: GeneratedExecutionPlan;
   devices?: GeneratedDevice[];
   handlers?: GeneratedHandler[];
+  /** Declared widths for the driver state class's own integer members. */
+  stateMembers?: GeneratedStateMember[];
   maps?: GeneratedAddressMap[];
   video?: GeneratedVideoPlan;
   sound?: GeneratedSoundBinding;

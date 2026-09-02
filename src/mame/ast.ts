@@ -118,6 +118,14 @@ export function maskComments(source: string): string {
   return chars.join('');
 }
 
+/**
+ * Statement heads that look exactly like a function definition once the
+ * leading type run is allowed to be anything: `else if (x) {`, `do { ... }`.
+ */
+const CONTROL_KEYWORDS = new Set([
+  'if', 'else', 'for', 'while', 'switch', 'do', 'catch', 'return', 'sizeof', 'namespace',
+]);
+
 export function parseMameSource(file: string, source: string): MameTranslationUnit {
   const masked = maskComments(source);
   const lineStarts = buildLineStarts(source);
@@ -333,6 +341,57 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
       inlineRe.lastIndex = localEnd + 1;
     }
     classRe.lastIndex = braceEnd + 1;
+  }
+
+  // File-scope helper functions. A MAME device source factors small pieces of
+  // behaviour out of its class -- gb.cpp writes
+  // `constexpr s32 convert_output(s32 sample)` and every Game Boy channel
+  // renders its level through it. These belong to no class, so the member
+  // passes above never see them, and a call to an unknown function answers
+  // zero: the Game Boy mixed four channels of silence however loud the game
+  // set the envelopes.
+  //
+  // Recognized conservatively: a definition starting in column 0, outside
+  // every class body and every function already parsed. Anything indented is
+  // a member, a nested declaration or a control-flow brace.
+  // The type run stays on the name's own line and the parameter list admits no
+  // nested parentheses: both keep the match from spanning unrelated source.
+  // Greedy across newlines it read `ROM_END` as the return type of the
+  // `DEFINE_DEVICE_TYPE(...)` below it and ran the parameter list on through
+  // the following constructor's initialiser list -- which buried both macros,
+  // and with them the whole Namco 54xx device type.
+  const freeFunctionRe =
+    /(?:^|\n)((?:[\w:<>,~*&]+[^\S\n]+)+(?:[*&]+[^\S\n]*)?)(\w+)[^\S\n]*\(([^;{}()]*)\)\s*(?:(?:const|noexcept)\s*)*\{/g;
+  const classBodies = classes.map(declaration =>
+    [declaration.bodySpan.start, declaration.bodySpan.end] as [number, number]);
+  let ff: RegExpExecArray | null;
+  while ((ff = freeFunctionRe.exec(masked)) !== null) {
+    const start = ff.index + (ff[0].startsWith('\n') ? 1 : 0);
+    if (occupied.some(([from, to]) => start >= from && start < to)) continue;
+    if (classBodies.some(([from, to]) => start >= from && start < to)) continue;
+    // A leading type run that itself ends in `::` is an out-of-class member
+    // definition whose class match failed, not a free function.
+    if (/::\s*$/.test(ff[1]!)) continue;
+    if (CONTROL_KEYWORDS.has(ff[2]!)) continue;
+    const braceStart = masked.indexOf('{', ff.index + ff[0].length - 1);
+    const braceEnd = matchPair(masked, braceStart, '{', '}');
+    if (braceEnd < 0) continue;
+    const bodyStart = braceStart + 1;
+    functions.push({
+      kind: 'function',
+      className: '',
+      name: ff[2]!,
+      parameters: source.slice(
+        masked.indexOf('(', ff.index),
+        matchPair(masked, masked.indexOf('(', ff.index), '(', ')') + 1,
+      ).slice(1, -1),
+      body: source.slice(bodyStart, braceEnd),
+      statements: parseStatements(file, source, masked, bodyStart, braceEnd, lineStarts),
+      span: span(start, braceEnd + 1),
+      bodySpan: span(bodyStart, braceEnd),
+    });
+    occupied.push([start, braceEnd + 1]);
+    freeFunctionRe.lastIndex = braceEnd + 1;
   }
 
   const macros: MameMacro[] = [];

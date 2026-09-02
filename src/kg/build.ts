@@ -14,6 +14,11 @@ import {
 import { deviceConfiguredScreen } from '../mame/screen-config.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
 import {
+  integerBits,
+  integerSigned,
+  memberDeclarations,
+} from '../mame/device-compiler.ts';
+import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
   parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
   parseStateClassConstants,
@@ -472,6 +477,9 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       cls: cfg.cls,
       name: cfg.name,
       calls: cfg.calls,
+      ...(driverStateMembers(ast, cfg.cls).length
+        ? { stateMembers: driverStateMembers(ast, cfg.cls).map(member => JSON.stringify(member)) }
+        : {}),
       ...(perfectQuantum ? { perfectQuantum: true } : {}),
       ...(resetHandlers.length ? { resetHandlers } : {}),
       ...(startHandlers.length ? { startHandlers } : {}),
@@ -1338,6 +1346,58 @@ export function attotimeSeconds(
   if (amount === null) return undefined;
   const scale = unit === 'usec' ? 1e-6 : unit === 'msec' ? 1e-3 : unit === 'nsec' ? 1e-9 : 1;
   return amount * scale;
+}
+
+/**
+ * The driver state class's own integer data members, with the widths MAME
+ * declared them at.
+ *
+ * A board's state object is built from what its handlers write, so nothing
+ * else records that `uint8_t m_gb_io[0x10]` is eight bits wide or that
+ * `uint16_t m_divcount` wraps at 0x10000. Unbounded, the Game Boy's TIMECNT
+ * counted past 255 and never came back to zero -- the single event that raises
+ * its timer interrupt -- so every game whose music driver runs off that
+ * interrupt played silence while its graphics ran perfectly.
+ *
+ * Integer members only. Anything the runtime binds to an object -- a device
+ * finder, an ioport, a shared pointer -- is not a width and must keep whatever
+ * the board put there.
+ */
+function driverStateMembers(
+  ast: MameAstIndex,
+  className: string,
+): { name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number }[] {
+  const classes = new Map(
+    ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]),
+  );
+  const members: {
+    name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number;
+  }[] = [];
+  // Base-first, so a derived class's redeclaration is the one that stands.
+  for (const name of sourceClassHierarchy(ast, className).reverse()) {
+    const declaration = classes.get(name);
+    if (!declaration) continue;
+    for (const member of memberDeclarations(declaration)) {
+      // A multi-dimensional member is left alone: its rows are objects, and
+      // the width belongs to the innermost one.
+      if (member.arrayShape) continue;
+      // A `const` member is a compile-time constant resolved by name, not
+      // board state, and giving it a zeroed slot would shadow that.
+      if (/\bconst\b/.test(member.valueType)) continue;
+      const bits = integerBits(member.valueType);
+      if (!bits) continue;
+      const entry = {
+        name: member.name,
+        bits,
+        ...(integerSigned(member.valueType) ? { signed: true } : {}),
+        ...(member.arrayLength ? { arrayLength: member.arrayLength } : {}),
+      };
+      const existing = members.findIndex(candidate => candidate.name === member.name);
+      if (existing >= 0) members[existing] = entry;
+      else members.push(entry);
+    }
+  }
+  return members;
 }
 
 /**
