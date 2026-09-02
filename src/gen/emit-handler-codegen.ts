@@ -334,10 +334,23 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
     // different value per method, and merging them here handed every handler
     // the last one's value.
     constants: { ...DEFAULT_CONSTANTS },
-    // The board resolves a member's width from its own binding, so the emitter
-    // is told the name exists and nothing more. Declaring a width here would
-    // narrow a value the board did not narrow.
-    members: members.map(([name, valueType]) => ({ name, valueType })),
+    // Widths come from the driver state class's own declaration, so an
+    // emitted store narrows exactly where the C++ one does -- `m_divcount`
+    // wraps at sixteen bits inline, with no runtime trap on the state object
+    // to intercept it. A member the board binds to memory keeps no width: the
+    // board decides that member's shape.
+    members: members.map(([name, valueType]) => {
+      const declared = valueType
+        ? undefined
+        : machine.stateMembers?.find(candidate => candidate.name === name);
+      return {
+        name,
+        valueType,
+        ...(declared && !declared.arrayLength
+          ? { bits: declared.bits, ...(declared.signed ? { signed: true } : {}) }
+          : {}),
+      };
+    }),
     callbacks: [],
     timers: [],
     boardScope: true,

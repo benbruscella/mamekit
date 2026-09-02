@@ -1373,6 +1373,21 @@ function driverStateMembers(
   const members: {
     name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number;
   }[] = [];
+  // A member the driver uses to carry an input line. MAME's own
+  // `INPUT_LINE_NMI` is 64 and sits in a `uint8_t` happily -- Double Dragon
+  // keeps `uint8_t m_sprite_irq = INPUT_LINE_NMI` and raises its sprite
+  // processor through it -- but this compiler lowers the input-line constants
+  // to negative tokens of its own, and narrowing one to eight bits turns the
+  // NMI into ordinary line 255. Such a member carries no width until those
+  // constants carry MAME's values.
+  const lineCarriers = new Set(
+    ast.ast.units.flatMap(unit => [
+      ...unit.functions.flatMap(fn =>
+        [...fn.body.matchAll(/\b(\w+)\s*=\s*INPUT_LINE_\w+/g)].map(match => match[1]!)),
+      ...unit.classes.flatMap(entry =>
+        [...entry.body.matchAll(/\b(\w+)\s*=\s*INPUT_LINE_\w+/g)].map(match => match[1]!)),
+    ]),
+  );
   // Base-first, so a derived class's redeclaration is the one that stands.
   for (const name of sourceClassHierarchy(ast, className).reverse()) {
     const declaration = classes.get(name);
@@ -1384,6 +1399,7 @@ function driverStateMembers(
       // A `const` member is a compile-time constant resolved by name, not
       // board state, and giving it a zeroed slot would shadow that.
       if (/\bconst\b/.test(member.valueType)) continue;
+      if (lineCarriers.has(member.name)) continue;
       const bits = integerBits(member.valueType);
       if (!bits) continue;
       const entry = {

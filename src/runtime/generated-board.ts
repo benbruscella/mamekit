@@ -256,15 +256,7 @@ class IrBoard implements Board {
    */
   private readonly pendingBankEntry = new Map<string, number>();
   private readonly generatedResources: Record<string, unknown> = {};
-  /**
-   * The driver state class's own members.
-   *
-   * Behind a write trap when MAME declared integer widths for them, so a
-   * store wraps the way the C++ declaration does while a name nothing has
-   * written yet stays absent -- which is what lets a later binding pass claim
-   * it. See `generatedStateWithWidths`.
-   */
-  private readonly state: Record<string, unknown>;
+  private readonly state: Record<string, unknown> = {};
   private readonly shares: Record<string, Uint8Array> = {};
   private videoPrimitives?: GeneratedMameVideoPrimitives;
   /** Typed effects bound per callback id; see generated-effects.ts. */
@@ -331,7 +323,6 @@ class IrBoard implements Board {
     sinks: BoardSinks,
   ) {
     this.machine = machine;
-    this.state = generatedStateWithWidths({}, machine.stateMembers ?? []);
     this.inputs = inputs;
     this.fbWidth = machine.execution.screen.width;
     this.fbHeight = machine.execution.screen.height;
@@ -804,8 +795,12 @@ class IrBoard implements Board {
     this.bindings = {
       members: this.state,
       // Declared widths travel with the bindings so a first indexed write
-      // allocates the array MAME declared rather than an untyped one.
-      ...(machine.stateMembers?.length ? { stateMembers: machine.stateMembers } : {}),
+      // allocates the array MAME declared rather than an untyped one, and an
+      // interpreted scalar store narrows the way the C++ declaration does.
+      ...(machine.stateMembers?.length ? {
+        stateMembers: machine.stateMembers,
+        setters: generatedStateSetters(this.state, machine.stateMembers),
+      } : {}),
       inputs: generatedInputs,
       calls,
       referenceCalls: {
@@ -4101,45 +4096,39 @@ export function generatedSignalHandlerArguments(
 }
 
 /**
- * Give the driver state's own integer members the width MAME declared.
+ * MAME's declared width for each of the driver state class's own scalar
+ * members, as the setters the interpreter already narrows through.
  *
  * The state object otherwise holds only what a handler has written, at
  * whatever a JavaScript `+` produced, so nothing ever wraps: the Game Boy's
- * `uint8_t m_gb_io[0x10]` counted TIMECNT past 255 and never returned to zero,
- * and reaching zero is the one event that raises its timer interrupt. Games
- * drew perfectly and played silence, because a Game Boy music driver runs off
- * that interrupt. `uint16_t m_divcount` beside it ran unbounded, so the
- * divider compared a masked old value against an unmasked new one and fired
- * the timer increment eleven million times where MAME fires it two hundred
- * thousand.
+ * `uint16_t m_divcount` ran unbounded, the divider compared a masked old value
+ * against an unmasked new one, and the timer interrupt a Game Boy music driver
+ * runs on never fired. Emitted code narrows inline from the same declaration
+ * (see `targetInfo` in device-codegen), so this is the interpreter's half.
  *
- * A write trap, not a seeded property. Driver members are deliberately
- * materialised on first touch -- an identifier that is not yet an own property
- * resolves as a symbolic reference, which is how a member a later pass will
- * bind stays unresolved instead of freezing at zero. Defining all of them up
- * front took that away, and Crush Roller's `video_start` stopped setting the
- * one-pixel sprite offset its whole family needs.
+ * Setters rather than a write trap on the state object: a Proxy intercepts
+ * every *read* as well, and member reads are the hot path of every handler on
+ * every board -- it cost a quarter of the Game Boy's frame.
  */
-export function generatedStateWithWidths(
+export function generatedStateSetters(
   state: Record<string, unknown>,
   members: readonly GeneratedStateMember[],
-): Record<string, unknown> {
-  if (!members.length) return state;
-  const widths = new Map(members.map(member => [member.name, member]));
-  return new Proxy(state, {
-    set: (target, key, value) => {
-      const member = typeof key === 'string' ? widths.get(key) : undefined;
-      target[key as string] = member && typeof value === 'number' && wrappable(member, value)
-        ? generatedStateWidth(value, member.bits, member.signed)
-        : value;
-      return true;
-    },
-  });
+): Record<string, (value: number) => void> {
+  const setters: Record<string, (value: number) => void> = {};
+  for (const member of members) {
+    // An array member gets its width from the typed storage the runtime
+    // allocates for it on first write, not from a scalar store.
+    if (member.arrayLength) continue;
+    setters[member.name] = value => {
+      state[member.name] = generatedStateWidth(value, member.bits, member.signed);
+    };
+  }
+  return setters;
 }
 
 /**
- * Storage for a fixed C array member of the driver state, sized and typed the
- * way MAME declared it, so an indexed write wraps on its own.
+ * Storage for a driver-state member MAME declared as a fixed C array, typed
+ * and sized the way the declaration is, so an indexed write wraps on its own.
  */
 export function generatedStateArray(
   member: GeneratedStateMember,
@@ -4150,23 +4139,6 @@ export function generatedStateArray(
   if (member.bits === 16) return member.signed ? new Int16Array(length) : new Uint16Array(length);
   if (member.bits === 32) return member.signed ? new Int32Array(length) : new Uint32Array(length);
   return new Uint8Array(length);
-}
-
-/**
- * Whether MAME's conversion for this member can be applied to this value.
- *
- * A negative stored into an unsigned member is held back. MAME's own
- * `INPUT_LINE_NMI` is 64 and sits in a `uint8_t` happily -- Double Dragon
- * keeps `uint8_t m_sprite_irq = INPUT_LINE_NMI` and raises the subprocessor
- * through it -- but this compiler lowers the input-line constants to negative
- * tokens of its own (NMI -1, RESET -2, HALT -3), and narrowing one to eight
- * bits turns it into an ordinary IRQ number. The sprite interrupt then went to
- * line 255 instead of NMI, and Double Dragon booted to an empty screen with no
- * sound. The cost is that a driver spelling 0xff as -1 keeps reading -1, which
- * is exactly what it did before any of this existed.
- */
-function wrappable(member: GeneratedStateMember, value: number): boolean {
-  return member.signed === true || value >= 0;
 }
 
 /** MAME's C integer conversion for one stored driver-state member. */
