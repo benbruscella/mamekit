@@ -115,6 +115,14 @@ export interface GeneratedDeviceDefinition {
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
   methods: GeneratedDeviceMethod[];
+  /**
+   * Every struct type the device declares, keyed by type name.
+   *
+   * A `SOUND &` parameter names its type and nothing else, so this is what
+   * lets an emitted `snd.frequency_counter = ...` narrow to the eleven-bit
+   * field MAME declared rather than leaving that to a runtime accessor.
+   */
+  structs?: Record<string, GeneratedStructField[]>;
   /** Source-derived runtime entry points that must use direct generated code. */
   hotMethods?: string[];
   /** A source-declared card slot with generated child-device definitions. */
@@ -594,6 +602,13 @@ export function compileMameDevice(
     callbacks,
     timers,
     methods,
+    // Every struct type the device declares, so an emitted field store can
+    // narrow to the width the C++ declaration has. A `SOUND &` parameter names
+    // its type and nothing else; without the table the emitter cannot tell
+    // `snd.frequency_counter` from any other property.
+    ...(structFields.size
+      ? { structs: Object.fromEntries([...structFields].map(([name, fields]) => [name, fields])) }
+      : {}),
     ...(Object.keys(delegates).length ? { delegates } : {}),
     ...(hotMethods.length ? { hotMethods } : {}),
     ...(clockDivider ? { clockDivider } : {}),

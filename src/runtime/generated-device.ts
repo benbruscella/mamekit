@@ -13,6 +13,7 @@ import {
   generatedValuesEqual,
   type GeneratedCallArgument,
   type GeneratedHandlerBindings,
+  GENERATED_FIELD_WIDTHS,
 } from './generated-handler.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
@@ -1451,6 +1452,7 @@ function structMember(
   fields: readonly StructField[],
 ): Record<string, unknown> {
   const value: Record<string, unknown> = {};
+  const widths: Record<string, number> = {};
   for (const field of fields) {
     // A field that is itself a struct, and commonly an array of them: the
     // Game Boy PPU keeps ten sprite slots inside its per-line state. Built as
@@ -1465,16 +1467,21 @@ function structMember(
       value[field.name] = Array.from({ length: field.length }, () => 0);
       continue;
     }
-    if (!field.bits || field.bits >= 32) {
-      value[field.name] = 0;
-      continue;
+    value[field.name] = 0;
+    // The width travels beside the struct rather than as an accessor on the
+    // field. Emitted code narrows inline from the same declaration; the
+    // interpreter narrows through this on assignment. Accessors did it for
+    // both, and made every *read* a call too -- the Game Boy's wave channel
+    // walks its counters in a loop that runs forty thousand times a frame.
+    if (field.bits && field.bits < 32) {
+      widths[field.name] = field.signed ? -field.bits : field.bits;
     }
-    let stored = 0;
-    Object.defineProperty(value, field.name, {
-      enumerable: true,
+  }
+  if (Object.keys(widths).length) {
+    Object.defineProperty(value, GENERATED_FIELD_WIDTHS, {
+      value: widths,
+      enumerable: false,
       configurable: true,
-      get: () => stored,
-      set: next => { stored = wrap(Number(next) || 0, field.bits!, field.signed); },
     });
   }
   return value;

@@ -18,6 +18,29 @@ import type {
   GeneratedStateMember,
 } from './board.ts';
 
+/**
+ * Where a struct's declared field widths hang, for the interpreter to narrow
+ * an assignment through. A symbol so it never collides with a MAME field name
+ * and never shows up in a key walk over the struct.
+ */
+export const GENERATED_FIELD_WIDTHS = Symbol.for('mamekit.fieldWidths');
+
+/**
+ * One field's C conversion. The width is the declared bit count, negated when
+ * the declaration is signed, so the whole shape is a plain number map.
+ */
+export function generatedFieldWidth(value: number, width: number): number {
+  const bits = Math.abs(width);
+  if (width < 0) {
+    if (bits === 8) return value << 24 >> 24;
+    if (bits === 16) return value << 16 >> 16;
+    return value | 0;
+  }
+  if (bits === 8) return value & 0xff;
+  if (bits === 16) return value & 0xffff;
+  return value >>> 0;
+}
+
 /** Active-low raw input port state, read by generated programs. */
 export interface IrInputPorts {
   read(tag: string): number;
@@ -2110,7 +2133,18 @@ function assign(
       throw new Error(`generated member assignment has no object for "${target.property}"`);
     }
     const record = object as Record<string, unknown>;
-    record[target.property] = assignmentValue(operator, record[target.property], value);
+    const next = assignmentValue(operator, record[target.property], value);
+    // A struct field carries the width MAME declared. Emitted code narrows to
+    // it inline; an interpreted store narrows through the shape the host
+    // stamped on the struct, which is a plain hidden property rather than an
+    // accessor per field -- accessors made every read of the Game Boy's
+    // channel counters a call.
+    const widths = (record as { [GENERATED_FIELD_WIDTHS]?: Record<string, number> })
+      [GENERATED_FIELD_WIDTHS];
+    const width = widths?.[target.property];
+    record[target.property] = width === undefined || typeof next !== 'number'
+      ? next
+      : generatedFieldWidth(next, width);
     return;
   }
   if (target.kind === 'call') {

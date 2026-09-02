@@ -8,6 +8,7 @@ import type {
   GeneratedDeviceMember,
   GeneratedDeviceMethod,
   GeneratedDeviceTimer,
+  GeneratedStructField,
 } from './device-compiler.ts';
 
 /**
@@ -21,6 +22,8 @@ import type {
 export interface CodegenScope {
   constants: Record<string, number>;
   members: GeneratedDeviceMember[];
+  /** Struct types the scope declares, so a field store can narrow inline. */
+  structs?: Record<string, GeneratedStructField[]>;
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
   methods: GeneratedDeviceMethod[];
@@ -1378,6 +1381,49 @@ function assignsIdentifier(
   return assigned;
 }
 
+/**
+ * The declared field a `x.y` assignment target names, when the scope knows the
+ * struct it belongs to.
+ *
+ * The base is either a local whose declared type names a struct, or a member
+ * the definition gave a field shape to. Subscripts pass straight through: an
+ * array of structs has the element's fields, and `m_snd[0].signal` is the same
+ * field as `m_snd[3].signal`.
+ */
+function structFieldOf(
+  expression: GeneratedExpression & { kind: 'member' },
+  context: EmitContext,
+): GeneratedStructField | undefined {
+  const fields = structFieldsOf(expression.object, context);
+  return fields?.find(candidate => candidate.name === expression.property);
+}
+
+function structFieldsOf(
+  expression: GeneratedExpression,
+  context: EmitContext,
+): GeneratedStructField[] | undefined {
+  if (expression.kind === 'index' || (expression.kind === 'unary' && expression.operator === '*')) {
+    return structFieldsOf(
+      expression.kind === 'index' ? expression.object : expression.operand,
+      context,
+    );
+  }
+  if (expression.kind === 'member') {
+    return structFieldOf(expression, context)?.fields;
+  }
+  if (expression.kind !== 'identifier') return undefined;
+  if (context.locals.has(expression.name)) {
+    const valueType = context.locals.get(expression.name)
+      ?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
+    return valueType ? context.definition.structs?.[valueType] : undefined;
+  }
+  const member = context.definition.members.find(
+    candidate => candidate.name === expression.name);
+  if (member?.fields) return member.fields;
+  const valueType = member?.valueType?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
+  return valueType ? context.definition.structs?.[valueType] : undefined;
+}
+
 function targetInfo(expression: GeneratedExpression, context: EmitContext): Target {
   if (expression.kind === 'identifier') {
     if (context.locals.has(expression.name)) {
@@ -1398,8 +1444,14 @@ function targetInfo(expression: GeneratedExpression, context: EmitContext): Targ
     };
   }
   if (expression.kind === 'member') {
+    // A struct field carries the width MAME declared it at, and the store
+    // narrows to it here rather than through a runtime accessor on every
+    // field of every struct. The Game Boy's wave channel walks its counters
+    // in a loop that runs forty thousand times a frame.
+    const field = structFieldOf(expression, context);
     return {
       code: `${emitExpression(expression.object, context)}.${expression.property}`,
+      ...(field?.bits ? { bits: field.bits, signed: field.signed } : {}),
     };
   }
   if (expression.kind === 'unary' && expression.operator === '*') {
