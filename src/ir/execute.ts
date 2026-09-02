@@ -2372,11 +2372,57 @@ const WIDE_MINIMUM = BigInt(Number.MIN_SAFE_INTEGER);
 const WIDE_MAXIMUM = BigInt(Number.MAX_SAFE_INTEGER);
 
 function wideBinary(operator: string, leftValue: unknown, rightValue: unknown): unknown {
+  if (typeof leftValue === 'number' && typeof rightValue === 'number') {
+    const narrow = narrowWideBinary(operator, leftValue, rightValue);
+    if (narrow !== undefined) return narrow;
+  }
   const apply = WIDE_OPERATORS[operator];
   if (!apply) return binary(operator, toNumber(leftValue), toNumber(rightValue));
   const result = apply(toBigInt(leftValue), toBigInt(rightValue));
   if (typeof result === 'boolean') return result ? 1 : 0;
   return result >= WIDE_MINIMUM && result <= WIDE_MAXIMUM ? Number(result) : result;
+}
+
+/**
+ * The double-precision answer, when it is exactly the 64-bit one.
+ *
+ * A Game Boy tile row is expanded through a chain of six 64-bit operations per
+ * fetch, and both ends of that chain are ordinary small integers: a byte goes
+ * in and a sixteen-bit value comes out. Converting those to BigInt and back
+ * cost more than the arithmetic in the middle, which genuinely needs it.
+ *
+ * Undefined means "not exact here" — the caller then does it in BigInt. Only
+ * non-negative safe integers qualify, because the wide operators mask to
+ * unsigned 64 bits and a negative would wrap there and not here.
+ */
+function narrowWideBinary(operator: string, a: number, b: number): number | undefined {
+  if (a < 0 || b < 0 || !Number.isSafeInteger(a) || !Number.isSafeInteger(b)) return undefined;
+  switch (operator) {
+    case '<': return a < b ? 1 : 0;
+    case '<=': return a <= b ? 1 : 0;
+    case '>': return a > b ? 1 : 0;
+    case '>=': return a >= b ? 1 : 0;
+    // JavaScript's bitwise operators are exact only inside 32 bits.
+    case '&': return a > 0xffffffff || b > 0xffffffff ? undefined : (a & b) >>> 0;
+    case '|': return a > 0xffffffff || b > 0xffffffff ? undefined : (a | b) >>> 0;
+    case '^': return a > 0xffffffff || b > 0xffffffff ? undefined : (a ^ b) >>> 0;
+    case '>>': return Math.floor(a / 2 ** b);
+    case '/': return b === 0 ? 0 : Math.floor(a / b);
+    case '%': return b === 0 ? 0 : a % b;
+    // Exact when the result is still a safe integer; if it is not, the true
+    // value needed more than 53 bits and the double cannot be trusted.
+    case '<<': return safeInteger(a * 2 ** b);
+    case '+': return safeInteger(a + b);
+    // A negative difference is not the same answer: the wide operator masks
+    // it to unsigned 64 bits, where it becomes a very large positive.
+    case '-': return a >= b ? a - b : undefined;
+    case '*': return safeInteger(a * b);
+    default: return undefined;
+  }
+}
+
+function safeInteger(value: number): number | undefined {
+  return Number.isSafeInteger(value) ? value : undefined;
 }
 
 function toBigInt(value: unknown): bigint {
@@ -2670,6 +2716,11 @@ function isIndexableMemory(value: unknown): value is ArrayLike<unknown> {
  * an integer and drew every sprite from the wrong palette.
  */
 export function generatedAdd(left: unknown, right: unknown): unknown {
+  // Two plain numbers is what this almost always is, and the pointer and wide
+  // cases below each cost a type test to rule out. Emitted code calls it on
+  // every `+` whose operands it could not prove numeric, which on the Game Boy
+  // is once per instruction in the timer callback alone.
+  if (typeof left === 'number' && typeof right === 'number') return left + right;
   if (isGeneratedPointer(left)) return offsetPointer(left, toNumber(right));
   if (isIndexableMemory(left)) {
     return { generatedPointer: true, source: left, offset: toNumber(right) };
