@@ -115,6 +115,7 @@ export function generatedDeviceMethodsSource(
       // shape rules below to notice, so the ColecoVision's Z80 drove every VDP
       // port write through the interpreter -- 41% of a frame at 33 fps.
       isBusEntryPoint(method) ||
+      isStreamRenderer(method) ||
       maximumLoopDepth(method.program.operations) >= 2 ||
       (
         maximumLoopDepth(method.program.operations) >= 1 &&
@@ -297,6 +298,23 @@ function maximumLoopDepth(
  * in whatever such a method calls, which is how the whole register/VRAM path
  * ends up compiled with it.
  */
+/**
+ * MAME `device_sound_interface::sound_stream_update`.
+ *
+ * A chip's stream renderer loops once per output sample and runs for every
+ * sample the machine plays -- forty-eight thousand a second, four channels
+ * deep on the Game Boy. Its shape hides that: one loop and no switch, which
+ * is under the bar the rules below draw, so it stayed on the interpreter
+ * along with the small helper it calls to convert each level.
+ *
+ * The name is MAME's, declared by the sound interface every such device
+ * implements, so it identifies the entry point the way `offs_t offset`
+ * identifies a bus handler.
+ */
+function isStreamRenderer(method: GeneratedDeviceMethod): boolean {
+  return method.name === 'sound_stream_update';
+}
+
 function isBusEntryPoint(method: GeneratedDeviceMethod): boolean {
   const first = method.parameters.split(',')[0]?.trim() ?? '';
   // MAME's handlers take the address first and call it `offset`, always. The
