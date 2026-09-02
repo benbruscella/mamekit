@@ -787,7 +787,12 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
   if (expression.kind === 'index') {
     const object = emitExpression(expression.object, context);
     const index = emitExpression(expression.index, context);
-    return context.pointerSafeIndex
+    // A declared array *inside a struct* is always the plain JavaScript array
+    // the host built for it -- nothing rebinds a struct field to a pointer
+    // wrapper or a typed view -- so it is read directly. The Game Boy PPU's
+    // per-dot window check reads three of these, twenty-four thousand times a
+    // frame, and `runtime.readIndex` has to rule out four other shapes first.
+    return context.pointerSafeIndex && !isStructFieldArray(expression.object, context)
       ? `runtime.readIndex(${object}, ${index})`
       : `${object}[${index}]`;
   }
@@ -830,6 +835,23 @@ function expressionValueType(
     return context.definition.members.find(member => member.name === expression.name)?.valueType;
   }
   if (expression.kind === 'cast') return expression.valueType;
+  // A struct field declares its width, so `m_line.window_start_y_index + 4` is
+  // known integer arithmetic and needs neither the runtime's `add` nor its
+  // pointer tests. The Game Boy PPU's per-dot window check does five of these.
+  if (expression.kind === 'member') {
+    const field = structFieldOf(expression, context);
+    if (field?.bits && !field.fields && !field.length) {
+      return field.signed ? `s${field.bits}` : `u${field.bits}`;
+    }
+  }
+  if (expression.kind === 'index') {
+    const field = expression.object.kind === 'member'
+      ? structFieldOf(expression.object, context)
+      : undefined;
+    if (field?.bits && field.length && !field.fields) {
+      return field.signed ? `s${field.bits}` : `u${field.bits}`;
+    }
+  }
   if (expression.kind === 'unary' && expression.operator === '&') {
     return `${expressionValueType(expression.operand, context) ?? ''}*`;
   }
@@ -1197,6 +1219,13 @@ function emitAssignment(
       ? `runtime.writableMember(${JSON.stringify(expression.object.name)})`
       : emitExpression(expression.object, context);
     const index = emitExpression(expression.index, context);
+    if (isStructFieldArray(expression.object, context)) {
+      const current = `${object}[${index}]`;
+      const next = operator === '='
+        ? right
+        : `((${current}) ${operator === '>>=' ? '>>>' : operator.slice(0, -1)} (${right}))`;
+      return `${object}[${index}] = ${next}`;
+    }
     const current = `runtime.readIndex(${object}, ${index})`;
     const next = operator === '='
       ? right
@@ -1390,6 +1419,20 @@ function assignsIdentifier(
  * array of structs has the element's fields, and `m_snd[0].signal` is the same
  * field as `m_snd[3].signal`.
  */
+/**
+ * Whether an expression names an array field of a struct.
+ *
+ * Such a field is always the plain JavaScript array the host built for it --
+ * `structMember` creates it and nothing rebinds it to a pointer wrapper, a
+ * typed view or a memory share -- so it can be indexed directly rather than
+ * through the runtime's shape tests.
+ */
+function isStructFieldArray(expression: GeneratedExpression, context: EmitContext): boolean {
+  if (expression.kind !== 'member') return false;
+  const field = structFieldOf(expression, context);
+  return Boolean(field?.length) && !field?.fields;
+}
+
 function structFieldOf(
   expression: GeneratedExpression & { kind: 'member' },
   context: EmitContext,
