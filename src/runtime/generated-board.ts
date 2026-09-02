@@ -477,6 +477,21 @@ class IrBoard implements Board {
             return new Proxy({}, {
               get: (_target, property) => {
                 const method = String(property);
+                // MAME `device_memory_interface::space(AS_PROGRAM)`. A device
+                // that reaches its host processor's bus takes this by
+                // reference and keeps it: the Game Boy PPU copies OAM through
+                // `m_program_space->read_byte(...)`, and with the call
+                // unresolved every DMA wrote zeroes -- no game had any sprites.
+                if (method === 'space') {
+                  return () => ({
+                    read_byte: (address: number) =>
+                      this.cpuBuses.get(cpuSpec.tag)?.read(address) ?? 0xff,
+                    write_byte: (address: number, value: number) => {
+                      this.cpuBuses.get(cpuSpec.tag)?.write(address, value);
+                      return 0;
+                    },
+                  });
+                }
                 if (method === 'cycles_to_attotime') {
                   return (cycles: number) =>
                     cycles / Math.max(1, cpuSpec.cycleClock ?? cpuSpec.clock);
