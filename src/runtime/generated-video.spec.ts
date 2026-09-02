@@ -114,6 +114,7 @@ assert.deepEqual(exidySpriteCollisions(
 ]);
 assert.equal(williamsPaletteColor(0), 0xff000000);
 assert.equal(williamsPaletteColor(0xff), 0xffffffff);
+
 const polePositionProms = new Uint8Array(0x800);
 polePositionProms[0x507] = 3;
 polePositionProms[0x607] = 4;
@@ -281,6 +282,56 @@ const machine: BoardIr = {
     screenUpdate: { handler: 'fixture_state.screen_update' },
   },
 };
+
+// Universal's Lady Bug hardware inverts each PROM output before its RGB
+// resistor network. A zero PROM byte must therefore produce the bright color,
+// while an all-one byte produces black.
+{
+  const paletteMachine: BoardIr = {
+    ...machine,
+    video: {
+      gfx: [],
+      tilemaps: [],
+      initialState: {},
+      palette: {
+        region: 'proms',
+        colorCount: 2,
+        min: 0,
+        max: 255,
+        scaler: -1,
+        channels: (['r', 'g', 'b'] as const).map(channel => ({
+          channel,
+          bits: [0, 1],
+          inverted: [true, true],
+          resistances: [470, 220],
+          pulldown: 470,
+          pullup: 0,
+        })),
+        lookupOffset: 0,
+        lookupCount: 2,
+        lookupMask: 0xff,
+        banks: [{
+          penOffset: 0,
+          colorOr: 0,
+          lookupOffset: 0,
+          lookupCount: 2,
+          direct: true,
+        }],
+        transparentIndirect: 0,
+      },
+    },
+  };
+  const paletteState: Record<string, unknown> = {};
+  new GeneratedMameVideoPrimitives(
+    paletteMachine,
+    { proms: Uint8Array.of(0x00, 0xff) },
+    paletteState,
+    {},
+  );
+  const palette = paletteState.m_palette as { colors: Uint32Array };
+  assert.equal(palette.colors[0], 0xffffffff);
+  assert.equal(palette.colors[1], 0xff000000);
+}
 
 const renderer = new GeneratedVideoRenderer(machine, primitives);
 const frame = new Uint32Array(4);

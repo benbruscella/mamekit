@@ -925,7 +925,7 @@ class GeneratedPalette implements GeneratedPaletteDevice {
           let inputs = 0;
           for (let bit = 0; bit < channel.bits.length; bit++) {
             const source = prom[index + (channel.offsets?.[bit] ?? 0)] ?? 0;
-            inputs |= ((source >> channel.bits[bit]!) & 1) << bit;
+            inputs |= palettePromBit(source, channel, bit) << bit;
           }
           value = computeMameTtlSanyoResNet(
             inputs,
@@ -938,7 +938,7 @@ class GeneratedPalette implements GeneratedPaletteDevice {
           value = 0;
           for (let bit = 0; bit < channel.bits.length; bit++) {
             const source = prom[index + (channel.offsets?.[bit] ?? 0)] ?? 0;
-            value += values[bit]! * ((source >> channel.bits[bit]!) & 1);
+            value += values[bit]! * palettePromBit(source, channel, bit);
           }
         }
         rgb[channel.channel] = Math.floor(value + 0.5);
@@ -990,7 +990,7 @@ class GeneratedPalette implements GeneratedPaletteDevice {
           let value = 0;
           for (let bit = 0; bit < channel.bits.length; bit++) {
             const source = prom[index + (channel.offsets?.[bit] ?? 0)] ?? 0;
-            value += values[bit]! * ((source >> channel.bits[bit]!) & 1);
+            value += values[bit]! * palettePromBit(source, channel, bit);
           }
           rgb[channel.channel] = Math.floor(value + 0.5);
         }
@@ -1027,8 +1027,8 @@ class GeneratedPalette implements GeneratedPaletteDevice {
             lookupValue === bank.lookupValueOverride
           ? bank.overrideColor ?? bank.colorOr
           : bank.direct
-            ? bank.colorOr + lookupValue
-            : bank.colorOr | lookupValue;
+            ? bank.colorOr + (bank.colorMap?.[lookupValue] ?? lookupValue)
+            : bank.colorOr | (bank.colorMap?.[lookupValue] ?? lookupValue);
         const pen = bank.penOffset + index * (bank.penStride ?? 1);
         this.indirect[pen] = indirect;
         this.colors[pen] = core[indirect] ?? 0xff000000;
@@ -1077,6 +1077,14 @@ class GeneratedPalette implements GeneratedPaletteDevice {
       ? colorOrRed >>> 0
       : packRgb(colorOrRed, green, blue);
   }
+}
+
+function palettePromBit(
+  source: number,
+  channel: GeneratedPromPalettePlan['channels'][number],
+  position: number,
+): number {
+  return ((source >>> channel.bits[position]!) & 1) ^ Number(channel.inverted?.[position] ?? false);
 }
 
 /** TNX1's DMA-selected background/text/sprite PROM resistor networks. */

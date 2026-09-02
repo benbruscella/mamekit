@@ -605,6 +605,8 @@ export interface GeneratedPromPalettePlan {
   channels: {
     channel: 'r' | 'g' | 'b';
     bits: number[];
+    /** Whether the source PROM bit is inverted before entering the network. */
+    inverted?: boolean[];
     /** Byte offset from the palette index for each source bit. */
     offsets?: number[];
     /** MAME-declared contribution for each bit when the source uses fixed weights. */
@@ -696,6 +698,8 @@ export interface GeneratedPromPalettePlan {
      */
     lookupValueOverride?: number;
     overrideColor?: number;
+    /** Source lookup value -> indirect color for bit shuffles/non-linear wiring. */
+    colorMap?: number[];
     /** Direct palettes map pen N to color colorOr + N without a lookup PROM. */
     direct?: boolean;
   }[];

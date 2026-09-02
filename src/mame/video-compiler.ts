@@ -2427,8 +2427,8 @@ function compilePalette(
     const method = loop.body.includes('set_pen_indirect')
       ? 'palette.set_pen_indirect'
       : 'palette.set_pen_color';
-    return findCallArgumentLists(loop.body, method).flatMap(
-      (call): GeneratedPromPalettePlan['banks'] => {
+    return findCallArgumentEntries(loop.body, method).flatMap(
+      ({ arguments: call, offset: callOffset }): GeneratedPromPalettePlan['banks'] => {
       const args = splitMameArgs(call);
       if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
         console.error('video palette: lookup loop', {
@@ -2439,12 +2439,19 @@ function compilePalette(
         });
       }
       const lookupExpression = args[1] ?? '';
-      const colorExpression = /ctabentry\s*=\s*([^;]+)/.exec(loop.body)?.[1]
-        ?? lookupExpression;
+      const colorExpression = lookupExpression;
       const expandedColorExpression = expandPaletteLoopLocals(
         colorExpression,
         loop.body,
+        callOffset,
       );
+      if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
+        console.error('video palette: expanded lookup', {
+          colorExpression,
+          expandedColorExpression,
+          callOffset,
+        });
+      }
       const lookupIndex = /color_prom\[\s*([^\]]+)\s*\]/
         .exec(expandedColorExpression)?.[1];
       const usesPostIncrement = /\*\s*color_prom\s*\+\+/.test(colorExpression);
@@ -2469,13 +2476,23 @@ function compilePalette(
       ) {
         const penOffset = expressionAt(args[0]!, loop.start);
         const penStride = expressionAt(args[0]!, loop.start + 1) - penOffset;
-        const colorOr = expressionAt(lookupExpression, loop.start);
-        const colorStride = expressionAt(lookupExpression, loop.start + 1) - colorOr;
+        const colors = Array.from({ length: Math.max(0, loop.end - loop.start) }, (_unused, index) =>
+          paletteExpressionAt(
+            expandedColorExpression,
+            loop.start + index,
+            body,
+            loop.sourceOffset,
+            constants,
+          ));
+        const colorOr = colors[0] ?? 0;
+        const colorStride = (colors[1] ?? colorOr) - colorOr;
+        const linear = colors.every((color, index) => color === colorOr + index * colorStride);
         return [{
           penOffset,
           ...(penStride !== 1 ? { penStride } : {}),
-          colorOr,
-          ...(colorStride !== 1 ? { colorStride } : {}),
+          colorOr: linear ? colorOr : 0,
+          ...(linear && colorStride !== 1 ? { colorStride } : {}),
+          ...(!linear ? { colorMap: colors } : {}),
           lookupOffset: 0,
           lookupCount: Math.max(0, loop.end - loop.start),
           direct: true,
@@ -2487,14 +2504,12 @@ function compilePalette(
         /\b\w+\s*\[[^\]]+\]/g,
         'PROM',
       );
-      const scalarColorExpression = colorExpression.replace(
+      const scalarColorExpression = expandedColorExpression.replace(
         /\b\w+\s*\[[^\]]+\]/g,
         'PROM',
       );
-      const expandedScalarColorExpression = expandedColorExpression.replace(
-        /\b\w+\s*\[[^\]]+\]/g,
-        'PROM',
-      );
+      const expandedScalarColorExpression = scalarColorExpression;
+      const colorMap = compilePaletteColorMap(expandedScalarColorExpression, constants);
       const colorOrExpression =
         /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(scalarLookupExpression)?.[1]
         ?? /(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))/i.exec(scalarColorExpression)?.[1]
@@ -2505,7 +2520,7 @@ function compilePalette(
         // Replacing the outer array access with PROM hides that base, so
         // retain it from the source expression before falling back.
         ?? /\bpalette_val\s*\[[^\]]*(?:\||\+)\s*(-?(?:0x[\da-f]+|\d+))\s*\]/i
-          .exec(colorExpression)?.[1]
+          .exec(expandedColorExpression)?.[1]
         ?? /(-?(?:0x[\da-f]+|\d+))\s*\|/i.exec(scalarLookupExpression)?.[1]
         ?? /(-?(?:0x[\da-f]+|\d+))\s*\|/i.exec(scalarColorExpression)?.[1];
       const lookupOverride = new RegExp(
@@ -2514,6 +2529,15 @@ function compilePalette(
         `(-?(?:0x[\\da-f]+|\\d+))`,
         'i',
       ).exec(expandedScalarColorExpression);
+      if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
+        console.error('video palette: lookup mapping', {
+          scalarLookupExpression,
+          scalarColorExpression,
+          expandedScalarColorExpression,
+          colorOrExpression,
+          colorMap: Boolean(colorMap),
+        });
+      }
       return [{
         penOffset: paletteExpressionAt(
           args[0]!, loop.start, body, loop.sourceOffset, constants,
@@ -2528,6 +2552,7 @@ function compilePalette(
           lookupValueOverride: expressionNumber(lookupOverride[1]),
           overrideColor: expressionNumber(lookupOverride[2]),
         } : {}),
+        ...(colorMap ? { colorMap } : {}),
       }];
     });
   });
@@ -2643,21 +2668,28 @@ function compilePalette(
 }
 
 /** Inline simple per-loop aliases before extracting PROM lookup expressions. */
-function expandPaletteLoopLocals(expression: string, loopBody: string): string {
+function expandPaletteLoopLocals(
+  expression: string,
+  loopBody: string,
+  before = loopBody.length,
+): string {
   let expanded = expression;
-  const declarations = [...loopBody.matchAll(
-    /\b(?:int|unsigned|u8|u16|u32|uint8_t|uint16_t|uint32_t)(?:\s+const)?\s+(\w+)\s*=\s*([^;]+);/g,
-  )];
+  const aliases = new Map<string, string>();
+  for (const assignment of loopBody.slice(0, before).matchAll(
+    /(?:\b(?:int|unsigned|u8|u16|u32|uint8_t|uint16_t|uint32_t)(?:\s+const)?\s+)?\b(\w+)\s*=\s*([^;]+);/g,
+  )) {
+    aliases.set(assignment[1]!, assignment[2]!.trim());
+  }
+  const declarations = [...aliases];
   // A declaration can depend on an earlier alias; a few reverse passes are
   // sufficient for the straight-line palette loops used by MAME drivers.
   for (let pass = 0; pass < declarations.length + 1; pass++) {
     let changed = false;
-    for (const declaration of declarations) {
-      const name = declaration[1]!;
+    for (const [name, value] of declarations) {
       if (!new RegExp(`\\b${name}\\b`).test(expanded)) continue;
       const next = expanded.replace(
         new RegExp(`\\b${name}\\b`, 'g'),
-        `(${declaration[2]!.trim()})`,
+        `(${value})`,
       );
       changed ||= next !== expanded;
       expanded = next;
@@ -3005,28 +3037,32 @@ function compileFixedWeightChannels(
   body: string,
   indexValue = 0,
 ): GeneratedPromPalettePlan['channels'] {
-  const bits = new Map<string, { offset: number; bit: number }>();
+  const bits = new Map<string, { offset: number; bit: number; inverted: boolean }>();
   const channels: GeneratedPromPalettePlan['channels'] = [];
   const sourceRe =
-    /\b(bit\d+)\s*=\s*BIT\(\s*(?:color_prom\[\s*([^\]]+)\s*\]|\*\s*color_prom)\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*([^;]+)/g;
+    /\b(bit\d+)\s*=\s*BIT\(\s*(~\s*)?(?:color_prom\[\s*([^\]]+)\s*\]|\*\s*color_prom)\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*([^;]+)/g;
   let match: RegExpExecArray | null;
   while ((match = sourceRe.exec(body)) !== null) {
     if (match[1]) {
       bits.set(match[1], {
-        offset: expressionAt(match[2] ?? '0', indexValue),
-        bit: Number(match[3]),
+        offset: expressionAt(match[3] ?? '0', indexValue),
+        bit: Number(match[4]),
+        inverted: Boolean(match[2]),
       });
       continue;
     }
-    const terms = [...match[5]!.matchAll(
+    const terms = [...match[6]!.matchAll(
       /(-?(?:0x[\da-f]+|\d+))\s*\*\s*(bit\d+)/gi,
     )];
     const sources = terms.map(term => bits.get(term[2]!));
     if (!terms.length || sources.some(source => !source)) continue;
     channels.push({
-      channel: match[4] as 'r' | 'g' | 'b',
+      channel: match[5] as 'r' | 'g' | 'b',
       bits: sources.map(source => source!.bit),
       offsets: sources.map(source => source!.offset),
+      ...(sources.some(source => source!.inverted)
+        ? { inverted: sources.map(source => source!.inverted) }
+        : {}),
       weights: terms.map(term => expressionNumber(term[1])),
       resistances: [],
       pulldown: 0,
@@ -3085,20 +3121,28 @@ function compileResistorChannels(
     });
   }
   const channels: GeneratedPromPalettePlan['channels'] = [];
-  const bitVariables = new Map<string, number>();
+  const bitVariables = new Map<string, { bit: number; inverted: boolean }>();
   const colorRe =
-    /\b(bit\d+)\s*=\s*BIT\(\s*(?:color_prom\[i\]|\*\s*color_prom)\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*combine_weights\(\s*(\w+)\s*,\s*([^)]+)\)/g;
+    /\b(bit\d+)\s*=\s*BIT\(\s*(~\s*)?(?:color_prom\[i\]|\*\s*color_prom)\s*,\s*(\d+)\s*\)|(?:int\s+const|const\s+int)\s+([rgb])\s*=\s*combine_weights\(\s*(\w+)\s*,\s*([^)]+)\)/g;
   let color: RegExpExecArray | null;
   while ((color = colorRe.exec(body)) !== null) {
     if (color[1]) {
-      bitVariables.set(color[1], Number(color[2]));
+      bitVariables.set(color[1], {
+        bit: Number(color[3]),
+        inverted: Boolean(color[2]),
+      });
       continue;
     }
-    const network = networks.get(color[4]!);
+    const network = networks.get(color[5]!);
     if (!network) continue;
+    const sources = splitMameArgs(color[6]!).map(bit => bitVariables.get(bit.trim()));
+    if (sources.some(source => !source)) continue;
     channels.push({
-      channel: color[3] as 'r' | 'g' | 'b',
-      bits: splitMameArgs(color[5]!).map(bit => bitVariables.get(bit.trim()) ?? 0),
+      channel: color[4] as 'r' | 'g' | 'b',
+      bits: sources.map(source => source!.bit),
+      ...(sources.some(source => source!.inverted)
+        ? { inverted: sources.map(source => source!.inverted) }
+        : {}),
       ...network,
     });
   }
@@ -3602,7 +3646,14 @@ function findCallArguments(source: string, name: string): string | undefined {
 }
 
 function findCallArgumentLists(source: string, name: string): string[] {
-  const calls: string[] = [];
+  return findCallArgumentEntries(source, name).map(entry => entry.arguments);
+}
+
+function findCallArgumentEntries(
+  source: string,
+  name: string,
+): { arguments: string; offset: number }[] {
+  const calls: { arguments: string; offset: number }[] = [];
   let cursor = 0;
   while (cursor < source.length) {
     const at = source.indexOf(`${name}(`, cursor);
@@ -3610,7 +3661,7 @@ function findCallArgumentLists(source: string, name: string): string[] {
     const open = source.indexOf('(', at + name.length);
     const close = matchingPair(source, open, '(', ')');
     if (close < 0) break;
-    calls.push(source.slice(open + 1, close));
+    calls.push({ arguments: source.slice(open + 1, close), offset: at });
     cursor = close + 1;
   }
   return calls;
@@ -3705,6 +3756,40 @@ function compilePaletteLookupTerms(
     });
   }
   return terms;
+}
+
+/**
+ * Preserve lookup expressions whose output pins are reordered in source.
+ * Universal's sprite PROM, for example, selects one nibble and reverses its
+ * four bits with bitswap<4>; a mask/shift-only lookup term cannot express it.
+ */
+function compilePaletteColorMap(
+  scalarExpression: string,
+  constants: Record<string, number>,
+): number[] | undefined {
+  if (!/\bPROM\b/.test(scalarExpression)) return undefined;
+  const bitswap = /\bbitswap<(\d+)>\s*\(/.exec(scalarExpression);
+  if (!bitswap) return undefined;
+  const open = scalarExpression.indexOf('(', bitswap.index + bitswap[0].length - 1);
+  const close = matchingPair(scalarExpression, open, '(', ')');
+  if (close < 0) return undefined;
+  const args = splitMameArgs(scalarExpression.slice(open + 1, close));
+  const width = Number(bitswap[1]);
+  const sourceBits = args.slice(1).map(bit => expressionNumber(bit, constants));
+  if (
+    !Number.isInteger(width) || width <= 0 || width > 31 ||
+    sourceBits.length !== width || sourceBits.some(bit => !Number.isInteger(bit))
+  ) return undefined;
+  const map = Array.from({ length: 0x100 }, (_unused, prom) => {
+    const source = evalExpr(
+      substituteNumbers(args[0]!.replace(/\bPROM\b/g, String(prom)), constants),
+      constants,
+    );
+    if (source === null) return -1;
+    return sourceBits.reduce((mapped, sourceBit, position) =>
+      mapped | (((source >>> sourceBit) & 1) << (width - position - 1)), 0);
+  });
+  return map.some(value => value < 0) ? undefined : map;
 }
 
 function numericForLoops(source: string): {
