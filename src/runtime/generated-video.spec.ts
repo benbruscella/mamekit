@@ -19,6 +19,8 @@ import {
   GeneratedMameVideoPrimitives,
   GeneratedVideoRenderer,
   polePositionVerticalModifiers,
+  segaSystem16Channel,
+  segaSystem16PaletteEntry,
   taitoSjLayerScrollX,
   taitoSjSpritePosition,
   williamsPaletteColor,
@@ -120,6 +122,51 @@ polePositionProms[0x507] = 3;
 polePositionProms[0x607] = 4;
 polePositionProms[0x707] = 5;
 assert.equal(polePositionVerticalModifiers(polePositionProms)[7], 0x543);
+
+assert.deepEqual(
+  [0, 1, 30, 31].map(value => segaSystem16Channel(value)),
+  [0, 8, 247, 255],
+);
+assert.equal(segaSystem16Channel(31, 'shadow'), 200);
+assert.equal(segaSystem16Channel(0, 'highlight'), 55);
+assert.deepEqual(segaSystem16PaletteEntry(0x0fff), {
+  normal: 0xfff7f7f7,
+  effect: 0xffc1c1c1,
+});
+assert.deepEqual(segaSystem16PaletteEntry(0x8fff), {
+  normal: 0xfff7f7f7,
+  effect: 0xfff8f8f8,
+});
+
+const segaScreenBody = `
+  m_sprites->draw_async(cliprect);
+  m_segaic16vid->tilemap_draw(screen, bitmap, cliprect, 0, TILEMAP_BACKGROUND, 0, 0);
+  m_sprites->iterate_dirty_rects(cliprect, [] (rectangle const &rect) {});
+`;
+assert.equal(
+  generatedDirectScreenShape({
+    family: 'segas16a',
+    execution: { screenUpdate: { handler: 'segas16a_state.screen_update' } },
+    handlers: [{
+      ownerClass: 'segas16a_state',
+      method: 'screen_update',
+      body: segaScreenBody,
+    }],
+  } as unknown as BoardIr),
+  'system16a-layers',
+);
+assert.equal(
+  generatedDirectScreenShape({
+    family: 'segas16b',
+    execution: { screenUpdate: { handler: 'segas16b_state.screen_update' } },
+    handlers: [{
+      ownerClass: 'segas16b_state',
+      method: 'screen_update',
+      body: segaScreenBody,
+    }],
+  } as unknown as BoardIr),
+  'system16b-layers',
+);
 
 assert.equal(
   generatedDirectScreenShape({

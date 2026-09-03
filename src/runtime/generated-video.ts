@@ -2198,6 +2198,7 @@ type GeneratedDirectScreenShape =
   | 'galaxian-no-bullets'
   | 'm62-category-sprites'
   | 'outrun-sega16-layers'
+  | 'system16a-layers'
   | 'system16b-layers'
   | 'system1-prom-mixer'
   | 'technos-tilemap-sprites'
@@ -2241,7 +2242,7 @@ export function generatedDirectScreenShape(
     body.includes('m_sprites->iterate_dirty_rects(') &&
     !body.includes('m_segaic16road->segaic16_road_draw')
   ) {
-    return 'system16b-layers';
+    return machine.family === 'segas16a' ? 'system16a-layers' : 'system16b-layers';
   }
   if (
     body.includes('m_bg_tilemap->set_scrollx(i, m_m62_background_hscroll)') &&
@@ -2524,6 +2525,66 @@ export function polePositionVerticalModifiers(proms: Uint8Array): Uint16Array {
   return modifiers;
 }
 
+const segaSystem16Conductance = [3900, 2000, 1000, 500, 250]
+  .map(resistance => 1 / resistance);
+const segaSystem16ColorTotal = segaSystem16Conductance.reduce((sum, item) => sum + item, 0);
+const computeSegaSystem16Channel = (
+  value: number,
+  effect: 'normal' | 'shadow' | 'highlight',
+): number => {
+  const effectConductance = effect === 'normal' ? 0 : 1 / 470;
+  let high = effect === 'highlight' ? effectConductance : 0;
+  for (let bit = 0; bit < segaSystem16Conductance.length; bit++) {
+    if (value & (1 << bit)) high += segaSystem16Conductance[bit]!;
+  }
+  return Math.round(255 * high / (segaSystem16ColorTotal + effectConductance));
+};
+const segaSystem16Channels = {
+  normal: Uint8Array.from(
+    { length: 32 },
+    (_, value) => computeSegaSystem16Channel(value, 'normal'),
+  ),
+  shadow: Uint8Array.from(
+    { length: 32 },
+    (_, value) => computeSegaSystem16Channel(value, 'shadow'),
+  ),
+  highlight: Uint8Array.from(
+    { length: 32 },
+    (_, value) => computeSegaSystem16Channel(value, 'highlight'),
+  ),
+};
+
+/** Sega's five-bit resistor DAC, including its 470-ohm shadow/highlight leg. */
+export function segaSystem16Channel(
+  value: number,
+  effect: 'normal' | 'shadow' | 'highlight' = 'normal',
+): number {
+  return segaSystem16Channels[effect][value & 31]!;
+}
+
+/** Decode the non-linear bit wiring used by Sega's System 16 palette RAM. */
+export function segaSystem16PaletteEntry(raw: number): {
+  normal: number;
+  effect: number;
+} {
+  const red = ((raw >>> 12) & 1) | ((raw << 1) & 0x1e);
+  const green = ((raw >>> 13) & 1) | ((raw >>> 3) & 0x1e);
+  const blue = ((raw >>> 14) & 1) | ((raw >>> 7) & 0x1e);
+  const effect = raw & 0x8000 ? 'highlight' : 'shadow';
+  return {
+    normal: packRgb(
+      segaSystem16Channel(red),
+      segaSystem16Channel(green),
+      segaSystem16Channel(blue),
+    ),
+    effect: packRgb(
+      segaSystem16Channel(red, effect),
+      segaSystem16Channel(green, effect),
+      segaSystem16Channel(blue, effect),
+    ),
+  };
+}
+
 /**
  * A palette whose colours a source-derived routine writes, one pen at a time.
  *
@@ -2562,6 +2623,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   readonly width: number;
   readonly height: number;
   private readonly machine: BoardIr;
+  private readonly regions: Regions;
   private readonly state: Record<string, unknown>;
   private readonly motionObjects?: GeneratedMotionObjects;
   private readonly gfx: GeneratedGfxElement[];
@@ -2585,6 +2647,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     memoryRead?: (address: number) => number,
   ) {
     this.machine = machine;
+    this.regions = regions;
     this.state = state;
     this.memoryRead = memoryRead;
     this.width = machine.execution.screen.width;
@@ -3437,6 +3500,9 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     ) {
       return this.drawOutrunLayers(screen, bitmap, cliprect);
     }
+    if (this.directScreenShape === 'system16a-layers') {
+      return this.drawSystem16ALayers(bitmap, cliprect);
+    }
     if (this.directScreenShape === 'm62-category-sprites') {
       // M62 draws category 0, sprites, then category 1. MAME's tilemap core
       // guarantees that the two category passes collectively replace the
@@ -3972,6 +4038,179 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
           row * 8,
           0,
         );
+      }
+    }
+    return true;
+  }
+
+  /** Compose System 16A's paged tilemaps, text and scanline sprite hardware. */
+  private drawSystem16ALayers(
+    bitmap: BitmapTarget,
+    cliprect: GeneratedRectangle,
+  ): boolean {
+    const wordsView = (value: unknown): Uint16Array | undefined => {
+      if (!ArrayBuffer.isView(value)) return undefined;
+      return new Uint16Array(value.buffer, value.byteOffset, value.byteLength >>> 1);
+    };
+    const tile = wordsView(this.state.m_tileram);
+    const text = wordsView(this.state.m_textram);
+    const sprites = wordsView(this.state.m_sprites);
+    const palette = wordsView(this.state.m_paletteram);
+    const spriteRom = this.regions.sprites;
+    const gfx = this.gfx[0];
+    if (!tile || !text || !sprites || !palette || !spriteRom || !gfx) return false;
+
+    // paletteram_w uses Sega's resistor network rather than plain RGB444.
+    // Synchronize from the authoritative share once per changed entry; the
+    // generated handler can then remain the live write owner for CPU timing.
+    const paletteMirror = this.ramPaletteMirror ??= new Uint16Array(palette.length);
+    const paletteEntries = palette.length;
+    for (let index = 0; index < palette.length; index++) {
+      const raw = palette[index]!;
+      paletteMirror[index] = raw;
+      const colors = segaSystem16PaletteEntry(raw);
+      this.ramPalette?.set_pen_color(index, colors.normal);
+      this.ramPalette?.set_pen_color(index + paletteEntries, colors.effect);
+    }
+
+    bitmap.fill(0, cliprect);
+    const priority = new Uint8Array(this.width * this.height);
+    const flipped = Boolean(this.state.__flip_screen);
+    const rowscroll = Boolean(this.state.__system16aRowscroll);
+    const colscroll = Boolean(this.state.__system16aColscroll);
+    const decoded = gfx.decoded;
+    const decodedPixel = (code: number, x: number, y: number): number =>
+      decoded.pixels[(code % decoded.count) * 64 + (y & 7) * 8 + (x & 7)] ?? 0;
+    const put = (x: number, y: number, pen: number) => bitmap['pix='](y, x, pen);
+
+    const layerPixel = (which: 0 | 1, x: number, y: number) => {
+      const row = flipped ? 216 - (y & ~7) : y & ~7;
+      const rawXScroll = rowscroll
+        ? text[(0xf80 >>> 1) + (row >>> 3) * 2 + which] ?? 0
+        : text[(0xff8 >>> 1) + which] ?? 0;
+      const rawYScroll = colscroll
+        ? text[(0xf30 >>> 1) + ((x & ~15) >>> 4) * 2 + which] ?? 0
+        : text[(0xf24 >>> 1) + which] ?? 0;
+      const xScroll = (0xc8 - ((rawXScroll + (flipped ? 17 : 0)) & 0x1ff)) & 0x3ff;
+      const yScroll = rawYScroll & 0x1ff;
+      let sourceX = (x + xScroll) & 0x3ff;
+      let sourceY = (y + yScroll) & 0x1ff;
+      if (flipped) {
+        sourceX = (0x3ff - sourceX) & 0x3ff;
+        sourceY = (0x1ff - sourceY) & 0x1ff;
+      }
+      const rawPages = text[((flipped ? 0xe8e : 0xe9e) >>> 1) - which] ?? 0;
+      let pages = ((rawPages >>> 4) & 0x0707) | ((rawPages << 4) & 0x7070);
+      if (flipped) {
+        pages = ((pages & 0x000f) << 12) | ((pages & 0x00f0) << 4) |
+          ((pages & 0x0f00) >>> 4) | ((pages & 0xf000) >>> 12);
+      }
+      const quadrant = (sourceY >= 0x100 ? 2 : 0) | (sourceX >= 0x200 ? 1 : 0);
+      const page = (pages >>> (quadrant * 4)) & 7;
+      const tileIndex = page * 0x800 + ((sourceY >>> 3) & 31) * 64 +
+        ((sourceX >>> 3) & 63);
+      const data = tile[tileIndex] ?? 0;
+      const code = ((data >>> 1) & 0x1000) | (data & 0x0fff);
+      const pixel = decodedPixel(code, sourceX, sourceY);
+      return {
+        pen: gfx.colorbase() + ((data >>> 5) & 0x7f) * gfx.granularity() + pixel,
+        pixel,
+        category: (data >>> 12) & 1,
+      };
+    };
+
+    for (let y = cliprect.min_y; y <= cliprect.max_y; y++) {
+      for (let x = cliprect.min_x; x <= cliprect.max_x; x++) {
+        const output = y * this.width + x;
+        const background = layerPixel(1, x, y);
+        put(x, y, background.pen);
+        if (background.pixel) priority[output] = background.category ? 2 : 1;
+
+        const foreground = layerPixel(0, x, y);
+        if (foreground.pixel) {
+          put(x, y, foreground.pen);
+          priority[output] = foreground.category ? 4 : 2;
+        }
+
+        const textX = flipped ? this.width - 1 - x : x;
+        const textY = flipped ? this.height - 1 - y : y;
+        const textData = text[(textY >>> 3) * 64 + (textX >>> 3) + 24] ?? 0;
+        const textPixel = decodedPixel(textData & 0xff, textX, textY);
+        if (textPixel) {
+          put(
+            x,
+            y,
+            gfx.colorbase() + ((textData >>> 8) & 7) * gfx.granularity() + textPixel,
+          );
+          priority[output] = textData & 0x0800 ? 8 : 4;
+        }
+      }
+    }
+
+    const romWord = (word: number): number => {
+      const offset = word * 2;
+      return ((spriteRom[offset] ?? 0) << 8) | (spriteRom[offset + 1] ?? 0);
+    };
+    const banks = Math.max(1, spriteRom.length / 0x10000);
+    for (let offset = 0; offset + 7 < sprites.length; offset += 8) {
+      let bottom = sprites[offset]! >>> 8;
+      if (bottom > 0xf0) break;
+      let top = sprites[offset]! & 0xff;
+      let xpos = sprites[offset + 1]! & 0x1ff;
+      const pitchWord = sprites[offset + 2]!;
+      const pitch = pitchWord & 0x8000 ? pitchWord - 0x10000 : pitchWord;
+      let address = sprites[offset + 3]!;
+      const attributes = sprites[offset + 4]!;
+      const colorPriority = (((attributes >>> 8) & 0x3f) << 4) |
+        ((attributes & 3) << 10);
+      const bank = ((attributes >>> 4) & 7) % banks;
+      if (top >= bottom) continue;
+      let xDelta = 1;
+      let xOrigin = 189;
+      if (flipped) {
+        const oldTop = top;
+        top = 224 - bottom;
+        bottom = 224 - oldTop;
+        xpos = 320 - xpos;
+        xDelta = -1;
+        xOrigin = -189;
+      }
+      for (let sourceY = top; sourceY < bottom; sourceY++) {
+        address = (address + pitch) & 0xffff;
+        const y = sourceY + 1;
+        let x = xpos;
+        let words = 0;
+        let current = address;
+        while (((xpos - x) & 0x1ff) !== 1 && words++ < 0x80) {
+          const reverse = Boolean(current & 0x8000);
+          current = (current + (reverse ? -1 : 1)) & 0xffff;
+          const pixels = romWord(bank * 0x8000 + (current & 0x7fff));
+          const shifts = reverse ? [0, 4, 8, 12] : [12, 8, 4, 0];
+          let finalPixel = 0;
+          for (const shift of shifts) {
+            const pixel = (pixels >>> shift) & 0x0f;
+            finalPixel = pixel;
+            const screenX = x - xOrigin;
+            if (
+              pixel !== 0 && pixel !== 15 &&
+              screenX >= cliprect.min_x && screenX <= cliprect.max_x &&
+              y >= cliprect.min_y && y <= cliprect.max_y
+            ) {
+              const spritePen = colorPriority | pixel;
+              const spritePriority = spritePen >>> 10;
+              const output = y * this.width + screenX;
+              if ((1 << spritePriority) > priority[output]!) {
+                if ((spritePen & 0x3f0) === 0x3f0) {
+                  put(screenX, y, (bitmap.pix?.(y, screenX) ?? 0) + paletteEntries);
+                } else {
+                  put(screenX, y, 0x400 | (spritePen & 0x3ff));
+                }
+              }
+            }
+            x += xDelta;
+          }
+          if (finalPixel === 15) break;
+        }
       }
     }
     return true;
@@ -4693,6 +4932,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   }
 
   reset(): void {
+    // Palette storage resets independently of its mapped source share. A
+    // surviving mirror would make the next frame mistake cleared colors for
+    // synchronized colors and resolve otherwise-valid tile pens as black.
+    this.ramPaletteMirror = undefined;
     this.ramPalette?.reset();
     this.bitmapPalette?.reset();
   }

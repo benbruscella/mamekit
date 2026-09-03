@@ -108,9 +108,10 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
   },
   shinobi: {
     // The canonical unprotected parent is System 16A. Its fixed memory map,
-    // PPI handshake and tile layers are supplied by the generated board/video
-    // runtimes and verified against shinobi.zip; the remaining device gaps
-    // are the dedicated sprite/sample helpers around that playable path.
+    // PPI handshake plus the complete tile/sprite compositor are supplied by
+    // the generated board/video runtimes and verified against shinobi.zip.
+    // The entries below name standalone device cores that remain ungenerated;
+    // System 16A sprite behavior is covered by the source-shaped compositor.
     generationGaps: [
       'i8255:I8255',
       'sprites:SEGA_SYS16A_SPRITES',
