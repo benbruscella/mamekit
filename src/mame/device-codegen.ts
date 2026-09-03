@@ -515,7 +515,9 @@ function emitOperation(
         `Object.assign(Object.create(Object.getPrototypeOf(${value})), ${value});`;
     }
     return `${pad}let ${localName(operation.name)}${annotation} = ${
-      allocated ? value : wrapType(value, operation.valueType)
+      allocated
+        ? wrapAllocatedArray(value, operation.valueType)
+        : wrapType(value, operation.valueType)
     };`;
   }
   if (operation.op === 'assign') {
@@ -1695,6 +1697,26 @@ function wrapType(value: string, valueType?: string): string {
   if (normalized === 'u32' || normalized === 'uint32_t') return `((${value}) >>> 0)`;
   if (normalized === 's32' || normalized === 'int32_t') return `((${value}) | 0)`;
   return value;
+}
+
+/**
+ * ALLOC carries only an element count, so its primitive result is byte-wide.
+ * A local C array's declaration supplies the missing element type. Preserve
+ * it in direct code just as the interpreter does: in particular, an `int[]`
+ * must retain negative sentinels instead of wrapping -1 to 255.
+ */
+function wrapAllocatedArray(value: string, valueType?: string): string {
+  const normalized = valueType?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
+  const constructor = normalized === 'float' ? 'Float32Array'
+    : normalized === 'double' ? 'Float64Array'
+    : ['int', 'int32_t', 's32'].includes(normalized ?? '') ? 'Int32Array'
+    : ['unsigned', 'uint32_t', 'u32', 'offs_t', 'pen_t', 'rgb_t']
+        .includes(normalized ?? '') ? 'Uint32Array'
+    : ['int16_t', 's16'].includes(normalized ?? '') ? 'Int16Array'
+    : ['uint16_t', 'u16'].includes(normalized ?? '') ? 'Uint16Array'
+    : ['int8_t', 's8'].includes(normalized ?? '') ? 'Int8Array'
+    : undefined;
+  return constructor ? `new ${constructor}(${value})` : value;
 }
 
 function safeName(name: string): string {

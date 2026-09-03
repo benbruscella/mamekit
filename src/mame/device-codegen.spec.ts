@@ -496,4 +496,40 @@ assert.equal(
   );
 }
 
+// ALLOC knows an array's length, while the declaration owns its element type.
+// K051960 uses -1 in an int array as its inactive-sprite sentinel; emitting a
+// Uint8Array changes that sentinel to 255 and draws every inactive sprite.
+{
+  const typedLocals: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['sentinel'],
+    methods: [{
+      name: 'sentinel',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler(`
+        int sorted[2];
+        sorted[0] = -1;
+        sorted[1] = 300;
+        return sorted[0] + sorted[1];
+      `),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(typedLocals);
+  assert.match(emitted.source, /new Int32Array\(new Uint8Array/);
+  const built = new Function(`return ${emitted.source}`)() as
+    Record<string, (runtime: unknown) => unknown>;
+  const runtime = {
+    members: {},
+    add: (left: number, right: number) => left + right,
+    readIndex: (memory: ArrayLike<number>, index: number) => memory[index] ?? 0,
+    writeIndex: (memory: { [index: number]: number }, index: number, value: number) => {
+      memory[index] = value;
+      return value;
+    },
+  };
+  assert.equal(built.sentinel!(runtime), 299,
+    'direct local arrays must preserve their source-declared signed width');
+}
+
 console.log('device-codegen.spec: IR selection, dependency closure, case scoping, host services and pointer calls passed');
