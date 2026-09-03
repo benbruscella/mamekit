@@ -353,7 +353,9 @@ export function compileMameVideo(
     });
   });
   const paletteMembers = [...new Set(
-    [...decodeBindings.values()].map(binding => binding.paletteMember),
+    [...decodeBindings.values()]
+      .map(binding => binding.paletteMember)
+      .filter((member): member is string => Boolean(member)),
   )];
   const palettes = paletteMembers.length > 1
     ? compileNamedPalettes(graph, ast, source, constants, paletteMembers)
@@ -1497,22 +1499,31 @@ function tilemapScrollDelta(
 function compileDecodeBindings(
   graph: KnowledgeGraph,
   machineIds: Set<string>,
-): Map<string, { decodeMember: string; paletteMember: string }> {
+): Map<string, { decodeMember: string; paletteMember?: string }> {
   const deviceIds = new Set(graph.edges
     .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
     .map(edge => edge.to));
-  const bindings = new Map<string, { decodeMember: string; paletteMember: string }>();
-  const bindingsByTag = new Map<string, { decodeMember: string; paletteMember: string }>();
+  const bindings = new Map<string, { decodeMember: string; paletteMember?: string }>();
+  const bindingsByTag = new Map<string, { decodeMember: string; paletteMember?: string }>();
   for (const device of graph.nodes.filter(node =>
     deviceIds.has(node.id) &&
     node.label === 'Device' &&
     node.props.type === 'GFXDECODE')) {
     const raw = ((device.props.config as string[] | undefined) ?? []).join('\n');
-    const args = /GFXDECODE(?:_SCALE)?\s*\(\s*config\s*,\s*(m_\w+)\s*,\s*(m_\w+)\s*,\s*(\w+)/.exec(raw);
+    const args = /GFXDECODE(?:_SCALE)?\s*\(\s*config\s*,\s*(m_\w+|"[^"]+")\s*,\s*(m_\w+|"[^"]+")\s*,\s*(\w+)/.exec(raw);
     if (!args) continue;
+    const decodeMember = configuredDeviceMember(args[1]!);
+    if (!decodeMember) continue;
+    // A quoted palette tag proves which device gfxdecode uses, but not that
+    // the owning C++ object exposes a correspondingly named member. The
+    // generated gfx elements already use the board's sole palette by default;
+    // retain a palette binding only when MAME names an actual member.
+    const paletteMember = /^m_\w+$/.test(args[2]!.trim())
+      ? args[2]!.trim()
+      : undefined;
     const binding = {
-      decodeMember: args[1]!,
-      paletteMember: args[2]!,
+      decodeMember,
+      ...(paletteMember ? { paletteMember } : {}),
     };
     bindings.set(args[3]!, binding);
     bindingsByTag.set(String(device.props.tag), binding);
@@ -1536,6 +1547,21 @@ function compileDecodeBindings(
     if (binding) bindings.set(String(decode.props.name), binding);
   }
   return bindings;
+}
+
+/**
+ * Modern MAME machine configs commonly use either a required-device member or
+ * its simple tag for GFXDECODE. Both forms name the conventional decode finder
+ * (`m_gfxdecode` / `"gfxdecode"`, for example), so retain that gfx grouping for
+ * generated video plans. Hierarchical tags are deliberately excluded: a
+ * colon-separated tag cannot be mapped to a C++ member without source type
+ * information.
+ */
+function configuredDeviceMember(value: string): string | undefined {
+  const token = value.trim();
+  if (/^m_\w+$/.test(token)) return token;
+  const tag = /^"([A-Za-z_]\w*)"$/.exec(token)?.[1];
+  return tag ? `m_${tag}` : undefined;
 }
 
 /**

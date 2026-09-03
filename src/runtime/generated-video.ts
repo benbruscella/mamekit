@@ -1788,12 +1788,18 @@ class GeneratedTilemap {
     if (needsUpdate) {
       Object.assign(tile, { gfx: 0, code: 0, color: 0, flags: 0, category: 0, group: 0 });
       const tileinfo = createGeneratedTileInfoTarget(tile);
-      executeGeneratedMachineProgram(
-        this.machine,
-        this.tileInfo,
-        this.bindings(),
-        { tilemap: this, tileinfo, tile_index: tileIndex },
-      );
+      const bindings = this.bindings();
+      const deviceTileInfo = bindings.referenceCalls?.[this.plan.tileInfo];
+      if (deviceTileInfo) {
+        deviceTileInfo(this, tileinfo, tileIndex);
+      } else {
+        executeGeneratedMachineProgram(
+          this.machine,
+          this.tileInfo,
+          bindings,
+          { tilemap: this, tileinfo, tile_index: tileIndex },
+        );
+      }
       this.dirty[tileIndex] = 0;
       this.dirtyIndices.delete(tileIndex);
     }

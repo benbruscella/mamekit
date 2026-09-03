@@ -12,6 +12,11 @@ assert.ok(machine);
 
 const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video?.plan.palette, 'Cosmic Avenger palette PROM must lower');
+assert.ok(video.plan.gfx.length > 0, 'Cosmic Avenger decoded graphics must lower');
+assert.ok(
+  video.plan.gfx.every(entry => entry.decodeMember === 'm_gfxdecode'),
+  'string-tagged GFXDECODE must bind character graphics to m_gfxdecode',
+);
 assert.deepEqual(
   video.plan.palette.channels.map(channel => ({
     channel: channel.channel,

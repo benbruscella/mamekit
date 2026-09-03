@@ -484,7 +484,7 @@ const tileMachine: BoardIr = {
     ...machine.handlers!,
     {
       id: 'handler:tile_info',
-      ownerClass: 'fixture_state',
+      ownerClass: 'fixture_video_device',
       method: 'tile_info',
       program: compileMameHandler('tileinfo.set(0, 0, 0, 0);'),
     },
@@ -499,7 +499,7 @@ const tileMachine: BoardIr = {
       columns: 1,
       rows: 1,
       mapper: 'TILEMAP_SCAN_ROWS',
-      tileInfo: 'fixture_state.tile_info',
+      tileInfo: 'fixture_video_device.tile_info',
     }],
   },
 };
@@ -518,6 +518,33 @@ executeGeneratedProgram(
 if (tilemap.tiles.length !== 0 || tilemap.dirty.length !== 0) {
   throw new Error('mark_all_dirty did not invalidate generated tile cache');
 }
+
+let deviceTileInfoCalls = 0;
+const deviceTileState: Record<string, unknown> = {};
+const deviceTilePrimitives = new GeneratedMameVideoPrimitives(
+  tileMachine,
+  {},
+  deviceTileState,
+  {
+    referenceCalls: {
+      'fixture_video_device.tile_info': (_tilemap, tileinfo, tileIndex) => {
+        deviceTileInfoCalls++;
+        (tileinfo as { set(...args: number[]): void }).set(0, Number(tileIndex) + 7, 3, 0);
+      },
+    },
+  },
+);
+const deviceTilemap = deviceTileState.m_bg_tilemap as {
+  tiles: { code: number; color: number }[];
+  draw(screen: unknown, bitmap: unknown, clip: unknown, flags: number): void;
+};
+deviceTilemap.draw({}, {}, { min_x: 0, max_x: 7, min_y: 0, max_y: 7 }, 0);
+assert.equal(deviceTileInfoCalls, 1);
+assert.deepEqual(
+  { code: deviceTilemap.tiles[0]?.code, color: deviceTilemap.tiles[0]?.color },
+  { code: 7, color: 3 },
+  'device-owned tile callbacks must read the device instance rather than driver state',
+);
 
 // A scrolled tilemap must repaint the whole visible area. Ghosts'n Goblins
 // scrolls a single-band 32x32 map of 16px tiles: at scrollx 140 a tile range

@@ -863,6 +863,17 @@ class IrBoard implements Board {
         calls[`${tag}.${method}`] = invoke;
         calls[`m_${tag}.${method}`] = invoke;
         if (specification?.member) calls[`${specification.member}.${method}`] = invoke;
+        // Tilemap callbacks are recorded by their declaring C++ class rather
+        // than by the machine-config tag. When exactly one device of that
+        // class is composed, preserve that source identity so its callback
+        // executes against the device's private RAM, not the driver state.
+        if (
+          specification?.className &&
+          machine.devices?.filter(candidate =>
+            candidate.className === specification.className).length === 1
+        ) {
+          this.bindings.referenceCalls![`${specification.className}.${method}`] = invoke;
+        }
       }
     }
     // The same clock the `machine()` object answers with -- the scheduler's,
