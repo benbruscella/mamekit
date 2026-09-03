@@ -1442,7 +1442,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   }
   // A clone's canonical parent may live in another driver file and therefore
   // be represented only by the CLONE_OF edge in this driver's full graph
-  // (shinobi5 -> shinobi is the canonical cross-file case).
+  // Cross-file clones still need their canonical parent's ROM-set metadata.
   const parentEdge = opts.fullGraph?.edges.find(edge =>
     edge.from === `game:${opts.game}` && edge.rel === 'CLONE_OF');
   const parentGame = parentEdge ? lineage.node(parentEdge.to) : undefined;

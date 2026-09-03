@@ -3892,6 +3892,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const palette = wordsView(this.state.m_paletteram);
     const gfx = this.gfx[0];
     if (!tile || !text || !gfx) return false;
+    const system16a = this.machine.family === 'segas16a';
 
     if (palette && this.ramPalette) {
       const mirror = this.ramPaletteMirror ??= new Uint16Array(palette.length);
@@ -3919,19 +3920,34 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     }
 
     const drawLayer = (which: 0 | 1, transparent: boolean) => {
-      const pageSelect = text[(0xe80 >>> 1) + which] ?? 0;
-      const yScroll = text[(0xe90 >>> 1) + which] ?? 0;
-      const xScroll = text[(0xe98 >>> 1) + which] ?? 0;
+      const rawPages = system16a
+        ? text[(0xe9e >>> 1) - which] ?? 0
+        : text[(0xe80 >>> 1) + which] ?? 0;
+      // System 16A swaps the page-select nibbles along X and only has eight
+      // tile pages. Its scroll registers and 200-pixel origin also differ
+      // from the later 16B layout.
+      const pageSelect = system16a
+        ? (((rawPages >>> 4) & 0x0707) | ((rawPages << 4) & 0x7070))
+        : rawPages;
+      const yScroll = system16a
+        ? (text[(0xf24 >>> 1) + which] ?? 0) & 0xff
+        : text[(0xe90 >>> 1) + which] ?? 0;
+      const rawXScroll = system16a
+        ? (text[(0xff8 >>> 1) + which] ?? 0) & 0x1ff
+        : text[(0xe98 >>> 1) + which] ?? 0;
+      const xScroll = system16a ? (0xc8 - rawXScroll) & 0x3ff : rawXScroll;
       for (let row = 0; row < 29; row++) {
         for (let column = 0; column < 41; column++) {
-          const virtualX = (column + ((0xc0 - xScroll) >>> 3)) & 0x7f;
+          const virtualX = system16a
+            ? (column + (xScroll >>> 3)) & 0x7f
+            : (column + ((0xc0 - xScroll) >>> 3)) & 0x7f;
           const virtualY = (row + ((yScroll & 0x1ff) >>> 3)) & 0x3f;
           const quadrant = (virtualY >= 32 ? 2 : 0) | (virtualX >= 64 ? 1 : 0);
           const page = (pageSelect >>> (quadrant * 4)) & 0x0f;
           const index = page * 0x800 + (virtualY & 31) * 64 + (virtualX & 63);
           const data = tile[index % tile.length] ?? 0;
-          const code = data & 0x1fff;
-          const color = (data >>> 6) & 0x7f;
+          const code = system16a ? ((data >>> 1) & 0x1000) | (data & 0x0fff) : data & 0x1fff;
+          const color = (data >>> (system16a ? 5 : 6)) & 0x7f;
           const x = column * 8 - (xScroll & 7);
           const y = row * 8 - (yScroll & 7);
           if (transparent) gfx.transpen(bitmap, cliprect, code, color, 0, 0, x, y, 0);
@@ -3948,8 +3964,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         gfx.transpen(
           bitmap,
           cliprect,
-          data & 0x1ff,
-          (data >>> 9) & 0x07,
+          data & (system16a ? 0xff : 0x1ff),
+          (data >>> (system16a ? 8 : 9)) & 0x07,
           0,
           0,
           column * 8,

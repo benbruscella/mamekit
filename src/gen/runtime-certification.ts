@@ -106,6 +106,20 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
     generationGaps: ['r1sound:GOTTLIEB_SOUND_SPEECH_REV1A', 'votrax:VOTRAX_SC01'],
     handlerGaps: ['r1sound:dac.data_w'],
   },
+  shinobi: {
+    // The canonical unprotected parent is System 16A. Its fixed memory map,
+    // PPI handshake and tile layers are supplied by the generated board/video
+    // runtimes and verified against shinobi.zip; the remaining device gaps
+    // are the dedicated sprite/sample helpers around that playable path.
+    generationGaps: [
+      'i8255:I8255',
+      'sprites:SEGA_SYS16A_SPRITES',
+      'upd7751:UPD7751',
+      'upd7751_8243:I8243',
+    ],
+    handlerGaps: [],
+    allowDirectScreen: true,
+  },
   rocnrope: {
     generationGaps: [],
     handlerGaps: [

@@ -2355,6 +2355,125 @@ class IrBoard implements Board {
     regions: Regions,
     registry: HandlerRegistry,
   ): (() => void) | undefined {
+    if (machine.family === 'segas16a') {
+      // System 16A exposes a conventional fixed memory map, but all of its
+      // controls are funnelled through an 8255 whose selected source methods
+      // live outside the machine's reachable handler closure. Model that
+      // small PPI here so the canonical unprotected Shinobi set can complete
+      // its startup checks and enable the tile/sprite hardware.
+      const ports = new Uint8Array(3);
+      let control = 0x9b;
+      let soundLatch = 0;
+      const shareWord = (tag: string, offset: number) => {
+        const bytes = this.shares[tag];
+        if (!bytes || offset < 0 || offset * 2 + 1 >= bytes.length) return 0xffff;
+        return new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1)[offset]!;
+      };
+      const writeShareWord = (
+        tag: string,
+        offset: number,
+        data: number,
+        memMask: number,
+      ) => {
+        const bytes = this.shares[tag];
+        if (!bytes || offset < 0 || offset * 2 + 1 >= bytes.length) return;
+        const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
+        words[offset] = (words[offset]! & ~memMask) | (data & memMask);
+      };
+      const outputPort = (port: number) => {
+        const data = ports[port]!;
+        if (port === 0) {
+          soundLatch = data;
+          this.state.m_to_sound = data;
+        } else if (port === 1) {
+          this.state.m_video_control = data;
+          this.state.__flip_screen = data & 0x80;
+          this.state.__system16aDisplayEnable = data & 0x10;
+        } else {
+          this.cpus.get('soundcpu')?.setInputLine(INPUT_LINE_NMI, data & 0x80 ? 0 : 1);
+          this.state.__system16aColscroll = (~data) & 0x04;
+          this.state.__system16aRowscroll = (~data) & 0x02;
+        }
+      };
+      const ppiWrite = (port: number, data: number) => {
+        data &= 0xff;
+        if (port < 3) {
+          ports[port] = data;
+          outputPort(port);
+          if (port === 0) {
+            // Mode-1 port A lowers /OBF on each command. PC7 is wired to the
+            // sound CPU NMI through tilemap_sound_w.
+            ports[2] &= ~0x80;
+            outputPort(2);
+          }
+        } else if (data & 0x80) {
+          control = data;
+          ports.fill(0);
+          ports[2] = 0x80;
+          outputPort(0);
+          outputPort(1);
+          outputPort(2);
+        } else {
+          const bit = (data >>> 1) & 7;
+          ports[2] = data & 1 ? ports[2]! | (1 << bit) : ports[2]! & ~(1 << bit);
+          outputPort(2);
+        }
+      };
+      registry.read['segas16a_state.misc_io_r'] = (_address, rawOffset) => {
+        const offset = rawOffset & 0x1fff;
+        switch (offset & 0x1800) {
+          case 0x0000: return (offset & 3) === 3 ? control : ports[offset & 3]!;
+          case 0x0800:
+            return this.bindings.inputs?.read(['SERVICE', 'P1', 'UNUSED', 'P2'][offset & 3]!)
+              ?? 0xff;
+          case 0x1000:
+            return this.bindings.inputs?.read((offset & 1) ? 'DSW2' : 'DSW1') ?? 0xff;
+          default: return 0xffff;
+        }
+      };
+      registry.write['segas16a_state.misc_io_w'] = (
+        _address,
+        rawOffset,
+        data,
+        memMask = 0xffff,
+      ) => {
+        const offset = rawOffset & 0x1fff;
+        if ((offset & 0x1800) === 0 && (memMask & 0x00ff)) ppiWrite(offset & 3, data);
+      };
+      registry.read['segas16a_state.sound_data_r'] = () => {
+        // The Z80 acknowledges the command through PC6. The 8255 releases
+        // /OBF (PC7 high), which clears the held NMI until the next PA write.
+        ports[2] = (ports[2]! & ~0x40) | 0x80;
+        outputPort(2);
+        return soundLatch;
+      };
+      for (const [handler, share] of [
+        ['segaic16vid.tileram', 'tileram'],
+        ['segaic16vid.textram', 'textram'],
+      ] as const) {
+        registry.read[`${handler}_r`] = (_address, offset) => shareWord(share, offset);
+        registry.write[`${handler}_w`] = (
+          _address,
+          offset,
+          data,
+          memMask = 0xffff,
+        ) => writeShareWord(share, offset, data, memMask);
+      }
+      const reset = () => {
+        ports.fill(0);
+        ports[2] = 0x80;
+        control = 0x9b;
+        soundLatch = 0;
+        this.state.m_to_sound = 0;
+        this.state.m_video_control = 0;
+        this.state.__flip_screen = 0;
+        this.state.__system16aDisplayEnable = 0;
+        this.state.__system16aColscroll = 0;
+        this.state.__system16aRowscroll = 0;
+      };
+      reset();
+      return reset;
+    }
     if (machine.family === 'segas16b') {
       // System 16B routes the complete 68000 address space through Sega's
       // 315-5195. Its eight windows power up together at zero, then the ROM
@@ -4102,6 +4221,12 @@ class IrBoard implements Board {
           this.bindings.calls?.[`m_${tag}.${method}`];
         if (call) return state => { call(state); };
         const type = this.machine.devices?.find(candidate => candidate.tag === tag)?.type ?? '';
+        if (this.machine.family === 'segas16a' && type === 'I8243' && method === 'prog_w') {
+          // The 8243 is a four-port expander rather than a processor. Until
+          // its tiny generated core is composed, retain the PROG pin here so
+          // System 16A's 7751 sample controller remains a valid endpoint.
+          return state => { this.state[`__${tag}_${method}`] = state & 1; };
+        }
         if (/^(?:YM|AY|POKEY|TMS|OKI|MSM|SN|DAC|DISCRETE)/.test(type)) {
           // Auxiliary sound chips may not be the board's selected primary
           // synthesizer, but their control pins remain real I/O endpoints.
